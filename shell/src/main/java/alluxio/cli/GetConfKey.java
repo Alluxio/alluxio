@@ -47,7 +47,7 @@ public final class GetConfKey {
   }
 
   /**
-   * Implements create configuration key.
+   * Implements get configuration key.
    *
    * @param args the arguments to specify the environment variable name
    * @return 0 on success, 1 on failures

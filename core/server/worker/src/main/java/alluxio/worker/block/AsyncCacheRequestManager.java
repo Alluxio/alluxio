@@ -68,7 +68,7 @@ public class AsyncCacheRequestManager {
     mLocalWorkerHostname =
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
-    mFsContext = FileSystemContext.create(null, ServerConfiguration.getProperties());
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
   }
 
   /**

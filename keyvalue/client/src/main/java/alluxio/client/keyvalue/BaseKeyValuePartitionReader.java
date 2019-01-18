@@ -28,7 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Default implementation of {@link KeyValuePartitionReader} to talk to a remote key-value worker to
- * create the value of a given key.
+ * get the value of a given key.
  */
 @NotThreadSafe
 final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {

@@ -236,10 +236,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    *
    * JournalContext, BlockDeletionContext, and RpcContext
    *
-   * RpcContext is an aggregator for various contexts which create passed around through file system
+   * RpcContext is an aggregator for various contexts which get passed around through file system
    * master methods.
    *
-   * Currently there are two types of contexts that create passed around: {@link JournalContext} and
+   * Currently there are two types of contexts that get passed around: {@link JournalContext} and
    * {@link BlockDeletionContext}. These contexts are used to register work that should be done when
    * the context closes. The journal context tracks journal entries which need to be flushed, while
    * the block deletion context tracks which blocks need to be deleted in the {@link BlockMaster}.
@@ -851,7 +851,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   /**
-   * @param inodePath the {@link LockedInodePath} to create the {@link FileInfo} for
+   * @param inodePath the {@link LockedInodePath} to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    */
   private FileInfo getFileInfoInternal(LockedInodePath inodePath)
@@ -1658,7 +1658,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   /**
-   * @param inodePath the {@link LockedInodePath} to create the info for
+   * @param inodePath the {@link LockedInodePath} to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the given inode
    */
   private List<FileBlockInfo> getFileBlockInfoListInternal(LockedInodePath inodePath)

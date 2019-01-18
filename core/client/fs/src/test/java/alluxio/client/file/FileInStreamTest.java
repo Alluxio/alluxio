@@ -362,7 +362,7 @@ public final class FileInStreamTest {
    */
   @Test
   public void testSeekWithNoLocalWorker() throws IOException {
-    // Overrides the create local worker call
+    // Overrides the get local worker call
     PowerMockito.when(mContext.getLocalWorker()).thenReturn(null);
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();

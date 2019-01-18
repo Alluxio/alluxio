@@ -695,7 +695,7 @@ public class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Tries to create an eviction plan to free a certain amount of space in the given location, and
+   * Tries to get an eviction plan to free a certain amount of space in the given location, and
    * carries out this plan with the best effort.
    *
    * @param sessionId the session id

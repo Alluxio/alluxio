@@ -49,7 +49,7 @@ public final class WorkerUfsManager extends AbstractUfsManager {
   /**
    * {@inheritDoc}.
    *
-   * If this mount id is new to this worker, this method will query master to create the
+   * If this mount id is new to this worker, this method will query master to get the
    * corresponding ufs info.
    */
   @Override

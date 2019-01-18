@@ -58,7 +58,7 @@ public final class FileSystemMasterView {
   /**
    * Returns the {@link FileInfo} for a given path. Called via RPC, as well as internal masters.
    *
-   * @param fileId the file id to create the {@link FileInfo} for
+   * @param fileId the file id to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission denied
@@ -79,7 +79,7 @@ public final class FileSystemMasterView {
    * Returns the file id for a given path. If the given path does not exist in Alluxio, the method
    * attempts to load it from UFS.
    *
-   * @param path the path to create the file id for
+   * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if file does not exist
@@ -90,7 +90,7 @@ public final class FileSystemMasterView {
   }
 
   /**
-   * @param path the path to create the info for
+   * @param path the path to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the given file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path of the given file is invalid

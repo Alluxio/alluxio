@@ -46,8 +46,8 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   /**
    * Creates a new instance of {@link WebInterfaceConfigurationServlet}.
    *
-   * @param fsMaster file system master to create white list
-   * @param metaMaster the meta master to create configuration
+   * @param fsMaster file system master to get white list
+   * @param metaMaster the meta master to get configuration
    */
   public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster, MetaMaster metaMaster) {
     mFsMaster = fsMaster;

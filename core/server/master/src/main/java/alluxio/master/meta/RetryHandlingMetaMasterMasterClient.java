@@ -70,7 +70,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
   /**
    * Returns a master id for a master address.
    *
-   * @param address the address to create a master id for
+   * @param address the address to get a master id for
    * @return a master id
    */
   public long getId(final Address address) throws IOException {

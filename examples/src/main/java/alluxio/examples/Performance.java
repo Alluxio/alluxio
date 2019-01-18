@@ -610,7 +610,7 @@ public final class Performance {
     conf.set(PropertyKey.MASTER_HOSTNAME, masterAddress.getHost());
     conf.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
 
-    FileSystemContext fsContext = FileSystemContext.create(null, conf);
+    FileSystemContext fsContext = FileSystemContext.create(conf);
 
     if (testCase == 1) {
       sResultPrefix = "AlluxioFilesWriteTest " + sResultPrefix;

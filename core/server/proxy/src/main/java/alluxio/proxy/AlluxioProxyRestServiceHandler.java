@@ -62,7 +62,7 @@ public final class AlluxioProxyRestServiceHandler {
   }
 
   /**
-   * @summary create the Alluxio proxy information
+   * @summary get the Alluxio proxy information
    * @param rawConfiguration if it's true, raw configuration values are returned,
    *    otherwise, they are looked up; if it's not provided in URL queries, then
    *    it is null, which means false.

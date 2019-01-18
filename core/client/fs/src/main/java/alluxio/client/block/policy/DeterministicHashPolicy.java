@@ -43,7 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * This policy is useful for limiting the amount of replication that occurs when reading blocks from
  * the UFS with high concurrency. With 30 workers and 100 remote clients reading the same block
- * concurrently, the replication level for the block would create close to 30 as each workers reads
+ * concurrently, the replication level for the block would get close to 30 as each workers reads
  * and caches the block for one or more clients. If the clients use DeterministicHashPolicy with
  * 3 shards, the 100 clients will split their reads between just 3 workers, so that the replication
  * level for the block will be only 3 when the data is first loaded.

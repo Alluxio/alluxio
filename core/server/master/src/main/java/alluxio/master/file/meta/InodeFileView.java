@@ -68,7 +68,7 @@ public interface InodeFileView extends InodeView {
   /**
    * Gets the block id for a given index.
    *
-   * @param blockIndex the index to create the block id for
+   * @param blockIndex the index to get the block id for
    * @return the block id for the index
    * @throws BlockInfoException if the index of the block is out of range
    */

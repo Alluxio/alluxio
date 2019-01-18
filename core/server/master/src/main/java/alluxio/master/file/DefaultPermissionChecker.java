@@ -141,7 +141,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
   }
 
   /**
-   * @param user the user to create groups for
+   * @param user the user to get groups for
    * @return the groups for the given user
    * @throws AccessControlException if the group service information cannot be accessed
    */

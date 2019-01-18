@@ -114,7 +114,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
   /**
    * Returns a worker id for a workers net address.
    *
-   * @param address the net address to create a worker id for
+   * @param address the net address to get a worker id for
    * @return a worker id
    */
   public long getId(final WorkerNetAddress address) throws IOException {

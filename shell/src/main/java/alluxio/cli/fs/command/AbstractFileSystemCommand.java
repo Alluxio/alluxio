@@ -42,7 +42,7 @@ public abstract class AbstractFileSystemCommand implements Command {
   // filesystem client, if null - load default properties
   protected AbstractFileSystemCommand(FileSystemContext fsContext) {
     if (fsContext == null) {
-      fsContext = FileSystemContext.create(null, ConfigurationUtils.defaults());
+      fsContext = FileSystemContext.create(ConfigurationUtils.defaults());
     }
     mFsContext = fsContext;
     mFileSystem = FileSystem.Factory.get(fsContext);

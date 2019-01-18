@@ -110,7 +110,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the Alluxio master information
+   * @summary get the Alluxio master information
    * @param rawConfiguration if it's true, raw configuration values are returned,
    *    otherwise, they are looked up; if it's not provided in URL queries, then
    *    it is null, which means false.
@@ -144,7 +144,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the configuration map, the keys are ordered alphabetically.
+   * @summary get the configuration map, the keys are ordered alphabetically.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -158,7 +158,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the master metrics, the keys are ordered alphabetically.
+   * @summary get the master metrics, the keys are ordered alphabetically.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -172,7 +172,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the master rpc address
+   * @summary get the master rpc address
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -187,7 +187,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the start time of the master
+   * @summary get the start time of the master in milliseconds
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -201,7 +201,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the uptime of the master
+   * @summary get the uptime of the master in milliseconds
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -215,7 +215,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the version of the master
+   * @summary get the version of the master
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -229,7 +229,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the total capacity of all workers in bytes
+   * @summary get the total capacity of all workers in bytes
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -243,7 +243,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the used capacity
+   * @summary get the used capacity
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -257,7 +257,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the free capacity
+   * @summary get the free capacity
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -272,7 +272,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the total ufs capacity in bytes, a negative value means the capacity is
+   * @summary get the total ufs capacity in bytes, a negative value means the capacity is
    * unknown.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
@@ -287,7 +287,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the used disk capacity, a negative value means the capacity is unknown.
+   * @summary get the used disk capacity, a negative value means the capacity is unknown.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -301,7 +301,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the free ufs capacity in bytes, a negative value means the capacity is unknown.
+   * @summary get the free ufs capacity in bytes, a negative value means the capacity is unknown.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -335,7 +335,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the mapping from tier alias to total capacity of the tier in bytes, keys are in
+   * @summary get the mapping from tier alias to total capacity of the tier in bytes, keys are in
    *    the order from tier alias with smaller ordinal to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
@@ -356,7 +356,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the mapping from tier alias to the used bytes of the tier, keys are in the
+   * @summary get the mapping from tier alias to the used bytes of the tier, keys are in the
    *          order from tier alias with smaller ordinal to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
@@ -377,7 +377,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the count of workers
+   * @summary get the count of workers
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -391,7 +391,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @summary create the list of worker descriptors
+   * @summary get the list of worker descriptors
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)

@@ -70,7 +70,7 @@ public interface BlockMasterClient extends Client {
   /**
    * Returns the {@link BlockInfo} for a block id.
    *
-   * @param blockId the block id to create the BlockInfo for
+   * @param blockId the block id to get the BlockInfo for
    * @return the {@link BlockInfo}
    */
   BlockInfo getBlockInfo(final long blockId) throws IOException;

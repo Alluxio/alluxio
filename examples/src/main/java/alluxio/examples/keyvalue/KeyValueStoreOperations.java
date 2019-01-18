@@ -96,7 +96,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
       return false;
     }
 
-    // API: KeyValueStoreReader#create
+    // API: KeyValueStoreReader#get
     for (Map.Entry<ByteBuffer, ByteBuffer> pair : mKeyValuePairs.entrySet()) {
       ByteBuffer expectedValue = pair.getValue();
       ByteBuffer gotValue = reader.get(pair.getKey());

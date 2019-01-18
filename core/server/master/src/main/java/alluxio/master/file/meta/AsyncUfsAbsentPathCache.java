@@ -205,7 +205,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   /**
-   * @param alluxioUri the Alluxio path to create the mount info for
+   * @param alluxioUri the Alluxio path to get the mount info for
    * @return the {@link MountInfo} of the given Alluxio path, or null if it doesn't exist
    */
   private MountInfo getMountInfo(AlluxioURI alluxioUri) {
@@ -223,7 +223,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
    * Returns a sequence of Alluxio paths for a specified path, starting from the path component at
    * a specific index, to the specified path.
    *
-   * @param alluxioUri the Alluxio path to create the nested paths for
+   * @param alluxioUri the Alluxio path to get the nested paths for
    * @param startComponentIndex the index to the starting path component,
    *        root directory has index 0
    * @return a list of nested paths from the starting component to the given path

@@ -616,7 +616,7 @@ public final class PermissionCheckTest {
   }
 
   /**
-   * This method verifies the create fileId.
+   * This method verifies the get fileId.
    * @param user the user
    * @param path the path of the file to verify
    * @throws Exception if it fails to verify

@@ -90,7 +90,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private final BlockMasterClient mBlockMasterClient;
   /**
    * Block master clients. commitBlock is the only reason to keep a pool of block master clients
-   * on each worker. We should either improve our RPC model in the master or create rid of the
+   * on each worker. We should either improve our RPC model in the master or get rid of the
    * necessity to call commitBlock in the workers.
    */
   private final BlockMasterClientPool mBlockMasterClientPool;

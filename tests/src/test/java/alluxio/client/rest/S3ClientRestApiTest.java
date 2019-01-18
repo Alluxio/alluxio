@@ -596,7 +596,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
       // expected
       return;
     }
-    Assert.fail("create non-existent object should fail");
+    Assert.fail("get non-existent object should fail");
   }
 
   @Test
@@ -799,7 +799,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String object = "object";
     final String objectKey = bucket + AlluxioURI.SEPARATOR + object;
 
-    // Initiate multipart upload to create upload ID.
+    // Initiate multipart upload to get upload ID.
     String result = initiateMultipartUploadRestCall(objectKey);
     InitiateMultipartUploadResult multipartUploadResult =
         XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);

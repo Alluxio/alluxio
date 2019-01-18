@@ -346,7 +346,7 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create the metadata of a block which does not
+   * Tests that an exception is thrown when trying to get the metadata of a block which does not
    * exist.
    */
   @Test
@@ -416,7 +416,7 @@ public final class StorageDirTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create the metadata of a temporary block that
+   * Tests that an exception is thrown when trying to get the metadata of a temporary block that
    * does not exist.
    */
   @Test

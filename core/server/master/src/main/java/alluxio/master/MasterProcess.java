@@ -57,8 +57,8 @@ public interface MasterProcess extends Process {
   }
 
   /**
-   * @param clazz the class of the master to create
-   * @param <T> the type of the master to create
+   * @param clazz the class of the master to get
+   * @param <T> the type of the master to get
    * @return the given master
    */
   <T extends Master> T getMaster(Class<T> clazz);

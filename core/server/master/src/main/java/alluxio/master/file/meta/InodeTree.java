@@ -199,8 +199,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
 
   /**
-   * @param containerIdGenerator the container id generator to use to create new container ids
-   * @param directoryIdGenerator the directory id generator to use to create new directory ids
+   * @param containerIdGenerator the container id generator to use to get new container ids
+   * @param directoryIdGenerator the directory id generator to use to get new directory ids
    * @param mountTable the mount table to manage the file system mount points
    */
   public InodeTree(ContainerIdGenerable containerIdGenerator,
@@ -334,7 +334,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   }
 
   /**
-   * @param id the id to create the inode for
+   * @param id the id to get the inode for
    * @return whether the inode exists
    */
   public boolean inodeIdExists(long id) {
@@ -556,7 +556,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * Returns the path for a particular inode. The inode and the path to the inode must already be
    * locked.
    *
-   * @param inode the {@link Inode} to create the path for
+   * @param inode the {@link Inode} to get the path for
    * @return the {@link AlluxioURI} for the path of the inode
    * @throws FileDoesNotExistException if the path does not exist
    */

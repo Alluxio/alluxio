@@ -101,7 +101,7 @@ public final class JobCoordinator {
   }
 
   private synchronized void start() throws JobDoesNotExistException {
-    // create the job definition
+    // get the job definition
     LOG.info("Starting job {}", mJobInfo.getJobConfig());
     JobDefinition<JobConfig, ?, ?> definition =
         JobDefinitionRegistry.INSTANCE.getJobDefinition(mJobInfo.getJobConfig());
@@ -259,7 +259,7 @@ public final class JobCoordinator {
    * @throws Exception if any error occurs
    */
   private String join(List<TaskInfo> taskInfoList) throws Exception {
-    // create the job definition
+    // get the job definition
     JobDefinition<JobConfig, Serializable, Serializable> definition =
         JobDefinitionRegistry.INSTANCE.getJobDefinition(mJobInfo.getJobConfig());
     Map<WorkerInfo, Serializable> taskResults = Maps.newHashMap();

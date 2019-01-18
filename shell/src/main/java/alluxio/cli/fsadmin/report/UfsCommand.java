@@ -28,7 +28,7 @@ public class UfsCommand {
   /**
    * Creates a new instance of {@link UfsCommand}.
    *
-   * @param fileSystemMasterClient client to create mount table from
+   * @param fileSystemMasterClient client to get mount table from
    */
   public UfsCommand(FileSystemMasterClient fileSystemMasterClient) {
     mFileSystemMasterClient = fileSystemMasterClient;
@@ -49,7 +49,7 @@ public class UfsCommand {
   /**
    * Prints mount information for a mount table.
    *
-   * @param mountTable the mount table to create information from
+   * @param mountTable the mount table to get information from
    */
   public static void printMountInfo(Map<String, MountPointInfo> mountTable) {
     for (Map.Entry<String, MountPointInfo> entry : mountTable.entrySet()) {
@@ -78,7 +78,7 @@ public class UfsCommand {
 
   /**
    * Gets the align format according to the longest mount point/under storage path.
-   * @param mountTable the mount table to create information from
+   * @param mountTable the mount table to get information from
    * @return the align format for printing mounted info
    */
   private static String getAlignFormat(Map<String, MountPointInfo> mountTable) {
