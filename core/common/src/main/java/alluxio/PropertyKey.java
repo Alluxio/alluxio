@@ -2631,6 +2631,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MIN =
+      new Builder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MIN)
+          .setDefaultValue(0)
+          .setDescription("The minimum number of netty channels cached in the netty channel "
+              + "pool. For LLAP, this should be set to zero.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX)
           .setDefaultValue(1024)
@@ -3585,6 +3593,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.netty.writer.close.timeout";
     public static final String USER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.user.network.netty.worker.threads";
+    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MIN =
+        "alluxio.user.network.netty.channel.pool.size.min";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
         "alluxio.user.network.netty.channel.pool.size.max";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =
