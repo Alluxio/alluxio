@@ -2298,7 +2298,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .setAlias(new String[] {Name.USER_BLOCK_MASTER_CLIENT_THREADS})
           .build();
-    public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
           .setDefaultValue("120sec")
           .setDescription("The interval at which block master client GC checks occur.")
