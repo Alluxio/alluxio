@@ -887,10 +887,10 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
    * @return
    */
   static long parseSize(String arg) {
-    String[] args = arg.split("\\D", 2); // create digits
+    String[] args = arg.split("\\D", 2); // get digits
     assert args.length <= 2;
     long nrBytes = Long.parseLong(args[0]);
-    String bytesMult = arg.substring(args[0].length()); // create byte multiple
+    String bytesMult = arg.substring(args[0].length()); // get byte multiple
     return nrBytes * ByteMultiple.parseString(bytesMult).value();
   }
 

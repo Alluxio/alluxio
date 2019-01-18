@@ -532,7 +532,7 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create an Inode by a non-existing path.
+   * Tests that an exception is thrown when trying to get an Inode by a non-existing path.
    */
   @Test
   public void getInodeByNonexistingPath() throws Exception {
@@ -544,7 +544,7 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create an Inode by a non-existing, nested
+   * Tests that an exception is thrown when trying to get an Inode by a non-existing, nested
    * path.
    */
   @Test
@@ -558,7 +558,7 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create an Inode with an invalid id.
+   * Tests that an exception is thrown when trying to get an Inode with an invalid id.
    */
   @Test
   public void getInodeByInvalidId() throws Exception {
@@ -804,7 +804,7 @@ public final class InodeTreeTest {
     }
   }
 
-  // Helper to create an inode by path. The inode is unlocked before returning.
+  // Helper to get an inode by path. The inode is unlocked before returning.
   private static InodeView getInodeByPath(InodeTree root, AlluxioURI path) throws Exception {
     try (LockedInodePath inodePath = root.lockFullInodePath(path, LockPattern.READ)) {
       return inodePath.getInode();

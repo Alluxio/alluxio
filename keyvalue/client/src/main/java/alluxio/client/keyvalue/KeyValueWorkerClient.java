@@ -77,7 +77,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
    * Gets the value of a given {@code key} from a specific key-value block.
    *
    * @param blockId The id of the block
-   * @param key the key to create the value for
+   * @param key the key to get the value for
    * @return ByteBuffer of value, or null if not found
    */
   public ByteBuffer get(final long blockId, final ByteBuffer key)

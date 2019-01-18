@@ -112,7 +112,7 @@ public interface BlockStore extends SessionCleanable {
    * This method requires the lock id returned by a previously acquired
    * {@link #lockBlock(long, long)}.
    *
-   * @param sessionId the id of the session to create this file
+   * @param sessionId the id of the session to get this file
    * @param blockId the id of the block
    * @param lockId the id of the lock
    * @return metadata of the block
@@ -127,7 +127,7 @@ public interface BlockStore extends SessionCleanable {
   /**
    * Gets the temp metadata of a specific block from local storage.
    *
-   * @param sessionId the id of the session to create this file
+   * @param sessionId the id of the session to get this file
    * @param blockId the id of the block
    * @return metadata of the block or null if the temp block does not exist
    */
@@ -182,7 +182,7 @@ public interface BlockStore extends SessionCleanable {
    * Creates a writer to write data to a temp block. Since the temp block is "private" to the
    * writer, this operation requires no previously acquired lock.
    *
-   * @param sessionId the id of the session to create the writer
+   * @param sessionId the id of the session to get the writer
    * @param blockId the id of the temp block
    * @return a {@link BlockWriter} instance on this block
    * @throws BlockDoesNotExistException if the block can not be found
@@ -199,7 +199,7 @@ public interface BlockStore extends SessionCleanable {
    * This operation requires the lock id returned by a previously acquired
    * {@link #lockBlock(long, long)}.
    *
-   * @param sessionId the id of the session to create the reader
+   * @param sessionId the id of the session to get the reader
    * @param blockId the id of an existing block
    * @param lockId the id of the lock returned by {@link #lockBlock(long, long)}
    * @return a {@link BlockReader} instance on this block

@@ -372,7 +372,7 @@ public final class AlluxioBlockStoreTest {
             new BlockLocation().setWorkerAddress(remote2)));
 
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
-    // We should sometimes create remote1 and sometimes create remote2.
+    // We should sometimes get remote1 and sometimes get remote2.
     Set<WorkerNetAddress> results = new HashSet<>();
     for (int i = 0; i < 40; i++) {
       results.add(mBlockStore.getInStream(BLOCK_ID, new InStreamOptions(

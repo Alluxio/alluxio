@@ -70,7 +70,7 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
    * Gets the value associated with the given key in the key-value partition, returning null if the
    * key is not found.
    *
-   * @param key key to create, cannot be null
+   * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
    */
   byte[] get(byte[] key) throws IOException, AlluxioException;
@@ -80,7 +80,7 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
    * key is not found. Both key and value are in ByteBuffer to make zero-copy possible for better
    * performance.
    *
-   * @param key key to create, cannot be null
+   * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
    */
   ByteBuffer get(ByteBuffer key) throws IOException, AlluxioException;

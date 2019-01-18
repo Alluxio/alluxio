@@ -71,7 +71,7 @@ public interface BlockLocationPolicy {
   /**
    * Gets the worker's network address for serving operations requested for the block.
    *
-   * @param options the options to create a block worker network address for a block
+   * @param options the options to get a block worker network address for a block
    * @return the address of the worker to write to, null if no worker can be selected
    */
   @Nullable

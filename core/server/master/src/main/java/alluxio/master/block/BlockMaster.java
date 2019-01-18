@@ -125,7 +125,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void commitBlockInUFS(long blockId, long length) throws UnavailableException;
 
   /**
-   * @param blockId the block id to create information for
+   * @param blockId the block id to get information for
    * @return the {@link BlockInfo} for the given block id
    * @throws BlockInfoException if the block info is not found
    */

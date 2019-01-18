@@ -104,7 +104,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   /**
    * Returns the {@link BlockInfo} for a block id.
    *
-   * @param blockId the block id to create the BlockInfo for
+   * @param blockId the block id to get the BlockInfo for
    * @return the {@link BlockInfo}
    */
   public BlockInfo getBlockInfo(final long blockId) throws IOException {

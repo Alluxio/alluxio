@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class GetUsedBytesCommand extends AbstractFileSystemCommand {
   /**
-   * Constructs a new instance to create the number of bytes used in the {@link FileSystem}.
+   * Constructs a new instance to get the number of bytes used in the {@link FileSystem}.
    *
    * @param fsContext the filesystem of Alluxio
    */

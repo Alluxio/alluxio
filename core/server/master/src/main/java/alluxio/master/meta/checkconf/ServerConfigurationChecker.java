@@ -159,7 +159,7 @@ public class ServerConfigurationChecker {
    * Fills the configuration map.
    *
    * @param targetMap the map to fill
-   * @param recordMap the map to create data from
+   * @param recordMap the map to get data from
    */
   private void fillConfMap(Map<PropertyKey, Map<Optional<String>, List<String>>> targetMap,
       Map<Address, List<ConfigRecord>> recordMap) {

@@ -383,7 +383,7 @@ public final class BlockMetadataManagerTest {
     dir.addTempBlockMeta(tempBlockMeta3);
     dir.addBlockMeta(blockMeta);
 
-    // Get temp blocks for sessionId1, expect to create tempBlock1 and tempBlock2
+    // Get temp blocks for sessionId1, expect to get tempBlock1 and tempBlock2
     List<TempBlockMeta> toRemove = mMetaManager.getSessionTempBlocks(sessionId1);
     List<Long> toRemoveBlockIds = new ArrayList<>(toRemove.size());
     for (TempBlockMeta tempBlockMeta : toRemove) {
@@ -401,7 +401,7 @@ public final class BlockMetadataManagerTest {
     assertTrue(dir.hasTempBlockMeta(tempBlockId3));
     assertTrue(dir.hasBlockMeta(TEST_BLOCK_ID));
 
-    // Get temp blocks for sessionId1 again, expect to create nothing
+    // Get temp blocks for sessionId1 again, expect to get nothing
     toRemove = mMetaManager.getSessionTempBlocks(sessionId1);
     toRemoveBlockIds = new ArrayList<>(toRemove.size());
     for (TempBlockMeta tempBlockMeta : toRemove) {
@@ -416,7 +416,7 @@ public final class BlockMetadataManagerTest {
     assertTrue(dir.hasTempBlockMeta(tempBlockId3));
     assertTrue(dir.hasBlockMeta(TEST_BLOCK_ID));
 
-    // Get temp blocks for sessionId2, expect to create tempBlock3
+    // Get temp blocks for sessionId2, expect to get tempBlock3
     toRemove = mMetaManager.getSessionTempBlocks(sessionId2);
     toRemoveBlockIds = new ArrayList<>(toRemove.size());
     for (TempBlockMeta tempBlockMeta : toRemove) {

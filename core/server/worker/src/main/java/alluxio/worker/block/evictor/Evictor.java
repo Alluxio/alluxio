@@ -63,7 +63,7 @@ public interface Evictor {
    * @param availableBytes the amount of free space in bytes to be ensured after eviction
    * @param location the location in block store
    * @param view generated and passed by block store
-   * @return an {@link EvictionPlan} (possibly with empty fields) to create the free space, or null
+   * @return an {@link EvictionPlan} (possibly with empty fields) to get the free space, or null
    *         if no plan is feasible
    */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
@@ -93,7 +93,7 @@ public interface Evictor {
    * @param location the location in block store
    * @param view generated and passed by block store
    * @param mode the eviction mode
-   * @return an {@link EvictionPlan} (possibly with empty fields) to create the free space, or null
+   * @return an {@link EvictionPlan} (possibly with empty fields) to get the free space, or null
    *         if no plan is feasible
    */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,

@@ -304,7 +304,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       BlockMaster blockMaster2 = cluster.getLocalAlluxioMaster().getMasterProcess()
           .getMaster(BlockMaster.class);
 
-      // Worker 2 tries to heartbeat (with original id), and should create "Register" in response.
+      // Worker 2 tries to heartbeat (with original id), and should get "Register" in response.
       assertEquals(CommandType.Register, blockMaster2
           .workerHeartbeat(workerId2a, null, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
               Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());

@@ -80,7 +80,7 @@ public interface FileSystemMaster extends Master {
    * <p>
    * This operation requires users to have READ permission of the path.
    *
-   * @param path the path to create the file id for
+   * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
    * @throws AccessControlException if permission checking fails
    */
@@ -90,7 +90,7 @@ public interface FileSystemMaster extends Master {
    * Returns the {@link FileInfo} for a given file id. This method is not user-facing but supposed
    * to be called by other internal servers (e.g., block workers, web UI).
    *
-   * @param fileId the file id to create the {@link FileInfo} for
+   * @param fileId the file id to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission denied
@@ -104,7 +104,7 @@ public interface FileSystemMaster extends Master {
    * <p>
    * This operation requires users to have READ permission on the path.
    *
-   * @param path the path to create the {@link FileInfo} for
+   * @param path the path to get the {@link FileInfo} for
    * @param context the method context
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
@@ -133,7 +133,7 @@ public interface FileSystemMaster extends Master {
    * This operation requires users to have READ permission on the path, and also
    * EXECUTE permission on the path if it is a directory.
    *
-   * @param path the path to create the {@link FileInfo} list for
+   * @param path the path to get the {@link FileInfo} list for
    * @param context the method context
    * @return the list of {@link FileInfo}s
    * @throws AccessControlException if permission checking fails
@@ -206,7 +206,7 @@ public interface FileSystemMaster extends Master {
    * This operation requires users to have WRITE permission on the path as this API is called when
    * creating a new block for a file.
    *
-   * @param path the path of the file to create the next block id for
+   * @param path the path of the file to get the next block id for
    * @return the next block id for the given file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the given path is not valid
@@ -260,7 +260,7 @@ public interface FileSystemMaster extends Master {
    * <p>
    * This operation requires the client user to have READ permission on the the path.
    *
-   * @param path the path to create the info for
+   * @param path the path to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the given path
    * @throws FileDoesNotExistException if the file does not exist or path is a directory
    * @throws InvalidPathException if the path of the given file is invalid

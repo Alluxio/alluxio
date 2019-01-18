@@ -61,7 +61,7 @@ public final class  AlluxioJobWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the Alluxio job worker information
+   * @summary get the Alluxio job worker information
    * @param rawConfiguration if it's true, raw configuration values are returned,
    *    otherwise, they are looked up; if it's not provided in URL queries, then
    *    it is null, which means false.

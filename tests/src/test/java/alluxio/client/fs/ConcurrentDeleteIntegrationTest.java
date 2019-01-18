@@ -196,7 +196,7 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
 
-    // We should create an error for all but 1 delete
+    // We should get an error for all but 1 delete
     Assert.assertEquals(numThreads - 1, errors.size());
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
@@ -220,7 +220,7 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
 
-    // We should create an error for all but 1 delete
+    // We should get an error for all but 1 delete
     Assert.assertEquals(numThreads - 1, errors.size());
     List<URIStatus> dirs = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(0, dirs.size());

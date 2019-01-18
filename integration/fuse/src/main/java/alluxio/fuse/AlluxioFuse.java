@@ -140,7 +140,7 @@ public final class AlluxioFuse {
           }
         }
       }
-      // check if the user has specified his own max_write, otherwise create it
+      // check if the user has specified his own max_write, otherwise get it
       // from conf
       if (noUserMaxWrite) {
         final long maxWrite = alluxioConf.getBytes(PropertyKey.FUSE_MAXWRITE_BYTES);

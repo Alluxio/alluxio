@@ -108,7 +108,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
 
   /**
    * Creates a block. This method is only called from a data server.
-   * Calls {@link #getTempBlockWriterRemote(long, long)} to create a writer for writing to the
+   * Calls {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the
    * block.Throws an {@link IllegalArgumentException} if the location does not belong to tiered
    * storage.
    *
@@ -198,7 +198,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * Unlike {@link #getVolatileBlockMeta(long)}, this method requires the lock id returned by a
    * previously acquired {@link #lockBlock(long, long)}.
    *
-   * @param sessionId the id of the session to create this file
+   * @param sessionId the id of the session to get this file
    * @param blockId the id of the block
    * @param lockId the id of the lock
    * @return metadata of the block

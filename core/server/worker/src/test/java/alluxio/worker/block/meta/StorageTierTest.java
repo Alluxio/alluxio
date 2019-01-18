@@ -117,7 +117,7 @@ public class StorageTierTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create a directory by a non-existing index.
+   * Tests that an exception is thrown when trying to get a directory by a non-existing index.
    */
   @Test
   public void getDir() {

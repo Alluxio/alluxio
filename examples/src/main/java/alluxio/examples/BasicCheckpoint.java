@@ -106,7 +106,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
           + " alluxio.examples.BasicCheckpoint <FileFolder> <Files>");
       System.exit(-1);
     }
-    FileSystemContext fsContext = FileSystemContext.create(null, ConfigurationUtils.defaults());
+    FileSystemContext fsContext = FileSystemContext.create(ConfigurationUtils.defaults());
     boolean result = CliUtils.runExample(new BasicCheckpoint(args[0], Integer.parseInt(args[1]),
         fsContext));
     System.exit(result ? 0 : 1);

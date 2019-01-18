@@ -79,7 +79,7 @@ public final class BlockLockManagerTest {
    */
   @Test
   public void lockBlock() {
-    // Read-lock on can both create through
+    // Read-lock on can both get through
     long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     assertNotEquals(lockId1, lockId2);
@@ -152,7 +152,7 @@ public final class BlockLockManagerTest {
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId2));
     mLockManager.cleanupSession(sessionId2);
-    // Expect validating sessionId1 to create through
+    // Expect validating sessionId1 to get through
     mLockManager.validateLock(sessionId1, TEST_BLOCK_ID, lockId1);
     // Because sessionId2 has been cleaned up, expect validating sessionId2 to throw IOException
     mLockManager.validateLock(sessionId2, TEST_BLOCK_ID, lockId2);

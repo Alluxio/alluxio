@@ -65,7 +65,7 @@ public final class StreamCache {
   }
 
   /**
-   * @param key the key to create the stream for
+   * @param key the key to get the stream for
    * @return the stream or null if the cache contains no stream for the given key
    */
   public FileInStream getInStream(Integer key) {
@@ -73,7 +73,7 @@ public final class StreamCache {
   }
 
   /**
-   * @param key the key to create the stream for
+   * @param key the key to get the stream for
    * @return the stream or null if the cache contains no stream for the given key
    */
   public FileOutStream getOutStream(Integer key) {

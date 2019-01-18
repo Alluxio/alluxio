@@ -67,7 +67,7 @@ public class CapacityCommand {
   /**
    * Runs report capacity command.
    *
-   * @param cl CommandLine to create client options
+   * @param cl CommandLine to get client options
    * @return 0 on success, 1 otherwise
    */
   public int run(CommandLine cl) throws IOException {
@@ -84,7 +84,7 @@ public class CapacityCommand {
   /**
    * Generates capacity report.
    *
-   * @param options GetWorkerReportOptions to create worker report
+   * @param options GetWorkerReportOptions to get worker report
    */
   public void generateCapacityReport(GetWorkerReportOptions options) throws IOException {
     List<WorkerInfo> workerInfoList = mBlockMasterClient.getWorkerReport(options);
@@ -180,7 +180,7 @@ public class CapacityCommand {
   /**
    * Prints worker capacity information.
    *
-   * @param workerInfoList the worker info list to create info from
+   * @param workerInfoList the worker info list to get info from
    */
   private void printWorkerInfo(List<WorkerInfo> workerInfoList) {
     mIndentationLevel = 0;
@@ -222,7 +222,7 @@ public class CapacityCommand {
   /**
    * Prints worker information when only one tier exists.
    *
-   * @param workerInfoList the worker info list to create info from
+   * @param workerInfoList the worker info list to get info from
    */
   private void printShortWorkerInfo(List<WorkerInfo> workerInfoList) {
     String tier = mCapacityTierInfoMap.firstKey();
@@ -248,7 +248,7 @@ public class CapacityCommand {
 
   /**
    * Gets the info format according to the longest worker name.
-   * @param workerInfoList the worker info list to create info from
+   * @param workerInfoList the worker info list to get info from
    * @param isShort whether exists only one tier
    * @return the info format for printing long/short worker info
    */
@@ -270,7 +270,7 @@ public class CapacityCommand {
    * Gets the worker info options.
    *
    * @param cl CommandLine that contains the client options
-   * @return GetWorkerReportOptions to create worker information
+   * @return GetWorkerReportOptions to get worker information
    */
   private GetWorkerReportOptions getOptions(CommandLine cl) throws IOException {
     if (cl.getOptions().length > 1) {
@@ -302,7 +302,7 @@ public class CapacityCommand {
   /**
    * Gets the formatted tier values of a worker.
    *
-   * @param map the map to create worker tier values from
+   * @param map the map to get worker tier values from
    * @param workerName name of the worker
    * @return the formatted tier values of the input worker name
    */

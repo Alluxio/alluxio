@@ -81,7 +81,7 @@ public final class AlluxioBlockStore {
    * @return the {@link AlluxioBlockStore} created
    */
   public static AlluxioBlockStore create(AlluxioConfiguration alluxioConf) {
-    return create(FileSystemContext.create(null, alluxioConf));
+    return create(FileSystemContext.create(alluxioConf));
   }
 
   /**
@@ -227,7 +227,7 @@ public final class AlluxioBlockStore {
         }
       }
     }
-    // Can't create data from Alluxio, create it from the UFS instead
+    // Can't get data from Alluxio, get it from the UFS instead
     if (dataSource == null) {
       dataSourceType = BlockInStreamSource.UFS;
       BlockLocationPolicy policy =

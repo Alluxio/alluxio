@@ -657,7 +657,7 @@ public final class FileSystemMasterTest {
     long rootId = mFileSystemMaster.getFileId(rootUri);
     assertEquals(rootUri, mFileSystemMaster.getPath(rootId));
 
-    // create non-existent id
+    // get non-existent id
     try {
       mFileSystemMaster.getPath(rootId + 1234);
       fail("getPath() for a non-existent id should fail.");
@@ -675,7 +675,7 @@ public final class FileSystemMasterTest {
     long rootId = mFileSystemMaster.getFileId(rootUri);
     assertEquals(PersistenceState.PERSISTED, mFileSystemMaster.getPersistenceState(rootId));
 
-    // create non-existent id
+    // get non-existent id
     try {
       mFileSystemMaster.getPersistenceState(rootId + 1234);
       fail("getPath() for a non-existent id should fail.");
@@ -1731,7 +1731,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create information about a file after it
+   * Tests that an exception is thrown when trying to get information about a file after it
    * has been deleted because of a TTL of 0.
    */
   @Test
@@ -1753,7 +1753,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create information about a Directory after
+   * Tests that an exception is thrown when trying to get information about a Directory after
    * it has been deleted because of a TTL of 0.
    */
   @Test
@@ -1781,7 +1781,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create information about a file after it
+   * Tests that an exception is thrown when trying to get information about a file after it
    * has been deleted after the TTL has been set to 0.
    */
   @Test
@@ -1804,7 +1804,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create information about a Directory after
+   * Tests that an exception is thrown when trying to get information about a Directory after
    * it has been deleted after the TTL has been set to 0.
    */
   @Test

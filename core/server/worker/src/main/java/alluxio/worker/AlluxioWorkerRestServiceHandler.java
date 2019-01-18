@@ -94,7 +94,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the Alluxio master information
+   * @summary get the Alluxio master information
    * @param rawConfiguration if it's true, raw configuration values are returned,
    *    otherwise, they are looked up; if it's not provided in URL queries, then
    *    it is null, which means false.
@@ -129,7 +129,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the configuration map, the keys are ordered alphabetically.
+   * @summary get the configuration map, the keys are ordered alphabetically.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -143,7 +143,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the address of the worker
+   * @summary get the address of the worker
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -158,7 +158,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the total capacity of the worker in bytes
+   * @summary get the total capacity of the worker in bytes
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -172,7 +172,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the used bytes of the worker
+   * @summary get the used bytes of the worker
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -186,8 +186,8 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the mapping from tier alias to the total capacity of the tier in bytes, the
-   *     keys are in the order from tier aliases with smaller ordinals to those with larger ones.
+   * @summary get the mapping from tier alias to the total capacity of the tier in bytes, the keys
+   *          are in the order from tier aliases with smaller ordinals to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -210,7 +210,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the mapping from tier alias to the used bytes of the tier, the keys are in the
+   * @summary get the mapping from tier alias to the used bytes of the tier, the keys are in the
    *    order from tier aliases with smaller ordinals to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
@@ -234,7 +234,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the mapping from tier alias to the paths of the directories in the tier
+   * @summary get the mapping from tier alias to the paths of the directories in the tier
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -248,7 +248,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the version of the worker
+   * @summary get the version of the worker
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -262,7 +262,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the start time of the worker in milliseconds
+   * @summary get the start time of the worker in milliseconds
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -276,7 +276,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the uptime of the worker in milliseconds
+   * @summary get the uptime of the worker in milliseconds
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -290,7 +290,7 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   /**
-   * @summary create the worker metrics
+   * @summary get the worker metrics
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)

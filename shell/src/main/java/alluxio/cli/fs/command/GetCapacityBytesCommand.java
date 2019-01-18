@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class GetCapacityBytesCommand extends AbstractFileSystemCommand {
   /**
-   * Constructs a new instance to create the capacity of the {@link FileSystem}.
+   * Constructs a new instance to get the capacity of the {@link FileSystem}.
    *
    * @param fsContext the filesystem of Alluxio
    */

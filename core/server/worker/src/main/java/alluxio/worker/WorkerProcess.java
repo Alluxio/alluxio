@@ -100,8 +100,8 @@ public interface WorkerProcess extends Process {
   int getWebLocalPort();
 
   /**
-   * @param clazz the class of the worker to create
-   * @param <T> the type of the worker to create
+   * @param clazz the class of the worker to get
+   * @param <T> the type of the worker to get
 
    * @return the given worker
    */

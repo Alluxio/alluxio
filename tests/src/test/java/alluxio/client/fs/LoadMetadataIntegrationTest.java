@@ -225,12 +225,12 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
-   * Checks the create status call with the specified parameters and expectations.
+   * Checks the get status call with the specified parameters and expectations.
    *
-   * @param path the path to create the status for
-   * @param options the options for the create status call
+   * @param path the path to get the status for
+   * @param options the options for the get status call
    * @param expectExists if true, the path should exist
-   * @param expectLoadFromUfs if true, the create status call will load from ufs
+   * @param expectLoadFromUfs if true, the get status call will load from ufs
    */
   private void checkGetStatus(final String path, GetStatusPOptions options, boolean expectExists,
       boolean expectLoadFromUfs)

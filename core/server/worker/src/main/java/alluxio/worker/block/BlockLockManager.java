@@ -157,7 +157,7 @@ public final class BlockLockManager {
    *
    * If all locks have been allocated, this method will block until one can be acquired.
    *
-   * @param blockId the block id to create the lock for
+   * @param blockId the block id to get the lock for
    * @return the block lock
    */
   private ClientRWLock getBlockLock(long blockId) {

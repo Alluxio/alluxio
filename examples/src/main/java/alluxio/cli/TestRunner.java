@@ -111,7 +111,7 @@ public final class TestRunner {
 
     AlluxioURI testDir = new AlluxioURI(mDirectory);
     FileSystemContext fsContext =
-        FileSystemContext.create(null, new InstancedConfiguration(ConfigurationUtils.defaults()));
+        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
     FileSystem fs =
         FileSystem.Factory.get(fsContext);
     if (fs.exists(testDir)) {

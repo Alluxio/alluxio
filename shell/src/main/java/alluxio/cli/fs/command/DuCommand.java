@@ -98,7 +98,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
   /**
    * Gets and prints the size information of the input path according to options.
    *
-   * @param path the path to create size info of
+   * @param path the path to get size info of
    * @param statuses the statuses of files and folders
    * @param readable whether to print info of human readable format
    * @param summarize whether to display the aggregate summary lengths
@@ -142,10 +142,10 @@ public final class DuCommand extends AbstractFileSystemCommand {
 
   /**
    * Gets the size and its percentage information, if readable option is provided,
-   * create the size in human readable format.
+   * get the size in human readable format.
    *
    * @param readable whether to print info of human readable format
-   * @param size the size to create information from
+   * @param size the size to get information from
    * @param totalSize the total size to calculate percentage information
    * @return the formatted value and percentage information
    */

@@ -60,7 +60,7 @@ public final class BlockMasterClientRestServiceHandler {
   }
 
   /**
-   * @summary create the service name
+   * @summary get the service name
    * @return the response object
    */
   @GET
@@ -72,7 +72,7 @@ public final class BlockMasterClientRestServiceHandler {
   }
 
   /**
-   * @summary create the service version
+   * @summary get the service version
    * @return the response object
    */
   @GET
@@ -84,7 +84,7 @@ public final class BlockMasterClientRestServiceHandler {
   }
 
   /**
-   * @summary create the block descriptor for a block
+   * @summary get the block descriptor for a block
    * @param blockId the block id
    * @return the response object
    */

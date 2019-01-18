@@ -171,7 +171,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should create an error for all but 1 rename
+    // We should get an error for all but 1 rename
     Assert.assertEquals(numThreads - 1, errors.size());
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
@@ -200,7 +200,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should create an error for all but 1 rename
+    // We should get an error for all but 1 rename
     assertErrorsSizeEquals(errors, numThreads - 1);
     // Only one renamed dir should exist
     List<URIStatus> existingDirs = mFileSystem.listStatus(new AlluxioURI("/"));
@@ -228,7 +228,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should create an error for all but 1 rename.
+    // We should get an error for all but 1 rename.
     assertErrorsSizeEquals(errors, numThreads - 1);
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
@@ -269,7 +269,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should create no errors
+    // We should get no errors
     assertErrorsSizeEquals(errors, 0);
 
     List<URIStatus> dir1Files = mFileSystem.listStatus(dir1);
@@ -311,7 +311,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should create no errors.
+    // We should get no errors.
     assertErrorsSizeEquals(errors, 0);
 
     List<URIStatus> dir1Files = mFileSystem.listStatus(dir1);
@@ -356,7 +356,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should create no errors.
+    // We should get no errors.
     assertErrorsSizeEquals(errors, 0);
 
     List<URIStatus> dir1Files = mFileSystem.listStatus(dir1);
@@ -399,7 +399,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
 
     ConcurrentHashSet<Throwable> errors = concurrentRename(srcs, dsts);
 
-    // We should create no errors.
+    // We should get no errors.
     assertErrorsSizeEquals(errors, 0);
 
     List<URIStatus> dir1Files = mFileSystem.listStatus(dir1);

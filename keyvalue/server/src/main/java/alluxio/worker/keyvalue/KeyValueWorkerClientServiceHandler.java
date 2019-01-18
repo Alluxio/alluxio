@@ -138,7 +138,7 @@ public final class KeyValueWorkerClientServiceHandler
   }
 
   /**
-   * Internal logic to create value from the given block.
+   * Internal logic to get value from the given block.
    *
    * @param blockId Block Id
    * @param keyBuffer bytes of key

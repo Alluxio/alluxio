@@ -91,7 +91,7 @@ public final class TieredBlockStoreTest {
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
     mBlockStore = new TieredBlockStore();
 
-    // TODO(bin): Avoid using reflection to create private members.
+    // TODO(bin): Avoid using reflection to get private members.
     Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
     field.setAccessible(true);
     mMetaManager = (BlockMetadataManager) field.get(mBlockStore);
@@ -496,7 +496,7 @@ public final class TieredBlockStoreTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to create a writer for the block that does not
+   * Tests that an exception is thrown when trying to get a writer for the block that does not
    * exist.
    */
   @Test
