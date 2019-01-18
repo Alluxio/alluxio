@@ -159,6 +159,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param yarnClient the client to use for communicating with Yarn
    * @param nMClient the client to use for communicating with the node manager
    * @param amrmFactory a factory for creating an {@link AMRMClientAsync}
+   * @param alluxioConf Alluxio's Configuration
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
       YarnClient yarnClient, NMClient nMClient, AMRMClientAsyncFactory amrmFactory,
