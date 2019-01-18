@@ -766,7 +766,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-    public static final PropertyKey UNDERFS_S3A_READ_RETRY_BASE_SLEEP_MS =
+  public static final PropertyKey UNDERFS_S3A_READ_RETRY_BASE_SLEEP_MS =
       new Builder(Name.UNDERFS_S3A_READ_RETRY_BASE_SLEEP_MS)
           .setDefaultValue("50ms")
           .setDescription("Block reads from S3A automatically retry for transient "
