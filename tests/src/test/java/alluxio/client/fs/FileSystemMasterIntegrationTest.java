@@ -499,8 +499,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     assertFalse(fs.exists(dir));
     // Make sure that the blocks are cleaned up
     BlockMasterClient blockClient =
-        BlockMasterClient.Factory.create(MasterClientConfig.defaults(ServerConfiguration.global()),
-            ServerConfiguration.global());
+        BlockMasterClient.Factory.create(MasterClientConfig.defaults(ServerConfiguration.global()));
     CommonUtils.waitFor("data to be deleted", () -> {
       try {
         return blockClient.getUsedBytes() == 0;

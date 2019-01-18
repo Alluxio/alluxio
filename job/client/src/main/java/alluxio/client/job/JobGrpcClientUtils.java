@@ -53,7 +53,7 @@ public final class JobGrpcClientUtils {
     while (retryPolicy.attempt()) {
       long jobId;
       try (JobMasterClient client = JobMasterClient.Factory.create(
-          JobMasterClientConfig.defaults(alluxioConf), alluxioConf)) {
+          JobMasterClientConfig.defaults(alluxioConf))) {
         jobId = client.run(config);
       } catch (Exception e) {
         // job could not be started, retry
@@ -118,7 +118,7 @@ public final class JobGrpcClientUtils {
       throws InterruptedException {
     final AtomicReference<JobInfo> finishedJobInfo = new AtomicReference<>();
     try (final JobMasterClient client =
-        JobMasterClient.Factory.create(JobMasterClientConfig.defaults(alluxioConf), alluxioConf)) {
+        JobMasterClient.Factory.create(JobMasterClientConfig.defaults(alluxioConf))) {
       CommonUtils.waitFor("Job to finish", ()-> {
         JobInfo jobInfo;
         try {

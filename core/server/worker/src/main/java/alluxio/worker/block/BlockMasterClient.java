@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
@@ -52,7 +51,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param conf master client configuration
    */
   public BlockMasterClient(MasterClientConfig conf) {
-    super(conf, ServerConfiguration.global());
+    super(conf);
   }
 
   @Override

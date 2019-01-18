@@ -13,7 +13,6 @@ package alluxio.client.metrics;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Metric;
 import alluxio.grpc.MetricsHeartbeatPOptions;
@@ -40,10 +39,9 @@ public class MetricsMasterClient extends AbstractMasterClient {
    * Creates a new metrics master client.
    *
    * @param conf master client configuration
-   * @param alluxioConf Alluxio configuration
    */
-  public MetricsMasterClient(MasterClientConfig conf, AlluxioConfiguration alluxioConf) {
-    super(conf, alluxioConf, null, RetryUtils::defaultMetricsClientRetry);
+  public MetricsMasterClient(MasterClientConfig conf) {
+    super(conf, null, RetryUtils::defaultMetricsClientRetry);
   }
 
   @Override

@@ -61,15 +61,19 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
    * @param alluxioConf Alluxio configuration
    */
   public DeterministicHashPolicy(AlluxioConfiguration alluxioConf) {
-    this(alluxioConf
-        .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS));
+    int numShards = alluxioConf
+        .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS);
+    Preconditions.checkArgument(numShards >= 1);
+    mShards = numShards;
   }
 
   /**
    * Constructs a new {@link DeterministicHashPolicy}.
    *
    * @param numShards the number of shards a block's traffic can be sharded to
+   * @deprecated This constructor will be removed in 2.0 in favor of passing a configuration object
    */
+  @Deprecated
   public DeterministicHashPolicy(Integer numShards) {
     Preconditions.checkArgument(numShards >= 1);
     mShards = numShards;

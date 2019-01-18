@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.master.MasterClientConfig;
 
 import org.junit.Test;
@@ -34,7 +33,7 @@ public class FileSystemMasterClientPoolTest {
     FileSystemMasterClient expectedClient = Mockito.mock(FileSystemMasterClient.class);
     PowerMockito.mockStatic(FileSystemMasterClient.Factory.class);
     Mockito.when(FileSystemMasterClient.Factory
-        .create(Mockito.any(MasterClientConfig.class), Mockito.any(InstancedConfiguration.class)))
+        .create(Mockito.any(MasterClientConfig.class)))
         .thenReturn(expectedClient);
     FileSystemMasterClient client;
     try (FileSystemMasterClientPool pool = new FileSystemMasterClientPool(null, null, conf)) {

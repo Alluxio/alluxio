@@ -42,11 +42,9 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
    * Creates a new job master client.
    *
    * @param conf job master client configuration
-   * @param alluxioConf Alluxio configuration
    */
-  public RetryHandlingJobMasterClient(JobMasterClientConfig conf,
-      AlluxioConfiguration alluxioConf) {
-    super(conf, alluxioConf);
+  public RetryHandlingJobMasterClient(JobMasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

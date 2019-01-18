@@ -80,7 +80,7 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
   public void recoverUfsState() throws Exception {
     FileSystemMasterClient client =
         new RetryHandlingFileSystemMasterClient(MasterClientConfig.defaults(
-            ServerConfiguration.global()), ServerConfiguration.global());
+            ServerConfiguration.global()));
     client.updateUfsMode(new AlluxioURI(""),
         UpdateUfsModePOptions.newBuilder().setUfsMode(UfsPMode.READ_ONLY).build());
 
@@ -98,7 +98,7 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
     File backup = mFolder.newFolder("backup");
     MetaMasterClient metaClient =
         new RetryHandlingMetaMasterClient(MasterClientConfig.defaults(
-            ServerConfiguration.global()), ServerConfiguration.global());
+            ServerConfiguration.global()));
     AlluxioURI backupURI = metaClient.backup(backup.getAbsolutePath(), true).getBackupUri();
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupURI);
     mCluster.formatAndRestartMasters();

@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
@@ -33,10 +32,9 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * Creates a new master client base.
    *
    * @param clientConf master client configuration
-   * @param alluxioConf Alluxio configuration
    */
-  public AbstractMasterClient(MasterClientConfig clientConf, AlluxioConfiguration alluxioConf) {
-    super(clientConf.getSubject(), alluxioConf, null);
+  public AbstractMasterClient(MasterClientConfig clientConf) {
+    super(clientConf.getSubject(), clientConf.getConfiguration(), null);
     mMasterInquireClient = clientConf.getMasterInquireClient();
   }
 
@@ -46,11 +44,10 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * @param clientConf master client configuration
    * @param address address to connect to
    * @param retryPolicySupplier retry policy to use
-   * @param alluxioConf Alluxio configuration
    */
-  public AbstractMasterClient(MasterClientConfig clientConf, AlluxioConfiguration alluxioConf,
-      InetSocketAddress address, Supplier<RetryPolicy> retryPolicySupplier) {
-    super(clientConf.getSubject(), alluxioConf, address, retryPolicySupplier);
+  public AbstractMasterClient(MasterClientConfig clientConf, InetSocketAddress address,
+      Supplier<RetryPolicy> retryPolicySupplier) {
+    super(clientConf.getSubject(), clientConf.getConfiguration(), address, retryPolicySupplier);
     mMasterInquireClient = clientConf.getMasterInquireClient();
   }
 

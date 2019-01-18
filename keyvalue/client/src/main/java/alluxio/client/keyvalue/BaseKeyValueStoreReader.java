@@ -47,14 +47,15 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
    * Constructs a {@link BaseKeyValueStoreReader} instance.
    *
    * @param uri URI of the key-value store
+   * @param alluxioConf Alluxio configuration
    */
-  BaseKeyValueStoreReader(AlluxioURI uri, AlluxioConfiguration conf) throws IOException {
+  BaseKeyValueStoreReader(AlluxioURI uri, AlluxioConfiguration alluxioConf) throws IOException {
     // TODO(binfan): use a thread pool to manage the client.
     LOG.info("Create KeyValueStoreReader for {}", uri);
-    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(conf), conf);
+    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(alluxioConf));
     mPartitions = mMasterClient.getPartitionInfo(uri);
     mMasterClient.close();
-    mConf = conf;
+    mConf = alluxioConf;
   }
 
   @Override

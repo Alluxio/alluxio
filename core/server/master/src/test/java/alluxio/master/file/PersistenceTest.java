@@ -14,7 +14,6 @@ package alluxio.master.file;
 import static org.mockito.Matchers.any;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -539,8 +538,7 @@ public final class PersistenceTest {
     mRegistry.start(true);
     mMockJobMasterClient = Mockito.mock(JobMasterClient.class);
     PowerMockito.mockStatic(JobMasterClient.Factory.class);
-    Mockito.when(JobMasterClient.Factory.create(any(JobMasterClientConfig.class),
-        any(AlluxioConfiguration.class)))
+    Mockito.when(JobMasterClient.Factory.create(any(JobMasterClientConfig.class)))
         .thenReturn(mMockJobMasterClient);
   }
 

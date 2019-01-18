@@ -33,6 +33,7 @@ import alluxio.security.authentication.SaslParticipantProviderUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.ThreadUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -108,17 +109,29 @@ public final class FileSystemContext implements Closeable {
   private final String mAppId;
 
   /**
+   * Creates a {@link FileSystemContext} with a null subject.
+   *
    * @param alluxioConf Alluxio configuration
-   * @return the instance of file system context with no subject associated
+   * @return an instance of file system context with no subject associated
    */
   public static FileSystemContext create(AlluxioConfiguration alluxioConf) {
     return create(null, alluxioConf);
   }
 
   /**
+   * Creates a {@link FileSystemContext} with the configuration loaded from site-properties.
+   *
+   * @param subject The subject to connect to Alluxio with
+   * @return an instance of file system context with the given subject and site-properties config
+   */
+  public static FileSystemContext create(Subject subject) {
+    return create(subject, null);
+  }
+
+  /**
    * @param subject the parent subject, set to null if not present
    * @param alluxioConf Alluxio configuration
-   * @return the context
+   * @return a context
    */
   public static FileSystemContext create(Subject subject,
       @Nullable AlluxioConfiguration alluxioConf) {
@@ -126,17 +139,8 @@ public final class FileSystemContext implements Closeable {
     if (alluxioConf != null) {
       props = alluxioConf.getProperties();
     }
-    return create(subject, props);
-  }
-
-  /**
-   * @param subject the parent subject, set to null if not present
-   * @param props Alluxio configuration properties
-   * @return the context
-   */
-  public static FileSystemContext create(Subject subject, @Nullable AlluxioProperties props) {
     FileSystemContext context = new FileSystemContext(subject, props);
-    context.init(MasterInquireClient.Factory.create(context.getClientContext().getConf()));
+    context.init(MasterInquireClient.Factory.create(context.mClientContext.getConf()));
     return context;
   }
 
@@ -217,10 +221,11 @@ public final class FileSystemContext implements Closeable {
 
     if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
-      mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults(mClientContext
-          .getConf()).withSubject(mClientContext.getSubject())
-          .withMasterInquireClient(mMasterInquireClient), mClientContext.getConf());
-      mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, this);
+      mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig
+          .defaults(mClientContext.getConf())
+          .withSubject(mClientContext.getSubject())
+          .withMasterInquireClient(mMasterInquireClient));
+      mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, mAppId);
       mExecutorService = Executors.newFixedThreadPool(1,
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
       mExecutorService
@@ -257,13 +262,13 @@ public final class FileSystemContext implements Closeable {
 
     synchronized (this) {
       // Commenting out to disable client metrics
-//      if (mMetricsMasterClient != null) {
-//        ThreadUtils.shutdownAndAwaitTermination(mExecutorService,
-//            Configuration.getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
-//        mMetricsMasterClient.close();
-//        mMetricsMasterClient = null;
-//        mClientMasterSync = null;
-//      }
+      if (mMetricsMasterClient != null) {
+        ThreadUtils.shutdownAndAwaitTermination(mExecutorService,
+            mClientContext.getConf().getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
+        mMetricsMasterClient.close();
+        mMetricsMasterClient = null;
+        mClientMasterSync = null;
+      }
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
       mClosed.set(true);
@@ -285,6 +290,13 @@ public final class FileSystemContext implements Closeable {
    */
   public ClientContext getClientContext() {
     return mClientContext;
+  }
+
+  /**
+   * @return the {@link AlluxioConfiguration} backing this {@link FileSystemContext}
+   */
+  public AlluxioConfiguration getConf() {
+    return mClientContext.getConf();
   }
 
   /**

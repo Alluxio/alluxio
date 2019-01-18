@@ -13,7 +13,6 @@ package alluxio.master.meta;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetMasterIdPRequest;
 import alluxio.grpc.MasterHeartbeatPRequest;
@@ -44,7 +43,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @param conf master client configuration
    */
   public RetryHandlingMetaMasterMasterClient(MasterClientConfig conf) {
-    super(conf, ServerConfiguration.global());
+    super(conf);
   }
 
   @Override
