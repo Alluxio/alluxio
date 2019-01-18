@@ -13,6 +13,7 @@ package alluxio.collections;
 
 import alluxio.resource.LockResource;
 import alluxio.resource.RefCountLockResource;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,8 +96,8 @@ public class LockCache<K> {
    * @param maxSize maximum size of the cache
    * @param concurrencyLevel concurrency level of the cache
    */
-  public LockCache(@Nullable Function<? super K, ? extends ReentrantReadWriteLock> defaultLoader, int initialSize,
-      int maxSize, int concurrencyLevel) {
+  public LockCache(@Nullable Function<? super K, ? extends ReentrantReadWriteLock> defaultLoader,
+      int initialSize, int maxSize, int concurrencyLevel) {
     mDefaultLoader = defaultLoader;
 
     mHardLimit = maxSize;
@@ -144,6 +145,7 @@ public class LockCache<K> {
    * get the value from the cache.
    *
    * @param key the key to look up the cache
+   * @param mode lockMode to acquire
    * @return the value contained in the cache, if it is already in cache,
    * otherwise generate an entry based on the loader
    */
@@ -161,7 +163,13 @@ public class LockCache<K> {
     }
   }
 
-  public ReentrantReadWriteLock getRawLock(final K key) {
+  /**
+   * Get the raw readwrite lock from the cache.
+   *
+   * @param key key to look up the value
+   * @return the lock associated with the key
+   */
+  public ReentrantReadWriteLock getRawReadWriteLock(final K key) {
     ValNode valNode = getValNode(key, false);
     return valNode.get();
   }

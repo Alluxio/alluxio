@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.resource.LockResource;
+
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;

@@ -57,7 +57,6 @@ import alluxio.master.file.meta.InodeFileView;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
-import alluxio.resource.LockResource.LockMode;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
@@ -530,7 +529,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             if (!inodeFile.getPersistenceState().equals(PersistenceState.TO_BE_PERSISTED)) {
               continue;
             }
-            try (LockResource lr = mInodeLockManager.lockInode(inodeFile, LockResource.LockMode.READ)) {
+            try (LockResource lr = mInodeLockManager.lockInode(inodeFile,
+                LockResource.LockMode.READ)) {
               if (inodeFile.getPersistJobId() != Constants.PERSISTENCE_INVALID_JOB_ID) {
                 addPersistJob(inodeFile.getId(), inodeFile.getPersistJobId(),
                     mInodeTree.getPath(inodeFile), inodeFile.getTempUfsPath());

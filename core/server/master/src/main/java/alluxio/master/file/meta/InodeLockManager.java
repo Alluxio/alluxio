@@ -13,7 +13,6 @@ package alluxio.master.file.meta;
 
 import alluxio.collections.LockCache;
 import alluxio.resource.LockResource;
-import alluxio.resource.RefCountLockResource;
 import alluxio.util.interfaces.Scoped;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -73,25 +72,25 @@ public class InodeLockManager {
 
   @VisibleForTesting
   boolean inodeReadLockedByCurrentThread(long inodeId) {
-    ReentrantReadWriteLock lock = mInodeLocks.getRawLock(inodeId);
+    ReentrantReadWriteLock lock = mInodeLocks.getRawReadWriteLock(inodeId);
     return lock.getReadHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean inodeWriteLockedByCurrentThread(long inodeId) {
-    ReentrantReadWriteLock lock = mInodeLocks.getRawLock(inodeId);
+    ReentrantReadWriteLock lock = mInodeLocks.getRawReadWriteLock(inodeId);
     return lock.getWriteHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean edgeReadLockedByCurrentThread(Edge edge) {
-    ReentrantReadWriteLock lock = mEdgeLocks.getRawLock(edge);
+    ReentrantReadWriteLock lock = mEdgeLocks.getRawReadWriteLock(edge);
     return lock.getReadHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean edgeWriteLockedByCurrentThread(Edge edge) {
-    ReentrantReadWriteLock lock = mEdgeLocks.getRawLock(edge);
+    ReentrantReadWriteLock lock = mEdgeLocks.getRawReadWriteLock(edge);
     return lock.getWriteHoldCount() > 0;
   }
 
