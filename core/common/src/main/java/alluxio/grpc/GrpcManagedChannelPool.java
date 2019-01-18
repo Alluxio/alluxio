@@ -4,16 +4,26 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.resource.LockResource;
+import alluxio.util.ThreadFactoryUtils;
+
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Verify;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.channel.EventLoopGroup;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.SocketAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -25,6 +35,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 @ThreadSafe
 public class GrpcManagedChannelPool {
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcManagedChannelPool.class);
+
   // Singleton instance.
   private static GrpcManagedChannelPool sInstance;
 
@@ -50,12 +62,86 @@ public class GrpcManagedChannelPool {
   /** Used to control access to mChannel */
   private ReentrantReadWriteLock mLock;
 
+  /** Scheduler for destruction of idle channels. */
+  protected ScheduledExecutorService mScheduler;
+
   /**
    * Creates a new {@link GrpcManagedChannelPool}.
    */
   public GrpcManagedChannelPool() {
     mChannels = new HashMap<>();
     mLock = new ReentrantReadWriteLock(true);
+
+    startScheduler();
+  }
+
+  /**
+   * Restarts the pool by restarting the termination scheduler.
+   */
+  public void restart() throws InterruptedException {
+
+    try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
+      mScheduler.shutdown();
+      // Wait for each channel termination upto configured single channel timeout
+      long singleChannelTimeoutMs =
+          Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT);
+      long waitTimeMs = mChannels.size() * singleChannelTimeoutMs;
+      mScheduler.awaitTermination(waitTimeMs, TimeUnit.MILLISECONDS);
+      mScheduler.shutdownNow();
+    }
+
+    startScheduler();
+  }
+
+  private void startScheduler() {
+
+    mScheduler = Executors.newScheduledThreadPool(1,
+        ThreadFactoryUtils.build("grpc-channel-terminator", true));
+    // Channel termination callback will be fired in the same interval as
+    // the channel shutdown timeout.
+    long channelTerminationIntervalMs =
+        Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT);
+    mScheduler.scheduleAtFixedRate(() -> {
+      destroyInactiveChannels();
+    }, channelTerminationIntervalMs, channelTerminationIntervalMs, TimeUnit.MILLISECONDS);
+  }
+
+  private void destroyInactiveChannels() {
+    int channelCount = 0;
+    int destroyedCount = 0;
+    List<Pair<ChannelKey, ManagedChannelReference>> channelsToDestroy = new ArrayList<>();
+    try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
+      channelCount = mChannels.size();
+      for (HashMap.Entry<ChannelKey, ManagedChannelReference> channelEntry : mChannels.entrySet()) {
+        ChannelKey channelKey = channelEntry.getKey();
+        ManagedChannelReference channelReference = channelEntry.getValue();
+        if (channelReference.getRefCount() <= 0) {
+          mChannels.remove(channelKey);
+          channelsToDestroy.add(new Pair(channelKey, channelReference));
+        }
+      }
+    }
+
+    // TODO(ggezer) Consider shutting down in parallel.
+    for (Pair<ChannelKey, ManagedChannelReference> channelPair : channelsToDestroy) {
+      ManagedChannel channel = channelPair.getSecond().get();
+      channel.shutdown();
+      try {
+        channel.awaitTermination(
+            Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT),
+            TimeUnit.MILLISECONDS);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        // Allow thread to exit.
+      } finally {
+        channel.shutdownNow();
+      }
+      Verify.verify(channel.isShutdown());
+      destroyedCount++;
+      LOG.debug("Destroyed gRPC managed channel for key:{}", channelPair.getFirst());
+    }
+    LOG.debug("gRPC channel terminator shut down {} of {} total channels.", destroyedCount,
+        channelCount);
   }
 
   /**
@@ -86,35 +172,9 @@ public class GrpcManagedChannelPool {
    * @param channelKey host address
    */
   public void releaseManagedChannel(ChannelKey channelKey) {
-
-    boolean disposeChannel = false;
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
-      if (mChannels.containsKey(channelKey) && mChannels.get(channelKey).dereference()) {
-        disposeChannel = true;
-      }
-    }
-
-    if (disposeChannel) {
-      try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
-        if (mChannels.containsKey(channelKey)) {
-          mChannels.get(channelKey).reference();
-          if (mChannels.get(channelKey).dereference()) {
-            ManagedChannel channel = mChannels.remove(channelKey).reference();
-            channel.shutdown();
-            try {
-              channel.awaitTermination(
-                  Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT),
-                  TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-              Thread.currentThread().interrupt();
-              // Allow thread to exit.
-            } finally {
-              channel.shutdownNow();
-            }
-            Verify.verify(channel.isShutdown());
-          }
-        }
-      }
+      Verify.verify(mChannels.containsKey(channelKey));
+      mChannels.get(channelKey).dereference();
     }
   }
 
@@ -174,11 +234,23 @@ public class GrpcManagedChannelPool {
 
     /**
      * Decrement the ref-count for underlying {@link ManagedChannel}.
-     *
-     * @return {@code true} if underlying object is no longer referenced
      */
-    private boolean dereference() {
-      return mRefCount.decrementAndGet() <= 0;
+    private void dereference() {
+      mRefCount.decrementAndGet();
+    }
+
+    /**
+     * @return current ref-count.
+     */
+    private int getRefCount() {
+      return mRefCount.get();
+    }
+
+    /**
+     * @return the underlying {@link ManagedChannel} without changing the ref-count
+     */
+    private ManagedChannel get(){
+      return mChannel;
     }
   }
 
@@ -187,7 +259,7 @@ public class GrpcManagedChannelPool {
    */
   public static class ChannelKey {
     private SocketAddress mAddress;
-    private boolean mPlain = false;
+    private boolean mPlain = true;
     private Optional<Pair<Long, TimeUnit>> mKeepAliveTime = Optional.empty();
     private Optional<Pair<Long, TimeUnit>> mKeepAliveTimeout = Optional.empty();
     private Optional<Integer> mMaxInboundMessageSize = Optional.empty();
@@ -279,19 +351,48 @@ public class GrpcManagedChannelPool {
     }
 
     @Override
+    public int hashCode() {
+      return new HashCodeBuilder()
+          .append(mAddress)
+          .append(mPlain)
+          .append(mKeepAliveTime)
+          .append(mKeepAliveTimeout)
+          .append(mMaxInboundMessageSize)
+          .append(mFlowControlWindow)
+          .append(
+              mChannelType.isPresent() ? System.identityHashCode(mChannelType.get()) : null)
+          .append(
+              mEventLoopGroup.isPresent() ? System.identityHashCode(mEventLoopGroup.get()) : null)
+          .toHashCode();
+    }
+
+    @Override
     public boolean equals(Object other) {
       if (other instanceof ChannelKey) {
         ChannelKey otherKey = (ChannelKey) other;
-        return mAddress == otherKey.mAddress
+        return mAddress.equals(otherKey.mAddress)
             && mPlain == otherKey.mPlain
-            && mKeepAliveTime == otherKey.mKeepAliveTime
-            && mKeepAliveTimeout == otherKey.mKeepAliveTimeout
-            && mFlowControlWindow == otherKey.mFlowControlWindow
-            && mMaxInboundMessageSize == otherKey.mMaxInboundMessageSize
-            && mChannelType == otherKey.mChannelType
-            && mEventLoopGroup == otherKey.mEventLoopGroup;
+            && mKeepAliveTime.equals(otherKey.mKeepAliveTime)
+            && mKeepAliveTimeout.equals(otherKey.mKeepAliveTimeout)
+            && mFlowControlWindow.equals(otherKey.mFlowControlWindow)
+            && mMaxInboundMessageSize.equals(otherKey.mMaxInboundMessageSize)
+            && mChannelType.equals(otherKey.mChannelType)
+            && mEventLoopGroup.equals(otherKey.mEventLoopGroup);
       }
       return false;
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("Address", mAddress)
+          .add("IsPlain", mPlain)
+          .add("KeepAliveTime", mKeepAliveTime)
+          .add("KeepAliveTimeout", mKeepAliveTimeout)
+          .add("FlowControlWindow", mFlowControlWindow)
+          .add("ChannelType", mChannelType)
+          .add("EventLoopGroup", mEventLoopGroup)
+          .toString();
     }
   }
 }
