@@ -11,9 +11,14 @@
 
 package alluxio.underfs.s3a;
 
+import alluxio.retry.RetryPolicy;
+
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +29,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class S3AInputStream extends InputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(S3AInputStream.class);
+
   /** Client for operations with s3. */
   private final AmazonS3 mClient;
   /** Name of the bucket the object resides in. */
@@ -36,6 +43,9 @@ public class S3AInputStream extends InputStream {
   /** The current position of the stream. */
   private long mPos;
 
+  /** Retry policy in case the key does not exists (possibly due to eventual consistency. */
+  RetryPolicy mRetryPolicy;
+
   /**
    * Constructor for an input stream of an object in s3 using the aws-sdk implementation to read
    * the data. The stream will be positioned at the start of the file.
@@ -43,24 +53,28 @@ public class S3AInputStream extends InputStream {
    * @param bucketName the bucket the object resides in
    * @param key the path of the object to read
    * @param client the s3 client to use for operations
+   * @param retryPolicy retry policy in case the key does not exist
    */
-  public S3AInputStream(String bucketName, String key, AmazonS3 client) {
-    this(bucketName, key, client, 0L);
+  public S3AInputStream(String bucketName, String key, AmazonS3 client, RetryPolicy retryPolicy) {
+    this(bucketName, key, client, retryPolicy, 0L);
   }
 
   /**
-   * Constructor for an input stream of an object in s3 using the aws-sdk implementation to read
-   * the data. The stream will be positioned at the specified position.
+   * Constructor for an input stream of an object in s3 using the aws-sdk implementation to read the
+   * data. The stream will be positioned at the specified position.
    *
    * @param bucketName the bucket the object resides in
    * @param key the path of the object to read
    * @param client the s3 client to use for operations
+   * @param retryPolicy retry policy in case the key does not exist
    * @param position the position to begin reading from
    */
-  public S3AInputStream(String bucketName, String key, AmazonS3 client, long position) {
+  public S3AInputStream(String bucketName, String key, AmazonS3 client, RetryPolicy retryPolicy,
+      long position) {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
+    mRetryPolicy = retryPolicy;
     mPos = position;
   }
 
@@ -124,7 +138,17 @@ public class S3AInputStream extends InputStream {
     if (mPos > 0) {
       getReq.setRange(mPos);
     }
-    mIn = mClient.getObject(getReq).getObjectContent();
+    AmazonS3Exception thrownException = null;
+    while (mRetryPolicy.attempt()) {
+      try {
+        mIn = mClient.getObject(getReq).getObjectContent();
+      } catch (AmazonS3Exception e) {
+        LOG.warn("{} attempt to open key {} in bucket failed with exception : {}",
+            mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.getMessage());
+        thrownException = e;
+      }
+    }
+    throw thrownException;
   }
 
   /**
