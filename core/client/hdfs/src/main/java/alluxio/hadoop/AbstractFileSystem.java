@@ -75,7 +75,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
 
@@ -93,11 +92,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public static final String FIRST_COM_PATH = "alluxio_dep/";
   // Always tell Hadoop that we have 3x replication.
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
-  /** Lock for initializing the contexts, currently only one set of contexts is supported. */
-  private static final Object INIT_LOCK = new Object();
 
   /** Flag for if the contexts have been initialized. */
-  @GuardedBy("INIT_LOCK")
   private static volatile boolean sInitialized = false;
 
   protected FileSystemContext mFsContext = null;
@@ -504,10 +500,15 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
     AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
     alluxioProps.merge(uriConfProperties, Source.RUNTIME);
-    mFsContext = FileSystemContext.create(getHadoopSubject(),
-        new InstancedConfiguration(alluxioProps));
+    Subject subject = getHadoopSubject();
+    if (subject != null) {
+      LOG.debug("Using Hadoop subject: {}", subject);
+    } else {
+      LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
+    }
+    mFsContext = FileSystemContext.create(subject, new InstancedConfiguration(alluxioProps));
 
-    synchronized (INIT_LOCK) {
+    synchronized (this) {
       if (sInitialized) {
         if (!connectDetailsMatch(uriConfProperties, conf)) {
           LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS.getMessage(
@@ -520,17 +521,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
       // Sets the file system.
       //
-      // Must happen inside the lock so that the global filesystem context isn't changed by a
+      // Must happen inside the lock so that the filesystem context isn't changed by a
       // concurrent call to initialize.
-      Subject subject = mFsContext.getClientContext().getSubject();
-      if (subject != null) {
-        LOG.debug("Using Hadoop subject: {}", subject);
-        mFileSystem = FileSystem.Factory.get(mFsContext);
-      } else {
-        LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
-        mFileSystem = FileSystem.Factory.get(mFsContext);
-      }
-
+      mFileSystem = FileSystem.Factory.get(mFsContext);
       sInitialized = true;
     }
   }
