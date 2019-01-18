@@ -36,8 +36,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class FileSystemShell extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemShell.class);
 
-  protected final FileSystemContext mFilesystemContext;
-
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
       .put("lsr", new String[] {"ls", "-R"})
       .put("rmr", new String[] {"rm", "-R"})
@@ -77,7 +75,6 @@ public final class FileSystemShell extends AbstractShell {
    */
   public FileSystemShell(InstancedConfiguration alluxioConf) {
     super(CMD_ALIAS, alluxioConf);
-    mFilesystemContext = FileSystemContext.create(null, mConfiguration.getProperties());
   }
 
   @Override
@@ -87,6 +84,6 @@ public final class FileSystemShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
-    return FileSystemShellUtils.loadCommands(FileSystemContext.create(null, mConfiguration));
+    return FileSystemShellUtils.loadCommands(FileSystemContext.create(mConfiguration));
   }
 }
