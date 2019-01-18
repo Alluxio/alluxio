@@ -40,13 +40,6 @@ public class GrpcManagedChannelPool {
   // Singleton instance.
   private static GrpcManagedChannelPool sInstance;
 
-  static {
-    sInstance =
-        new GrpcManagedChannelPool(new InstancedConfiguration(ConfigurationUtils.defaults()).getMs(
-            PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT
-        ));
-  }
-
   /**
    * @return the singleton pool instance.
    */
@@ -89,9 +82,7 @@ public class GrpcManagedChannelPool {
     try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
       mScheduler.shutdown();
       // Wait for each channel termination upto configured single channel timeout
-      long singleChannelTimeoutMs =
-          Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT);
-      long waitTimeMs = mChannels.size() * singleChannelTimeoutMs;
+      long waitTimeMs = mChannels.size() * mChannelShutdownTimeoutMs;
       mScheduler.awaitTermination(waitTimeMs, TimeUnit.MILLISECONDS);
       mScheduler.shutdownNow();
     }
@@ -105,11 +96,9 @@ public class GrpcManagedChannelPool {
         ThreadFactoryUtils.build("grpc-channel-terminator", true));
     // Channel termination callback will be fired in the same interval as
     // the channel shutdown timeout.
-    long channelTerminationIntervalMs =
-        Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT);
     mScheduler.scheduleAtFixedRate(() -> {
       destroyInactiveChannels();
-    }, channelTerminationIntervalMs, channelTerminationIntervalMs, TimeUnit.MILLISECONDS);
+    }, mChannelShutdownTimeoutMs, mChannelShutdownTimeoutMs, TimeUnit.MILLISECONDS);
   }
 
   private void destroyInactiveChannels() {
@@ -133,9 +122,7 @@ public class GrpcManagedChannelPool {
       ManagedChannel channel = channelPair.getSecond().get();
       channel.shutdown();
       try {
-        channel.awaitTermination(
-            Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT),
-            TimeUnit.MILLISECONDS);
+        channel.awaitTermination(mChannelShutdownTimeoutMs, TimeUnit.MILLISECONDS);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         // Allow thread to exit.
@@ -290,7 +277,7 @@ public class GrpcManagedChannelPool {
 
     /**
      * Plaintext channel with no transport security.
-     * 
+     *
      * @return the modified {@link ChannelKey}
      */
     public ChannelKey usePlaintext() {
