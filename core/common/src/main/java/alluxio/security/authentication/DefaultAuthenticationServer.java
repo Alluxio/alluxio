@@ -57,7 +57,7 @@ public class DefaultAuthenticationServer
 
   /** Interval for clean-up task to fire. */
   protected final long mCleanupIntervalMs =
-      Configuration.getMs(PropertyKey.AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL);
+      Configuration.getMs(PropertyKey.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD);
 
   /**
    * Creates {@link DefaultAuthenticationServer} instance.

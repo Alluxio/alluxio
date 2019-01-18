@@ -3047,11 +3047,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL =
-      new Builder(Name.AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL)
+  public static final PropertyKey AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
+      new Builder(Name.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD)
           .setDefaultValue("60min")
-          .setDescription("Interval at which stale channels will be removed from "
-              + "authentication cache.")
+          .setDescription("Interval for which client channels that have been inactive "
+                  + "will be regarded as unauthenticated. Such channels will reauthenticate with "
+                  + "their target master upon being used for new RPCs.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3870,7 +3871,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_IMPERSONATION_USERNAME =
         "alluxio.security.login.impersonation.username";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
-    public static final String AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL =
+    public static final String AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
         "alluxio.security.stale.channel.purge.interval";
 
     //
