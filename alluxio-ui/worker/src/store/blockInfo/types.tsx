@@ -35,7 +35,7 @@ export enum BlockInfoActionTypes {
 }
 
 export interface IBlockInfoState {
-  readonly blockInfo: IBlockInfo;
+  readonly data: IBlockInfo;
   readonly errors?: AxiosResponse;
   readonly loading: boolean;
   readonly response?: AxiosResponse;

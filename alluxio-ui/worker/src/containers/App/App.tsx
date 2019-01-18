@@ -10,52 +10,43 @@
  */
 
 import {ConnectedRouter} from 'connected-react-router';
+import {History, LocationState} from 'history';
 import React from 'react';
 import {connect} from 'react-redux';
 import {StaticContext} from 'react-router';
 import {Redirect, Route, RouteComponentProps, Switch} from 'react-router-dom';
-import {Dispatch, Store} from 'redux';
+import {Dispatch} from 'redux';
 
 import {Footer, Header} from '@alluxio/common-ui/src/components';
-import {getRoutedViewRenderer} from '@alluxio/common-ui/src/utilities';
+import {footerNavigationData} from '@alluxio/common-ui/src/constants';
+import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
 import {BlockInfo, Logs, Metrics, Overview} from '..';
-import {footerNavigationData, headerNavigationData} from '../../constants';
-import {IApplicationState} from '../../store';
+import {headerNavigationData} from '../../constants';
 
 import './App.css';
 
 interface IPropsFromDispatch {
-  [key: string]: any;
+  triggerRefresh: typeof triggerRefresh;
 }
 
 interface IAppProps {
-  history: History;
+  history: History<LocationState>;
 }
 
-interface IAppState {
-  refreshValue: boolean;
-}
+export type AllProps = IPropsFromDispatch & IAppProps;
 
-type AllProps = IPropsFromDispatch & IAppProps;
-
-class App extends React.Component<AllProps, IAppState> {
+export class App extends React.Component<AllProps> {
   private readonly refreshInterval = 30000;
   private intervalHandle: any;
 
   constructor(props: AllProps) {
     super(props);
 
-    this.flipRefreshValue = this.flipRefreshValue.bind(this);
     this.setAutoRefresh = this.setAutoRefresh.bind(this);
-
-    this.state = {
-      refreshValue: false
-    };
   }
 
   public render() {
-    const {store, history} = this.props;
-    const {refreshValue} = this.state;
+    const {history} = this.props;
 
     return (
       <ConnectedRouter history={history as any}>
@@ -66,10 +57,10 @@ class App extends React.Component<AllProps, IAppState> {
           <div className="pages container-fluid mt-3">
             <Switch>
               <Route exact={true} path="/" render={this.redirectToOverview}/>
-              <Route path="/overview" exact={true} render={getRoutedViewRenderer(Overview, {refreshValue})}/>
-              <Route path="/blockInfo" exact={true} render={getRoutedViewRenderer(BlockInfo, {refreshValue})}/>
-              <Route path="/logs" exact={true} render={getRoutedViewRenderer(Logs, {refreshValue})}/>
-              <Route path="/metrics" exact={true} render={getRoutedViewRenderer(Metrics, {refreshValue})}/>
+              <Route path="/overview" exact={true} component={Overview}/>
+              <Route path="/blockInfo" exact={true} component={BlockInfo}/>
+              <Route path="/logs" exact={true} component={Logs}/>
+              <Route path="/metrics" exact={true} component={Metrics}/>
               <Route render={this.redirectToOverview}/>
             </Switch>
           </div>
@@ -87,13 +78,9 @@ class App extends React.Component<AllProps, IAppState> {
     );
   }
 
-  private flipRefreshValue() {
-    this.setState({refreshValue: !this.state.refreshValue});
-  }
-
   private setAutoRefresh(shouldAutoRefresh: boolean) {
     if (shouldAutoRefresh && !this.intervalHandle) {
-      this.intervalHandle = setInterval(this.flipRefreshValue, this.refreshInterval);
+      this.intervalHandle = setInterval(this.props.triggerRefresh, this.refreshInterval);
     } else {
       if (this.intervalHandle) {
         clearInterval(this.intervalHandle);
@@ -105,7 +92,9 @@ class App extends React.Component<AllProps, IAppState> {
 
 const mapStateToProps = () => ({});
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({});
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  triggerRefresh: () => dispatch(triggerRefresh())
+});
 
 export default connect(
   mapStateToProps,

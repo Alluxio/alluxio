@@ -31,8 +31,8 @@ export enum LogsActionTypes {
 }
 
 export interface ILogsState {
-  readonly loading: boolean;
-  readonly logs: ILogs;
+  readonly data: ILogs;
   readonly errors?: AxiosResponse;
+  readonly loading: boolean;
   readonly response?: AxiosResponse;
 }

@@ -28,20 +28,17 @@ import {IBrowse} from '../../../store/browse/types';
 import './Browse.css';
 
 interface IPropsFromState {
-  browse: IBrowse;
+  data: IBrowse;
   errors?: AxiosResponse;
   loading: boolean;
   location: {
     search: string;
   };
+  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
-}
-
-interface IBrowseProps {
-  refreshValue: boolean;
 }
 
 interface IBrowseState {
@@ -58,9 +55,9 @@ interface IBrowseState {
   textAreaHeight?: number;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch & IBrowseProps;
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
-class Browse extends React.Component<AllProps, IBrowseState> {
+export class Browse extends React.Component<AllProps, IBrowseState> {
   private readonly textAreaResizeMs = 100;
   private readonly debouncedUpdateTextAreaHeight = getDebouncedFunction(this.updateTextAreaHeight.bind(this), this.textAreaResizeMs, true);
 
@@ -72,15 +69,13 @@ class Browse extends React.Component<AllProps, IBrowseState> {
   }
 
   public componentDidUpdate(prevProps: AllProps) {
-    const {refreshValue, location: {search}} = this.props;
-    const {refreshValue: prevRefreshValue, location: {search: prevSearch}} = prevProps;
+    const {refresh, location: {search}} = this.props;
+    const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
       const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
-
-    }
-    if (refreshValue !== prevRefreshValue) {
+    } else if (refresh !== prevRefresh) {
       const {path, offset, limit, end} = this.state;
       this.fetchData(path, offset, limit, end);
     }
@@ -101,22 +96,22 @@ class Browse extends React.Component<AllProps, IBrowseState> {
   }
 
   public render() {
-    const {errors, browse} = this.props;
+    const {errors, data} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
 
-    if (errors || browse.accessControlException || browse.fatalError || browse.fileDoesNotExistException ||
-      browse.invalidPathError || browse.invalidPathException) {
+    if (errors || data.accessControlException || data.fatalError || data.fileDoesNotExistException ||
+      data.invalidPathError || data.invalidPathException) {
       return (
         <Alert color="danger">
           {errors && <div>Unable to reach the api endpoint for this page.</div>}
-          {browse.accessControlException && <div>{browse.accessControlException}</div>}
-          {browse.fatalError && <div>{browse.fatalError}</div>}
-          {browse.fileDoesNotExistException && <div>{browse.fileDoesNotExistException}</div>}
-          {browse.invalidPathError && <div>{browse.invalidPathError}</div>}
-          {browse.invalidPathException && <div>{browse.invalidPathException}</div>}
+          {data.accessControlException && <div>{data.accessControlException}</div>}
+          {data.fatalError && <div>{data.fatalError}</div>}
+          {data.fileDoesNotExistException && <div>{data.fileDoesNotExistException}</div>}
+          {data.invalidPathError && <div>{data.invalidPathError}</div>}
+          {data.invalidPathException && <div>{data.invalidPathException}</div>}
         </Alert>
       );
     }
@@ -126,8 +121,8 @@ class Browse extends React.Component<AllProps, IBrowseState> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              {!browse.currentDirectory.isDirectory && this.renderFileView(browse, queryStringSuffix)}
-              {browse.currentDirectory.isDirectory && this.renderDirectoryListing(browse, queryStringSuffix)}
+              {!data.currentDirectory.isDirectory && this.renderFileView(data, queryStringSuffix)}
+              {data.currentDirectory.isDirectory && this.renderDirectoryListing(data, queryStringSuffix)}
             </div>
           </div>
         </div>
@@ -163,8 +158,7 @@ class Browse extends React.Component<AllProps, IBrowseState> {
               <td>{fileBlock.id}</td>
               <td>{fileBlock.blockLength}</td>
               <td>
-                {/*TODO(william): fix this to be part of the fileBlock in the api*/}
-                {browse.highestTierAlias ? 'YES' : 'NO'}
+                {fileBlock.isInHighestTier ? 'YES' : 'NO'}
               </td>
               <td>
                 {fileBlock.locations.map((location: string) => (
@@ -277,10 +271,11 @@ class Browse extends React.Component<AllProps, IBrowseState> {
   }
 }
 
-const mapStateToProps = ({browse}: IApplicationState) => ({
-  browse: browse.browse,
+const mapStateToProps = ({browse, refresh}: IApplicationState) => ({
+  data: browse.data,
   errors: browse.errors,
-  loading: browse.loading
+  loading: browse.loading,
+  refresh: refresh.refresh
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

@@ -13,10 +13,8 @@ import {Reducer} from 'redux';
 
 import {IOverviewState, OverviewActionTypes} from './types';
 
-const initialState: IOverviewState = {
-  errors: undefined,
-  loading: false,
-  overview: {
+export const initialOverviewState: IOverviewState = {
+  data: {
     'capacityBytes': '',
     'storageDirs': [],
     'usageOnTiers': [],
@@ -27,15 +25,17 @@ const initialState: IOverviewState = {
       'uptime': '',
       'workerAddress': ''
     }
-  }
+  },
+  errors: undefined,
+  loading: false
 };
 
-export const overviewReducer: Reducer<IOverviewState> = (state = initialState, action) => {
+export const overviewReducer: Reducer<IOverviewState> = (state = initialOverviewState, action) => {
   switch (action.type) {
     case OverviewActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case OverviewActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, overview: action.payload.data, response: action.payload};
+      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
     case OverviewActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

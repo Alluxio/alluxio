@@ -13,10 +13,8 @@ import {Reducer} from 'redux';
 
 import {ILogsState, LogsActionTypes} from './types';
 
-const initialState: ILogsState = {
-  errors: undefined,
-  loading: false,
-  logs: {
+export const initialLogsState: ILogsState = {
+  data: {
     'currentPath': '',
     'debug': false,
     'fatalError': '',
@@ -25,15 +23,17 @@ const initialState: ILogsState = {
     'invalidPathError': '',
     'ntotalFile': 0,
     'viewingOffset': 0
-  }
+  },
+  errors: undefined,
+  loading: false
 };
 
-export const logsReducer: Reducer<ILogsState> = (state = initialState, action) => {
+export const logsReducer: Reducer<ILogsState> = (state = initialLogsState, action) => {
   switch (action.type) {
     case LogsActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case LogsActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, logs: action.payload.data, response: action.payload};
+      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
     case LogsActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

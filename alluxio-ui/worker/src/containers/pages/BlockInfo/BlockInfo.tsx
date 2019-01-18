@@ -24,20 +24,17 @@ import {fetchRequest} from '../../../store/blockInfo/actions';
 import {IBlockInfo, IFileBlocksOnTier} from '../../../store/blockInfo/types';
 
 interface IPropsFromState {
-  blockInfo: IBlockInfo;
+  data: IBlockInfo;
   errors?: AxiosResponse;
   loading: boolean;
   location: {
     search: string;
   };
+  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
-}
-
-interface IBlockInfoProps {
-  refreshValue: boolean;
 }
 
 interface IBlockInfoState {
@@ -53,9 +50,9 @@ interface IBlockInfoState {
   };
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch & IBlockInfoProps;
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
-class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
+export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   constructor(props: AllProps) {
     super(props);
 
@@ -64,14 +61,13 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   }
 
   public componentDidUpdate(prevProps: AllProps) {
-    const {refreshValue, location: {search}} = this.props;
-    const {refreshValue: prevRefreshValue, location: {search: prevSearch}} = prevProps;
+    const {refresh, location: {search}} = this.props;
+    const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
       const {path, offset, limit, end} = parseQuerystring(search);
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
-    }
-    if (refreshValue !== prevRefreshValue) {
+    } else if (refresh !== prevRefresh) {
       const {path, offset, limit, end} = this.state;
       this.fetchData(path, offset, limit, end);
     }
@@ -83,18 +79,18 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   }
 
   public render() {
-    const {errors, blockInfo} = this.props;
+    const {errors, data} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
 
-    if (errors || blockInfo.invalidPathError || blockInfo.fatalError) {
+    if (errors || data.invalidPathError || data.fatalError) {
       return (
         <Alert color="danger">
           {errors && <div>Unable to reach the api endpoint for this page.</div>}
-          {blockInfo.invalidPathError && <div>{blockInfo.invalidPathError}</div>}
-          {blockInfo.fatalError && <div>{blockInfo.fatalError}</div>}
+          {data.invalidPathError && <div>{data.invalidPathError}</div>}
+          {data.fatalError && <div>{data.fatalError}</div>}
         </Alert>
       );
     }
@@ -104,8 +100,8 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              {blockInfo.blockSizeBytes && this.renderBlockInfoView(blockInfo)}
-              {!blockInfo.blockSizeBytes && this.renderBlockInfoListing(blockInfo, blockInfo.orderedTierAliases, queryStringSuffix)}
+              {data.blockSizeBytes && this.renderBlockInfoView(data)}
+              {!data.blockSizeBytes && this.renderBlockInfoListing(data, data.orderedTierAliases, queryStringSuffix)}
             </div>
           </div>
         </div>
@@ -169,8 +165,7 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
             <tr key={fileInfo.absolutePath}>
               <td>{this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}</td>
               {tierAliases.map((tierAlias: string) => (
-                // TODO(william): figure out how to get this
-                <td key={tierAlias}>{tierAlias === 'MEM' && `${fileInfo.inAlluxioPercentage}%`}</td>
+                <td key={tierAlias}>{`${fileInfo.inAlluxioPercentage}%`}</td>
               ))}
               <td>{fileInfo.size}</td>
               <td>{fileInfo.creationTime}</td>
@@ -205,10 +200,11 @@ class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   }
 }
 
-const mapStateToProps = ({blockInfo}: IApplicationState) => ({
-  blockInfo: blockInfo.blockInfo,
+const mapStateToProps = ({blockInfo, refresh}: IApplicationState) => ({
+  data: blockInfo.data,
   errors: blockInfo.errors,
-  loading: blockInfo.loading
+  loading: blockInfo.loading,
+  refresh: refresh.refresh
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

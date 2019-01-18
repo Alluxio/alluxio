@@ -25,7 +25,7 @@ import {
 
 import './Paginator.css';
 
-interface IPaginagorProps {
+export interface IPaginatorProps {
   baseUrl: string;
   path?: string;
   total: number;
@@ -33,7 +33,7 @@ interface IPaginagorProps {
   limit?: string;
 }
 
-export class Paginator extends React.PureComponent<IPaginagorProps> {
+export class Paginator extends React.PureComponent<IPaginatorProps> {
   public render() {
     const {offset, limit, total, baseUrl, path} = this.props;
 
@@ -51,7 +51,7 @@ export class Paginator extends React.PureComponent<IPaginagorProps> {
     const prevPage = currentPage - 1;
     const nextPage = currentPage + 1;
 
-    if (numPages === 1) {
+    if (numPages <= 1) {
       return null;
     }
 

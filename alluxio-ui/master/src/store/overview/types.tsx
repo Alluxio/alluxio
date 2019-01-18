@@ -15,10 +15,7 @@ import {IScopedPropertyInfo, IStorageTierInfo} from '../../constants';
 
 export interface IOverview {
   'debug': boolean;
-  'capacity': {
-    'total': number;
-    'used': number;
-  };
+  'capacity': string;
   'configCheckErrors': IScopedPropertyInfo[];
   'configCheckStatus': string;
   'configCheckWarns': IScopedPropertyInfo[];
@@ -45,8 +42,8 @@ export enum OverviewActionTypes {
 }
 
 export interface IOverviewState {
-  readonly loading: boolean;
-  readonly overview: IOverview;
+  readonly data: IOverview;
   readonly errors?: AxiosResponse;
+  readonly loading: boolean;
   readonly response?: AxiosResponse;
 }

@@ -41,7 +41,7 @@ export enum BrowseActionTypes {
 }
 
 export interface IBrowseState {
-  readonly browse: IBrowse;
+  readonly data: IBrowse;
   readonly errors?: AxiosResponse;
   readonly loading: boolean;
   readonly response?: AxiosResponse;

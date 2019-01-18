@@ -9,12 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import React from 'react';
-import {RouteComponentProps, StaticContext} from 'react-router';
+import {action} from 'typesafe-actions';
 
-export const getRoutedViewRenderer = (
-  Component: typeof React.Component,
-  additionalProperties: { [key: string]: string | boolean }
-) => (routerProps: RouteComponentProps<any, StaticContext, any>) => (
-  <Component {...routerProps} {...additionalProperties}/>
-);
+import {RefreshActionTypes} from './types';
+
+export const triggerRefresh = () => action(RefreshActionTypes.TRIGGER_REFRESH);

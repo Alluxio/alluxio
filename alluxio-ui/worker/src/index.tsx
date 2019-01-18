@@ -15,11 +15,11 @@ import 'raf/polyfill';
 import {Action, createBrowserHistory, Location} from 'history';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Helmet} from 'react-helmet';
 import {Provider} from 'react-redux';
 
 import configureStore from './configureStore';
 import {App} from './containers';
+import {initialState} from './store';
 
 // Order matters for the following files, so disable alphabetization
 // tslint:disable:ordered-imports
@@ -29,12 +29,6 @@ import 'bootstrap/dist/css/bootstrap-grid.min.css';
 import 'bootstrap/dist/css/bootstrap-reboot.min.css';
 import './index.css';
 // tslint:enable:ordered-imports
-
-declare global {
-  interface Window {
-    initialReduxState: any;
-  }
-}
 
 const history = createBrowserHistory();
 history.listen((loc: Location, action: Action) => {
@@ -55,17 +49,10 @@ history.listen((loc: Location, action: Action) => {
   }, 200);
 });
 
-const initialState = window.initialReduxState;
 const store = configureStore(history, initialState);
 
 ReactDOM.render(
   <React.Fragment>
-    <Helmet>
-      {/*IE*/}
-      <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-      <title>Alluxio Worker</title>
-    </Helmet>
     <Provider store={store}>
       <App history={history}/>
     </Provider>

@@ -1,0 +1,65 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LoadingMessage React component Matches snapshot 1`] = `
+<StaticRouter
+  basename=""
+  context={Object {}}
+  location="someLocation"
+>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "someLocation",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <LoadingMessage>
+      <div
+        className="loadingMessage text-center"
+      >
+        <img
+          className="loadingMessageSpin"
+          src="alluxio-mark-tight-sm.svg"
+        />
+        <br />
+        <h5
+          className=""
+        >
+          Please wait...
+        </h5>
+      </div>
+    </LoadingMessage>
+  </Router>
+</StaticRouter>
+`;
+
+exports[`LoadingMessage Shallow component Matches snapshot 1`] = `
+<div
+  className="loadingMessage text-center"
+>
+  <img
+    className="loadingMessageSpin"
+    src="alluxio-mark-tight-sm.svg"
+  />
+  <br />
+  <h5
+    className=""
+  >
+    Please wait...
+  </h5>
+</div>
+`;

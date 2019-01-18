@@ -16,7 +16,7 @@ import {INavigationData} from '../../constants';
 
 import './Footer.css';
 
-interface IFooterProps {
+export interface IFooterProps {
   data: INavigationData[];
 }
 

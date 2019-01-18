@@ -24,20 +24,17 @@ import {fetchRequest} from '../../../store/logs/actions';
 import {ILogs} from '../../../store/logs/types';
 
 interface IPropsFromState {
+  data: ILogs;
   errors?: AxiosResponse;
   loading: boolean;
   location: {
     search: string;
   };
-  logs: ILogs;
+  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
-}
-
-interface ILogsProps {
-  refreshValue: boolean;
 }
 
 interface ILogsState {
@@ -54,9 +51,9 @@ interface ILogsState {
   textAreaHeight?: number;
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch & ILogsProps;
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
-class Logs extends React.Component<AllProps, ILogsState> {
+export class Logs extends React.Component<AllProps, ILogsState> {
   private readonly textAreaResizeMs = 100;
   private readonly debouncedUpdateTextAreaHeight = getDebouncedFunction(this.updateTextAreaHeight.bind(this), this.textAreaResizeMs, true);
 
@@ -68,14 +65,13 @@ class Logs extends React.Component<AllProps, ILogsState> {
   }
 
   public componentDidUpdate(prevProps: AllProps) {
-    const {refreshValue, location: {search}} = this.props;
-    const {refreshValue: prevRefreshValue, location: {search: prevSearch}} = prevProps;
+    const {refresh, location: {search}} = this.props;
+    const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
       const {path, offset, limit, end} = parseQuerystring(search);
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
-    }
-    if (refreshValue !== prevRefreshValue) {
+    } else if (refresh !== prevRefresh) {
       const {path, offset, limit, end} = this.state;
       this.fetchData(path, offset, limit, end);
     }
@@ -96,18 +92,18 @@ class Logs extends React.Component<AllProps, ILogsState> {
   }
 
   public render() {
-    const {errors, logs} = this.props;
+    const {errors, data} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
 
-    if (errors || logs.invalidPathError || logs.fatalError) {
+    if (errors || data.invalidPathError || data.fatalError) {
       return (
         <Alert color="danger">
           {errors && <div>Unable to reach the api endpoint for this page.</div>}
-          {logs.invalidPathError && <div>{logs.invalidPathError}</div>}
-          {logs.fatalError && <div>{logs.fatalError}</div>}
+          {data.invalidPathError && <div>{data.invalidPathError}</div>}
+          {data.fatalError && <div>{data.fatalError}</div>}
         </Alert>
       );
     }
@@ -117,8 +113,8 @@ class Logs extends React.Component<AllProps, ILogsState> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              {logs.fileData && this.renderFileView(logs, queryStringSuffix)}
-              {!logs.fileData && this.renderDirectoryListing(logs.fileInfos, queryStringSuffix)}
+              {data.fileData && this.renderFileView(data, queryStringSuffix)}
+              {!data.fileData && this.renderDirectoryListing(data.fileInfos, queryStringSuffix)}
             </div>
           </div>
         </div>
@@ -173,7 +169,7 @@ class Logs extends React.Component<AllProps, ILogsState> {
             <td>{fileInfo.modificationTime}</td>
             <td>{fileInfo.id}</td>
             <td>
-              {/*TODO(william): what goes here?*/}
+              {fileInfo.fileLocations.map((location: string) => <div key={location}>location</div>)}
             </td>
             <td>{fileInfo.absolutePath}</td>
             <td>
@@ -226,10 +222,11 @@ class Logs extends React.Component<AllProps, ILogsState> {
   }
 }
 
-const mapStateToProps = ({logs}: IApplicationState) => ({
+const mapStateToProps = ({logs, refresh}: IApplicationState) => ({
+  data: logs.data,
   errors: logs.errors,
   loading: logs.loading,
-  logs: logs.logs
+  refresh: refresh.refresh
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

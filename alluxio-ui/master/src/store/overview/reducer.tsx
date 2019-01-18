@@ -13,14 +13,9 @@ import {Reducer} from 'redux';
 
 import {IOverviewState, OverviewActionTypes} from './types';
 
-const initialState: IOverviewState = {
-  errors: undefined,
-  loading: false,
-  overview: {
-    'capacity': {
-      'total': 0,
-      'used': 100
-    },
+export const initialOverviewState: IOverviewState = {
+  data: {
+    'capacity': '',
     'configCheckErrors': [],
     'configCheckStatus': '',
     'configCheckWarns': [],
@@ -46,15 +41,17 @@ const initialState: IOverviewState = {
     'uptime': '',
     'usedCapacity': '',
     'version': ''
-  }
+  },
+  errors: undefined,
+  loading: false
 };
 
-export const overviewReducer: Reducer<IOverviewState> = (state = initialState, action) => {
+export const overviewReducer: Reducer<IOverviewState> = (state = initialOverviewState, action) => {
   switch (action.type) {
     case OverviewActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case OverviewActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, overview: action.payload.data, response: action.payload};
+      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
     case OverviewActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};
     default:

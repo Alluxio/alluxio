@@ -20,24 +20,21 @@ import {fetchRequest} from '../../../store/metrics/actions';
 import {IMetrics} from '../../../store/metrics/types';
 
 interface IPropsFromState {
+  data: IMetrics;
   errors?: AxiosResponse;
   loading: boolean;
-  metrics: IMetrics;
+  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
-interface IMetricsProps {
-  refreshValue: boolean;
-}
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
-type AllProps = IPropsFromState & IPropsFromDispatch & IMetricsProps;
-
-class Metrics extends React.Component<AllProps> {
+export class Metrics extends React.Component<AllProps> {
   public componentDidUpdate(prevProps: AllProps) {
-    if (this.props.refreshValue !== prevProps.refreshValue) {
+    if (this.props.refresh !== prevProps.refresh) {
       this.props.fetchRequest();
     }
   }
@@ -47,7 +44,7 @@ class Metrics extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, metrics} = this.props;
+    const {errors, data} = this.props;
 
     if (errors) {
       return (
@@ -70,10 +67,10 @@ class Metrics extends React.Component<AllProps> {
                   <td>
                     <Progress multi={true}>
                       <Progress bar={true} color="success"
-                                value={`${metrics.workerCapacityFreePercentage}`}>{metrics.workerCapacityFreePercentage}%
+                                value={`${data.workerCapacityFreePercentage}`}>{data.workerCapacityFreePercentage}%
                         Free</Progress>
                       <Progress bar={true} color="danger"
-                                value={`${metrics.workerCapacityUsedPercentage}`}>{metrics.workerCapacityUsedPercentage}%
+                                value={`${data.workerCapacityUsedPercentage}`}>{data.workerCapacityUsedPercentage}%
                         Used</Progress>
                     </Progress>
                   </td>
@@ -87,27 +84,27 @@ class Metrics extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th>Blocks Accessed</th>
-                  <td>{metrics.operationMetrics && metrics.operationMetrics.BlocksAccessed ? metrics.operationMetrics.BlocksAccessed.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BlocksAccessed ? data.operationMetrics.BlocksAccessed.count : 0}</td>
                   <th>Blocks Cached</th>
-                  <td>{metrics.operationMetrics && metrics.operationMetrics.BlocksCached ? metrics.operationMetrics.BlocksCached.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BlocksCached ? data.operationMetrics.BlocksCached.count : 0}</td>
                 </tr>
                 <tr>
                   <th>Blocks Canceled</th>
-                  <td>{metrics.operationMetrics && metrics.operationMetrics.BlocksCanceled ? metrics.operationMetrics.BlocksCanceled.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BlocksCanceled ? data.operationMetrics.BlocksCanceled.count : 0}</td>
                   <th>Blocks Deleted</th>
-                  <td>{metrics.operationMetrics && metrics.operationMetrics.BlocksDeleted ? metrics.operationMetrics.BlocksDeleted.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BlocksDeleted ? data.operationMetrics.BlocksDeleted.count : 0}</td>
                 </tr>
                 <tr>
                   <th>Blocks Evicted</th>
-                  <td>{metrics.operationMetrics && metrics.operationMetrics.BlocksEvicted ? metrics.operationMetrics.BlocksEvicted.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BlocksEvicted ? data.operationMetrics.BlocksEvicted.count : 0}</td>
                   <th>Blocks Promoted</th>
-                  <td>{metrics.operationMetrics && metrics.operationMetrics.BlocksPromoted ? metrics.operationMetrics.BlocksPromoted.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BlocksPromoted ? data.operationMetrics.BlocksPromoted.count : 0}</td>
                 </tr>
                 <tr>
                   <th>Bytes Read Remotely</th>
-                  <td>{metrics.operationMetrics && metrics.operationMetrics.BytesReadRemote ? metrics.operationMetrics.BytesReadRemote.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BytesReadRemote ? data.operationMetrics.BytesReadRemote.count : 0}</td>
                   <th>Bytes Written Remotely</th>
-                  <td>{metrics.operationMetrics && metrics.operationMetrics.BytesWrittenRemote ? metrics.operationMetrics.BytesWrittenRemote.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BytesWrittenRemote ? data.operationMetrics.BytesWrittenRemote.count : 0}</td>
                 </tr>
                 </tbody>
               </Table>
@@ -119,10 +116,11 @@ class Metrics extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({metrics}: IApplicationState) => ({
+const mapStateToProps = ({metrics, refresh}: IApplicationState) => ({
+  data: metrics.data,
   errors: metrics.errors,
   loading: metrics.loading,
-  metrics: metrics.metrics
+  refresh: refresh.refresh
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

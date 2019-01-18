@@ -11,19 +11,21 @@
 
 import {connectRouter, RouterState} from 'connected-react-router';
 import {History} from 'history';
-import {Action, AnyAction, combineReducers, Dispatch} from 'redux';
+import {combineReducers} from 'redux';
 import {all, fork} from 'redux-saga/effects';
 
-import {blockInfoReducer} from './blockInfo/reducer';
+import {initialRefreshState, refreshReducer} from '@alluxio/common-ui/src/store/refresh/reducer';
+import {IRefreshState} from '@alluxio/common-ui/src/store/refresh/types';
+import {blockInfoReducer, initialBlockInfoState} from './blockInfo/reducer';
 import {blockInfoSaga} from './blockInfo/sagas';
 import {IBlockInfoState} from './blockInfo/types';
-import {logsReducer} from './logs/reducer';
+import {initialLogsState, logsReducer} from './logs/reducer';
 import {logsSaga} from './logs/sagas';
 import {ILogsState} from './logs/types';
-import {metricsReducer} from './metrics/reducer';
+import {initialMetricsState, metricsReducer} from './metrics/reducer';
 import {metricsSaga} from './metrics/sagas';
 import {IMetricsState} from './metrics/types';
-import {overviewReducer} from './overview/reducer';
+import {initialOverviewState, overviewReducer} from './overview/reducer';
 import {overviewSaga} from './overview/sagas';
 import {IOverviewState} from './overview/types';
 
@@ -32,11 +34,8 @@ export interface IApplicationState {
   logs: ILogsState;
   metrics: IMetricsState;
   overview: IOverviewState;
-  router: RouterState;
-}
-
-export interface IConnectedReduxProps<A extends Action = AnyAction> {
-  dispatch: Dispatch<A>;
+  refresh: IRefreshState;
+  router?: RouterState;
 }
 
 export const rootReducer = (history: History) => combineReducers<IApplicationState>({
@@ -44,6 +43,7 @@ export const rootReducer = (history: History) => combineReducers<IApplicationSta
   logs: logsReducer,
   metrics: metricsReducer,
   overview: overviewReducer,
+  refresh: refreshReducer,
   router: connectRouter(history)
 });
 
@@ -54,4 +54,12 @@ export const rootSaga = function* () {
     fork(metricsSaga),
     fork(overviewSaga)
   ]);
+};
+
+export const initialState: IApplicationState = {
+  blockInfo: initialBlockInfoState,
+  logs: initialLogsState,
+  metrics: initialMetricsState,
+  overview: initialOverviewState,
+  refresh: initialRefreshState
 };

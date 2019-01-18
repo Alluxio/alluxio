@@ -32,7 +32,7 @@ import {isExternalLink} from '../../utilities';
 
 import './Header.css';
 
-interface IHeaderProps {
+export interface IHeaderProps {
   history: any;
   data: INavigationData[];
   autoRefreshCallback?: (enable: boolean) => void;

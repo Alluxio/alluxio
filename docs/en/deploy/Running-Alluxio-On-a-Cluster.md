@@ -114,8 +114,16 @@ If the leader master fails, a standby master will automatically be chosen to tak
 new leader. Once the new leader starts serving, Alluxio clients and workers proceed as usual. Note
 that during the failover to a standby master, clients may experience brief delays or transient errors.
 
-### Prerequisites
+Alluxio can either use an embedded journal or UFS-based journal for maintaining state across restarts. 
+The embedded journal comes with its own leader election, while UFS journaling relies on Zookeeper for leader election. 
+The next section discusses how to configure Alluxio with a UFS-based journal and Zookeeper. 
+See [this doc]({{ '/en/operation/Journal.html' | relativize_url }}#Embedded-Journal-Configuration) 
+for documentation on how to configure Alluxio HA cluster with embedded journal. The embedded journal is appropriate when no fast, 
+non-object storage such as HDFS or NFS is available, or no Zookeeper cluster is available.
 
+### Setting up Zookeeper HA Cluster
+
+The prerequisites of setting up Zookeeper HA cluster is:
 * Multiple master nodes, and 1 or more worker nodes
 * SSH login without password to all nodes. You can add a public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
@@ -132,17 +140,9 @@ replay the journal entries to stay up-to-date. The journal storage system is rec
   these operations, and/or perform them slowly, so when the journal is stored on an object store,
   the Alluxio master operation throughput is significantly reduced.
 
-### Setup
-
-The following sections describe how to install and configure Alluxio with high availability in a cluster.
-
-#### Alluxio download and installation
-
 To deploy Alluxio in a cluster, first [download](https://alluxio.org/download) the Alluxio tar file,
 and copy it to every node (master nodes, worker nodes). Extract the tarball to the same path on
 every node.
-
-#### Configuration
 
 Each Alluxio node (masters and workers) must be configured for HA. On each Alluxio node,
 create the `conf/alluxio-site.properties` configuration file from the template.
@@ -181,7 +181,7 @@ Make sure all master nodes and all worker nodes have configured their respective
 Once all the Alluxio masters and workers are configured in this way, Alluxio in HA mode is ready to
 be formatted started.
 
-#### Format Alluxio
+### Format Alluxio
 
 Before Alluxio can be started for the first time, the journal must be formatted.
 
@@ -227,23 +227,27 @@ $ ./bin/alluxio runTests
 
 ### Configure Alluxio Clients for HA
 
-When an Alluxio client interacts with Alluxio in HA mode, the client must know about the ZooKeeper
+When an Alluxio client interacts with Alluxio in HA mode, the client must know about the Alluxio HA 
 cluster, so that the client knows how to discover the Alluxio leader master. There are 2 ways to
 configure the client for Alluxio HA.
 
 #### HA Client URI for Alluxio Client
 
-Users can use the Alluxio URI to connect to an Alluxio HA cluster, by fully specifying the ZooKeeper information.
+Users can use the Alluxio URI to connect to an Alluxio HA cluster, by fully specifying the HA cluster information.
 To specify the ZooKeeper information within the Alluxio URI, use `alluxio://zk@<ZOOKEEPER_ADDRESS>`.
+To specify the multi-master information within the Alluxio URI, 
+use `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
 
 For example, for many applications (e.g., Hadoop, HBase, Hive and Flink), you can use a comma as the
-delimiter for multiple addresses in the URI, like `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`.
+delimiter for multiple addresses in the URI, like `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path` 
+and `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`.
 
 For some other applications (e.g., Spark), you need to use semicolons as the delimiter for multiple
-addresses, like `alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path`.
+addresses, like `alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path` 
+and `alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998`.
 
-If you use the URI to specify the ZooKeeper information, the URI will take precedence, and ignore the
-configuration parameters `alluxio.zookeeper.enabled` and `alluxio.zookeeper.address`.
+If you use the URI to specify the HA cluster information, the URI will take precedence, and ignore the
+related Zookeeper or embedded journal configuration parameters.
 
 #### HA Configuration Parameters for Alluxio Client
 
@@ -254,9 +258,13 @@ for the application.
 - `alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>`
   - The ZooKeeper address must be specified when `alluxio.zookeeper.enabled` is enabled.
   - Multiple ZooKeeper addresses can be specified by delimiting with commas
+  
+If using embedded journal, users can configure the following parameter.
+
+- `alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
 
 When the application is configured with these parameters, the Alluxio URI can be simplified to
-`alluxio:///path`, since the ZooKeeper information is already configured.
+`alluxio:///path`, since the HA cluster information is already configured.
 
 For example, if using Hadoop, you can configure the properties in `core-site.xml`, and then use the
 Hadoop CLI with an Alluxio URI.

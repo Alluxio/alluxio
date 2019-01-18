@@ -29,14 +29,11 @@ interface IPropsFromState {
   location: {
     search: string;
   };
+  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
-}
-
-interface IDataProps {
-  refreshValue: boolean;
 }
 
 interface IDataState {
@@ -48,9 +45,9 @@ interface IDataState {
   }
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch & IDataProps;
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
-class Data extends React.Component<AllProps, IDataState> {
+export class Data extends React.Component<AllProps, IDataState> {
   constructor(props: AllProps) {
     super(props);
 
@@ -59,14 +56,13 @@ class Data extends React.Component<AllProps, IDataState> {
   }
 
   public componentDidUpdate(prevProps: AllProps) {
-    const {refreshValue, location: {search}} = this.props;
-    const {refreshValue: prevRefreshValue, location: {search: prevSearch}} = prevProps;
+    const {refresh, location: {search}} = this.props;
+    const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
     if (search !== prevSearch) {
       const {offset, limit} = parseQuerystring(search);
       this.setState({offset, limit});
       this.fetchData(offset, limit);
-    }
-    if (refreshValue !== prevRefreshValue) {
+    } else if (refresh !== prevRefresh) {
       const {offset, limit} = this.state;
       this.fetchData(offset, limit);
     }
@@ -146,10 +142,11 @@ class Data extends React.Component<AllProps, IDataState> {
   }
 }
 
-const mapStateToProps = ({data}: IApplicationState) => ({
+const mapStateToProps = ({data, refresh}: IApplicationState) => ({
   data: data.data,
   errors: data.errors,
-  loading: data.loading
+  loading: data.loading,
+  refresh: refresh.refresh
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

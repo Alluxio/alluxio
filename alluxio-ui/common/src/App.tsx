@@ -12,20 +12,20 @@
 import React from 'react';
 import {LoadingMessage} from './components';
 
-class App extends React.Component {
+export class App extends React.Component {
   public render() {
     return (
       <div className="App">
         <header className="App-header">
           <h1 className="App-title">Welcome to the Alluxio Shared Web Application</h1>
         </header>
-        <p className="App-intro">
+        <div className="App-intro">
           This will contain reusable components for other web applications.
-        </p>
-        <p>
+        </div>
+        <div>
           Control list:
           <LoadingMessage/>
-        </p>
+        </div>
       </div>
     );
   }

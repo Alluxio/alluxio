@@ -31,8 +31,8 @@ export enum MetricsActionTypes {
 }
 
 export interface IMetricsState {
-  readonly loading: boolean;
-  readonly metrics: IMetrics;
+  readonly data: IMetrics;
   readonly errors?: AxiosResponse;
+  readonly loading: boolean;
   readonly response?: AxiosResponse;
 }

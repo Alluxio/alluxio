@@ -9,7 +9,6 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export * from './data/footerNavigation';
 export * from './data/headerNavigation';
 
 export * from './types/IStorageTierInfo';

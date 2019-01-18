@@ -21,24 +21,21 @@ import {fetchRequest} from '../../../store/config/actions';
 import {IConfig} from '../../../store/config/types';
 
 interface IPropsFromState {
+  data: IConfig;
   errors?: AxiosResponse;
   loading: boolean;
-  config: IConfig;
+  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
-interface IConfigurationProps {
-  refreshValue: boolean;
-}
+export type AllProps = IPropsFromState & IPropsFromDispatch;
 
-type AllProps = IPropsFromState & IPropsFromDispatch & IConfigurationProps;
-
-class Configuration extends React.Component<AllProps> {
+export class Configuration extends React.Component<AllProps> {
   public componentDidUpdate(prevProps: AllProps) {
-    if (this.props.refreshValue !== prevProps.refreshValue) {
+    if (this.props.refresh !== prevProps.refresh) {
       this.props.fetchRequest();
     }
   }
@@ -48,7 +45,7 @@ class Configuration extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, config} = this.props;
+    const {errors, data} = this.props;
 
     if (errors) {
       return (
@@ -73,7 +70,7 @@ class Configuration extends React.Component<AllProps> {
                 </tr>
                 </thead>
                 <tbody>
-                {config.configuration.map((configuration: IConfigTriple) => (
+                {data.configuration.map((configuration: IConfigTriple) => (
                   <tr key={configuration.left}>
                     <td>{configuration.left}</td>
                     <td>{configuration.middle}</td>
@@ -87,7 +84,7 @@ class Configuration extends React.Component<AllProps> {
               <h5>Whitelist</h5>
               <Table hover={true}>
                 <tbody>
-                {config.whitelist.map((whitelist: string) => (
+                {data.whitelist.map((whitelist: string) => (
                   <tr key={whitelist}>
                     <td>{whitelist}</td>
                   </tr>
@@ -102,10 +99,12 @@ class Configuration extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({config}: IApplicationState) => ({
-  config: config.config,
+const mapStateToProps = ({config, refresh}: IApplicationState) => ({
+  data: config.data,
   errors: config.errors,
-  loading: config.loading
+  loading: config.loading,
+  refresh: refresh.refresh
+
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
