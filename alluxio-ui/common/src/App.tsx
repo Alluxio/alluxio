@@ -20,11 +20,7 @@ export class App extends React.Component {
           <h1 className="App-title">Welcome to the Alluxio Shared Web Application</h1>
         </header>
         <div className="App-intro">
-          This will contain reusable components for other web applications.
-        </div>
-        <div>
-          Control list:
-          <LoadingMessage/>
+          This package contains reusable components for other web applications. It is not meant to be viewed via a web browser.
         </div>
       </div>
     );
