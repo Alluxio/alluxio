@@ -83,6 +83,8 @@ public class LockCache<K, V> {
   private Iterator<Map.Entry<K, ValNode>> mIterator;
   private final Lock mEvictLock;
 
+  private long mLastLogTime;
+
   /**
    * Constructor for a lock cache.
    *
@@ -100,6 +102,7 @@ public class LockCache<K, V> {
     mCache = new ConcurrentHashMap<>(initialSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
     mIterator = mCache.entrySet().iterator();
     mEvictLock = new ReentrantLock();
+    mLastLogTime = System.currentTimeMillis();
   }
 
   private void evictIfOverLimit() {
@@ -167,6 +170,10 @@ public class LockCache<K, V> {
       if (cacheEntry == null) {
         // cache is at hard limit
         try {
+          if (System.currentTimeMillis() - mLastLogTime > 60000) {
+            LOG.info("Cache at hard limit, size = " + mCache.size());
+            mLastLogTime = System.currentTimeMillis();
+          }
           Thread.sleep(100);
           evictIfOverLimit();
         } catch (InterruptedException e) {
