@@ -147,7 +147,7 @@ public class BaseFileSystem implements FileSystem {
     }
 
     OutStreamOptions outStreamOptions =
-        new OutStreamOptions(options, mFsContext.getClientContext().getConf());
+        new OutStreamOptions(options, mFsContext.getConf());
     outStreamOptions.setUfsPath(status.getUfsPath());
     outStreamOptions.setMountId(status.getMountId());
     outStreamOptions.setAcl(status.getAcl());
@@ -396,7 +396,7 @@ public class BaseFileSystem implements FileSystem {
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
     InStreamOptions inStreamOptions = new InStreamOptions(status, options,
-        mFsContext.getClientContext().getConf());
+        mFsContext.getConf());
     return new FileInStream(status, inStreamOptions, mFsContext);
   }
 
@@ -574,7 +574,7 @@ public class BaseFileSystem implements FileSystem {
        * user passes. If not, throw an exception letting the user know they don't match.
        */
       Authority configured =
-          MasterInquireClient.Factory.create(mFsContext.getClientContext().getConf())
+          MasterInquireClient.Factory.create(mFsContext.getConf())
               .getConnectDetails().toAuthority();
       if (!configured.equals(uri.getAuthority())) {
         throw new IllegalArgumentException(

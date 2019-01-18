@@ -84,9 +84,9 @@ public final class AbstractFileSystemApiTest {
         new org.apache.hadoop.conf.Configuration());
     assertTrue(fs instanceof AbstractFileSystem);
     AbstractFileSystem afs = (AbstractFileSystem) fs;
-    assertTrue(afs.mFsContext.getClientContext().getConf()
+    assertTrue(afs.mFsContext.getConf()
         .getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
-    assertEquals("a:0,b:1,c:2", afs.mFsContext.getClientContext().getConf()
+    assertEquals("a:0,b:1,c:2", afs.mFsContext.getConf()
         .get(PropertyKey.ZOOKEEPER_ADDRESS));
   }
 

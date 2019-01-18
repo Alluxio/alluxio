@@ -401,7 +401,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       try (Closer closer = Closer.create()) {
         CreateFilePOptions createOptions = CreateFilePOptions.newBuilder()
             .setFileWriteLocationPolicy(
-                mFsContext.getClientContext().getConf()
+                mFsContext.getConf()
                     .get(PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY))
             .build();
         os = closer.register(mFileSystem.createFile(dstPath, createOptions));

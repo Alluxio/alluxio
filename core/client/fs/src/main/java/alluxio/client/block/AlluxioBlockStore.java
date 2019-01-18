@@ -92,7 +92,7 @@ public final class AlluxioBlockStore {
    */
   public static AlluxioBlockStore create(FileSystemContext context) {
     return new AlluxioBlockStore(context,
-        TieredIdentityFactory.localIdentity(context.getClientContext().getConf()));
+        TieredIdentityFactory.localIdentity(context.getConf()));
   }
 
   /**
@@ -106,7 +106,7 @@ public final class AlluxioBlockStore {
     mContext = context;
     mTieredIdentity = tieredIdentity;
     mWorkerRefreshPolicy =
-        new TimeoutRefresh(mContext.getClientContext().getConf()
+        new TimeoutRefresh(mContext.getConf()
             .getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
   }
 
@@ -214,7 +214,7 @@ public final class AlluxioBlockStore {
       Collections.shuffle(tieredLocations);
       Optional<TieredIdentity> nearest =
           TieredIdentityUtils.nearest(mTieredIdentity, tieredLocations,
-              mContext.getClientContext().getConf()
+              mContext.getConf()
                   .getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP));
       if (nearest.isPresent()) {
         dataSource = locations.stream().map(BlockLocation::getWorkerAddress)

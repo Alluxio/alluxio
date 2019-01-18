@@ -175,13 +175,13 @@ public final class LsCommand extends AbstractFileSystemCommand {
         || !status.getDefaultAcl().isEmpty();
 
     System.out.print(formatLsString(hSize,
-        SecurityUtils.isSecurityEnabled(mFsContext.getClientContext().getConf()),
+        SecurityUtils.isSecurityEnabled(mFsContext.getConf()),
         status.isFolder(),
         FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended),
         status.getOwner(), status.getGroup(), status.getLength(),
         status.getLastModificationTimeMs(), status.getInAlluxioPercentage(),
         status.getPersistenceState(), status.getPath(),
-        mFsContext.getClientContext().getConf().get(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+        mFsContext.getConf().get(PropertyKey.USER_DATE_FORMAT_PATTERN)));
   }
 
   /**

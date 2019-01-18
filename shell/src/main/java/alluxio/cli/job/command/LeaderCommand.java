@@ -55,7 +55,7 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) {
     try {
       InetSocketAddress address =
-          JobContext.create(mFsContext.getClientContext().getConf()).getJobMasterAddress();
+          JobContext.create(mFsContext.getConf()).getJobMasterAddress();
       System.out.println(address.getHostName());
     } catch (Exception e) {
       LOG.error("Failed to create the primary job master", e);
