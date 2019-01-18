@@ -326,7 +326,7 @@ public final class MountTable implements JournalEntryIterable, JournalEntryRepla
     if (relativePath.isEmpty()) {
       return mountPoint;
     } else {
-      return mountPoint.join(relativePath);
+      return mountPoint.joinUnsafe(relativePath);
     }
   }
 

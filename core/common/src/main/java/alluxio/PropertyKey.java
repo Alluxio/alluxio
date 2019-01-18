@@ -3171,6 +3171,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.NONE)
           .build();
+  // Assumes that HDFS is the UFS and version is 2.2
+  // TODO(ns) Fix default value to handle other UFS types
+  public static final PropertyKey UNDERFS_VERSION =
+      new Builder(Name.UNDERFS_VERSION)
+          .setDefaultValue("2.2")
+          .setIsHidden(true)
+          .build();
 
   //
   // Job service
@@ -3361,6 +3368,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_VERSION = "alluxio.underfs.version";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
         "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
