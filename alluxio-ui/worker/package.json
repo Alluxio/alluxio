@@ -48,7 +48,6 @@
     "@types/react-redux": "^6.0.12",
     "@types/react-router-dom": "^4.3.1",
     "@types/reactstrap": "^6.4.4",
-    "@types/redux-mock-store": "^1.0.0",
     "@types/sinon": "^7.0.3",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.7.1",
@@ -58,7 +57,6 @@
     "react-app-rewired": "^2.0.1",
     "react-test-renderer": "^16.7.0",
     "redux-devtools-extension": "^2.13.7",
-    "redux-mock-store": "^1.5.3",
     "sinon": "^7.2.2",
     "typescript": "^3.2.2"
   },
