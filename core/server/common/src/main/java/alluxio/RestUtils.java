@@ -40,7 +40,7 @@ public final class RestUtils {
    * @return the response object
    */
   public static <T> Response call(RestUtils.RestCallable<T> callable) {
-    boolean isCORS = Configuration.getBoolean(PropertyKey.DEBUG);
+    boolean isCORS = Configuration.getBoolean(PropertyKey.CORS_ENABLED);
 
     try {
       // TODO(cc): reconsider how to enable authentication

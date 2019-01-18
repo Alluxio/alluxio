@@ -58,7 +58,7 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
 
 #### Developing within the alluxio-ui project
 
-1. Enable CORS for the alluxio RESTful api endpoints by setting `alluxio.debug=true` in `conf/alluxio-site.properties`
+1. Enable CORS for the alluxio RESTful api endpoints by setting `alluxio.enable.cors=true` in `conf/alluxio-site.properties`
 1. Start a development server in a different terminal for each package you intend to work on:
     1. common-ui: `cd alluxio-ui/common-ui && npm run start`
     1. master-ui: `cd alluxio-ui/master-ui && npm run start`
