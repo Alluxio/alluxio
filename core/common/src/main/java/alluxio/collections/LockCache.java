@@ -19,7 +19,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,45 +35,11 @@ import java.util.function.Function;
  * @param <K> key to the cache
  */
 public class LockCache<K> {
-  /**
-   * Node containing value and other information to be stored in the cache.
-   */
-  public class ValNode {
-    private ReentrantReadWriteLock mValue;
-    private boolean mIsAccessed;
-    private AtomicInteger mRefCount;
-
-    private ValNode(ReentrantReadWriteLock value) {
-      mValue = value;
-      mIsAccessed = false;
-      mRefCount = new AtomicInteger(1);
-    }
-
-    /**
-     * Get the ref counter associated with this value node.
-     *
-     * @return a ref counter
-     */
-    public AtomicInteger getRefCounter() {
-      return mRefCount;
-    }
-
-    /**
-     * Get the value contained in the value node.
-     *
-     * @return the lock contained in the value node
-     */
-    public ReentrantReadWriteLock get() {
-      return mValue;
-    }
-  }
-
   private static final Logger LOG = LoggerFactory.getLogger(LockCache.class);
   private static final float DEFAULT_LOAD_FACTOR = 0.75f;
-  static final float SOFT_LIMIT_RATIO = 0.9f;
+  private static final float SOFT_LIMIT_RATIO = 0.9f;
 
   private final Map<K, ValNode> mCache;
-
   /**
    * SoftLimit = hardLimit * softLimitRatio
    * once the size reaches softlimit, eviction starts to happen,
@@ -83,10 +48,10 @@ public class LockCache<K> {
   private final int mHardLimit;
   private final int mSoftLimit;
   private final Function<? super K, ? extends ReentrantReadWriteLock> mDefaultLoader;
-  private Iterator<Map.Entry<K, ValNode>> mIterator;
   private final Lock mEvictLock;
 
-  private long mLastLogTime;
+  private Iterator<Map.Entry<K, ValNode>> mIterator;
+  private long mLastSizeWarningTime;
 
   /**
    * Constructor for a lock cache.
@@ -96,16 +61,15 @@ public class LockCache<K> {
    * @param maxSize maximum size of the cache
    * @param concurrencyLevel concurrency level of the cache
    */
-  public LockCache(@Nullable Function<? super K, ? extends ReentrantReadWriteLock> defaultLoader,
+  public LockCache(Function<? super K, ? extends ReentrantReadWriteLock> defaultLoader,
       int initialSize, int maxSize, int concurrencyLevel) {
     mDefaultLoader = defaultLoader;
-
     mHardLimit = maxSize;
     mSoftLimit = (int) Math.round(SOFT_LIMIT_RATIO * maxSize);
     mCache = new ConcurrentHashMap<>(initialSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
     mIterator = mCache.entrySet().iterator();
     mEvictLock = new ReentrantLock();
-    mLastLogTime = System.currentTimeMillis();
+    mLastSizeWarningTime = 0;
   }
 
   private void evictIfOverLimit() {
@@ -142,15 +106,16 @@ public class LockCache<K> {
   }
 
   /**
-   * Get the value from the cache.
+   * If the key has an associated lock in the cache, return a LockResource for that key and
+   * the associated lock using the specified lockmode.  If the key has no entry in the cache,
+   * create a lock and return a LockResource for that lock.
    *
    * @param key the key to look up the cache
    * @param mode lockMode to acquire
    * @return the value contained in the cache, if it is already in cache,
    *         otherwise generate an entry based on the loader
    */
-
-  public LockResource get(final K key, LockResource.LockMode mode) {
+  public LockResource get(K key, LockResource.LockMode mode) {
     ValNode valNode = getValNode(key);
     ReentrantReadWriteLock lock = valNode.mValue;
     switch (mode) {
@@ -169,13 +134,12 @@ public class LockCache<K> {
    * @param key key to look up the value
    * @return the lock associated with the key
    */
-
   @VisibleForTesting
-  public ReentrantReadWriteLock getRawReadWriteLock(final K key) {
+  public ReentrantReadWriteLock getRawReadWriteLock(K key) {
     return mCache.getOrDefault(key, new ValNode(new ReentrantReadWriteLock())).mValue;
   }
 
-  private ValNode getValNode(final K key) {
+  private ValNode getValNode(K key) {
     Preconditions.checkNotNull(key, "key can not be null");
     // oldCacheEntry keeps track of the last cache entry that was in the process of being removed.
     // we do not need to do anything if we did not get a new CacheEntry
@@ -185,7 +149,7 @@ public class LockCache<K> {
       // repeat until we get a cacheEntry that is not in the process of being removed.
       cacheEntry = mCache.compute(key, (k, v) -> {
         if (v != null) {
-          v.getRefCounter().incrementAndGet();
+          v.mRefCount.incrementAndGet();
           v.mIsAccessed = true;
           return v;
         }
@@ -200,10 +164,10 @@ public class LockCache<K> {
       if (cacheEntry == null) {
         // cache is at hard limit
         try {
-          if (System.currentTimeMillis() - mLastLogTime > 60000) {
+          if (System.currentTimeMillis() - mLastSizeWarningTime > 60000) {
             LOG.warn("Cache at hard limit, cache ize = " + mCache.size()
                 + " softLimit = " + mSoftLimit + " hardLimit = " + mHardLimit);
-            mLastLogTime = System.currentTimeMillis();
+            mLastSizeWarningTime = System.currentTimeMillis();
           }
           Thread.sleep(100);
           evictIfOverLimit();
@@ -232,7 +196,8 @@ public class LockCache<K> {
    * @param key the key to look up in the cache
    * @return true if the key is contained in the cache
    */
-  public boolean contains(final K key) {
+  @VisibleForTesting
+  public boolean contains(K key) {
     Preconditions.checkNotNull(key, "key can not be null");
     return mCache.containsKey(key);
   }
@@ -244,5 +209,30 @@ public class LockCache<K> {
    */
   public int size() {
     return mCache.size();
+  }
+
+  /**
+   * Get the soft size limit for this cache.
+   *
+   * @return the soft size limit
+   */
+  @VisibleForTesting
+  public int getSoftLimit() {
+    return mSoftLimit;
+  }
+
+  /**
+   * Node containing value and other information to be stored in the cache.
+   */
+  public class ValNode {
+    private ReentrantReadWriteLock mValue;
+    private boolean mIsAccessed;
+    private AtomicInteger mRefCount;
+
+    private ValNode(ReentrantReadWriteLock value) {
+      mValue = value;
+      mIsAccessed = false;
+      mRefCount = new AtomicInteger(1);
+    }
   }
 }

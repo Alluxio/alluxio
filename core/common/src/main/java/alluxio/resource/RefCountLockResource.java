@@ -11,6 +11,8 @@
 
 package alluxio.resource;
 
+import com.google.common.base.Preconditions;
+
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 
@@ -28,6 +30,7 @@ public class RefCountLockResource extends LockResource {
    */
   public RefCountLockResource(Lock lock, AtomicInteger refCount) {
     super(lock);
+    Preconditions.checkNotNull(refCount, "Reference Counter can not be null");
     mRefCount = refCount;
   }
 
@@ -38,8 +41,6 @@ public class RefCountLockResource extends LockResource {
   @Override
   public void close() {
     super.close();
-    if (mRefCount != null) {
-      mRefCount.decrementAndGet();
-    }
+    mRefCount.decrementAndGet();
   }
 }

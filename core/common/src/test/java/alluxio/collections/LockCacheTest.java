@@ -36,9 +36,9 @@ public class LockCacheTest {
     mCache = new LockCache<>(k -> new ReentrantReadWriteLock(), 2, MAX_SIZE, 4);
   }
 
-  @Test(timeout = 10000)
+  @Test(timeout = 1000)
   public void insertValueTest() {
-    int highWaterMark = Math.round(LockCache.SOFT_LIMIT_RATIO * MAX_SIZE);
+    int highWaterMark = mCache.getSoftLimit();
 
     for (int i = 0; i < highWaterMark; i++) {
       assertEquals(i , mCache.size());
@@ -57,7 +57,7 @@ public class LockCacheTest {
     }
   }
 
-  private Thread insert(int low, int high, int totalThreadCount) {
+  private Thread getKeys(int low, int high, int totalThreadCount) {
     Thread t = new Thread(() -> {
       for (int i = low; i < high; i++) {
         try (LockResource resource = mCache.get(i, LockResource.LockMode.READ)) {
@@ -70,12 +70,12 @@ public class LockCacheTest {
     return t;
   }
 
-  @Test
+  @Test(timeout = 1000)
   public void parallelInsertTest() throws InterruptedException {
-    Thread t1 = insert(0, MAX_SIZE * 2, 4);
-    Thread t2 = insert(0, MAX_SIZE * 2, 4);
-    Thread t3 = insert(MAX_SIZE * 2, MAX_SIZE * 4, 4);
-    Thread t4 = insert(MAX_SIZE * 2, MAX_SIZE * 4, 4);
+    Thread t1 = getKeys(0, MAX_SIZE * 2, 4);
+    Thread t2 = getKeys(0, MAX_SIZE * 2, 4);
+    Thread t3 = getKeys(MAX_SIZE * 2, MAX_SIZE * 4, 4);
+    Thread t4 = getKeys(MAX_SIZE * 2, MAX_SIZE * 4, 4);
     t1.join();
     t2.join();
     t3.join();
