@@ -338,7 +338,8 @@ public final class MultiProcessCluster {
   public synchronized MetaMasterClient getMetaMasterClient() {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a meta master client, but state was %s", mState);
-    return new RetryHandlingMetaMasterClient(new MasterClientConfig()
+    return new RetryHandlingMetaMasterClient(MasterClientConfig
+        .defaults(ServerConfiguration.global())
         .withMasterInquireClient(getMasterInquireClient()));
   }
 

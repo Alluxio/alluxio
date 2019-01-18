@@ -25,6 +25,9 @@ public class MasterClientConfig {
   private MasterInquireClient mMasterInquireClient;
   private AlluxioConfiguration mAlluxioConf;
 
+  // Prevent instantiation
+  private MasterClientConfig(){ }
+
   /**
    * @param alluxioConf Alluxio configuration
    * @return a master client configuration with default values

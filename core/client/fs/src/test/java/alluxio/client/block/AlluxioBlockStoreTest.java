@@ -167,6 +167,7 @@ public final class AlluxioBlockStoreTest {
     when(mContext.acquireBlockMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mMasterClient));
     when(mContext.getClientContext()).thenReturn(ClientContext.create(null, sConf.getProperties()));
+    when(mContext.getConf()).thenReturn(sConf);
     mLocalAddr =
         new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName(
             (int) sConf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));

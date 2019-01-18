@@ -16,13 +16,12 @@ import alluxio.grpc.AsyncCacheResponse;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnauthenticatedException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -34,6 +33,7 @@ import alluxio.grpc.WriteResponse;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NettyUtils;
 
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.netty.channel.EventLoopGroup;
 import org.slf4j.Logger;
@@ -53,6 +53,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
 
+  // TODO(zac): Make this a non-singleton
   private static final EventLoopGroup WORKER_GROUP = NettyUtils
       .createEventLoop(
           NettyUtils.getUserChannel(new InstancedConfiguration(ConfigurationUtils.defaults())),
@@ -74,7 +75,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    * @param alluxioConf Alluxio configuration
    */
   public DefaultBlockWorkerClient(Subject subject, SocketAddress address,
-      AlluxioConfiguration alluxioConf) {
+      AlluxioConfiguration alluxioConf) throws IOException {
     try {
       mChannel = GrpcChannelBuilder.forAddress(address, alluxioConf).setSubject(subject)
           .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress),
@@ -86,9 +87,9 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
               (int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
           .setFlowControlWindow(
               (int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW))
-                     .build();
-    } catch (UnauthenticatedException | UnavailableException e) {
-      throw new RuntimeException("Failed to build channel.", e);
+          .build();
+    } catch (StatusRuntimeException e) {
+      throw GrpcExceptionUtils.fromGrpcStatusException(e);
     }
     mBlockingStub = BlockWorkerGrpc.newBlockingStub(mChannel);
     mAsyncStub = BlockWorkerGrpc.newStub(mChannel);

@@ -15,7 +15,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
@@ -83,12 +82,14 @@ public final class GrpcDataWriterTest {
   @Before
   public void before() throws Exception {
     mContext = PowerMockito.mock(FileSystemContext.class);
-    when(mContext.getClientContext()).thenReturn(ClientContext.create(null, mConf.getProperties()));
     mAddress = mock(WorkerNetAddress.class);
 
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
     PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
+    PowerMockito.when(mContext.getClientContext())
+        .thenReturn(ClientContext.create(null, mConf.getProperties()));
+    PowerMockito.when(mContext.getConf()).thenReturn(mConf);
     PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
     PowerMockito.when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
     PowerMockito.when(mRequestObserver.isReady()).thenReturn(true);

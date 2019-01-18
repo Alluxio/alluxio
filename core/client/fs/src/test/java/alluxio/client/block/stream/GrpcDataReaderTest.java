@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import alluxio.ClientContext;
+import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.ReadRequest;
@@ -71,6 +72,7 @@ public final class GrpcDataReaderTest {
     mContext = PowerMockito.mock(FileSystemContext.class);
     when(mContext.getClientContext()).thenReturn(ClientContext.create(null,
         ConfigurationUtils.defaults()));
+    when(mContext.getConf()).thenReturn(ConfigurationTestUtils.defaults());
     mAddress = mock(WorkerNetAddress.class);
     ReadRequest readRequest =
         ReadRequest.newBuilder().setBlockId(BLOCK_ID).setChunkSize(CHUNK_SIZE).build();
