@@ -78,11 +78,9 @@ public class AuthorityTest {
     assertEquals("127.0.0.1:213,127.0.0.2:532423,127.0.0.3:3213", authority.getMasterAddresses());
 
     authority = (MultiMasterAuthority) Authority.fromString("host1:19998;host2:19998;host3:19998");
-    assertEquals("host1:19998;host2:19998;host3:19998", authority.toString());
     assertEquals("host1:19998,host2:19998,host3:19998", authority.getMasterAddresses());
 
     authority = (MultiMasterAuthority) Authority.fromString("host1:19998+host2:19998+host3:19998");
-    assertEquals("host1:19998+host2:19998+host3:19998", authority.toString());
     assertEquals("host1:19998,host2:19998,host3:19998", authority.getMasterAddresses());
 
     assertFalse(Authority.fromString("localhost:19998")

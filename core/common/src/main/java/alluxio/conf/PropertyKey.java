@@ -1895,7 +1895,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_FLOWCONTROL_WINDOW =
       new Builder(Name.WORKER_NETWORK_FLOWCONTROL_WINDOW)
-          .setDefaultValue("1MB")
+          .setDefaultValue("2MB")
           .setDescription("The HTTP2 flow control window used by worker gRPC connections. Larger "
               + "value will allow more data to be buffered but will use more memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2712,7 +2712,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_FLOWCONTROL_WINDOW =
       new Builder(Name.USER_NETWORK_FLOWCONTROL_WINDOW)
-          .setDefaultValue("1MB")
+          .setDefaultValue("2MB")
           .setDescription("The HTTP2 flow control window used by user gRPC connections. Larger "
               + "value will allow more data to be buffered but will use more memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2768,7 +2768,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_READER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES)
-          .setDefaultValue("64KB")
+          .setDefaultValue("1MB")
           .setDescription("When a client reads from a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -2784,7 +2784,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES)
-          .setDefaultValue("64KB")
+          .setDefaultValue("1MB")
           .setDescription("When a client writes to a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3051,11 +3051,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL =
-      new Builder(Name.AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL)
+  public static final PropertyKey AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
+      new Builder(Name.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD)
           .setDefaultValue("60min")
-          .setDescription("Interval at which stale channels will be removed from "
-              + "authentication cache.")
+          .setDescription("Interval for which client channels that have been inactive "
+                  + "will be regarded as unauthenticated. Such channels will reauthenticate with "
+                  + "their target master upon being used for new RPCs.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3173,6 +3174,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The number of workers to run on an Alluxio host for YARN framework.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.NONE)
+          .build();
+  // Assumes that HDFS is the UFS and version is 2.2
+  // TODO(ns) Fix default value to handle other UFS types
+  public static final PropertyKey UNDERFS_VERSION =
+      new Builder(Name.UNDERFS_VERSION)
+          .setDefaultValue("2.2")
+          .setIsHidden(true)
           .build();
 
   //
@@ -3370,6 +3378,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_VERSION = "alluxio.underfs.version";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
         "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
@@ -3880,7 +3889,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_IMPERSONATION_USERNAME =
         "alluxio.security.login.impersonation.username";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
-    public static final String AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL =
+    public static final String AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
         "alluxio.security.stale.channel.purge.interval";
 
     //

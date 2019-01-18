@@ -48,7 +48,7 @@ public interface Authority extends Comparable<Authority>, Serializable {
       } else {
         matcher = MULTI_MASTERS_AUTH.matcher(authority);
         if (matcher.matches()) {
-          return new MultiMasterAuthority(authority);
+          return new MultiMasterAuthority(authority.replaceAll("[;+]", ","));
         }
         return new UnknownAuthority(authority);
       }

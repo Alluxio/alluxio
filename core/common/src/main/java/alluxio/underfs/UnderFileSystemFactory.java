@@ -61,4 +61,13 @@ public interface UnderFileSystemFactory
   default boolean supportsPath(String path, @Nullable UnderFileSystemConfiguration conf) {
     return supportsPath(path);
   }
+
+  /**
+   * Get the version supported by this factory.
+   *
+   * @return the version string
+   */
+  default String getVersion() {
+    return "";
+  }
 }
