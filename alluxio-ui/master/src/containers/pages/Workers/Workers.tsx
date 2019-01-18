@@ -45,7 +45,7 @@ export class Workers extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, data: workers} = this.props;
+    const {errors, data} = this.props;
 
     if (errors) {
       return (
@@ -55,7 +55,7 @@ export class Workers extends React.Component<AllProps> {
       );
     }
 
-    console.log(workers);
+    console.log(data);
 
     return (
       <div className="workers-page">
@@ -77,7 +77,7 @@ export class Workers extends React.Component<AllProps> {
                 </tr>
                 </thead>
                 <tbody>
-                {workers.normalNodeInfos.map((nodeInfo: INodeInfo) => (
+                {data.normalNodeInfos.map((nodeInfo: INodeInfo) => (
                   <tr key={nodeInfo.workerId}>
                     <td><a href={`//${nodeInfo.host}:30000`} target="_blank">{nodeInfo.host}</a></td>
                     <td>{nodeInfo.workerId}</td>
@@ -114,7 +114,7 @@ export class Workers extends React.Component<AllProps> {
                 </tr>
                 </thead>
                 <tbody>
-                {workers.failedNodeInfos.map((nodeInfo: INodeInfo) => (
+                {data.failedNodeInfos.map((nodeInfo: INodeInfo) => (
                   <tr key={nodeInfo.workerId}>
                     <td>{nodeInfo.host}</td>
                     <td>{nodeInfo.workerId}</td>

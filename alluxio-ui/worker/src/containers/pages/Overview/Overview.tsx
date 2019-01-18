@@ -46,7 +46,7 @@ export class Overview extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, data: overview} = this.props;
+    const {errors, data} = this.props;
 
     if (errors) {
       return (
@@ -66,19 +66,19 @@ export class Overview extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th scope="row">Worker Address</th>
-                  <td>{overview.workerInfo.workerAddress}</td>
+                  <td>{data.workerInfo.workerAddress}</td>
                 </tr>
                 <tr>
                   <th scope="row">Started</th>
-                  <td>{overview.workerInfo.startTime}</td>
+                  <td>{data.workerInfo.startTime}</td>
                 </tr>
                 <tr>
                   <th scope="row">Uptime</th>
-                  <td>{overview.workerInfo.uptime}</td>
+                  <td>{data.workerInfo.uptime}</td>
                 </tr>
                 <tr>
                   <th scope="row">Version</th>
-                  <td>{overview.version}</td>
+                  <td>{data.version}</td>
                 </tr>
                 </tbody>
               </Table>
@@ -89,9 +89,9 @@ export class Overview extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th scope="row">Total Capacity / Used</th>
-                  <td>{overview.capacityBytes} / {overview.usedBytes}</td>
+                  <td>{data.capacityBytes} / {data.usedBytes}</td>
                 </tr>
-                {overview.usageOnTiers.map((info: IStorageTierInfo) => (
+                {data.usageOnTiers.map((info: IStorageTierInfo) => (
                   <tr key={info.tierAlias}>
                     <th scope="row">{info.tierAlias} Capacity / Used</th>
                     <td>{bytesToString(info.capacityBytes)} / {bytesToString(info.usedBytes)}</td>
@@ -113,7 +113,7 @@ export class Overview extends React.Component<AllProps> {
                 </tr>
                 </thead>
                 <tbody>
-                {overview.storageDirs.map((info: IStorageTierInfo) => {
+                {data.storageDirs.map((info: IStorageTierInfo) => {
                   const used = Math.round(info.usedBytes / info.capacityBytes * 10000) / 100;
                   const free = 100 - used;
                   return (

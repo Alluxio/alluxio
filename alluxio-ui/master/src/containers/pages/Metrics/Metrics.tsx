@@ -44,7 +44,7 @@ export class Metrics extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, data: metrics} = this.props;
+    const {errors, data} = this.props;
 
     if (errors) {
       return (
@@ -67,10 +67,10 @@ export class Metrics extends React.Component<AllProps> {
                   <td>
                     <Progress multi={true}>
                       <Progress bar={true} color="success"
-                                value={`${metrics.masterCapacityFreePercentage}`}>{metrics.masterCapacityFreePercentage}%
+                                value={`${data.masterCapacityFreePercentage}`}>{data.masterCapacityFreePercentage}%
                         Free</Progress>
                       <Progress bar={true} color="danger"
-                                value={`${metrics.masterCapacityUsedPercentage}`}>{metrics.masterCapacityUsedPercentage}%
+                                value={`${data.masterCapacityUsedPercentage}`}>{data.masterCapacityUsedPercentage}%
                         Used</Progress>
                     </Progress>
                   </td>
@@ -80,10 +80,10 @@ export class Metrics extends React.Component<AllProps> {
                   <td>
                     <Progress multi={true}>
                       <Progress bar={true} color="success"
-                                value={`${metrics.masterUnderfsCapacityFreePercentage}`}>{metrics.masterUnderfsCapacityFreePercentage}%
+                                value={`${data.masterUnderfsCapacityFreePercentage}`}>{data.masterUnderfsCapacityFreePercentage}%
                         Free</Progress>
                       <Progress bar={true} color="danger"
-                                value={`${metrics.masterUnderfsCapacityUsedPercentage}`}>{metrics.masterUnderfsCapacityUsedPercentage}%
+                                value={`${data.masterUnderfsCapacityUsedPercentage}`}>{data.masterUnderfsCapacityUsedPercentage}%
                         Used</Progress>
                     </Progress>
                   </td>
@@ -97,19 +97,19 @@ export class Metrics extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th>Short-circuit Read</th>
-                  <td>{metrics.totalBytesReadLocal}</td>
+                  <td>{data.totalBytesReadLocal}</td>
                   <th>From Remote Instances</th>
-                  <td>{metrics.totalBytesReadRemote}</td>
+                  <td>{data.totalBytesReadRemote}</td>
                 </tr>
                 <tr>
                   <th>Under Filesystem Read</th>
-                  <td>{metrics.totalBytesReadUfs}</td>
+                  <td>{data.totalBytesReadUfs}</td>
                 </tr>
                 <tr>
                   <th>Alluxio Write</th>
-                  <td>{metrics.totalBytesWrittenAlluxio}</td>
+                  <td>{data.totalBytesWrittenAlluxio}</td>
                   <th>Under Filesystem Write</th>
-                  <td>{metrics.totalBytesWrittenUfs}</td>
+                  <td>{data.totalBytesWrittenUfs}</td>
                 </tr>
                 </tbody>
               </Table>
@@ -120,19 +120,19 @@ export class Metrics extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th>Short-circuit Read</th>
-                  <td>{metrics.totalBytesReadLocalThroughput}</td>
+                  <td>{data.totalBytesReadLocalThroughput}</td>
                   <th>From Remote Instances</th>
-                  <td>{metrics.totalBytesReadRemoteThroughput}</td>
+                  <td>{data.totalBytesReadRemoteThroughput}</td>
                 </tr>
                 <tr>
                   <th>Under Filesystem Read</th>
-                  <td>{metrics.totalBytesReadUfsThroughput}</td>
+                  <td>{data.totalBytesReadUfsThroughput}</td>
                 </tr>
                 <tr>
                   <th>Alluxio Write</th>
-                  <td>{metrics.totalBytesWrittenAlluxioThroughput}</td>
+                  <td>{data.totalBytesWrittenAlluxioThroughput}</td>
                   <th>Under Filesystem Write</th>
-                  <td>{metrics.totalBytesWrittenUfsThroughput}</td>
+                  <td>{data.totalBytesWrittenUfsThroughput}</td>
                 </tr>
                 </tbody>
               </Table>
@@ -143,13 +143,13 @@ export class Metrics extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th>Alluxio Local</th>
-                  <td>{metrics.cacheHitLocal}</td>
+                  <td>{data.cacheHitLocal}</td>
                   <th>Alluxio Remote</th>
-                  <td>{metrics.cacheHitRemote}</td>
+                  <td>{data.cacheHitRemote}</td>
                 </tr>
                 <tr>
                   <th>Miss</th>
-                  <td>{metrics.cacheMiss}</td>
+                  <td>{data.cacheMiss}</td>
                 </tr>
                 </tbody>
               </Table>
@@ -162,10 +162,10 @@ export class Metrics extends React.Component<AllProps> {
                   <th>Under FileSystem</th>
                   <th>Size</th>
                 </tr>
-                {Object.keys(metrics.ufsReadSize).map((key: string) => (
+                {Object.keys(data.ufsReadSize).map((key: string) => (
                   <tr key={key}>
                     <td>{key}</td>
-                    <td>{metrics.ufsReadSize[key]}</td>
+                    <td>{data.ufsReadSize[key]}</td>
                   </tr>
                 ))}
                 </tbody>
@@ -179,10 +179,10 @@ export class Metrics extends React.Component<AllProps> {
                   <th>Under FileSystem</th>
                   <th>Size</th>
                 </tr>
-                {Object.keys(metrics.ufsWriteSize).map((key: string) => (
+                {Object.keys(data.ufsWriteSize).map((key: string) => (
                   <tr key={key}>
                     <td>{key}</td>
-                    <td>{metrics.ufsWriteSize[key]}</td>
+                    <td>{data.ufsWriteSize[key]}</td>
                   </tr>
                 ))}
                 </tbody>
@@ -194,43 +194,43 @@ export class Metrics extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th>Directories Created</th>
-                  <td>{metrics.operationMetrics.DirectoriesCreated && metrics.operationMetrics.DirectoriesCreated.count}</td>
+                  <td>{data.operationMetrics.DirectoriesCreated && data.operationMetrics.DirectoriesCreated.count}</td>
                   <th>File Block Infos Got</th>
-                  <td>{metrics.operationMetrics.FileBlockInfosGot && metrics.operationMetrics.FileBlockInfosGot.count}</td>
+                  <td>{data.operationMetrics.FileBlockInfosGot && data.operationMetrics.FileBlockInfosGot.count}</td>
                 </tr>
                 <tr>
                   <th>File Infos Got</th>
-                  <td>{metrics.operationMetrics.FileInfosGot && metrics.operationMetrics.FileInfosGot.count}</td>
+                  <td>{data.operationMetrics.FileInfosGot && data.operationMetrics.FileInfosGot.count}</td>
                   <th>Files Completed</th>
-                  <td>{metrics.operationMetrics.FilesCompleted && metrics.operationMetrics.FilesCompleted.count}</td>
+                  <td>{data.operationMetrics.FilesCompleted && data.operationMetrics.FilesCompleted.count}</td>
                 </tr>
                 <tr>
                   <th>Files Created</th>
-                  <td>{metrics.operationMetrics.FilesCreated && metrics.operationMetrics.FilesCreated.count}</td>
+                  <td>{data.operationMetrics.FilesCreated && data.operationMetrics.FilesCreated.count}</td>
                   <th>Files Freed</th>
-                  <td>{metrics.operationMetrics.FilesFreed && metrics.operationMetrics.FilesFreed.count}</td>
+                  <td>{data.operationMetrics.FilesFreed && data.operationMetrics.FilesFreed.count}</td>
                 </tr>
                 <tr>
                   <th>Files Persisted</th>
-                  <td>{metrics.operationMetrics.FilesPersisted && metrics.operationMetrics.FilesPersisted.count}</td>
+                  <td>{data.operationMetrics.FilesPersisted && data.operationMetrics.FilesPersisted.count}</td>
                   <th>Files Pinned</th>
-                  <td>{metrics.operationMetrics.FilesPinned && metrics.operationMetrics.FilesPinned.value}</td>
+                  <td>{data.operationMetrics.FilesPinned && data.operationMetrics.FilesPinned.value}</td>
                 </tr>
                 <tr>
                   <th>New Blocks Got</th>
-                  <td>{metrics.operationMetrics.NewBlocksGot && metrics.operationMetrics.NewBlocksGot.count}</td>
+                  <td>{data.operationMetrics.NewBlocksGot && data.operationMetrics.NewBlocksGot.count}</td>
                   <th>Paths Deleted</th>
-                  <td>{metrics.operationMetrics.PathsDeleted && metrics.operationMetrics.PathsDeleted.count}</td>
+                  <td>{data.operationMetrics.PathsDeleted && data.operationMetrics.PathsDeleted.count}</td>
                 </tr>
                 <tr>
                   <th>Paths Mounted</th>
-                  <td>{metrics.operationMetrics.PathsMounted && metrics.operationMetrics.PathsMounted.count}</td>
+                  <td>{data.operationMetrics.PathsMounted && data.operationMetrics.PathsMounted.count}</td>
                   <th>Paths Renamed</th>
-                  <td>{metrics.operationMetrics.PathsRenamed && metrics.operationMetrics.PathsRenamed.count}</td>
+                  <td>{data.operationMetrics.PathsRenamed && data.operationMetrics.PathsRenamed.count}</td>
                 </tr>
                 <tr>
                   <th>Paths Unmounted</th>
-                  <td>{metrics.operationMetrics.PathsUnmounted && metrics.operationMetrics.PathsUnmounted.count}</td>
+                  <td>{data.operationMetrics.PathsUnmounted && data.operationMetrics.PathsUnmounted.count}</td>
                   <th/>
                   <td/>
                 </tr>
@@ -243,56 +243,56 @@ export class Metrics extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th>CompleteFile Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.CompleteFileOps && metrics.rpcInvocationMetrics.CompleteFileOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.CompleteFileOps && data.rpcInvocationMetrics.CompleteFileOps.count}</td>
                   <th>CreateDirectory Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.CreateDirectoryOps && metrics.rpcInvocationMetrics.CreateDirectoryOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.CreateDirectoryOps && data.rpcInvocationMetrics.CreateDirectoryOps.count}</td>
                 </tr>
                 <tr>
                   <th>CreateFile Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.CreateFileOps && metrics.rpcInvocationMetrics.CreateFileOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.CreateFileOps && data.rpcInvocationMetrics.CreateFileOps.count}</td>
                   <th>DeletePath Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.DeletePathOps && metrics.rpcInvocationMetrics.DeletePathOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.DeletePathOps && data.rpcInvocationMetrics.DeletePathOps.count}</td>
                 </tr>
                 <tr>
                   <th>FreeFile Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.FreeFileOps && metrics.rpcInvocationMetrics.FreeFileOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.FreeFileOps && data.rpcInvocationMetrics.FreeFileOps.count}</td>
                   <th>GetFileBlockInfo Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.GetFileBlockInfoOps && metrics.rpcInvocationMetrics.GetFileBlockInfoOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.GetFileBlockInfoOps && data.rpcInvocationMetrics.GetFileBlockInfoOps.count}</td>
                 </tr>
                 <tr>
                   <th>GetFileInfo Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.GetFileInfoOps && metrics.rpcInvocationMetrics.GetFileInfoOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.GetFileInfoOps && data.rpcInvocationMetrics.GetFileInfoOps.count}</td>
                   <th>GetNewBlock Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.GetNewBlockOps && metrics.rpcInvocationMetrics.GetNewBlockOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.GetNewBlockOps && data.rpcInvocationMetrics.GetNewBlockOps.count}</td>
                 </tr>
                 <tr>
                   <th>Mount Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.MountOps && metrics.rpcInvocationMetrics.MountOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.MountOps && data.rpcInvocationMetrics.MountOps.count}</td>
                   <th>RenamePath Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.RenamePathOps && metrics.rpcInvocationMetrics.RenamePathOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.RenamePathOps && data.rpcInvocationMetrics.RenamePathOps.count}</td>
                 </tr>
                 <tr>
                   <th>SetAcl Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.SetAclOps && metrics.rpcInvocationMetrics.SetAclOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.SetAclOps && data.rpcInvocationMetrics.SetAclOps.count}</td>
                   <th>SetAttribute Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.SetAttributeOps && metrics.rpcInvocationMetrics.SetAttributeOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.SetAttributeOps && data.rpcInvocationMetrics.SetAttributeOps.count}</td>
                 </tr>
                 <tr>
                   <th>Unmount Operations</th>
-                  <td>{metrics.rpcInvocationMetrics.UnmountOps && metrics.rpcInvocationMetrics.UnmountOps.count}</td>
+                  <td>{data.rpcInvocationMetrics.UnmountOps && data.rpcInvocationMetrics.UnmountOps.count}</td>
                 </tr>
                 </tbody>
               </Table>
             </div>
-            {Object.keys(metrics.ufsOps).map((key: string) => (
+            {Object.keys(data.ufsOps).map((key: string) => (
               <div key={key} className="col-12">
                 <h5>Under FileSystem Operations of {key}</h5>
                 <Table hover={true}>
                   <tbody>
-                  {Object.keys(metrics.ufsOps[key]).map((innerKey: string) => (
+                  {Object.keys(data.ufsOps[key]).map((innerKey: string) => (
                     <tr key={innerKey}>
                       <th>{innerKey}</th>
-                      <td>{metrics.ufsOps[key][innerKey]}</td>
+                      <td>{data.ufsOps[key][innerKey]}</td>
                     </tr>
                   ))}
                   </tbody>

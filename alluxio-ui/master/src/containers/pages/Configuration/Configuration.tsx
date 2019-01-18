@@ -45,7 +45,7 @@ export class Configuration extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, data: config} = this.props;
+    const {errors, data} = this.props;
 
     if (errors) {
       return (
@@ -70,7 +70,7 @@ export class Configuration extends React.Component<AllProps> {
                 </tr>
                 </thead>
                 <tbody>
-                {config.configuration.map((configuration: IConfigTriple) => (
+                {data.configuration.map((configuration: IConfigTriple) => (
                   <tr key={configuration.left}>
                     <td>{configuration.left}</td>
                     <td>{configuration.middle}</td>
@@ -84,7 +84,7 @@ export class Configuration extends React.Component<AllProps> {
               <h5>Whitelist</h5>
               <Table hover={true}>
                 <tbody>
-                {config.whitelist.map((whitelist: string) => (
+                {data.whitelist.map((whitelist: string) => (
                   <tr key={whitelist}>
                     <td>{whitelist}</td>
                   </tr>

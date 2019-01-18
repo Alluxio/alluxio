@@ -45,7 +45,7 @@ export class Overview extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, data: overview} = this.props;
+    const {errors, data} = this.props;
 
     if (errors) {
       return (
@@ -65,37 +65,37 @@ export class Overview extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th scope="row">Master Address</th>
-                  <td>{overview.masterNodeAddress}</td>
+                  <td>{data.masterNodeAddress}</td>
                 </tr>
                 <tr>
                   <th scope="row">Started</th>
-                  <td>{overview.startTime}</td>
+                  <td>{data.startTime}</td>
                 </tr>
                 <tr>
                   <th scope="row">Uptime</th>
-                  <td>{overview.uptime}</td>
+                  <td>{data.uptime}</td>
                 </tr>
                 <tr>
                   <th scope="row">Version</th>
-                  <td>{overview.version}</td>
+                  <td>{data.version}</td>
                 </tr>
                 <tr>
                   <th scope="row">Running Workers</th>
-                  <td>{overview.liveWorkerNodes}</td>
+                  <td>{data.liveWorkerNodes}</td>
                 </tr>
                 <tr>
                   <th scope="row">Startup Consistency Check</th>
-                  <td>{overview.consistencyCheckStatus}</td>
+                  <td>{data.consistencyCheckStatus}</td>
                 </tr>
-                {this.renderInconsistendPaths(overview.inconsistentPathItems)}
+                {this.renderInconsistendPaths(data.inconsistentPathItems)}
                 <tr>
                   <th scope="row">Server Configuration Check</th>
-                  <td className={overview.configCheckStatus === 'FAILED' ? 'text-danger' : ''}>
-                    {overview.configCheckStatus}
+                  <td className={data.configCheckStatus === 'FAILED' ? 'text-danger' : ''}>
+                    {data.configCheckStatus}
                   </td>
                 </tr>
-                {this.renderConfigurationIssues(overview.configCheckErrors, 'text-error')}
-                {this.renderConfigurationIssues(overview.configCheckWarns, 'text-warning')}
+                {this.renderConfigurationIssues(data.configCheckErrors, 'text-error')}
+                {this.renderConfigurationIssues(data.configCheckWarns, 'text-warning')}
                 </tbody>
               </Table>
             </div>
@@ -105,19 +105,19 @@ export class Overview extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th scope="row">Workers Capacity</th>
-                  <td>{overview.freeCapacity}</td>
+                  <td>{data.freeCapacity}</td>
                 </tr>
                 <tr>
                   <th scope="row">Workers Free / Used</th>
-                  <td>{overview.freeCapacity} / {overview.usedCapacity}</td>
+                  <td>{data.freeCapacity} / {data.usedCapacity}</td>
                 </tr>
                 <tr>
                   <th scope="row">UnderFS Capacity</th>
-                  <td>{overview.diskCapacity}</td>
+                  <td>{data.diskCapacity}</td>
                 </tr>
                 <tr>
                   <th scope="row">UnderFS Free / Used</th>
-                  <td>{overview.diskCapacity} / {overview.diskUsedCapacity}</td>
+                  <td>{data.diskCapacity} / {data.diskUsedCapacity}</td>
                 </tr>
                 </tbody>
               </Table>
@@ -134,7 +134,7 @@ export class Overview extends React.Component<AllProps> {
                 </tr>
                 </thead>
                 <tbody>
-                {overview.storageTierInfos.map((info: IStorageTierInfo) => (
+                {data.storageTierInfos.map((info: IStorageTierInfo) => (
                   <tr key={info.storageTierAlias}>
                     <td>{info.storageTierAlias}</td>
                     <td>{info.capacity}</td>

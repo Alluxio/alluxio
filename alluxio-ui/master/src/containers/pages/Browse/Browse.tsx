@@ -96,22 +96,22 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
   }
 
   public render() {
-    const {errors, data: browse} = this.props;
+    const {errors, data} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
 
-    if (errors || browse.accessControlException || browse.fatalError || browse.fileDoesNotExistException ||
-      browse.invalidPathError || browse.invalidPathException) {
+    if (errors || data.accessControlException || data.fatalError || data.fileDoesNotExistException ||
+      data.invalidPathError || data.invalidPathException) {
       return (
         <Alert color="danger">
           {errors && <div>Unable to reach the api endpoint for this page.</div>}
-          {browse.accessControlException && <div>{browse.accessControlException}</div>}
-          {browse.fatalError && <div>{browse.fatalError}</div>}
-          {browse.fileDoesNotExistException && <div>{browse.fileDoesNotExistException}</div>}
-          {browse.invalidPathError && <div>{browse.invalidPathError}</div>}
-          {browse.invalidPathException && <div>{browse.invalidPathException}</div>}
+          {data.accessControlException && <div>{data.accessControlException}</div>}
+          {data.fatalError && <div>{data.fatalError}</div>}
+          {data.fileDoesNotExistException && <div>{data.fileDoesNotExistException}</div>}
+          {data.invalidPathError && <div>{data.invalidPathError}</div>}
+          {data.invalidPathException && <div>{data.invalidPathException}</div>}
         </Alert>
       );
     }
@@ -121,8 +121,8 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              {!browse.currentDirectory.isDirectory && this.renderFileView(browse, queryStringSuffix)}
-              {browse.currentDirectory.isDirectory && this.renderDirectoryListing(browse, queryStringSuffix)}
+              {!data.currentDirectory.isDirectory && this.renderFileView(data, queryStringSuffix)}
+              {data.currentDirectory.isDirectory && this.renderDirectoryListing(data, queryStringSuffix)}
             </div>
           </div>
         </div>

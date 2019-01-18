@@ -93,18 +93,18 @@ export class Logs extends React.Component<AllProps, ILogsState> {
   }
 
   public render() {
-    const {errors, data: logs} = this.props;
+    const {errors, data} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
 
-    if (errors || logs.invalidPathError || logs.fatalError) {
+    if (errors || data.invalidPathError || data.fatalError) {
       return (
         <Alert color="danger">
           {errors && <div>Unable to reach the api endpoint for this page.</div>}
-          {logs.invalidPathError && <div>{logs.invalidPathError}</div>}
-          {logs.fatalError && <div>{logs.fatalError}</div>}
+          {data.invalidPathError && <div>{data.invalidPathError}</div>}
+          {data.fatalError && <div>{data.fatalError}</div>}
         </Alert>
       );
     }
@@ -114,8 +114,8 @@ export class Logs extends React.Component<AllProps, ILogsState> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              {logs.fileData && this.renderFileView(logs, queryStringSuffix)}
-              {!logs.fileData && this.renderDirectoryListing(logs.fileInfos, queryStringSuffix)}
+              {data.fileData && this.renderFileView(data, queryStringSuffix)}
+              {!data.fileData && this.renderDirectoryListing(data.fileInfos, queryStringSuffix)}
             </div>
           </div>
         </div>

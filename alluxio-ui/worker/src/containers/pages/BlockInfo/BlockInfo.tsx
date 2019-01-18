@@ -79,18 +79,18 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   }
 
   public render() {
-    const {errors, data: blockInfo} = this.props;
+    const {errors, data} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
     queryStringSuffix = queryStringSuffix ? '&' + queryStringSuffix : queryStringSuffix;
 
-    if (errors || blockInfo.invalidPathError || blockInfo.fatalError) {
+    if (errors || data.invalidPathError || data.fatalError) {
       return (
         <Alert color="danger">
           {errors && <div>Unable to reach the api endpoint for this page.</div>}
-          {blockInfo.invalidPathError && <div>{blockInfo.invalidPathError}</div>}
-          {blockInfo.fatalError && <div>{blockInfo.fatalError}</div>}
+          {data.invalidPathError && <div>{data.invalidPathError}</div>}
+          {data.fatalError && <div>{data.fatalError}</div>}
         </Alert>
       );
     }
@@ -100,8 +100,8 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              {blockInfo.blockSizeBytes && this.renderBlockInfoView(blockInfo)}
-              {!blockInfo.blockSizeBytes && this.renderBlockInfoListing(blockInfo, blockInfo.orderedTierAliases, queryStringSuffix)}
+              {data.blockSizeBytes && this.renderBlockInfoView(data)}
+              {!data.blockSizeBytes && this.renderBlockInfoListing(data, data.orderedTierAliases, queryStringSuffix)}
             </div>
           </div>
         </div>
