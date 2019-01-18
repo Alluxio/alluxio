@@ -2270,18 +2270,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // User related properties
   //
-  /**
-   * @deprecated It will be removed in 2.0.0.
-   */
-  @Deprecated
-  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_THREADS =
-      new Builder(Name.USER_BLOCK_MASTER_CLIENT_THREADS)
-          .setDefaultValue(10)
-          .setDescription("The number of threads used by a block master client pool to talk "
-              + "to the block master.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN)
           .setDefaultValue(0)
@@ -2292,11 +2280,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX)
+          .setDefaultValue(10)
           .setDescription("The maximum number of block master clients cached in the block master "
               + "client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setAlias(new String[] {Name.USER_BLOCK_MASTER_CLIENT_THREADS})
+          .setAlias(new String[] {"alluxio.user.block.master.client.threads"})
           .build();
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
@@ -2449,18 +2438,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "before attempting to delete persisted directories recursively.")
           .setScope(Scope.CLIENT)
           .build();
-  /**
-   * @deprecated It will be removed in 2.0.0.
-   */
-  @Deprecated
-  public static final PropertyKey USER_FILE_MASTER_CLIENT_THREADS =
-      new Builder(Name.USER_FILE_MASTER_CLIENT_THREADS)
-          .setDefaultValue(10)
-          .setDescription("The number of threads used by a file master client to talk to the "
-              + "file master.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN =
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN)
           .setDefaultValue(0)
@@ -2471,11 +2448,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX)
+          .setDefaultValue(10)
           .setDescription("The maximum number of fs master clients cached in the fs master "
               + "client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setAlias(new String[] {Name.USER_FILE_MASTER_CLIENT_THREADS})
+          .setAlias(new String[] {"alluxio.user.file.master.client.threads"})
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
@@ -3582,8 +3560,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // User related properties
     //
-    public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
-        "alluxio.user.block.master.client.threads";
     public static final String USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN =
         "alluxio.user.block.master.client.pool.size.min";
     public static final String USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX =
@@ -3620,8 +3596,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.copyfromlocal.write.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
-    public static final String USER_FILE_MASTER_CLIENT_THREADS =
-        "alluxio.user.file.master.client.threads";
     public static final String USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN =
         "alluxio.user.file.master.client.pool.size.min";
     public static final String USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
