@@ -19,6 +19,7 @@ import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
+import alluxio.concurrent.LockMode;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
@@ -530,7 +531,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               continue;
             }
             try (LockResource lr = mInodeLockManager.lockInode(inodeFile,
-                LockResource.LockMode.READ)) {
+                LockMode.READ)) {
               if (inodeFile.getPersistJobId() != Constants.PERSISTENCE_INVALID_JOB_ID) {
                 addPersistJob(inodeFile.getId(), inodeFile.getPersistJobId(),
                     mInodeTree.getPath(inodeFile), inodeFile.getTempUfsPath());

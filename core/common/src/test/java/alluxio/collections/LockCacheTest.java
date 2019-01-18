@@ -14,6 +14,7 @@ package alluxio.collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
 
 import org.junit.Before;
@@ -42,7 +43,7 @@ public class LockCacheTest {
 
     for (int i = 0; i < highWaterMark; i++) {
       assertEquals(i , mCache.size());
-      try (LockResource resource = mCache.get(i, LockResource.LockMode.READ)) {
+      try (LockResource resource = mCache.get(i, LockMode.READ)) {
         assertTrue(mCache.contains(i));
         assertTrue(mCache.size() < MAX_SIZE);
       }
@@ -50,7 +51,7 @@ public class LockCacheTest {
 
     // it should be full now
     for (int i = highWaterMark; i < 2 * MAX_SIZE; i++) {
-      try (LockResource resource = mCache.get(i, LockResource.LockMode.READ)) {
+      try (LockResource resource = mCache.get(i, LockMode.READ)) {
         assertTrue(mCache.contains(i));
         assertTrue(mCache.size() <= MAX_SIZE);
       }
@@ -60,7 +61,7 @@ public class LockCacheTest {
   private Thread getKeys(int low, int high, int totalThreadCount) {
     Thread t = new Thread(() -> {
       for (int i = low; i < high; i++) {
-        try (LockResource resource = mCache.get(i, LockResource.LockMode.READ)) {
+        try (LockResource resource = mCache.get(i, LockMode.READ)) {
           assertTrue(mCache.size() <= MAX_SIZE + totalThreadCount);
           assertTrue(mCache.contains(i));
         }

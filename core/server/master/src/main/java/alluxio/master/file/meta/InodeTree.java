@@ -13,6 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
+import alluxio.concurrent.LockMode;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -522,7 +523,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     long id;
     long parentId;
     String name;
-    try (LockResource lr = mInodeLockManager.lockInode(inode, LockResource.LockMode.READ)) {
+    try (LockResource lr = mInodeLockManager.lockInode(inode, LockMode.READ)) {
       id = inode.getId();
       parentId = inode.getParentId();
       name = inode.getName();

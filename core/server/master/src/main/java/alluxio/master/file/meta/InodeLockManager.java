@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.collections.LockCache;
+import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
 import alluxio.util.interfaces.Scoped;
 
@@ -97,7 +98,7 @@ public class InodeLockManager {
    * @param mode the mode to lock in
    * @return a lock resource which must be closed to release the lock
    */
-  public LockResource lockInode(InodeView inode, LockResource.LockMode mode) {
+  public LockResource lockInode(InodeView inode, LockMode mode) {
     return mInodeLocks.get(inode.getId(), mode);
   }
 
@@ -108,7 +109,7 @@ public class InodeLockManager {
    * @param mode the mode to lock in
    * @return a lock resource which must be closed to release the lock
    */
-  public LockResource lockEdge(Edge edge, LockResource.LockMode mode) {
+  public LockResource lockEdge(Edge edge, LockMode mode) {
     return mEdgeLocks.get(edge, mode);
   }
 

@@ -11,6 +11,7 @@
 
 package alluxio.collections;
 
+import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
 import alluxio.resource.RefCountLockResource;
 
@@ -115,7 +116,7 @@ public class LockCache<K> {
    * @return the value contained in the cache, if it is already in cache,
    *         otherwise generate an entry based on the loader
    */
-  public LockResource get(K key, LockResource.LockMode mode) {
+  public LockResource get(K key, LockMode mode) {
     ValNode valNode = getValNode(key);
     ReentrantReadWriteLock lock = valNode.mValue;
     switch (mode) {
