@@ -517,20 +517,16 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       return -ErrorCodes.EBADFD();
     }
 
-    int nread = 0;
+    int nread;
     try {
       final int sz = (int) size;
       final byte[] dest = new byte[sz];
-      while (nread < sz) {
-        int rd = is.positionedRead(offset + nread, dest, nread, sz - nread);
-        if (rd < 0) {
-          break;
-        } else {
-          nread += rd;
-        }
-      }
+      // Considering our read size is limited to 128k
+      nread = is.positionedRead(offset, dest, 0, sz);
 
-      if (nread > 0) {
+      if (nread < 0) { //EOF
+        nread = 0;
+      } else if (nread > 0) {
         buf.put(0, dest, 0, nread);
       }
     } catch (IOException e) {
