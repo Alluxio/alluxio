@@ -14,14 +14,17 @@ package alluxio.collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.resource.LockResource;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Tests the {@link LockCache} class.
  */
 public class LockCacheTest {
-  private LockCache<Integer, Integer> mCache;
+  private LockCache<Integer> mCache;
   private static final int MAX_SIZE = 16;
 
   /**
@@ -29,7 +32,7 @@ public class LockCacheTest {
    */
   @Before
   public void before() {
-    mCache = new LockCache<>(k -> new Integer(k), 2, MAX_SIZE, 4);
+    mCache = new LockCache<>(k -> new ReentrantReadWriteLock(), 2, MAX_SIZE, 4);
   }
 
   @Test(timeout = 10000)
@@ -38,32 +41,28 @@ public class LockCacheTest {
 
     for (int i = 0; i < highWaterMark; i++) {
       assertEquals(i , mCache.size());
-      LockCache<Integer, Integer>.ValNode valNode = mCache.get(i);
-      assertEquals(i, valNode.get().intValue());
-      assertTrue(mCache.size() < MAX_SIZE);
-      valNode.getRefCounter().decrementAndGet();
+      try (LockResource resource = mCache.get(i, LockResource.LockMode.READ)) {
+        assertTrue(mCache.contains(i));
+        assertTrue(mCache.size() < MAX_SIZE);
+      }
     }
-    for (int i = highWaterMark; i < MAX_SIZE; i++) {
-      mCache.get(i).getRefCounter().decrementAndGet();
-    }
+
     // it should be full now
     for (int i = highWaterMark; i < 2 * MAX_SIZE; i++) {
-      LockCache<Integer, Integer>.ValNode valNode = mCache.get(i);
-      assertEquals(i, valNode.get().intValue());
-      assertTrue(mCache.contains(i));
-      assertTrue(mCache.size() <= MAX_SIZE);
-      valNode.getRefCounter().decrementAndGet();
+      try (LockResource resource = mCache.get(i, LockResource.LockMode.READ)) {
+        assertTrue(mCache.contains(i));
+        assertTrue(mCache.size() <= MAX_SIZE);
+      }
     }
   }
 
   private Thread insert(int low, int high, int totalThreadCount) {
     Thread t = new Thread(() -> {
       for (int i = low; i < high; i++) {
-        LockCache<Integer, Integer>.ValNode valNode = mCache.get(i);
-        assertTrue(mCache.size() <= MAX_SIZE + totalThreadCount);
-        assertTrue(mCache.contains(i));
-        assertEquals(i, valNode.get().intValue());
-        valNode.getRefCounter().decrementAndGet();
+        try (LockResource resource = mCache.get(i, LockResource.LockMode.READ)) {
+          assertTrue(mCache.size() <= MAX_SIZE + totalThreadCount);
+          assertTrue(mCache.contains(i));
+        }
       }
     });
     t.start();
