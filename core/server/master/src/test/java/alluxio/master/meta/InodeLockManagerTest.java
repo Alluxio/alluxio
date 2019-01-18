@@ -13,11 +13,11 @@ package alluxio.master.meta;
 
 import static org.junit.Assert.assertFalse;
 
+import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.meta.Edge;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeTree.LockMode;
-import alluxio.master.file.options.CreateFileOptions;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 
@@ -49,7 +49,7 @@ public class InodeLockManagerTest {
       throws Exception {
     InodeLockManager lockManager = new InodeLockManager();
     AtomicBoolean threadFinished = new AtomicBoolean(false);
-    InodeFile inode = InodeFile.create(0, 0, "name", 0, CreateFileOptions.defaults());
+    InodeFile inode = InodeFile.create(0, 0, "name", 0, CreateFileContext.defaults());
     LockResource lock = lockManager.lockInode(inode, take);
     Thread t = new Thread(() -> {
       // Copy the inode to make sure we aren't comparing inodes by reference.
