@@ -64,7 +64,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     return String
         .format(LsCommand.LS_FORMAT, FormatUtils.formatMode((short) permission, isDir, hasExtended),
             testUser, testGroup, String.valueOf(size), persistenceState,
-            CommonUtils.convertMsToDate(createTime, ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)),
+            CommonUtils.convertMsToDate(createTime,
+                ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)),
             isDir ? LsCommand.IN_ALLUXIO_STATE_DIR : inAlluxioState, path);
   }
 
@@ -94,7 +95,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
       sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     }
     return String.format(LsCommand.LS_FORMAT_NO_ACL, sizeStr, persistenceState,
-        CommonUtils.convertMsToDate(createTime, ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)), inAlluxioState,
+        CommonUtils.convertMsToDate(createTime,
+            ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)), inAlluxioState,
         path);
   }
 

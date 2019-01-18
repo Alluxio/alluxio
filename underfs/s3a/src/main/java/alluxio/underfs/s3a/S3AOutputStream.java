@@ -83,9 +83,11 @@ public class S3AOutputStream extends OutputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param manager the transfer manager to upload the file with
+   * @param tmpDirs a list of temporary directories
+   * @param sseEnabled whether or not server side encryption is enabled
    */
-  public S3AOutputStream(String bucketName, String key, TransferManager manager, List<String> tmpDirs, boolean sseEnabled)
-      throws IOException {
+  public S3AOutputStream(String bucketName, String key, TransferManager manager,
+      List<String> tmpDirs, boolean sseEnabled) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "
         + "not be null or empty.");
     mBucketName = bucketName;

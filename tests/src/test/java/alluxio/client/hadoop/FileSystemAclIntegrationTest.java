@@ -25,7 +25,6 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
@@ -38,16 +37,11 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.net.URI;
@@ -473,8 +467,8 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
       sTFS.delete(file, false);
       // Create a file directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, file);
-      sUfs.create(ufsPath, CreateOptions.defaults(ServerConfiguration.global()).setOwner("testuser").setGroup("testgroup")
-          .setMode(new Mode((short) value))).close();
+      sUfs.create(ufsPath, CreateOptions.defaults(ServerConfiguration.global()).setOwner("testuser")
+          .setGroup("testgroup").setMode(new Mode((short) value))).close();
       Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, file)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
       Assert.assertEquals(new Mode((short) value).toString(),
@@ -499,8 +493,8 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
       // Create a directory directly in UFS and set the corresponding mode.
       String ufsPath = PathUtils.concatPath(sUfsRoot, dir);
       sUfs.mkdirs(ufsPath,
-          MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false).setOwner("testuser").setGroup("testgroup")
-              .setMode(new Mode((short) value)));
+          MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
+              .setOwner("testuser").setGroup("testgroup").setMode(new Mode((short) value)));
       Assert.assertTrue(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, dir)));
       // Check the mode is consistent in Alluxio namespace once it's loaded from UFS to Alluxio.
       Assert.assertEquals(new Mode((short) value).toString(),

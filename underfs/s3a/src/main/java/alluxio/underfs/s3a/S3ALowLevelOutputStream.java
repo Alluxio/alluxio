@@ -154,10 +154,13 @@ public class S3ALowLevelOutputStream extends OutputStream {
    * @param key the key of the file
    * @param s3Client the Amazon S3 client to upload the file with
    * @param executor a thread pool executor
+   * @param streamingUploadPartitionSize the size in bytes for partitions of streaming uploads
+   * @param tmpDirs a list of temporary directories
+   * @param sseEnabled whether or not server side encryption is enabled
    */
   public S3ALowLevelOutputStream(String bucketName, String key, AmazonS3 s3Client,
-                                 ListeningExecutorService executor, long streamingUploadPartitionSize,
-                                 List<String> tmpDirs, boolean sseEnabled) {
+      ListeningExecutorService executor, long streamingUploadPartitionSize, List<String> tmpDirs,
+      boolean sseEnabled) {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "
         + "not be null or empty.");
     mBucketName = bucketName;

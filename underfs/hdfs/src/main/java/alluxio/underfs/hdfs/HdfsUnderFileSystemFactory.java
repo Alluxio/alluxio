@@ -18,8 +18,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
-
 import alluxio.util.ConfigurationUtils;
+
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;

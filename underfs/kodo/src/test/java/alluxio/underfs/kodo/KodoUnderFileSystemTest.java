@@ -30,7 +30,7 @@ import java.io.IOException;
  */
 public class KodoUnderFileSystemTest {
 
-  private static final InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
 
   private KodoUnderFileSystem mKodoUnderFileSystem;
   private KodoClient mClient;
@@ -38,7 +38,6 @@ public class KodoUnderFileSystemTest {
   private static final String PATH = "path";
   private static final String SRC = "src";
   private static final String DST = "dst";
-
 
   /**
    * Set up.

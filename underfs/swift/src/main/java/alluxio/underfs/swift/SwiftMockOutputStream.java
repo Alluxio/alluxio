@@ -57,8 +57,10 @@ public class SwiftMockOutputStream extends OutputStream {
    * @param account simulated Swift account
    * @param containerName container name
    * @param objectName name of file or folder to write
+   * @param tmpDirs a list of temporary directories
    */
-  public SwiftMockOutputStream(Account account, String containerName, String objectName, List<String> tmpDirs)
+  public SwiftMockOutputStream(Account account, String containerName, String objectName,
+      List<String> tmpDirs)
       throws IOException {
     try {
       mAccount = account;

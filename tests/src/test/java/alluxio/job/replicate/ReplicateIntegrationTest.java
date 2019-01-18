@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.TestLoggerRule;
 import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;

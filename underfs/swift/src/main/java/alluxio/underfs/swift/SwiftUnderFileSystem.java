@@ -91,9 +91,11 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
+   * @param alluxioConf Alluxio's configuration
    * @throws FileDoesNotExistException when specified container does not exist
    */
-  public SwiftUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf)
+  public SwiftUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf)
       throws FileDoesNotExistException {
     super(uri, conf, alluxioConf);
     String containerName = UnderFileSystemUtils.getBucketName(uri);
@@ -245,7 +247,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     if (mSimulationMode) {
-      return new SwiftMockOutputStream(mAccount, mContainerName, key, mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
+      return new SwiftMockOutputStream(mAccount, mContainerName, key,
+          mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
     }
 
     return SwiftDirectClient.put(mAccess,
@@ -279,7 +282,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     String prefix = PathUtils.normalizePath(key, PATH_SEPARATOR);
     // In case key is root (empty string) do not normalize prefix
     prefix = prefix.equals(PATH_SEPARATOR) ? "" : prefix;
-    PaginationMap paginationMap = container.getPaginationMap(prefix, getListingChunkLength(mAlluxioConf));
+    PaginationMap paginationMap = container.getPaginationMap(prefix,
+        getListingChunkLength(mAlluxioConf));
     if (paginationMap != null && paginationMap.getNumberOfPages() > 0) {
       return new SwiftObjectListingChunk(paginationMap, 0, recursive);
     }

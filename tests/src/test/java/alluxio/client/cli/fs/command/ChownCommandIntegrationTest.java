@@ -24,7 +24,6 @@ import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -51,7 +50,6 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
   public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
       .of(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName()),
       ServerConfiguration.global());
-
 
   /**
    * A simple structure to represent a user and its groups.

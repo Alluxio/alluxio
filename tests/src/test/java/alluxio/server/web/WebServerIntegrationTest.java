@@ -142,7 +142,8 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
       port = mLocalAlluxioClusterResource.get().getWorkerProcess().getWebLocalPort();
     }
     InetSocketAddress webAddr =
-        new InetSocketAddress(NetworkAddressUtils.getConnectHost(serviceType, ServerConfiguration.global()), port);
+        new InetSocketAddress(NetworkAddressUtils.getConnectHost(serviceType,
+            ServerConfiguration.global()), port);
     return webAddr;
   }
 }

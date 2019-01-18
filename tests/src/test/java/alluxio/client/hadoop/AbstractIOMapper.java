@@ -104,8 +104,8 @@ public abstract class AbstractIOMapper<T> extends Configured implements
   /**
    * Map file name and offset into statistical data.
    * <p>
-   * The map task is to create the <tt>key</tt>, which contains the file name, and the <tt>value</tt>,
-   * which is the offset within the file.
+   * The map task is to create the <tt>key</tt>, which contains the file name, and the
+   * <tt>value</tt>, which is the offset within the file.
    *
    * The parameters are passed to the abstract method
    * {@link #doIO(Reporter, String,long)}, which performs the io operation,

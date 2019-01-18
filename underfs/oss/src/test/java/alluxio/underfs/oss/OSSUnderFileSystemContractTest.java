@@ -15,7 +15,6 @@ import alluxio.underfs.AbstractUnderFileSystemContractTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
-import alluxio.util.ConfigurationUtils;
 import com.google.common.base.Preconditions;
 import org.junit.BeforeClass;
 

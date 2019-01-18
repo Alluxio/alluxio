@@ -67,7 +67,8 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
     mBlockMasterClient =
-        BlockMasterClient.Factory.create(MasterClientConfig.defaults(ServerConfiguration.global()), ServerConfiguration.global());
+        BlockMasterClient.Factory.create(MasterClientConfig.defaults(ServerConfiguration.global()),
+            ServerConfiguration.global());
     mBlockMasterClient.connect();
 
     // connect Worker RPC service

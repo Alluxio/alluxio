@@ -46,7 +46,8 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
   @Test
   public void openClose() throws AlluxioException, IOException {
     FileSystemMasterClient fsMasterClient =
-        FileSystemMasterClient.Factory.create(MasterClientConfig.defaults(ServerConfiguration.global()), ServerConfiguration.global());
+        FileSystemMasterClient.Factory.create(MasterClientConfig
+            .defaults(ServerConfiguration.global()), ServerConfiguration.global());
     AlluxioURI file = new AlluxioURI("/file");
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();

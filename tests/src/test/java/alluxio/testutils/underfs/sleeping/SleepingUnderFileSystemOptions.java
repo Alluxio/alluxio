@@ -215,7 +215,8 @@ public class SleepingUnderFileSystemOptions {
   }
 
   /**
-   * @param getDirectoryStatusMs milliseconds to sleep before executing a create directory status call
+   * @param getDirectoryStatusMs milliseconds to sleep before executing a create directory status
+   * call
    * @return the updated object
    */
   public SleepingUnderFileSystemOptions setGetDirectoryStatusMs(long getDirectoryStatusMs) {

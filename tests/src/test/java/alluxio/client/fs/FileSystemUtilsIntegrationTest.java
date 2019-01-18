@@ -148,7 +148,8 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
           try {
             // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
             boolean completed = FileSystemUtils.waitCompleted(sFileSystem, uri, 300,
-                TimeUnit.MILLISECONDS, ServerConfiguration.getMs(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS));
+                TimeUnit.MILLISECONDS, ServerConfiguration
+                    .getMs(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS));
             Assert.assertFalse(completed);
             completed = sFileSystem.getStatus(uri).isCompleted();
             Assert.assertFalse(completed);

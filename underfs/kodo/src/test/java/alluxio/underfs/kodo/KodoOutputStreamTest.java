@@ -14,6 +14,7 @@ package alluxio.underfs.kodo;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

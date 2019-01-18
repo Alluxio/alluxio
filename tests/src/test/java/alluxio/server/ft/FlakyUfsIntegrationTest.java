@@ -16,7 +16,6 @@ import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.Server;
 import alluxio.conf.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.block.BlockMasterClient;

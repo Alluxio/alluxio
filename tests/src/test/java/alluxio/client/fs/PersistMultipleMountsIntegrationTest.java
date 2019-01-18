@@ -50,7 +50,8 @@ public final class PersistMultipleMountsIntegrationTest
   public void before() throws Exception {
     super.before();
 
-    mUfsRoot = PathUtils.concatPath(ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
+    mUfsRoot = PathUtils.concatPath(ServerConfiguration
+        .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
     mUfs = UnderFileSystem.Factory.create(mUfsRoot, ServerConfiguration.global());
 
     mMountedUfsRoot = mTempFolder.getRoot().getAbsolutePath();

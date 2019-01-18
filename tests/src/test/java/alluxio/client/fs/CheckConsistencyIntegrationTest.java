@@ -89,7 +89,8 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   @Test
   public void inconsistent() throws Exception {
     String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory,
+        ServerConfiguration.global());
     ufs.deleteDirectory(ufsDirectory, DeleteOptions.defaults().setRecursive(true));
 
     List<AlluxioURI> expected = Lists.newArrayList(FILE, DIRECTORY);
@@ -131,7 +132,8 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     mFileSystem.createFile(topLevelFile, fileOptions).close();
     mFileSystem.createFile(thirdLevelFile, fileOptions).close();
     String ufsDirectory = mFileSystem.getStatus(nestedDir).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory,
+        ServerConfiguration.global());
     ufs.deleteDirectory(ufsDirectory, DeleteOptions.defaults().setRecursive(true));
 
     List<AlluxioURI> expected = Lists.newArrayList(nestedDir, thirdLevelFile);
@@ -166,7 +168,8 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   @Test
   public void notADirectory() throws Exception {
     String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory,
+        ServerConfiguration.global());
     ufs.deleteDirectory(ufsDirectory, DeleteOptions.defaults().setRecursive(true));
     ufs.create(ufsDirectory).close();
     List<AlluxioURI> expected = Lists.newArrayList(DIRECTORY, FILE);

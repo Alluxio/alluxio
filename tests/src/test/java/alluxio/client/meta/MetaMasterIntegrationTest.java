@@ -13,7 +13,6 @@ package alluxio.client.meta;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.Server;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.MetaMasterConfigClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
@@ -73,8 +72,8 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void getConfigurationWebPort() throws Exception {
     try (MetaMasterConfigClient client =
-             new RetryHandlingMetaMasterConfigClient(MasterClientConfig.defaults(ServerConfiguration.global()),
-             ServerConfiguration.global())) {
+             new RetryHandlingMetaMasterConfigClient(MasterClientConfig
+                 .defaults(ServerConfiguration.global()), ServerConfiguration.global())) {
       List<ConfigProperty> configList = client.getConfiguration();
       int configWebPort = -1;
       for (ConfigProperty info : configList) {

@@ -97,7 +97,8 @@ public final class StartupConsistencyCheckIntegrationTest extends BaseIntegratio
     String topLevelFileUfsPath = mFileSystem.getStatus(TOP_LEVEL_FILE).getUfsPath();
     String secondLevelDirUfsPath = mFileSystem.getStatus(SECOND_LEVEL_DIR).getUfsPath();
     mCluster.stopFS();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(topLevelFileUfsPath, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(topLevelFileUfsPath,
+        ServerConfiguration.global());
     ufs.deleteFile(topLevelFileUfsPath);
     ufs.deleteDirectory(secondLevelDirUfsPath, DeleteOptions.defaults().setRecursive(true));
     MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
