@@ -19,8 +19,6 @@ import alluxio.grpc.AsyncCacheResponse;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnauthenticatedException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
@@ -60,6 +58,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private static final Logger LOG =
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
 
+  // TODO(zac): Make this a non-singleton
   private static final EventLoopGroup WORKER_GROUP = NettyUtils
       .createEventLoop(
           NettyUtils.getUserChannel(new InstancedConfiguration(ConfigurationUtils.defaults())),
@@ -83,7 +82,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    * @param alluxioConf Alluxio configuration
    */
   public DefaultBlockWorkerClient(Subject subject, SocketAddress address,
-      AlluxioConfiguration alluxioConf) {
+      AlluxioConfiguration alluxioConf) throws IOException {
     try {
       // Disables channel pooling for data streaming to achieve better throughput.
       // Channel is still reused due to client pooling.

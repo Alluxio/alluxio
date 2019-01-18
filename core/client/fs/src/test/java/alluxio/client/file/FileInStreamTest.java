@@ -38,7 +38,6 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
@@ -124,8 +123,8 @@ public final class FileInStreamTest {
     ClientTestUtils.setSmallBufferSizes(sConf);
 
     mContext = PowerMockito.mock(FileSystemContext.class);
-    when(mContext.getClientContext()).thenReturn(ClientContext.create(null,
-        ConfigurationUtils.defaults()));
+    when(mContext.getClientContext()).thenReturn(ClientContext.create(null, sConf.getProperties()));
+    when(mContext.getConf()).thenReturn(sConf);
     PowerMockito.when(mContext.getLocalWorker()).thenReturn(new WorkerNetAddress());
     mBlockStore = mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);

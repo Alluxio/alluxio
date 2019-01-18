@@ -84,6 +84,8 @@ public class LoadDefinitionTest {
     Mockito.when(mMockBlockStore.getAllWorkers()).thenReturn(BLOCK_WORKERS);
     PowerMockito.when(mMockFsContext.getClientContext())
         .thenReturn(ClientContext.create(ServerConfiguration.getProperties()));
+    PowerMockito.when(mMockFsContext.getConf())
+        .thenReturn(ServerConfiguration.global());
   }
 
   @Test

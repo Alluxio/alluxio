@@ -73,6 +73,8 @@ public final class MoveDefinitionRunTaskTest {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())
         .thenReturn(ClientContext.create(conf.getProperties()));
+    when(mMockFileSystemContext.getConf())
+        .thenReturn(conf);
     mMockInStream = new MockFileInStream(mMockFileSystemContext, TEST_SOURCE_CONTENTS, conf);
     when(mMockFileSystem.openFile(new AlluxioURI(TEST_SOURCE))).thenReturn(mMockInStream);
     mMockOutStream = new MockFileOutStream(conf);

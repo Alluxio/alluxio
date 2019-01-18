@@ -776,6 +776,8 @@ public class AbstractFileSystemTest {
         .thenReturn(new InetSocketAddress("defaultHost", 1));
     when(mMockFileSystemContext.getClientContext()).thenReturn(mClientContext);
     when(mMockFileSystemContextCustomized.getClientContext()).thenReturn(mClientContext);
+    when(mMockFileSystemContext.getConf()).thenReturn(mConfiguration);
+    when(mMockFileSystemContextCustomized.getConf()).thenReturn(mConfiguration);
     PowerMockito.when(mClientContext.getConf()).thenReturn(mConfiguration);
     PowerMockito.when(mClientContext.getSubject()).thenReturn(null);
   }
