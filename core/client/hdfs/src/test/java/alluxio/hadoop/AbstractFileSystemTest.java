@@ -31,7 +31,6 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.SystemPropertyRule;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
@@ -187,19 +186,19 @@ public class AbstractFileSystemTest {
     URI uri = URI.create("alluxio://host1:19998,host2:19998,host3:19998/path");
     AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
     afs.initialize(uri, getConf());
-    assertFalse(afs.mFsContext.getClientContext().getConf()
+    assertFalse(afs.mFsContext.getConf()
         .getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("host1:19998,host2:19998,host3:19998",
-        afs.mFsContext.getClientContext().getConf().get(PropertyKey.MASTER_RPC_ADDRESSES));
+        afs.mFsContext.getConf().get(PropertyKey.MASTER_RPC_ADDRESSES));
 
     uri = URI.create("alluxio://host1:19998;host2:19998;host3:19998/path");
     afs = new FileSystem();
     afs.initialize(uri, getConf());
 
-    assertFalse(afs.mFsContext.getClientContext().getConf()
+    assertFalse(afs.mFsContext.getConf()
         .getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("host1:19998,host2:19998,host3:19998",
-        afs.mFsContext.getClientContext().getConf().get(PropertyKey.MASTER_RPC_ADDRESSES));
+        afs.mFsContext.getConf().get(PropertyKey.MASTER_RPC_ADDRESSES));
   }
 
   @Test
@@ -761,7 +760,7 @@ public class AbstractFileSystemTest {
         .thenReturn(mMockFileSystemContextCustomized);
     PowerMockito.when(FileSystemContext.create(any(Subject.class), any(AlluxioConfiguration.class)))
         .thenReturn(mMockFileSystemContextCustomized);
-    PowerMockito.when(FileSystemContext.create(any(Subject.class), any(AlluxioProperties.class)))
+    PowerMockito.when(FileSystemContext.create(any(Subject.class)))
         .thenReturn(mMockFileSystemContextCustomized);
     mMockFileSystemMasterClient = mock(FileSystemMasterClient.class);
     when(mMockFileSystemContext.acquireMasterClient())

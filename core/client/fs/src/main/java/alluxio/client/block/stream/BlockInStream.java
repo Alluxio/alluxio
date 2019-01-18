@@ -108,7 +108,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         ReadRequest.newBuilder().setBlockId(blockId).setPromote(readType.isPromote());
     // Add UFS fallback options
     builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
-    AlluxioConfiguration alluxioConf = context.getClientContext().getConf();
+    AlluxioConfiguration alluxioConf = context.getConf();
     boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource,
         alluxioConf);
@@ -168,7 +168,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private static BlockInStream createGrpcBlockInStream(FileSystemContext context,
       WorkerNetAddress address, BlockInStreamSource blockSource,
       ReadRequest readRequestPartial, long blockSize, InStreamOptions options) {
-    long chunkSize = context.getClientContext().getConf()
+    long chunkSize = context.getConf()
         .getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
     DataReader.Factory factory = new GrpcDataReader.Factory(context, address,
         readRequestPartial.toBuilder().setChunkSize(chunkSize).buildPartial());
@@ -193,7 +193,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       WorkerNetAddress address, BlockInStreamSource blockSource, long blockSize,
       Protocol.OpenUfsBlockOptions ufsOptions) {
     long chunkSize =
-        context.getClientContext().getConf()
+        context.getConf()
             .getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
     ReadRequest readRequest = ReadRequest.newBuilder().setBlockId(blockId)
         .setOpenUfsBlockOptions(ufsOptions).setChunkSize(chunkSize).buildPartial();

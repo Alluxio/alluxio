@@ -274,7 +274,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public long getDefaultBlockSize() {
-    return mFsContext.getClientContext().getConf()
+    return mFsContext.getConf()
         .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
@@ -308,7 +308,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
                 location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHost()))
                 .filter(Objects::nonNull).collect(toList());
           }
-          if (locations.isEmpty() && mFsContext.getClientContext().getConf()
+          if (locations.isEmpty() && mFsContext.getConf()
               .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
             // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
             locations.addAll(getHostToWorkerMap().values());
@@ -332,7 +332,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public short getDefaultReplication() {
-    return (short) Math.max(1, mFsContext.getClientContext().getConf()
+    return (short) Math.max(1, mFsContext.getConf()
         .getInt(PropertyKey.USER_FILE_REPLICATION_MIN));
   }
 
@@ -504,7 +504,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
     AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
     alluxioProps.merge(uriConfProperties, Source.RUNTIME);
-    mFsContext = FileSystemContext.create(getHadoopSubject(), alluxioProps);
+    mFsContext = FileSystemContext.create(getHadoopSubject(),
+        new InstancedConfiguration(alluxioProps));
 
     synchronized (INIT_LOCK) {
       if (sInitialized) {
@@ -547,7 +548,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
     // We assume here that all clients use the same configuration.
     AlluxioConfiguration alluxioConf = HadoopConfigurationUtils.mergeHadoopConfiguration(conf,
-        mFsContext.getClientContext().getConf());
+        mFsContext.getConf());
 
     // Connection details in the URI has the highest priority
     AlluxioProperties props = alluxioConf.getProperties();
@@ -556,7 +557,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // This must be reset to pick up the change to the master address.
     mFsContext = FileSystemContext.create(new InstancedConfiguration(props));
     LOG.info("Initializing filesystem context with connect details {}",
-        Factory.getConnectDetails(mFsContext.getClientContext().getConf()));
+        Factory.getConnectDetails(mFsContext.getConf()));
     mFsContext.reset();
   }
 
@@ -608,7 +609,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       org.apache.hadoop.conf.Configuration conf) {
     // Merge hadoop configuration into Alluxio configuration
     AlluxioConfiguration alluxioConf = HadoopConfigurationUtils.mergeHadoopConfiguration(conf,
-        mFsContext.getClientContext().getConf());
+        mFsContext.getConf());
 
     // Merge connection details in URI into Alluxio configuration
     AlluxioProperties props = alluxioConf.getProperties();

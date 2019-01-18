@@ -58,7 +58,7 @@ public final class ListCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     try (CloseableResource<JobMasterClient> client =
-        JobContext.create(mFsContext.getClientContext().getConf()).acquireMasterClientResource()) {
+        JobContext.create(mFsContext.getConf()).acquireMasterClientResource()) {
       List<Long> ids = client.get().list();
       for (long id : ids) {
         System.out.println(id);

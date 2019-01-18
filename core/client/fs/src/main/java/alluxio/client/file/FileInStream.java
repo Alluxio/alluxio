@@ -96,7 +96,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
 
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
-    AlluxioConfiguration conf = context.getClientContext().getConf();
+    AlluxioConfiguration conf = context.getConf();
     mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
     mBlockWorkerClientReadRetry = conf.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
     mStatus = status;

@@ -114,9 +114,9 @@ public final class LocalFileDataReader implements DataReader {
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
         long chunkSize, InStreamOptions options) throws IOException {
+      AlluxioConfiguration conf = context.getConf();
       mContext = context;
       mAddress = address;
-      AlluxioConfiguration conf = context.getClientContext().getConf();
       mBlockId = blockId;
       mChunkSize = chunkSize;
       mDataTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);

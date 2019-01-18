@@ -77,7 +77,7 @@ public interface FileSystem {
     public static FileSystem get(FileSystemContext context) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
-        AlluxioConfiguration conf = context.getClientContext().getConf();
+        AlluxioConfiguration conf = context.getConf();
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
         Collections.sort(keys, Comparator.comparing(PropertyKey::getName));
         for (PropertyKey key : keys) {
