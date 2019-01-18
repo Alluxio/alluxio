@@ -222,10 +222,13 @@ public abstract class AbstractClient implements Client {
       }
       try {
         beforeConnect((AlluxioConfiguration conf) -> {
-          // // We lose the clusterDefaultsLoaded value by calling getProperties...this should be
-          // fixed. Either update the constructor of clientContext to accept the value or change
-          // the argument type to be AlluxioConfiguration instead of AlluxioProperties.
-          mContext = ClientContext.create(mContext.getSubject(), conf.getProperties());
+          // We lose the clusterDefaultsLoaded value by calling getProperties...this should be
+          // fixed. Either update the constructor of clientContext to accept the value indicating
+          // cluster defaults have been loaded or change the argument type to be
+          // AlluxioConfiguration instead of AlluxioProperties.
+          synchronized (this) {
+            mContext = ClientContext.create(mContext.getSubject(), conf.getProperties());
+          }
         });
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
