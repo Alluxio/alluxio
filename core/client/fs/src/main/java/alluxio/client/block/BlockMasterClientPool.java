@@ -56,7 +56,6 @@ public final class BlockMasterClientPool extends DynamicResourcePool<BlockMaster
     super(Options.defaultOptions()
         .setMinCapacity(0)
         .setMaxCapacity(Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS))
-        .setGcIntervalMs(3000)
         .setGcExecutor(GC_EXECUTOR));
     mGcThresholdMs = 3000;
     mSubject = subject;

@@ -52,7 +52,7 @@ public final class FileSystemMasterClientPool extends DynamicResourcePool<FileSy
    */
   public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient) {
     super(Options.defaultOptions()
-        .setMinCapacity(0)
+        .setMinCapacity(Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN))
         .setMaxCapacity(Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS))
         .setGcExecutor(GC_EXECUTOR));
     mGcThresholdMs =
@@ -70,7 +70,10 @@ public final class FileSystemMasterClientPool extends DynamicResourcePool<FileSy
    */
   public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
       int clientThreads) {
-    super(Options.defaultOptions().setMaxCapacity(clientThreads).setGcExecutor(GC_EXECUTOR));
+    super(Options.defaultOptions()
+        .setMinCapacity(Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN))
+        .setMaxCapacity(clientThreads)
+        .setGcExecutor(GC_EXECUTOR));
     mGcThresholdMs =
         Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS);
     mMasterInquireClient = masterInquireClient;
