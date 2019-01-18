@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.extensions.ExtensionFactoryRegistry;
 
 import org.slf4j.Logger;
@@ -108,7 +109,12 @@ public final class UnderFileSystemFactoryRegistry {
    */
   public static List<UnderFileSystemFactory> findAll(String path,
       UnderFileSystemConfiguration ufsConf, AlluxioConfiguration alluxioConf) {
+<<<<<<< HEAD
     List<UnderFileSystemFactory> eligibleFactories = sRegistryInstance.findAll(path, ufsConf, alluxioConf);
+=======
+    List<UnderFileSystemFactory> eligibleFactories = sRegistryInstance.findAll(path, ufsConf,
+        alluxioConf);
+>>>>>>> 30168f3ec0... merge fixes
     if (eligibleFactories.isEmpty() && ufsConf != null) {
       // Check if any versioned factory supports the default configuration
       List<UnderFileSystemFactory> factories = sRegistryInstance.findAll(path, null, alluxioConf);
@@ -119,7 +125,7 @@ public final class UnderFileSystemFactoryRegistry {
         }
       }
       if (!supportedVersions.isEmpty()) {
-        String configuredVersion = ufsConf.get(alluxio.PropertyKey.UNDERFS_VERSION);
+        String configuredVersion = ufsConf.get(PropertyKey.UNDERFS_VERSION);
         LOG.warn("Versions [{}] are supported for path {} but you have configured version: {}",
             StringUtils.join(supportedVersions, ","), path,
             configuredVersion);

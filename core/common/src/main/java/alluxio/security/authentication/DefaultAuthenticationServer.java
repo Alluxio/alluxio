@@ -68,7 +68,7 @@ public class DefaultAuthenticationServer
   public DefaultAuthenticationServer(AlluxioConfiguration conf) {
     checkSupported(conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
     mCleanupIntervalMs =
-        conf.getMs(PropertyKey.AUTHENTICATION_STALE_CHANNEL_PURGE_INTERVAL);
+        conf.getMs(PropertyKey.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD);
     mConfiguration = conf;
     mChannels = new ConcurrentHashMap<>();
     mScheduler = Executors.newScheduledThreadPool(1,

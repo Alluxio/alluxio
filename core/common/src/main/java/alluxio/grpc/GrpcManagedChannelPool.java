@@ -41,13 +41,6 @@ public class GrpcManagedChannelPool {
   // Singleton instance.
   private static GrpcManagedChannelPool sInstance;
 
-  static {
-    sInstance =
-        new GrpcManagedChannelPool(new InstancedConfiguration(ConfigurationUtils.defaults()).getMs(
-            PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT
-        ));
-  }
-
   /**
    * @return the singleton pool instance.
    */
@@ -83,9 +76,7 @@ public class GrpcManagedChannelPool {
   private void shutdownManagedChannel(ManagedChannel managedChannel) {
     managedChannel.shutdown();
     try {
-      managedChannel.awaitTermination(
-          Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT),
-          TimeUnit.MILLISECONDS);
+      managedChannel.awaitTermination(mChannelShutdownTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       // Allow thread to exit.
@@ -293,7 +284,7 @@ public class GrpcManagedChannelPool {
 
     /**
      * Plaintext channel with no transport security.
-     * 
+     *
      * @return the modified {@link ChannelKey}
      */
     public ChannelKey usePlaintext() {
