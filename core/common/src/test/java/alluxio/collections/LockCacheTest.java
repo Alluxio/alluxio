@@ -45,7 +45,7 @@ public class LockCacheTest {
     for (int i = 0; i < highWaterMark; i++) {
       assertEquals(i , mCache.size());
       try (LockResource resource = mCache.get(i, LockMode.READ)) {
-        assertTrue(mCache.contains(i));
+        assertTrue(mCache.containsKey(i));
         assertTrue(mCache.size() < MAX_SIZE);
       }
     }
@@ -53,7 +53,7 @@ public class LockCacheTest {
     // it should be full now
     for (int i = highWaterMark; i < 2 * MAX_SIZE; i++) {
       try (LockResource resource = mCache.get(i, LockMode.READ)) {
-        assertTrue(mCache.contains(i));
+        assertTrue(mCache.containsKey(i));
         assertTrue(mCache.size() <= MAX_SIZE);
       }
     }
@@ -64,7 +64,7 @@ public class LockCacheTest {
       for (int i = low; i < high; i++) {
         try (LockResource resource = mCache.get(i, LockMode.READ)) {
           assertTrue(mCache.size() <= MAX_SIZE + totalThreadCount);
-          assertTrue(mCache.contains(i));
+          assertTrue(mCache.containsKey(i));
         }
       }
     });
@@ -98,7 +98,7 @@ public class LockCacheTest {
               }
             }
             for (int i = 0; i < 4; i++) {
-              assertTrue(mCache.contains(i));
+              assertTrue(mCache.containsKey(i));
             }
             assertTrue(mCache.getRawReadWriteLock(0).readLock() == resource0.getLock());
             assertTrue(mCache.getRawReadWriteLock(1).readLock() == resource1.getLock());

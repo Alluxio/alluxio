@@ -201,7 +201,7 @@ public class LockCache<K> {
    * @return true if the key is contained in the cache
    */
   @VisibleForTesting
-  public boolean contains(K key) {
+  public boolean containsKey(K key) {
     Preconditions.checkNotNull(key, "key can not be null");
     return mCache.containsKey(key);
   }
