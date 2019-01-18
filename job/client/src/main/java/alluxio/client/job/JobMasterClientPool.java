@@ -54,7 +54,7 @@ public final class JobMasterClientPool extends ResourcePool<JobMasterClient> {
   @Override
   protected JobMasterClient createNewResource() {
     JobMasterClient client = JobMasterClient.Factory.create(JobMasterClientConfig.defaults(
-        mAlluxioConf), mAlluxioConf);
+        mAlluxioConf));
     mClientList.add(client);
     return client;
   }

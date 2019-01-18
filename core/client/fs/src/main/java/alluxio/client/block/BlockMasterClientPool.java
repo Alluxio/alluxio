@@ -67,8 +67,8 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
   @Override
   protected BlockMasterClient createNewResource() {
     BlockMasterClient client = BlockMasterClient.Factory.create(MasterClientConfig
-        .defaults(mAlluxioConf).withSubject(mSubject).withMasterInquireClient(mMasterInquireClient),
-        mAlluxioConf);
+        .defaults(mAlluxioConf).withSubject(mSubject)
+        .withMasterInquireClient(mMasterInquireClient));
     mClientList.add(client);
     return client;
   }

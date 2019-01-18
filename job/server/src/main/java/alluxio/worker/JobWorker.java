@@ -68,9 +68,8 @@ public final class JobWorker extends AbstractWorker {
     super(
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("job-worker-heartbeat-%d", true)));
     mUfsManager = ufsManager;
-    mJobMasterClient =
-        JobMasterClient.Factory.create(JobMasterClientConfig.defaults(ServerConfiguration.global()),
-        ServerConfiguration.global());
+    mJobMasterClient = JobMasterClient.Factory.create(
+        JobMasterClientConfig.defaults(ServerConfiguration.global()));
     mTaskExecutorManager = new TaskExecutorManager();
   }
 

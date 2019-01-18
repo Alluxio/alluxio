@@ -81,7 +81,7 @@ public final class JobShell extends AbstractShell {
   @Override
   protected Map<String, Command> loadCommands() {
     return CommandUtils.loadCommands(JobShell.class.getPackage().getName(),
-        new Class[] {FileSystemContext.class}, new Object[] {FileSystemContext.create(null,
-            mConfiguration)});
+        new Class[] {FileSystemContext.class},
+        new Object[] {FileSystemContext.create(mConfiguration)});
   }
 }

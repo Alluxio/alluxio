@@ -38,7 +38,7 @@ public class BlockMasterClientPoolTest {
     BlockMasterClient expectedClient = mock(BlockMasterClient.class);
     PowerMockito.mockStatic(BlockMasterClient.Factory.class);
     when(BlockMasterClient.Factory
-        .create(any(MasterClientConfig.class), any(InstancedConfiguration.class)))
+        .create(any(MasterClientConfig.class)))
         .thenReturn(expectedClient);
     BlockMasterClient client;
     try (BlockMasterClientPool pool = new BlockMasterClientPool(null, null, mConf)) {

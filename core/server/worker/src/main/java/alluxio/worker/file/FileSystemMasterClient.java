@@ -13,7 +13,6 @@ package alluxio.worker.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemCommand;
 import alluxio.grpc.FileSystemHeartbeatPOptions;
 import alluxio.grpc.FileSystemHeartbeatPRequest;
@@ -48,7 +47,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @param conf master client configuration
    */
   public FileSystemMasterClient(MasterClientConfig conf) {
-    super(conf, ServerConfiguration.global());
+    super(conf);
   }
 
   @Override

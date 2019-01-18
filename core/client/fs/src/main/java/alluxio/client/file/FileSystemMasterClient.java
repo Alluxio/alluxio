@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Client;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
@@ -57,9 +56,8 @@ public interface FileSystemMasterClient extends Client {
      * @param conf master client configuration
      * @return a new {@link FileSystemMasterClient} instance
      */
-    public static FileSystemMasterClient create(MasterClientConfig conf,
-        AlluxioConfiguration alluxioConf) {
-      return new RetryHandlingFileSystemMasterClient(conf, alluxioConf);
+    public static FileSystemMasterClient create(MasterClientConfig conf) {
+      return new RetryHandlingFileSystemMasterClient(conf);
     }
   }
 

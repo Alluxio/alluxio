@@ -13,6 +13,8 @@ package alluxio.master;
 
 import alluxio.conf.AlluxioConfiguration;
 
+import com.google.common.base.Preconditions;
+
 import javax.security.auth.Subject;
 
 /**
@@ -21,14 +23,15 @@ import javax.security.auth.Subject;
 public class MasterClientConfig {
   private Subject mSubject;
   private MasterInquireClient mMasterInquireClient;
+  private AlluxioConfiguration mAlluxioConf;
 
   /**
-   * @param conf Alluxio configuration
+   * @param alluxioConf Alluxio configuration
    * @return a master client configuration with default values
    */
-  public static MasterClientConfig defaults(AlluxioConfiguration conf) {
-    return new MasterClientConfig().withMasterInquireClient(
-        MasterInquireClient.Factory.create(conf));
+  public static MasterClientConfig defaults(AlluxioConfiguration alluxioConf) {
+    return new MasterClientConfig().withConfiguration(alluxioConf)
+        .withMasterInquireClient(MasterInquireClient.Factory.create(alluxioConf));
   }
 
   /**
@@ -50,6 +53,15 @@ public class MasterClientConfig {
   }
 
   /**
+   * @param alluxioConf a master inquire client
+   * @return the updated config
+   */
+  public MasterClientConfig withConfiguration(AlluxioConfiguration alluxioConf) {
+    mAlluxioConf = Preconditions.checkNotNull(alluxioConf);
+    return this;
+  }
+
+  /**
    * @return the subject
    */
   public Subject getSubject() {
@@ -61,5 +73,12 @@ public class MasterClientConfig {
    */
   public MasterInquireClient getMasterInquireClient() {
     return mMasterInquireClient;
+  }
+
+  /**
+   * @return the client configuration
+   */
+  public AlluxioConfiguration getConfiguration() {
+    return mAlluxioConf;
   }
 }

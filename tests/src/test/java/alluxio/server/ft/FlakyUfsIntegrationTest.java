@@ -104,8 +104,7 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
     assertThat(deleted, Matchers.lessThan(90));
     mFs.free(new AlluxioURI("/"), FreePOptions.newBuilder().setRecursive(true).build());
     BlockMasterClient blockClient =
-        BlockMasterClient.Factory.create(MasterClientConfig.defaults(ServerConfiguration.global()),
-            ServerConfiguration.global());
+        BlockMasterClient.Factory.create(MasterClientConfig.defaults(ServerConfiguration.global()));
     CommonUtils.waitFor("data to be freed", () -> {
       try {
         return blockClient.getUsedBytes() == 0;

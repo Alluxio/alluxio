@@ -154,8 +154,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
   private MetaMasterClient getMetaClient(MultiProcessCluster cluster) {
     return new RetryHandlingMetaMasterClient(
-        MasterClientConfig.defaults(
-            ServerConfiguration.global()).withMasterInquireClient(cluster.getMasterInquireClient()),
-        ServerConfiguration.global());
+        MasterClientConfig.defaults(ServerConfiguration.global())
+            .withMasterInquireClient(cluster.getMasterInquireClient()));
   }
 }

@@ -12,7 +12,6 @@
 package alluxio.worker.job;
 
 import alluxio.Client;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.JobCommand;
@@ -40,9 +39,8 @@ public interface JobMasterClient extends Client {
      * @param conf job master client configuration
      * @return a new {@link JobMasterClient} instance
      */
-    public static JobMasterClient create(JobMasterClientConfig conf,
-        AlluxioConfiguration alluxioConf) {
-      return new RetryHandlingJobMasterClient(conf, alluxioConf);
+    public static JobMasterClient create(JobMasterClientConfig conf) {
+      return new RetryHandlingJobMasterClient(conf);
     }
   }
 

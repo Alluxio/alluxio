@@ -14,7 +14,6 @@ package alluxio.client.keyvalue;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CompletePartitionPRequest;
 import alluxio.grpc.CompleteStorePRequest;
 import alluxio.grpc.CreateStorePRequest;
@@ -47,10 +46,9 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * Creates a new key-value master client.
    *
    * @param conf master client configuration
-   * @param alluxioConf Alluxio configuration
    */
-  public KeyValueMasterClient(MasterClientConfig conf, AlluxioConfiguration alluxioConf) {
-    super(conf, alluxioConf);
+  public KeyValueMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

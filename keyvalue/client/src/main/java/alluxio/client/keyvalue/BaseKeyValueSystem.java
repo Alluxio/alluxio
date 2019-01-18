@@ -43,11 +43,11 @@ public final class BaseKeyValueSystem implements KeyValueSystem {
   /**
    * Constructs a new {@link BaseKeyValueSystem}.
    *
-   * @param conf Alluxio configuration
+   * @param alluxioConf Alluxio configuration
    */
-  public BaseKeyValueSystem(AlluxioConfiguration conf) {
-    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(conf), conf);
-    mConf = conf;
+  public BaseKeyValueSystem(AlluxioConfiguration alluxioConf) {
+    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(alluxioConf));
+    mConf = alluxioConf;
   }
 
   @Override

@@ -271,8 +271,7 @@ public final class FileSystemShellUtilsTest {
   @Test
   public void loadCommands() {
     Map<String, Command> map =
-        FileSystemShellUtils.loadCommands(FileSystemContext.create(null,
-            ServerConfiguration.global()));
+        FileSystemShellUtils.loadCommands(FileSystemContext.create(ServerConfiguration.global()));
 
     String pkgName = Command.class.getPackage().getName();
     Reflections reflections = new Reflections(pkgName);

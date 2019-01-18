@@ -66,12 +66,13 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
    * store at the given {@link AlluxioURI}.
    *
    * @param uri URI of the store
+   * @param alluxioConf Alluxio configuration
    */
-  BaseKeyValueStoreWriter(AlluxioURI uri, AlluxioConfiguration conf) throws IOException {
+  BaseKeyValueStoreWriter(AlluxioURI uri, AlluxioConfiguration alluxioConf) throws IOException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
-    mConf = conf;
+    mConf = alluxioConf;
     mFileSystem = FileSystem.Factory.get(mConf);
-    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(conf), conf);
+    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(alluxioConf));
 
     mStoreUri = Preconditions.checkNotNull(uri, "uri");
     mMasterClient.createStore(mStoreUri);
