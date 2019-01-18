@@ -11,6 +11,8 @@
 
 package alluxio.resource;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.io.Closeable;
 import java.util.concurrent.locks.Lock;
 
@@ -35,6 +37,11 @@ public class LockResource implements Closeable {
   public LockResource(Lock lock) {
     mLock = lock;
     mLock.lock();
+  }
+
+  @VisibleForTesting
+  public Lock getLock() {
+    return mLock;
   }
 
   /**

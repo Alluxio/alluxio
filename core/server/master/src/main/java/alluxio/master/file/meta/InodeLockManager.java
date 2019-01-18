@@ -11,6 +11,8 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.collections.LockCache;
 import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
@@ -46,13 +48,19 @@ public class InodeLockManager {
    */
 
   public final LockCache<Long> mInodeLocks =
-      new LockCache<>((key)-> new ReentrantReadWriteLock(), 1000, 10000, 100);
+      new LockCache<>((key)-> new ReentrantReadWriteLock(),
+          Configuration.getInt(PropertyKey.MASTER_LOCKCACHE_INITSIZE),
+          Configuration.getInt(PropertyKey.MASTER_LOCKCACHE_MAXSIZE),
+          Configuration.getInt(PropertyKey.MASTER_LOCKCACHE_CONCURRENCY_LEVEL));
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
 
   public final LockCache<Edge> mEdgeLocks =
-      new LockCache<>((key)-> new ReentrantReadWriteLock(), 1000, 10000, 100);
+      new LockCache<>((key)-> new ReentrantReadWriteLock(),
+          Configuration.getInt(PropertyKey.MASTER_LOCKCACHE_INITSIZE),
+          Configuration.getInt(PropertyKey.MASTER_LOCKCACHE_MAXSIZE),
+          Configuration.getInt(PropertyKey.MASTER_LOCKCACHE_CONCURRENCY_LEVEL));
 
   /**
    * Cache for supplying inode persistence locks. Before a thread can persist an inode, it must
