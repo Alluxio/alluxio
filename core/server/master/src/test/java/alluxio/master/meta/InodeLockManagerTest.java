@@ -32,17 +32,17 @@ public class InodeLockManagerTest {
   @Test(timeout = 10000)
   public void lockInode() throws Exception {
     inodeLockTest(LockMode.WRITE, LockMode.READ, true);
-    inodeLockTest(LockMode.READ,  LockMode.WRITE, true);
+    inodeLockTest(LockMode.READ, LockMode.WRITE, true);
     inodeLockTest(LockMode.WRITE, LockMode.WRITE, true);
-    inodeLockTest(LockMode.READ,  LockMode.READ, false);
+    inodeLockTest(LockMode.READ, LockMode.READ, false);
   }
 
   @Test(timeout = 10000)
   public void lockEdge() throws Exception {
     edgeLockTest(LockMode.WRITE, LockMode.READ, true);
-    edgeLockTest(LockMode.READ,  LockMode.WRITE, true);
+    edgeLockTest(LockMode.READ, LockMode.WRITE, true);
     edgeLockTest(LockMode.WRITE, LockMode.WRITE, true);
-    edgeLockTest(LockMode.READ,  LockMode.READ, false);
+    edgeLockTest(LockMode.READ, LockMode.READ, false);
   }
 
   private void inodeLockTest(LockMode take, LockMode tryToTake, boolean expectBlocking)

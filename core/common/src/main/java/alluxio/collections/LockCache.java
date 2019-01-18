@@ -73,6 +73,10 @@ public class LockCache<K> {
     mLastSizeWarningTime = 0;
   }
 
+  /**
+   * If the size of the cache exceeds the soft limit and no other thread is evicting entries,
+   * start evicting entries.
+   */
   private void evictIfOverLimit() {
     long numToEvict = mCache.size() - mSoftLimit;
 
@@ -84,7 +88,6 @@ public class LockCache<K> {
       try {
         // This thread won the race as the evictor
         while (numToEvict > 0) {
-
           if (!mIterator.hasNext()) {
             mIterator = mCache.entrySet().iterator();
           }
@@ -150,7 +153,12 @@ public class LockCache<K> {
       // repeat until we get a cacheEntry that is not in the process of being removed.
       cacheEntry = mCache.compute(key, (k, v) -> {
         if (v != null) {
-          v.mRefCount.incrementAndGet();
+          if (v.mRefCount.incrementAndGet() < 0) {
+            // refCount went negative, some other thread is evicting this entry
+            // we return null, so it will either be removed by this thread or the other thread
+            // since removal is atomic in concurrentHashMaps, this is safe to do
+            return null;
+          }
           v.mIsAccessed = true;
           return v;
         }
@@ -163,7 +171,7 @@ public class LockCache<K> {
       });
 
       if (cacheEntry == null) {
-        // cache is at hard limit
+        // cache is at hard limit, or we are in the middle of removing the cacheEntry
         try {
           if (System.currentTimeMillis() - mLastSizeWarningTime > 60000) {
             LOG.warn("Cache at hard limit, cache ize = " + mCache.size()
@@ -178,16 +186,8 @@ public class LockCache<K> {
         continue;
       }
 
-      if ((oldCacheEntry != cacheEntry)
-          && cacheEntry.mRefCount.get() > 0) {
-        evictIfOverLimit();
-        return cacheEntry;
-      } else {
-        // refCount went negative, we are evicting this entry
-        oldCacheEntry = cacheEntry;
-        evictIfOverLimit();
-        //TODO(yuzhu): sleep here to prevent overloading the cache
-      }
+      evictIfOverLimit();
+      return cacheEntry;
     }
   }
 

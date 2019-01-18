@@ -18,12 +18,15 @@ import java.util.concurrent.locks.Lock;
 
 /**
  * Reference counted Lock resource, automatically unlocks and decrements the reference count.
+ * It contains a lock and a reference count for that lock, and will decrement
+ * the lock reference count and unlocking when the resource is closed.
  */
 public class RefCountLockResource extends LockResource {
   private final AtomicInteger mRefCount;
 
   /**
-   * Creates a new instance of {@link LockResource} using the given lock.
+   * Creates a new instance of {@link LockResource} using the given lock and reference counter.
+   * The reference counter should have been initialized and incremented outside of this class.
    *
    * @param lock the lock to acquire
    * @param refCount ref count for the lock

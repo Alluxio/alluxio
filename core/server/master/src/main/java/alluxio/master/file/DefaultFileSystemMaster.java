@@ -530,8 +530,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             if (!inodeFile.getPersistenceState().equals(PersistenceState.TO_BE_PERSISTED)) {
               continue;
             }
-            try (LockResource lr = mInodeLockManager.lockInode(inodeFile,
-                LockMode.READ)) {
+            try (LockResource lr = mInodeLockManager.lockInode(inodeFile, LockMode.READ)) {
               if (inodeFile.getPersistJobId() != Constants.PERSISTENCE_INVALID_JOB_ID) {
                 addPersistJob(inodeFile.getId(), inodeFile.getPersistJobId(),
                     mInodeTree.getPath(inodeFile), inodeFile.getTempUfsPath());
