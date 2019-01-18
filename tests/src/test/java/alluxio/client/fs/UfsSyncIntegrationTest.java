@@ -18,22 +18,24 @@ import alluxio.AuthenticatedUserRule;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
-import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.GetStatusOptions;
-import alluxio.client.file.options.ListStatusOptions;
-import alluxio.client.file.options.RenameOptions;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
@@ -41,8 +43,6 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
-import alluxio.wire.CommonOptions;
-import alluxio.wire.LoadMetadataType;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
@@ -66,10 +66,12 @@ import java.util.stream.Collectors;
  */
 public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   private static final long INTERVAL_MS = 100;
-  private static final CommonOptions SYNC_NEVER = CommonOptions.defaults().setSyncIntervalMs(-1);
-  private static final CommonOptions SYNC_ALWAYS = CommonOptions.defaults().setSyncIntervalMs(0);
-  private static final CommonOptions SYNC_INTERVAL =
-      CommonOptions.defaults().setSyncIntervalMs(INTERVAL_MS);
+  private static final FileSystemMasterCommonPOptions PSYNC_NEVER =
+      FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build();
+  private static final FileSystemMasterCommonPOptions PSYNC_ALWAYS =
+      FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
+  private static final FileSystemMasterCommonPOptions PSYNC_INTERVAL =
+      FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(INTERVAL_MS).build();
   private static final String ROOT_DIR = "/";
   private static final String EXISTING_DIR = "/dir_exist";
   private static final String EXISTING_FILE = "/file_exist";
@@ -103,9 +105,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void getStatusNoSync() throws Exception {
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_NEVER);
+    GetStatusPOptions options = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_NEVER).build();
     checkGetStatus(EXISTING_DIR, options, false);
     checkGetStatus(EXISTING_FILE, options, false);
 
@@ -119,9 +120,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void listStatusNoSync() throws Exception {
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_NEVER);
+    ListStatusPOptions options = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_NEVER).build();
     checkListStatus(EXISTING_DIR, options, false);
     checkListStatus(EXISTING_FILE, options, false);
 
@@ -135,25 +135,22 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void getStatusFileSync() throws Exception {
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
+    GetStatusPOptions options = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     checkGetStatus(EXISTING_FILE, options, true);
   }
 
   @Test
   public void getStatusDirSync() throws Exception {
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
+    GetStatusPOptions options = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     checkGetStatus(EXISTING_DIR, options, true);
   }
 
   @Test
   public void listDirSync() throws Exception {
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
+    ListStatusPOptions options = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     checkListStatus(ROOT_DIR, options, true);
 
     // Create new ufs paths.
@@ -165,9 +162,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void getStatusFileSyncInterval() throws Exception {
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_INTERVAL);
+    GetStatusPOptions options = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_INTERVAL).build();
     long startMs = System.currentTimeMillis();
     URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     long startLength = status.getLength();
@@ -187,9 +183,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test(timeout = 10000)
   public void listDirSyncInterval() throws Exception {
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_INTERVAL);
+    ListStatusPOptions options = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_INTERVAL).build();
     long startMs = System.currentTimeMillis();
     List<URIStatus> statusList =
         mFileSystem.listStatus(new AlluxioURI(alluxioPath(ROOT_DIR)), options);
@@ -211,7 +206,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void deleteFileNoSync() throws Exception {
-    DeleteOptions options = DeleteOptions.defaults().setCommonOptions(SYNC_NEVER);
+    DeletePOptions options = DeletePOptions.newBuilder().setCommonOptions(PSYNC_NEVER).build();
     try {
       mFileSystem.delete(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
       Assert.fail("Delete expected to fail: " + alluxioPath(EXISTING_FILE));
@@ -222,13 +217,13 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void deleteFileSync() throws Exception {
-    DeleteOptions options = DeleteOptions.defaults().setCommonOptions(SYNC_ALWAYS);
+    DeletePOptions options = DeletePOptions.newBuilder().setCommonOptions(PSYNC_ALWAYS).build();
     mFileSystem.delete(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
   }
 
   @Test
   public void renameFileNoSync() throws Exception {
-    RenameOptions options = RenameOptions.defaults().setCommonOptions(SYNC_NEVER);
+    RenamePOptions options = RenamePOptions.newBuilder().setCommonOptions(PSYNC_NEVER).build();
     try {
       mFileSystem
           .rename(new AlluxioURI(alluxioPath(EXISTING_FILE)), new AlluxioURI(alluxioPath(NEW_FILE)),
@@ -241,7 +236,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void renameFileSync() throws Exception {
-    RenameOptions options = RenameOptions.defaults().setCommonOptions(SYNC_ALWAYS);
+    RenamePOptions options = RenamePOptions.newBuilder().setCommonOptions(PSYNC_ALWAYS).build();
     mFileSystem
         .rename(new AlluxioURI(alluxioPath(EXISTING_FILE)), new AlluxioURI(alluxioPath(NEW_FILE)),
             options);
@@ -249,9 +244,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void unpersistedFileSync() throws Exception {
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
+    ListStatusPOptions options = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     List<String> initialStatusList =
         mFileSystem.listStatus(new AlluxioURI(alluxioPath(ROOT_DIR)), options).stream()
             .map(URIStatus::getName).collect(Collectors.toList());
@@ -278,9 +272,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   @Test(timeout = 10000)
   public void lastModifiedLocalFileSync() throws Exception {
     int sizefactor = 10;
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
+    GetStatusPOptions options = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     writeUfsFile(ufsPath(EXISTING_FILE), sizefactor);
     URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     String startFingerprint = status.getUfsFingerprint();
@@ -309,17 +302,16 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void mountPoint() throws Exception {
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_NEVER);
+    ListStatusPOptions options = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_NEVER).build();
     List<String> rootListing =
         mFileSystem.listStatus(new AlluxioURI("/"), options).stream().map(URIStatus::getName)
             .collect(Collectors.toList());
     Assert.assertEquals(1, rootListing.size());
     Assert.assertEquals("mnt", rootListing.get(0));
 
-    options = ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-        .setCommonOptions(SYNC_ALWAYS);
+    options = ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)
+        .setCommonOptions(PSYNC_ALWAYS).build();
     rootListing =
         mFileSystem.listStatus(new AlluxioURI("/"), options).stream().map(URIStatus::getName)
             .collect(Collectors.toList());
@@ -329,18 +321,16 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void mountPointConflict() throws Exception {
-    GetStatusOptions getStatusOptions =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
-    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/"), getStatusOptions);
+    GetStatusPOptions gsOptions = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/"), gsOptions);
 
     // add a UFS dir which conflicts with a mount point.
     String fromRootUfs = status.getUfsPath() + "/mnt";
     Assert.assertTrue(new File(fromRootUfs).mkdirs());
 
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
+    ListStatusPOptions options = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     List<URIStatus> rootListing = mFileSystem.listStatus(new AlluxioURI("/"), options);
     Assert.assertEquals(1, rootListing.size());
     Assert.assertEquals("mnt", rootListing.get(0).getName());
@@ -350,33 +340,30 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   @Test
   public void mountPointNested() throws Exception {
     String ufsPath = Files.createTempDir().getAbsolutePath();
-    mFileSystem.createDirectory(new AlluxioURI("/nested/mnt/"),
-        CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.CACHE_THROUGH));
+    mFileSystem.createDirectory(new AlluxioURI("/nested/mnt/"), CreateDirectoryPOptions.newBuilder()
+        .setRecursive(true).setWriteType(WritePType.CACHE_THROUGH).build());
     mFileSystem.mount(new AlluxioURI("/nested/mnt/ufs"), new AlluxioURI(ufsPath));
 
     // recursively sync (setAttribute enables recursive sync)
-    mFileSystem.setAttribute(new AlluxioURI("/"),
-        SetAttributeOptions.defaults().setCommonOptions(SYNC_ALWAYS).setRecursive(true)
-            .setTtl(55555));
+    mFileSystem.setAttribute(new AlluxioURI("/"), SetAttributePOptions.newBuilder()
+        .setCommonOptions(PSYNC_ALWAYS).setRecursive(true).setTtl(55555).build());
 
     // Verify /nested/mnt/ dir has 1 mount point
-    ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_NEVER);
+    ListStatusPOptions options = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_NEVER).build();
     List<URIStatus> listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/"), options);
     Assert.assertEquals(1, listing.size());
     Assert.assertEquals("ufs", listing.get(0).getName());
 
     // Remove a directory in the parent UFS, which has a mount point descendant
-    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/nested/mnt/"),
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_NEVER));
+    URIStatus status =
+        mFileSystem.getStatus(new AlluxioURI("/nested/mnt/"), GetStatusPOptions.newBuilder()
+            .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_NEVER).build());
     Assert.assertTrue(new File(status.getUfsPath()).delete());
 
     // recursively sync (setAttribute enables recursive sync)
-    mFileSystem.setAttribute(new AlluxioURI("/"),
-        SetAttributeOptions.defaults().setCommonOptions(SYNC_ALWAYS).setRecursive(true)
-            .setTtl(44444));
+    mFileSystem.setAttribute(new AlluxioURI("/"), SetAttributePOptions.newBuilder()
+        .setCommonOptions(PSYNC_ALWAYS).setRecursive(true).setTtl(44444).build());
 
     // Verify /nested/mnt/ dir has 1 mount point
     listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/"), options);
@@ -384,15 +371,13 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals("ufs", listing.get(0).getName());
 
     // Remove a directory in the parent UFS, which has a mount point descendant
-    status = mFileSystem.getStatus(new AlluxioURI("/nested/"),
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_NEVER));
+    status = mFileSystem.getStatus(new AlluxioURI("/nested/"), GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_NEVER).build());
     Assert.assertTrue(new File(status.getUfsPath()).delete());
 
     // recursively sync (setAttribute enables recursive sync)
-    mFileSystem.setAttribute(new AlluxioURI("/"),
-        SetAttributeOptions.defaults().setCommonOptions(SYNC_ALWAYS).setRecursive(true)
-            .setTtl(44444));
+    mFileSystem.setAttribute(new AlluxioURI("/"), SetAttributePOptions.newBuilder()
+        .setCommonOptions(PSYNC_ALWAYS).setRecursive(true).setTtl(44444).build());
 
     // Verify /nested/mnt/ dir has 1 mount point
     listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/"), options);
@@ -403,9 +388,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     writeUfsFile(ufsPath + "/nestedufs", 1);
 
     // recursively sync (setAttribute enables recursive sync)
-    mFileSystem.setAttribute(new AlluxioURI("/"),
-        SetAttributeOptions.defaults().setCommonOptions(SYNC_ALWAYS).setRecursive(true)
-            .setTtl(44444));
+    mFileSystem.setAttribute(new AlluxioURI("/"), SetAttributePOptions.newBuilder()
+        .setCommonOptions(PSYNC_ALWAYS).setRecursive(true).setTtl(44444).build());
     // Verify /nested/mnt/ufs dir has 1 file
     listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/ufs"), options);
     Assert.assertEquals(1, listing.size());
@@ -414,9 +398,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void ufsModeSync() throws Exception {
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
+    GetStatusPOptions options = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     writeUfsFile(ufsPath(EXISTING_FILE), 10);
     // Set the ufs permissions
     File ufsFile = new File(ufsPath(EXISTING_FILE));
@@ -438,23 +421,22 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void alluxioModeFingerprintUpdate() throws Exception {
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Once)
-            .setCommonOptions(SYNC_NEVER);
+    GetStatusPOptions options = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.ONCE).setCommonOptions(PSYNC_NEVER).build();
     writeUfsFile(ufsPath(EXISTING_FILE), 10);
     Assert
         .assertNotNull(mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options));
 
     // Set initial alluxio permissions
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath(EXISTING_FILE)),
-        SetAttributeOptions.defaults().setMode(new Mode((short) 0777)));
+        SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto()).build());
 
     URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     String startFingerprint = status.getUfsFingerprint();
 
     // Change alluxio permissions
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath(EXISTING_FILE)),
-        SetAttributeOptions.defaults().setMode(new Mode((short) 0655)));
+        SetAttributePOptions.newBuilder().setMode(new Mode((short) 0655).toProto()).build());
 
     status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     String endFingerprint = status.getUfsFingerprint();
@@ -473,9 +455,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     // Set the mode for the directory
     FileUtils.changeLocalFilePermission(ufsPath("/dir1"), "rwxrwxrwx");
 
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
+    GetStatusPOptions options = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath("/dir1")), options);
     Assert.assertNotNull(status);
 
@@ -498,9 +479,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   public void ufsMetadataContentChange() throws Exception {
     FileSystemTestUtils.loadFile(mFileSystem, alluxioPath(EXISTING_FILE));
 
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setCommonOptions(SYNC_ALWAYS);
+    GetStatusPOptions options = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
     URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     Assert.assertNotNull(status);
     long prevFileid = status.getFileId();
@@ -533,8 +513,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     FileSystemTestUtils.loadFile(mFileSystem, alluxioPath(EXISTING_FILE));
     new File(ufsPath(EXISTING_FILE)).delete();
     assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(EXISTING_FILE)),
-        ExistsOptions.defaults().setCommonOptions(SYNC_ALWAYS)));
-    mFileSystem.free(new AlluxioURI("/"), FreeOptions.defaults().setRecursive(true));
+        ExistsPOptions.newBuilder().setCommonOptions(PSYNC_ALWAYS).build()));
+    mFileSystem.free(new AlluxioURI("/"), FreePOptions.newBuilder().setRecursive(true).build());
     BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
     CommonUtils.waitFor("data to be freed", () -> {
       try {
@@ -550,8 +530,9 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
 
     mFileSystem.createFile(new AlluxioURI(alluxioPath(NEW_NESTED_FILE)),
-        CreateFileOptions.defaults().setRecursive(true).setWriteType(WriteType.CACHE_THROUGH)
-            .setCommonOptions(SYNC_ALWAYS)).close();
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
+            .setCommonOptions(PSYNC_ALWAYS).setRecursive(true).build())
+        .close();
 
     // Make sure we can create the nested file.
     Assert.assertNotNull(mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE))));
@@ -577,7 +558,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     try {
       mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
-          SetAttributeOptions.defaults().setRecursive(true).setTtl(55555));
+          SetAttributePOptions.newBuilder().setRecursive(true).setTtl(55555).build());
     } catch (FileDoesNotExistException e) {
       // expected, continue
     }
@@ -586,7 +567,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
     long ttl = 123456789;
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
-        SetAttributeOptions.defaults().setRecursive(true).setTtl(ttl));
+        SetAttributePOptions.newBuilder().setRecursive(true).setTtl(ttl).build());
 
     // Verify recursive set TTL by getting info, without sync.
     Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
@@ -601,7 +582,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
     ttl = 987654321;
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
-        SetAttributeOptions.defaults().setRecursive(true).setTtl(ttl));
+        SetAttributePOptions.newBuilder().setRecursive(true).setTtl(ttl).build());
 
     // Verify recursive set TTL by getting info, without sync.
     Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
@@ -629,7 +610,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   }
 
   private void writeMustCacheFile(String path, int sizeFactor) throws Exception {
-    CreateFileOptions options = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+    CreateFilePOptions options = CreateFilePOptions.newBuilder()
+        .setWriteType(WritePType.MUST_CACHE).setRecursive(true).build();
     FileOutStream os = mFileSystem.createFile(new AlluxioURI(path), options);
     for (int i = 0; i < sizeFactor; i++) {
       os.write("test".getBytes());
@@ -637,7 +619,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     os.close();
   }
 
-  private void checkGetStatus(String path, GetStatusOptions options, boolean expectExists)
+  private void checkGetStatus(String path, GetStatusPOptions options, boolean expectExists)
       throws Exception {
     try {
       URIStatus uriStatus = mFileSystem.getStatus(new AlluxioURI(alluxioPath(path)), options);
@@ -652,7 +634,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  private void checkListStatus(String path, ListStatusOptions options, boolean expectExists)
+  private void checkListStatus(String path, ListStatusPOptions options, boolean expectExists)
       throws Exception {
     try {
       List<URIStatus> statusList =

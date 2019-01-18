@@ -15,6 +15,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -123,6 +124,6 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("shards", mShards).toString();
+    return MoreObjects.toStringHelper(this).add("shards", mShards).toString();
   }
 }

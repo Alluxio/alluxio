@@ -18,6 +18,7 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.grpc.AsyncCacheRequest;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
@@ -49,7 +50,7 @@ public class AsyncCacheRequestManager {
   private final ExecutorService mAsyncCacheExecutor;
   /** The block worker. */
   private final BlockWorker mBlockWorker;
-  private final ConcurrentHashMap<Long, Protocol.AsyncCacheRequest> mPendingRequests;
+  private final ConcurrentHashMap<Long, AsyncCacheRequest> mPendingRequests;
   private final String mLocalWorkerHostname;
 
   /**
@@ -68,7 +69,7 @@ public class AsyncCacheRequestManager {
    *
    * @param request the async cache request fields will be available
    */
-  public void submitRequest(Protocol.AsyncCacheRequest request) {
+  public void submitRequest(AsyncCacheRequest request) {
     ASYNC_CACHE_REQUESTS.inc();
     long blockId = request.getBlockId();
     long blockLength = request.getLength();
@@ -119,7 +120,7 @@ public class AsyncCacheRequestManager {
       });
     } catch (Exception e) {
       // RuntimeExceptions (e.g. RejectedExecutionException) may be thrown in extreme cases when the
-      // netty thread pool is drained due to highly concurrent caching workloads. In these cases,
+      // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
       // return as async caching is at best effort.
       LOG.warn("Failed to submit async cache request.\n{}\nError: {}", request, e);
       ASYNC_CACHE_FAILED_BLOCKS.inc();

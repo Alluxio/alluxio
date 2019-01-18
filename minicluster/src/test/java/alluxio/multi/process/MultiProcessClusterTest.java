@@ -19,7 +19,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 
 import org.junit.Rule;
@@ -41,6 +41,7 @@ public final class MultiProcessClusterTest {
         .build();
     try {
       mCluster.start();
+      mCluster.waitForAllNodesRegistered(60 * Constants.SECOND_MS);
       FileSystem fs = mCluster.getFileSystemClient();
       createAndOpenFile(fs);
       mCluster.notifySuccess();
@@ -59,6 +60,7 @@ public final class MultiProcessClusterTest {
         .build();
     try {
       mCluster.start();
+      mCluster.waitForAllNodesRegistered(60 * Constants.SECOND_MS);
       FileSystem fs = mCluster.getFileSystemClient();
       createAndOpenFile(fs);
       mCluster.notifySuccess();
@@ -74,7 +76,7 @@ public final class MultiProcessClusterTest {
       String testFile = "/fileName";
       try {
         FileSystemTestUtils.createByteFile(fs, testFile, len,
-            CreateFileOptions.defaults().setBlockSizeBytes(100));
+            CreateFilePOptions.newBuilder().setBlockSizeBytes(100).build());
         break;
       } catch (Exception e) {
         // This can indicate that the worker hasn't connected yet, so we must delete and retry.

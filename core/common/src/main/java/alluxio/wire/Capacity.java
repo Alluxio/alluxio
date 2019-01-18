@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -79,6 +80,6 @@ public class Capacity {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("total", mTotal).add("used", mUsed).toString();
+    return MoreObjects.toStringHelper(this).add("total", mTotal).add("used", mUsed).toString();
   }
 }

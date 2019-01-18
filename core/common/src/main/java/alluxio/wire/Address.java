@@ -44,13 +44,13 @@ public final class Address implements Serializable {
   }
 
   /**
-   * Creates a new instance of {@link Address} from thrift representation.
+   * Creates a new instance of {@link Address} from proto representation.
    *
-   * @param masterAddress the thrift master address
+   * @param netAddress the proto master address
    */
-  protected Address(alluxio.thrift.MasterNetAddress masterAddress) {
-    mHost = masterAddress.getHost();
-    mRpcPort = masterAddress.getRpcPort();
+  protected Address(alluxio.grpc.NetAddress netAddress) {
+    mHost = netAddress.getHost();
+    mRpcPort = netAddress.getRpcPort();
   }
 
   /**
@@ -86,20 +86,19 @@ public final class Address implements Serializable {
   }
 
   /**
-   * @return a master address of thrift construct
+   * @return a master address of proto construct
    */
-  public alluxio.thrift.MasterNetAddress toThrift() {
-    return new alluxio.thrift.MasterNetAddress()
-        .setHost(mHost).setRpcPort(mRpcPort);
+  public alluxio.grpc.NetAddress toProto() {
+    return alluxio.grpc.NetAddress.newBuilder().setHost(mHost).setRpcPort(mRpcPort).build();
   }
 
   /**
-   * Creates a new instance of {@link Address} from thrift representation.
+   * Creates a new instance of {@link Address} from proto representation.
    *
-   * @param address the thrift representation of a master address
+   * @param address the proto representation of a master address
    * @return the instance
    */
-  public static Address fromThrift(alluxio.thrift.MasterNetAddress address) {
+  public static Address fromProto(alluxio.grpc.NetAddress address) {
     return new Address(address);
   }
 

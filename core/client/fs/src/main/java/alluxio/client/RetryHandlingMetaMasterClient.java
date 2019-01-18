@@ -14,41 +14,32 @@ package alluxio.client;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.GetConfigReportPOptions;
+import alluxio.grpc.GetMasterInfoPOptions;
+import alluxio.grpc.GetMetricsPOptions;
+import alluxio.grpc.MasterInfo;
+import alluxio.grpc.MasterInfoField;
+import alluxio.grpc.MetaMasterClientServiceGrpc;
+import alluxio.grpc.MetricValue;
+import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientConfig;
-import alluxio.thrift.AlluxioService;
-import alluxio.thrift.BackupTOptions;
-import alluxio.thrift.GetConfigReportTOptions;
-import alluxio.thrift.GetConfigurationTOptions;
-import alluxio.thrift.GetMasterInfoTOptions;
-import alluxio.thrift.GetMetricsTOptions;
-import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.MasterInfo;
-import alluxio.wire.MasterInfo.MasterInfoField;
-import alluxio.wire.MetricValue;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the meta master.
- *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety and
- * support for retries.
+ * A wrapper for the gRPC client to interact with the meta master.
  */
 @ThreadSafe
 public class RetryHandlingMetaMasterClient extends AbstractMasterClient
     implements MetaMasterClient {
-  private MetaMasterClientService.Client mClient;
+  private MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub mClient = null;
 
   /**
    * Creates a new meta master client.
@@ -57,12 +48,11 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
    */
   public RetryHandlingMetaMasterClient(MasterClientConfig conf) {
     super(conf);
-    mClient = null;
   }
 
   @Override
-  protected AlluxioService.Client getClient() {
-    return mClient;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.META_MASTER_CLIENT_SERVICE;
   }
 
   @Override
@@ -77,57 +67,33 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
 
   @Override
   protected void afterConnect() {
-    mClient = new MetaMasterClientService.Client(mProtocol);
+    mClient = MetaMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   @Override
-  public synchronized BackupResponse backup(String targetDirectory,
+  public BackupResponse backup(String targetDirectory,
                                             boolean localFileSystem) throws IOException {
-    return retryRPC(
-        () -> BackupResponse.fromThrift(mClient.backup(new BackupTOptions()
-            .setTargetDirectory(targetDirectory).setLocalFileSystem(localFileSystem))));
+    return retryRPC(() -> BackupResponse.fromPoto(mClient.backup(BackupPOptions.newBuilder()
+        .setTargetDirectory(targetDirectory).setLocalFileSystem(localFileSystem).build())));
   }
 
   @Override
-  public synchronized ConfigCheckReport getConfigReport() throws IOException {
-    return retryRPC(() -> ConfigCheckReport.fromThrift(mClient
-        .getConfigReport(new GetConfigReportTOptions()).getReport()));
+  public ConfigCheckReport getConfigReport() throws IOException {
+    return retryRPC(() -> ConfigCheckReport.fromProto(
+        mClient.getConfigReport(GetConfigReportPOptions.getDefaultInstance()).getReport()));
   }
 
   @Override
-  public synchronized List<ConfigProperty> getConfiguration() throws IOException {
-    return retryRPC(() -> mClient.getConfiguration(new GetConfigurationTOptions())
-          .getConfigList().stream()
-          .map(ConfigProperty::fromThrift)
-          .collect(Collectors.toList()));
-  }
-
-  @Override
-  public synchronized MasterInfo getMasterInfo(final Set<MasterInfoField> fields)
+  public MasterInfo getMasterInfo(final Set<MasterInfoField> fields)
       throws IOException {
-    return retryRPC(() -> {
-      Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
-      if (fields == null) {
-        thriftFields = null;
-      } else {
-        for (MasterInfo.MasterInfoField field : fields) {
-          thriftFields.add(field.toThrift());
-        }
-      }
-      return MasterInfo.fromThrift(
-          mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
-    });
+    return retryRPC(() -> mClient
+        .getMasterInfo(GetMasterInfoPOptions.newBuilder().addAllFilter(fields).build())
+        .getMasterInfo());
   }
 
   @Override
-  public synchronized Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
-    return retryRPC(() -> {
-      Map<String, MetricValue> wireMap = new HashMap<>();
-      for (Map.Entry<String, alluxio.thrift.MetricValue> entry :
-          mClient.getMetrics(new GetMetricsTOptions()).getMetricsMap().entrySet()) {
-        wireMap.put(entry.getKey(), MetricValue.fromThrift(entry.getValue()));
-      }
-      return wireMap;
-    });
+  public Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
+    return retryRPC(
+        () -> mClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap());
   }
 }

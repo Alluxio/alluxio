@@ -49,3 +49,4 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
+underfs/hdfs/src/main/java/alluxio/UfsConstants.java

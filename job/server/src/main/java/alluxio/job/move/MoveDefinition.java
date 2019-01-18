@@ -23,12 +23,13 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.JobMasterContext;
 import alluxio.job.JobWorkerContext;
@@ -229,7 +230,8 @@ public final class MoveDefinition
    */
   private void moveDirectory(String path, String source, String destination) throws Exception {
     String newDir = computeTargetPath(path, source, destination);
-    mFileSystem.createDirectory(new AlluxioURI(newDir), CreateDirectoryOptions.defaults());
+    mFileSystem.createDirectory(new AlluxioURI(newDir),
+        CreateDirectoryPOptions.getDefaultInstance());
   }
 
   /**
@@ -277,14 +279,14 @@ public final class MoveDefinition
         ? Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
         : WriteType.valueOf(config.getWriteType());
     for (MoveCommand command : commands) {
-      move(command, writeType, mFileSystem);
+      move(command, writeType.toProto(), mFileSystem);
     }
     // Try to delete the source directory if it is empty.
     if (!hasFiles(new AlluxioURI(config.getSource()), mFileSystem)) {
       try {
         LOG.debug("Deleting {}", config.getSource());
         mFileSystem.delete(new AlluxioURI(config.getSource()),
-            DeleteOptions.defaults().setRecursive(true));
+            DeletePOptions.newBuilder().setRecursive(true).build());
       } catch (FileDoesNotExistException e) {
         // It's already deleted, possibly by another worker.
       }
@@ -297,14 +299,16 @@ public final class MoveDefinition
    * @param writeType the write type to use for the moved file
    * @param fileSystem the Alluxio file system
    */
-  private static void move(MoveCommand command, WriteType writeType, FileSystem fileSystem)
+  private static void move(MoveCommand command, WritePType writeType, FileSystem fileSystem)
       throws Exception {
     String source = command.getSource();
     String destination = command.getDestination();
     LOG.debug("Moving {} to {}", source, destination);
 
-    try (FileOutStream out = fileSystem.createFile(new AlluxioURI(destination),
-        CreateFileOptions.defaults().setWriteType(writeType))) {
+    CreateFilePOptions createOptions =
+        CreateFilePOptions.newBuilder().setWriteType(writeType).build();
+
+    try (FileOutStream out = fileSystem.createFile(new AlluxioURI(destination), createOptions)) {
       try (FileInStream in = fileSystem.openFile(new AlluxioURI(source))) {
         IOUtils.copy(in, out);
       } catch (Throwable t) {

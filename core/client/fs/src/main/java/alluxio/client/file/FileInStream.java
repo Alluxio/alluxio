@@ -17,21 +17,19 @@ import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
+import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.network.netty.NettyRPC;
-import alluxio.network.netty.NettyRPCContext;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.grpc.AsyncCacheRequest;
 import alluxio.retry.CountingRetry;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -329,13 +327,13 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
   // Send an async cache request to a worker based on read type and passive cache options.
   private void triggerAsyncCaching(BlockInStream stream) throws IOException {
-    boolean cache = mOptions.getOptions().getReadType().isCache();
+    boolean cache = ReadType.fromProto(mOptions.getOptions().getReadType()).isCache();
     boolean overReplicated = mStatus.getReplicationMax() > 0
         && mStatus.getFileBlockInfos().get((int) (getPos() / mBlockSize))
         .getBlockInfo().getLocations().size() >= mStatus.getReplicationMax();
     cache = cache && !overReplicated;
     boolean passiveCache = Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
-    long channelTimeout = Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+    long channelTimeout = Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
     // Get relevant information from the stream.
     WorkerNetAddress dataSource = stream.getAddress();
     long blockId = stream.getId();
@@ -349,19 +347,14 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       try {
         // Construct the async cache request
         long blockLength = mOptions.getBlockInfo(blockId).getLength();
-        Protocol.AsyncCacheRequest request =
-            Protocol.AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+        AsyncCacheRequest request =
+            AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
                 .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
                 .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
                 .build();
-        Channel channel = mContext.acquireNettyChannel(worker);
-        try {
-          NettyRPCContext rpcContext =
-              NettyRPCContext.defaults().setChannel(channel).setTimeout(channelTimeout);
-          NettyRPC.fireAndForget(rpcContext, new ProtoMessage(request));
+        try (BlockWorkerClient blockWorker = mContext.acquireBlockWorkerClient(worker)) {
+          blockWorker.asyncCache(request);
           mLastBlockIdCached = blockId;
-        } finally {
-          mContext.releaseNettyChannel(worker, channel);
         }
       } catch (Exception e) {
         LOG.warn("Failed to complete async cache request for block {} at worker {}: {}", blockId,

@@ -13,36 +13,33 @@ package alluxio.client.job;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.grpc.CancelPRequest;
+import alluxio.grpc.GetJobStatusPRequest;
+import alluxio.grpc.JobMasterClientServiceGrpc;
+import alluxio.grpc.ListAllPRequest;
+import alluxio.grpc.RunPRequest;
+import alluxio.grpc.ServiceType;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobInfo;
-import alluxio.thrift.AlluxioService.Client;
-import alluxio.thrift.CancelTOptions;
-import alluxio.thrift.GetJobStatusTOptions;
-import alluxio.thrift.JobMasterClientService;
-import alluxio.thrift.ListAllTOptions;
-import alluxio.thrift.RunTOptions;
 import alluxio.worker.job.JobMasterClientConfig;
 
-import org.apache.thrift.TException;
+import com.google.protobuf.ByteString;
+import io.grpc.StatusRuntimeException;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the job service master, used by job service
+ * A wrapper for the gRPC client to interact with the job service master, used by job service
  * clients.
- *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
- * to provide retries.
  */
 @ThreadSafe
 public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     implements JobMasterClient {
-  private JobMasterClientService.Client mClient = null;
+  private JobMasterClientServiceGrpc.JobMasterClientServiceBlockingStub mClient = null;
 
   /**
    * Creates a new job master client.
@@ -54,8 +51,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected Client getClient() {
-    return mClient;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.JOB_MASTER_CLIENT_SERVICE;
   }
 
   @Override
@@ -76,41 +73,44 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = new JobMasterClientService.Client(mProtocol);
+    mClient = JobMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   @Override
-  public synchronized void cancel(final long jobId) throws IOException {
-    retryRPC((RpcCallable<Void>) () -> {
-      mClient.cancel(jobId, new CancelTOptions());
-      return null;
+  public void cancel(final long jobId) throws IOException {
+    retryRPC(new RpcCallable<Void>() {
+      public Void call() {
+        mClient.cancel(CancelPRequest.newBuilder().setJobId(jobId).build());
+        return null;
+      }
     });
   }
 
   @Override
-  public synchronized JobInfo getStatus(final long jobId) throws IOException {
-    return new JobInfo(retryRPC(new RpcCallable<alluxio.thrift.JobInfo>() {
-      public alluxio.thrift.JobInfo call() throws TException {
-        return mClient.getJobStatus(jobId, new GetJobStatusTOptions()).getJobInfo();
+  public JobInfo getStatus(final long jobId) throws IOException {
+    return new JobInfo(retryRPC(new RpcCallable<alluxio.grpc.JobInfo>() {
+      public alluxio.grpc.JobInfo call() throws StatusRuntimeException {
+        return mClient.getJobStatus(GetJobStatusPRequest.newBuilder().setJobId(jobId).build())
+            .getJobInfo();
       }
     }));
   }
 
   @Override
-  public synchronized List<Long> list() throws IOException {
+  public List<Long> list() throws IOException {
     return retryRPC(new RpcCallable<List<Long>>() {
-      public List<Long> call() throws TException {
-        return mClient.listAll(new ListAllTOptions()).getJobIdList();
+      public List<Long> call() {
+        return mClient.listAll(ListAllPRequest.getDefaultInstance()).getJobIdsList();
       }
     });
   }
 
   @Override
-  public synchronized long run(final JobConfig jobConfig) throws IOException {
-    final ByteBuffer configBytes = ByteBuffer.wrap(SerializationUtils.serialize(jobConfig));
+  public long run(final JobConfig jobConfig) throws IOException {
+    final ByteString jobConfigStr = ByteString.copyFrom(SerializationUtils.serialize(jobConfig));
     return retryRPC(new RpcCallable<Long>() {
-      public Long call() throws TException {
-        return mClient.run(configBytes, new RunTOptions()).getJobId();
+      public Long call() throws StatusRuntimeException {
+        return mClient.run(RunPRequest.newBuilder().setJobConfig(jobConfigStr).build()).getJobId();
       }
     });
   }

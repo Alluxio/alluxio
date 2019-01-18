@@ -13,11 +13,11 @@ package alluxio.master.meta.checkconf;
 
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.ConsistencyCheckLevel;
+import alluxio.grpc.ConfigStatus;
+import alluxio.grpc.Scope;
 import alluxio.wire.Address;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigCheckReport.ConfigStatus;
 import alluxio.wire.InconsistentProperty;
-import alluxio.wire.Scope;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

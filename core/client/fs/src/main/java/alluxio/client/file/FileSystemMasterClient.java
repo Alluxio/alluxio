@@ -13,27 +13,26 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Client;
-import alluxio.client.file.options.CheckConsistencyOptions;
-import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
-import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.GetStatusOptions;
-import alluxio.client.file.options.ListStatusOptions;
-import alluxio.client.file.options.LoadMetadataOptions;
-import alluxio.client.file.options.MountOptions;
-import alluxio.client.file.options.RenameOptions;
-import alluxio.client.file.options.SetAclOptions;
-import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.CheckConsistencyPOptions;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAclAction;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SetAclAction;
 import alluxio.wire.SyncPointInfo;
 
 import java.util.List;
@@ -70,7 +69,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options method options
    * @return a list of inconsistent files and directories
    */
-  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
+  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
       throws AlluxioStatusException;
 
   /**
@@ -80,7 +79,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options method options
    * @throws AlreadyExistsException if the directory already exists
    */
-  void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
+  void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws AlluxioStatusException;
 
   /**
@@ -90,7 +89,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options method options
    * @throws AlreadyExistsException if the file already exists
    */
-  void createFile(AlluxioURI path, CreateFileOptions options) throws AlluxioStatusException;
+  void createFile(AlluxioURI path, CreateFilePOptions options) throws AlluxioStatusException;
 
   /**
    * Marks a file as completed.
@@ -98,7 +97,7 @@ public interface FileSystemMasterClient extends Client {
    * @param path the file path
    * @param options the method options
    */
-  void completeFile(AlluxioURI path, CompleteFileOptions options) throws AlluxioStatusException;
+  void completeFile(AlluxioURI path, CompleteFilePOptions options) throws AlluxioStatusException;
 
   /**
    * Deletes a file or a directory.
@@ -106,7 +105,7 @@ public interface FileSystemMasterClient extends Client {
    * @param path the path to delete
    * @param options method options
    */
-  void delete(AlluxioURI path, DeleteOptions options) throws AlluxioStatusException;
+  void delete(AlluxioURI path, DeletePOptions options) throws AlluxioStatusException;
 
   /**
    * Frees a file.
@@ -115,7 +114,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options method options
    * @throws NotFoundException if the path does not exist
    */
-  void free(AlluxioURI path, FreeOptions options) throws AlluxioStatusException;
+  void free(AlluxioURI path, FreePOptions options) throws AlluxioStatusException;
 
   /**
    * @param path the file path
@@ -123,7 +122,7 @@ public interface FileSystemMasterClient extends Client {
    * @return the file info for the given file id
    * @throws NotFoundException if the path does not exist
    */
-  URIStatus getStatus(AlluxioURI path, GetStatusOptions options) throws AlluxioStatusException;
+  URIStatus getStatus(AlluxioURI path, GetStatusPOptions options) throws AlluxioStatusException;
 
   /**
    * @param path the file path
@@ -144,19 +143,8 @@ public interface FileSystemMasterClient extends Client {
    * @return the list of file information for the given path
    * @throws NotFoundException if the path does not exist
    */
-  List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
+  List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws AlluxioStatusException;
-
-  /**
-   * Loads the metadata of a file from the under file system.
-   *
-   * @param path the path of the file to load metadata for
-   * @param options method options
-   * @deprecated since version 1.1 and will be removed in version 2.0
-   * @throws NotFoundException if the path does not exist
-   */
-  @Deprecated
-  void loadMetadata(AlluxioURI path, LoadMetadataOptions options) throws AlluxioStatusException;
 
   /**
    * Mounts the given UFS path under the given Alluxio path.
@@ -165,7 +153,7 @@ public interface FileSystemMasterClient extends Client {
    * @param ufsPath the UFS path
    * @param options mount options
    */
-  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
+  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws AlluxioStatusException;
 
   /**
@@ -192,7 +180,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options rename options
    * @throws NotFoundException if the path does not exist
    */
-  void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options) throws AlluxioStatusException;
+  void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options) throws AlluxioStatusException;
 
   /**
    * Sets the ACL for a path.
@@ -203,7 +191,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options the options for setting ACL
    * @throws NotFoundException if the path does not exist
    */
-  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclPOptions options)
       throws AlluxioStatusException;
 
   /**
@@ -213,7 +201,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options the file or directory attribute options to be set
    * @throws NotFoundException if the path does not exist
    */
-  void setAttribute(AlluxioURI path, SetAttributeOptions options) throws AlluxioStatusException;
+  void setAttribute(AlluxioURI path, SetAttributePOptions options) throws AlluxioStatusException;
 
   /**
    * Start the active syncing process for a specified path.
@@ -254,5 +242,6 @@ public interface FileSystemMasterClient extends Client {
    * @param ufsUri the ufs path
    * @param options the options to update ufs operation mode
    */
-  void updateUfsMode(AlluxioURI ufsUri, UpdateUfsModeOptions options) throws AlluxioStatusException;
+  void updateUfsMode(AlluxioURI ufsUri, UpdateUfsModePOptions options)
+      throws AlluxioStatusException;
 }

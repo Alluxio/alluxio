@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.util.Map;
@@ -115,7 +116,7 @@ public final class AlluxioJobWorkerInfo {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("configuration", mConfiguration)
         .add("start time", mStartTimeMs)
         .add("uptime", mUptimeMs)

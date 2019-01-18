@@ -22,6 +22,13 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.MetaCommand;
+import alluxio.grpc.RegisterMasterPOptions;
+import alluxio.grpc.Scope;
+import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -34,10 +41,6 @@ import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
-import alluxio.thrift.MetaCommand;
-import alluxio.thrift.MetaMasterClientService;
-import alluxio.thrift.MetaMasterMasterService;
-import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
@@ -49,18 +52,13 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.Address;
 import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.GetConfigurationOptions;
-import alluxio.wire.Scope;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
-import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,13 +70,13 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -181,12 +179,14 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    services.put(Constants.META_MASTER_CLIENT_SERVICE_NAME,
-        new MetaMasterClientService.Processor<>(new MetaMasterClientServiceHandler(this)));
-    services.put(Constants.META_MASTER_MASTER_SERVICE_NAME,
-        new MetaMasterMasterService.Processor<>(new MetaMasterMasterServiceHandler(this)));
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.META_MASTER_CONFIG_SERVICE,
+        new GrpcService(new MetaMasterConfigurationServiceHandler(this)).disableAuthentication());
+    services.put(ServiceType.META_MASTER_CLIENT_SERVICE,
+        new GrpcService(new MetaMasterClientServiceHandler(this)));
+    services.put(ServiceType.META_MASTER_MASTER_SERVICE,
+        new GrpcService(new MetaMasterMasterServiceHandler(this)));
     return services;
   }
 
@@ -210,7 +210,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
-    return Iterators.emptyIterator();
+    return Iterators.unmodifiableIterator(Collections.emptyIterator());
   }
 
   @Override
@@ -307,7 +307,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
     AlluxioURI backupUri = new AlluxioURI(new AlluxioURI(rootUfs), new AlluxioURI(backupFilePath));
     return new BackupResponse(backupUri,
-        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
   }
 
   @Override
@@ -316,16 +316,19 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public List<ConfigProperty> getConfiguration(GetConfigurationOptions options) {
+  public List<ConfigProperty> getConfiguration(GetConfigurationPOptions options) {
     List<ConfigProperty> configInfoList = new ArrayList<>();
     for (PropertyKey key : Configuration.keySet()) {
       if (key.isBuiltIn()) {
         String source = Configuration.getSource(key).toString();
-        String value = Configuration.getOrDefault(key, null,
-            ConfigurationValueOptions.defaults().useDisplayValue(true)
-                .useRawValue(options.isRawValue()));
-        configInfoList
-            .add(new ConfigProperty().setName(key.getName()).setValue(value).setSource(source));
+        String value = Configuration.getOrDefault(key, null, ConfigurationValueOptions.defaults()
+            .useDisplayValue(true).useRawValue(options.getRawValue()));
+        ConfigProperty.Builder config =
+            ConfigProperty.newBuilder().setName(key.getName()).setSource(source);
+        if (value != null) {
+          config.setValue(value);
+        }
+        configInfoList.add(config.build());
       }
     }
     return configInfoList;
@@ -407,15 +410,15 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
       LOG.warn("Could not find master id: {} for heartbeat.", masterId);
-      return MetaCommand.Register;
+      return MetaCommand.MetaCommand_Register;
     }
 
     master.updateLastUpdatedTimeMs();
-    return MetaCommand.Nothing;
+    return MetaCommand.MetaCommand_Nothing;
   }
 
   @Override
-  public void masterRegister(long masterId, RegisterMasterTOptions options)
+  public void masterRegister(long masterId, RegisterMasterPOptions options)
       throws NotFoundException {
     MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
@@ -424,9 +427,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
     master.updateLastUpdatedTimeMs();
 
-    List<ConfigProperty> configList = options.getConfigList().stream()
-        .map(ConfigProperty::fromThrift).collect(Collectors.toList());
-    mMasterConfigStore.registerNewConf(master.getAddress(), configList);
+    mMasterConfigStore.registerNewConf(master.getAddress(), options.getConfigsList());
 
     LOG.info("registerMaster(): master: {}", master);
   }

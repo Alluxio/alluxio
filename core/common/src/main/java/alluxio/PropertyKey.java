@@ -12,11 +12,12 @@
 package alluxio;
 
 import alluxio.exception.ExceptionMessage;
+import alluxio.grpc.Scope;
 import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.Scope;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -269,7 +270,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("alias", mAlias)
           .add("defaultValue", mDefaultValue)
           .add("description", mDescription)
@@ -369,27 +370,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "appropriate host name if one was not explicitly specified. This represents "
               + "the maximum amount of time spent waiting to determine if a candidate host "
               + "name is resolvable over the network.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .build();
-  public static final PropertyKey NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
-      new Builder(Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS)
-          .setAlias(new String[] {"alluxio.network.netty.heartbeat.timeout.ms"})
-          .setDefaultValue("30sec")
-          .setDescription("The amount of time the server will wait before closing a netty "
-              + "connection if there has not been any incoming traffic. The client will "
-              + "periodically heartbeat when there is no activity on a connection. This value "
-              + "should be the same on the clients and server.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .build();
-  /**
-   * @deprecated since 1.8.0 and will be removed in 2.0.
-   */
-  @Deprecated
-  public static final PropertyKey NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
-      new Builder(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX)
-          .setDefaultValue("16MB")
-          .setDescription("(Experimental) The largest allowable frame size used for Thrift "
-              + "RPC communication.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey SITE_CONF_DIR =
@@ -1426,7 +1406,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_SERVING_THREAD_TIMEOUT)
           .setDefaultValue("5m")
           .setDescription("When stepping down from being the primary, the master will wait this "
-              + "long for the thrift serving thread to stop before giving up and shutting down "
+              + "long for the gRPC serving thread to stop before giving up and shutting down "
               + "the server")
           .setIsHidden(true)
           .setScope(Scope.MASTER)
@@ -1449,13 +1429,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_THRIFT_SHUTDOWN_TIMEOUT =
-         new Builder(Name.MASTER_THRIFT_SHUTDOWN_TIMEOUT)
-         .setDefaultValue("60sec")
-         .setDescription("Maximum time to wait for thrift servers to stop on shutdown")
-         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-         .setScope(Scope.MASTER)
-         .build();
+  public static final PropertyKey MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
+      new Builder(Name.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("60sec")
+          .setDescription("Maximum time to wait for gRPC channel to stop on shutdown")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT =
+      new Builder(Name.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("60sec")
+          .setDescription("Maximum time to wait for gRPC server to stop on shutdown")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
           .setDefaultValue("MEM")
@@ -1637,7 +1624,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             return 2048;
           }, "A third of the max file descriptors limit, if b/w 2048 and 32768")
           .setDescription("The maximum number of incoming RPC requests to master that can be "
-              + "handled. This value is used to configure maximum number of threads in Thrift "
+              + "handled. This value is used to configure maximum number of threads in gRPC "
               + "thread pool with master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -1647,7 +1634,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(512)
           .setDescription("The minimum number of threads used to handle incoming RPC requests "
               + "to master. This value is used to configure minimum number of threads in "
-              + "Thrift thread pool with master.")
+              + "gRPC thread pool with master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1676,6 +1663,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_BIND_HOST =
       new Builder(Name.WORKER_BIND_HOST)
+          .setAlias(new String[]{Name.WORKER_DATA_BIND_HOST})
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname Alluxio's worker node binds to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1703,7 +1691,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(2048)
           .setDescription("The maximum number of incoming RPC requests to block worker that "
               + "can be handled. This value is used to configure maximum number of threads in "
-              + "Thrift thread pool with block worker. This value should be greater than the "
+              + "gRPC thread pool with block worker. This value should be greater than the "
               + "sum of `alluxio.user.block.worker.client.threads` across concurrent Alluxio "
               + "clients. Otherwise, the worker connection pool can be drained, preventing "
               + "new connections from being established.")
@@ -1715,14 +1703,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(256)
           .setDescription("The minimum number of threads used to handle incoming RPC requests "
               + "to block worker. This value is used to configure minimum number of threads "
-              + "in Thrift thread pool with block worker.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_DATA_BIND_HOST =
-      new Builder(Name.WORKER_DATA_BIND_HOST)
-          .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname that the Alluxio worker's data server runs on.")
+              + "in gRPC thread pool with block worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -1742,24 +1723,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_DATA_HOSTNAME =
-      new Builder(Name.WORKER_DATA_HOSTNAME)
-          .setDescription("The hostname of Alluxio worker data service.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_DATA_PORT =
-      new Builder(Name.WORKER_DATA_PORT)
-          .setDefaultValue(29999)
-          .setDescription("The port Alluxio's worker's data server runs on.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_DATA_SERVER_CLASS =
       new Builder(Name.WORKER_DATA_SERVER_CLASS)
-          .setDefaultValue("alluxio.worker.netty.NettyDataServer")
+          .setDefaultValue("alluxio.worker.grpc.GrpcDataServer")
           .setDescription("Selects the networking stack to run the worker with. Valid options "
-              + "are: `alluxio.worker.netty.NettyDataServer`.")
+              + "are: `alluxio.worker.grpc.GrpcDataServer`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
@@ -1883,6 +1851,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.WORKER)
       .build();
+  public static final PropertyKey WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
+      new Builder(Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)
+          .setDescription("Retry period before workers give up on connecting to master and exit.")
+          .setDefaultValue("1hour")
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_MEMORY_SIZE =
       new Builder(Name.WORKER_MEMORY_SIZE)
           .setDefaultSupplier(() -> {
@@ -1900,9 +1874,42 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_NETWORK_NETTY_BACKLOG =
-      new Builder(Name.WORKER_NETWORK_NETTY_BACKLOG)
-          .setDescription("Netty socket option for SO_BACKLOG: the number of connections queued.")
+  public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
+      new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
+          .setDefaultValue(8)
+          .setDescription("The maximum number of threads used to cache blocks asynchronously in "
+              + "the data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
+      new Builder(Name.WORKER_NETWORK_BLOCK_READER_THREADS_MAX)
+          .setDefaultValue(2048)
+          .setDescription("The maximum number of threads used to read blocks in the data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_FLOWCONTROL_WINDOW =
+      new Builder(Name.WORKER_NETWORK_FLOWCONTROL_WINDOW)
+          .setDefaultValue("2MB")
+          .setDescription("The HTTP2 flow control window used by worker gRPC connections. Larger "
+              + "value will allow more data to be buffered but will use more memory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_KEEPALIVE_TIME_MS =
+      new Builder(Name.WORKER_NETWORK_KEEPALIVE_TIME_MS)
+          .setDefaultValue("30sec")
+          .setDescription("The amount of time for data server (for block reads and block writes) "
+              + "to wait for a response before pinging the client to see if it is still alive.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS =
+      new Builder(Name.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS)
+          .setDefaultValue("10sec")
+          .setDescription("The maximum time for a data server (for block reads and block writes) "
+              + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -1913,26 +1920,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_NETWORK_NETTY_BUFFER_RECEIVE =
-      new Builder(Name.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)
-          .setDescription("Netty socket option for SO_RCVBUF: the proposed buffer size that will "
-              + "be used for receives.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_NETWORK_NETTY_BUFFER_SEND =
-      new Builder(Name.WORKER_NETWORK_NETTY_BUFFER_SEND)
-          .setDescription("Netty socket option for SO_SNDBUF: the proposed buffer size that will "
-              + "be used for sends.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
-      new Builder(Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)
-          .setDescription("Retry period before workers give up on connecting to master")
-          .setDefaultValue("1hour")
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.WORKER_NETWORK_NETTY_CHANNEL)
           .setDescription("Netty channel type: NIO or EPOLL. If EPOLL is not available, this will "
@@ -1941,15 +1928,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .setDefaultValue("EPOLL")
           .build();
-  public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
-      new Builder(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE)
-          .setDefaultValue("MAPPED")
-          .setDescription("When returning files to the user, select how the data is "
-              + "transferred; valid options are `MAPPED` (uses java MappedByteBuffer) and "
-              + "`TRANSFER` (uses Java FileChannel.transferTo).")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
       new Builder(Name.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD)
           .setDefaultValue("2sec")
@@ -1957,14 +1935,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "down, it will ensure that no RPCs occur during the quiet period. If an RPC "
               + "occurs, then the quiet period will restart before shutting down the netty "
               + "server.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT =
-      new Builder(Name.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("15sec")
-          .setDescription("Maximum amount of time to wait until the netty server "
-              + "is shutdown (regardless of the quiet period).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -1992,59 +1962,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
-      new Builder(Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS)
-          .setDefaultValue(16)
-          .setDescription("The maximum number of parallel data packets when a client writes to a "
-              + "worker.")
+  public static final PropertyKey WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
+      new Builder(Name.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES)
+          .setDefaultValue("2MB")
+          .setDescription("When a client read from a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
-      new Builder(Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS)
-          .setDefaultValue(16)
-          .setDescription("The maximum number of parallel data packets when a client reads from a "
-              + "worker.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
-      new Builder(Name.WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX)
-          .setDefaultValue(8)
-          .setDescription("The maximum number of threads used to cache blocks asynchronously in "
-              + "the netty data server.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
-      new Builder(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX)
-          .setDefaultValue(2048)
-          .setDescription("The maximum number of threads used to read blocks in the netty "
-              + "data server.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
-      new Builder(Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX)
-          .setDefaultValue(1024)
-          .setDescription("The maximum number of threads used to write blocks in the netty "
-              + "data server.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
-      new Builder(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX)
-          .setDefaultValue(1024)
-          .setDescription("The maximum number of threads used to write files to UFS in the "
-              + "netty data server.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
-      new Builder(Name.WORKER_NETWORK_NETTY_RPC_THREADS_MAX)
-          .setDefaultValue(2048)
-          .setDescription("The maximum number of threads used to handle worker side RPCs in "
-              + "the netty data server.")
+  public static final PropertyKey WORKER_NETWORK_SHUTDOWN_TIMEOUT =
+      new Builder(Name.WORKER_NETWORK_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("15sec")
+          .setDescription("Maximum amount of time to wait until the worker gRPC server "
+              + "is shutdown (regardless of the quiet period).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2066,7 +1995,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey WORKER_RPC_PORT =
       new Builder(Name.WORKER_RPC_PORT)
-          .setDefaultValue(29998)
+          .setAlias(new String[]{Name.WORKER_DATA_PORT})
+          .setDefaultValue(29999)
           .setDescription("The port Alluxio's worker node runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -2492,60 +2422,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_FILE_REPLICATION_MIN).setDefaultValue(0).build();
   public static final PropertyKey USER_FILE_REPLICATION_DURABLE =
       new Builder(Name.USER_FILE_REPLICATION_DURABLE).setDefaultValue(1).build();
-  /**
-   * @deprecated It will be removed in 2.0.0.
-   */
-  @Deprecated
-  public static final PropertyKey USER_BLOCK_REMOTE_READER_CLASS =
-      new Builder(Name.USER_BLOCK_REMOTE_READER_CLASS)
-          .setDefaultValue("alluxio.client.netty.NettyRemoteBlockReader")
-          .setDescription("Selects networking stack to run the client with. Currently only "
-              + "`alluxio.client.netty.NettyRemoteBlockReader` (read remote data using netty) "
-              + "is valid.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  /**
-   * @deprecated It will be removed in 2.0.0.
-   */
-  @Deprecated
-  public static final PropertyKey USER_BLOCK_REMOTE_WRITER_CLASS =
-      new Builder(Name.USER_BLOCK_REMOTE_WRITER_CLASS)
-          .setDefaultValue("alluxio.client.netty.NettyRemoteBlockWriter")
-          .setDescription("Selects networking stack to run the client with for block writes.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
       new Builder(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)
           .setDefaultValue("512MB")
           .setDescription("Default block size for Alluxio files.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_THREADS =
-      new Builder(Name.USER_BLOCK_WORKER_CLIENT_THREADS)
-          .setDefaultValue(10)
-          .setDescription("The number of threads used by a block worker client pool for "
-              + "heartbeating to a worker. Increase this value if worker failures affect "
-              + "client connections to healthy workers.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX =
-      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX)
-          .setDefaultValue(128)
-          .setDescription("The maximum number of block worker clients cached in the block "
-              + "worker client pool.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
-      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
-          .setAlias(new String[]{"alluxio.user.block.worker.client.pool.gc.threshold.ms"})
-          .setDefaultValue("300sec")
-          .setDescription("A block worker client is closed if it has been idle for more than "
-              + "this threshold.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -2778,23 +2658,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
       .setScope(Scope.CLIENT)
       .build();
-  public static final PropertyKey USER_LOCAL_READER_PACKET_SIZE_BYTES =
-      new Builder(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES)
+  public static final PropertyKey USER_LOCAL_READER_CHUNK_SIZE_BYTES =
+      new Builder(Name.USER_LOCAL_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("8MB")
-          .setDescription("When a client reads from a local worker, the maximum data packet size.")
+          .setDescription("When a client reads from a local worker, the maximum data chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_LOCAL_WRITER_PACKET_SIZE_BYTES =
-      new Builder(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES)
+  public static final PropertyKey USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
+      new Builder(Name.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES)
           .setDefaultValue("64KB")
-          .setDescription("When a client writes to a local worker, the maximum data packet size.")
+          .setDescription("When a client writes to a local worker, the maximum data chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_METRICS_COLLECTION_ENABLED =
       new Builder(Name.USER_METRICS_COLLECTION_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Enable collecting the client-side metrics and hearbeat them to master")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -2817,6 +2697,46 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "aggregated, so different applications must set their own ids or leave this value "
               + "unset to use a randomly generated id.")
           .build();
+  public static final PropertyKey USER_NETWORK_DATA_TIMEOUT_MS =
+      new Builder(Name.USER_NETWORK_DATA_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.user.network.data.timeout.ms"})
+          .setDefaultValue("30sec")
+          .setDescription("The maximum time for a data client (for block "
+              + "reads and block writes) to wait for a response from the data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_FLOWCONTROL_WINDOW =
+      new Builder(Name.USER_NETWORK_FLOWCONTROL_WINDOW)
+          .setDefaultValue("2MB")
+          .setDescription("The HTTP2 flow control window used by user gRPC connections. Larger "
+              + "value will allow more data to be buffered but will use more memory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_KEEPALIVE_TIME_MS =
+      new Builder(Name.USER_NETWORK_KEEPALIVE_TIME_MS)
+          .setDefaultValue(Integer.MAX_VALUE)
+          .setDescription("The amount of time for a gRPC client (for block reads and block writes) "
+              + "to wait for a response before pinging the server to see if it is still alive.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_KEEPALIVE_TIMEOUT_MS =
+      new Builder(Name.USER_NETWORK_KEEPALIVE_TIMEOUT_MS)
+          .setDefaultValue("30sec")
+          .setDescription("The maximum time for a gRPC client (for block reads and block writes) "
+              + "to wait for a keepalive response before closing the connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+      new Builder(Name.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("4MB")
+          .setDescription("The max inbound message size used by user gRPC connections.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
           .setDescription("Type of netty channels. If EPOLL is not available, this will "
@@ -2824,15 +2744,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .setDefaultValue("EPOLL")
-          .build();
-  public static final PropertyKey USER_NETWORK_NETTY_TIMEOUT_MS =
-      new Builder(Name.USER_NETWORK_NETTY_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.user.network.netty.timeout.ms"})
-          .setDefaultValue("30sec")
-          .setDescription("The maximum time for a netty client (for block "
-              + "reads and block writes) to wait for a response from the data server.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_WORKER_THREADS =
       new Builder(Name.USER_NETWORK_NETTY_WORKER_THREADS)
@@ -2842,73 +2753,50 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
-      new Builder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX)
-          .setDefaultValue(1024)
-          .setDescription("The maximum number of netty channels cached in the netty channel "
-              + "pool.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =
-      new Builder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS)
-          .setAlias(new String[]{"alluxio.user.network.netty.channel.pool.gc.threshold.ms"})
-          .setDefaultValue("300sec")
-          .setDescription("A netty channel is closed if it has been idle for more than this "
-              + "threshold.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
-      new Builder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED)
-          .setDefaultValue(false)
-          .setDescription("Disable netty channel pool. This should be turned on if the client "
-              + "version is >= 1.3.0 but server version is <= 1.2.x.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
-      new Builder(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES)
-          .setDefaultValue("64KB")
-          .setDescription("When a client writes to a remote worker, the maximum packet size.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
-      new Builder(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS)
+  public static final PropertyKey USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =
+      new Builder(Name.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES)
           .setDefaultValue(16)
-          .setDescription("When a client writes to a remote worker, the maximum number of packets "
-              + "to buffer by the client.")
+          .setDescription("When a client reads from a remote worker, the maximum number of "
+              + "messages to buffer by the client. A message can be either a command response, "
+              + "a data chunk, or a gRPC stream event such as complete or error.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
-      new Builder(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.user.network.netty.writer.close.timeout.ms"})
-          .setDefaultValue("30min")
-          .setDescription("The timeout to close a netty writer client.")
+  public static final PropertyKey USER_NETWORK_READER_CHUNK_SIZE_BYTES =
+      new Builder(Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES)
+          .setDefaultValue("1MB")
+          .setDescription("When a client reads from a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_NETWORK_NETTY_WRITER_FLUSH_TIMEOUT =
-      new Builder(Name.USER_NETWORK_NETTY_WRITER_FLUSH_TIMEOUT)
-          .setDefaultValue("30min")
-          .setDescription("The timeout to wait for flush to finish in a netty writer.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
-      new Builder(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS)
+  public static final PropertyKey USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
+      new Builder(Name.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
           .setDefaultValue(16)
-          .setDescription("When a client reads from a remote worker, the maximum number of packets "
-              + "to buffer by the client.")
+          .setDescription("When a client writes to a remote worker, the maximum number of messages "
+              + "to buffer by the client. A message can be either a command response, a data "
+              + "chunk, or a gRPC stream event such as complete or error.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
-      new Builder(Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES)
-          .setDefaultValue("64KB")
-          .setDescription("When a client reads from a remote worker, the maximum packet size.")
+  public static final PropertyKey USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
+      new Builder(Name.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES)
+          .setDefaultValue("1MB")
+          .setDescription("When a client writes to a remote worker, the maximum chunk size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS =
+      new Builder(Name.USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.user.network.writer.close.timeout.ms"})
+          .setDefaultValue("30min")
+          .setDescription("The timeout to close a writer client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_WRITER_FLUSH_TIMEOUT =
+      new Builder(Name.USER_NETWORK_WRITER_FLUSH_TIMEOUT)
+          .setDefaultValue("30min")
+          .setDescription("The timeout to wait for flush to finish in a data writer.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -2984,34 +2872,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Size of the write buffer when writing to the UFS through the "
               + "Alluxio worker. Each write request will write at least this many bytes, "
               + "unless the write is at the end of the file.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  /**
-   * @deprecated It will be removed in 2.0.0.
-   */
-  @Deprecated
-  public static final PropertyKey USER_UFS_FILE_READER_CLASS =
-      new Builder(Name.USER_UFS_FILE_READER_CLASS)
-          .setDefaultValue("alluxio.client.netty.NettyUnderFileSystemFileReader")
-          .setDescription("Selects networking stack to run the client with for reading from "
-              + "under file system through a worker's data server. Currently only "
-              + "`alluxio.client.netty.NettyUnderFileSystemFileReader` (remote read using "
-              + "netty) is valid.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  /**
-   * @deprecated It will be removed in 2.0.0.
-   */
-  @Deprecated
-  public static final PropertyKey USER_UFS_FILE_WRITER_CLASS =
-      new Builder(Name.USER_UFS_FILE_WRITER_CLASS)
-          .setDefaultValue("alluxio.client.netty.NettyUnderFileSystemFileWriter")
-          .setDescription("Selects networking stack to run the client with for writing to "
-              + "under file system through a worker's data server. Currently only "
-              + "`alluxio.client.netty.NettyUnderFileSystemFileWriter` (remote write using "
-              + "netty) is valid.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3186,6 +3046,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Alluxio service. If it is not set explicitly, the OS login user will be used.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
+      new Builder(Name.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD)
+          .setDefaultValue("60min")
+          .setDescription("Interval for which client channels that have been inactive "
+                  + "will be regarded as unauthenticated. Such channels will reauthenticate with "
+                  + "their target master upon being used for new RPCs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
           .build();
 
   //
@@ -3465,10 +3334,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.metrics.context.shutdown.timeout";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
         "alluxio.network.host.resolution.timeout";
-    public static final String NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS =
-        "alluxio.network.netty.heartbeat.timeout";
-    public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
-        "alluxio.network.thrift.frame.size.bytes.max";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
@@ -3686,8 +3551,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
         "alluxio.master.startup.consistency.check.enabled";
-    public static final String MASTER_THRIFT_SHUTDOWN_TIMEOUT =
-        "alluxio.master.thrift.shutdown.timeout";
+    public static final String MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
+            "alluxio.master.grpc.channel.shutdown.timeout";
+    public static final String MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT =
+            "alluxio.master.grpc.server.shutdown.timeout";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
         "alluxio.master.tieredstore.global.level0.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
@@ -3778,47 +3645,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
-    public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
-    public static final String WORKER_NETWORK_NETTY_BACKLOG =
-        "alluxio.worker.network.netty.backlog";
-    public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =
-        "alluxio.worker.network.netty.boss.threads";
-    public static final String WORKER_NETWORK_NETTY_BUFFER_RECEIVE =
-        "alluxio.worker.network.netty.buffer.receive";
-    public static final String WORKER_NETWORK_NETTY_BUFFER_SEND =
-        "alluxio.worker.network.netty.buffer.send";
     public static final String WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
         "alluxio.worker.master.connect.retry.timeout";
+    public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
+    public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
+        "alluxio.worker.network.async.cache.manager.threads.max";
+    public static final String WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
+        "alluxio.worker.network.block.reader.threads.max";
+    public static final String WORKER_NETWORK_FLOWCONTROL_WINDOW =
+        "alluxio.worker.network.flowcontrol.window";
+    public static final String WORKER_NETWORK_KEEPALIVE_TIME_MS =
+        "alluxio.worker.network.keepalive.time";
+    public static final String WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS =
+        "alluxio.worker.network.keepalive.timeout";
+    public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =
+        "alluxio.worker.network.netty.boss.threads";
     public static final String WORKER_NETWORK_NETTY_CHANNEL =
         "alluxio.worker.network.netty.channel";
-    public static final String WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
-        "alluxio.worker.network.netty.file.transfer";
     public static final String WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
         "alluxio.worker.network.netty.shutdown.quiet.period";
-    public static final String WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT =
-        "alluxio.worker.network.netty.shutdown.timeout";
     public static final String WORKER_NETWORK_NETTY_WATERMARK_HIGH =
         "alluxio.worker.network.netty.watermark.high";
     public static final String WORKER_NETWORK_NETTY_WATERMARK_LOW =
         "alluxio.worker.network.netty.watermark.low";
     public static final String WORKER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.worker.network.netty.worker.threads";
-    public static final String WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
-        "alluxio.worker.network.netty.writer.buffer.size.packets";
-    public static final String WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
-        "alluxio.worker.network.netty.reader.buffer.size.packets";
-    public static final String WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
-        "alluxio.worker.network.netty.async.cache.manager.threads.max";
-    public static final String WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
-        "alluxio.worker.network.netty.block.reader.threads.max";
-    public static final String WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
-        "alluxio.worker.network.netty.block.writer.threads.max";
-    public static final String WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
-        "alluxio.worker.network.netty.file.reader.threads.max";
-    public static final String WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
-        "alluxio.worker.network.netty.file.writer.threads.max";
-    public static final String WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
-        "alluxio.worker.network.netty.rpc.threads.max";
+    public static final String WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
+        "alluxio.worker.network.reader.max.chunk.size.bytes";
+    public static final String WORKER_NETWORK_SHUTDOWN_TIMEOUT =
+        "alluxio.worker.network.shutdown.timeout";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
@@ -3882,20 +3737,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
         "alluxio.user.block.master.client.threads";
-    public static final String USER_BLOCK_REMOTE_READER_CLASS =
-        "alluxio.user.block.remote.reader.class";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
-    public static final String USER_BLOCK_REMOTE_WRITER_CLASS =
-        "alluxio.user.block.remote.writer.class";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
         "alluxio.user.block.size.bytes.default";
-    public static final String USER_BLOCK_WORKER_CLIENT_THREADS =
-        "alluxio.user.block.worker.client.threads";
-    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE_MAX =
-        "alluxio.user.block.worker.client.pool.size.max";
-    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
-        "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
         "alluxio.user.block.worker.client.read.retry";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
@@ -3945,42 +3790,42 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.write.tier.default";
     public static final String USER_HEARTBEAT_INTERVAL_MS = "alluxio.user.heartbeat.interval";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
-    public static final String USER_LOCAL_READER_PACKET_SIZE_BYTES =
-        "alluxio.user.local.reader.packet.size.bytes";
-    public static final String USER_LOCAL_WRITER_PACKET_SIZE_BYTES =
-        "alluxio.user.local.writer.packet.size.bytes";
+    public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
+        "alluxio.user.local.reader.chunk.size.bytes";
+    public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
+        "alluxio.user.local.writer.chunk.size.bytes";
     public static final String USER_METRICS_COLLECTION_ENABLED =
         "alluxio.user.metrics.collection.enabled";
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
         "alluxio.user.metrics.heartbeat.interval";
     public static final String USER_APP_ID = "alluxio.user.app.id";
+    public static final String USER_NETWORK_DATA_TIMEOUT_MS =
+        "alluxio.user.network.data.timeout";
+    public static final String USER_NETWORK_FLOWCONTROL_WINDOW =
+        "alluxio.user.network.flowcontrol.window";
+    public static final String USER_NETWORK_KEEPALIVE_TIME_MS =
+        "alluxio.user.network.keepalive.time";
+    public static final String USER_NETWORK_KEEPALIVE_TIMEOUT_MS =
+        "alluxio.user.network.keepalive.timeout";
+    public static final String USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+        "alluxio.user.network.max.inbound.message.size";
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
-    public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
-        "alluxio.user.network.netty.timeout";
-    public static final String USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
-        "alluxio.user.network.netty.writer.close.timeout";
-    public static final String USER_NETWORK_NETTY_WRITER_FLUSH_TIMEOUT =
-        "alluxio.user.network.netty.writer.flush.timeout";
     public static final String USER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.user.network.netty.worker.threads";
-    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
-        "alluxio.user.network.netty.channel.pool.size.max";
-    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =
-        "alluxio.user.network.netty.channel.pool.gc.threshold";
-    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
-        "alluxio.user.network.netty.channel.pool.disabled";
-    public static final String USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
-        "alluxio.user.network.netty.writer.packet.size.bytes";
-    public static final String USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
-        "alluxio.user.network.netty.writer.buffer.size.packets";
-    public static final String USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
-        "alluxio.user.network.netty.reader.buffer.size.packets";
-    public static final String USER_NETWORK_NETTY_READER_CANCEL_ENABLED =
-        "alluxio.user.network.netty.reader.cancel.enabled";
-    public static final String USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
-        "alluxio.user.network.netty.reader.packet.size.bytes";
+    public static final String USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =
+        "alluxio.user.network.reader.buffer.size.messages";
+    public static final String USER_NETWORK_READER_CHUNK_SIZE_BYTES =
+        "alluxio.user.network.reader.chunk.size.bytes";
     public static final String USER_NETWORK_SOCKET_TIMEOUT =
         "alluxio.user.network.socket.timeout";
+    public static final String USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
+        "alluxio.user.network.writer.buffer.size.messages";
+    public static final String USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
+        "alluxio.user.network.writer.chunk.size.bytes";
+    public static final String USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS =
+        "alluxio.user.network.writer.close.timeout";
+    public static final String USER_NETWORK_WRITER_FLUSH_TIMEOUT =
+        "alluxio.user.network.writer.flush.timeout";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =
@@ -3988,13 +3833,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
         "alluxio.user.rpc.retry.max.num.retry";
     public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep";
-    public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
     public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";
     public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.write.buffer.size.bytes";
-    public static final String USER_UFS_FILE_READER_CLASS = "alluxio.user.ufs.file.reader.class";
-    public static final String USER_UFS_FILE_WRITER_CLASS = "alluxio.user.ufs.file.writer.class";
     public static final String USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
         "alluxio.user.ufs.block.location.all.fallback.enabled";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY =
@@ -4037,6 +3879,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_IMPERSONATION_USERNAME =
         "alluxio.security.login.impersonation.username";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
+    public static final String AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
+        "alluxio.security.stale.channel.purge.interval";
 
     //
     // Job service
@@ -4209,7 +4053,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("format", mFormat).add("pattern", mPattern)
+      return MoreObjects.toStringHelper(this).add("format", mFormat).add("pattern", mPattern)
           .toString();
     }
 

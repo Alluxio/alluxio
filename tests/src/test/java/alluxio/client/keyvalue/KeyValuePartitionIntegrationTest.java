@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -36,6 +37,7 @@ import java.util.List;
 /**
  * Integration tests for {@link KeyValuePartitionReader} and {@link KeyValuePartitionWriter}.
  */
+@Ignore("deprecated")
 public final class KeyValuePartitionIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
   private static final String BASE_KEY = "base_key";

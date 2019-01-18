@@ -11,11 +11,11 @@
 
 package alluxio.master.meta;
 
+import alluxio.grpc.MetaCommand;
+import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.thrift.MetaCommand;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.Address;
-import alluxio.wire.Scope;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,14 +92,14 @@ public final class MetaMasterSync implements HeartbeatExecutor {
       return;
     }
     switch (cmd) {
-      case Nothing:
+      case MetaCommand_Nothing:
         break;
       // Leader master requests re-registration
-      case Register:
+      case MetaCommand_Register:
         setIdAndRegister();
         break;
       // Unknown request
-      case Unknown:
+      case MetaCommand_Unknown:
         LOG.error("Master heartbeat sends unknown command {}", cmd);
         break;
       default:

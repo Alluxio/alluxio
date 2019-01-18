@@ -15,19 +15,19 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
-import alluxio.network.thrift.BootstrapServerTransport;
-import alluxio.network.thrift.ThriftUtils;
-import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerBuilder;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
@@ -35,22 +35,14 @@ import alluxio.web.WebServer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import org.apache.thrift.TMultiplexedProcessor;
-import org.apache.thrift.TProcessor;
-import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.server.TThreadPoolServer.Args;
-import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TTransportException;
-import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 
@@ -79,12 +71,6 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   private final Lock mPauseStateLock;
 
-  /** The socket for thrift rpc server. */
-  private TServerSocket mRpcServerSocket;
-
-  /** The transport provider to create thrift server transport. */
-  private final TransportProvider mTransportProvider;
-
   /** The bind address for the rpc server. */
   private final InetSocketAddress mRpcBindAddress;
 
@@ -102,7 +88,10 @@ public class AlluxioMasterProcess implements MasterProcess {
   private WebServer mWebServer;
 
   /** The RPC server. */
-  private TServer mThriftServer;
+  private GrpcServer mGrpcServer;
+
+  /** Used for auto binding. **/
+  private ServerSocket mBindSocket;
 
   /** The start time for when the master started. */
   private final long mStartTimeMs = System.currentTimeMillis();
@@ -149,12 +138,17 @@ public class AlluxioMasterProcess implements MasterProcess {
             this + " web port is only allowed to be zero in test mode.");
       }
 
-      mTransportProvider = TransportProvider.Factory.create();
-      mRpcServerSocket = ThriftUtils.createThriftServerSocket(
-          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC));
-      mPort = ThriftUtils.getThriftPort(mRpcServerSocket);
-      // reset master rpc port
-      Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
+      // Random port binding.
+      InetSocketAddress configuredBindAddress =
+          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC);
+      if (configuredBindAddress.getPort() == 0) {
+        mBindSocket = new ServerSocket(0);
+        mPort = mBindSocket.getLocalPort();
+        Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
+      } else {
+        mPort = configuredBindAddress.getPort();
+      }
+
       mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC);
       mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
@@ -216,14 +210,14 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public boolean isServing() {
-    return mThriftServer != null && mThriftServer.isServing();
+    return mGrpcServer != null && mGrpcServer.isServing();
   }
 
   @Override
   public boolean waitForReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
-          () -> mThriftServer != null && mThriftServer.isServing() && mWebServer != null
+          () -> isServing() && mWebServer != null
               && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
@@ -358,57 +352,43 @@ public class AlluxioMasterProcess implements MasterProcess {
     }
   }
 
-  private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
-    for (Map.Entry<String, TProcessor> service : services.entrySet()) {
-      processor.registerProcessor(service.getKey(), service.getValue());
+  private void registerServices(GrpcServerBuilder serverBuilder,
+      Map<alluxio.grpc.ServiceType, GrpcService> services) {
+    for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> serviceEntry : services.entrySet()) {
+      serverBuilder.addService(serviceEntry.getKey(), serviceEntry.getValue());
+      LOG.info("registered service {}", serviceEntry.getKey().name());
     }
   }
 
   /**
-   * Starts the Thrift RPC server. The AlluxioMaster registers the Services of registered
-   * {@link Master}s and meta services to a multiplexed processor, then creates the master thrift
-   * service with the multiplexed processor.
+   * Starts the gRPC server. The AlluxioMaster registers the Services of registered
+   * {@link Master}s and meta services.
    */
   protected void startServingRPCServer() {
-    // set up multiplexed thrift processors
-    TMultiplexedProcessor processor = new TMultiplexedProcessor();
-    // register master services
-    for (Master master : mRegistry.getServers()) {
-      registerServices(processor, master.getServices());
-    }
-
-    // Return a TTransportFactory based on the authentication type
-    TTransportFactory transportFactory;
+    // TODO(ggezer) Executor threads not reused until thread capacity is hit.
+    // ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
-      String serverName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
-      transportFactory = new BootstrapServerTransport.Factory(
-          mTransportProvider.getServerTransportFactory(serverName));
+      if (mBindSocket != null) {
+        // Server socket opened for auto bind.
+        // Close it.
+        mBindSocket.close();
+      }
+
+      LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress);
+      for (Master master : mRegistry.getServers()) {
+        registerServices(serverBuilder, master.getServices());
+      }
+
+      mGrpcServer = serverBuilder.build().start();
+      mSafeModeManager.notifyRpcServerStarted();
+      LOG.info("Started gRPC server on address {}", mRpcBindAddress);
+
+      // Wait until the server is shut down.
+      mGrpcServer.awaitTermination();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-
-    try {
-      if (mRpcServerSocket == null) {
-        mRpcServerSocket = ThriftUtils.createThriftServerSocket(mRpcBindAddress);
-      }
-    } catch (TTransportException e) {
-      throw new RuntimeException(e);
-    }
-    // create master thrift service with the multiplexed processor.
-    Args args = new TThreadPoolServer.Args(mRpcServerSocket)
-        .maxWorkerThreads(mMaxWorkerThreads)
-        .minWorkerThreads(mMinWorkerThreads)
-        .processor(processor)
-        .transportFactory(transportFactory)
-        .protocolFactory(ThriftUtils.createThriftProtocolFactory())
-        .stopTimeoutVal((int) TimeUnit.MILLISECONDS
-            .toSeconds(Configuration.getMs(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT)));
-    args.stopTimeoutUnit = TimeUnit.SECONDS;
-    mThriftServer = new TThreadPoolServer(args);
-
-    // start thrift rpc server
-    mSafeModeManager.notifyRpcServerStarted();
-    mThriftServer.serve();
   }
 
   /**
@@ -416,13 +396,10 @@ public class AlluxioMasterProcess implements MasterProcess {
    * all the sinks.
    */
   protected void stopServing() throws Exception {
-    if (mThriftServer != null) {
-      mThriftServer.stop();
-      mThriftServer = null;
-    }
-    if (mRpcServerSocket != null) {
-      mRpcServerSocket.close();
-      mRpcServerSocket = null;
+    if (isServing()) {
+      if (!mGrpcServer.shutdown()) {
+        LOG.warn("RPC Server shutdown timed out.");
+      }
     }
     if (mJvmPauseMonitor != null) {
       mJvmPauseMonitor.stop();

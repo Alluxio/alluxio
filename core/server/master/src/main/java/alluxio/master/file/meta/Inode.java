@@ -20,10 +20,11 @@ import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -460,7 +461,7 @@ public abstract class Inode<T> implements InodeView {
    */
   public void updateFromEntry(UpdateInodeEntry entry) {
     if (entry.hasAcl()) {
-      setInternalAcl(AccessControlList.fromProtoBuf(entry.getAcl()));
+      setInternalAcl(ProtoUtils.fromProto(entry.getAcl()));
     }
     if (entry.hasCreationTimeMs()) {
       setCreationTimeMs(entry.getCreationTimeMs());
@@ -518,8 +519,9 @@ public abstract class Inode<T> implements InodeView {
     return mId == that.mId;
   }
 
-  protected Objects.ToStringHelper toStringHelper() {
-    return Objects.toStringHelper(this).add("id", mId).add("name", mName).add("parentId", mParentId)
+  protected MoreObjects.ToStringHelper toStringHelper() {
+    return MoreObjects.toStringHelper(this)
+        .add("id", mId).add("name", mName).add("parentId", mParentId)
         .add("creationTimeMs", mCreationTimeMs).add("pinned", mPinned).add("deleted", mDeleted)
         .add("ttl", mTtl).add("ttlAction", mTtlAction)
         .add("directory", mDirectory).add("persistenceState", mPersistenceState)
