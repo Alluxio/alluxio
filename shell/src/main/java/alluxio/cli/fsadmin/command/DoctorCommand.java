@@ -46,7 +46,7 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
 
   /**
    * @param context fsadmin command context
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public DoctorCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);

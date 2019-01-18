@@ -87,7 +87,7 @@ public interface UnderFileSystem extends Closeable {
      *
      * @param path path
      * @param ufsConf optional configuration object for the UFS, may be null
-     * @param alluxioConf Alluxio's configuration
+     * @param alluxioConf Alluxio configuration
      * @return client for the under file system
      */
     public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf,

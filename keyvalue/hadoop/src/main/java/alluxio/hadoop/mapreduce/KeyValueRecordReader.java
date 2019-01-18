@@ -54,7 +54,7 @@ final class KeyValueRecordReader extends RecordReader<BytesWritable, BytesWritab
   /**
    * Creates a {@link KeyValueRecordReader} for generating key-value pairs of a partition.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public KeyValueRecordReader(AlluxioConfiguration alluxioConf) {
     mConf = alluxioConf;

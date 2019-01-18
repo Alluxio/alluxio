@@ -129,7 +129,7 @@ public final class Client {
   /**
    * Constructs a new client for launching an Alluxio application master.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public Client(AlluxioConfiguration alluxioConf) {
     mAlluxioConf = alluxioConf;
@@ -156,7 +156,7 @@ public final class Client {
    * parses command line options.
    *
    * @param args Command line arguments
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @throws ParseException if an error occurs when parsing the argument
    */
   public Client(String[] args, AlluxioConfiguration alluxioConf) throws ParseException {

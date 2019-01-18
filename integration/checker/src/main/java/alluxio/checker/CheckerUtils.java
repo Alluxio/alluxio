@@ -98,7 +98,7 @@ public final class CheckerUtils {
    * Checks if the Zookeeper address has been set when running the Alluxio HA mode.
    *
    * @param reportWriter save user-facing messages to a generated file
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return true if Alluxio HA mode is supported, false otherwise
    */
   public static boolean supportAlluxioHA(PrintWriter reportWriter,

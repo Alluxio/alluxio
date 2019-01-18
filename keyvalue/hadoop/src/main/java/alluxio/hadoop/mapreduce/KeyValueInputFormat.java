@@ -50,7 +50,7 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
   /**
    * Constructs a new {@link KeyValueInputFormat}.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public KeyValueInputFormat(AlluxioConfiguration alluxioConf) {
     mKeyValueMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(alluxioConf),

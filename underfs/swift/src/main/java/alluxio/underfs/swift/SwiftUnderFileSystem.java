@@ -91,7 +91,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @throws FileDoesNotExistException when specified container does not exist
    */
   public SwiftUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration conf,

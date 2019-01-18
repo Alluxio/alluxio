@@ -68,7 +68,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return the created {@link COSUnderFileSystem} instance
    */
   public static COSUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf,

@@ -33,7 +33,7 @@ public final class MostAvailableFirstPolicy
   /**
    * Constructs a new {@link MostAvailableFirstPolicy}.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public MostAvailableFirstPolicy(AlluxioConfiguration alluxioConf) {}
 

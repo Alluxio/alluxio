@@ -43,7 +43,7 @@ public final class UfsCommand extends AbstractFsAdminCommand {
 
   /**
    * @param context fsadmin command context
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public UfsCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);

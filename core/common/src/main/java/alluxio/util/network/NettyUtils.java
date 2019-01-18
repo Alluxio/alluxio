@@ -80,7 +80,7 @@ public final class NettyUtils {
    * worker.
    *
    * @param isDomainSocket whether this is a domain socket server
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return ServerSocketChannel matching the requirements
    */
   public static Class<? extends ServerChannel> getServerChannelClass(boolean isDomainSocket,
@@ -105,7 +105,7 @@ public final class NettyUtils {
    * Returns the correct {@link io.netty.channel.socket.SocketChannel} class for use by the client.
    *
    * @param isDomainSocket whether this is to connect to a domain socket server
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return Channel matching the requirements
    */
   public static Class<? extends Channel> getClientChannelClass(boolean isDomainSocket,
@@ -149,7 +149,7 @@ public final class NettyUtils {
 
   /**
    * @param workerNetAddress the worker address
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return true if the domain socket is enabled on this client
    */
   public static boolean isDomainSocketSupported(WorkerNetAddress workerNetAddress,
@@ -194,7 +194,7 @@ public final class NettyUtils {
   /**
    * Gets the ChannelType properly from the USER_NETWORK_NETTY_CHANNEL property key.
    *
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return The proper channel type USER_NETWORK_NETTY_CHANNEL
    */
   public static ChannelType getUserChannel(AlluxioConfiguration conf) {
@@ -204,7 +204,7 @@ public final class NettyUtils {
   /**
    * Gets the worker channel properly from the WORKER_NETWORK_NETTY_CHANNEL property key.
    *
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the proper channel type for WORKER_NETWORK_NETY_CHANNEL
    */
   public static ChannelType getWorkerChannel(AlluxioConfiguration conf) {

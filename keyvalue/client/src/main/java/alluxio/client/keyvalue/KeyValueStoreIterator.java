@@ -39,7 +39,7 @@ public final class KeyValueStoreIterator implements KeyValueIterator {
 
   /**
    * @param partitions the partitions to use
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public KeyValueStoreIterator(List<PartitionInfo> partitions, AlluxioConfiguration alluxioConf)
       throws IOException, AlluxioException {

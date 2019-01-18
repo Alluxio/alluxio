@@ -125,7 +125,7 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>, S> {
    *
    * @param path path
    * @param conf configuration of the extension
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return list of factories that support the given path which may be an empty list
    */
   public List<T> findAll(String path, @Nullable S conf, AlluxioConfiguration alluxioConf) {

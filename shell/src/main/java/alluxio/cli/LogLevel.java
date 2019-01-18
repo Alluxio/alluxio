@@ -98,7 +98,7 @@ public final class LogLevel {
    * Implements log level setting and getting.
    *
    * @param args list of arguments contains target, logName and level
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @exception ParseException if there is an error in parsing
    */
   public static void logLevel(String[] args, AlluxioConfiguration alluxioConf)

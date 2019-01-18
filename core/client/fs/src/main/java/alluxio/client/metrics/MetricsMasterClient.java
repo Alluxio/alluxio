@@ -40,7 +40,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
    * Creates a new metrics master client.
    *
    * @param conf master client configuration
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public MetricsMasterClient(MasterClientConfig conf, AlluxioConfiguration alluxioConf) {
     super(conf, alluxioConf, null, RetryUtils::defaultMetricsClientRetry);

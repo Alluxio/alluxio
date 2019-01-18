@@ -52,7 +52,7 @@ public final class TieredIdentityFactory {
   private static volatile TieredIdentity sInstance = null;
 
   /**
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the singleton tiered identity instance for this JVM
    */
   public static TieredIdentity localIdentity(AlluxioConfiguration conf) {
@@ -102,7 +102,7 @@ public final class TieredIdentityFactory {
   }
 
   /**
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return a tiered identity created from running the user-provided script
    */
   @Nullable
@@ -135,7 +135,7 @@ public final class TieredIdentityFactory {
 
   /**
    * @param identityString tiered identity string to parse
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the parsed tiered identity
    */
   public static TieredIdentity fromString(String identityString, AlluxioConfiguration conf)

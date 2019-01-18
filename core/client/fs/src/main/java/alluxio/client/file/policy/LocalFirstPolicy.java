@@ -46,7 +46,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
   /**
    * Constructs a {@link LocalFirstPolicy}.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public LocalFirstPolicy(AlluxioConfiguration alluxioConf) {
     this(TieredIdentityFactory.localIdentity(alluxioConf),

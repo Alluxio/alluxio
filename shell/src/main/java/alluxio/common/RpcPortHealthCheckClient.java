@@ -42,7 +42,7 @@ public class RpcPortHealthCheckClient implements HealthCheckClient {
    * @param nodeAddress The potential node address
    * @param serviceType The type of service
    * @param retryPolicySupplier the retry policy supplier
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public RpcPortHealthCheckClient(InetSocketAddress nodeAddress,
       ServiceType serviceType,

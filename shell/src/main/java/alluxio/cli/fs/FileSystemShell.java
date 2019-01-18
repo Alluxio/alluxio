@@ -71,7 +71,7 @@ public final class FileSystemShell extends AbstractShell {
   /**
    * Creates a new instance of {@link FileSystemShell}.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public FileSystemShell(InstancedConfiguration alluxioConf) {
     super(CMD_ALIAS, alluxioConf);

@@ -67,7 +67,7 @@ public final class JobShell extends AbstractShell {
   /**
    * Creates a new instance of {@link JobShell}.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public JobShell(InstancedConfiguration alluxioConf) {
     super(CMD_ALIAS, alluxioConf);

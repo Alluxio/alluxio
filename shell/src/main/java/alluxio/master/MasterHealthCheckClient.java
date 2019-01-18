@@ -50,7 +50,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
     /**
      * Constructs the builder with default values.
      *
-     * @param alluxioConf Alluxio's configuration
+     * @param alluxioConf Alluxio configuration
      */
     public Builder(AlluxioConfiguration alluxioConf) {
       mProcessCheck = true;
@@ -69,7 +69,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
 
     /**
      *
-     * @param alluxioConf Alluxio's configuration
+     * @param alluxioConf Alluxio configuration
      * @return a builder which utlizes the given alluxio configuration
      */
     public Builder withConfiguration(AlluxioConfiguration alluxioConf) {
@@ -168,7 +168,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
    *
    * @param alluxioMasterName the Alluxio master process name
    * @param processCheck whether to check the AlluxioMaster process is alive
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public MasterHealthCheckClient(String alluxioMasterName, boolean processCheck,
       AlluxioConfiguration alluxioConf) {

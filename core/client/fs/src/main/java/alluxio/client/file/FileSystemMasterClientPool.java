@@ -41,7 +41,7 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
    *
    * @param subject the parent subject
    * @param masterInquireClient a client for determining the master address
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
       AlluxioConfiguration alluxioConf) {
@@ -58,7 +58,7 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
    * @param subject the parent subject
    * @param masterInquireClient a client for determining the master address
    * @param clientThreads the number of client threads to use
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
       int clientThreads, AlluxioConfiguration alluxioConf) {

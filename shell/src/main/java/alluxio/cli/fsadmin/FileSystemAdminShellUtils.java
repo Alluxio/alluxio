@@ -53,7 +53,7 @@ public final class FileSystemAdminShellUtils {
    * Checks if the master client service is available.
    * Throws an exception if fails to determine that the master client service is running.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public static void checkMasterClientService(AlluxioConfiguration alluxioConf) throws IOException {
     try (CloseableResource<FileSystemMasterClient> client =

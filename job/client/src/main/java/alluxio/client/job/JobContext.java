@@ -44,7 +44,7 @@ public final class JobContext implements Closeable  {
   /**
    * Creates a job context.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return the context
    */
   public static JobContext create(AlluxioConfiguration alluxioConf) {

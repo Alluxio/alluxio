@@ -21,7 +21,7 @@ import alluxio.master.MasterInquireClient.Factory;
 public class JobMasterClientConfig extends MasterClientConfig {
 
   /**
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return a master client configuration with default values
    */
   public static JobMasterClientConfig defaults(AlluxioConfiguration alluxioConf) {

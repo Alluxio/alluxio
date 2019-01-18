@@ -77,7 +77,7 @@ public final class AlluxioBlockStore {
   /**
    * Creates an Alluxio block store with default file system context and default local hostname.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return the {@link AlluxioBlockStore} created
    */
   public static AlluxioBlockStore create(AlluxioConfiguration alluxioConf) {

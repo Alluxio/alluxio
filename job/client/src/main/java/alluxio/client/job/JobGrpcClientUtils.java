@@ -45,7 +45,7 @@ public final class JobGrpcClientUtils {
    *
    * @param config configuration for the job to run
    * @param attempts number of times to try running the job before giving up
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public static void run(JobConfig config, int attempts, AlluxioConfiguration alluxioConf)
       throws InterruptedException {

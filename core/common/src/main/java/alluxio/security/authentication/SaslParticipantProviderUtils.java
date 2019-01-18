@@ -34,7 +34,7 @@ public final class SaslParticipantProviderUtils {
 
   /**
    * @param subject the subject to use (can be null)
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the configured impersonation user, or null if impersonation is not used
    */
   @Nullable

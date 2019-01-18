@@ -314,7 +314,7 @@ public final class CommonUtils {
    * Gets the primary group name of a user.
    *
    * @param userName Alluxio user name
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return primary group name
    */
   public static String getPrimaryGroupName(String userName, AlluxioConfiguration conf)
@@ -327,7 +327,7 @@ public final class CommonUtils {
    * Using {@link CachedGroupMapping} to get the group list of a user.
    *
    * @param userName Alluxio user name
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the group list of the user
    */
   public static List<String> getGroups(String userName, AlluxioConfiguration conf)
@@ -587,7 +587,7 @@ public final class CommonUtils {
 
   /**
    * @param address the Alluxio worker network address
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return true if the worker is local
    */
   public static boolean isLocalHost(WorkerNetAddress address, AlluxioConfiguration conf) {

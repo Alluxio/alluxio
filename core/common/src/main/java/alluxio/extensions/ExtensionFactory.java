@@ -28,7 +28,7 @@ public interface ExtensionFactory<T, S> {
    *
    * @param path file path with scheme for which the extension will be created
    * @param conf optional configuration object for the extension, may be null
-   * @param alluxioConf Alluxio's configuration object
+   * @param alluxioConf Alluxio configuration object
    * @return the new extension
    */
   T create(String path, @Nullable S conf, AlluxioConfiguration alluxioConf);

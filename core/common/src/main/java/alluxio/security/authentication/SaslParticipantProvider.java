@@ -29,7 +29,7 @@ public interface SaslParticipantProvider {
    * Creates {@link SaslClient} for given {@link Subject}.
    *
    * @param subject subject
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return created {@link SaslClient}
    * @throws UnauthenticatedException
    */
@@ -52,7 +52,7 @@ public interface SaslParticipantProvider {
    * Creates {@link SaslServer}.
    *
    * @param serverName server name
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return created {@link SaslServer}
    * @throws SaslException
    */
@@ -64,7 +64,7 @@ public interface SaslParticipantProvider {
    *
    * @param runnable callback for after authentication
    * @param serverName server name
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return created {@link SaslServer}
    * @throws SaslException
    */

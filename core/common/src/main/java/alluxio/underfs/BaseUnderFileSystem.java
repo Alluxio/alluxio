@@ -63,7 +63,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} used to create this ufs
    * @param ufsConf UFS configuration
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   protected BaseUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
       AlluxioConfiguration alluxioConf) {

@@ -44,7 +44,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
   /**
    * Constructs a new {@link RoundRobinPolicy}.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public RoundRobinPolicy(AlluxioConfiguration alluxioConf) {}
 

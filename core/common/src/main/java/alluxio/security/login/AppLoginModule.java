@@ -151,7 +151,7 @@ public final class AppLoginModule implements LoginModule {
 
     /**
      * Creates a new instance of {@link AppCallbackHandler}.
-     * @param conf Alluxio's configuration
+     * @param conf Alluxio configuration
      */
     public AppCallbackHandler(AlluxioConfiguration conf) {
       if (conf.isSet(PropertyKey.SECURITY_LOGIN_USERNAME)) {

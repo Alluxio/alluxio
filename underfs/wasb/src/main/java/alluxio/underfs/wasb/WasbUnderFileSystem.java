@@ -64,7 +64,7 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return a new Wasb {@link UnderFileSystem} instance
    */
   public static WasbUnderFileSystem createInstance(AlluxioURI uri,
@@ -79,7 +79,7 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
    * @param wasbConf the configuration for this Wasb UFS
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public WasbUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       final Configuration wasbConf, AlluxioConfiguration alluxioConf) {
