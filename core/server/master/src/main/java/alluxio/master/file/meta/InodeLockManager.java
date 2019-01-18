@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.collections.LockCache;
-import alluxio.concurrent.WeakSafeReentrantReadWriteLock;
 import alluxio.master.file.meta.InodeTree.LockMode;
 import alluxio.resource.LockResource;
 import alluxio.resource.RefCountLockResource;
