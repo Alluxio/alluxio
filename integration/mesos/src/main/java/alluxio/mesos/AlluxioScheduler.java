@@ -265,7 +265,8 @@ public class AlluxioScheduler implements Scheduler {
     for (PropertyKey key : ServerConfiguration.keySet()) {
       if (ServerConfiguration.isSet(key)
           && ServerConfiguration.getSource(key).getType() != Type.DEFAULT) {
-        siteProperties.append(String.format("%s=%s%n", key.getName(), ServerConfiguration.get(key)));
+        siteProperties.append(String.format("%s=%s%n", key.getName(),
+            ServerConfiguration.get(key)));
       }
     }
     return siteProperties.toString();
@@ -276,7 +277,8 @@ public class AlluxioScheduler implements Scheduler {
     commands.add(String.format("echo 'Starting Alluxio with %s'", command));
     if (installJavaFromUrl()) {
       commands
-          .add("export JAVA_HOME=" + ServerConfiguration.get(PropertyKey.INTEGRATION_MESOS_JDK_PATH));
+          .add("export JAVA_HOME="
+              + ServerConfiguration.get(PropertyKey.INTEGRATION_MESOS_JDK_PATH));
       commands.add("export PATH=$PATH:$JAVA_HOME/bin");
     }
 
