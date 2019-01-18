@@ -35,11 +35,11 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class FileSystemMasterClientPool extends DynamicResourcePool<FileSystemMasterClient> {
+  private final long mGcThresholdMs;
   private final MasterInquireClient mMasterInquireClient;
   private final Subject mSubject;
-  private final long mGcThresholdMs;
 
-  private static final int FS_MASTER_CLIENT_POOL_GC_THREADPOOL_SIZE = 10;
+  private static final int FS_MASTER_CLIENT_POOL_GC_THREADPOOL_SIZE = 1;
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(FS_MASTER_CLIENT_POOL_GC_THREADPOOL_SIZE,
           ThreadFactoryUtils.build("FileSystemMasterClientPoolGcThreads-%d", true));
@@ -52,6 +52,7 @@ public final class FileSystemMasterClientPool extends DynamicResourcePool<FileSy
    */
   public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient) {
     super(Options.defaultOptions()
+        .setMinCapacity(0)
         .setMaxCapacity(Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS))
         .setGcExecutor(GC_EXECUTOR));
     mGcThresholdMs =

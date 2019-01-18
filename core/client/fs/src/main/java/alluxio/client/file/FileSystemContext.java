@@ -361,12 +361,16 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired block master client resource
    */
   public CloseableResource<BlockMasterClient> acquireBlockMasterClientResource() {
-    return new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
-      @Override
-      public void close() {
-        mBlockMasterClientPool.release(get());
-      }
-    };
+    try {
+      return new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
+        @Override
+        public void close() {
+          mBlockMasterClientPool.release(get());
+        }
+      };
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**

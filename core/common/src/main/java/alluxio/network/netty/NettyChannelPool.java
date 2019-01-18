@@ -61,7 +61,10 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
    *        is above the minimum capacity(1), it is closed and removed from the pool.
    */
   public NettyChannelPool(Bootstrap bootstrap, int maxCapacity, long gcThresholdMs) {
-    super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
+    super(Options.defaultOptions()
+        .setMinCapacity(0)
+        .setMaxCapacity(maxCapacity)
+        .setGcExecutor(GC_EXECUTOR));
     mBootstrap = bootstrap;
     mGcThresholdMs = gcThresholdMs;
   }
