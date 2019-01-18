@@ -35,13 +35,9 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-<<<<<<< HEAD
-import alluxio.grpc.SetAttributePOptions;
-=======
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
->>>>>>> upstream/master
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
