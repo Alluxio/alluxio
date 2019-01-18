@@ -41,6 +41,12 @@ public class GrpcManagedChannelPool {
   // Singleton instance.
   private static GrpcManagedChannelPool sInstance;
 
+  static {
+    sInstance = new GrpcManagedChannelPool(
+        new InstancedConfiguration(ConfigurationUtils.defaults())
+            .getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
+  }
+
   /**
    * @return the singleton pool instance.
    */
