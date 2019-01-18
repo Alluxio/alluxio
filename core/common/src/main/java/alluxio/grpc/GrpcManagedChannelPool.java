@@ -102,11 +102,11 @@ public class GrpcManagedChannelPool {
     long channelTerminationIntervalMs =
         Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT);
     mScheduler.scheduleAtFixedRate(() -> {
-      destroyChannels();
+      destroyInactiveChannels();
     }, channelTerminationIntervalMs, channelTerminationIntervalMs, TimeUnit.MILLISECONDS);
   }
 
-  private synchronized void destroyChannels() {
+  private void destroyInactiveChannels() {
     int channelCount = 0;
     int destroyedCount = 0;
     List<Pair<ChannelKey, ManagedChannelReference>> channelsToDestroy = new ArrayList<>();
