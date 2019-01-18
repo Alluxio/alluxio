@@ -15,8 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.file.meta.InodeTree.LockMode;
+import alluxio.resource.LockResource.LockMode;
 import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.resource.LockResource;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -278,12 +279,12 @@ public class LockedInodePath implements Closeable {
           Preconditions.checkState(!isImplicitlyLocked());
           mLockList.downgradeLastInode();
         } else if (mLockPattern == LockPattern.WRITE_EDGE) {
-          downgradeEdgeToInode(LockMode.READ);
+          downgradeEdgeToInode(LockResource.LockMode.READ);
         }
         break;
       case WRITE_INODE:
         if (mLockPattern == LockPattern.WRITE_EDGE) {
-          downgradeEdgeToInode(LockMode.WRITE);
+          downgradeEdgeToInode(LockResource.LockMode.WRITE);
         } else {
           Preconditions.checkState(mLockPattern == LockPattern.WRITE_INODE);
         }
@@ -301,7 +302,7 @@ public class LockedInodePath implements Closeable {
     if (fullPathExists()) {
       Preconditions.checkState(mLockList.numLockedInodes() == mExistingInodes.size() - 1);
       mLockList.downgradeEdgeToInode(Iterables.getLast(mExistingInodes), lockMode);
-      if (lockMode == LockMode.READ) {
+      if (lockMode == LockResource.LockMode.READ) {
         // Now that we've downgraded from write to read, we can only rely on directly locked inodes
         // to still exist.
         while (mExistingInodes.size() > mLockList.numLockedInodes()) {
@@ -424,7 +425,7 @@ public class LockedInodePath implements Closeable {
    * locked according to to {@link LockPattern}.
    */
   public void traverse() throws InvalidPathException {
-    if (mLockList.getLockMode() == LockMode.WRITE) {
+    if (mLockList.getLockMode() == LockResource.LockMode.WRITE) {
       traverseWithoutLocking();
       return;
     }
@@ -440,9 +441,9 @@ public class LockedInodePath implements Closeable {
 
       if (mLockList.endsInInode()) { // Lock an edge next.
         if (mLockPattern == LockPattern.WRITE_EDGE && isFinalComponent) {
-          mLockList.lockEdge(nextComponent, LockMode.WRITE);
+          mLockList.lockEdge(nextComponent, LockResource.LockMode.WRITE);
         } else {
-          mLockList.lockEdge(nextComponent, LockMode.READ);
+          mLockList.lockEdge(nextComponent, LockResource.LockMode.READ);
         }
       } else { // Lock an inode next.
         InodeView lastInode = mLockList.getLockedInodes().get(lastInodeIndex);
@@ -456,7 +457,7 @@ public class LockedInodePath implements Closeable {
           // This pattern requires that we obtain a write lock on the final edge, so we must
           // upgrade to a write lock.
           mLockList.unlockLastEdge();
-          mLockList.lockEdge(nextComponent, LockMode.WRITE);
+          mLockList.lockEdge(nextComponent, LockResource.LockMode.WRITE);
           nextInode = lastInode.asDirectory().getChild(nextComponent);
           if (nextInode != null) {
             // The component must have been created between releasing the read lock and acquiring
@@ -474,9 +475,9 @@ public class LockedInodePath implements Closeable {
 
         if (isFinalComponent) {
           if (mLockPattern == LockPattern.READ) {
-            mLockList.lockInode(nextInode, LockMode.READ);
+            mLockList.lockInode(nextInode, LockResource.LockMode.READ);
           } else if (mLockPattern == LockPattern.WRITE_INODE) {
-            mLockList.lockInode(nextInode, LockMode.WRITE);
+            mLockList.lockInode(nextInode, LockResource.LockMode.WRITE);
           } else if (mLockPattern == LockPattern.WRITE_EDGE) {
             if (mLockList.numLockedInodes() == mExistingInodes.size()) {
               // Add the final inode, which is not locked but does exist.
@@ -484,7 +485,7 @@ public class LockedInodePath implements Closeable {
             }
           }
         } else {
-          mLockList.lockInode(nextInode, LockMode.READ);
+          mLockList.lockInode(nextInode, LockResource.LockMode.READ);
         }
 
         // Avoid adding the inode if it is already in mExistingInodes.
@@ -500,16 +501,16 @@ public class LockedInodePath implements Closeable {
         mPathComponents.length == 1 && mLockPattern == LockPattern.WRITE_EDGE;
     if (mLockList.isEmpty()) {
       if (lockFirstEdgeOnly) {
-        mLockList.lockRootEdge(LockMode.WRITE);
+        mLockList.lockRootEdge(LockResource.LockMode.WRITE);
       } else {
-        mLockList.lockRootEdge(LockMode.READ);
+        mLockList.lockRootEdge(LockResource.LockMode.READ);
       }
     }
     if (mLockList.numLockedInodes() == 0) {
       if (mPathComponents.length == 1 && mLockPattern == LockPattern.WRITE_INODE) {
-        mLockList.lockInode(mRoot, LockMode.WRITE);
+        mLockList.lockInode(mRoot, LockResource.LockMode.WRITE);
       } else if (!lockFirstEdgeOnly) {
-        mLockList.lockInode(mRoot, LockMode.READ);
+        mLockList.lockInode(mRoot, LockResource.LockMode.READ);
       }
     }
     if (mExistingInodes.isEmpty()) {
@@ -546,7 +547,7 @@ public class LockedInodePath implements Closeable {
    * @return whether the path is implicitly locked
    */
   private boolean isImplicitlyLocked() {
-    return mLockList.getLockMode() == LockMode.WRITE
+    return mLockList.getLockMode() == LockResource.LockMode.WRITE
         && mExistingInodes.size() > mLockList.numLockedInodes();
   }
 

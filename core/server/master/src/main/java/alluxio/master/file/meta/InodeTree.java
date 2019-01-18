@@ -159,14 +159,6 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     }
   }
 
-  /**
-   * ReadWriteLock types.
-   */
-  public enum LockMode {
-    READ,
-    WRITE;
-  }
-
   /** Only the root inode should have the empty string as its name. */
   public static final String ROOT_INODE_NAME = "";
 
@@ -530,7 +522,7 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     long id;
     long parentId;
     String name;
-    try (LockResource lr = mInodeLockManager.lockInode(inode, LockMode.READ)) {
+    try (LockResource lr = mInodeLockManager.lockInode(inode, LockResource.LockMode.READ)) {
       id = inode.getId();
       parentId = inode.getParentId();
       name = inode.getName();

@@ -16,7 +16,7 @@ import static org.junit.Assert.assertFalse;
 import alluxio.master.file.meta.Edge;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockManager;
-import alluxio.master.file.meta.InodeTree.LockMode;
+import alluxio.resource.LockResource.LockMode;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
@@ -31,18 +31,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class InodeLockManagerTest {
   @Test(timeout = 10000)
   public void lockInode() throws Exception {
-    inodeLockTest(LockMode.WRITE, LockMode.READ, true);
-    inodeLockTest(LockMode.READ, LockMode.WRITE, true);
-    inodeLockTest(LockMode.WRITE, LockMode.WRITE, true);
-    inodeLockTest(LockMode.READ, LockMode.READ, false);
+    inodeLockTest(LockResource.LockMode.WRITE, LockResource.LockMode.READ, true);
+    inodeLockTest(LockResource.LockMode.READ, LockResource.LockMode.WRITE, true);
+    inodeLockTest(LockResource.LockMode.WRITE, LockResource.LockMode.WRITE, true);
+    inodeLockTest(LockResource.LockMode.READ, LockResource.LockMode.READ, false);
   }
 
   @Test(timeout = 10000)
   public void lockEdge() throws Exception {
-    edgeLockTest(LockMode.WRITE, LockMode.READ, true);
-    edgeLockTest(LockMode.READ, LockMode.WRITE, true);
-    edgeLockTest(LockMode.WRITE, LockMode.WRITE, true);
-    edgeLockTest(LockMode.READ, LockMode.READ, false);
+    edgeLockTest(LockResource.LockMode.WRITE, LockResource.LockMode.READ, true);
+    edgeLockTest(LockResource.LockMode.READ, LockResource.LockMode.WRITE, true);
+    edgeLockTest(LockResource.LockMode.WRITE, LockResource.LockMode.WRITE, true);
+    edgeLockTest(LockResource.LockMode.READ, LockResource.LockMode.READ, false);
   }
 
   private void inodeLockTest(LockMode take, LockMode tryToTake, boolean expectBlocking)

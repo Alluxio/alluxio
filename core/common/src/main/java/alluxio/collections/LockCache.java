@@ -11,6 +11,8 @@
 
 package alluxio.collections;
 
+import alluxio.resource.LockResource;
+import alluxio.resource.RefCountLockResource;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 
 /**
@@ -29,19 +32,18 @@ import java.util.function.Function;
  * that are in use.
  *
  * @param <K> key to the cache
- * @param <V> often a lock type
  */
-public class LockCache<K, V> {
+public class LockCache<K> {
   /**
    * Node containing value and other information to be stored in the cache.
    *
    */
   public class ValNode {
-    private V mValue;
+    private ReentrantReadWriteLock mValue;
     private boolean mIsAccessed;
     private AtomicInteger mRefCount;
 
-    private ValNode(V value) {
+    private ValNode(ReentrantReadWriteLock value) {
       mValue = value;
       mIsAccessed = false;
       mRefCount = new AtomicInteger(1);
@@ -61,7 +63,7 @@ public class LockCache<K, V> {
      *
      * @return the value
      */
-    public V get() {
+    public ReentrantReadWriteLock get() {
       return mValue;
     }
   }
@@ -79,7 +81,7 @@ public class LockCache<K, V> {
    */
   private final int mHardLimit;
   private final int mSoftLimit;
-  private final Function<? super K, ? extends V> mDefaultLoader;
+  private final Function<? super K, ? extends ReentrantReadWriteLock> mDefaultLoader;
   private Iterator<Map.Entry<K, ValNode>> mIterator;
   private final Lock mEvictLock;
 
@@ -93,7 +95,7 @@ public class LockCache<K, V> {
    * @param maxSize maximum size of the cache
    * @param concurrencyLevel concurrency level of the cache
    */
-  public LockCache(@Nullable Function<? super K, ? extends V> defaultLoader, int initialSize,
+  public LockCache(@Nullable Function<? super K, ? extends ReentrantReadWriteLock> defaultLoader, int initialSize,
       int maxSize, int concurrencyLevel) {
     mDefaultLoader = defaultLoader;
 
@@ -145,7 +147,26 @@ public class LockCache<K, V> {
    * @return the value contained in the cache, if it is already in cache,
    * otherwise generate an entry based on the loader
    */
-  public ValNode get(final K key) {
+
+  public LockResource get(final K key, LockResource.LockMode mode) {
+    ValNode valNode = getValNode(key, true);
+    ReentrantReadWriteLock lock = valNode.mValue;
+    switch (mode) {
+      case READ:
+        return new RefCountLockResource(lock.readLock(), valNode.mRefCount);
+      case WRITE:
+        return new RefCountLockResource(lock.writeLock(), valNode.mRefCount);
+      default:
+        throw new IllegalStateException("Unknown lock mode: " + mode);
+    }
+  }
+
+  public ReentrantReadWriteLock getRawLock(final K key) {
+    ValNode valNode = getValNode(key, false);
+    return valNode.get();
+  }
+
+  private ValNode getValNode(final K key, boolean refCount) {
     Preconditions.checkNotNull(key, "key can not be null");
     // oldCacheEntry keeps track of the last cache entry that was in the process of being removed.
     // we do not need to do anything if we did not get a new CacheEntry

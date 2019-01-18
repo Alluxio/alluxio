@@ -57,7 +57,7 @@ import alluxio.master.file.meta.InodeFileView;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.InodeTree.LockMode;
+import alluxio.resource.LockResource.LockMode;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
@@ -202,8 +202,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    *
    * Individual paths are locked in the inode tree. In order to read or write any inode, the path
    * must be locked. A path is locked via one of the lock methods in {@link InodeTree}, such as
-   * {@link InodeTree#lockInodePath(AlluxioURI, InodeTree.LockMode)} or
-   * {@link InodeTree#lockFullInodePath(AlluxioURI, InodeTree.LockMode)}. These lock methods return
+   * {@link InodeTree#lockInodePath(AlluxioURI, LockMode)} or
+   * {@link InodeTree#lockFullInodePath(AlluxioURI, LockMode)}. These lock methods return
    * an {@link LockedInodePath}, which represents a locked path of inodes. These locked paths
    * ({@link LockedInodePath}) must be unlocked. In order to ensure a locked
    * {@link LockedInodePath} is always unlocked, the following paradigm is recommended:
@@ -530,7 +530,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             if (!inodeFile.getPersistenceState().equals(PersistenceState.TO_BE_PERSISTED)) {
               continue;
             }
-            try (LockResource lr = mInodeLockManager.lockInode(inodeFile, LockMode.READ)) {
+            try (LockResource lr = mInodeLockManager.lockInode(inodeFile, LockResource.LockMode.READ)) {
               if (inodeFile.getPersistJobId() != Constants.PERSISTENCE_INVALID_JOB_ID) {
                 addPersistJob(inodeFile.getId(), inodeFile.getPersistJobId(),
                     mInodeTree.getPath(inodeFile), inodeFile.getTempUfsPath());

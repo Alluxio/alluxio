@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.collections.LockCache;
-import alluxio.master.file.meta.InodeTree.LockMode;
 import alluxio.resource.LockResource;
 import alluxio.resource.RefCountLockResource;
 import alluxio.util.interfaces.Scoped;
@@ -24,8 +23,6 @@ import com.google.common.cache.LoadingCache;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -48,13 +45,13 @@ public class InodeLockManager {
    * a lock, the garbage collector can remove the lock's entry from the cache.
    */
 
-  public final LockCache<Long, ReentrantReadWriteLock> mInodeLocks =
+  public final LockCache<Long> mInodeLocks =
       new LockCache<>((key)-> new ReentrantReadWriteLock(), 1000, 10000, 100);
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
 
-  public final LockCache<Edge, ReentrantReadWriteLock> mEdgeLocks =
+  public final LockCache<Edge> mEdgeLocks =
       new LockCache<>((key)-> new ReentrantReadWriteLock(), 1000, 10000, 100);
 
   /**
@@ -76,38 +73,26 @@ public class InodeLockManager {
 
   @VisibleForTesting
   boolean inodeReadLockedByCurrentThread(long inodeId) {
-    LockCache<Long, ReentrantReadWriteLock>.ValNode
-        valNode = mInodeLocks.get(inodeId);
-    boolean result = valNode.get().getReadHoldCount() > 0;
-    valNode.getRefCounter().decrementAndGet();
-    return result;
+    ReentrantReadWriteLock lock = mInodeLocks.getRawLock(inodeId);
+    return lock.getReadHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean inodeWriteLockedByCurrentThread(long inodeId) {
-    LockCache<Long, ReentrantReadWriteLock>.ValNode
-        valNode = mInodeLocks.get(inodeId);
-    boolean result = valNode.get().getWriteHoldCount() > 0;
-    valNode.getRefCounter().decrementAndGet();
-    return result;
+    ReentrantReadWriteLock lock = mInodeLocks.getRawLock(inodeId);
+    return lock.getWriteHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean edgeReadLockedByCurrentThread(Edge edge) {
-    LockCache<Edge, ReentrantReadWriteLock>.ValNode
-        valNode = mEdgeLocks.get(edge);
-    boolean result = valNode.get().getReadHoldCount() > 0;
-    valNode.getRefCounter().decrementAndGet();
-    return result;
+    ReentrantReadWriteLock lock = mEdgeLocks.getRawLock(edge);
+    return lock.getReadHoldCount() > 0;
   }
 
   @VisibleForTesting
   boolean edgeWriteLockedByCurrentThread(Edge edge) {
-    LockCache<Edge, ReentrantReadWriteLock>.ValNode
-        valNode = mEdgeLocks.get(edge);
-    boolean result = valNode.get().getWriteHoldCount() > 0;
-    valNode.getRefCounter().decrementAndGet();
-    return result;
+    ReentrantReadWriteLock lock = mEdgeLocks.getRawLock(edge);
+    return lock.getWriteHoldCount() > 0;
   }
 
   /**
@@ -117,10 +102,8 @@ public class InodeLockManager {
    * @param mode the mode to lock in
    * @return a lock resource which must be closed to release the lock
    */
-  public LockResource lockInode(InodeView inode, LockMode mode) {
-    LockCache<Long, ReentrantReadWriteLock>.ValNode
-        valNode = mInodeLocks.get(inode.getId());
-    return lock(valNode.get(), mode, valNode.getRefCounter());
+  public LockResource lockInode(InodeView inode, LockResource.LockMode mode) {
+    return mInodeLocks.get(inode.getId(), mode);
   }
 
   /**
@@ -130,10 +113,8 @@ public class InodeLockManager {
    * @param mode the mode to lock in
    * @return a lock resource which must be closed to release the lock
    */
-  public LockResource lockEdge(Edge edge, LockMode mode) {
-    LockCache<Edge, ReentrantReadWriteLock>.ValNode
-        valNode = mEdgeLocks.get(edge);
-    return lock(valNode.get(), mode, valNode.getRefCounter());
+  public LockResource lockEdge(Edge edge, LockResource.LockMode mode) {
+    return mEdgeLocks.get(edge, mode);
   }
 
   /**
@@ -149,16 +130,5 @@ public class InodeLockManager {
       return Optional.of(() -> lock.set(false));
     }
     return Optional.empty();
-  }
-
-  private LockResource lock(ReadWriteLock lock, LockMode mode, AtomicInteger refCounter) {
-    switch (mode) {
-      case READ:
-        return new RefCountLockResource(lock.readLock(), refCounter);
-      case WRITE:
-        return new RefCountLockResource(lock.writeLock(), refCounter);
-      default:
-        throw new IllegalStateException("Unknown lock mode: " + mode);
-    }
   }
 }

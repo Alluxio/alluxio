@@ -44,4 +44,12 @@ public class LockResource implements Closeable {
   public void close() {
     mLock.unlock();
   }
+
+  /**
+   * ReadWriteLock types.
+   */
+  public enum LockMode {
+    READ,
+    WRITE;
+  }
 }
