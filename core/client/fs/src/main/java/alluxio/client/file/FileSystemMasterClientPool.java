@@ -75,7 +75,7 @@ public final class FileSystemMasterClientPool extends DynamicResourcePool<FileSy
         .setMaxCapacity(clientThreads)
         .setGcExecutor(GC_EXECUTOR));
     mGcThresholdMs =
-        Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS);
+        Configuration.getMs(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS);
     mMasterInquireClient = masterInquireClient;
     mSubject = subject;
   }

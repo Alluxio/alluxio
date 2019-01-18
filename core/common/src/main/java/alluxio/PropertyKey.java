@@ -2278,6 +2278,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN =
+      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN)
+          .setDefaultValue(0)
+          .setDescription("The minimum number of block master clients cached in the block master "
+              + "client pool. For LLAP, this should be set to zero.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
+      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS)
+          .setDefaultValue("120sec")
+          .setDescription("A block master client is closed if it has been idle for more than this "
+              + "threshold.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
       new Builder(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES)
           .setDefaultValue("8MB")
@@ -2426,7 +2442,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN)
           .setDefaultValue(0)
           .setDescription("The minimum number of fs master clients cached in the fs master "
-              + "channel pool. For LLAP, this should be set to zero.")
+              + "client pool. For LLAP, this should be set to zero.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3530,6 +3546,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
         "alluxio.user.block.master.client.threads";
+    public static final String USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN =
+        "alluxio.user.block.master.client.pool.size.min";
+    public static final String USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.block.master.client.pool.gc.threshold";
     public static final String USER_BLOCK_REMOTE_READER_CLASS =
         "alluxio.user.block.remote.reader.class";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
