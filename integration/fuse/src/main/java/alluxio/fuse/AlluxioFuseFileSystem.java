@@ -604,8 +604,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("release({})", path);
     OpenFileEntry oe;
     final long fd = fi.fh.get();
-    oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     synchronized (mOpenFiles) {
+      oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
       mOpenFiles.remove(oe);
     }
     if (oe == null) {
