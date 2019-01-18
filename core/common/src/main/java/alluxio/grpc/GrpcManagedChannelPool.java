@@ -122,6 +122,7 @@ public class GrpcManagedChannelPool {
       }
     }
 
+    // TODO(ggezer) Consider shutting down in parallel.
     for (Pair<ChannelKey, ManagedChannelReference> channelPair : channelsToDestroy) {
       ManagedChannel channel = channelPair.getSecond().get();
       channel.shutdown();
