@@ -19,11 +19,8 @@ import alluxio.resource.DynamicResourcePool;
 import alluxio.resource.ResourcePool;
 import alluxio.util.ThreadFactoryUtils;
 
-import com.google.common.io.Closer;
 
 import java.io.IOException;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -55,7 +52,7 @@ public final class BlockMasterClientPool extends DynamicResourcePool<BlockMaster
   public BlockMasterClientPool(Subject subject, MasterInquireClient masterInquireClient) {
     super(Options.defaultOptions()
         .setMinCapacity(Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN))
-        .setMaxCapacity(Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS))
+        .setMaxCapacity(Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX))
         .setGcExecutor(GC_EXECUTOR));
     mGcThresholdMs =
         Configuration.getMs(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS);
