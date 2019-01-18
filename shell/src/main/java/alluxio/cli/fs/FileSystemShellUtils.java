@@ -51,7 +51,7 @@ public final class FileSystemShellUtils {
    * from a path, leaving only the local file path.
    *
    * @param path the path to obtain the local path from
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return the local path in string format
    */
   public static String getFilePath(String path, AlluxioConfiguration alluxioConf)
@@ -70,7 +70,7 @@ public final class FileSystemShellUtils {
    * {@link Constants#HEADER_FT} and a hostname:port specified.
    *
    * @param path the path to be verified
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return the verified path in a form like alluxio://host:port/dir. If only the "/dir" or "dir"
    *         part is provided, the host and port are retrieved from property,
    *         alluxio.master.hostname and alluxio.master.port, respectively.

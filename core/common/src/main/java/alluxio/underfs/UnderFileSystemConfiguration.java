@@ -52,7 +52,7 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   }
 
   /**
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return UFS configuration from a given alluxio configuration
    */
   public static UnderFileSystemConfiguration defaults(AlluxioConfiguration alluxioConf) {

@@ -85,7 +85,7 @@ public abstract class AbstractClient implements Client {
    * Creates a new client base.
    *
    * @param subject the parent subject, set to null if not present
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @param address the address
    */
   public AbstractClient(Subject subject, AlluxioConfiguration conf, InetSocketAddress address) {
@@ -99,7 +99,7 @@ public abstract class AbstractClient implements Client {
    * Creates a new client base.
    *
    * @param subject the parent subject, set to null if not present
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @param address the address
    * @param retryPolicySupplier factory for retry policies to be used when performing RPCs
    */

@@ -135,7 +135,7 @@ public final class GetConf {
   /**
    * Implements get configuration.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @param args list of arguments
    * @return 0 on success, 1 on failures
    */
@@ -149,7 +149,7 @@ public final class GetConf {
    * Implements get configuration.
    *
    * @param clientSupplier a functor to return a config client of meta master
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @param args list of arguments
    * @return 0 on success, 1 on failures
    */

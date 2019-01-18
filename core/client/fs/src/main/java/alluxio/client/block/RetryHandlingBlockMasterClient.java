@@ -49,7 +49,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    * Creates a new block master client.
    *
    * @param conf master client configuration
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public RetryHandlingBlockMasterClient(MasterClientConfig conf, AlluxioConfiguration alluxioConf) {
     super(conf, alluxioConf);

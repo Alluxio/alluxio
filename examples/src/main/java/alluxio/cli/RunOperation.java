@@ -77,7 +77,7 @@ public class RunOperation {
   /**
    * Constructs a new {@link RunOperation} object.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public RunOperation(AlluxioConfiguration alluxioConf) {
     mFileSystem = FileSystem.Factory.get(alluxioConf);

@@ -76,7 +76,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
 
   /**
    * @param context fsadmin command context
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public ReportCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);

@@ -61,7 +61,7 @@ public class ChannelAuthenticator {
    * Creates {@link ChannelAuthenticator} instance.
    *
    * @param subject javax subject to use for authentication
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    */
   public ChannelAuthenticator(Subject subject, AlluxioConfiguration conf) {
     mUseSubject = true;
@@ -94,7 +94,7 @@ public class ChannelAuthenticator {
    * the channel based on authentication type.
    *
    * @param managedChannel the managed channel for whch authentication is taking place
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return channel that is augmented for authentication
    * @throws UnauthenticatedException
    */

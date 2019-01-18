@@ -82,7 +82,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return the created {@link GCSUnderFileSystem} instance
    * @throws ServiceException when a connection to GCS could not be created
    */
@@ -137,7 +137,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
    * @param conf configuration for this UFS
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   protected GCSUnderFileSystem(AlluxioURI uri, GoogleStorageService googleStorageService,
       String bucketName, short bucketMode, String accountOwner, UnderFileSystemConfiguration conf,

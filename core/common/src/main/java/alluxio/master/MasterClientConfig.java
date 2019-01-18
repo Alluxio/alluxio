@@ -23,7 +23,7 @@ public class MasterClientConfig {
   private MasterInquireClient mMasterInquireClient;
 
   /**
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return a master client configuration with default values
    */
   public static MasterClientConfig defaults(AlluxioConfiguration conf) {

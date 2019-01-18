@@ -42,7 +42,7 @@ public final class PlainSaslServerCallbackHandler implements CallbackHandler {
    *
    * @param authenticationProvider the authentication provider used
    * @param callback the callback runs when the authentication is established
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    */
   public PlainSaslServerCallbackHandler(AuthenticationProvider authenticationProvider,
       Runnable callback, AlluxioConfiguration conf) {

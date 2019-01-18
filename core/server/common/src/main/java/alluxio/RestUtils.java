@@ -38,7 +38,7 @@ public final class RestUtils {
    *
    * @param <T> the return type of the callable
    * @param callable the callable to call
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return the response object
    */
   public static <T> Response call(RestUtils.RestCallable<T> callable,

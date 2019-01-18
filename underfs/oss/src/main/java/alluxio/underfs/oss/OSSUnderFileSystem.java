@@ -62,7 +62,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return the created {@link OSSUnderFileSystem} instance
    */
   public static OSSUnderFileSystem createInstance(AlluxioURI uri,

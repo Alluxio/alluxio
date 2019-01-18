@@ -45,7 +45,7 @@ public final class LocalFirstAvoidEvictionPolicy
   /**
    * Constructs a {@link LocalFirstAvoidEvictionPolicy}.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public LocalFirstAvoidEvictionPolicy(AlluxioConfiguration alluxioConf) {
     mPolicy = new LocalFirstPolicy(alluxioConf);

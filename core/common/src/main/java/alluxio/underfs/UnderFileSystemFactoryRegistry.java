@@ -68,7 +68,7 @@ public final class UnderFileSystemFactoryRegistry {
    * Finds the first Under File System factory that supports the given path.
    *
    * @param path path
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return factory if available, null otherwise
    */
   @Nullable
@@ -81,7 +81,7 @@ public final class UnderFileSystemFactoryRegistry {
    *
    * @param path path
    * @param ufsConf optional configuration object for the UFS, may be null
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return factory if available, null otherwise
    */
   @Nullable
@@ -104,7 +104,7 @@ public final class UnderFileSystemFactoryRegistry {
    *
    * @param path path
    * @param ufsConf configuration of the UFS
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return list of factories that support the given path which may be an empty list
    */
   public static List<UnderFileSystemFactory> findAll(String path,

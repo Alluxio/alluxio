@@ -43,7 +43,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
    *
    * @param subject the parent subject
    * @param masterInquireClient a client for determining the master address
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public BlockMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
       AlluxioConfiguration alluxioConf) {

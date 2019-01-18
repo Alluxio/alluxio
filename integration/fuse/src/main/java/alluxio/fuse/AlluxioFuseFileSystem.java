@@ -117,7 +117,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    *
    * @param fs Alluxio file system
    * @param opts options
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    */
   public AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts, AlluxioConfiguration conf) {
     super();

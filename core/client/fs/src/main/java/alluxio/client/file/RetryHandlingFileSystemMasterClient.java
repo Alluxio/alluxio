@@ -81,7 +81,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
    * Creates a new {@link RetryHandlingFileSystemMasterClient} instance.
    *
    * @param conf master client configuration
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public RetryHandlingFileSystemMasterClient(MasterClientConfig conf,
       AlluxioConfiguration alluxioConf) {

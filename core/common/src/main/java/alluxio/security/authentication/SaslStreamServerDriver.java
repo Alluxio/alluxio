@@ -46,7 +46,7 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
    * Creates {@link SaslStreamServerDriver} for given {@link AuthenticationServer}.
    *
    * @param authenticationServer authentication server
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    */
   public SaslStreamServerDriver(AuthenticationServer authenticationServer,
       AlluxioConfiguration conf) {

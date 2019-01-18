@@ -46,7 +46,7 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
    *
    * @param outputPath the job's output path, or null if the output committer is a noop
    * @param taskContext the task's context
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public KeyValueOutputCommitter(Path outputPath, TaskAttemptContext taskContext,
       AlluxioConfiguration alluxioConf)

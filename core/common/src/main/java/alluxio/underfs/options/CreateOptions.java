@@ -42,7 +42,7 @@ public final class CreateOptions {
   private AccessControlList mAcl;
 
   /**
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the default {@link CreateOptions}
    */
   public static CreateOptions defaults(AlluxioConfiguration conf) {

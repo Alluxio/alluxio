@@ -36,7 +36,7 @@ public final class MkdirsOptions {
   private Mode mMode;
 
   /**
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the default {@link MkdirsOptions}
    */
   public static MkdirsOptions defaults(AlluxioConfiguration conf) {

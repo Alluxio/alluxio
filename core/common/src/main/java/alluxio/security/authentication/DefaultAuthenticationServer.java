@@ -63,7 +63,7 @@ public class DefaultAuthenticationServer
   /**
    * Creates {@link DefaultAuthenticationServer} instance.
    *
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    */
   public DefaultAuthenticationServer(AlluxioConfiguration conf) {
     checkSupported(conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));

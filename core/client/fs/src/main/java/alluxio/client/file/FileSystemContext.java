@@ -100,7 +100,7 @@ public final class FileSystemContext implements Closeable {
   private final String mAppId;
 
   /**
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return the instance of file system context with no subject associated
    */
   public static FileSystemContext create(AlluxioConfiguration alluxioConf) {
@@ -109,7 +109,7 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * @param subject the parent subject, set to null if not present
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return the context
    */
   public static FileSystemContext create(Subject subject,
@@ -123,7 +123,7 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * @param subject the parent subject, set to null if not present
-   * @param props Alluxio's configuration properties
+   * @param props Alluxio configuration properties
    * @return the context
    */
   public static FileSystemContext create(Subject subject, @Nullable AlluxioProperties props) {
@@ -151,7 +151,7 @@ public final class FileSystemContext implements Closeable {
    * @param masterInquireClient the client to use for determining the master; note that if the
    *        context is reset, this client will be replaced with a new masterInquireClient based on
    *        the original configuration.
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return the context
    */
   @VisibleForTesting

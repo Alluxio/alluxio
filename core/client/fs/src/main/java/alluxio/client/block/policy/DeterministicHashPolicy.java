@@ -58,7 +58,7 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   /**
    * Constructs a new {@link DeterministicHashPolicy}.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public DeterministicHashPolicy(AlluxioConfiguration alluxioConf) {
     this(alluxioConf

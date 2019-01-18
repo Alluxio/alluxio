@@ -34,7 +34,7 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy, BlockL
   private final String mHostname;
 
   /**
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public SpecificHostPolicy(AlluxioConfiguration alluxioConf) {
     this(alluxioConf.get(PropertyKey.WORKER_HOSTNAME));

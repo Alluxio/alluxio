@@ -56,7 +56,7 @@ public final class OutStreamOptions {
   private long mMountId;
 
   /**
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @return the default {@link OutStreamOptions}
    */
   public static OutStreamOptions defaults(AlluxioConfiguration alluxioConf) {
@@ -67,7 +67,7 @@ public final class OutStreamOptions {
    * Creates an {@link OutStreamOptions} instance from given options.
    *
    * @param options CreateFile options
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    * @throws Exception if FileWriteLocationPolicy can't be loaded
    */
   public OutStreamOptions(CreateFilePOptions options, AlluxioConfiguration alluxioConf) {

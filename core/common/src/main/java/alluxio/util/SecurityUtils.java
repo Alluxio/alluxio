@@ -33,7 +33,7 @@ public final class SecurityUtils {
   /**
    * Checks if security is enabled.
    *
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return true if security is enabled, false otherwise
    */
   public static boolean isSecurityEnabled(AlluxioConfiguration conf) {
@@ -43,7 +43,7 @@ public final class SecurityUtils {
   /**
    * Checks if authentication is enabled.
    *
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return true if authentication is enabled, false otherwise
    */
   public static boolean isAuthenticationEnabled(AlluxioConfiguration conf) {
@@ -54,7 +54,7 @@ public final class SecurityUtils {
   /**
    * Checks if authorization is enabled.
    *
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return true if authorization is enabled, false otherwise
    */
   public static boolean isAuthorizationEnabled(AlluxioConfiguration conf) {
@@ -62,7 +62,7 @@ public final class SecurityUtils {
   }
 
   /**
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the owner fetched from the login module, or empty string if the fetch fails or
    *         authentication is disabled
    */
@@ -75,7 +75,7 @@ public final class SecurityUtils {
   }
 
   /**
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the owner fetched from the gRPC client, or empty string if the fetch fails or
    *         authentication is disabled
    */
@@ -92,7 +92,7 @@ public final class SecurityUtils {
   }
 
   /**
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the group fetched from the login module, or empty string if the fetch fails or
    *         authentication is disabled
    */
@@ -105,7 +105,7 @@ public final class SecurityUtils {
   }
 
   /**
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the group fetched from the gRPC client, or empty string if the fetch fails or
    *         authentication is disabled
    */

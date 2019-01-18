@@ -35,7 +35,7 @@ public final class JobMasterClientPool extends ResourcePool<JobMasterClient> {
   /**
    * Creates a new job master client pool.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public JobMasterClientPool(AlluxioConfiguration alluxioConf) {
     super(alluxioConf.getInt(PropertyKey.JOB_MASTER_CLIENT_THREADS));

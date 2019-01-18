@@ -49,7 +49,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   /**
    * Constructs a new {@link KeyValueOutputFormat}.
    *
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public KeyValueOutputFormat(AlluxioConfiguration alluxioConf) {
     mConf = alluxioConf;

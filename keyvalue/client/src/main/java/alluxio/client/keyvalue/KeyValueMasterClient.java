@@ -47,7 +47,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * Creates a new key-value master client.
    *
    * @param conf master client configuration
-   * @param alluxioConf Alluxio's configuration
+   * @param alluxioConf Alluxio configuration
    */
   public KeyValueMasterClient(MasterClientConfig conf, AlluxioConfiguration alluxioConf) {
     super(conf, alluxioConf);

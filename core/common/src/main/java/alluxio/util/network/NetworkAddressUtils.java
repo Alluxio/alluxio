@@ -299,7 +299,7 @@ public final class NetworkAddressUtils {
    * specified, Alluxio will use the default service port.
    *
    * @param service Service type used to connect
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the service port number
    */
   public static int getPort(ServiceType service, AlluxioConfiguration conf) {
@@ -310,7 +310,7 @@ public final class NetworkAddressUtils {
    * Helper method to get the bind hostname for a given service.
    *
    * @param service the service name
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the InetSocketAddress the service will bind to
    */
   public static InetSocketAddress getBindAddress(ServiceType service, AlluxioConfiguration conf) {
@@ -330,7 +330,7 @@ public final class NetworkAddressUtils {
    * </ol>
    *
    * @param service the service name
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the bind hostname
    */
   public static String getBindHost(ServiceType service, AlluxioConfiguration conf) {
@@ -346,7 +346,7 @@ public final class NetworkAddressUtils {
    * Gets the local hostname to be used by the client. If this isn't configured, a
    * non-loopback local hostname will be looked up.
    *
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the local hostname for the client
    * @deprecated This should not be used anymore as the USER_HOSTNAME key is deprecated
    */
@@ -361,7 +361,7 @@ public final class NetworkAddressUtils {
   /**
    * Gets a local node name from configuration if it is available, falling back on localhost lookup.
    *
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the local node name
    */
   public static String getLocalNodeName(AlluxioConfiguration conf) {
@@ -615,7 +615,7 @@ public final class NetworkAddressUtils {
    * Extracts dataPort socket address from Alluxio representation of network address.
    *
    * @param netAddress the input network address representation
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @return the socket address
    */
   public static SocketAddress getDataPortSocketAddress(WorkerNetAddress netAddress,
@@ -637,7 +637,7 @@ public final class NetworkAddressUtils {
    *
    * @param address the network address to ping
    * @param serviceType the Alluxio service type
-   * @param conf Alluxio's configuration
+   * @param conf Alluxio configuration
    * @throws UnauthenticatedException If the user is not authenticated
    * @throws StatusRuntimeException If the host not reachable or does not serve the given service
    */
