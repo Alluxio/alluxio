@@ -30,12 +30,12 @@ public class S3AUnderFileSystemFactoryTest {
   @Test
   public void factory() {
     AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
-    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path"
-        , conf);
+    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("s3a://test-bucket/path",
+        conf);
     UnderFileSystemFactory factory2 = UnderFileSystemFactoryRegistry.find("s3n://test-bucket/path",
         conf);
-    UnderFileSystemFactory factory3 = UnderFileSystemFactoryRegistry.find("s3://test-bucket/path"
-        , conf);
+    UnderFileSystemFactory factory3 = UnderFileSystemFactoryRegistry.find("s3://test-bucket/path",
+        conf);
 
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for s3a paths when using this module", factory);

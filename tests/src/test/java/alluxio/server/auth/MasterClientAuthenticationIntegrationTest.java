@@ -93,8 +93,8 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnect() throws Exception {
     try (FileSystemMasterClient masterClient =
-        FileSystemMasterClient.Factory.create(MasterClientConfig.defaults(ServerConfiguration.global()),
-            ServerConfiguration.global())) {
+        FileSystemMasterClient.Factory.create(MasterClientConfig
+            .defaults(ServerConfiguration.global()), ServerConfiguration.global())) {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
       LoginUserTestUtils.resetLoginUser("no-alluxio");

@@ -34,10 +34,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * A JUnit Rule resource for automatically managing a local alluxio cluster for testing. To use it,
  * create an instance of the class under a {@literal @}Rule annotation, with the required
- * configuration parameters, and any necessary explicit {@link ServerConfiguration} settings. The Alluxio
- * cluster will be set up from scratch at the end of every method (or at the start of every suite if
- * {@literal @}ClassRule is used), and destroyed at the end. Below is an example of declaring and
- * using it.
+ * configuration parameters, and any necessary explicit {@link ServerConfiguration} settings. The
+ * Alluxio cluster will be set up from scratch at the end of every method (or at the start of
+ * every suite if {@literal @}ClassRule is used), and destroyed at the end. Below is an example
+ * of declaring and using it.
  *
  * <pre>
  *   public class SomethingTest {

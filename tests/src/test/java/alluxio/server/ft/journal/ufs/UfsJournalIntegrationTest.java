@@ -206,10 +206,12 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
             Constants.FILE_SYSTEM_MASTER_NAME);
     UfsJournal journal = new UfsJournal(new URI(journalFolder), new NoopMaster(), 0);
     URI completedLocation = journal.getLogDir();
-    Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation, ServerConfiguration.global())
+    Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation,
+        ServerConfiguration.global())
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
-    Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation, ServerConfiguration.global())
+    Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation,
+        ServerConfiguration.global())
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
   }

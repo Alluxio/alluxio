@@ -1635,8 +1635,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
               .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true));
           mFsMaster.createDirectory(dstPath.getParent(), context);
         } catch (FileAlreadyExistsException | InvalidPathException e) {
-          // FileAlreadyExistsException: This is an acceptable exception to create, since we don't know
-          // if the parent has been created yet by another thread.
+          // FileAlreadyExistsException: This is an acceptable exception to create, since we
+          // don't know if the parent has been created yet by another thread.
           // InvalidPathException: This could happen if we are renaming something that's a child of
           // the root.
         }

@@ -159,7 +159,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      waitForWorkerRegistration(AlluxioBlockStore.create(ServerConfiguration.global()), 1, CLUSTER_WAIT_TIMEOUT_MS);
+      waitForWorkerRegistration(AlluxioBlockStore.create(ServerConfiguration.global()), 1,
+          CLUSTER_WAIT_TIMEOUT_MS);
       faultTestDataCheck(answer);
       faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
     }
@@ -172,7 +173,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      waitForWorkerRegistration(AlluxioBlockStore.create(ServerConfiguration.global()), 1, CLUSTER_WAIT_TIMEOUT_MS);
+      waitForWorkerRegistration(AlluxioBlockStore.create(ServerConfiguration.global()), 1,
+          CLUSTER_WAIT_TIMEOUT_MS);
 
       if (kills % 2 != 0) {
         // Delete files.

@@ -71,9 +71,10 @@ public final class GCSOutputStream extends OutputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the JetS3t client
+   * @param tmpDirs a list of temporary directories
    */
-  public GCSOutputStream(String bucketName, String key, GoogleStorageService client, List<String> tmpDirs)
-      throws IOException {
+  public GCSOutputStream(String bucketName, String key, GoogleStorageService client,
+      List<String> tmpDirs) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "
         + "not be null or empty.");
     mBucketName = bucketName;

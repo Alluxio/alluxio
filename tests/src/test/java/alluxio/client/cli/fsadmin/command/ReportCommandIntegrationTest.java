@@ -51,7 +51,8 @@ public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest
 
     // Check if meta master values are available
     String expectedMasterAddress = NetworkAddressUtils
-        .getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC, ServerConfiguration.global()).toString();
+        .getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC,
+            ServerConfiguration.global()).toString();
     Assert.assertThat(output, CoreMatchers.containsString(
         "Master Address: " + expectedMasterAddress));
     Assert.assertThat(output, CoreMatchers.containsString(

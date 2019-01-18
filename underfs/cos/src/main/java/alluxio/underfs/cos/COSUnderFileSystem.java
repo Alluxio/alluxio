@@ -68,10 +68,11 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
+   * @param alluxioConf Alluxio's configuration
    * @return the created {@link COSUnderFileSystem} instance
    */
   public static COSUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf,
-                                                  AlluxioConfiguration alluxioConf)
+      AlluxioConfiguration alluxioConf)
       throws Exception {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(conf.isSet(PropertyKey.COS_ACCESS_KEY),
@@ -103,7 +104,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf configuration for this UFS
    */
   protected COSUnderFileSystem(AlluxioURI uri, COSClient client, String bucketName, String appId,
-                               UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
     super(uri, conf, alluxioConf);
     mClient = client;
     mBucketName = bucketName;
@@ -150,7 +151,8 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    return new COSOutputStream(mBucketNameInternal, key, mClient, mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
+    return new COSOutputStream(mBucketNameInternal, key, mClient,
+        mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
   }
 
   @Override

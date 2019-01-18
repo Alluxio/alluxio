@@ -20,15 +20,14 @@ import alluxio.SystemPropertyRule;
 import alluxio.cli.GetConf;
 import alluxio.client.RetryHandlingMetaMasterConfigClient;
 import alluxio.grpc.ConfigProperty;
-
 import alluxio.util.ConfigurationUtils;
+
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import javax.security.auth.login.Configuration;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.util.Arrays;
@@ -74,11 +73,11 @@ public final class GetConfTest {
         .setAlias(new String[] {"alluxio.test.property.alias"})
         .setDefaultValue("testValue")
         .build();
-    assertEquals(0, GetConf.getConf(ServerConfiguration.global(),"alluxio.test.property.alias"));
+    assertEquals(0, GetConf.getConf(ServerConfiguration.global(), "alluxio.test.property.alias"));
     assertEquals("testValue\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    assertEquals(0, GetConf.getConf(ServerConfiguration.global(),"alluxio.test.property"));
+    assertEquals(0, GetConf.getConf(ServerConfiguration.global(), "alluxio.test.property"));
     assertEquals("testValue\n", mOutputStream.toString());
     PropertyKey.unregister(testProperty);
   }
@@ -92,13 +91,13 @@ public final class GetConfTest {
 
     mOutputStream.reset();
     ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
-    assertEquals(0, GetConf.getConf(ServerConfiguration.global(),"--unit", "KB",
+    assertEquals(0, GetConf.getConf(ServerConfiguration.global(), "--unit", "KB",
         PropertyKey.WORKER_MEMORY_SIZE.toString()));
     assertEquals("2\n", mOutputStream.toString());
 
     mOutputStream.reset();
     ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2MB");
-    assertEquals(0, GetConf.getConf(ServerConfiguration.global(),"--unit", "KB",
+    assertEquals(0, GetConf.getConf(ServerConfiguration.global(), "--unit", "KB",
         PropertyKey.WORKER_MEMORY_SIZE.toString()));
     assertEquals("2048\n", mOutputStream.toString());
 

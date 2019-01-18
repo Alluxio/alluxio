@@ -23,10 +23,10 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ConfigurationUtils;
+
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.GetObjectRequest;
 import com.aliyun.oss.model.OSSObject;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,7 +45,7 @@ public class OSSInputStreamTest {
 
   private static final String BUCKET_NAME = "testBucket";
   private static final String OBJECT_KEY = "testObjectKey";
-  private static final AlluxioConfiguration mConf =
+  private static AlluxioConfiguration sConf =
       new InstancedConfiguration(ConfigurationUtils.defaults());
 
   private OSSInputStream mOssInputStream;
@@ -83,7 +83,7 @@ public class OSSInputStreamTest {
       when(mOssObject[i].getObjectContent()).thenReturn(mInputStreamSpy[i]);
     }
     mOssInputStream = new OSSInputStream(BUCKET_NAME, OBJECT_KEY, mOssClient,
-        mConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+        sConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
   }
 
   @Test

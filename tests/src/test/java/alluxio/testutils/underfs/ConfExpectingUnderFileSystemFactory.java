@@ -43,7 +43,8 @@ public final class ConfExpectingUnderFileSystemFactory implements UnderFileSyste
     Preconditions.checkNotNull(path, "path");
     Preconditions.checkArgument(mExpectedConf.equals(conf.getMountSpecificConf()),
         "ufs conf {} does not match expected {}", conf, mExpectedConf);
-    return new LocalUnderFileSystem(new AlluxioURI(new AlluxioURI(path).getPath()), conf, alluxioConf);
+    return new LocalUnderFileSystem(new AlluxioURI(new AlluxioURI(path).getPath()), conf,
+        alluxioConf);
   }
 
   @Override

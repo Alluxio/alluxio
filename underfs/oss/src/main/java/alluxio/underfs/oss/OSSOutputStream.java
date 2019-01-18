@@ -69,8 +69,10 @@ public final class OSSOutputStream extends OutputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for OSS
+   * @param tmpDirs a list of temporary directories
    */
-  public OSSOutputStream(String bucketName, String key, OSSClient client, List<String> tmpDirs) throws IOException {
+  public OSSOutputStream(String bucketName, String key, OSSClient client, List<String> tmpDirs)
+      throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
         "Bucket name must not be null or empty.");
     Preconditions.checkArgument(key != null && !key.isEmpty(),

@@ -100,10 +100,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Hadoop
+   * @param alluxioConf Alluxio's configuration
    * @return a new HDFS {@link UnderFileSystem} instance
    */
-  public static HdfsUnderFileSystem createInstance(
-      AlluxioURI ufsUri, UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+  public static HdfsUnderFileSystem createInstance(AlluxioURI ufsUri,
+      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
     Configuration hdfsConf = createConfiguration(conf);
     return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf, alluxioConf);
   }
@@ -114,6 +115,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
    * @param hdfsConf the configuration for HDFS
+   * @param alluxioConf Alluxio's configuration
    */
   public HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration hdfsConf, AlluxioConfiguration alluxioConf) {

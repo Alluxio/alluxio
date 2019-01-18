@@ -62,6 +62,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
+   * @param alluxioConf Alluxio's configuration
    * @return the created {@link OSSUnderFileSystem} instance
    */
   public static OSSUnderFileSystem createInstance(AlluxioURI uri,
@@ -92,7 +93,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf configuration for this UFS
    */
   protected OSSUnderFileSystem(AlluxioURI uri, OSSClient ossClient, String bucketName,
-                               UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
     super(uri, conf, alluxioConf);
     mClient = ossClient;
     mBucketName = bucketName;
@@ -138,7 +139,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    return new OSSOutputStream(mBucketName, key, mClient, mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
+    return new OSSOutputStream(mBucketName, key, mClient,
+        mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
   }
 
   @Override

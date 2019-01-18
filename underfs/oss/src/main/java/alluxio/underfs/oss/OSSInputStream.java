@@ -50,7 +50,8 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
    * @param key the key of the file
    * @param client the client for OSS
    */
-  OSSInputStream(String bucketName, String key, OSSClient client, long blockSize) throws IOException {
+  OSSInputStream(String bucketName, String key, OSSClient client, long blockSize)
+      throws IOException {
     this(bucketName, key, client, 0L, blockSize);
   }
 
@@ -74,7 +75,8 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
   }
 
   @Override
-  protected InputStream createStream(long startPos, long endPos, long blockSize) throws IOException {
+  protected InputStream createStream(long startPos, long endPos, long blockSize)
+      throws IOException {
     GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
     // OSS returns entire object if we read past the end
     req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);

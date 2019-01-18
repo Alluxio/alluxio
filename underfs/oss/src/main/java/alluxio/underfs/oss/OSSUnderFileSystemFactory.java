@@ -38,7 +38,8 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   public OSSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf) {
     Preconditions.checkNotNull(path, "path");
 
     if (checkOSSCredentials(conf)) {

@@ -159,10 +159,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
+   * @param alluxioConf Alluxio's configuration
    * @return the created {@link S3AUnderFileSystem} instance
    */
-  public static S3AUnderFileSystem createInstance(AlluxioURI uri,
-                                                  UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+  public static S3AUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf) {
 
     AWSCredentialsProvider credentials = createAwsCredentialsProvider(conf);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
@@ -341,8 +342,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
           mAlluxioConf.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
     }
     return new S3AOutputStream(mBucketName, key, mManager,
-            mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","),
-                    mAlluxioConf.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
+        mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","),
+        mAlluxioConf
+            .getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
   }
 
   @Override

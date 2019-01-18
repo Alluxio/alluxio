@@ -160,7 +160,8 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
     key = key.equals(PATH_SEPARATOR) ? "" : key;
     FileListing result = getObjectListingChunk(key, getListingChunkLength(mAlluxioConf), delimiter);
     if (result != null) {
-      return new KodoObjectListingChunk(result, getListingChunkLength(mAlluxioConf), delimiter, key);
+      return new KodoObjectListingChunk(result, getListingChunkLength(mAlluxioConf), delimiter,
+          key);
     }
     return null;
   }

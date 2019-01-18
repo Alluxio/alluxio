@@ -25,7 +25,8 @@ import org.junit.Test;
 public class WasbUnderFileSystemFactoryTest {
 
   /**
-   * Tests the {@link UnderFileSystemFactoryRegistry#find(String, alluxio.conf.AlluxioConfiguration)} method.
+   * Tests the
+   * {@link UnderFileSystemFactoryRegistry#find(String, alluxio.conf.AlluxioConfiguration)} method.
    */
   @Test
   public void factory() {

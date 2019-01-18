@@ -26,7 +26,7 @@ import org.junit.BeforeClass;
 public final class WasbUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
   private static final String WASB_BASE_DIR_CONF = "testWasbBaseDir";
   private static final String WASB_BASE_DIR = System.getProperty(WASB_BASE_DIR_CONF);
-  private static final InstancedConfiguration sAlluxioConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sAlluxioConf = ConfigurationTestUtils.defaults();
 
   @BeforeClass
   public static void beforeClass() throws Exception {

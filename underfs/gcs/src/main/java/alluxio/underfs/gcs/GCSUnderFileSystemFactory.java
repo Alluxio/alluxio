@@ -43,7 +43,8 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   public GCSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf) {
     Preconditions.checkNotNull(path, "path");
 
     if (checkGoogleCredentials(conf)) {

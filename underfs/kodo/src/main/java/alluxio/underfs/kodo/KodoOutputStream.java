@@ -60,8 +60,10 @@ public class KodoOutputStream extends OutputStream {
    *
    * @param key the key of the file
    * @param kodoClient the client for Kodo
+   * @param tmpDirs a list of temporary directories
    */
-  public KodoOutputStream(String key, KodoClient kodoClient, List<String> tmpDirs) throws IOException {
+  public KodoOutputStream(String key, KodoClient kodoClient, List<String> tmpDirs)
+      throws IOException {
     mKey = key;
     mKodoClient = kodoClient;
     mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(tmpDirs), UUID.randomUUID()));

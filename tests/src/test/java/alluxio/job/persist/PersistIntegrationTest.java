@@ -14,7 +14,6 @@ package alluxio.job.persist;
 import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.ServerConfiguration;

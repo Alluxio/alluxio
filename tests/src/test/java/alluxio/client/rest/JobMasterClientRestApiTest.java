@@ -11,11 +11,7 @@
 
 package alluxio.client.rest;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.rest.RestApiTest;
-import alluxio.client.rest.TestCase;
-import alluxio.client.rest.TestCaseOptions;
 import alluxio.conf.ServerConfiguration;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;

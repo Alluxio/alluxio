@@ -11,7 +11,6 @@
 
 package alluxio.client.rest;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.AlluxioJobMasterRestServiceHandler;
 import alluxio.master.LocalAlluxioJobCluster;

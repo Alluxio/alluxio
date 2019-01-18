@@ -16,7 +16,6 @@ import static org.junit.Assert.assertFalse;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.conf.ServerConfiguration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileOutStream;
@@ -83,7 +82,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 
   @Rule
-  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test", ServerConfiguration.global());
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test",
+      ServerConfiguration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =

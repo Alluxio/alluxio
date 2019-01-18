@@ -76,7 +76,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
           .put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "100")
           .put(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
           .put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "32")
-          .put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec").build(), ServerConfiguration.global());
+          .put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec").build(),
+          ServerConfiguration.global());
 
   private static final long SHUTDOWN_TIME_MS = 15 * Constants.SECOND_MS;
   private static final String TEST_FILE_DIR = "/files/";
@@ -87,7 +88,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   /** Executor for running client threads. */
   private ExecutorService mExecutorsForClient;
   private FileSystemContext mFsContext;
-
 
   @Before
   public final void before() throws Exception {

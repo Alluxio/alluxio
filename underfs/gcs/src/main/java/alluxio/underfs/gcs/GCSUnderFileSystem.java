@@ -82,11 +82,13 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
+   * @param alluxioConf Alluxio's configuration
    * @return the created {@link GCSUnderFileSystem} instance
    * @throws ServiceException when a connection to GCS could not be created
    */
   public static GCSUnderFileSystem createInstance(
-      AlluxioURI uri, UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) throws ServiceException {
+      AlluxioURI uri, UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf)
+      throws ServiceException {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(conf.isSet(PropertyKey.GCS_ACCESS_KEY),
             "Property " + PropertyKey.GCS_ACCESS_KEY + " is required to connect to GCS");
@@ -135,10 +137,11 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
    * @param conf configuration for this UFS
+   * @param alluxioConf Alluxio's configuration
    */
   protected GCSUnderFileSystem(AlluxioURI uri, GoogleStorageService googleStorageService,
-                               String bucketName, short bucketMode, String accountOwner,
-                               UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+      String bucketName, short bucketMode, String accountOwner, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf) {
     super(uri, conf, alluxioConf);
     mClient = googleStorageService;
     mBucketName = bucketName;
@@ -198,7 +201,8 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    return new GCSOutputStream(mBucketName, key, mClient, mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
+    return new GCSOutputStream(mBucketName, key, mClient,
+        mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
   }
 
   @Override

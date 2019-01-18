@@ -38,7 +38,8 @@ public class COSUnderFileSystemFactory implements UnderFileSystemFactory {
   public COSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf) {
     Preconditions.checkNotNull(path, "path");
 
     if (checkCOSCredentials(conf)) {
