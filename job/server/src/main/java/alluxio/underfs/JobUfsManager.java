@@ -44,8 +44,8 @@ public final class JobUfsManager extends AbstractUfsManager {
    */
   public JobUfsManager() {
     mMasterClient =
-        mCloser.register(new FileSystemMasterClient(MasterClientConfig.defaults(
-            ServerConfiguration.global())));
+        mCloser.register(new FileSystemMasterClient(MasterClientConfig
+            .newBuilder(ServerConfiguration.global()).build()));
   }
 
   @Override

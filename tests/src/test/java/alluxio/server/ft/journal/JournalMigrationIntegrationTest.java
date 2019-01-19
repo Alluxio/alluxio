@@ -48,8 +48,9 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
     try {
       FileSystem fs = cluster.getFileSystemClient();
       MetaMasterClient metaClient = new RetryHandlingMetaMasterClient(
-          MasterClientConfig.defaults(ServerConfiguration.global()).withMasterInquireClient(
-              cluster.getMasterInquireClient()));
+          MasterClientConfig.newBuilder(ServerConfiguration.global())
+              .setMasterInquireClient(cluster.getMasterInquireClient())
+              .build());
       for (int i = 0; i < NUM_DIRS; i++) {
         fs.createDirectory(new AlluxioURI("/dir" + i));
       }

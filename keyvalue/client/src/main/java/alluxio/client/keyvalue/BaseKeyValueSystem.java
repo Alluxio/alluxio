@@ -46,7 +46,7 @@ public final class BaseKeyValueSystem implements KeyValueSystem {
    * @param alluxioConf Alluxio configuration
    */
   public BaseKeyValueSystem(AlluxioConfiguration alluxioConf) {
-    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(alluxioConf));
+    mMasterClient = new KeyValueMasterClient(MasterClientConfig.newBuilder(alluxioConf).build());
     mConf = alluxioConf;
   }
 

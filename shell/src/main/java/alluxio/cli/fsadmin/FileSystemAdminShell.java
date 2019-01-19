@@ -74,10 +74,11 @@ public final class FileSystemAdminShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
+    MasterClientConfig masterConfig = MasterClientConfig.newBuilder(mConfiguration).build();
     Context context = new Context(
-        new RetryHandlingFileSystemMasterClient(MasterClientConfig.defaults(mConfiguration)),
-        new RetryHandlingBlockMasterClient(MasterClientConfig.defaults(mConfiguration)),
-        new RetryHandlingMetaMasterClient(MasterClientConfig.defaults(mConfiguration)),
+        new RetryHandlingFileSystemMasterClient(masterConfig),
+        new RetryHandlingBlockMasterClient(masterConfig),
+        new RetryHandlingMetaMasterClient(masterConfig),
         System.out
     );
     return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(),

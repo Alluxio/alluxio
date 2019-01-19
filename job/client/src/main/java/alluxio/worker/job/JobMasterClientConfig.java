@@ -13,7 +13,9 @@ package alluxio.worker.job;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.master.MasterClientConfig;
-import alluxio.master.MasterInquireClient.Factory;
+import alluxio.master.MasterInquireClient;
+
+import javax.security.auth.Subject;
 
 /**
  * Extension of MasterClientConfig with defaults that make sense for job master clients.
@@ -21,13 +23,17 @@ import alluxio.master.MasterInquireClient.Factory;
 public class JobMasterClientConfig extends MasterClientConfig {
 
   /**
-   * @param alluxioConf Alluxio configuration
-   * @return a master client configuration with default values
+   * Create a builder for {@link JobMasterClientConfig}.
+   *
+   * @param alluxioConf Alluxio Configuration
+   * @return the builder for {@link JobMasterClientConfig}
    */
-  public static JobMasterClientConfig defaults(AlluxioConfiguration alluxioConf) {
-    JobMasterClientConfig conf = new JobMasterClientConfig();
-    conf.withConfiguration(alluxioConf)
-        .withMasterInquireClient(Factory.createForJobMaster(alluxioConf));
-    return conf;
+  public static JobMasterClientConfigBuilder newBuilder(AlluxioConfiguration alluxioConf) {
+    return new JobMasterClientConfigBuilder(alluxioConf);
+  }
+
+  protected JobMasterClientConfig(AlluxioConfiguration alluxioConfiguration,
+      MasterInquireClient masterInquireClient, Subject subject) {
+    super(alluxioConfiguration, masterInquireClient, subject);
   }
 }

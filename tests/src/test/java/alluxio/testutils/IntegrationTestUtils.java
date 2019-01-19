@@ -59,8 +59,8 @@ public final class IntegrationTestUtils {
   public static void waitForPersist(final LocalAlluxioClusterResource localAlluxioClusterResource,
       final AlluxioURI uri, int timeoutMs) throws InterruptedException, TimeoutException {
     try (FileSystemMasterClient client =
-        FileSystemMasterClient.Factory.create(MasterClientConfig.defaults(
-            ServerConfiguration.global()))) {
+        FileSystemMasterClient.Factory.create(MasterClientConfig
+            .newBuilder(ServerConfiguration.global()).build())) {
       CommonUtils.waitFor(uri + " to be persisted", () -> {
         try {
           return client.getStatus(uri, GetStatusPOptions.getDefaultInstance()).isPersisted();

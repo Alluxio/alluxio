@@ -248,8 +248,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       if (haEnabled) {
         // Standby master should setup MetaMasterSync to communicate with the leader master
         RetryHandlingMetaMasterMasterClient metaMasterClient =
-            new RetryHandlingMetaMasterMasterClient(MasterClientConfig.defaults(
-                ServerConfiguration.global()));
+            new RetryHandlingMetaMasterMasterClient(MasterClientConfig.newBuilder(
+                ServerConfiguration.global()).build());
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
             new MetaMasterSync(mMasterAddress, metaMasterClient),
             (int) ServerConfiguration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL),

@@ -79,7 +79,8 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
 
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient =
-        new FileSystemMasterClient(MasterClientConfig.defaults(ServerConfiguration.global()));
+        new FileSystemMasterClient(MasterClientConfig
+            .newBuilder(ServerConfiguration.global()).build());
   }
 
   @Override
