@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.file.meta.InodeTree.LockMode;
+import alluxio.concurrent.LockMode;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.util.io.PathUtils;
 
