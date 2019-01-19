@@ -69,8 +69,12 @@ export class Workers extends React.Component<AllProps> {
                 <thead>
                 <tr>
                   <th>Node Name</th>
-                  <th>[D]Worker Id</th>
-                  <th>[D]Uptime</th>
+                  {initData.debug && (
+                    <React.Fragment>
+                      <th>[D]Worker Id</th>
+                      <th>[D]Uptime</th>
+                    </React.Fragment>
+                  )}
                   <th>Last Heartbeat</th>
                   <th>State</th>
                   <th>Workers Capacity</th>
@@ -82,8 +86,12 @@ export class Workers extends React.Component<AllProps> {
                 {workersData.normalNodeInfos.map((nodeInfo: INodeInfo) => (
                   <tr key={nodeInfo.workerId}>
                     <td><a href={`//${nodeInfo.host}:${initData.workerPort}`} target="_blank">{nodeInfo.host}</a></td>
-                    <td>{nodeInfo.workerId}</td>
-                    <td>{nodeInfo.uptimeClockTime}</td>
+                    {initData.debug && (
+                      <React.Fragment>
+                        <td>{nodeInfo.workerId}</td>
+                        <td>{nodeInfo.uptimeClockTime}</td>
+                      </React.Fragment>
+                    )}
                     <td>{nodeInfo.lastHeartbeat}</td>
                     <td>{nodeInfo.state}</td>
                     <td>{nodeInfo.capacity}</td>
@@ -109,8 +117,12 @@ export class Workers extends React.Component<AllProps> {
                 <thead>
                 <tr>
                   <th>Node Name</th>
-                  <th>[D]Worker Id</th>
-                  <th>[D]Uptime</th>
+                  {initData.debug && (
+                    <React.Fragment>
+                      <th>[D]Worker Id</th>
+                      <th>[D]Uptime</th>
+                    </React.Fragment>
+                  )}
                   <th>Last Heartbeat</th>
                   <th>Workers Capacity</th>
                 </tr>
@@ -119,8 +131,12 @@ export class Workers extends React.Component<AllProps> {
                 {workersData.failedNodeInfos.map((nodeInfo: INodeInfo) => (
                   <tr key={nodeInfo.workerId}>
                     <td>{nodeInfo.host}</td>
-                    <td>{nodeInfo.workerId}</td>
-                    <td>{nodeInfo.uptimeClockTime}</td>
+                    {initData.debug && (
+                      <React.Fragment>
+                        <td>{nodeInfo.workerId}</td>
+                        <td>{nodeInfo.uptimeClockTime}</td>
+                      </React.Fragment>
+                    )}
                     <td>{nodeInfo.lastHeartbeat}</td>
                     <td>{nodeInfo.capacity}</td>
                   </tr>
