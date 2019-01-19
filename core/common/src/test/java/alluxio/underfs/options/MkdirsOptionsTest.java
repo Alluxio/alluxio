@@ -24,6 +24,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.ModeUtils;
 
+import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -107,9 +108,10 @@ public final class MkdirsOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    MkdirsOptions m1 = MkdirsOptions.defaults(mConfiguration);
-    MkdirsOptions m2 = MkdirsOptions.defaults(mConfiguration);
-    assertEquals(m1, m2);
-    assertEquals(m1.hashCode(), m2.hashCode());
+    new EqualsTester()
+        .addEqualityGroup(
+            MkdirsOptions.defaults(mConfiguration),
+            MkdirsOptions.defaults(mConfiguration))
+        .testEquals();
   }
 }

@@ -16,13 +16,16 @@ import static org.junit.Assert.assertEquals;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.network.TieredIdentityFactory;
+import alluxio.test.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -80,13 +83,11 @@ public class LocalFirstAvoidEvictionPolicyTest {
 
   @Test
   public void equalsTest() throws Exception {
-    LocalFirstAvoidEvictionPolicy p1 = new LocalFirstAvoidEvictionPolicy(mConf);
-    LocalFirstAvoidEvictionPolicy p2 = new LocalFirstAvoidEvictionPolicy(mConf);
-    assertEquals(p1, p2);
-    assertEquals(p1.hashCode(), p2.hashCode());
-//    CommonUtils.testEquals(LocalFirstAvoidEvictionPolicy.class,
-//        new Class[] {AlluxioConfiguration.class}, new Object[]{mConf},
-//        "mFileWriteCapacityReserved");
+    new EqualsTester()
+        .addEqualityGroup(
+            new LocalFirstAvoidEvictionPolicy(mConf),
+            new LocalFirstAvoidEvictionPolicy(mConf))
+        .testEquals();
   }
 
   private BlockWorkerInfo worker(long capacity, long used, String node, String rack) {

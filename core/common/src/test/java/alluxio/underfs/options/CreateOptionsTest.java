@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthType;
@@ -24,6 +25,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.ModeUtils;
 
+import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -107,9 +109,10 @@ public final class CreateOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CreateOptions m2 = CreateOptions.defaults(mConfiguration);
-    CreateOptions m1 = CreateOptions.defaults(mConfiguration);
-    assertEquals(m1, m2);
-    assertEquals(m1.hashCode(), m2.hashCode());
+    new EqualsTester()
+        .addEqualityGroup(
+            CreateOptions.defaults(mConfiguration),
+            CreateOptions.defaults(mConfiguration))
+        .testEquals();
   }
 }

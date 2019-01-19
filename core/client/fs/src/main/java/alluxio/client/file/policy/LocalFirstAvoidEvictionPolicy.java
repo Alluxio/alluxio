@@ -104,7 +104,8 @@ public final class LocalFirstAvoidEvictionPolicy
       return false;
     }
     LocalFirstAvoidEvictionPolicy that = (LocalFirstAvoidEvictionPolicy) o;
-    return Objects.equal(mPolicy, that.mPolicy);
+    return Objects.equal(mPolicy, that.mPolicy)
+        && Objects.equal(mFileWriteCapacityReserved, that.mFileWriteCapacityReserved);
   }
 
   @Override
@@ -116,6 +117,7 @@ public final class LocalFirstAvoidEvictionPolicy
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("policy", mPolicy)
+        .add("fileWriteCapacityReservered", mFileWriteCapacityReserved)
         .toString();
   }
 }
