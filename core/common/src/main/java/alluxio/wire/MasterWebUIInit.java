@@ -72,6 +72,11 @@ public final class MasterWebUIInit implements Serializable {
     return mWorkerPort;
   }
 
+  /**
+   * Gets refresh interval.
+   *
+   * @return the refresh interval
+   */
   public int getRefreshInterval() {
     return mRefreshInterval;
   }
@@ -120,6 +125,12 @@ public final class MasterWebUIInit implements Serializable {
     return this;
   }
 
+  /**
+   * Sets refresh interval.
+   *
+   * @param interval the interval
+   * @return the refresh interval
+   */
   public MasterWebUIInit setRefreshInterval(int interval) {
     mRefreshInterval = interval;
     return this;
