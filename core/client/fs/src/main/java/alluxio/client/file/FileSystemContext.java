@@ -363,7 +363,7 @@ public final class FileSystemContext implements Closeable {
    * create a new one.
    *
    * @param workerNetAddress the network address of the channel
-   * @return the acquired netty channel
+   * @return the acquired block worker
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
@@ -523,8 +523,8 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Key for worker client pools. This requires both the worker address and the username, so that
-   * netty channels are created for different users.
+   * Key for block worker client pools. This requires both the worker address and the username, so
+   * that block workers are created for different users.
    */
   private static final class ClientPoolKey {
     private final SocketAddress mSocketAddress;
