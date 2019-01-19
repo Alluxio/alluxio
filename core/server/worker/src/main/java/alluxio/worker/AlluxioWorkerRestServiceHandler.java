@@ -188,7 +188,8 @@ public final class AlluxioWorkerRestServiceHandler {
           .setWebFileInfoEnabled(Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
           .setSecurityAuthorizationPermissionEnabled(
               Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
-          .setMasterHostname(NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_WEB))
+          .setMasterHostname(
+              NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_WEB))
           .setMasterPort(Configuration.getInt(PropertyKey.MASTER_WEB_PORT))
           .setRefreshInterval(Configuration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
 
