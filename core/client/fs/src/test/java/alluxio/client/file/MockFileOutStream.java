@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.conf.AlluxioConfiguration;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
