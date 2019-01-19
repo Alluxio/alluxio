@@ -159,8 +159,10 @@ public class GrpcManagedChannelPool {
     if (shutdownManagedChannel) {
       try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
         if (mChannels.containsKey(channelKey)) {
-          ManagedChannelReference channelRef = mChannels.remove(channelKey);
-          shutdownManagedChannel(channelRef.get());
+          ManagedChannelReference channelRef = mChannels.get(channelKey);
+          if (channelRef.getRefCount() <= 0) {
+            shutdownManagedChannel(mChannels.remove(channelKey).get());
+          }
         }
       }
     }
