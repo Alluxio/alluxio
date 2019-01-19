@@ -471,7 +471,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                       </li>
                                     </NavItem>
                                     <NavItem
-                                      key="http::19999"
+                                      key="http://:19999"
                                       tag="li"
                                     >
                                       <li
@@ -479,23 +479,23 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={false}
-                                          href="http::19999"
+                                          href="http://:19999"
                                           onClick={[Function]}
                                           tag={[Function]}
-                                          to="http::19999"
+                                          to="http://:19999"
                                         >
                                           <NavLink
                                             className="nav-link"
-                                            href="http::19999"
+                                            href="http://:19999"
                                             onClick={[Function]}
                                             tag="a"
-                                            to="http::19999"
+                                            to="http://:19999"
                                           >
                                             <a
                                               className="nav-link nav-link"
-                                              href="http::19999"
+                                              href="http://:19999"
                                               onClick={[Function]}
-                                              to="http::19999"
+                                              to="http://:19999"
                                             >
                                               Return to Master
                                             </a>
@@ -839,6 +839,12 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                   className="container-fluid footer-wrapper"
                 >
                   <Footer
+                    callbackParameters={
+                      Object {
+                        "masterHostname": "",
+                        "masterPort": 19999,
+                      }
+                    }
                     data={
                       Array [
                         Object {
@@ -855,7 +861,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                         },
                         Object {
                           "innerText": "Workers",
-                          "url": "/workers",
+                          "url": [Function],
                         },
                         Object {
                           "innerText": "Resources",
@@ -941,19 +947,19 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                               </li>
                             </NavItem>
                             <NavItem
-                              key="/workers"
+                              key="http://:19999/workers"
                               tag="li"
                             >
                               <li
                                 className="nav-item"
                               >
                                 <NavLink
-                                  href="/workers"
+                                  href="http://:19999/workers"
                                   tag="a"
                                 >
                                   <a
                                     className="nav-link"
-                                    href="/workers"
+                                    href="http://:19999/workers"
                                     onClick={[Function]}
                                   >
                                     Workers

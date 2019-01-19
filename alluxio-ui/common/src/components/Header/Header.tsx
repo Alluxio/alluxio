@@ -26,7 +26,7 @@ import {
   NavLink
 } from 'reactstrap';
 
-import {INavigationData, INavigationDataCallbackParameter} from '../../constants';
+import {INavigationData, INavigationDataCallbackParameters} from '../../constants';
 import logo from '../../images/alluxio-mark-tight-sm.svg';
 import {isExternalLink} from '../../utilities';
 
@@ -35,7 +35,7 @@ import './Header.css';
 export interface IHeaderProps {
   autoRefreshCallback?: (enable: boolean) => void;
   data: INavigationData[];
-  callbackParameters?: INavigationDataCallbackParameter;
+  callbackParameters?: INavigationDataCallbackParameters;
   history: any;
 }
 

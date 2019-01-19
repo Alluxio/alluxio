@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export interface INavigationDataCallbackParameter {
+export interface INavigationDataCallbackParameters {
   [key: string]: string | number | boolean;
 }
 
@@ -17,5 +17,6 @@ export interface INavigationData {
   attributes?: any;
   innerNavs?: INavigationData[];
   innerText: string;
-  url?: string | ((navigationDataCallbackParameter?: INavigationDataCallbackParameter) => string);
+  url?: string | (() => string) | ((parameters: INavigationDataCallbackParameters) => string);
 }
+

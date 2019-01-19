@@ -22,7 +22,7 @@ export const footerNavigationData : INavigationData[] = [{
   url: 'https://alluxio.org/resources/survey-users'
 }, {
   innerText: 'Workers',
-  url: '/workers'
+  url: ({masterHostname, masterPort}) => `${window.location.protocol}//${masterHostname}:${masterPort}/workers`
 }, {
   innerText: 'Resources',
   url: 'https://alluxio.org/alluxio-resources/'

@@ -102,7 +102,8 @@ export class App extends React.Component<AllProps> {
             </Switch>
           </div>
           <div className="container-fluid footer-wrapper">
-            <Footer data={footerNavigationData}/>
+            <Footer data={footerNavigationData}
+                    callbackParameters={{masterHostname: init.masterHostname, masterPort: init.masterPort}}/>
           </div>
         </div>
       </ConnectedRouter>

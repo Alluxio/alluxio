@@ -11,7 +11,7 @@
 
 import {INavigationData} from '@alluxio/common-ui/src/constants';
 
-export const headerNavigationData : INavigationData[] = [{
+export const headerNavigationData: INavigationData[] = [{
   innerText: 'Overview',
   url: '/overview'
 }, {
@@ -25,5 +25,5 @@ export const headerNavigationData : INavigationData[] = [{
   url: '/metrics'
 }, {
   innerText: 'Return to Master',
-  url: ({masterHostname, masterPort}) => `${window.location.protocol}${masterHostname}:${masterPort}`
+  url: ({masterHostname, masterPort}) => `${window.location.protocol}//${masterHostname}:${masterPort}`
 }];
