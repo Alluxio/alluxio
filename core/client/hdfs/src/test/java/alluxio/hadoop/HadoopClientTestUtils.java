@@ -24,16 +24,12 @@ import java.net.URL;
  */
 public final class HadoopClientTestUtils {
   /**
-   * Resets the client to its initial state, re-initializing Alluxio and Hadoop contexts.
+   * Disables metrics in a configuration
    *
    * This method should only be used as a cleanup mechanism between tests.
    */
-  public static void resetClient(InstancedConfiguration conf) {
-    try {
-      conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+  public static void disableMetrics(InstancedConfiguration conf) {
+    conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
   }
 
   /**

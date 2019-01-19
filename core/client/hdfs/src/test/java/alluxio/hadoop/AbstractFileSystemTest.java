@@ -125,7 +125,7 @@ public class AbstractFileSystemTest {
   @After
   public void after() {
     mConfiguration = ConfigurationTestUtils.defaults();
-    HadoopClientTestUtils.resetClient(mConfiguration);
+    HadoopClientTestUtils.disableMetrics(mConfiguration);
   }
 
   @Test
