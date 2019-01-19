@@ -116,7 +116,9 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
     const {pathname} = this.state;
     const {callbackParameters} = this.props;
     return datas.map((data: INavigationData) => {
-      const url = typeof data.url === 'function' ? data.url(callbackParameters) : data.url;
+      const url = typeof data.url === 'function'
+        ? (callbackParameters ? data.url(callbackParameters) : data.url({}))
+        : data.url;
       return (
         <NavItem key={url}>
           <NavLink tag={isExternalLink(url) ? NavLink : Link} to={url} href={url}

@@ -44,7 +44,9 @@ export class Footer extends React.PureComponent<IFooterProps> {
   private renderNavItems(datas: INavigationData[]) {
     const {callbackParameters} = this.props;
     return datas.map((data: INavigationData) => {
-      const url = typeof data.url === 'function' ? (callbackParameters ? data.url(callbackParameters) : data.url({})) : data.url;
+      const url = typeof data.url === 'function'
+        ? (callbackParameters ? data.url(callbackParameters) : data.url({}))
+        : data.url;
       return (
       <NavItem key={url}>
         <NavLink href={url}>{data.innerText}</NavLink>
