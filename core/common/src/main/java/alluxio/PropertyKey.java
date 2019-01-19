@@ -372,6 +372,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "name is resolvable over the network.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS =
+      new Builder(Name.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS)
+          .setAlias(new String[] {"alluxio.network.channel.health.check.timeout.ms"})
+          .setDefaultValue("5sec")
+          .setDescription("Allowed duration for checking health of client connections "
+              + " before being assigned to a client. If a connection does not become active "
+              + " within configured time, it will be shut down and a new connection will be "
+              + "created for the client")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
           .setDefaultSupplier(
@@ -3349,6 +3358,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.metrics.context.shutdown.timeout";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
         "alluxio.network.host.resolution.timeout";
+    public static final String NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS =
+        "alluxio.network.channel.health.check.timeout.ms";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";

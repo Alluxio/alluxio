@@ -11,6 +11,7 @@
 
 package alluxio.grpc;
 
+import alluxio.AbstractClient;
 import alluxio.exception.status.AlluxioStatusException;
 
 import io.grpc.Metadata;
@@ -18,6 +19,8 @@ import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 import org.apache.commons.lang.SerializationUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.ByteArrayInputStream;
@@ -30,6 +33,8 @@ import java.io.ObjectInputStream;
  */
 @ThreadSafe
 public final class GrpcExceptionUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcExceptionUtils.class);
+
   private static final String sInnerCauseKeyName = "grpc-exception-cause-bin";
   private static final Metadata.Key<byte[]> sInnerCauseKey =
       Metadata.Key.of(sInnerCauseKeyName, Metadata.BINARY_BYTE_MARSHALLER);
@@ -178,12 +183,16 @@ public final class GrpcExceptionUtils {
     }
     /**
      * gRPC does not persist root causes that are persisted with Status.withCause().
-     * It's out job to transfer inner exception using metadata trailers.
+     * It's our job to transfer inner exception using metadata trailers.
      */
     Metadata trailers = new Metadata();
     // Embed the exception itself if it doesn't have a cause.
     Throwable cause = (e.getCause() != null) ? e.getCause() : e;
-    trailers.put(sInnerCauseKey, SerializationUtils.serialize(cause));
+    try {
+      trailers.put(sInnerCauseKey, SerializationUtils.serialize(cause));
+    } catch (Exception exc) {
+      LOG.warn("Failed to serialize {}. Failed with: {}", cause, exc);
+    }
     return Status.fromCode(code).asException(trailers);
   }
 
@@ -197,4 +206,3 @@ public final class GrpcExceptionUtils {
     return toGrpcStatusException(AlluxioStatusException.fromThrowable(e));
   }
 }
-

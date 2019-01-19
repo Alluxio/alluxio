@@ -192,21 +192,27 @@ public final class GrpcChannelBuilder {
   public GrpcChannel build() throws UnauthenticatedException, UnavailableException {
     ManagedChannel underlyingChannel =
         GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(mChannelKey);
-    Channel clientChannel = underlyingChannel;
+    try {
+      Channel clientChannel = underlyingChannel;
 
-    if (mAuthenticateChannel) {
-      // Create channel authenticator based on provided content.
-      ChannelAuthenticator channelAuthenticator;
-      if (mUseSubject) {
-        channelAuthenticator = new ChannelAuthenticator(mParentSubject, mAuthType);
-      } else {
-        channelAuthenticator =
-            new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser, mAuthType);
+      if (mAuthenticateChannel) {
+        // Create channel authenticator based on provided content.
+        ChannelAuthenticator channelAuthenticator;
+        if (mUseSubject) {
+          channelAuthenticator = new ChannelAuthenticator(mParentSubject, mAuthType);
+        } else {
+          channelAuthenticator =
+              new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser, mAuthType);
+        }
+        // Get an authenticated wrapper channel over given managed channel.
+        clientChannel = channelAuthenticator.authenticate(underlyingChannel);
       }
-      // Get an authenticated wrapper channel over given managed channel.
-      clientChannel = channelAuthenticator.authenticate(underlyingChannel);
+      // Create the channel after authentication with the target.
+      return new GrpcChannel(mChannelKey, clientChannel);
+    } catch (Exception exc) {
+      // Release the managed channel to the pool before throwing.
+      GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey);
+      throw exc;
     }
-    // Create the channel after authentication with the target.
-    return new GrpcChannel(mChannelKey, clientChannel);
   }
 }
