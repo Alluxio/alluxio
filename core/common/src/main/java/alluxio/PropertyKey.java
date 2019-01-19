@@ -2415,7 +2415,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
-          .setAlias(new String[]{"alluxio.user.block.worker.client.pool.gc.threshold.ms"})
           .setDefaultValue("300sec")
           .setDescription("A block worker client is closed if it has been idle for more than this "
               + "threshold.")

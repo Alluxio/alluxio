@@ -97,7 +97,7 @@ public final class FileSystemContext implements Closeable {
   @GuardedBy("CONTEXT_CACHE_LOCK")
   private int mRefCount;
 
-  // The netty data server channel pools.
+  // The data server channel pools. This pool will only grow and keys are not removed.
   private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
       mBlockWorkerClientPool = new ConcurrentHashMap<>();
 

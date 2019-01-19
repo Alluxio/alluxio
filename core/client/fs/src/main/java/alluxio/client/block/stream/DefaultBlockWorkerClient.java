@@ -34,6 +34,7 @@ import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.util.network.NettyUtils;
 
+import com.google.common.io.Closer;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.netty.channel.EventLoopGroup;
@@ -84,8 +85,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    */
   public DefaultBlockWorkerClient(Subject subject, SocketAddress address) throws IOException {
     try {
+      // Disables channel pooling for data streaming to achieve better throughput.
+      // Channel is still reused due to client pooling.
       mStreamingChannel = buildChannel(subject, address,
           GrpcManagedChannelPool.PoolingStrategy.DISABLED);
+      // Uses default pooling strategy for RPC calls for better scalability.
       mRpcChannel = buildChannel(subject, address,
           GrpcManagedChannelPool.PoolingStrategy.DEFAULT);
     } catch (StatusRuntimeException e) {
@@ -104,8 +108,10 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public void close() throws IOException {
-    mStreamingChannel.shutdown();
-    mRpcChannel.shutdown();
+    try (Closer closer = Closer.create()) {
+      closer.register(() -> mStreamingChannel.shutdown());
+      closer.register(() -> mRpcChannel.shutdown());
+    }
   }
 
   @Override
