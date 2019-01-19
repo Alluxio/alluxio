@@ -39,7 +39,7 @@ public final class RestUtils {
    * @param callable the callable to call
    * @return the response object
    */
-  public static <T> Response call(RestUtils.RestCallable<T> callable) {;
+  public static <T> Response call(RestUtils.RestCallable<T> callable) {
     try {
       // TODO(cc): reconsider how to enable authentication
       if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
