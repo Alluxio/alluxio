@@ -13,6 +13,8 @@ package alluxio.client.block.stream;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnauthenticatedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
@@ -21,6 +23,7 @@ import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcExceptionUtils;
+import alluxio.grpc.GrpcManagedChannelPool;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -66,10 +69,12 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
           "netty-client-worker-%d", true);
 
-  private GrpcChannel mChannel;
+  private GrpcChannel mStreamingChannel;
+  private GrpcChannel mRpcChannel;
   private SocketAddress mAddress;
-  private BlockWorkerGrpc.BlockWorkerBlockingStub mBlockingStub;
-  private BlockWorkerGrpc.BlockWorkerStub mAsyncStub;
+  private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
+  private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
+  private BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
 
   /**
    * Creates a client instance for communicating with block worker.
@@ -79,73 +84,60 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    */
   public DefaultBlockWorkerClient(Subject subject, SocketAddress address) throws IOException {
     try {
-      mChannel = GrpcChannelBuilder.forAddress(address).setSubject(subject)
-          .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress)))
-          .setEventLoopGroup(WORKER_GROUP)
-          .setKeepAliveTime(KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)
-          .setKeepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-          .setMaxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
-          .setFlowControlWindow((int) GRPC_FLOWCONTROL_WINDOW).build();
+      mStreamingChannel = buildChannel(subject, address,
+          GrpcManagedChannelPool.PoolingStrategy.DISABLED);
+      mRpcChannel = buildChannel(subject, address,
+          GrpcManagedChannelPool.PoolingStrategy.DEFAULT);
     } catch (StatusRuntimeException e) {
       throw GrpcExceptionUtils.fromGrpcStatusException(e);
     }
-    mBlockingStub = BlockWorkerGrpc.newBlockingStub(mChannel);
-    mAsyncStub = BlockWorkerGrpc.newStub(mChannel);
+    mStreamingAsyncStub = BlockWorkerGrpc.newStub(mStreamingChannel);
+    mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);
+    mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
     mAddress = address;
-  }
-
-  /**
-   * Creates a client instance for communicating with block worker.
-   *
-   * @param channel the gRPC channel
-   */
-  public DefaultBlockWorkerClient(GrpcChannel channel) {
-    mChannel = channel;
-    mBlockingStub = BlockWorkerGrpc.newBlockingStub(mChannel);
-    mAsyncStub = BlockWorkerGrpc.newStub(mChannel);
   }
 
   @Override
   public boolean isShutdown() {
-    return mChannel.isShutdown();
+    return mStreamingChannel.isShutdown();
   }
 
   @Override
   public void close() throws IOException {
-    mChannel.shutdown();
+    mStreamingChannel.shutdown();
   }
 
   @Override
   public StreamObserver<WriteRequest> writeBlock(StreamObserver<WriteResponse> responseObserver) {
-    return mAsyncStub.writeBlock(responseObserver);
+    return mStreamingAsyncStub.writeBlock(responseObserver);
   }
 
   @Override
   public StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver) {
-    return mAsyncStub.readBlock(responseObserver);
+    return mStreamingAsyncStub.readBlock(responseObserver);
   }
 
   @Override
   public StreamObserver<CreateLocalBlockRequest> createLocalBlock(
       StreamObserver<CreateLocalBlockResponse> responseObserver) {
-    return mAsyncStub.createLocalBlock(responseObserver);
+    return mStreamingAsyncStub.createLocalBlock(responseObserver);
   }
 
   @Override
   public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
       StreamObserver<OpenLocalBlockResponse> responseObserver) {
-    return mAsyncStub.openLocalBlock(responseObserver);
+    return mStreamingAsyncStub.openLocalBlock(responseObserver);
   }
 
   @Override
   public RemoveBlockResponse removeBlock(final RemoveBlockRequest request) {
-    return mBlockingStub.withDeadlineAfter(DATA_TIMEOUT, TimeUnit.MILLISECONDS)
+    return mRpcBlockingStub.withDeadlineAfter(DATA_TIMEOUT, TimeUnit.MILLISECONDS)
         .removeBlock(request);
   }
 
   @Override
   public void asyncCache(final AsyncCacheRequest request) {
-    mAsyncStub.withDeadlineAfter(DATA_TIMEOUT, TimeUnit.MILLISECONDS)
+    mRpcAsyncStub.withDeadlineAfter(DATA_TIMEOUT, TimeUnit.MILLISECONDS)
         .asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
           @Override
           public void onNext(AsyncCacheResponse value) {
@@ -162,5 +154,18 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
             // we don't use response from the RPC
           }
         });
+  }
+
+  private GrpcChannel buildChannel(Subject subject, SocketAddress address,
+      GrpcManagedChannelPool.PoolingStrategy poolingStrategy)
+      throws UnauthenticatedException, UnavailableException {
+    return GrpcChannelBuilder.forAddress(address).setSubject(subject)
+        .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress)))
+        .setPoolingStrategy(poolingStrategy)
+        .setEventLoopGroup(WORKER_GROUP)
+        .setKeepAliveTime(KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)
+        .setKeepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        .setMaxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
+        .setFlowControlWindow((int) GRPC_FLOWCONTROL_WINDOW).build();
   }
 }

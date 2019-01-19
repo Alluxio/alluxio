@@ -1987,7 +1987,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-
   public static final PropertyKey WORKER_PRINCIPAL = new Builder(Name.WORKER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio worker.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2403,6 +2402,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(10)
           .setDescription("The number of threads used by a block master client pool to talk "
               + "to the block master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
+      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_SIZE)
+          .setDefaultValue(1024)
+          .setDescription("The maximum number of block worker clients cached in the block "
+              + "worker client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3737,6 +3744,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
         "alluxio.user.block.master.client.threads";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
+        "alluxio.user.block.worker.client.pool.size";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =

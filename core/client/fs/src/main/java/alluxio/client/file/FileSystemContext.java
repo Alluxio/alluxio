@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.conf.InstancedConfiguration;
@@ -27,6 +28,7 @@ import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
+import alluxio.security.authentication.SaslParticipantProviderUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -35,6 +37,8 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +50,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -91,6 +96,10 @@ public final class FileSystemContext implements Closeable {
 
   @GuardedBy("CONTEXT_CACHE_LOCK")
   private int mRefCount;
+
+  // The netty data server channel pools.
+  private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
+      mBlockWorkerClientPool = new ConcurrentHashMap<>();
 
   /** The shared master inquire client associated with the {@link FileSystemContext}. */
   @GuardedBy("this")
@@ -349,15 +358,26 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Acquires a block worker client. It may reuse the same connection if possible.
+   * Acquires a block worker client from the client pools. If there is no available client instance
+   * available in the pool, it tries to create a new one. And an exception is thrown if it fails to
+   * create a new one.
    *
    * @param workerNetAddress the network address of the channel
-   * @return the acquired block worker
+   * @return the acquired netty channel
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    return BlockWorkerClient.Factory.create(mParentSubject, address);
+    ClientPoolKey key = new ClientPoolKey(address,
+        SaslParticipantProviderUtils.getImpersonationUser(mParentSubject));
+    if (!mBlockWorkerClientPool.containsKey(key)) {
+      BlockWorkerClientPool pool = new BlockWorkerClientPool(mParentSubject, address);
+      if (mBlockWorkerClientPool.putIfAbsent(key, pool) != null) {
+        // This can happen if this function is called concurrently.
+        pool.close();
+      }
+    }
+    return mBlockWorkerClientPool.get(key).acquire();
   }
 
   /**
@@ -369,10 +389,18 @@ public final class FileSystemContext implements Closeable {
   public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
       BlockWorkerClient client) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    try {
-      client.close();
-    } catch (IOException e) {
-      LOG.warn("Error closing block worker client for address {}", address, e);
+    ClientPoolKey key = new ClientPoolKey(address,
+        SaslParticipantProviderUtils.getImpersonationUser(mParentSubject));
+    if (mBlockWorkerClientPool.containsKey(key)) {
+      mBlockWorkerClientPool.get(key).release(client);
+    } else {
+      LOG.warn("No client pool for key {}, closing client instead. Context is closed: {}",
+          key, mClosed.get());
+      try {
+        client.close();
+      } catch (IOException e) {
+        LOG.warn("Error closing block worker client for key {}", key, e);
+      }
     }
   }
 
@@ -495,5 +523,45 @@ public final class FileSystemContext implements Closeable {
     }
 
     private Metrics() {} // prevent instantiation
+  }
+
+  /**
+   * Key for worker client pools. This requires both the worker address and the username, so that
+   * netty channels are created for different users.
+   */
+  private static final class ClientPoolKey {
+    private final SocketAddress mSocketAddress;
+    private final String mUsername;
+
+    public ClientPoolKey(SocketAddress socketAddress, String username) {
+      mSocketAddress = socketAddress;
+      mUsername = username;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mSocketAddress, mUsername);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof ClientPoolKey)) {
+        return false;
+      }
+      ClientPoolKey that = (ClientPoolKey) o;
+      return Objects.equal(mSocketAddress, that.mSocketAddress)
+          && Objects.equal(mUsername, that.mUsername);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("socketAddress", mSocketAddress)
+          .add("username", mUsername)
+          .toString();
+    }
   }
 }
