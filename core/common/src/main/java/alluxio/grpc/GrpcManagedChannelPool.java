@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +37,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @ThreadSafe
 public class GrpcManagedChannelPool {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcManagedChannelPool.class);
+  private static final Random RANDOM = new Random();
 
   // Singleton instance.
   private static GrpcManagedChannelPool sInstance;
@@ -254,6 +256,11 @@ public class GrpcManagedChannelPool {
     }
   }
 
+  public enum PoolingStrategy {
+    DEFAULT,
+    DISABLED
+  }
+
   /**
    * Used to identify a unique {@link ManagedChannel} in the pool.
    */
@@ -266,7 +273,7 @@ public class GrpcManagedChannelPool {
     private Optional<Integer> mFlowControlWindow = Optional.empty();
     private Optional<Class<? extends io.netty.channel.Channel>> mChannelType = Optional.empty();
     private Optional<EventLoopGroup> mEventLoopGroup = Optional.empty();
-
+    private long mPoolKey = 0;
     private ChannelKey() {}
 
     public static ChannelKey create() {
@@ -350,6 +357,27 @@ public class GrpcManagedChannelPool {
       return this;
     }
 
+    /**
+     *
+     * @param strategy the pooling strategy
+     * @return the modified {@link ChannelKey}
+     */
+    public ChannelKey setPoolingStrategy(PoolingStrategy strategy) {
+      // TODO(feng): implement modularized pooling strategies
+      switch (strategy) {
+        case DEFAULT:
+          mPoolKey = 0;
+          break;
+        case DISABLED:
+          mPoolKey = RANDOM.nextLong();
+          break;
+        default:
+          throw new IllegalArgumentException(
+              String.format("Invalid pooling strategy %s", strategy.name()));
+      }
+      return this;
+    }
+
     @Override
     public int hashCode() {
       return new HashCodeBuilder()
@@ -359,6 +387,7 @@ public class GrpcManagedChannelPool {
           .append(mKeepAliveTimeout)
           .append(mMaxInboundMessageSize)
           .append(mFlowControlWindow)
+          .append(mPoolKey)
           .append(
               mChannelType.isPresent() ? System.identityHashCode(mChannelType.get()) : null)
           .append(
@@ -377,6 +406,7 @@ public class GrpcManagedChannelPool {
             && mFlowControlWindow.equals(otherKey.mFlowControlWindow)
             && mMaxInboundMessageSize.equals(otherKey.mMaxInboundMessageSize)
             && mChannelType.equals(otherKey.mChannelType)
+            && mPoolKey == otherKey.mPoolKey
             && mEventLoopGroup.equals(otherKey.mEventLoopGroup);
       }
       return false;

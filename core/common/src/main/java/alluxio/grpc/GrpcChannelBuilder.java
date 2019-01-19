@@ -174,6 +174,17 @@ public final class GrpcChannelBuilder {
   }
 
   /**
+   * Sets the pooling strategy.
+   *
+   * @param strategy the pooling strategy
+   * @return a new instance of {@link GrpcChannelBuilder}
+   */
+  public GrpcChannelBuilder setPoolingStrategy(GrpcManagedChannelPool.PoolingStrategy strategy) {
+    mChannelKey.setPoolingStrategy(strategy);
+    return this;
+  }
+
+  /**
    * Creates an authenticated channel of type {@link GrpcChannel}.
    * 
    * @return the built {@link GrpcChannel}
