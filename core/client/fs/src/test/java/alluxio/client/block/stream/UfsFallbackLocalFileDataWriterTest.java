@@ -152,7 +152,7 @@ public class UfsFallbackLocalFileDataWriterTest {
 
   @Before
   public void before() throws Exception {
-    mClientContext = ClientContext.create(mConf.getProperties());
+    mClientContext = ClientContext.create(mConf);
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = Mockito.mock(WorkerNetAddress.class);
 

@@ -108,7 +108,7 @@ public final class ReplicateDefinitionTest {
     mMockJobMasterContext = mock(JobMasterContext.class);
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())
-        .thenReturn(ClientContext.create(ServerConfiguration.getProperties()));
+        .thenReturn(ClientContext.create(ServerConfiguration.global()));
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mMockFileSystem = mock(FileSystem.class);
     mMockUfsManager = mock(UfsManager.class);
