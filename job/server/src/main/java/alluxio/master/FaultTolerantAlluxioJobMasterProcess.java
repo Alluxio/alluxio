@@ -105,7 +105,7 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
   @Override
   public boolean waitForReady(int timeoutMs) {
     try {
-      CommonUtils.waitFor(this + " to start", () -> mServingThread != null && isServing(),
+      CommonUtils.waitFor(this + " to start", () -> (mServingThread == null || isServing()),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
