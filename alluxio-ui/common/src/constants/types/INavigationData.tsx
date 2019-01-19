@@ -17,6 +17,6 @@ export interface INavigationData {
   attributes?: any;
   innerNavs?: INavigationData[];
   innerText: string;
-  url?: string | (() => string) | ((parameters: INavigationDataCallbackParameters | undefined) => string);
+  url?: string | ((parameters: INavigationDataCallbackParameters) => string);
 }
 
