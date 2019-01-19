@@ -98,7 +98,7 @@ public final class LocalFileDataReader implements DataReader {
     private final WorkerNetAddress mAddress;
     private final long mBlockId;
     private final String mPath;
-    private final long mChunkSize;
+    private final int mChunkSize;
     private final GrpcBlockingStream<OpenLocalBlockRequest, OpenLocalBlockResponse> mStream;
     private LocalFileBlockReader mReader;
     private final long mDataTimeoutMs;
@@ -119,7 +119,7 @@ public final class LocalFileDataReader implements DataReader {
       mContext = context;
       mAddress = address;
       mBlockId = blockId;
-      mChunkSize = chunkSize;
+      mChunkSize = (int) chunkSize;
       mDataTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
 
       boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
@@ -130,7 +130,7 @@ public final class LocalFileDataReader implements DataReader {
       try {
         mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock, mChunkSize,
             address.toString());
-        mStream.send(request, mChunkSize);
+        mStream.send(request, mDataTimeoutMs);
         OpenLocalBlockResponse response = mStream.receive(mDataTimeoutMs);
         Preconditions.checkState(response.hasPath());
         mPath = response.getPath();

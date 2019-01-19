@@ -35,11 +35,6 @@ public final class GrpcManagedChannelPoolTest {
 
   private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
 
-  @Before
-  public void before() throws Exception {
-    GrpcManagedChannelPool.INSTANCE().restart();
-  } 
-
   @BeforeClass
   public static void classSetup() {
     sConf.set(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS, "1sec");
@@ -57,7 +52,7 @@ public final class GrpcManagedChannelPoolTest {
     GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create();
 
     GrpcServer server1 =
-        GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0)).build().start();
+        GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0), sConf).build().start();
     SocketAddress address = new InetSocketAddress("localhost", server1.getBindPort());
 
     key1.setAddress(address);
@@ -101,7 +96,7 @@ public final class GrpcManagedChannelPoolTest {
     GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create();
 
     GrpcServer server1 =
-            GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0)).build().start();
+            GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0), sConf).build().start();
 
     SocketAddress address = new InetSocketAddress("localhost", server1.getBindPort());
 
@@ -136,9 +131,9 @@ public final class GrpcManagedChannelPoolTest {
     GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create();
 
     GrpcServer server1 =
-            GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0)).build().start();
+            GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0), sConf).build().start();
     GrpcServer server2 =
-            GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0)).build().start();
+            GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0), sConf).build().start();
 
     SocketAddress address1 = new InetSocketAddress("localhost", server1.getBindPort());
     SocketAddress address2 = new InetSocketAddress("localhost", server2.getBindPort());
@@ -165,7 +160,7 @@ public final class GrpcManagedChannelPoolTest {
         .setPoolingStrategy(GrpcManagedChannelPool.PoolingStrategy.DISABLED);
 
     GrpcServer server1 =
-            GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0)).build().start();
+            GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0), sConf).build().start();
 
     SocketAddress address = new InetSocketAddress("localhost", server1.getBindPort());
 

@@ -51,7 +51,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -381,11 +380,10 @@ public final class FileSystemContext implements Closeable {
       throws IOException {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress, getConf());
     ClientPoolKey key = new ClientPoolKey(address,
-        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject()));
+        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(), getConf()));
     return mBlockWorkerClientPool.computeIfAbsent(key, k ->
         new BlockWorkerClientPool(mClientContext.getSubject(), address,
-        getConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
-        getConf().getMs(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS))
+        getConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE), getConf())
     ).acquire();
   }
 
@@ -399,7 +397,7 @@ public final class FileSystemContext implements Closeable {
       BlockWorkerClient client) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress, getConf());
     ClientPoolKey key = new ClientPoolKey(address,
-        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject()));
+        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(), getConf()));
     if (mBlockWorkerClientPool.containsKey(key)) {
       mBlockWorkerClientPool.get(key).release(client);
     } else {
