@@ -110,16 +110,15 @@ public final class LocalFileDataReader implements DataReader {
      * @param context the file system context
      * @param address the worker address
      * @param blockId the block ID
-     * @param chunkSize the packet size
      * @param options the instream options
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
-        long chunkSize, InStreamOptions options) throws IOException {
+        InStreamOptions options) throws IOException {
       AlluxioConfiguration conf = context.getConf();
       mContext = context;
       mAddress = address;
       mBlockId = blockId;
-      mChunkSize = (int) chunkSize;
+      mChunkSize = (int) conf.getBytes(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
       mDataTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
 
       boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
