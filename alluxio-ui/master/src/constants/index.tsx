@@ -10,6 +10,7 @@
  */
 
 export * from './data/headerNavigation';
+export * from './data/footerNavigation';
 
 export * from './types/IConfigTriple';
 export * from './types/INodeInfo';

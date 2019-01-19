@@ -35,6 +35,7 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
     }
   >
     <App
+      fetchRequest={[Function]}
       history={
         Object {
           "action": "PUSH",
@@ -55,6 +56,17 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
           "replace": [Function],
         }
       }
+      init={
+        Object {
+          "debug": false,
+          "refreshInterval": 15000,
+          "securityAuthorizationPermissionEnabled": false,
+          "webFileInfoEnabled": false,
+          "workerPort": 30000,
+        }
+      }
+      loading={true}
+      refresh={false}
       triggerRefresh={[Function]}
     >
       <Connect(ConnectedRouterWithContext)
@@ -763,13 +775,6 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                         }
                       >
                         <Workers
-                          data={
-                            Object {
-                              "debug": false,
-                              "failedNodeInfos": Array [],
-                              "normalNodeInfos": Array [],
-                            }
-                          }
                           fetchRequest={[Function]}
                           history={
                             Object {
@@ -791,7 +796,16 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                               "replace": [Function],
                             }
                           }
-                          loading={true}
+                          initData={
+                            Object {
+                              "debug": false,
+                              "refreshInterval": 15000,
+                              "securityAuthorizationPermissionEnabled": false,
+                              "webFileInfoEnabled": false,
+                              "workerPort": 30000,
+                            }
+                          }
+                          initLoading={true}
                           location={
                             Object {
                               "hash": "",
@@ -809,6 +823,14 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                             }
                           }
                           refresh={false}
+                          workersData={
+                            Object {
+                              "debug": false,
+                              "failedNodeInfos": Array [],
+                              "normalNodeInfos": Array [],
+                            }
+                          }
+                          workersLoading={true}
                         >
                           <div
                             className="workers-page"

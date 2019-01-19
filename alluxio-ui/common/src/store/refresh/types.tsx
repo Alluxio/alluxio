@@ -14,5 +14,5 @@ export enum RefreshActionTypes {
 }
 
 export interface IRefreshState {
-  readonly refresh: boolean;
+  readonly data: boolean;
 }

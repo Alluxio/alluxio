@@ -35,6 +35,7 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
     }
   >
     <App
+      fetchRequest={[Function]}
       history={
         Object {
           "action": "PUSH",
@@ -55,6 +56,18 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
           "replace": [Function],
         }
       }
+      init={
+        Object {
+          "debug": false,
+          "masterHostname": "",
+          "masterPort": 19999,
+          "refreshInterval": 15000,
+          "securityAuthorizationPermissionEnabled": false,
+          "webFileInfoEnabled": false,
+        }
+      }
+      loading={true}
+      refresh={false}
       triggerRefresh={[Function]}
     >
       <Connect(ConnectedRouterWithContext)
@@ -164,6 +177,12 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                 >
                   <Header
                     autoRefreshCallback={[Function]}
+                    callbackParameters={
+                      Object {
+                        "masterHostname": "",
+                        "masterPort": 19999,
+                      }
+                    }
                     data={
                       Array [
                         Object {
@@ -452,7 +471,7 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                                       </li>
                                     </NavItem>
                                     <NavItem
-                                      key="http://localhost"
+                                      key="http::19999"
                                       tag="li"
                                     >
                                       <li
@@ -460,23 +479,23 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={false}
-                                          href="http://localhost"
+                                          href="http::19999"
                                           onClick={[Function]}
                                           tag={[Function]}
-                                          to="http://localhost"
+                                          to="http::19999"
                                         >
                                           <NavLink
                                             className="nav-link"
-                                            href="http://localhost"
+                                            href="http::19999"
                                             onClick={[Function]}
                                             tag="a"
-                                            to="http://localhost"
+                                            to="http::19999"
                                           >
                                             <a
                                               className="nav-link nav-link"
-                                              href="http://localhost"
+                                              href="http::19999"
                                               onClick={[Function]}
-                                              to="http://localhost"
+                                              to="http::19999"
                                             >
                                               Return to Master
                                             </a>

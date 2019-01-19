@@ -26,16 +26,17 @@ import {
   NavLink
 } from 'reactstrap';
 
-import {INavigationData} from '../../constants';
+import {INavigationData, INavigationDataCallbackParameter} from '../../constants';
 import logo from '../../images/alluxio-mark-tight-sm.svg';
 import {isExternalLink} from '../../utilities';
 
 import './Header.css';
 
 export interface IHeaderProps {
-  history: any;
-  data: INavigationData[];
   autoRefreshCallback?: (enable: boolean) => void;
+  data: INavigationData[];
+  callbackParameters?: INavigationDataCallbackParameter;
+  history: any;
 }
 
 interface IHeaderState {
@@ -113,14 +114,16 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
 
   private renderNavItems(datas: INavigationData[]) {
     const {pathname} = this.state;
+    const {callbackParameters} = this.props;
     return datas.map((data: INavigationData) => {
-      const url = typeof data.url === 'function' ? data.url() : data.url;
+      const url = typeof data.url === 'function' ? data.url(callbackParameters) : data.url;
       return (
-      <NavItem key={url}>
-        <NavLink tag={isExternalLink(url) ? NavLink : Link} to={url} href={url}
-                 active={pathname === url} onClick={this.closeHeaderOnClick}>{data.innerText}</NavLink>
-      </NavItem>
-    )});
+        <NavItem key={url}>
+          <NavLink tag={isExternalLink(url) ? NavLink : Link} to={url} href={url}
+                   active={pathname === url} onClick={this.closeHeaderOnClick}>{data.innerText}</NavLink>
+        </NavItem>
+      )
+    });
   }
 
   private closeHeaderOnClick() {

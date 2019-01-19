@@ -74,9 +74,9 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
     This will continuously run your tests and will show you when tests pass or fail as you work.
 
 1. (Optionally) Execute a test coverage report to investigate places you could test further:
-    1. common-ui: `cd alluxio-ui/common-ui && npm run coverage-ci`
-    1. master-ui: `cd alluxio-ui/master-ui && npm run coverage-ci`
-    1. worker-ui: `cd alluxio-ui/worker-ui && npm run coverage-ci`
+    1. common-ui: `cd alluxio-ui/common-ui && npm run coverage`
+    1. master-ui: `cd alluxio-ui/master-ui && npm run coverage`
+    1. worker-ui: `cd alluxio-ui/worker-ui && npm run coverage`
 
-    This will generate a coverage report within each package: `common/coverage/lcov-report/index.html`, `master/coverage/lcov-report/index.html`, `worker/coverage/lcov-report/index.html`. You may also run `coverage` instead of `coverage-ci` in this step if you would like this to execute as you edit each package.
+    This will also generate a coverage report within each package: `common/coverage/lcov-report/index.html`, `master/coverage/lcov-report/index.html`, `worker/coverage/lcov-report/index.html`. You may also run `coverage-ci` instead of `coverage` in this step if you would like this to execute only once.
 

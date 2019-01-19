@@ -229,7 +229,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setWebFileInfoEnabled(Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
           .setSecurityAuthorizationPermissionEnabled(
               Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
-          .setWorkerPort(Configuration.get(PropertyKey.WORKER_WEB_PORT))
+          .setWorkerPort(Configuration.getInt(PropertyKey.WORKER_WEB_PORT))
           .setRefreshInterval(Configuration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
 
       return response;

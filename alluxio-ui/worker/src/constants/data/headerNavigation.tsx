@@ -25,5 +25,5 @@ export const headerNavigationData : INavigationData[] = [{
   url: '/metrics'
 }, {
   innerText: 'Return to Master',
-  url: () => `${window.location.origin.replace(/\:[0-9]+$/, ':19999')}`
+  url: ({masterHostname, masterPort}) => `${window.location.protocol}${masterHostname}:${masterPort}`
 }];

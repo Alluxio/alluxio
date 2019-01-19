@@ -204,7 +204,7 @@ const mapStateToProps = ({blockInfo, refresh}: IApplicationState) => ({
   data: blockInfo.data,
   errors: blockInfo.errors,
   loading: blockInfo.loading,
-  refresh: refresh.refresh
+  refresh: refresh.data
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

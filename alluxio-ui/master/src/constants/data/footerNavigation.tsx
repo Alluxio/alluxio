@@ -9,13 +9,21 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export interface INavigationDataCallbackParameter {
-  [key: string]: string | number | boolean;
-}
+import {INavigationData} from '@alluxio/common-ui/src/constants';
 
-export interface INavigationData {
-  attributes?: any;
-  innerNavs?: INavigationData[];
-  innerText: string;
-  url?: string | ((navigationDataCallbackParameter?: INavigationDataCallbackParameter) => string);
-}
+export const footerNavigationData : INavigationData[] = [{
+  innerText: 'Project Website',
+  url: 'https://alluxio.org/'
+}, {
+  innerText: 'User Mailing List',
+  url: 'https://groups.google.com/forum/#!forum/alluxio-users'
+}, {
+  innerText: 'User Survey',
+  url: 'https://alluxio.org/resources/survey-users'
+}, {
+  innerText: 'Workers',
+  url: '/workers'
+}, {
+  innerText: 'Resources',
+  url: 'https://alluxio.org/alluxio-resources/'
+}];

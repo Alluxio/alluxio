@@ -19,12 +19,16 @@ import {INodeInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/workers/actions';
 import {IWorkers} from '../../../store/workers/types';
+import {IInit} from '../../../store/init/types';
 
 interface IPropsFromState {
-  data: IWorkers;
-  errors?: AxiosResponse;
-  loading: boolean;
+  initData: IInit;
+  initErrors?: AxiosResponse;
+  initLoading?: boolean;
   refresh: boolean;
+  workersData: IWorkers;
+  workersErrors?: AxiosResponse;
+  workersLoading: boolean;
 }
 
 interface IPropsFromDispatch {
@@ -45,17 +49,15 @@ export class Workers extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, data} = this.props;
+    const {initData, initErrors, workersErrors, workersData} = this.props;
 
-    if (errors) {
+    if (initErrors || workersErrors) {
       return (
         <Alert color="danger">
           Unable to reach the api endpoint for this page.
         </Alert>
       );
     }
-
-    console.log(data);
 
     return (
       <div className="workers-page">
@@ -77,9 +79,9 @@ export class Workers extends React.Component<AllProps> {
                 </tr>
                 </thead>
                 <tbody>
-                {data.normalNodeInfos.map((nodeInfo: INodeInfo) => (
+                {workersData.normalNodeInfos.map((nodeInfo: INodeInfo) => (
                   <tr key={nodeInfo.workerId}>
-                    <td><a href={`//${nodeInfo.host}:30000`} target="_blank">{nodeInfo.host}</a></td>
+                    <td><a href={`//${nodeInfo.host}:${initData.workerPort}`} target="_blank">{nodeInfo.host}</a></td>
                     <td>{nodeInfo.workerId}</td>
                     <td>{nodeInfo.uptimeClockTime}</td>
                     <td>{nodeInfo.lastHeartbeat}</td>
@@ -114,7 +116,7 @@ export class Workers extends React.Component<AllProps> {
                 </tr>
                 </thead>
                 <tbody>
-                {data.failedNodeInfos.map((nodeInfo: INodeInfo) => (
+                {workersData.failedNodeInfos.map((nodeInfo: INodeInfo) => (
                   <tr key={nodeInfo.workerId}>
                     <td>{nodeInfo.host}</td>
                     <td>{nodeInfo.workerId}</td>
@@ -133,11 +135,14 @@ export class Workers extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = ({refresh, workers}: IApplicationState) => ({
-  data: workers.data,
-  errors: workers.errors,
-  loading: workers.loading,
-  refresh: refresh.refresh
+const mapStateToProps = ({init, refresh, workers}: IApplicationState) => ({
+  initData: init.data,
+  initErrors: init.errors,
+  initLoading: init.loading,
+  refresh: refresh.data,
+  workersData: workers.data,
+  workersErrors: workers.errors,
+  workersLoading: workers.loading
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

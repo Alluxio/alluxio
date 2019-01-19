@@ -9,8 +9,6 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export * from './data/footerNavigation';
-
 export * from './types/INavigationData';
 export * from './types/IFileBlockInfo';
 export * from './types/IFileInfo';

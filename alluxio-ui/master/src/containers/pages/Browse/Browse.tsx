@@ -275,7 +275,7 @@ const mapStateToProps = ({browse, refresh}: IApplicationState) => ({
   data: browse.data,
   errors: browse.errors,
   loading: browse.loading,
-  refresh: refresh.refresh
+  refresh: refresh.data
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

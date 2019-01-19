@@ -9,13 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export interface INavigationDataCallbackParameter {
-  [key: string]: string | number | boolean;
-}
+import {AxiosResponse} from 'axios';
+import {action} from 'typesafe-actions';
 
-export interface INavigationData {
-  attributes?: any;
-  innerNavs?: INavigationData[];
-  innerText: string;
-  url?: string | ((navigationDataCallbackParameter?: INavigationDataCallbackParameter) => string);
-}
+import {InitActionTypes} from './types';
+
+export const fetchRequest = () => action(InitActionTypes.FETCH_REQUEST);
+export const fetchSuccess = (response: AxiosResponse) => action(InitActionTypes.FETCH_SUCCESS, response);
+export const fetchError = (message: string) => action(InitActionTypes.FETCH_ERROR, message);

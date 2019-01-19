@@ -27,7 +27,7 @@ public final class MasterWebUIInit implements Serializable {
   private boolean mDebug;
   private boolean mWebFileInfoEnabled;
   private boolean mSecurityAuthorizationPermissionEnabled;
-  private String mWorkerPort;
+  private int mWorkerPort;
   private int mRefreshInterval;
 
   /**
@@ -68,7 +68,7 @@ public final class MasterWebUIInit implements Serializable {
    *
    * @return the worker port
    */
-  public String getWorkerPort() {
+  public int getWorkerPort() {
     return mWorkerPort;
   }
 
@@ -115,7 +115,7 @@ public final class MasterWebUIInit implements Serializable {
    * @param port the port
    * @return the worker port
    */
-  public MasterWebUIInit setWorkerPort(String port) {
+  public MasterWebUIInit setWorkerPort(int port) {
     mWorkerPort = port;
     return this;
   }

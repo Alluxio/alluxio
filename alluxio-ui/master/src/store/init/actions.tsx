@@ -9,21 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {INavigationData} from '..';
+import {AxiosResponse} from 'axios';
+import {action} from 'typesafe-actions';
 
-export const footerNavigationData : INavigationData[] = [{
-  innerText: 'Project Website',
-  url: 'https://alluxio.org/'
-}, {
-  innerText: 'User Mailing List',
-  url: 'https://groups.google.com/forum/#!forum/alluxio-users'
-}, {
-  innerText: 'User Survey',
-  url: 'https://alluxio.org/resources/survey-users'
-}, {
-  innerText: 'Workers',
-  url: '/workers'
-}, {
-  innerText: 'Resources',
-  url: 'https://alluxio.org/alluxio-resources/'
-}];
+import {InitActionTypes} from './types';
+
+export const fetchRequest = () => action(InitActionTypes.FETCH_REQUEST);
+export const fetchSuccess = (response: AxiosResponse) => action(InitActionTypes.FETCH_SUCCESS, response);
+export const fetchError = (message: string) => action(InitActionTypes.FETCH_ERROR, message);

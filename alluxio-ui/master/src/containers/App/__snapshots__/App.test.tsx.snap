@@ -13,6 +13,7 @@ exports[`App Connected component Matches snapshot 1`] = `
   }
 >
   <Connect(App)
+    fetchRequest={[Function]}
     history={
       Object {
         "action": "REPLACE",
@@ -33,8 +34,21 @@ exports[`App Connected component Matches snapshot 1`] = `
         "replace": [Function],
       }
     }
+    init={
+      Object {
+        "debug": false,
+        "refreshInterval": 15000,
+        "securityAuthorizationPermissionEnabled": false,
+        "webFileInfoEnabled": false,
+        "workerPort": 30000,
+      }
+    }
+    loading={false}
+    refresh={false}
+    triggerRefresh={[Function]}
   >
     <App
+      fetchRequest={[Function]}
       history={
         Object {
           "action": "REPLACE",
@@ -55,6 +69,17 @@ exports[`App Connected component Matches snapshot 1`] = `
           "replace": [Function],
         }
       }
+      init={
+        Object {
+          "debug": false,
+          "refreshInterval": 15000,
+          "securityAuthorizationPermissionEnabled": false,
+          "webFileInfoEnabled": false,
+          "workerPort": 30000,
+        }
+      }
+      loading={true}
+      refresh={false}
       triggerRefresh={[Function]}
     >
       <Connect(ConnectedRouterWithContext)

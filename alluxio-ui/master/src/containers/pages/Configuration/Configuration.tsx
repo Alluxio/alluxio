@@ -103,7 +103,7 @@ const mapStateToProps = ({config, refresh}: IApplicationState) => ({
   data: config.data,
   errors: config.errors,
   loading: config.loading,
-  refresh: refresh.refresh
+  refresh: refresh.data
 
 });
 

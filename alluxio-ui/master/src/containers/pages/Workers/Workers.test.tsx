@@ -9,7 +9,6 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {connectRouter, RouterState} from 'connected-react-router';
 import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import {createBrowserHistory, History, LocationState} from 'history';
@@ -20,6 +19,7 @@ import sinon, {SinonSpy} from 'sinon';
 
 import configureStore from '../../../configureStore'
 import {initialState, IApplicationState} from '../../../store';
+import {initialInitState} from '../../../store/init/reducer';
 import ConnectedApp from '../../App/App';
 import {AllProps, Workers} from './Workers';
 
@@ -35,10 +35,12 @@ describe('Workers', () => {
     history.push('/workers');
     store = configureStore(history, initialState);
     props = {
+      initData: initialInitState.data,
+      initLoading: initialInitState.loading,
       fetchRequest: sinon.spy(() => {}),
-      data: initialState.workers.data,
-      loading: initialState.workers.loading,
-      refresh: initialState.refresh.refresh
+      refresh: initialState.refresh.data,
+      workersData: initialState.workers.data,
+      workersLoading: initialState.workers.loading
     };
   });
 

@@ -9,7 +9,6 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {connectRouter, RouterState} from 'connected-react-router';
 import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import {createBrowserHistory, History, LocationState} from 'history';
@@ -38,7 +37,7 @@ describe('Metrics', () => {
       fetchRequest: sinon.spy(() => {}),
       data: initialState.metrics.data,
       loading: initialState.metrics.loading,
-      refresh: initialState.refresh.refresh
+      refresh: initialState.refresh.data
     };
   });
 

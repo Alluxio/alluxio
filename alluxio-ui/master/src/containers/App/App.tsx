@@ -9,25 +9,37 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+import {AxiosResponse} from 'axios';
 import {ConnectedRouter} from 'connected-react-router';
 import {History, LocationState} from 'history';
 import React from 'react';
 import {connect} from 'react-redux';
 import {StaticContext} from 'react-router';
 import {Redirect, Route, RouteComponentProps, Switch} from 'react-router-dom';
+import {Alert} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {Footer, Header} from '@alluxio/common-ui/src/components';
-import {footerNavigationData} from '@alluxio/common-ui/src/constants';
+import {Footer, Header, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {triggerRefresh} from '@alluxio/common-ui/src/store/refresh/actions';
 import {
   Browse, Configuration, Data, Logs, Metrics, Overview, Workers
 } from '..';
-import {headerNavigationData} from '../../constants';
+import {footerNavigationData, headerNavigationData} from '../../constants';
+import {IApplicationState} from '../../store';
+import {fetchRequest} from '../../store/init/actions';
+import {IInit} from '../../store/init/types';
 
 import './App.css';
 
+interface IPropsFromState {
+  init: IInit;
+  errors?: AxiosResponse;
+  loading: boolean;
+  refresh: boolean;
+}
+
 interface IPropsFromDispatch {
+  fetchRequest: typeof fetchRequest;
   triggerRefresh: typeof triggerRefresh;
 }
 
@@ -35,10 +47,9 @@ interface IAppProps {
   history: History<LocationState>;
 }
 
-export type AllProps = IPropsFromDispatch & IAppProps;
+export type AllProps = IPropsFromState & IPropsFromDispatch & IAppProps;
 
 export class App extends React.Component<AllProps> {
-  private readonly refreshInterval = 30000;
   private intervalHandle: any;
 
   constructor(props: AllProps) {
@@ -47,8 +58,32 @@ export class App extends React.Component<AllProps> {
     this.setAutoRefresh = this.setAutoRefresh.bind(this);
   }
 
+  public componentDidUpdate(prevProps: AllProps) {
+    if (this.props.refresh !== prevProps.refresh) {
+      this.props.fetchRequest();
+    }
+  }
+
+  public componentWillMount() {
+    this.props.fetchRequest && this.props.fetchRequest();
+  }
+
   public render() {
-    const {history} = this.props;
+    const {errors, init, loading, history} = this.props;
+
+    if (errors) {
+      return (
+        <Alert color="danger">
+          Unable to reach the api endpoint for this page.
+        </Alert>
+      );
+    }
+
+    if (!init && loading) {
+      return (
+        <LoadingMessage/>
+      );
+    }
 
     return (
       <ConnectedRouter history={history as any}>
@@ -84,8 +119,9 @@ export class App extends React.Component<AllProps> {
   }
 
   private setAutoRefresh(shouldAutoRefresh: boolean) {
+    const {init} = this.props;
     if (shouldAutoRefresh && !this.intervalHandle) {
-      this.intervalHandle = setInterval(this.props.triggerRefresh, this.refreshInterval);
+      this.intervalHandle = setInterval(this.props.triggerRefresh, init.refreshInterval);
     } else {
       if (this.intervalHandle) {
         clearInterval(this.intervalHandle);
@@ -95,9 +131,15 @@ export class App extends React.Component<AllProps> {
   }
 }
 
-const mapStateToProps = () => ({});
+const mapStateToProps = ({init, refresh}: IApplicationState) => ({
+  init: init.data,
+  errors: init.errors,
+  loading: init.loading,
+  refresh: refresh.data
+});
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  fetchRequest: () => dispatch(fetchRequest()),
   triggerRefresh: () => dispatch(triggerRefresh())
 });
 
