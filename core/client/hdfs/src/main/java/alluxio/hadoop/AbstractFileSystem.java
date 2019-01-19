@@ -488,18 +488,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     Authority auth = Authority.fromString(uri.getAuthority());
     if (auth instanceof UnknownAuthority) {
-      throw new IOException(String.format("Authority \"%s\" is unknown. The client will not be "
-              + "configured with this authority. The authority connection details will be loaded "
-              + "from the client configuration.", auth.toString()));
+      throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
+              + "configured with this authority.", auth.toString()));
     }
 
-    mAlluxioHeader = getScheme() + ":///";
     mUri = URI.create(mAlluxioHeader);
 
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
     AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
-    alluxioProps.merge(uriConfProperties, Source.RUNTIME);
-    AlluxioConfiguration alluxioConf = new InstancedConfiguration(alluxioProps);
     Subject subject = getHadoopSubject();
     if (subject != null) {
       LOG.debug("Using Hadoop subject: {}", subject);
@@ -512,12 +508,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         if (!connectDetailsMatch(uriConfProperties, conf)) {
           LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS.getMessage(
               mFsContext.getMasterInquireClient().getConnectDetails()));
-          alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioConf);
+          mergeConfigurations(uriConfProperties, conf, alluxioProps);
         }
       } else {
-        alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioConf);
+        mergeConfigurations(uriConfProperties, conf, alluxioProps);
       }
 
+      AlluxioConfiguration alluxioConf = new InstancedConfiguration(alluxioProps);
       LOG.info("Initializing filesystem context with connect details {}",
           Factory.getConnectDetails(alluxioConf));
       mFsContext = FileSystemContext.create(subject, alluxioConf);
@@ -537,21 +534,18 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * @param uriConfProperties the configuration properties from the input uri
    * @param conf the hadoop conf
-   * @param alluxioConf Alluxio configuration
+   * @param alluxioProps Alluxio configuration properties
    * @return a merged configuration of URI, hadoop, and Alluxio properties
    */
-  private AlluxioConfiguration mergeConfigurations(Map<String, Object> uriConfProperties,
-      org.apache.hadoop.conf.Configuration conf, AlluxioConfiguration alluxioConf)
+  private void mergeConfigurations(Map<String, Object> uriConfProperties,
+      org.apache.hadoop.conf.Configuration conf, AlluxioProperties alluxioProps)
       throws IOException {
     // take the URI properties, hadoop configuration, and given Alluxio configuration and merge
     // all three into a single object.
-    AlluxioConfiguration mergedConf = HadoopConfigurationUtils.mergeHadoopConfiguration(conf,
-        alluxioConf);
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioProps);
 
     // Connection details in the URI has the highest priority
-    AlluxioProperties props = mergedConf.getProperties();
-    props.merge(uriConfProperties, Source.RUNTIME);
-    return new InstancedConfiguration(props);
+    alluxioProps.merge(uriConfProperties, Source.RUNTIME);
   }
 
   /**
@@ -601,14 +595,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private boolean connectDetailsMatch(Map<String, Object> uriConfProperties,
       org.apache.hadoop.conf.Configuration conf) {
     // Merge hadoop configuration into Alluxio configuration
-    AlluxioConfiguration alluxioConf = HadoopConfigurationUtils.mergeHadoopConfiguration(conf,
-        mFsContext.getConf());
+    // copy to not modify old properties
+    AlluxioProperties props = mFsContext.getConf().getProperties().copy();
+    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, props);
 
     // Merge connection details in URI into Alluxio configuration
-    AlluxioProperties props = alluxioConf.getProperties();
     props.merge(uriConfProperties, Source.RUNTIME);
 
-    ConnectDetails newDetails = Factory.getConnectDetails(alluxioConf);
+    ConnectDetails newDetails = Factory.getConnectDetails(new InstancedConfiguration(props));
     ConnectDetails oldDetails = mFsContext.getMasterInquireClient().getConnectDetails();
 
     return newDetails.equals(oldDetails);

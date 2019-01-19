@@ -12,9 +12,10 @@
 package alluxio.hadoop;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
-import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,15 +35,13 @@ public final class HadoopConfigurationUtils {
   private HadoopConfigurationUtils() {} // Prevent instantiation.
 
   /**
-   * Merges Hadoop {@link org.apache.hadoop.conf.Configuration} into the Alluxio configuration.
+   * Merges Hadoop {@link org.apache.hadoop.conf.Configuration} into Alluxio properties.
    *
    * @param source the {@link org.apache.hadoop.conf.Configuration} to merge
-   * @param alluxioConfiguration the Alluxio configuration to merge to
-   * @return an alluxio configuration with the hadoop configuration merged
+   * @param alluxioProps the Alluxio properties to merge to
    */
-  public static AlluxioConfiguration mergeHadoopConfiguration(
-      org.apache.hadoop.conf.Configuration source,
-      AlluxioConfiguration alluxioConfiguration) {
+  public static void mergeHadoopConfiguration(org.apache.hadoop.conf.Configuration source,
+      AlluxioProperties alluxioProps) {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system
     // Push Alluxio configuration to the Job configuration
     Properties alluxioConfProperties = new Properties();
@@ -56,10 +55,9 @@ public final class HadoopConfigurationUtils {
     LOG.info("Loading Alluxio properties from Hadoop configuration: {}", alluxioConfProperties);
     // Merge the relevant Hadoop configuration into Alluxio's configuration.
 
-    AlluxioConfiguration conf = ConfigurationUtils.merge(alluxioConfiguration,
-        alluxioConfProperties, Source.RUNTIME);
-    conf.validate();
-    return conf;
+    alluxioProps.merge(alluxioConfProperties, Source.RUNTIME);
+    // Creting a new instanced configuration from an AlluxioProperties object isn't expensive.
+    new InstancedConfiguration(alluxioProps).validate();
   }
 
   /**

@@ -45,7 +45,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
@@ -201,25 +200,6 @@ public class AbstractFileSystemTest {
     uri = URI.create("alluxio://host1:19998;host2:19998;host3:19998/path");
     fs = org.apache.hadoop.fs.FileSystem.get(uri, getConf());
     assertTrue(fs instanceof FileSystem);
-  }
-
-  @Ignore("This test isn't applicable any more with the removal of singleton")
-  @Test
-  public void useSameContextWithZookeeper() throws Exception {
-    URI uri = URI.create(Constants.HEADER + "dummyHost:19998/");
-    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.ZOOKEEPER_ENABLED, "true",
-        PropertyKey.ZOOKEEPER_ADDRESS, "zkAddress"), mConfiguration).toResource()) {
-      Configuration conf = HadoopConfigurationUtils.mergeAlluxioConfiguration(getConf(),
-          mConfiguration);
-      conf.set("fs.alluxio.impl.disable.cache", "true");
-      org.apache.hadoop.fs.FileSystem fs1 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-
-      // The filesystem context should return a master inquire client based on the latest config
-      FileSystem hfs = getHadoopFilesystem(fs1);
-      assertEquals(false, hfs.mFsContext.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
-      assertEquals("zkAddress", hfs.mFsContext.getConf().get(PropertyKey.ZOOKEEPER_ADDRESS));
-    }
   }
 
   /**
