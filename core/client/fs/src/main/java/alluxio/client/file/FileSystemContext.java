@@ -266,18 +266,19 @@ public final class FileSystemContext implements Closeable {
       mBlockMasterClientPool = null;
       mMasterInquireClient = null;
 
-      synchronized (this) {
-        if (mMetricsMasterClient != null) {
-          ThreadUtils.shutdownAndAwaitTermination(mExecutorService,
-              mClientContext.getConf().getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
-          mMetricsMasterClient.close();
-          mMetricsMasterClient = null;
-          mClientMasterSync = null;
-        }
-        mLocalWorkerInitialized = false;
-        mLocalWorker = null;
-        mClosed.set(true);
+      if (mMetricsMasterClient != null) {
+        ThreadUtils.shutdownAndAwaitTermination(mExecutorService,
+            mClientContext.getConf().getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
+        mMetricsMasterClient.close();
+        mMetricsMasterClient = null;
+        mClientMasterSync = null;
       }
+      mLocalWorkerInitialized = false;
+      mLocalWorker = null;
+      mClosed.set(true);
+    } else {
+      LOG.warn("Attempted to close FileSystemContext with app ID {} which has already been closed"
+          + " or not initialized.", mAppId);
     }
   }
 
