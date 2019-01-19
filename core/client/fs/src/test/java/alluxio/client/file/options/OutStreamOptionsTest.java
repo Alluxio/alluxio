@@ -34,6 +34,7 @@ import alluxio.util.ModeUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.testing.EqualsTester;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -143,11 +144,10 @@ public class OutStreamOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    OutStreamOptions o1 = OutStreamOptions.defaults(mConf);
-    OutStreamOptions o2 = OutStreamOptions.defaults(mConf);
-    assertEquals(o1, o2);
-    assertEquals(o1.hashCode(), o2.hashCode());
-//    alluxio.test.util.CommonUtils.testEquals(OutStreamOptions.class, new Class[]{
-//        AlluxioConfiguration.class}, new Object[]{mConf});
+    new EqualsTester()
+        .addEqualityGroup(
+            OutStreamOptions.defaults(mConf),
+            OutStreamOptions.defaults(mConf))
+        .testEquals();
   }
 }
