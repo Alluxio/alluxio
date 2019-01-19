@@ -378,7 +378,8 @@ public final class FileSystemContext implements Closeable {
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
-    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress, getConf());
+    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
+        getConf());
     ClientPoolKey key = new ClientPoolKey(address,
         SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(), getConf()));
     return mBlockWorkerClientPool.computeIfAbsent(key, k ->
@@ -395,7 +396,8 @@ public final class FileSystemContext implements Closeable {
    */
   public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
       BlockWorkerClient client) {
-    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress, getConf());
+    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
+        getConf());
     ClientPoolKey key = new ClientPoolKey(address,
         SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(), getConf()));
     if (mBlockWorkerClientPool.containsKey(key)) {

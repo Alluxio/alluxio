@@ -84,8 +84,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
 
   @Override
   protected boolean shouldGc(ResourceInternal<BlockWorkerClient> clientResourceInternal) {
-    return System.currentTimeMillis() - clientResourceInternal
-        .getLastAccessTimeMs() >
-        mConf.getMs(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS);
+    return System.currentTimeMillis() - clientResourceInternal.getLastAccessTimeMs()
+        > mConf.getMs(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS);
   }
 }

@@ -74,7 +74,6 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
   private BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
 
-
   /**
    * Creates a client instance for communicating with block worker.
    *
