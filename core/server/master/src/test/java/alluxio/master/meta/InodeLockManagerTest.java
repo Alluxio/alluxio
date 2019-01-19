@@ -16,7 +16,7 @@ import static org.junit.Assert.assertFalse;
 import alluxio.master.file.meta.Edge;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockManager;
-import alluxio.master.file.meta.InodeTree.LockMode;
+import alluxio.concurrent.LockMode;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;

@@ -11,6 +11,8 @@
 
 package alluxio.resource;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.io.Closeable;
 import java.util.concurrent.locks.Lock;
 
@@ -35,6 +37,17 @@ public class LockResource implements Closeable {
   public LockResource(Lock lock) {
     mLock = lock;
     mLock.lock();
+  }
+
+  /**
+   * Returns true if the other lockresource contains the same lock.
+   *
+   * @param other other LockResource
+   * @return true if the other lockResource has the same lock
+   */
+  @VisibleForTesting
+  public boolean hasSameLock(LockResource other) {
+    return mLock == other.mLock;
   }
 
   /**
