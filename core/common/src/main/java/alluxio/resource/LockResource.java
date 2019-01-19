@@ -40,13 +40,14 @@ public class LockResource implements Closeable {
   }
 
   /**
-   * Get the lock from the lock resource.
+   * Returns true if the other lockresource contains the same lock.
    *
-   * @return the lock object
+   * @param other other LockResource
+   * @return true if the other lockResource has the same lock
    */
   @VisibleForTesting
-  public Lock getLock() {
-    return mLock;
+  public boolean hasSameLock(LockResource other) {
+    return mLock == other.mLock;
   }
 
   /**

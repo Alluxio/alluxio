@@ -18,7 +18,6 @@ import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -84,29 +83,19 @@ public class LockCacheTest {
     t4.join();
   }
 
-  @Ignore
-  @Test(timeout = 100000)
+  @Test(timeout = 1000)
   public void referencedLockTest() throws InterruptedException {
-    try (LockResource resource0 = mCache.get(0, LockMode.READ)) {
-      try (LockResource resource1 = mCache.get(1, LockMode.READ)) {
-        try (LockResource resource2 = mCache.get(2, LockMode.READ)) {
-          try (LockResource resource3 = mCache.get(3, LockMode.READ)) {
-            for (int j = 0; j < 10; j++) {
-              for (int i = 0; i < 1000; i++) {
-                LockResource resource = mCache.get(i, LockMode.READ);
-                resource.close();
-              }
-            }
-            for (int i = 0; i < 4; i++) {
-              assertTrue(mCache.containsKey(i));
-            }
-            assertTrue(mCache.getRawReadWriteLock(0).readLock() == resource0.getLock());
-            assertTrue(mCache.getRawReadWriteLock(1).readLock() == resource1.getLock());
-            assertTrue(mCache.getRawReadWriteLock(2).readLock() == resource2.getLock());
-            assertTrue(mCache.getRawReadWriteLock(3).readLock() == resource3.getLock());
-          }
-        }
+    LockResource lock0 = mCache.get(0, LockMode.READ);
+    LockResource lock1 = mCache.get(50, LockMode.READ);
+    LockResource lock2 = mCache.get(100, LockMode.READ);
+
+    for (int j = 0; j < 10; j++) {
+      for (int i = 0; i < 100; i++) {
+        mCache.get(i, LockMode.READ).close();
       }
     }
+    assertTrue(lock0.hasSameLock(mCache.get(0, LockMode.READ)));
+    assertTrue(lock1.hasSameLock(mCache.get(50, LockMode.READ)));
+    assertTrue(lock2.hasSameLock(mCache.get(100, LockMode.READ)));
   }
 }
