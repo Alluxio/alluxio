@@ -29,8 +29,8 @@ public final class MockFileOutStream extends FileOutStream {
    * Creates a mock {@link FileOutputStream} which will store any bytes written to it for later
    * inspection during tests.
    */
-  public MockFileOutStream(AlluxioConfiguration conf) throws IOException {
-    super(new AlluxioURI("/"), OutStreamOptions.defaults(conf), FileSystemContext.create(conf));
+  public MockFileOutStream(FileSystemContext fsContext) throws IOException {
+    super(new AlluxioURI("/"), OutStreamOptions.defaults(fsContext.getConf()), fsContext);
     mStream = new ByteArrayOutputStream();
   }
 
