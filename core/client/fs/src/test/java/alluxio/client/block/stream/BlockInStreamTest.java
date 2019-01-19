@@ -73,8 +73,7 @@ public class BlockInStreamTest {
     mMockContext = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.when(mMockContext.acquireBlockWorkerClient(Matchers.any(WorkerNetAddress.class)))
         .thenReturn(workerClient);
-    PowerMockito.when(mMockContext.getClientContext()).thenReturn(ClientContext.create(null,
-        mConf.getProperties()));
+    PowerMockito.when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
     PowerMockito.when(mMockContext.getConf()).thenReturn(mConf);
     PowerMockito.doNothing().when(mMockContext)
         .releaseBlockWorkerClient(Matchers.any(WorkerNetAddress.class),
@@ -117,7 +116,7 @@ public class BlockInStreamTest {
         new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, "false", mConf)
             .toResource()) {
       WorkerNetAddress dataSource = new WorkerNetAddress();
-      when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf.getProperties()));
+      when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
       BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
       BlockInStream stream =
           BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);

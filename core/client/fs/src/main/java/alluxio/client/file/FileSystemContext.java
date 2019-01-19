@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.AlluxioProperties;
 import alluxio.conf.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
@@ -139,11 +138,7 @@ public final class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(Subject subject,
       @Nullable AlluxioConfiguration alluxioConf) {
-    AlluxioProperties props = null;
-    if (alluxioConf != null) {
-      props = alluxioConf.getProperties();
-    }
-    FileSystemContext context = new FileSystemContext(subject, props);
+    FileSystemContext context = new FileSystemContext(subject, alluxioConf);
     context.init(MasterInquireClient.Factory.create(context.mClientContext.getConf()));
     return context;
   }
@@ -173,11 +168,7 @@ public final class FileSystemContext implements Closeable {
   @VisibleForTesting
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient,
       AlluxioConfiguration alluxioConf) {
-    AlluxioProperties props = null;
-    if (alluxioConf != null) {
-      props = alluxioConf.getProperties();
-    }
-    FileSystemContext context = new FileSystemContext(subject, props);
+    FileSystemContext context = new FileSystemContext(subject, alluxioConf);
     context.init(masterInquireClient);
     return context;
   }
@@ -187,8 +178,8 @@ public final class FileSystemContext implements Closeable {
    *
    * @param subject the parent subject, set to null if not present
    */
-  private FileSystemContext(Subject subject, @Nullable AlluxioProperties alluxioProps) {
-      this(ClientContext.create(subject, alluxioProps));
+  private FileSystemContext(Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
+      this(ClientContext.create(subject, alluxioConf));
   }
 
   /**

@@ -166,7 +166,7 @@ public final class AlluxioBlockStoreTest {
     mContext = PowerMockito.mock(FileSystemContext.class);
     when(mContext.acquireBlockMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mMasterClient));
-    when(mContext.getClientContext()).thenReturn(ClientContext.create(null, sConf.getProperties()));
+    when(mContext.getClientContext()).thenReturn(ClientContext.create(sConf));
     when(mContext.getConf()).thenReturn(sConf);
     mLocalAddr =
         new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName(

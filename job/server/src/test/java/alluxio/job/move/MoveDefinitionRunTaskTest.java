@@ -72,7 +72,7 @@ public final class MoveDefinitionRunTaskTest {
     mMockFileSystem = Mockito.mock(FileSystem.class);
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())
-        .thenReturn(ClientContext.create(conf.getProperties()));
+        .thenReturn(ClientContext.create(conf));
     when(mMockFileSystemContext.getConf())
         .thenReturn(conf);
     mMockInStream = new MockFileInStream(mMockFileSystemContext, TEST_SOURCE_CONTENTS, conf);

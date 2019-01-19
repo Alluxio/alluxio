@@ -48,7 +48,7 @@ public final class FileSystemContextTest {
 
     // Acquire all the clients
     FileSystemContext fsContext = FileSystemContext.create(
-        ClientContext.create(mConf.getProperties()));
+        ClientContext.create(mConf));
     for (int i = 0; i < mConf.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS); i++) {
       clients.add(fsContext.acquireMasterClient());
     }

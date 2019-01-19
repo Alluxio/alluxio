@@ -28,7 +28,6 @@ import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -70,8 +69,8 @@ public final class GrpcDataReaderTest {
   @Before
   public void before() throws Exception {
     mContext = PowerMockito.mock(FileSystemContext.class);
-    when(mContext.getClientContext()).thenReturn(ClientContext.create(null,
-        ConfigurationUtils.defaults()));
+    when(mContext.getClientContext())
+        .thenReturn(ClientContext.create(ConfigurationTestUtils.defaults()));
     when(mContext.getConf()).thenReturn(ConfigurationTestUtils.defaults());
     mAddress = mock(WorkerNetAddress.class);
     ReadRequest readRequest =

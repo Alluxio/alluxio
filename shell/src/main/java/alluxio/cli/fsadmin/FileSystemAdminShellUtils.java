@@ -57,7 +57,7 @@ public final class FileSystemAdminShellUtils {
    */
   public static void checkMasterClientService(AlluxioConfiguration alluxioConf) throws IOException {
     try (CloseableResource<FileSystemMasterClient> client =
-      FileSystemContext.create(ClientContext.create(null, alluxioConf.getProperties()))
+      FileSystemContext.create(ClientContext.create(alluxioConf))
           .acquireMasterClientResource()) {
       InetSocketAddress address = client.get().getAddress();
 

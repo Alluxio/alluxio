@@ -106,7 +106,7 @@ public abstract class AbstractClient implements Client {
   public AbstractClient(Subject subject, AlluxioConfiguration conf, InetSocketAddress address,
       Supplier<RetryPolicy> retryPolicySupplier) {
     mAddress = address;
-    mContext = ClientContext.create(subject, conf.getProperties());
+    mContext = ClientContext.create(subject, conf);
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
   }
@@ -227,7 +227,7 @@ public abstract class AbstractClient implements Client {
           // cluster defaults have been loaded or change the argument type to be
           // AlluxioConfiguration instead of AlluxioProperties.
           synchronized (this) {
-            mContext = ClientContext.create(mContext.getSubject(), conf.getProperties());
+            mContext = ClientContext.create(mContext.getSubject(), conf);
           }
         });
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",

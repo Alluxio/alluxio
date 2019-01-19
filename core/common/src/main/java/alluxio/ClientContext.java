@@ -12,7 +12,6 @@
 package alluxio;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.util.ConfigurationUtils;
 
@@ -31,27 +30,22 @@ public class ClientContext {
   /**
    * A client context with information about the subject and configuration of the client.
    *
-   * This class accepts {@link AlluxioProperties} instead of {@link AlluxioConfiguration} because
-   * AlluxioProperties is a mutable object that should be able to be created and modified easily by
-   * a user. Meanwhile, the {@link AlluxioConfiguration} interface is read only and doesn't allow
-   * the user to change values once instantiated. The ClientContext class is designed to be
-   * immutable. This forces any changes to a configuration to initialize a new Context.
-   *
    * @param subject The security subject to use
-   * @param props The {@link AlluxioProperties} to use. If null, the site property defaults will
-   * be loaded
+   * @param alluxioConf The {@link AlluxioConfiguration} to use. If null, the site property defaults
+   * will be loaded
    * @return A new client context with the specified properties and subject
    */
-  public static ClientContext create(@Nullable Subject subject, @Nullable AlluxioProperties props) {
-    return new ClientContext(subject, props);
+  public static ClientContext create(@Nullable Subject subject,
+      @Nullable AlluxioConfiguration alluxioConf) {
+    return new ClientContext(subject, alluxioConf);
   }
 
   /**
-   * @param props The specified {@link AlluxioProperties} to use
+   * @param alluxioConf The specified {@link AlluxioConfiguration} to use
    * @return the client context with the given properties and an empty subject
    */
-  public static ClientContext create(@Nullable AlluxioProperties props) {
-    return new ClientContext(null, props);
+  public static ClientContext create(@Nullable AlluxioConfiguration alluxioConf) {
+    return new ClientContext(null, alluxioConf);
   }
 
   /**
@@ -62,11 +56,12 @@ public class ClientContext {
     return new ClientContext(null, null);
   }
 
-  private ClientContext(@Nullable Subject subject, @Nullable AlluxioProperties props) {
+  private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
     mSubject = subject;
     // Copy the properties so that future modification doesn't affect this ClientContext.
-    if (props != null) {
-      mConf = new InstancedConfiguration(props.copy());
+    if (alluxioConf != null) {
+      mConf = new InstancedConfiguration(alluxioConf.getProperties().copy(),
+          alluxioConf.clusterDefaultsLoaded());
     } else {
       mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
     }
