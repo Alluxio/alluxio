@@ -77,7 +77,7 @@ public final class MoveDefinitionRunTaskTest {
         .thenReturn(conf);
     mMockInStream = new MockFileInStream(mMockFileSystemContext, TEST_SOURCE_CONTENTS, conf);
     when(mMockFileSystem.openFile(new AlluxioURI(TEST_SOURCE))).thenReturn(mMockInStream);
-    mMockOutStream = new MockFileOutStream(conf);
+    mMockOutStream = new MockFileOutStream(mMockFileSystemContext);
     when(mMockFileSystem.createFile(eq(new AlluxioURI(TEST_DESTINATION)),
         any(CreateFilePOptions.class))).thenReturn(mMockOutStream);
     mMockUfsManager = Mockito.mock(UfsManager.class);
