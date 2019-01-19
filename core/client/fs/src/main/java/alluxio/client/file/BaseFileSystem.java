@@ -54,10 +54,11 @@ import alluxio.wire.SyncPointInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
 * Default implementation of the {@link FileSystem} interface. Developers can extend this class
