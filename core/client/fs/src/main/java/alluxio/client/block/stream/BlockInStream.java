@@ -118,8 +118,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (sourceIsLocal && shortCircuit && !sourceSupportsDomainSocket) {
       LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
       try {
-        return createLocalBlockInStream(context, dataSource, blockId, blockSize, options,
-            alluxioConf);
+        return createLocalBlockInStream(context, dataSource, blockId, blockSize, options);
       } catch (NotFoundException e) {
         // Failed to do short circuit read because the block is not available in Alluxio.
         // We will try to read via gRPC. So this exception is ignored.
@@ -146,12 +145,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @return the {@link BlockInStream} created
    */
   private static BlockInStream createLocalBlockInStream(FileSystemContext context,
-      WorkerNetAddress address, long blockId, long length, InStreamOptions options,
-      AlluxioConfiguration alluxioConf)
+      WorkerNetAddress address, long blockId, long length, InStreamOptions options)
       throws IOException {
-    long chunkSize = alluxioConf.getBytes(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(
-        new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
+        new LocalFileDataReader.Factory(context, address, blockId, options),
         address, BlockInStreamSource.LOCAL, blockId, length);
   }
 
