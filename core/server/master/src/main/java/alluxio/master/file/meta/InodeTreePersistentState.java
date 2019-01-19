@@ -528,13 +528,13 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     if (inode.isDirectory() && inode.getName().equals(InodeTree.ROOT_INODE_NAME)) {
       // This is the root inode. Clear all the state, and set the root.
       mInodeStore.clear();
-      mInodeStore.writeInode(inode);
+      mInodeStore.writeNewInode(inode);
       mPinnedInodeFileIds.clear();
       return;
     }
     // inode should be added to the inode store before getting added to its parent list, because it
     // becomes visible at this point.
-    mInodeStore.writeInode(inode);
+    mInodeStore.writeNewInode(inode);
     mInodeStore.addChild(inode.getParentId(), inode);
     // Only update size, last modified time is updated separately.
     updateLastModifiedAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);

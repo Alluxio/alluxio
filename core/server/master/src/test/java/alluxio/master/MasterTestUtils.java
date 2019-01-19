@@ -13,9 +13,12 @@ package alluxio.master;
 
 import static org.mockito.Mockito.mock;
 
+import alluxio.conf.InstancedConfiguration;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.metastore.rocks.RocksMetastore;
+import alluxio.master.metastore.caching.CachingInodeStore;
+import alluxio.master.metastore.java.HeapBlockStore;
+import alluxio.master.metastore.rocks.RocksInodeStore;
 
 /**
  * Util methods to help with master testing.
@@ -34,11 +37,17 @@ public final class MasterTestUtils {
    * @param journalSystem a journal system to use in the context
    */
   public static CoreMasterContext testMasterContext(JournalSystem journalSystem) {
+    InstancedConfiguration conf = InstancedConfiguration.newBuilder()
+        .build();
     return CoreMasterContext.newBuilder()
         .setJournalSystem(journalSystem)
         .setSafeModeManager(new TestSafeModeManager())
         .setBackupManager(mock(BackupManager.class))
-        .setMetastore(new RocksMetastore())
+        .setBlockStoreFactory(x -> new HeapBlockStore())
+        // TODO(andrew): switch this back to heap inode store
+//        .setInodeStoreFactory(args -> new HeapInodeStore())
+        .setInodeStoreFactory(
+            args -> new CachingInodeStore(new RocksInodeStore(conf), args.getLockManager(), conf))
         .setStartTimeMs(-1)
         .setPort(-1)
         .build();

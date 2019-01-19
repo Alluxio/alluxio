@@ -12,24 +12,9 @@
 package alluxio.master.metastore;
 
 /**
- * A store for managing Alluxio metadata.
+ * Metastore types.
  */
-public interface Metastore {
-  /**
-   * @return the inode store
-   */
-  InodeStore getInodeStore();
-
-  /**
-   * @return the block store
-   */
-  BlockStore getBlockStore();
-
-  /**
-   * Metastore types.
-   */
-  enum Type {
-    HEAP,
-    ROCKS
-  }
+public enum MetastoreType {
+  HEAP,
+  ROCKS
 }

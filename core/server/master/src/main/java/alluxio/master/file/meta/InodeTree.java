@@ -209,11 +209,13 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * @param containerIdGenerator the container id generator to use to get new container ids
    * @param directoryIdGenerator the directory id generator to use to get new directory ids
    * @param mountTable the mount table to manage the file system mount points
+   * @param lockManager inode lock manager
    */
   public InodeTree(InodeStore inodeStore, ContainerIdGenerable containerIdGenerator,
-      InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable) {
+      InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable,
+      InodeLockManager lockManager) {
     mTtlBuckets = new TtlBucketList();
-    mInodeLockManager = new InodeLockManager();
+    mInodeLockManager = lockManager;
     mState = new InodeTreePersistentState(inodeStore, mInodeLockManager, mTtlBuckets);
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
     mContainerIdGenerator = containerIdGenerator;

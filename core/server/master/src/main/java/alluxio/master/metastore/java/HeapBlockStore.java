@@ -85,12 +85,26 @@ public class HeapBlockStore implements BlockStore {
 
   @Override
   public void addLocation(long blockId, BlockLocation location) {
-    mBlockLocations.computeIfAbsent(blockId, x -> new HashMap<>(4));
-    mBlockLocations.get(blockId).put(location.getWorkerId(), location);
+    mBlockLocations.compute(blockId, (key, locations) -> {
+      if (locations == null) {
+        locations = new HashMap<>(4);
+      }
+      locations.put(location.getWorkerId(), location);
+      return locations;
+    });
   }
 
   @Override
   public void removeLocation(long blockId, long workerId) {
+    mBlockLocations.compute(blockId, (key, locations) -> {
+      if (locations != null) {
+        locations.remove(workerId);
+      }
+      if (locations.isEmpty()) {
+        return null;
+      }
+      return locations;
+    });
     mBlockLocations.get(blockId).remove(workerId);
   }
 }

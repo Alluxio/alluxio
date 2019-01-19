@@ -17,6 +17,7 @@ import alluxio.proto.meta.Block.BlockMeta;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -100,4 +101,14 @@ public interface BlockStore extends Iterable<Block> {
       return mMeta;
     }
   }
+
+  /**
+   * Arguments for creating a block store.
+   */
+  class BlockStoreArgs {}
+
+  /**
+   * Factory for creating block stores.
+   */
+  interface Factory extends Function<BlockStoreArgs, BlockStore> {}
 }

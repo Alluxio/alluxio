@@ -37,6 +37,7 @@ import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.BlockStore.Block;
+import alluxio.master.metastore.BlockStore.BlockStoreArgs;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
@@ -246,7 +247,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
-    mBlockStore = mMetastore.getBlockStore();
+    mBlockStore = masterContext.getBlockStoreFactory().apply(new BlockStoreArgs());
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);

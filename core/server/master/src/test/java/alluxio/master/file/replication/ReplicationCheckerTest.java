@@ -27,6 +27,7 @@ import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
+import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
@@ -39,6 +40,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
 import alluxio.security.authorization.Mode;
@@ -131,9 +133,10 @@ public final class ReplicationCheckerTest {
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager manager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(manager, mock(MountInfo.class));
-    mInodeStore = context.getMetastore().getInodeStore();
-    mInodeTree = new InodeTree(mInodeStore, mBlockMaster,
-        directoryIdGenerator, mountTable);
+    InodeLockManager lockManager = new InodeLockManager();
+    mInodeStore = context.getInodeStoreFactory().apply(new InodeStoreArgs(lockManager));
+    mInodeTree =
+        new InodeTree(mInodeStore, mBlockMaster, directoryIdGenerator, mountTable, lockManager);
 
     journalSystem.start();
     journalSystem.gainPrimacy();

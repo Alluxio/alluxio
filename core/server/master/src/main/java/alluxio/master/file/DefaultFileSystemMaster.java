@@ -85,6 +85,8 @@ import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
+import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
@@ -381,10 +383,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
-    mInodeStore = new DelegatingReadOnlyInodeStore(masterContext.getMetastore().getInodeStore());
-    mInodeTree = new InodeTree(masterContext.getMetastore().getInodeStore(), mBlockMaster,
-        mDirectoryIdGenerator, mMountTable);
-    mInodeLockManager = mInodeTree.getInodeLockManager();
+    mInodeLockManager = new InodeLockManager();
+    InodeStore inodeStore =
+        masterContext.getInodeStoreFactory().apply(new InodeStoreArgs(mInodeLockManager));
+    mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
+    mInodeTree = new InodeTree(inodeStore, mBlockMaster,
+        mDirectoryIdGenerator, mMountTable, mInodeLockManager);
 
     // TODO(gene): Handle default config value for whitelist.
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST, ","));

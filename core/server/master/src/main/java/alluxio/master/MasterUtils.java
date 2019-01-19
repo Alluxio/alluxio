@@ -14,10 +14,15 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.master.metastore.Metastore;
-import alluxio.master.metastore.Metastore.Type;
-import alluxio.master.metastore.java.HeapMetastore;
-import alluxio.master.metastore.rocks.RocksMetastore;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.master.metastore.BlockStore;
+import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.MetastoreType;
+import alluxio.master.metastore.caching.CachingInodeStore;
+import alluxio.master.metastore.java.HeapBlockStore;
+import alluxio.master.metastore.java.HeapInodeStore;
+import alluxio.master.metastore.rocks.RocksBlockStore;
+import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.util.CommonUtils;
 
 import java.util.ArrayList;
@@ -57,15 +62,32 @@ final class MasterUtils {
   }
 
   /**
-   * @return a metastore of the configured type
+   * @return a block store of the configured type
    */
-  public static Metastore getMetaStore() {
-    Type type = Configuration.getEnum(PropertyKey.MASTER_METASTORE, Type.class);
+  public static BlockStore.Factory getBlockStoreFactory() {
+    MetastoreType type = Configuration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
-        return new HeapMetastore();
+        return lockManger -> new HeapBlockStore();
       case ROCKS:
-        return new RocksMetastore();
+        return args -> new RocksBlockStore(Configuration.global());
+      default:
+        throw new IllegalStateException("Unknown metastore type: " + type);
+    }
+  }
+
+  /**
+   * @return an inode store of the configured type
+   */
+  public static InodeStore.Factory getInodeStoreFactory() {
+    MetastoreType type = Configuration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
+    switch (type) {
+      case HEAP:
+        return lockManger -> new HeapInodeStore();
+      case ROCKS:
+        InstancedConfiguration conf = Configuration.global();
+        return args -> new CachingInodeStore(new RocksInodeStore(conf), args.getLockManager(),
+            conf);
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
     }

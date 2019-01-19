@@ -59,7 +59,8 @@ public final class AlluxioSecondaryMaster implements Process {
           .setJournalSystem(mJournalSystem)
           .setSafeModeManager(mSafeModeManager)
           .setBackupManager(mBackupManager)
-          .setMetastore(MasterUtils.getMetaStore())
+          .setBlockStoreFactory(MasterUtils.getBlockStoreFactory())
+          .setInodeStoreFactory(MasterUtils.getInodeStoreFactory())
           .setStartTimeMs(mStartTimeMs)
           .setPort(mPort)
           .build());

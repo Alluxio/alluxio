@@ -134,6 +134,17 @@ public class InodeLockManager {
   }
 
   /**
+   * Attempts to acquire an inode lock.
+   *
+   * @param inodeId the inode id to try locking
+   * @param mode the mode to lock in
+   * @return either an empty optional, or a lock resource which must be closed to release the lock
+   */
+  public Optional<LockResource> tryLockInode(Long inodeId, LockMode mode) {
+    return tryLock(getLock(mInodeLocks.getUnchecked(inodeId), mode));
+  }
+
+  /**
    * Acquires an edge lock.
    *
    * @param edge the edge to lock
@@ -142,6 +153,17 @@ public class InodeLockManager {
    */
   public LockResource lockEdge(Edge edge, LockMode mode) {
     return lock(mEdgeLocks.getUnchecked(edge), mode);
+  }
+
+  /**
+   * Attempts to acquire an edge lock.
+   *
+   * @param edge the edge to try locking
+   * @param mode the mode to lock in
+   * @return either an empty optional, or a lock resource which must be closed to release the lock
+   */
+  public Optional<LockResource> tryLockEdge(Edge edge, LockMode mode) {
+    return tryLock(getLock(mEdgeLocks.getUnchecked(edge), mode));
   }
 
   /**
@@ -170,14 +192,25 @@ public class InodeLockManager {
     return new LockResource(mParentUpdateLocks.get(inodeId));
   }
 
-  private LockResource lock(ReadWriteLock lock, LockMode mode) {
+  private Lock getLock(ReadWriteLock lock, LockMode mode) {
     switch (mode) {
       case READ:
-        return new LockResource(lock.readLock());
+        return lock.readLock();
       case WRITE:
-        return new LockResource(lock.writeLock());
+        return lock.writeLock();
       default:
         throw new IllegalStateException("Unknown lock mode: " + mode);
     }
+  }
+
+  private LockResource lock(ReadWriteLock lock, LockMode mode) {
+    return new LockResource(getLock(lock, mode));
+  }
+
+  private Optional<LockResource> tryLock(Lock lock) {
+    if (lock.tryLock()) {
+      return Optional.of(new LockResource(lock, true));
+    }
+    return Optional.empty();
   }
 }

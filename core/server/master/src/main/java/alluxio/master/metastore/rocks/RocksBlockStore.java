@@ -11,8 +11,8 @@
 
 package alluxio.master.metastore.rocks;
 
-import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.master.metastore.BlockStore;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
@@ -57,11 +57,17 @@ public class RocksBlockStore implements BlockStore {
 
   /**
    * Creates and initializes a rocks block store.
+   *
+   * @param conf configuration
    */
-  public RocksBlockStore() throws RocksDBException {
-    mBaseDir = Configuration.get(PropertyKey.MASTER_METASTORE_DIR);
+  public RocksBlockStore(InstancedConfiguration conf) {
+    mBaseDir = conf.get(PropertyKey.MASTER_METASTORE_DIR);
     RocksDB.loadLibrary();
-    initDb();
+    try {
+      initDb();
+    } catch (RocksDBException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
