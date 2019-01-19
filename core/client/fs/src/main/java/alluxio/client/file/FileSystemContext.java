@@ -218,9 +218,10 @@ public final class FileSystemContext implements Closeable {
     if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
       mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig
-          .defaults(mClientContext.getConf())
-          .withSubject(mClientContext.getSubject())
-          .withMasterInquireClient(mMasterInquireClient));
+          .newBuilder(mClientContext.getConf())
+          .setSubject(mClientContext.getSubject())
+          .setMasterInquireClient(mMasterInquireClient)
+          .build());
       mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, mAppId);
       mExecutorService = Executors.newFixedThreadPool(1,
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
@@ -249,24 +250,26 @@ public final class FileSystemContext implements Closeable {
    * that acquired from this context might fail. Only call this when you are done with using
    * the {@link FileSystem} associated with this {@link FileSystemContext}.
    */
-  public void close() throws IOException {
-    mFileSystemMasterClientPool.close();
-    mFileSystemMasterClientPool = null;
-    mBlockMasterClientPool.close();
-    mBlockMasterClientPool = null;
-    mMasterInquireClient = null;
+  public synchronized void close() throws IOException {
+    if (!mClosed.get()) {
+      mFileSystemMasterClientPool.close();
+      mFileSystemMasterClientPool = null;
+      mBlockMasterClientPool.close();
+      mBlockMasterClientPool = null;
+      mMasterInquireClient = null;
 
-    synchronized (this) {
-      if (mMetricsMasterClient != null) {
-        ThreadUtils.shutdownAndAwaitTermination(mExecutorService,
-            mClientContext.getConf().getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
-        mMetricsMasterClient.close();
-        mMetricsMasterClient = null;
-        mClientMasterSync = null;
+      synchronized (this) {
+        if (mMetricsMasterClient != null) {
+          ThreadUtils.shutdownAndAwaitTermination(mExecutorService,
+              mClientContext.getConf().getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
+          mMetricsMasterClient.close();
+          mMetricsMasterClient = null;
+          mClientMasterSync = null;
+        }
+        mLocalWorkerInitialized = false;
+        mLocalWorker = null;
+        mClosed.set(true);
       }
-      mLocalWorkerInitialized = false;
-      mLocalWorker = null;
-      mClosed.set(true);
     }
   }
 

@@ -141,7 +141,8 @@ public final class GetConf {
    */
   public static int getConf(AlluxioConfiguration alluxioConf, String... args) {
     return getConfImpl(
-        () -> new RetryHandlingMetaMasterConfigClient(MasterClientConfig.defaults(alluxioConf)),
+        () -> new RetryHandlingMetaMasterConfigClient(MasterClientConfig
+            .newBuilder(alluxioConf).build()),
         alluxioConf, args);
   }
 

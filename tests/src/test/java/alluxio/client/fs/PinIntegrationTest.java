@@ -51,7 +51,7 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mFSMasterClient = new FileSystemMasterClient(MasterClientConfig
-        .defaults(ServerConfiguration.global()));
+        .newBuilder(ServerConfiguration.global()).build());
     mSetPinned = SetAttributePOptions.newBuilder().setPinned(true).build();
     mUnsetPinned = SetAttributePOptions.newBuilder().setPinned(false).build();
   }

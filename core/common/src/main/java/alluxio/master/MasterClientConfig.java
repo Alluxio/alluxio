@@ -13,8 +13,6 @@ package alluxio.master;
 
 import alluxio.conf.AlluxioConfiguration;
 
-import com.google.common.base.Preconditions;
-
 import javax.security.auth.Subject;
 
 /**
@@ -25,43 +23,23 @@ public class MasterClientConfig {
   private MasterInquireClient mMasterInquireClient;
   private AlluxioConfiguration mAlluxioConf;
 
-  // Prevent instantiation
-  protected MasterClientConfig(){ }
-
-  /**
-   * @param alluxioConf Alluxio configuration
-   * @return a master client configuration with default values
-   */
-  public static MasterClientConfig defaults(AlluxioConfiguration alluxioConf) {
-    return new MasterClientConfig().withConfiguration(alluxioConf)
-        .withMasterInquireClient(MasterInquireClient.Factory.create(alluxioConf));
-  }
-
-  /**
-   * @param subject a subject
-   * @return the updated config
-   */
-  public MasterClientConfig withSubject(Subject subject) {
-    mSubject = subject;
-    return this;
-  }
-
-  /**
-   * @param masterInquireClient a master inquire client
-   * @return the updated config
-   */
-  public MasterClientConfig withMasterInquireClient(MasterInquireClient masterInquireClient) {
+  // Prevent outside instantiation
+  protected MasterClientConfig(AlluxioConfiguration alluxioConf,
+      MasterInquireClient masterInquireClient, Subject subject) {
+    mAlluxioConf = alluxioConf;
     mMasterInquireClient = masterInquireClient;
-    return this;
+    mSubject = subject;
   }
 
   /**
-   * @param alluxioConf a master inquire client
-   * @return the updated config
+   * Create an instance of a {@link MasterClientConfigBuilder} which can be used to obtain and
+   * instance of {@link MasterClientConfig}.
+   *
+   * @param alluxioConf The alluxio configuration to base the client config on
+   * @return A builder for a {@link MasterClientConfig}
    */
-  public MasterClientConfig withConfiguration(AlluxioConfiguration alluxioConf) {
-    mAlluxioConf = Preconditions.checkNotNull(alluxioConf);
-    return this;
+  public static MasterClientConfigBuilder newBuilder(AlluxioConfiguration alluxioConf) {
+    return new MasterClientConfigBuilder(alluxioConf);
   }
 
   /**

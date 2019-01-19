@@ -129,7 +129,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   DefaultBlockWorker(UfsManager ufsManager) {
     this(new BlockMasterClientPool(),
-        new FileSystemMasterClient(MasterClientConfig.defaults(ServerConfiguration.global())),
+        new FileSystemMasterClient(MasterClientConfig
+            .newBuilder(ServerConfiguration.global()).build()),
         new Sessions(), new TieredBlockStore(), ufsManager);
   }
 

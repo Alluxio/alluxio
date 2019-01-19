@@ -42,8 +42,8 @@ public final class WorkerUfsManager extends AbstractUfsManager {
    * Constructs an instance of {@link WorkerUfsManager}.
    */
   public WorkerUfsManager() {
-    mMasterClient = mCloser.register(new FileSystemMasterClient(MasterClientConfig.defaults(
-        ServerConfiguration.global())));
+    mMasterClient = mCloser.register(new FileSystemMasterClient(MasterClientConfig
+        .newBuilder(ServerConfiguration.global()).build()));
   }
 
   /**

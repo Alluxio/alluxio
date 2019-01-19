@@ -102,7 +102,7 @@ public final class AlluxioFrameworkIntegrationTest {
       startAlluxioFramework(env);
       LOG.info("Launched Alluxio cluster, waiting for worker to register with master");
       try (final BlockMasterClient client =
-          BlockMasterClient.Factory.create(MasterClientConfig.defaults(sConf))) {
+          BlockMasterClient.Factory.create(MasterClientConfig.newBuilder(sConf).build())) {
         CommonUtils.waitFor("Alluxio worker to register with master", () -> {
           try {
             try {

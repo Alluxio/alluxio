@@ -72,7 +72,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
     mConf = alluxioConf;
     mFileSystem = FileSystem.Factory.get(mConf);
-    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(alluxioConf));
+    mMasterClient = new KeyValueMasterClient(MasterClientConfig.newBuilder(alluxioConf).build());
 
     mStoreUri = Preconditions.checkNotNull(uri, "uri");
     mMasterClient.createStore(mStoreUri);

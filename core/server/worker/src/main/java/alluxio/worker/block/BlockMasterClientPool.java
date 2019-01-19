@@ -54,7 +54,8 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
   @Override
   protected BlockMasterClient createNewResource() {
     BlockMasterClient client =
-        new BlockMasterClient(MasterClientConfig.defaults(ServerConfiguration.global()));
+        new BlockMasterClient(MasterClientConfig
+            .newBuilder(ServerConfiguration.global()).build());
     mClientList.add(client);
     return client;
   }

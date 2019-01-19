@@ -333,7 +333,8 @@ public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
 
   private int getPartitionNumber(AlluxioURI storeUri) throws Exception {
     try (KeyValueMasterClient client =
-             new KeyValueMasterClient(MasterClientConfig.defaults(ServerConfiguration.global()))) {
+             new KeyValueMasterClient(MasterClientConfig
+                 .newBuilder(ServerConfiguration.global()).build())) {
       return client.getPartitionInfo(storeUri).size();
     }
   }

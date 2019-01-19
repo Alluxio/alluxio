@@ -339,8 +339,9 @@ public final class MultiProcessCluster {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a meta master client, but state was %s", mState);
     return new RetryHandlingMetaMasterClient(MasterClientConfig
-        .defaults(ServerConfiguration.global())
-        .withMasterInquireClient(getMasterInquireClient()));
+        .newBuilder(ServerConfiguration.global())
+        .setMasterInquireClient(getMasterInquireClient())
+        .build());
   }
 
   /**
@@ -349,8 +350,9 @@ public final class MultiProcessCluster {
   public synchronized Clients getClients() {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a meta master client, but state was %s", mState);
-    MasterClientConfig config = MasterClientConfig.defaults(ServerConfiguration.global())
-        .withMasterInquireClient(getMasterInquireClient());
+    MasterClientConfig config = MasterClientConfig
+        .newBuilder(ServerConfiguration.global())
+        .setMasterInquireClient(getMasterInquireClient()).build();
     return new Clients(getFileSystemClient(),
         new RetryHandlingFileSystemMasterClient(config),
         new RetryHandlingMetaMasterClient(config),

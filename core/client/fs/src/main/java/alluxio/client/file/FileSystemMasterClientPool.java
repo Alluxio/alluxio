@@ -82,8 +82,8 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
   @Override
   protected FileSystemMasterClient createNewResource() {
     FileSystemMasterClient client = FileSystemMasterClient.Factory.create(MasterClientConfig
-        .defaults(mAlluxioConf).withSubject(mSubject)
-        .withMasterInquireClient(mMasterInquireClient));
+        .newBuilder(mAlluxioConf).setSubject(mSubject).setMasterInquireClient(mMasterInquireClient)
+        .build());
     mClientList.add(client);
     return client;
   }

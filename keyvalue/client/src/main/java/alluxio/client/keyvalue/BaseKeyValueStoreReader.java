@@ -52,7 +52,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   BaseKeyValueStoreReader(AlluxioURI uri, AlluxioConfiguration alluxioConf) throws IOException {
     // TODO(binfan): use a thread pool to manage the client.
     LOG.info("Create KeyValueStoreReader for {}", uri);
-    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults(alluxioConf));
+    mMasterClient = new KeyValueMasterClient(MasterClientConfig.newBuilder(alluxioConf).build());
     mPartitions = mMasterClient.getPartitionInfo(uri);
     mMasterClient.close();
     mConf = alluxioConf;

@@ -52,7 +52,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   public void getInfoAllFields() throws Exception {
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientConfig
-            .defaults(ServerConfiguration.global()))) {
+            .newBuilder(ServerConfiguration.global()).build())) {
       MasterInfo info = client.getMasterInfo(Collections.emptySet());
       assertEquals(mWebPort, info.getWebPort());
     }
@@ -62,7 +62,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   public void getMasterInfoWebPort() throws Exception {
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientConfig
-            .defaults(ServerConfiguration.global()))) {
+            .newBuilder(ServerConfiguration.global()).build())) {
       MasterInfo info = client.getMasterInfo(new HashSet<>(Arrays
           .asList(MasterInfoField.WEB_PORT)));
       assertEquals(mWebPort, info.getWebPort());
@@ -73,7 +73,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   public void getConfigurationWebPort() throws Exception {
     try (MetaMasterConfigClient client =
              new RetryHandlingMetaMasterConfigClient(MasterClientConfig
-                 .defaults(ServerConfiguration.global()))) {
+                 .newBuilder(ServerConfiguration.global()).build())) {
       List<ConfigProperty> configList = client.getConfiguration();
       int configWebPort = -1;
       for (ConfigProperty info : configList) {
