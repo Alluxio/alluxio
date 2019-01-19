@@ -98,6 +98,8 @@ public final class LocalFileDataReader implements DataReader {
   @NotThreadSafe
   public static class Factory implements DataReader.Factory {
     private final BlockWorkerClient mBlockWorker;
+    private final FileSystemContext mContext;
+    private final WorkerNetAddress mAddress;
     private final long mBlockId;
     private final String mPath;
     private final long mChunkSize;
@@ -116,19 +118,26 @@ public final class LocalFileDataReader implements DataReader {
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
         long chunkSize, InStreamOptions options) throws IOException {
+      mContext = context;
+      mAddress = address;
       mBlockId = blockId;
       mChunkSize = chunkSize;
 
-      mBlockWorker = context.acquireBlockWorkerClient(address);
       boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
       OpenLocalBlockRequest request = OpenLocalBlockRequest.newBuilder()
           .setBlockId(mBlockId).setPromote(isPromote).build();
-      mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock, READ_BUFFER_SIZE,
-          address.toString());
-      mStream.send(request, READ_TIMEOUT_MS);
-      OpenLocalBlockResponse response = mStream.receive(READ_TIMEOUT_MS);
-      Preconditions.checkState(response.hasPath());
-      mPath = response.getPath();
+      mBlockWorker = context.acquireBlockWorkerClient(address);
+      try {
+        mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock, READ_BUFFER_SIZE,
+            address.toString());
+        mStream.send(request, READ_TIMEOUT_MS);
+        OpenLocalBlockResponse response = mStream.receive(READ_TIMEOUT_MS);
+        Preconditions.checkState(response.hasPath());
+        mPath = response.getPath();
+      } catch (Exception e) {
+        context.releaseBlockWorkerClient(address, mBlockWorker);
+        throw e;
+      }
     }
 
     @Override
@@ -158,8 +167,8 @@ public final class LocalFileDataReader implements DataReader {
         mStream.close();
         mStream.waitForComplete(READ_TIMEOUT_MS);
       } finally {
-        mBlockWorker.close();
         mClosed = true;
+        mContext.releaseBlockWorkerClient(mAddress, mBlockWorker);
       }
     }
   }

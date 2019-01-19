@@ -78,7 +78,7 @@ public final class LocalFileDataWriter implements DataWriter {
       closer.register(new Closeable() {
         @Override
         public void close() throws IOException {
-          blockWorker.close();
+          context.releaseBlockWorkerClient(address, blockWorker);
         }
       });
       CreateLocalBlockRequest.Builder builder =
