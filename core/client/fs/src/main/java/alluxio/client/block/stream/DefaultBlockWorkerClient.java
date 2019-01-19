@@ -99,12 +99,13 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public boolean isShutdown() {
-    return mStreamingChannel.isShutdown();
+    return mStreamingChannel.isShutdown() || mRpcChannel.isShutdown();
   }
 
   @Override
   public void close() throws IOException {
     mStreamingChannel.shutdown();
+    mRpcChannel.shutdown();
   }
 
   @Override

@@ -2413,6 +2413,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
+          .setAlias(new String[]{"alluxio.user.block.worker.client.pool.gc.threshold.ms"})
+          .setDefaultValue("300sec")
+          .setDescription("A block worker client is closed if it has been idle for more than this "
+              + "threshold.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
       new Builder(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES)
           .setDefaultValue("8MB")
@@ -3746,6 +3755,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.master.client.threads";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
         "alluxio.user.block.worker.client.pool.size";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =

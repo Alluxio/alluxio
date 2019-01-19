@@ -11,62 +11,78 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.resource.ResourcePool;
+import alluxio.resource.DynamicResourcePool;
+import alluxio.util.ThreadFactoryUtils;
 
-import com.google.common.io.Closer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketAddress;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 
 /**
  * Class for managing block worker clients. After obtaining a client with
- * {@link ResourcePool#acquire()}, {@link ResourcePool#release(Object)} must be called when the
- * thread is done using the client.
+ * {@link DynamicResourcePool#acquire()}, {@link DynamicResourcePool#release(Object)} must be called
+ * when the thread is done using the client.
  */
 @ThreadSafe
-public final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
-  private final Queue<BlockWorkerClient> mClientList;
+public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorkerClient> {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientPool.class);
   private final Subject mSubject;
   private final SocketAddress mAddress;
+  private static final int WORKER_CLIENT_POOL_GC_THREADPOOL_SIZE = 10;
+  private static final ScheduledExecutorService GC_EXECUTOR =
+      new ScheduledThreadPoolExecutor(WORKER_CLIENT_POOL_GC_THREADPOOL_SIZE,
+          ThreadFactoryUtils.build("WorkerClientPoolGcThreads-%d", true));
+  private final long mGcThresholdMs;
 
   /**
    * Creates a new block master client pool.
    *
    * @param subject the parent subject
    * @param address address of the worker
+   * @param maxCapacity the maximum capacity of the pool
+   * @param gcThresholdMs when a client is older than this threshold and the pool's capacity
+   *        is above the minimum capacity(1), it is closed and removed from the pool.
    */
-  public BlockWorkerClientPool(Subject subject, SocketAddress address) {
-    super(Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE));
+  public BlockWorkerClientPool(Subject subject, SocketAddress address, int maxCapacity,
+      long gcThresholdMs) {
+    super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
     mSubject = subject;
     mAddress = address;
-    mClientList = new ConcurrentLinkedQueue<>();
+    mGcThresholdMs = gcThresholdMs;
   }
 
   @Override
-  public void close() throws IOException {
-    BlockWorkerClient client;
-    Closer closer = Closer.create();
-    while ((client = mClientList.poll()) != null) {
-      closer.register(client);
-    }
-    closer.close();
+  protected void closeResource(BlockWorkerClient client) throws IOException {
+    LOG.info("Worker client for {} closed.", mAddress);
+    client.close();
   }
 
   @Override
-  protected BlockWorkerClient createNewResource() {
-    try {
-      BlockWorkerClient client = BlockWorkerClient.Factory.create(mSubject, mAddress);
-      mClientList.add(client);
-      return client;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  protected BlockWorkerClient createNewResource() throws IOException {
+    return BlockWorkerClient.Factory.create(mSubject, mAddress);
+  }
+
+  /**
+   * Checks whether a client is healthy.
+   *
+   * @param client the client to check
+   * @return true if the client is active (i.e. connected)
+   */
+  @Override
+  protected boolean isHealthy(BlockWorkerClient client) {
+    return !client.isShutdown();
+  }
+
+  @Override
+  protected boolean shouldGc(ResourceInternal<BlockWorkerClient> clientResourceInternal) {
+    return System.currentTimeMillis() - clientResourceInternal
+        .getLastAccessTimeMs() > mGcThresholdMs;
   }
 }
