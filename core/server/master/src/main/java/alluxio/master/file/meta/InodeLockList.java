@@ -11,7 +11,7 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.master.file.meta.InodeTree.LockMode;
+import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
