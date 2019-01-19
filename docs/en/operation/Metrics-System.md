@@ -37,8 +37,15 @@ The metrics system is configured via a configuration file that Alluxio expects t
 `$ALLUXIO_HOME/conf/metrics.properties`. A custom file location can be specified via the
 `alluxio.metrics.conf.file` configuration property. Alluxio provides a `metrics.properties.template`
 under the `conf` directory which includes all configurable properties. By default, MetricsServlet
-is enabled in Alluxio master and workers. You can send an HTTP request to "/metrics/json" to get a
+is enabled in Alluxio master and workers. You can send an HTTP request to "`/metrics/json/`" to get a
 snapshot of all metrics in JSON format.
+
+
+For example, this command get the metrics in JSON format from the master process running locally:
+
+```bash
+$ curl 127.0.0.1:19999/metrics/json/
+```
 
 ## Sample Sink Setup
 
@@ -106,7 +113,7 @@ Metrics in Alluxio have the following format for non-master node metrics:
 
 [processType].[hostName].[metricName].[tag1].[tag2]...
 
-The list of process metrics exposed by the master or workers can be found at the `/metrics/json`
+The list of process metrics exposed by the master or workers can be found at the `/metrics/json/`
 endpoint of the web UI. There is generally an Alluxio metric for every RPC invocation, to Alluxio or
 to the under store.
 

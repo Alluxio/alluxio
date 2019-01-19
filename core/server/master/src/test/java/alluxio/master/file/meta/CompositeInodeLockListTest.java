@@ -14,7 +14,7 @@ package alluxio.master.file.meta;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import alluxio.master.file.meta.InodeTree.LockMode;
+import alluxio.concurrent.LockMode;
 
 import org.junit.After;
 import org.junit.Rule;

@@ -14,6 +14,8 @@ package alluxio.fuse;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
@@ -243,9 +245,10 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
             MAX_OPEN_FILES);
         return -ErrorCodes.EMFILE();
       }
+
+      FileOutStream os = mFileSystem.createFile(uri);
       synchronized (mOpenFiles) {
-        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
-            null, mFileSystem.createFile(uri)));
+        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path, null, os));
         fi.fh.set(mNextOpenFileId);
 
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
@@ -454,9 +457,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         return ErrorCodes.EMFILE();
       }
 
+      FileInStream is = mFileSystem.openFile(uri);
       synchronized (mOpenFiles) {
-        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
-            mFileSystem.openFile(uri), null));
+        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path, is, null));
         fi.fh.set(mNextOpenFileId);
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
