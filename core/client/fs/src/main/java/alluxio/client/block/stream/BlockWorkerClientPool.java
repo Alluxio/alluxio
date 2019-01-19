@@ -38,7 +38,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
   private static final int WORKER_CLIENT_POOL_GC_THREADPOOL_SIZE = 10;
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(WORKER_CLIENT_POOL_GC_THREADPOOL_SIZE,
-          ThreadFactoryUtils.build("WorkerClientPoolGcThreads-%d", true));
+          ThreadFactoryUtils.build("BlockWorkerClientPoolGcThreads-%d", true));
   private final long mGcThresholdMs;
 
   /**
@@ -60,7 +60,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
 
   @Override
   protected void closeResource(BlockWorkerClient client) throws IOException {
-    LOG.info("Worker client for {} closed.", mAddress);
+    LOG.info("Block worker client for {} closed.", mAddress);
     client.close();
   }
 

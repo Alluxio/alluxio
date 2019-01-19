@@ -370,16 +370,11 @@ public final class FileSystemContext implements Closeable {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     ClientPoolKey key = new ClientPoolKey(address,
         SaslParticipantProviderUtils.getImpersonationUser(mParentSubject));
-    if (!mBlockWorkerClientPool.containsKey(key)) {
-      BlockWorkerClientPool pool = new BlockWorkerClientPool(mParentSubject, address,
-          Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
-          Configuration.getMs(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS));
-      if (mBlockWorkerClientPool.putIfAbsent(key, pool) != null) {
-        // This can happen if this function is called concurrently.
-        pool.close();
-      }
-    }
-    return mBlockWorkerClientPool.get(key).acquire();
+    return mBlockWorkerClientPool.computeIfAbsent(key, k ->
+        new BlockWorkerClientPool(mParentSubject, address,
+        Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
+        Configuration.getMs(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS))
+    ).acquire();
   }
 
   /**
