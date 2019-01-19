@@ -222,7 +222,7 @@ public abstract class AbstractClient implements Client {
     }
     // Reaching here indicates that we did not successfully connect.
 
-    if(mChannel != null) {
+    if (mChannel != null) {
       mChannel.shutdown();
     }
 
