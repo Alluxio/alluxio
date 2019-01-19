@@ -164,15 +164,19 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   private GrpcChannel buildChannel(Subject subject, SocketAddress address,
-      GrpcManagedChannelPool.PoolingStrategy poolingStrategy)
+      GrpcManagedChannelPool.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf)
       throws UnauthenticatedException, UnavailableException {
-    return GrpcChannelBuilder.forAddress(address).setSubject(subject)
-        .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress)))
+    return GrpcChannelBuilder.forAddress(address, alluxioConf).setSubject(subject)
+        .setChannelType(NettyUtils
+            .getClientChannelClass(!(address instanceof InetSocketAddress), alluxioConf))
         .setPoolingStrategy(poolingStrategy)
         .setEventLoopGroup(WORKER_GROUP)
-        .setKeepAliveTime(KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)
-        .setKeepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-        .setMaxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
-        .setFlowControlWindow((int) GRPC_FLOWCONTROL_WINDOW).build();
+        .setKeepAliveTimeout(alluxioConf.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS),
+            TimeUnit.MILLISECONDS)
+        .setMaxInboundMessageSize(
+            (int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
+        .setFlowControlWindow(
+            (int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW))
+        .build();
   }
 }

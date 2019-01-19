@@ -114,7 +114,7 @@ public final class GrpcDataReader implements DataReader {
         return;
       }
       mStream.close();
-      mStream.waitForComplete(READ_TIMEOUT_MS);
+      mStream.waitForComplete(mDataTimeoutMs);
     } finally {
       mContext.releaseBlockWorkerClient(mAddress, mClient);
     }

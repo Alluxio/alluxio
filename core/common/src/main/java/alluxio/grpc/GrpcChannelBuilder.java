@@ -68,7 +68,7 @@ public final class GrpcChannelBuilder {
 
   /**
    * Sets {@link Subject} for authentication.
-   * 
+   *
    * @param subject the subject
    * @return the updated {@link GrpcChannelBuilder} instance
    */
@@ -80,7 +80,7 @@ public final class GrpcChannelBuilder {
 
   /**
    * Sets authentication content. Calling this will reset the subject set by {@link #setSubject}.
-   * 
+   *
    * @param userName the username
    * @param password the password
    * @param impersonationUser the impersonation user
@@ -97,7 +97,7 @@ public final class GrpcChannelBuilder {
 
   /**
    * Disables authentication with the server.
-   * 
+   *
    * @return the updated {@link GrpcChannelBuilder} instance
    */
   public GrpcChannelBuilder disableAuthentication() {
@@ -186,7 +186,7 @@ public final class GrpcChannelBuilder {
 
   /**
    * Creates an authenticated channel of type {@link GrpcChannel}.
-   * 
+   *
    * @return the built {@link GrpcChannel}
    */
   public GrpcChannel build() throws UnauthenticatedException, UnavailableException {
@@ -203,7 +203,8 @@ public final class GrpcChannelBuilder {
           channelAuthenticator = new ChannelAuthenticator(mParentSubject, mConfiguration);
         } else {
           channelAuthenticator =
-              new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser, authType);
+              new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser,
+                  mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
         }
         // Get an authenticated wrapper channel over given managed channel.
         clientChannel = channelAuthenticator.authenticate(underlyingChannel, mConfiguration);

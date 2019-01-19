@@ -23,6 +23,7 @@ import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,7 +43,10 @@ public class GrpcManagedChannelPool {
   private static GrpcManagedChannelPool sInstance;
 
   static {
+    // TODO(zac): Find a better way to handle handle this instance
     sInstance = new GrpcManagedChannelPool(
+        new InstancedConfiguration(ConfigurationUtils.defaults())
+            .getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS),
         new InstancedConfiguration(ConfigurationUtils.defaults())
             .getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
   }

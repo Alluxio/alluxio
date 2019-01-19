@@ -143,7 +143,7 @@ public final class EvictDefinition
       LOG.warn("Failed to delete block {} on {}: block does not exist", blockId, localNetAddress);
     } finally {
       if (blockWorker != null) {
-        FileSystemContext.get().releaseBlockWorkerClient(localNetAddress, blockWorker);
+        mFsContext.releaseBlockWorkerClient(localNetAddress, blockWorker);
       }
     }
     return null;
