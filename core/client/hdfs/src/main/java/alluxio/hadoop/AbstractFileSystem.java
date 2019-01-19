@@ -94,7 +94,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
 
   /** Flag for if the contexts have been initialized. */
-  private static volatile boolean sInitialized = false;
+  private volatile boolean mInitialized = false;
 
   protected FileSystemContext mFsContext = null;
   private FileSystem mFileSystem = null;
@@ -113,7 +113,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   AbstractFileSystem(FileSystem fileSystem) {
     mFileSystem = fileSystem;
-    sInitialized = true;
+    mInitialized = true;
   }
 
   /**
@@ -474,6 +474,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
+    if (mFsContext != null) {
+      mFsContext.close(); // close is a no-op if it's already been closed
+    }
     HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
 
@@ -493,65 +496,62 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mAlluxioHeader = getScheme() + ":///";
     mUri = URI.create(mAlluxioHeader);
 
-    // Need to initialize the fsContext before connectDetailsMatch and initializeInternal
-    // both methods need to be able to access the Alluxio Configuration from the
-    // fsContext.
-
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
     AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
     alluxioProps.merge(uriConfProperties, Source.RUNTIME);
+    AlluxioConfiguration alluxioConf = new InstancedConfiguration(alluxioProps);
     Subject subject = getHadoopSubject();
     if (subject != null) {
       LOG.debug("Using Hadoop subject: {}", subject);
     } else {
       LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
     }
-    mFsContext = FileSystemContext.create(subject, new InstancedConfiguration(alluxioProps));
 
     synchronized (this) {
-      if (sInitialized) {
+      if (mInitialized) {
         if (!connectDetailsMatch(uriConfProperties, conf)) {
           LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS.getMessage(
               mFsContext.getMasterInquireClient().getConnectDetails()));
-          initializeInternal(uriConfProperties, conf);
+          alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioConf);
         }
       } else {
-        initializeInternal(uriConfProperties, conf);
+        alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioConf);
       }
+
+      LOG.info("Initializing filesystem context with connect details {}",
+          Factory.getConnectDetails(alluxioConf));
+      mFsContext = FileSystemContext.create(subject, alluxioConf);
 
       // Sets the file system.
       //
       // Must happen inside the lock so that the filesystem context isn't changed by a
       // concurrent call to initialize.
       mFileSystem = FileSystem.Factory.get(mFsContext);
-      sInitialized = true;
+      mInitialized = true;
     }
   }
 
   /**
-   * Initializes the default contexts if the connection details specified in the URI + hadoop conf
-   * is different from the default one.
+   * Merges the URI configuration with the Hadoop and Alluxio configuration, returning an
+   * {@link AlluxioConfiguration} with all properties merged into one object.
    *
    * @param uriConfProperties the configuration properties from the input uri
    * @param conf the hadoop conf
+   * @param alluxioConf Alluxio configuration
+   * @return a merged configuration of URI, hadoop, and Alluxio properties
    */
-  void initializeInternal(Map<String, Object> uriConfProperties,
-      org.apache.hadoop.conf.Configuration conf) throws IOException {
-    // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
-    // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
-    // We assume here that all clients use the same configuration.
-    AlluxioConfiguration alluxioConf = HadoopConfigurationUtils.mergeHadoopConfiguration(conf,
-        mFsContext.getConf());
+  private AlluxioConfiguration mergeConfigurations(Map<String, Object> uriConfProperties,
+      org.apache.hadoop.conf.Configuration conf, AlluxioConfiguration alluxioConf)
+      throws IOException {
+    // take the URI properties, hadoop configuration, and given Alluxio configuration and merge
+    // all three into a single object.
+    AlluxioConfiguration mergedConf = HadoopConfigurationUtils.mergeHadoopConfiguration(conf,
+        alluxioConf);
 
     // Connection details in the URI has the highest priority
-    AlluxioProperties props = alluxioConf.getProperties();
+    AlluxioProperties props = mergedConf.getProperties();
     props.merge(uriConfProperties, Source.RUNTIME);
-
-    // This must be reset to pick up the change to the master address.
-    mFsContext = FileSystemContext.create(new InstancedConfiguration(props));
-    LOG.info("Initializing filesystem context with connect details {}",
-        Factory.getConnectDetails(mFsContext.getConf()));
-    mFsContext.reset();
+    return new InstancedConfiguration(props);
   }
 
   /**
