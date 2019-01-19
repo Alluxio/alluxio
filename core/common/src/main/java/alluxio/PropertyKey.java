@@ -375,7 +375,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS =
       new Builder(Name.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS)
           .setAlias(new String[] {"alluxio.network.channel.health.check.timeout.ms"})
-          .setDefaultValue("30sec")
+          .setDefaultValue("5sec")
           .setDescription("Allowed duration for checking health of client connections "
               + " before being assigned to a client. If a connection does not become active "
               + " within configured time, it will be shut down and a new connection will be "

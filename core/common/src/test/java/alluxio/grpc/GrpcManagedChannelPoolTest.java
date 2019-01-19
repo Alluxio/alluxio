@@ -30,7 +30,7 @@ public final class GrpcManagedChannelPoolTest {
 
   @BeforeClass
   public static void classSetup() {
-    Configuration.set(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS, "3sec");
+    Configuration.set(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS, "1sec");
   }
 
   @Test

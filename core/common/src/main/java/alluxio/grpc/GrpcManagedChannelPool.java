@@ -4,9 +4,9 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.resource.LockResource;
-
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Verify;
 import io.grpc.ConnectivityState;
@@ -91,20 +91,29 @@ public class GrpcManagedChannelPool {
   }
 
   private boolean waitForChannelReady(ManagedChannel managedChannel) {
-    ConnectivityState initialState = managedChannel.getState(false);
-    if (initialState != ConnectivityState.READY) {
-      try {
-        CommonUtils.waitFor(this + " to start",
-            () -> managedChannel.getState(true) == ConnectivityState.READY,
-            WaitForOptions.defaults().setTimeoutMs((int) mHealthCheckTimeoutMs));
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        return false;
-      } catch (TimeoutException e) {
-        return false;
-      }
+    try {
+      Boolean res = CommonUtils.waitForResult("channel to be ready", () -> {
+        ConnectivityState currentState = managedChannel.getState(true);
+        switch (currentState) {
+          case READY:
+            return true;
+          case TRANSIENT_FAILURE:
+          case SHUTDOWN:
+            return false;
+          case IDLE:
+          case CONNECTING:
+            return null;
+          default:
+            return null;
+        }
+      }, WaitForOptions.defaults().setTimeoutMs((int) mHealthCheckTimeoutMs));
+      return res;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
     }
-    return true;
   }
 
   /**
