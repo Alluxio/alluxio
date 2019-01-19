@@ -11,7 +11,6 @@
 
 package alluxio.grpc;
 
-import alluxio.AbstractClient;
 import alluxio.exception.status.AlluxioStatusException;
 
 import io.grpc.Metadata;
@@ -23,10 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
 
 /**
  * Utility methods for conversion between alluxio and grpc status exceptions.
@@ -113,7 +108,11 @@ public final class GrpcExceptionUtils {
      */
     Throwable cause = (e.getCause() != null) ? e.getCause() : e;
     if (e.getTrailers() != null && e.getTrailers().containsKey(sInnerCauseKey)) {
-      cause = (Throwable) SerializationUtils.deserialize(e.getTrailers().get(sInnerCauseKey));
+      try {
+        cause = (Throwable) SerializationUtils.deserialize(e.getTrailers().get(sInnerCauseKey));
+      } catch (Exception exc) {
+        LOG.warn("Failed to deserialize the cause: {}", exc);
+      }
     }
     return AlluxioStatusException.from(alluxioStatus, cause.getMessage());
   }
@@ -191,7 +190,7 @@ public final class GrpcExceptionUtils {
     try {
       trailers.put(sInnerCauseKey, SerializationUtils.serialize(cause));
     } catch (Exception exc) {
-      LOG.warn("Failed to serialize {}. Failed with: {}", cause, exc);
+      LOG.warn("Could not serialize the cause: {}. Failed with: {}", cause, exc);
     }
     return Status.fromCode(code).asException(trailers);
   }
