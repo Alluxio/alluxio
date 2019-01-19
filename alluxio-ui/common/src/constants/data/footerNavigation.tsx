@@ -13,13 +13,13 @@ import {INavigationData} from '..';
 
 export const footerNavigationData : INavigationData[] = [{
   innerText: 'Project Website',
-  url: 'http://alluxio.org/'
+  url: 'https://alluxio.org/'
 }, {
   innerText: 'User Mailing List',
   url: 'https://groups.google.com/forum/#!forum/alluxio-users'
 }, {
   innerText: 'User Survey',
-  url: 'http://alluxio.org/resources/survey-users'
+  url: 'https://alluxio.org/resources/survey-users'
 }, {
   innerText: 'Workers',
   url: '/workers'

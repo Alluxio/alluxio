@@ -37,7 +37,7 @@ export class Paginator extends React.PureComponent<IPaginatorProps> {
   public render() {
     const {offset, limit, total, baseUrl, path} = this.props;
 
-    const numOffset = this.getNumber(offset);
+    const numOffset = this.getNumber(offset) || 0;
     const numLimit = this.getNumber(limit) || 20;
 
     if (numOffset === null || numLimit === null) {
@@ -111,8 +111,8 @@ export class Paginator extends React.PureComponent<IPaginatorProps> {
   }
 
   private getNumber(numString?: string) {
-    if (!numString) {
-      return 0;
+    if (numString === undefined) {
+      return null;
     }
 
     try {
