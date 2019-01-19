@@ -14,6 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
+import alluxio.concurrent.LockMode;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -160,14 +161,6 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     public boolean isWrite() {
       return this == WRITE_INODE || this == WRITE_EDGE;
     }
-  }
-
-  /**
-   * ReadWriteLock types.
-   */
-  public enum LockMode {
-    READ,
-    WRITE;
   }
 
   /** Only the root inode should have the empty string as its name. */

@@ -250,6 +250,11 @@ public abstract class AbstractClient implements Client {
       }
     }
     // Reaching here indicates that we did not successfully connect.
+
+    if (mChannel != null) {
+      mChannel.shutdown();
+    }
+
     if (mAddress == null) {
       throw new UnavailableException(
           String.format("Failed to determine address for %s after %s attempts", getServiceName(),

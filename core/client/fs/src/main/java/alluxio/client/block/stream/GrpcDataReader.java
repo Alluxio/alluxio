@@ -104,11 +104,15 @@ public final class GrpcDataReader implements DataReader {
 
   @Override
   public void close() throws IOException {
-    if (mClient.isShutdown()) {
-      return;
+    try {
+      if (mClient.isShutdown()) {
+        return;
+      }
+      mStream.close();
+      mStream.waitForComplete(READ_TIMEOUT_MS);
+    } finally {
+      mContext.releaseBlockWorkerClient(mAddress, mClient);
     }
-    mStream.close();
-    mStream.waitForComplete(mDataTimeoutMs);
   }
 
   /**

@@ -107,7 +107,7 @@
 
     <!-- Profile to build this UFS module connecting to hdfs 3 -->
     <profile>
-      <id>hadoop-3</id>
+      <id>ufs-hadoop-3</id>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>

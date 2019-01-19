@@ -376,6 +376,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "name is resolvable over the network.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS =
+      new Builder(Name.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS)
+          .setAlias(new String[] {"alluxio.network.channel.health.check.timeout.ms"})
+          .setDefaultValue("5sec")
+          .setDescription("Allowed duration for checking health of client connections "
+              + " before being assigned to a client. If a connection does not become active "
+              + " within configured time, it will be shut down and a new connection will be "
+              + "created for the client")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
           .setDefaultSupplier(
@@ -1219,6 +1228,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The hostname of Alluxio master.")
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey MASTER_LOCKCACHE_INITSIZE =
+      new Builder(Name.MASTER_LOCKCACHE_INITSIZE)
+          .setDefaultValue(1000)
+          .setDescription("Initial inodelock cache size")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_LOCKCACHE_MAXSIZE =
+      new Builder(Name.MASTER_LOCKCACHE_MAXSIZE)
+          .setDefaultValue(10000)
+          .setDescription("Maximum inodelock cache size")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_LOCKCACHE_CONCURRENCY_LEVEL =
+      new Builder(Name.MASTER_LOCKCACHE_CONCURRENCY_LEVEL)
+          .setDefaultValue(100)
+          .setDescription("Maximum concurrency level for the inodelock cache")
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS)
           .setAlias(new String[]{"alluxio.master.journal.flush.batch.time.ms"})
@@ -1991,7 +2018,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-
   public static final PropertyKey WORKER_PRINCIPAL = new Builder(Name.WORKER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio worker.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2407,6 +2433,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(10)
           .setDescription("The number of threads used by a block master client pool to talk "
               + "to the block master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
+      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_SIZE)
+          .setDefaultValue(1024)
+          .setDescription("The maximum number of block worker clients cached in the block "
+              + "worker client pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
+          .setDefaultValue("300sec")
+          .setDescription("A block worker client is closed if it has been idle for more than this "
+              + "threshold.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3344,6 +3386,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.metrics.context.shutdown.timeout";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
         "alluxio.network.host.resolution.timeout";
+    public static final String NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS =
+        "alluxio.network.channel.health.check.timeout.ms";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
@@ -3498,6 +3542,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_HEARTBEAT_TIMEOUT =
         "alluxio.master.heartbeat.timeout";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
+    public static final String MASTER_LOCKCACHE_INITSIZE =
+        "alluxio.master.lockcache.initsize";
+    public static final String MASTER_LOCKCACHE_MAXSIZE =
+        "alluxio.master.lockcache.maxsize";
+    public static final String MASTER_LOCKCACHE_CONCURRENCY_LEVEL =
+        "alluxio.master.lockcache.concurrency.level";
     public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
         "alluxio.master.journal.flush.batch.time";
     public static final String MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
@@ -3747,6 +3797,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
         "alluxio.user.block.master.client.threads";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
+        "alluxio.user.block.worker.client.pool.size";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =

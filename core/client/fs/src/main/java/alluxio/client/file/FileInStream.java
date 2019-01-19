@@ -353,9 +353,12 @@ public class FileInStream extends InputStream implements BoundedStream, Position
                 .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
                 .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
                 .build();
-        try (BlockWorkerClient blockWorker = mContext.acquireBlockWorkerClient(worker)) {
+        BlockWorkerClient blockWorker = mContext.acquireBlockWorkerClient(worker);
+        try {
           blockWorker.asyncCache(request);
           mLastBlockIdCached = blockId;
+        } finally {
+          mContext.releaseBlockWorkerClient(worker, blockWorker);
         }
       } catch (Exception e) {
         LOG.warn("Failed to complete async cache request for block {} at worker {}: {}", blockId,
