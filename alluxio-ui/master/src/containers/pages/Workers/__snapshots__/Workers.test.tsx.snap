@@ -861,12 +861,6 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                                             Node Name
                                           </th>
                                           <th>
-                                            [D]Worker Id
-                                          </th>
-                                          <th>
-                                            [D]Uptime
-                                          </th>
-                                          <th>
                                             Last Heartbeat
                                           </th>
                                           <th>
@@ -909,12 +903,6 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                                         <tr>
                                           <th>
                                             Node Name
-                                          </th>
-                                          <th>
-                                            [D]Worker Id
-                                          </th>
-                                          <th>
-                                            [D]Uptime
                                           </th>
                                           <th>
                                             Last Heartbeat
@@ -1126,12 +1114,6 @@ exports[`Workers Shallow component Matches snapshot 1`] = `
                 Node Name
               </th>
               <th>
-                [D]Worker Id
-              </th>
-              <th>
-                [D]Uptime
-              </th>
-              <th>
                 Last Heartbeat
               </th>
               <th>
@@ -1170,12 +1152,6 @@ exports[`Workers Shallow component Matches snapshot 1`] = `
             <tr>
               <th>
                 Node Name
-              </th>
-              <th>
-                [D]Worker Id
-              </th>
-              <th>
-                [D]Uptime
               </th>
               <th>
                 Last Heartbeat
