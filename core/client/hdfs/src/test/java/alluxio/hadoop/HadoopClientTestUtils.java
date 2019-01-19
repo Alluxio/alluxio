@@ -15,7 +15,6 @@ import alluxio.ProjectConstants;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
-import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.core.classloader.MockClassLoader;
 
 import java.net.URL;
