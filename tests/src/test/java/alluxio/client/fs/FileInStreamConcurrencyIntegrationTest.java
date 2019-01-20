@@ -38,7 +38,11 @@ import java.util.List;
 public final class FileInStreamConcurrencyIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static int sNumReadThreads =
+<<<<<<< HEAD
       ServerConfiguration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
+=======
+      Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX) * 10;
+>>>>>>> 082ccd3594... [ALLUXIO-3394] GC fs master client (#8263)
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
