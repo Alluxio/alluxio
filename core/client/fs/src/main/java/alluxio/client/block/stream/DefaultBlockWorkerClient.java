@@ -52,7 +52,7 @@ import javax.security.auth.Subject;
  * Default implementation of {@link BlockWorkerClient}.
  */
 public class DefaultBlockWorkerClient implements BlockWorkerClient {
-  private static final Logger LOGGER =
+  private static final Logger LOG =
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
 
   private static final long DATA_TIMEOUT =
@@ -153,7 +153,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
           @Override
           public void onError(Throwable t) {
-            LOGGER.warn("Error sending async cache request {} to worker {}.", request, mAddress, t);
+            LOG.warn("Error sending async cache request {} to worker {}.", request, mAddress, t);
           }
 
           @Override
