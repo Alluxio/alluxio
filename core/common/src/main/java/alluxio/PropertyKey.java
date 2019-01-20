@@ -2270,11 +2270,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // User related properties
   //
-  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_THREADS =
-      new Builder(Name.USER_BLOCK_MASTER_CLIENT_THREADS)
+  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN =
+      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN)
+          .setDefaultValue(0)
+          .setDescription("The minimum number of block master clients cached in the block master "
+              + "client pool. For long running processes, this should be set to zero.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX =
+      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX)
           .setDefaultValue(10)
-          .setDescription("The number of threads used by a block master client pool to talk "
-              + "to the block master.")
+          .setDescription("The maximum number of block master clients cached in the block master "
+              + "client pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .setAlias(new String[] {"alluxio.user.block.master.client.threads"})
+          .build();
+  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
+          .setDefaultValue("120sec")
+          .setDescription("The interval at which block master client GC checks occur.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
+      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS)
+          .setDefaultValue("120sec")
+          .setDescription("A block master client is closed if it has been idle for more than this "
+              + "threshold.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -2414,11 +2438,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "before attempting to delete persisted directories recursively.")
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_MASTER_CLIENT_THREADS =
-      new Builder(Name.USER_FILE_MASTER_CLIENT_THREADS)
+  public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN =
+      new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN)
+          .setDefaultValue(0)
+          .setDescription("The minimum number of fs master clients cached in the fs master "
+              + "client pool. For long running processes, this should be set to zero.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
+      new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX)
           .setDefaultValue(10)
-          .setDescription("The number of threads used by a file master client to talk to the "
-              + "file master.")
+          .setDescription("The maximum number of fs master clients cached in the fs master "
+              + "client pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .setAlias(new String[] {"alluxio.user.file.master.client.threads"})
+          .build();
+  public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+      new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
+          .setDefaultValue("120sec")
+          .setDescription("The interval at which file system master client GC checks occur.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
+      new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS)
+          .setDefaultValue("120sec")
+          .setDescription("A fs master client is closed if it has been idle for more than this "
+              + "threshold.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -2620,6 +2668,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(0)
           .setDescription("How many threads to use for remote block worker client to read "
               + "from remote block workers.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MIN =
+      new Builder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MIN)
+          .setDefaultValue(0)
+          .setDescription("The minimum number of netty channels cached in the netty channel "
+              + "pool. For long running processes, this should be set to zero.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3504,8 +3560,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // User related properties
     //
-    public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
-        "alluxio.user.block.master.client.threads";
+    public static final String USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN =
+        "alluxio.user.block.master.client.pool.size.min";
+    public static final String USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX =
+        "alluxio.user.block.master.client.pool.size.max";
+    public static final String USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+        "alluxio.user.block.master.client.pool.gc.interval";
+    public static final String USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.block.master.client.pool.gc.threshold";
     public static final String USER_BLOCK_REMOTE_READER_CLASS =
         "alluxio.user.block.remote.reader.class";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
@@ -3534,8 +3596,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.copyfromlocal.write.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
-    public static final String USER_FILE_MASTER_CLIENT_THREADS =
-        "alluxio.user.file.master.client.threads";
+    public static final String USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN =
+        "alluxio.user.file.master.client.pool.size.min";
+    public static final String USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
+        "alluxio.user.file.master.client.pool.size.max";
+    public static final String USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+        "alluxio.user.file.master.client.pool.gc.interval";
+    public static final String USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.file.master.client.pool.gc.threshold";
     public static final String USER_FILE_METADATA_LOAD_TYPE =
         "alluxio.user.file.metadata.load.type";
     public static final String USER_FILE_METADATA_SYNC_INTERVAL =
@@ -3575,6 +3643,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.netty.writer.close.timeout";
     public static final String USER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.user.network.netty.worker.threads";
+    public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MIN =
+        "alluxio.user.network.netty.channel.pool.size.min";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
         "alluxio.user.network.netty.channel.pool.size.max";
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS =

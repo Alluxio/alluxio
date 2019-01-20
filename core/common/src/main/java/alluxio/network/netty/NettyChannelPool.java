@@ -56,12 +56,17 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
    * Creates a netty channel pool instance with a minimum capacity of 1.
    *
    * @param bootstrap the netty bootstrap used to create netty channel
+   * @param minCapacity the minimum capacity of the pool
    * @param maxCapacity the maximum capacity of the pool
    * @param gcThresholdMs when a channel is older than this threshold and the pool's capacity
    *        is above the minimum capacity(1), it is closed and removed from the pool.
    */
-  public NettyChannelPool(Bootstrap bootstrap, int maxCapacity, long gcThresholdMs) {
-    super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
+  public NettyChannelPool(Bootstrap bootstrap, int minCapacity, int maxCapacity,
+      long gcThresholdMs) {
+    super(Options.defaultOptions()
+        .setMinCapacity(minCapacity)
+        .setMaxCapacity(maxCapacity)
+        .setGcExecutor(GC_EXECUTOR));
     mBootstrap = bootstrap;
     mGcThresholdMs = gcThresholdMs;
   }

@@ -38,7 +38,7 @@ import java.util.List;
 public final class FileInStreamConcurrencyIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static int sNumReadThreads =
-      Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
+      Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX) * 10;
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =

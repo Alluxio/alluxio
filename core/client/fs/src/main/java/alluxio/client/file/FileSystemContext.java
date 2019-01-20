@@ -319,7 +319,11 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired file system master client
    */
   public FileSystemMasterClient acquireMasterClient() {
-    return mFileSystemMasterClientPool.acquire();
+    try {
+      return mFileSystemMasterClientPool.acquire();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -338,12 +342,16 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired file system master client resource
    */
   public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
-    return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
-      @Override
-      public void close() {
-        mFileSystemMasterClientPool.release(get());
-      }
-    };
+    try {
+      return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
+        @Override
+        public void close() {
+          mFileSystemMasterClientPool.release(get());
+        }
+      };
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -353,12 +361,16 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired block master client resource
    */
   public CloseableResource<BlockMasterClient> acquireBlockMasterClientResource() {
-    return new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
-      @Override
-      public void close() {
-        mBlockMasterClientPool.release(get());
-      }
-    };
+    try {
+      return new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
+        @Override
+        public void close() {
+          mBlockMasterClientPool.release(get());
+        }
+      };
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -375,6 +387,7 @@ public final class FileSystemContext implements Closeable {
       Bootstrap bs = NettyClient.createClientBootstrap(address);
       bs.remoteAddress(address);
       NettyChannelPool pool = new NettyChannelPool(bs,
+          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MIN),
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
           Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
       if (mNettyChannelPools.putIfAbsent(address, pool) != null) {

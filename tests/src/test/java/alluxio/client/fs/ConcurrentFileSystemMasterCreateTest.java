@@ -73,7 +73,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
           "sleep://" + mLocalUfsPath).setProperty(PropertyKey
-          .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR).build();
+          .USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, CONCURRENCY_FACTOR).build();
 
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =

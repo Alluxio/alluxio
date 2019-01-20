@@ -76,7 +76,7 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey
-          .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR)
+          .USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, CONCURRENCY_FACTOR)
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, TTL_INTERVAL_MS).build();
 
   @Before
