@@ -173,7 +173,7 @@ public final class GetConf {
       try (RetryHandlingMetaMasterConfigClient client = clientSupplier.get()) {
         client.getConfiguration().forEach(prop -> confMap.put(prop.getName(), prop));
       } catch (IOException e) {
-        System.out.println("Unable to create master-side configuration: " + e.getMessage());
+        System.out.println("Unable to get master-side configuration: " + e.getMessage());
         return -1;
       }
     } else {

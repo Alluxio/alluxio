@@ -187,7 +187,7 @@ public final class AlluxioWorkerRestServiceHandler {
 
   /**
    * @summary get the mapping from tier alias to the total capacity of the tier in bytes, the keys
-   *          are in the order from tier aliases with smaller ordinals to those with larger ones.
+   *    are in the order from tier aliases with smaller ordinals to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)

@@ -47,7 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  *    {@literal @}Test
  *    public void testSomething() {
- *      localAlluxioClusterResource.create().getClient().create("/abced");
+ *      localAlluxioClusterResource.get().getClient().create("/abced");
  *      ...
  *    }
  *
@@ -55,7 +55,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    {@literal @}LocalAlluxioClusterResource.Config(
  *        confParams = {CONF_KEY_1, CONF_VALUE_1, CONF_KEY_2, CONF_VALUE_2, ...})
  *    public void testSomethingWithDifferentConf() {
-  *      localAlluxioClusterResource.create().getClient().create("/efghi");
+  *      localAlluxioClusterResource.get().getClient().create("/efghi");
  *      ...
  *    }
  *
@@ -63,7 +63,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    {@literal @}LocalAlluxioClusterResource.Config(startCluster = false)
  *    public void testSomethingWithClusterStartedManually() {
  *      localAlluxioClusterResource.start();
- *      localAlluxioClusterResource.create().getClient().create("/efghi");
+ *      localAlluxioClusterResource.get().getClient().create("/efghi");
  *      ...
  *    }
  *   }

@@ -51,7 +51,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
   private final ZkMasterConnectDetails mConnectDetails;
   private final String mElectionPath;
   private final CuratorFramework mClient;
-  private final int mMaxTry;
+  private final int mInquireRetryCount;
 
   /**
    * Gets the client.
@@ -89,7 +89,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
     mClient = CuratorFrameworkFactory.newClient(connectDetails.getZkAddress(),
         new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
 
-    mMaxTry = inquireRetryCount;
+    mInquireRetryCount = inquireRetryCount;
   }
 
   @Override
@@ -110,7 +110,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
       }
       curatorClient.blockUntilConnectedOrTimedOut();
       String leaderPath = mConnectDetails.getLeaderPath();
-      while (tried < mMaxTry) {
+      while (tried < mInquireRetryCount) {
         ZooKeeper zookeeper = curatorClient.getZooKeeper();
         if (zookeeper.exists(leaderPath, false) != null) {
           List<String> masters = zookeeper.getChildren(leaderPath, null);
@@ -154,7 +154,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
     ensureStarted();
     int tried = 0;
     try {
-      while (tried < mMaxTry) {
+      while (tried < mInquireRetryCount) {
         if (mClient.checkExists().forPath(mElectionPath) != null) {
           List<String> children = mClient.getChildren().forPath(mElectionPath);
           List<InetSocketAddress> ret = new ArrayList<>();

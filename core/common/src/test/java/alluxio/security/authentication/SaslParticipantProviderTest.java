@@ -18,10 +18,9 @@ import alluxio.security.authentication.plain.PlainSaslServerProvider;
 import alluxio.security.authentication.plain.SaslParticipantProviderPlain;
 
 import org.junit.Assert;
-import org.junit.rules.ExpectedException;
-
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
@@ -35,11 +34,10 @@ public class SaslParticipantProviderTest {
   /**
    * The exception expected to be thrown.
    */
-
-  private AlluxioConfiguration mConfiguration = ConfigurationTestUtils.defaults();
-
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
+
+  private AlluxioConfiguration mConfiguration = ConfigurationTestUtils.defaults();
 
   @Test
   public void testCreateUnsupportedProvider() throws UnauthenticatedException {

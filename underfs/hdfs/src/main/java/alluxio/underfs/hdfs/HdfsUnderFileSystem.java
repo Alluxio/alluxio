@@ -167,8 +167,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
     try {
       Constructor c = Class.forName(HDFS_ACTIVESYNC_PROVIDER_CLASS)
-          .getConstructor(URI.class, Configuration.class);
-      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf);
+          .getConstructor(URI.class, Configuration.class, AlluxioConfiguration.class);
+      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf, alluxioConf);
       if (o instanceof HdfsActiveSyncProvider) {
         hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;
         LOG.info("Successfully instantiated SupportedHdfsActiveSyncProvider");

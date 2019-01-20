@@ -122,10 +122,9 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
    *
    * @return block size in bytes
    */
-//  private long getBlockSize() {
-//    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-//
-//  }
+  private long getBlockSize() {
+    return mBlockSize;
+  }
 
   /**
    * Opens a new stream at mPos if the wrapped stream mStream is null.

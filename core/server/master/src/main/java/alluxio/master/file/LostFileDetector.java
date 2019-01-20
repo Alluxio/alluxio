@@ -59,7 +59,7 @@ final class LostFileDetector implements HeartbeatExecutor {
               .build());
         }
       } catch (FileDoesNotExistException e) {
-        LOG.debug("Exception trying to create inode from inode tree", e);
+        LOG.debug("Exception trying to get inode from inode tree", e);
       } catch (UnavailableException e) {
         LOG.warn("Failed to run lost file detector: {}", e.toString());
       }

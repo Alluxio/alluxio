@@ -17,8 +17,6 @@ import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.SaslMessage;
 
 import io.grpc.stub.StreamObserver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
@@ -28,8 +26,6 @@ import java.util.UUID;
  * Responsible for driving sasl traffic from server-side. Acts as a server's Sasl stream.
  */
 public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
-
-  private static final Logger LOG = LoggerFactory.getLogger(SaslStreamServerDriver.class);
   /** Client's sasl stream. */
   private StreamObserver<SaslMessage> mRequestObserver = null;
   /** Handshake handler for server. */
@@ -81,7 +77,6 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
         // Unregister from registry if in case it was authenticated before.
         mAuthenticationServer.unregisterChannel(mChannelId);
       }
-      LOG.warn("hitting mSaslHandshakeServerHandler");
       // Respond to client.
       mRequestObserver.onNext(mSaslHandshakeServerHandler.handleSaslMessage(saslMessage));
     } catch (SaslException se) {

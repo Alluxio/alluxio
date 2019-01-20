@@ -82,7 +82,7 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
         return locations;
       }
     } catch (InvalidPathException | IOException e) {
-      LOG.warn("Failed to create locations for block {} in file {} with offset {}: {}",
+      LOG.warn("Failed to get locations for block {} in file {} with offset {}: {}",
           blockId, fileUri, offset, e);
     }
     return null;

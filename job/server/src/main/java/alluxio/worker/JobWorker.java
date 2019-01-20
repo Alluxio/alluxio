@@ -96,7 +96,7 @@ public final class JobWorker extends AbstractWorker {
     try {
       JobWorkerIdRegistry.registerWorker(mJobMasterClient, address);
     } catch (ConnectionFailedException e) {
-      LOG.error("Failed to create a worker id from job master", e);
+      LOG.error("Failed to get a worker id from job master", e);
       throw Throwables.propagate(e);
     }
 

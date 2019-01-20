@@ -212,8 +212,7 @@ public interface AlluxioConfiguration {
   void validate();
 
   /**
-   * Determines whether or not the cluster defaults have been loaded into this configuration.
-   * @return whether or not the cluster defaults were loaded for this configuration
+   * @return whether or not the configuration has been merged with cluster defaults
    */
   boolean clusterDefaultsLoaded();
 }

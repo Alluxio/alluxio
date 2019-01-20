@@ -69,7 +69,7 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
           System.err.println("The leader is not currently serving requests.");
         }
       } catch (UnavailableException e) {
-        System.err.println("Failed to create the leader master.");
+        System.err.println("Failed to get the leader master.");
       }
     }
     return 0;

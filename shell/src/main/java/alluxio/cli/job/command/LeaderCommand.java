@@ -58,8 +58,8 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
           JobContext.create(mFsContext.getConf()).getJobMasterAddress();
       System.out.println(address.getHostName());
     } catch (Exception e) {
-      LOG.error("Failed to create the primary job master", e);
-      System.out.println("Failed to create the primary job master.");
+      LOG.error("Failed to get the primary job master", e);
+      System.out.println("Failed to get the primary job master.");
       return -1;
     }
     return 0;

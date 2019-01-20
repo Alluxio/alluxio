@@ -140,7 +140,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
           uiFileInfos.add(getUiFileInfo(fileId));
         } catch (Exception e) {
           // The file might have been deleted, log a warning and ignore this file.
-          LOG.warn("Unable to create file info for fileId {}. {}", fileId, e.getMessage());
+          LOG.warn("Unable to get file info for fileId {}. {}", fileId, e.getMessage());
         }
       }
       request.setAttribute("fileInfos", uiFileInfos);

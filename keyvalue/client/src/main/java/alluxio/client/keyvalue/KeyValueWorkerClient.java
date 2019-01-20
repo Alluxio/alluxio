@@ -95,7 +95,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
   /**
    * Gets a batch of keys next to the current key in the partition.
    * <p>
-   * If current key is null, it means create the initial batch of keys.
+   * If current key is null, it get create the initial batch of keys.
    * If there are no more next keys, an empty list is returned.
    *
    * @param blockId the id of the partition
