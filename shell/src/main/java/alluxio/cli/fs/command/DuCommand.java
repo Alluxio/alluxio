@@ -24,9 +24,10 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays the size of a file or a directory specified by argv.

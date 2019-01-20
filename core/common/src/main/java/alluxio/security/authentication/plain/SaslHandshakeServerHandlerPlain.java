@@ -16,8 +16,6 @@ import alluxio.grpc.SaslMessageType;
 import alluxio.security.authentication.SaslHandshakeServerHandler;
 
 import com.google.protobuf.ByteString;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
@@ -26,8 +24,6 @@ import javax.security.sasl.SaslServer;
  * Implementation of {@link SaslHandshakeServerHandler} for plain authentication.
  */
 public class SaslHandshakeServerHandlerPlain implements SaslHandshakeServerHandler {
-
-  private static final Logger LOG = LoggerFactory.getLogger(SaslHandshakeServerHandlerPlain.class);
 
   /** SaslServer that will be used. */
   private final SaslServer mSaslServer;
@@ -43,7 +39,6 @@ public class SaslHandshakeServerHandlerPlain implements SaslHandshakeServerHandl
 
   @Override
   public SaslMessage handleSaslMessage(SaslMessage message) throws SaslException {
-    LOG.warn("Handling sasl message type: ", message.getMessageType().toString());
     switch (message.getMessageType()) {
       case CHALLENGE:
         byte[] saslResponse = mSaslServer.evaluateResponse(message.getMessage().toByteArray());

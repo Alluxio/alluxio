@@ -63,10 +63,10 @@ public final class CountCommand extends AbstractFileSystemCommand {
     URIStatus status = mFileSystem.getStatus(path);
 
     if (!status.isFolder()) {
-      return new long[]{1L, 0L, status.getLength()};
+      return new long[]{ 1L, 0L, status.getLength() };
     }
 
-    long[] rtn = new long[]{0L, 1L, 0L};
+    long[] rtn = new long[]{ 0L, 1L, 0L };
 
     List<URIStatus> statuses;
     try {

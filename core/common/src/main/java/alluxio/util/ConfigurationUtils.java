@@ -58,11 +58,11 @@ import javax.annotation.concurrent.GuardedBy;
 public final class ConfigurationUtils {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationUtils.class);
 
-  @GuardedBy("sDefaultPropertiesLock")
+  @GuardedBy("DEFAULT_PROPERTIES_LOCK")
   private static AlluxioProperties sDefaultProperties = null;
   private static String sSourcePropertyFile = null;
 
-  private static Object sDefaultPropertiesLock = new Object();
+  private static final Object DEFAULT_PROPERTIES_LOCK = new Object();
 
   private ConfigurationUtils() {} // prevent instantiation
 
@@ -281,7 +281,7 @@ public final class ConfigurationUtils {
   public static AlluxioProperties defaults() {
 
     if (sDefaultProperties == null) {
-      synchronized (sDefaultPropertiesLock) { // We don't want multiple threads to reload
+      synchronized (DEFAULT_PROPERTIES_LOCK) { // We don't want multiple threads to reload
         // properties at the same time.
 
         // Check if properties are still null so we don't reload a second time.

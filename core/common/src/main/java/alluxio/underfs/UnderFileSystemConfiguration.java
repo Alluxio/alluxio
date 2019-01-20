@@ -60,7 +60,7 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   }
 
   /**
-   * Constructs a new instance of {@link UnderFileSystemConfiguration} with defaults.
+   * Constructs a new instance of {@link UnderFileSystemConfiguration} with the given properties.
    */
   private UnderFileSystemConfiguration(AlluxioProperties props) {
     super(props);

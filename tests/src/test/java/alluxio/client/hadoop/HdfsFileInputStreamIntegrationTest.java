@@ -81,17 +81,12 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
   }
 
   private void createUfsInStream(ReadType readType) throws Exception {
-    // This doesn't work any more because the configuration is controlled by the filesystem context.
-    // In order to change the configuration we need a new fs client
-//    String defaultReadType = ServerConfiguration.get(PropertyKey.USER_FILE_READ_TYPE_DEFAULT);
-//    ServerConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
     InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.copyProperties());
     conf.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
     FileSystem fs = FileSystem.Factory.get(conf);
     FileSystemTestUtils.createByteFile(fs, UFS_ONLY_FILE, WritePType.THROUGH,
         FILE_LEN);
     mUfsInputStream = new HdfsFileInputStream(fs, new AlluxioURI(UFS_ONLY_FILE), null);
-//    ServerConfiguration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
   }
 
   /**

@@ -74,8 +74,8 @@ public final class StatCommand extends AbstractFileSystemCommand {
       JobInfo info = client.get().getStatus(id);
       System.out.print(formatOutput(cl, info));
     } catch (Exception e) {
-      LOG.error("Failed to create status of the job", e);
-      System.out.println("Failed to create status of the job " + id);
+      LOG.error("Failed to get status of the job", e);
+      System.out.println("Failed to get status of the job " + id);
       return -1;
     }
     return 0;

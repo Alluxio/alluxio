@@ -52,21 +52,21 @@ public class CachedGroupMapping implements GroupMappingService {
    * Constructor with specified {@link GroupMappingService}. Initializes the cache if enabled.
    *
    * @param service group mapping service
-   * @param groupMappingCacheTimeout The timeout in millseconds before we should reload the cache
+   * @param groupMappingCacheTimeoutMs The timeout in millseconds before we should reload the cache
    */
-  public CachedGroupMapping(GroupMappingService service, long groupMappingCacheTimeout) {
+  public CachedGroupMapping(GroupMappingService service, long groupMappingCacheTimeoutMs) {
     mService = service;
-    mCacheEnabled = groupMappingCacheTimeout > 0;
+    mCacheEnabled = groupMappingCacheTimeoutMs > 0;
     if (mCacheEnabled) {
       mCache = CacheBuilder.newBuilder()
           // the maximum number of entries the cache may contain.
           .maximumSize(MAXSIZE)
           // active entries are eligible for automatic refresh once the specified time duration has
           // elapsed after the entry was last modified.
-          .refreshAfterWrite(groupMappingCacheTimeout, TimeUnit.MILLISECONDS)
+          .refreshAfterWrite(groupMappingCacheTimeoutMs, TimeUnit.MILLISECONDS)
           // each entry should be automatically removed from the cache once the specified time
           // duration has elapsed after the entry was last modified.
-          .expireAfterWrite(10 * groupMappingCacheTimeout, TimeUnit.MILLISECONDS)
+          .expireAfterWrite(10 * groupMappingCacheTimeoutMs, TimeUnit.MILLISECONDS)
           .build(new GroupMappingCacheLoader());
     }
   }

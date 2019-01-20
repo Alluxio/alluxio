@@ -52,8 +52,6 @@ public interface UnderFileSystemFactory
    * {@link #create(String, UnderFileSystemConfiguration, AlluxioConfiguration)} can succeed for
    * this path.
    *
-   *
-   *
    * @param path file path
    * @param conf optional configuration object for the UFS, may be null
    * @return true if the path is supported, false otherwise

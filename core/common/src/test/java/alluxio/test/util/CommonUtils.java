@@ -19,7 +19,6 @@ import org.powermock.reflect.Whitebox;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -154,10 +153,6 @@ public final class CommonUtils {
         field.set(instance, getValuesForFieldType(field.getType()).get(0));
       }
       return instance;
-    } catch (InvocationTargetException e) {
-      throw new RuntimeException(e.getCause());
-    } catch (ReflectiveOperationException e) {
-      throw new RuntimeException(e);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

@@ -69,7 +69,7 @@ public final class LogLevel {
           .longOpt(LOG_NAME_OPTION_NAME)
           .hasArg(true)
           .desc("The logger's name(e.g. alluxio.master.file.DefaultFileSystemMaster)"
-              + " you want to create or set level.")
+              + " you want to get or set level.")
           .build();
   private static final String LEVEL_OPTION_NAME = "level";
   private static final Option LEVEL_OPTION =

@@ -84,7 +84,7 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
   @Override
   public ByteBuffer get(ByteBuffer key) throws IOException {
     Preconditions.checkState(!mClosed);
-    LOG.trace("create: key");
+    LOG.trace("get: key");
     return mIndex.get(key, mPayloadReader);
   }
 

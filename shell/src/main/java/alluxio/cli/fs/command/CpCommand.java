@@ -38,7 +38,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -47,6 +46,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Copies a file or a directory in the Alluxio filesystem.

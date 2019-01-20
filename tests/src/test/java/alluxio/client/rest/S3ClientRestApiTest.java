@@ -333,7 +333,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void getBucket() throws Exception {
-    final String bucket = "bucket-to-create";
+    final String bucket = "bucket-to-get";
     createBucketRestCall(bucket);
 
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
@@ -380,7 +380,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void getBucketWithPrefix() throws Exception {
-    final String bucket = "bucket-to-create-with-prefix";
+    final String bucket = "bucket-to-get-with-prefix";
     createBucketRestCall(bucket);
 
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
@@ -424,7 +424,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void getBucketWithMaxKeys() throws Exception {
-    final String bucket = "bucket-to-create-with-max-keys";
+    final String bucket = "bucket-to-get-with-max-keys";
     createBucketRestCall(bucket);
 
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
@@ -459,7 +459,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void getBucketWithMaxKeysAndContinuationToken() throws Exception {
-    final String bucket = "bucket-to-create-with-max-keys-and-token";
+    final String bucket = "bucket-to-get-with-max-keys-and-token";
     createBucketRestCall(bucket);
 
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
@@ -498,7 +498,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void getBucketWithNonExistingContinuationToken() throws Exception {
-    final String bucket = "bucket-to-create-with-non-existing-token";
+    final String bucket = "bucket-to-get-with-non-existing-token";
     createBucketRestCall(bucket);
 
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
@@ -566,7 +566,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
       // expected
       return;
     }
-    Assert.fail("create a non-existing bucket should fail");
+    Assert.fail("get a non-existing bucket should fail");
   }
 
   private void getObjectTest(byte[] expectedObject) throws Exception {
@@ -628,7 +628,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
       // expected
       return;
     }
-    Assert.fail("create metadata of non-existent object should fail");
+    Assert.fail("get metadata of non-existent object should fail");
   }
 
   @Test
