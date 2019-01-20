@@ -15,10 +15,10 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.options.UpdateUfsModeOptions;
+import alluxio.grpc.UfsPMode;
+import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.master.backcompat.TestOp;
 import alluxio.multi.process.Clients;
-import alluxio.underfs.UnderFileSystem.UfsMode;
 
 /**
  * Test for updating UFS modes.
@@ -29,11 +29,11 @@ public final class UpdateUfsMode implements TestOp {
   public void apply(Clients clients) throws Exception {
     FileSystemMasterClient masterClient = clients.getFileSystemMasterClient();
     masterClient.updateUfsMode(new AlluxioURI("/"),
-        UpdateUfsModeOptions.defaults().setUfsMode(UfsMode.READ_ONLY));
+        UpdateUfsModePOptions.newBuilder().setUfsMode(UfsPMode.READ_ONLY).build());
     masterClient.updateUfsMode(new AlluxioURI("/"),
-        UpdateUfsModeOptions.defaults().setUfsMode(UfsMode.NO_ACCESS));
+        UpdateUfsModePOptions.newBuilder().setUfsMode(UfsPMode.NO_ACCESS).build());
     masterClient.updateUfsMode(new AlluxioURI("/"),
-        UpdateUfsModeOptions.defaults().setUfsMode(UfsMode.READ_WRITE));
+        UpdateUfsModePOptions.newBuilder().setUfsMode(UfsPMode.READ_WRITE).build());
   }
 
   @Override

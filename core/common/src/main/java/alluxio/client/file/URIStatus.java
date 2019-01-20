@@ -16,7 +16,7 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import com.google.common.base.Preconditions;
 

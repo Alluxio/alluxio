@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.UfsInfo;
 import alluxio.master.MasterClientConfig;
 import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
@@ -57,17 +58,17 @@ public final class WorkerUfsManager extends AbstractUfsManager {
       // Not cached locally, let's query master
     }
 
-    alluxio.thrift.UfsInfo info;
+    UfsInfo info;
     try {
       info = mMasterClient.getUfsInfo(mountId);
     } catch (IOException e) {
       throw new UnavailableException(
           String.format("Failed to get UFS info for mount point with id %d", mountId), e);
     }
-    Preconditions.checkState((info.isSetUri() && info.isSetProperties()), "unknown mountId");
+    Preconditions.checkState((info.hasUri() && info.hasProperties()), "unknown mountId");
     super.addMount(mountId, new AlluxioURI(info.getUri()),
-        UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().isReadOnly())
-            .setShared(info.getProperties().isShared())
+        UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().getReadOnly())
+            .setShared(info.getProperties().getShared())
             .setMountSpecificConf(info.getProperties().getProperties()));
     UfsClient ufsClient = super.get(mountId);
     try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {

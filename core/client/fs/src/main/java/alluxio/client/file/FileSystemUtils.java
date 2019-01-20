@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -160,8 +160,8 @@ public final class FileSystemUtils {
    * @param options method options
    * @return a list of inconsistent files and directories
    */
-  public static List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
-      throws IOException {
+  public static List<AlluxioURI> checkConsistency(AlluxioURI path,
+      CheckConsistencyPOptions options) throws IOException {
     FileSystemContext context = FileSystemContext.get();
     FileSystemMasterClient client = context.acquireMasterClient();
     try {

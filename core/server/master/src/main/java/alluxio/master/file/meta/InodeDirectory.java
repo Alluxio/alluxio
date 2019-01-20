@@ -16,12 +16,13 @@ import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
 import alluxio.master.ProtobufUtils;
-import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
@@ -222,7 +223,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
   public void updateFromEntry(UpdateInodeDirectoryEntry entry) {
     if (entry.hasDefaultAcl()) {
       setDefaultACL(
-          (DefaultAccessControlList) DefaultAccessControlList.fromProtoBuf(entry.getDefaultAcl()));
+          (DefaultAccessControlList) ProtoUtils.fromProto(entry.getDefaultAcl()));
     }
     if (entry.hasDirectChildrenLoaded()) {
       setDirectChildrenLoaded(entry.getDirectChildrenLoaded());
@@ -257,7 +258,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
         .setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()))
         .setDirectChildrenLoaded(entry.getDirectChildrenLoaded());
     if (entry.hasAcl()) {
-      ret.mAcl = AccessControlList.fromProtoBuf(entry.getAcl());
+      ret.mAcl = ProtoUtils.fromProto(entry.getAcl());
     } else {
       // Backward compatibility.
       AccessControlList acl = new AccessControlList();
@@ -268,8 +269,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
       ret.mAcl = acl;
     }
     if (entry.hasDefaultAcl()) {
-      ret.mDefaultAcl = (DefaultAccessControlList) AccessControlList
-          .fromProtoBuf(entry.getDefaultAcl());
+      ret.mDefaultAcl = (DefaultAccessControlList) ProtoUtils.fromProto(entry.getDefaultAcl());
     } else {
       ret.mDefaultAcl = new DefaultAccessControlList();
     }
@@ -282,23 +282,23 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
    * @param id id of this inode
    * @param parentId id of the parent of this inode
    * @param name name of this inode
-   * @param options options to create this directory
+   * @param context context to create this directory
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory create(long id, long parentId, String name,
-      CreateDirectoryOptions options) {
+      CreateDirectoryContext context) {
     return new InodeDirectory(id)
         .setParentId(parentId)
         .setName(name)
-        .setTtl(options.getTtl())
-        .setTtlAction(options.getTtlAction())
-        .setOwner(options.getOwner())
-        .setGroup(options.getGroup())
-        .setMode(options.getMode().toShort())
-        .setAcl(options.getAcl())
+        .setTtl(context.getOptions().getCommonOptions().getTtl())
+        .setTtlAction(context.getOptions().getCommonOptions().getTtlAction())
+        .setOwner(context.getOwner())
+        .setGroup(context.getGroup())
+        .setMode(context.getMode().toShort())
+        .setAcl(context.getAcl())
         // SetAcl call is also setting default AclEntries
-        .setAcl(options.getDefaultAcl())
-        .setMountPoint(options.isMountPoint());
+        .setAcl(context.getDefaultAcl())
+        .setMountPoint(context.isMountPoint());
   }
 
   @Override
@@ -315,8 +315,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> implements Inode
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
-        .setAcl(AccessControlList.toProtoBuf(mAcl))
-        .setDefaultAcl(AccessControlList.toProtoBuf(mDefaultAcl))
+        .setAcl(ProtoUtils.toProto(mAcl))
+        .setDefaultAcl(ProtoUtils.toProto(mDefaultAcl))
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }

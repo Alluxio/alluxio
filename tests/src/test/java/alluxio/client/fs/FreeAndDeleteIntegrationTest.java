@@ -16,13 +16,13 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -62,12 +62,13 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
           .build();
 
   private FileSystem mFileSystem = null;
-  private CreateFileOptions mWriteBoth;
+  private CreateFilePOptions mWriteBoth;
 
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    mWriteBoth = CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
+        .setRecursive(true).build();
   }
 
   @Test

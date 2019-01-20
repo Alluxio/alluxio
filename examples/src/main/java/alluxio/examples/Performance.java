@@ -19,6 +19,7 @@ import alluxio.RuntimeConstants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
@@ -61,17 +62,6 @@ public final class Performance {
   private static boolean sAlluxioStreamingRead = false;
 
   private Performance() {} // prevent instantiation
-
-  /**
-   * Creates the files for this example.
-   */
-  public static void createFiles() throws AlluxioException, IOException {
-    final long startTimeMs = CommonUtils.getCurrentMs();
-    for (int k = 0; k < sFiles; k++) {
-      sFileSystem.createFile(new AlluxioURI(sFileName + (k + sBaseFileNumber))).close();
-      LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile"));
-    }
-  }
 
   /**
    * Writes log information.
@@ -241,7 +231,8 @@ public final class Performance {
       for (int pId = mLeft; pId < mRight; pId++) {
         final long startTimeMs = System.currentTimeMillis();
         FileOutStream os =
-            mFileSystem.createFile(new AlluxioURI(sFileName + (pId + sBaseFileNumber)));
+            mFileSystem.createFile(new AlluxioURI(sFileName + (pId + sBaseFileNumber)),
+                CreateFilePOptions.newBuilder().setRecursive(true).build());
         for (int k = 0; k < sBlocksPerFile; k++) {
           mBuf.putInt(0, k + mWorkerId);
           os.write(mBuf.array());
@@ -611,7 +602,7 @@ public final class Performance {
 
     CommonUtils.warmUpLoop();
 
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostText());
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, masterAddress.getHost());
     Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
 
     if (testCase == 1) {

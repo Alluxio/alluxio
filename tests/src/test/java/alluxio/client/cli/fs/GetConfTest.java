@@ -18,8 +18,8 @@ import alluxio.PropertyKey;
 import alluxio.SystemOutRule;
 import alluxio.SystemPropertyRule;
 import alluxio.cli.GetConf;
-import alluxio.client.RetryHandlingMetaMasterClient;
-import alluxio.wire.ConfigProperty;
+import alluxio.client.RetryHandlingMetaMasterConfigClient;
+import alluxio.grpc.ConfigProperty;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -121,7 +121,8 @@ public final class GetConfTest {
   @Test
   public void getConfFromMaster() throws Exception {
     // Prepare mock meta master client
-    RetryHandlingMetaMasterClient client = Mockito.mock(RetryHandlingMetaMasterClient.class);
+    RetryHandlingMetaMasterConfigClient client =
+        Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
     List<ConfigProperty> configList = prepareConfigList();
     Mockito.when(client.getConfiguration()).thenReturn(configList);
 
@@ -138,7 +139,8 @@ public final class GetConfTest {
   @Test
   public void getConfFromMasterWithSource() throws Exception {
     // Prepare mock meta master client
-    RetryHandlingMetaMasterClient client = Mockito.mock(RetryHandlingMetaMasterClient.class);
+    RetryHandlingMetaMasterConfigClient client =
+        Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
     List<ConfigProperty> configList = prepareConfigList();
     Mockito.when(client.getConfiguration()).thenReturn(configList);
     assertEquals(0, GetConf.getConfImpl(() -> client, "--master", "--source"));
@@ -159,19 +161,18 @@ public final class GetConfTest {
    */
   private List<ConfigProperty> prepareConfigList() {
     return Arrays.asList(
-        new ConfigProperty().setName("alluxio.master.port")
-            .setValue("19998").setSource("DEFAULT"),
-        new ConfigProperty().setName("alluxio.master.web.port")
-            .setValue("19999").setSource("DEFAULT"),
-        new ConfigProperty().setName("alluxio.master.hostname").setValue("localhost")
-            .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)"),
-        new ConfigProperty().setName("alluxio.underfs.address")
+        ConfigProperty.newBuilder().setName("alluxio.master.port").setValue("19998")
+            .setSource("DEFAULT").build(),
+        ConfigProperty.newBuilder().setName("alluxio.master.web.port").setValue("19999")
+            .setSource("DEFAULT").build(),
+        ConfigProperty.newBuilder().setName("alluxio.master.hostname").setValue("localhost")
+            .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)").build(),
+        ConfigProperty.newBuilder().setName("alluxio.underfs.address")
             .setValue("hdfs://localhost:9000")
-            .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)"),
-        new ConfigProperty().setName("alluxio.logger.type")
-            .setValue("MASTER_LOGGER").setSource("SYSTEM_PROPERTY"),
-        new ConfigProperty().setName("alluxio.master.audit.logger.type")
-            .setValue("MASTER_AUDIT_LOGGER").setSource("SYSTEM_PROPERTY")
-    );
+            .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)").build(),
+        ConfigProperty.newBuilder().setName("alluxio.logger.type").setValue("MASTER_LOGGER")
+            .setSource("SYSTEM_PROPERTY").build(),
+        ConfigProperty.newBuilder().setName("alluxio.master.audit.logger.type")
+            .setValue("MASTER_AUDIT_LOGGER").setSource("SYSTEM_PROPERTY").build());
   }
 }

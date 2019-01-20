@@ -28,22 +28,22 @@ public enum Status {
   }
 
   /**
-   * @return thrift representation of the status
+   * @return proto representation of the status
    */
-  public alluxio.thrift.Status toThrift() {
+  public alluxio.grpc.Status toProto() {
     switch (this) {
       case CREATED:
-        return alluxio.thrift.Status.CREATED;
+        return alluxio.grpc.Status.CREATED;
       case CANCELED:
-        return alluxio.thrift.Status.CANCELED;
+        return alluxio.grpc.Status.CANCELED;
       case FAILED:
-        return alluxio.thrift.Status.FAILED;
+        return alluxio.grpc.Status.FAILED;
       case RUNNING:
-        return alluxio.thrift.Status.RUNNING;
+        return alluxio.grpc.Status.RUNNING;
       case COMPLETED:
-        return alluxio.thrift.Status.COMPLETED;
+        return alluxio.grpc.Status.COMPLETED;
       default:
-        return alluxio.thrift.Status.UNKNOWN;
+        return alluxio.grpc.Status.UNKNOWN;
     }
   }
 }

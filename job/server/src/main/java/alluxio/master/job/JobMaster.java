@@ -20,6 +20,10 @@ import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.JobCommand;
+import alluxio.grpc.RegisterCommand;
+import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -33,9 +37,6 @@ import alluxio.master.AbstractNonJournaledMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
 import alluxio.resource.LockResource;
-import alluxio.thrift.JobCommand;
-import alluxio.thrift.JobMasterWorkerService;
-import alluxio.thrift.RegisterCommand;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -44,7 +45,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.jcip.annotations.GuardedBy;
@@ -172,10 +172,12 @@ public final class JobMaster extends AbstractNonJournaledMaster {
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = Maps.newHashMap();
-    services.put(Constants.JOB_MASTER_WORKER_SERVICE_NAME,
-        new JobMasterWorkerService.Processor<>(new JobMasterWorkerServiceHandler(this)));
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = Maps.newHashMap();
+    services.put(ServiceType.JOB_MASTER_CLIENT_SERVICE,
+        new GrpcService(new JobMasterClientServiceHandler(this)));
+    services.put(ServiceType.JOB_MASTER_WORKER_SERVICE,
+        new GrpcService(new JobMasterWorkerServiceHandler(this)));
     return services;
   }
 
@@ -330,7 +332,8 @@ public final class JobMaster extends AbstractNonJournaledMaster {
     try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
       MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
       if (worker == null) {
-        return Collections.singletonList(JobCommand.registerCommand(new RegisterCommand()));
+        return Collections.singletonList(JobCommand.newBuilder()
+            .setRegisterCommand(RegisterCommand.getDefaultInstance()).build());
       }
       // Update last-update-time of this particular worker under lock
       // to prevent lost worker detector clearing it under race

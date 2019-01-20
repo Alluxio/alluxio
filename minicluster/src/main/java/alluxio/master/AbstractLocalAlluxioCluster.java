@@ -239,6 +239,9 @@ public abstract class AbstractLocalAlluxioCluster {
    * Stops the workers.
    */
   public void stopWorkers() throws Exception {
+    if (mWorkers == null) {
+      return;
+    }
     for (WorkerProcess worker : mWorkers) {
       worker.stop();
     }
@@ -269,7 +272,6 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
     Configuration.set(PropertyKey.PROXY_WEB_PORT, 0);
     Configuration.set(PropertyKey.WORKER_RPC_PORT, 0);
-    Configuration.set(PropertyKey.WORKER_DATA_PORT, 0);
     Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
   }
 

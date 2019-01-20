@@ -125,21 +125,6 @@ public final class BufferUtils {
   }
 
   /**
-   * Extracts a correct {@link ByteBuffer} from Thrift RPC result.
-   *
-   * @param data result of Thrift RPC
-   * @return ByteBuffer with data extracted from the Thrift RPC result
-   */
-  public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
-    // TODO(cc): This is a trick to fix the issue in thrift. Change the code to use metadata
-    // directly when thrift fixes the issue.
-    ByteBuffer correctData = ByteBuffer.allocate(data.limit() - data.position());
-    correctData.put(data);
-    correctData.flip();
-    return correctData;
-  }
-
-  /**
    * Puts a byte (the first byte of an integer) into a {@link ByteBuffer}.
    *
    * @param buf ByteBuffer to use

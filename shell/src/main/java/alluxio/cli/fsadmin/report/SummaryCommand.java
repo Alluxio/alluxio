@@ -14,12 +14,12 @@ package alluxio.cli.fsadmin.report;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.MetaMasterClient;
+import alluxio.grpc.MasterInfo;
+import alluxio.grpc.MasterInfoField;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
-import alluxio.wire.MasterInfo;
-import alluxio.wire.MasterInfo.MasterInfoField;
 
 import com.google.common.base.Strings;
 
@@ -87,9 +87,9 @@ public class SummaryCommand {
     print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs()));
     print("Uptime: " + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
     print("Version: " + masterInfo.getVersion());
-    print("Safe Mode: " + masterInfo.isSafeMode());
+    print("Safe Mode: " + masterInfo.getSafeMode());
 
-    List<String> zookeeperAddresses = masterInfo.getZookeeperAddresses();
+    List<String> zookeeperAddresses = masterInfo.getZookeeperAddressesList();
     if (zookeeperAddresses == null || zookeeperAddresses.isEmpty()) {
       print("Zookeeper Enabled: false");
     } else {

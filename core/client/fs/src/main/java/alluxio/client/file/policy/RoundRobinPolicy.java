@@ -16,6 +16,7 @@ import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
@@ -126,7 +127,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("workerInfoList", mWorkerInfoList)
         .add("index", mIndex)
         .add("initialized", mInitialized)

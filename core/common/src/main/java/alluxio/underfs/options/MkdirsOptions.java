@@ -13,7 +13,9 @@ package alluxio.underfs.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
+import alluxio.util.ModeUtils;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -47,7 +49,7 @@ public final class MkdirsOptions {
     // default owner and group are null (unset)
     mOwner = null;
     mGroup = null;
-    mMode = Mode.defaults().applyDirectoryUMask();
+    mMode = ModeUtils.applyDirectoryUMask(Mode.defaults());
   }
 
   /**
@@ -138,7 +140,7 @@ public final class MkdirsOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("createParent", mCreateParent)
         .add("owner", mOwner)
         .add("group", mGroup)

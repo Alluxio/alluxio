@@ -16,16 +16,15 @@ import alluxio.Constants;
 import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.thrift.TException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -93,7 +92,7 @@ public final class FileSystemShellUtilsTest {
    * @return the test directory
    */
   public static String resetFileHierarchy(FileSystem fs) throws IOException, AlluxioException {
-    return resetFileHierarchy(fs, WriteType.MUST_CACHE);
+    return resetFileHierarchy(fs, WritePType.MUST_CACHE);
   }
 
   /**
@@ -103,7 +102,7 @@ public final class FileSystemShellUtilsTest {
    * @param writeType write types for creating a file in Alluxio
    * @return the test directory
    */
-  public static String resetFileHierarchy(FileSystem fs, WriteType writeType)
+  public static String resetFileHierarchy(FileSystem fs, WritePType writeType)
       throws IOException, AlluxioException {
     /**
      * Generate such local structure TEST_DIR
@@ -115,7 +114,7 @@ public final class FileSystemShellUtilsTest {
      *                                └── foobar4
      */
     if (fs.exists(new AlluxioURI(TEST_DIR))) {
-      fs.delete(new AlluxioURI(TEST_DIR), DeleteOptions.defaults().setRecursive(true));
+      fs.delete(new AlluxioURI(TEST_DIR), DeletePOptions.newBuilder().setRecursive(true).build());
     }
     fs.createDirectory(new AlluxioURI(TEST_DIR));
     fs.createDirectory(new AlluxioURI(TEST_DIR + "/foo"));
@@ -174,7 +173,7 @@ public final class FileSystemShellUtilsTest {
    * @param fsType the type of file system
    * @return a list of files that matches inputPath
    */
-  public List<String> getPaths(String path, FsType fsType) throws IOException, TException {
+  public List<String> getPaths(String path, FsType fsType) throws IOException {
     List<String> ret = null;
     if (fsType == FsType.TFS) {
       List<AlluxioURI> tPaths =
@@ -212,7 +211,7 @@ public final class FileSystemShellUtilsTest {
   }
 
   @Test
-  public void getPath() throws IOException, AlluxioException, TException {
+  public void getPath() throws IOException, AlluxioException {
     for (FsType fsType : FsType.values()) {
       String rootDir = resetFsHierarchy(fsType);
 

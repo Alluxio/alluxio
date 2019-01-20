@@ -19,11 +19,11 @@ import alluxio.AlluxioURI;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.FileSystemMasterView;
-import alluxio.thrift.PersistFile;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.PersistFile;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;

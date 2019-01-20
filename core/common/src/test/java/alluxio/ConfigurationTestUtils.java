@@ -50,7 +50,6 @@ public final class ConfigurationTestUtils {
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.MASTER_HOSTNAME, hostname);
     conf.put(PropertyKey.WORKER_BIND_HOST, hostname);
-    conf.put(PropertyKey.WORKER_DATA_BIND_HOST, hostname);
     conf.put(PropertyKey.WORKER_WEB_BIND_HOST, hostname);
     conf.put(PropertyKey.MASTER_BIND_HOST, hostname);
     conf.put(PropertyKey.MASTER_WEB_BIND_HOST, hostname);
@@ -79,13 +78,14 @@ public final class ConfigurationTestUtils {
 
     conf.put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1KB");
     conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
-    conf.put(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64");
+    conf.put(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64");
     conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
     conf.put(PropertyKey.MASTER_WORKER_THREADS_MIN, "1");
     conf.put(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
     conf.put(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, "false");
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
-    conf.put(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT, "0sec");
+    conf.put(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT, "3sec");
+    conf.put(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "3sec");
 
     // Shutdown journal tailer quickly. Graceful shutdown is unnecessarily slow.
     conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "50ms");
@@ -105,7 +105,7 @@ public final class ConfigurationTestUtils {
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
-    conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+    //conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
     conf.put(PropertyKey.WEB_THREADS, "1");
     conf.put(PropertyKey.WEB_RESOURCES, PathUtils
@@ -118,7 +118,7 @@ public final class ConfigurationTestUtils {
 
     // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, "0ms");
-    conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, "0ms");
+    conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
     conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");

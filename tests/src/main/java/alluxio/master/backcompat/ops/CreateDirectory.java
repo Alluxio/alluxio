@@ -15,14 +15,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.TtlAction;
+import alluxio.grpc.WritePType;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.ModeParser;
-import alluxio.wire.CommonOptions;
-import alluxio.wire.TtlAction;
 
 import java.util.Arrays;
 
@@ -47,30 +47,27 @@ public final class CreateDirectory extends FsTestOp {
     fs.createDirectory(DIR);
     fs.createDirectory(NESTED_DIR);
     fs.createDirectory(NESTED_NESTED_DIR);
-    fs.createDirectory(RECURSIVE, CreateDirectoryOptions.defaults().setRecursive(true));
-    fs.createDirectory(RECURSIVE, CreateDirectoryOptions.defaults().setAllowExists(true));
-    fs.createDirectory(MODE_DIR, CreateDirectoryOptions.defaults().setMode(TEST_MODE)
-        .setRecursive(true));
+    fs.createDirectory(RECURSIVE, CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
+    fs.createDirectory(RECURSIVE,
+        CreateDirectoryPOptions.newBuilder().setAllowExists(true).build());
+    fs.createDirectory(MODE_DIR, CreateDirectoryPOptions.newBuilder().setMode(TEST_MODE.toProto())
+        .setRecursive(true).build());
     // Set TTL via common options instead (should have the same effect).
-    fs.createDirectory(COMMON_TTL_DIR, CreateDirectoryOptions.defaults()
-        .setRecursive(true)
-        .setCommonOptions(CommonOptions.defaults()
-            .setTtl(TTL)
-            .setTtlAction(TtlAction.DELETE)));
-    fs.createDirectory(TTL_DIR, CreateDirectoryOptions.defaults().setTtl(TTL)
-        .setTtlAction(TtlAction.DELETE)
-        .setRecursive(true));
-    fs.createDirectory(THROUGH_DIR, CreateDirectoryOptions.defaults()
-        .setWriteType(WriteType.THROUGH)
-        .setRecursive(true));
-    fs.createDirectory(ALL_OPTS_DIR, CreateDirectoryOptions.defaults()
-        .setRecursive(true)
-        .setMode(TEST_MODE)
-        .setAllowExists(true)
-        .setWriteType(WriteType.THROUGH)
-        .setTtl(TTL)
-        .setTtlAction(TtlAction.DELETE)
-    );
+    fs.createDirectory(COMMON_TTL_DIR,
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtl(TTL).setTtlAction(TtlAction.DELETE))
+            .build());
+    fs.createDirectory(TTL_DIR,
+        CreateDirectoryPOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtl(TTL).setTtlAction(TtlAction.DELETE))
+            .setRecursive(true).build());
+    fs.createDirectory(THROUGH_DIR, CreateDirectoryPOptions.newBuilder()
+        .setWriteType(WritePType.THROUGH).setRecursive(true).build());
+    fs.createDirectory(ALL_OPTS_DIR, CreateDirectoryPOptions.newBuilder().setRecursive(true)
+        .setMode(TEST_MODE.toProto()).setAllowExists(true).setWriteType(WritePType.THROUGH)
+        .setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtl(TTL).setTtlAction(TtlAction.DELETE))
+        .build());
   }
 
   @Override
@@ -81,13 +78,13 @@ public final class CreateDirectory extends FsTestOp {
     }
     assertEquals(TEST_MODE, new Mode((short) fs.getStatus(MODE_DIR).getMode()));
     assertEquals((long) TTL, fs.getStatus(TTL_DIR).getTtl());
-    assertEquals(TtlAction.DELETE, fs.getStatus(TTL_DIR).getTtlAction());
+    assertEquals(alluxio.grpc.TtlAction.DELETE, fs.getStatus(TTL_DIR).getTtlAction());
     assertEquals((long) TTL, fs.getStatus(COMMON_TTL_DIR).getTtl());
-    assertEquals(TtlAction.DELETE, fs.getStatus(COMMON_TTL_DIR).getTtlAction());
+    assertEquals(alluxio.grpc.TtlAction.DELETE, fs.getStatus(COMMON_TTL_DIR).getTtlAction());
     assertTrue(fs.getStatus(THROUGH_DIR).isPersisted());
     assertEquals(TEST_MODE, new Mode((short) fs.getStatus(ALL_OPTS_DIR).getMode()));
     assertEquals((long) TTL, fs.getStatus(ALL_OPTS_DIR).getTtl());
-    assertEquals(TtlAction.DELETE, fs.getStatus(ALL_OPTS_DIR).getTtlAction());
+    assertEquals(alluxio.grpc.TtlAction.DELETE, fs.getStatus(ALL_OPTS_DIR).getTtlAction());
     assertTrue(fs.getStatus(ALL_OPTS_DIR).isPersisted());
   }
 }

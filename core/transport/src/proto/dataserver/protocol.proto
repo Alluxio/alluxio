@@ -1,0 +1,56 @@
+syntax = "proto2";
+
+package alluxio.proto.dataserver;
+
+import "proto/dataserver/status.proto";
+import "proto/shared/acl.proto";
+
+// Options to open a UFS block.
+// next available id: 7
+message OpenUfsBlockOptions {
+  optional string ufs_path = 1;
+  // The offset of the block in within the file.
+  optional int64 offset_in_file = 2;
+  // The block size.
+  optional int64 block_size = 3;
+  optional int32 maxUfsReadConcurrency = 4;
+  optional int64 mountId = 5;
+  // If set, do not try to cache the block locally when reading the data from the UFS.
+  optional bool no_cache = 6;
+  // The client does not need to set this. This is set by the worker.
+  optional string user = 7;
+  // If set to true, the block is possibly stored as a UFS block.
+  optional bool block_in_ufs_tier = 8;
+}
+
+// Options to create a UFS file.
+// next available: 6
+message CreateUfsFileOptions {
+  optional string ufs_path = 1;
+  optional string owner = 2;
+  optional string group = 3;
+  optional int32 mode = 4;
+  optional int64 mount_id = 5;
+  optional alluxio.proto.shared.AccessControlList acl = 6;
+}
+
+// Options to create a block file in UFS.
+// next available: 3
+message CreateUfsBlockOptions {
+  // the number of bytes previously written to block store
+  // zero if no previous temp block created
+  optional int64 bytes_in_block_store = 1;
+  // mount ID of the UFS to write to
+  optional int64 mount_id = 2;
+  // true if the write request is already a fallback from
+  // a failed short-circuit write.
+  optional bool fallback = 3;
+}
+
+// The response.
+// next available id: 3
+message Response {
+  optional status.PStatus status = 1;
+  optional string message = 2;
+}
+

@@ -11,26 +11,29 @@
 
 package alluxio.client.block.stream;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
+
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.network.netty.NettyRPC;
-import alluxio.network.netty.NettyRPCContext;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.util.network.NettyUtils;
-import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import io.netty.channel.Channel;
+import io.grpc.stub.ClientCallStreamObserver;
+import io.grpc.stub.StreamObserver;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -42,7 +45,7 @@ import java.util.Collections;
  * Tests the {@link BlockInStream} class's static methods.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, NettyRPC.class, NettyUtils.class})
+@PrepareForTest({FileSystemContext.class, NettyUtils.class})
 public class BlockInStreamTest {
   private FileSystemContext mMockContext;
   private BlockInfo mInfo;
@@ -50,16 +53,25 @@ public class BlockInStreamTest {
 
   @Before
   public void before() throws Exception {
-    Channel mockChannel = PowerMockito.mock(Channel.class);
-    PowerMockito.mockStatic(NettyRPC.class);
-    PowerMockito.when(
-        NettyRPC.call(Matchers.any(NettyRPCContext.class), Matchers.any(ProtoMessage.class)))
-        .thenReturn(new ProtoMessage(Protocol.LocalBlockOpenResponse.getDefaultInstance()));
+    BlockWorkerClient workerClient = PowerMockito.mock(BlockWorkerClient.class);
+    ClientCallStreamObserver requestObserver = PowerMockito.mock(ClientCallStreamObserver.class);
+    when(requestObserver.isReady()).thenReturn(true);
+    when(workerClient.openLocalBlock(any(StreamObserver.class)))
+        .thenAnswer(new Answer() {
+          public Object answer(InvocationOnMock invocation) {
+            StreamObserver<OpenLocalBlockResponse> observer =
+                invocation.getArgumentAt(0, StreamObserver.class);
+            observer.onNext(OpenLocalBlockResponse.newBuilder().setPath("/tmp").build());
+            observer.onCompleted();
+            return requestObserver;
+          }
+        });
     mMockContext = PowerMockito.mock(FileSystemContext.class);
-    PowerMockito.when(mMockContext.acquireNettyChannel(Matchers.any(WorkerNetAddress.class)))
-        .thenReturn(mockChannel);
+    PowerMockito.when(mMockContext.acquireBlockWorkerClient(Matchers.any(WorkerNetAddress.class)))
+        .thenReturn(workerClient);
     PowerMockito.doNothing().when(mMockContext)
-        .releaseNettyChannel(Matchers.any(WorkerNetAddress.class), Matchers.any(Channel.class));
+        .releaseBlockWorkerClient(Matchers.any(WorkerNetAddress.class),
+            Matchers.any(BlockWorkerClient.class));
     mInfo = new BlockInfo().setBlockId(1);
     mOptions = new InStreamOptions(new URIStatus(new FileInfo().setBlockIds(Collections
         .singletonList(1L))));

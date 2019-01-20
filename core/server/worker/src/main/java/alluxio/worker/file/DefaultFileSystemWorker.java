@@ -15,10 +15,11 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Server;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientConfig;
-import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -29,9 +30,8 @@ import alluxio.worker.block.BlockWorker;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.RateLimiter;
-import org.apache.thrift.TProcessor;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -43,8 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class is responsible for persisting files when requested by the master and a defunct
- * {@link FileSystemWorkerClientServiceHandler} which always returns UnsupportedOperation Exception.
+ * This class is responsible for persisting files when requested by the master.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class DefaultFileSystemWorker extends AbstractWorker implements FileSystemWorker {
@@ -55,8 +54,6 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
   private final FileDataManager mFileDataManager;
   /** Client for file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterWorkerClient;
-  /** Logic for handling RPC requests. */
-  private final FileSystemWorkerClientServiceHandler mServiceHandler;
   /** This worker's worker ID. May be updated by another thread if worker re-registration occurs. */
   private final AtomicReference<Long> mWorkerId;
 
@@ -82,8 +79,6 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
 
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(MasterClientConfig.defaults());
-
-    mServiceHandler = new FileSystemWorkerClientServiceHandler();
   }
 
   @Override
@@ -97,11 +92,8 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    services.put(Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME,
-        new FileSystemWorkerClientService.Processor<>(mServiceHandler));
-    return services;
+  public Map<ServiceType, GrpcService> getServices() {
+    return Collections.emptyMap();
   }
 
   @Override

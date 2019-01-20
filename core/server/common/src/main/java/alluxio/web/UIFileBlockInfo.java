@@ -75,7 +75,7 @@ public final class UIFileBlockInfo {
     }
     // add underFS locations
     for (String location : fileBlockInfo.getUfsLocations()) {
-      locations.add(HostAndPort.fromString(location).getHostText());
+      locations.add(HostAndPort.fromString(location).getHost());
     }
     mLocations.addAll(locations);
   }

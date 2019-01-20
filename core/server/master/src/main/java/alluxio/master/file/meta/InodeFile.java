@@ -15,12 +15,13 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.block.BlockId;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
@@ -373,7 +374,7 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
             Constants.INVALID_UFS_FINGERPRINT);
     if (entry.hasAcl()) {
-      ret.mAcl = AccessControlList.fromProtoBuf(entry.getAcl());
+      ret.mAcl = ProtoUtils.fromProto(entry.getAcl());
     } else {
       // Backward compatibility.
       AccessControlList acl = new AccessControlList();
@@ -393,30 +394,30 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
    * @param parentId id of the parent of this inode
    * @param name name of this inode
    * @param creationTimeMs the creation time for this inode
-   * @param options options to create this file
+   * @param context context to create this file
    * @return the {@link InodeFile} representation
    */
   public static InodeFile create(long blockContainerId, long parentId, String name,
-      long creationTimeMs, CreateFileOptions options) {
+      long creationTimeMs, CreateFileContext context) {
     Preconditions.checkArgument(
-        options.getReplicationMax() == Constants.REPLICATION_MAX_INFINITY
-        || options.getReplicationMax() >= options.getReplicationMin());
+            context.getOptions().getReplicationMax() == Constants.REPLICATION_MAX_INFINITY
+        || context.getOptions().getReplicationMax() >= context.getOptions().getReplicationMin());
     return new InodeFile(blockContainerId)
-        .setBlockSizeBytes(options.getBlockSizeBytes())
+        .setBlockSizeBytes(context.getOptions().getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)
         .setName(name)
-        .setReplicationDurable(options.getReplicationDurable())
-        .setReplicationMax(options.getReplicationMax())
-        .setReplicationMin(options.getReplicationMin())
-        .setTtl(options.getTtl())
-        .setTtlAction(options.getTtlAction())
+        .setReplicationDurable(context.getOptions().getReplicationDurable())
+        .setReplicationMax(context.getOptions().getReplicationMax())
+        .setReplicationMin(context.getOptions().getReplicationMin())
+        .setTtl(context.getOptions().getCommonOptions().getTtl())
+        .setTtlAction(context.getOptions().getCommonOptions().getTtlAction())
         .setParentId(parentId)
-        .setLastModificationTimeMs(options.getOperationTimeMs(), true)
-        .setOwner(options.getOwner())
-        .setGroup(options.getGroup())
-        .setMode(options.getMode().toShort())
-        .setAcl(options.getAcl())
-        .setPersistenceState(options.isPersisted() ? PersistenceState.PERSISTED
+        .setLastModificationTimeMs(context.getOperationTimeMs(), true)
+        .setOwner(context.getOwner())
+        .setGroup(context.getGroup())
+        .setMode(context.getMode().toShort())
+        .setAcl(context.getAcl())
+        .setPersistenceState(context.getPersisted() ? PersistenceState.PERSISTED
             : PersistenceState.NOT_PERSISTED);
   }
 
@@ -443,7 +444,7 @@ public final class InodeFile extends Inode<InodeFile> implements InodeFileView {
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setUfsFingerprint(getUfsFingerprint())
-        .setAcl(AccessControlList.toProtoBuf(mAcl))
+        .setAcl(ProtoUtils.toProto(mAcl))
         .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }

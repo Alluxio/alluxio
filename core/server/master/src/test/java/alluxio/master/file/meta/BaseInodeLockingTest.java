@@ -14,8 +14,8 @@ package alluxio.master.file.meta;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
 
 import org.junit.After;
 
@@ -134,7 +134,7 @@ public class BaseInodeLockingTest {
   protected static InodeDirectory inodeDir(long id, long parentId, String name,
       InodeView... children) {
     InodeDirectory dir =
-        InodeDirectory.create(id, parentId, name, CreateDirectoryOptions.defaults());
+        InodeDirectory.create(id, parentId, name, CreateDirectoryContext.defaults());
     for (InodeView child : children) {
       dir.addChild((Inode<?>) child);
     }
@@ -142,6 +142,6 @@ public class BaseInodeLockingTest {
   }
 
   protected static InodeFile inodeFile(long id, long parentId, String name) {
-    return InodeFile.create(id, parentId, name, 0, CreateFileOptions.defaults());
+    return InodeFile.create(id, parentId, name, 0, CreateFileContext.defaults());
   }
 }
