@@ -370,8 +370,17 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return the cluster level configuration backing this {@link FileSystemContext}
    */
+<<<<<<< HEAD
   public AlluxioConfiguration getClusterConf() {
     return getClientContext().getClusterConf();
+=======
+  public FileSystemMasterClient acquireMasterClient() {
+    try {
+      return mFileSystemMasterClientPool.acquire();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+>>>>>>> 082ccd3594... [ALLUXIO-3394] GC fs master client (#8263)
   }
 
   /**
@@ -424,12 +433,25 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired file system master client resource
    */
   public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
+<<<<<<< HEAD
     return new CloseableResource<FileSystemMasterClient>(acquireMasterClient()) {
       @Override
       public void close() {
         releaseMasterClient(get());
       }
     };
+=======
+    try {
+      return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
+        @Override
+        public void close() {
+          mFileSystemMasterClientPool.release(get());
+        }
+      };
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+>>>>>>> 082ccd3594... [ALLUXIO-3394] GC fs master client (#8263)
   }
 
   private BlockMasterClient acquireBlockMasterClient() {
@@ -454,12 +476,25 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired block master client resource
    */
   public CloseableResource<BlockMasterClient> acquireBlockMasterClientResource() {
+<<<<<<< HEAD
     return new CloseableResource<BlockMasterClient>(acquireBlockMasterClient()) {
       @Override
       public void close() {
         releaseBlockMasterClient(get());
       }
     };
+=======
+    try {
+      return new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
+        @Override
+        public void close() {
+          mBlockMasterClientPool.release(get());
+        }
+      };
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+>>>>>>> 082ccd3594... [ALLUXIO-3394] GC fs master client (#8263)
   }
 
   /**
@@ -468,12 +503,30 @@ public final class FileSystemContext implements Closeable {
    * create a new one.
    *
    * @param workerNetAddress the network address of the channel
+<<<<<<< HEAD
    * @return the acquired block worker
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
     try (ReinitBlockerResource r = blockReinit()) {
       return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext().getSubject());
+=======
+   * @return the acquired netty channel
+   */
+  public Channel acquireNettyChannel(final WorkerNetAddress workerNetAddress) throws IOException {
+    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
+    if (!mNettyChannelPools.containsKey(address)) {
+      Bootstrap bs = NettyClient.createClientBootstrap(address);
+      bs.remoteAddress(address);
+      NettyChannelPool pool = new NettyChannelPool(bs,
+          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MIN),
+          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
+          Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
+      if (mNettyChannelPools.putIfAbsent(address, pool) != null) {
+        // This can happen if this function is called concurrently.
+        pool.close();
+      }
+>>>>>>> 082ccd3594... [ALLUXIO-3394] GC fs master client (#8263)
     }
   }
 
