@@ -402,7 +402,8 @@ public final class ConfigurationUtils {
             address), e);
       } catch (UnauthenticatedException e) {
         throw new RuntimeException(String.format(
-            "Received authentication exception during boot-strap connect with host:%s", address), e);
+            "Received authentication exception during boot-strap connect with host:%s", address),
+            e);
       } finally {
         if (channel != null) {
           channel.shutdown();

@@ -77,7 +77,8 @@ public final class GrpcDataReader implements DataReader {
 
     mClient = mContext.acquireBlockWorkerClient(address);
     try {
-      mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages, address.toString());
+      mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
+          address.toString());
       mStream.send(mReadRequest, mDataTimeoutMs);
     } catch (Exception e) {
       mContext.releaseBlockWorkerClient(address, mClient);
