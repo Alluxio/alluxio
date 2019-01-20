@@ -205,7 +205,7 @@ public class GrpcManagedChannelPool {
           channelKey.mKeepAliveTimeout.get().getSecond());
     }
     if (channelKey.mMaxInboundMessageSize.isPresent()) {
-      channelBuilder.maxInboundMetadataSize(channelKey.mMaxInboundMessageSize.get());
+      channelBuilder.maxInboundMessageSize(channelKey.mMaxInboundMessageSize.get());
     }
     if (channelKey.mFlowControlWindow.isPresent()) {
       channelBuilder.flowControlWindow(channelKey.mFlowControlWindow.get());

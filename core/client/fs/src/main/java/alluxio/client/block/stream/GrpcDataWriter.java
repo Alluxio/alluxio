@@ -89,8 +89,13 @@ public final class GrpcDataWriter implements DataWriter {
     AlluxioConfiguration conf = context.getConf();
     long chunkSize = conf.getBytes(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES);
     BlockWorkerClient grpcClient = context.acquireBlockWorkerClient(address);
-    return new GrpcDataWriter(context, address, id, length, chunkSize, type, options,
-        grpcClient);
+    try {
+      return new GrpcDataWriter(context, address, id, length, chunkSize, type, options,
+          grpcClient);
+    } catch (Exception e) {
+      context.releaseBlockWorkerClient(address, grpcClient);
+      throw e;
+    }
   }
 
   /**
@@ -218,11 +223,11 @@ public final class GrpcDataWriter implements DataWriter {
 
   @Override
   public void close() throws IOException {
-    if (mClient.isShutdown()) {
-      return;
-    }
-    mStream.close();
     try {
+      if (mClient.isShutdown()) {
+        return;
+      }
+      mStream.close();
       mStream.waitForComplete(mWriterCloseTimeoutMs);
     } finally {
       mContext.releaseBlockWorkerClient(mAddress, mClient);

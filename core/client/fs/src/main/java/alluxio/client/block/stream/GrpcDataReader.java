@@ -76,9 +76,13 @@ public final class GrpcDataReader implements DataReader {
     mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
 
     mClient = mContext.acquireBlockWorkerClient(address);
-    mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
-        address.toString());
-    mStream.send(mReadRequest, mDataTimeoutMs);
+    try {
+      mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages, address.toString());
+      mStream.send(mReadRequest, mDataTimeoutMs);
+    } catch (Exception e) {
+      mContext.releaseBlockWorkerClient(address, mClient);
+      throw e;
+    }
   }
 
   @Override

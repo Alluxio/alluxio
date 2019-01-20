@@ -39,7 +39,7 @@ final class GrpcExecutors {
           ThreadFactoryUtils.build("AsyncCacheManagerExecutor-%d", true));
 
   public static final ExecutorService BLOCK_READER_EXECUTOR =
-      new ThreadPoolExecutor(THREADS_MIN + 4,
+      new ThreadPoolExecutor(THREADS_MIN,
           ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true));

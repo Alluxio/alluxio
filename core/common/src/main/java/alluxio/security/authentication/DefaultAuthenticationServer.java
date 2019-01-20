@@ -88,13 +88,14 @@ public class DefaultAuthenticationServer
 
   @Override
   public void registerChannel(UUID channelId, String authorizedUser, SaslServer saslServer) {
+    LOG.debug("Registering new channel:{} for user:{}", channelId, authorizedUser);
     if (null != mChannels.putIfAbsent(channelId,
         new AuthenticatedChannelInfo(authorizedUser, saslServer))) {
-      mChannels.remove(channelId);
-      throw new RuntimeException(String
-          .format("Channel: %s already exists in authentication registry.", channelId.toString()));
+      AuthenticatedChannelInfo existingInfo = mChannels.remove(channelId);
+      throw new RuntimeException(
+          String.format("Channel: %s already exists in authentication registry for user: %s.",
+              channelId.toString(), existingInfo.getUserName()));
     }
-    LOG.debug("Registered new channel:" + channelId);
   }
 
   @Override
@@ -167,7 +168,7 @@ public class DefaultAuthenticationServer
     if (!SecurityUtils.isSecurityEnabled(mConfiguration)) {
       return Collections.emptyList();
     }
-    List<ServerInterceptor> interceptorsList = new ArrayList<>();
+    List<ServerInterceptor> interceptorsList = new ArrayList<>(2);
     AuthType authType = mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
         AuthType.class);
     checkSupported(authType);
