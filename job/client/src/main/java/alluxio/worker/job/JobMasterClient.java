@@ -14,8 +14,8 @@ package alluxio.worker.job;
 import alluxio.Client;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
-import alluxio.thrift.JobCommand;
-import alluxio.thrift.TaskInfo;
+import alluxio.grpc.JobCommand;
+import alluxio.grpc.TaskInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;

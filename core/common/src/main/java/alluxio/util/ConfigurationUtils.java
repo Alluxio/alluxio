@@ -17,10 +17,11 @@ import alluxio.AlluxioConfiguration;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
 import alluxio.PropertyKey;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.Scope;
+import alluxio.grpc.GrpcUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.Scope;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -220,14 +221,23 @@ public final class ConfigurationUtils {
   public static List<ConfigProperty> getConfiguration(Scope scope) {
     ConfigurationValueOptions useRawDisplayValue =
         ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true);
-    return Configuration.keySet().stream()
-        .filter(key -> key.getScope().contains(scope))
-        .filter(key -> key.isValid(key.getName()))
-        .map(key -> new ConfigProperty()
-            .setName(key.getName())
-            .setSource(Configuration.getSource(key).toString()).setValue(
-                Configuration.isSet(key) ? Configuration.get(key, useRawDisplayValue) : null))
-        .collect(toList());
+
+    List<ConfigProperty> configs = new ArrayList<>();
+    List<PropertyKey> selectedKeys =
+        Configuration.keySet().stream()
+            .filter(key -> GrpcUtils.contains(key.getScope(), scope))
+            .filter(key -> key.isValid(key.getName()))
+            .collect(toList());
+
+    for (PropertyKey key : selectedKeys) {
+      ConfigProperty.Builder configProp = ConfigProperty.newBuilder().setName(key.getName())
+          .setSource(Configuration.getSource(key).toString());
+      if (Configuration.isSet(key)) {
+        configProp.setValue(Configuration.get(key, useRawDisplayValue));
+      }
+      configs.add(configProp.build());
+    }
+    return configs;
   }
 
   /**

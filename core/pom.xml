@@ -23,9 +23,10 @@
   <description>Parent POM for Alluxio core</description>
 
   <modules>
+    <module>base</module>
     <module>client</module>
     <module>common</module>
-    <module>protobuf</module>
+    <module>transport</module>
     <module>server</module>
   </modules>
 

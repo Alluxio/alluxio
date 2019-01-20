@@ -19,11 +19,11 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.FileSystemMasterView;
-import alluxio.thrift.PersistFile;
 import alluxio.util.IdUtils;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.PersistFile;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;

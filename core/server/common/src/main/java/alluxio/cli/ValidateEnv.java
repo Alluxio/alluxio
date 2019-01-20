@@ -100,10 +100,6 @@ public final class ValidateEnv {
         "validate master web port is available",
         new PortAvailabilityValidationTask(ServiceType.MASTER_WEB, ALLUXIO_MASTER_CLASS),
         MASTER_TASKS);
-    registerTask("worker.data.port.available",
-        "validate worker data port is available",
-        new PortAvailabilityValidationTask(ServiceType.WORKER_DATA, ALLUXIO_WORKER_CLASS),
-        WORKER_TASKS);
     registerTask("worker.rpc.port.available",
         "validate worker RPC port is available",
         new PortAvailabilityValidationTask(ServiceType.WORKER_RPC, ALLUXIO_WORKER_CLASS),

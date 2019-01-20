@@ -19,7 +19,7 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -191,10 +191,10 @@ public final class MasterWorkerInfo {
         case ADDRESS:
           info.setAddress(mWorkerAddress);
           break;
-        case CAPACITY_BYTES:
+        case WORKER_CAPACITY_BYTES:
           info.setCapacityBytes(mCapacityBytes);
           break;
-        case CAPACITY_BYTES_ON_TIERS:
+        case WORKER_CAPACITY_BYTES_ON_TIERS:
           info.setCapacityBytesOnTiers(mTotalBytesOnTiers);
           break;
         case ID:
@@ -214,10 +214,10 @@ public final class MasterWorkerInfo {
             info.setState(LOST_WORKER_STATE);
           }
           break;
-        case USED_BYTES:
+        case WORKER_USED_BYTES:
           info.setUsedBytes(mUsedBytes);
           break;
-        case USED_BYTES_ON_TIERS:
+        case WORKER_USED_BYTES_ON_TIERS:
           info.setUsedBytesOnTiers(mUsedBytesOnTiers);
           break;
         default:
@@ -332,7 +332,7 @@ public final class MasterWorkerInfo {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
+    return MoreObjects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("blocks", mBlocks).toString();
   }
@@ -380,7 +380,7 @@ public final class MasterWorkerInfo {
    */
   public void updateUsedBytes(Map<String, Long> usedBytesOnTiers) {
     mUsedBytes = 0;
-    mUsedBytesOnTiers = usedBytesOnTiers;
+    mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
     for (long t : mUsedBytesOnTiers.values()) {
       mUsedBytes += t;
     }

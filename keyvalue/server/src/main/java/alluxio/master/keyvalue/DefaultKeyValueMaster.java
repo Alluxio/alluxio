@@ -22,17 +22,20 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.PartitionInfo;
+import alluxio.grpc.ServiceType;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.RenameOptions;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue;
-import alluxio.thrift.KeyValueMasterClientService;
-import alluxio.thrift.PartitionInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -41,7 +44,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
-import org.apache.thrift.TProcessor;
+import com.google.protobuf.ByteString;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -87,10 +90,10 @@ public class DefaultKeyValueMaster extends CoreMaster implements KeyValueMaster 
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    services.put(Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_NAME,
-        new KeyValueMasterClientService.Processor<>(new KeyValueMasterClientServiceHandler(this)));
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.KEY_VALUE_MASTER_CLIENT_SERVICE,
+        new GrpcService(new KeyValueMasterClientServiceHandler(this)));
     return services;
   }
 
@@ -163,8 +166,10 @@ public class DefaultKeyValueMaster extends CoreMaster implements KeyValueMaster 
   // Marks a partition complete, called when replaying journals
   private void completePartitionFromEntry(KeyValue.CompletePartitionEntry entry)
       throws FileDoesNotExistException {
-    PartitionInfo info = new PartitionInfo(entry.getKeyStartBytes().asReadOnlyByteBuffer(),
-        entry.getKeyLimitBytes().asReadOnlyByteBuffer(), entry.getBlockId(), entry.getKeyCount());
+    PartitionInfo info =
+        PartitionInfo.newBuilder().setBlockId(entry.getBlockId()).setKeyCount(entry.getKeyCount())
+            .setKeyStart(entry.getKeyStartBytes()).setKeyLimit(entry.getKeyLimitBytes()).build();
+
     completePartitionInternal(entry.getStoreId(), info);
   }
 
@@ -177,7 +182,7 @@ public class DefaultKeyValueMaster extends CoreMaster implements KeyValueMaster 
           "Failed to completeStore: KeyValueStore (fileId=%d) was not created before", fileId));
     }
     // NOTE: deep copy the partition info object
-    mIncompleteStoreToPartitions.get(fileId).add(new PartitionInfo(info));
+    mIncompleteStoreToPartitions.get(fileId).add(PartitionInfo.newBuilder(info).build());
   }
 
   @Override
@@ -216,7 +221,8 @@ public class DefaultKeyValueMaster extends CoreMaster implements KeyValueMaster 
       InvalidPathException, AccessControlException, UnavailableException {
     try {
       // Create this dir
-      mFileSystemMaster.createDirectory(path, CreateDirectoryOptions.defaults().setRecursive(true));
+      mFileSystemMaster.createDirectory(path, CreateDirectoryContext
+          .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
     } catch (IOException e) {
       // TODO(binfan): Investigate why {@link FileSystemMaster#createDirectory} throws IOException
       throw new InvalidPathException(
@@ -255,7 +261,8 @@ public class DefaultKeyValueMaster extends CoreMaster implements KeyValueMaster 
       throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
     long fileId = getFileId(uri);
     checkIsCompletePartition(fileId, uri);
-    mFileSystemMaster.delete(uri, DeleteOptions.defaults().setRecursive(true));
+    mFileSystemMaster.delete(uri,
+        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
     try (JournalContext journalContext = createJournalContext()) {
       deleteStoreInternal(fileId);
       journalContext.append(newDeleteStoreEntry(fileId));
@@ -293,7 +300,7 @@ public class DefaultKeyValueMaster extends CoreMaster implements KeyValueMaster 
     long oldFileId = getFileId(oldUri);
     checkIsCompletePartition(oldFileId, oldUri);
     try {
-      mFileSystemMaster.rename(oldUri, newUri, RenameOptions.defaults());
+      mFileSystemMaster.rename(oldUri, newUri, RenameContext.defaults());
     } catch (FileAlreadyExistsException e) {
       throw new FileAlreadyExistsException(
           String.format("failed to rename store:the path %s has been used", newUri), e);
@@ -330,7 +337,7 @@ public class DefaultKeyValueMaster extends CoreMaster implements KeyValueMaster 
     mFileSystemMaster.rename(fromUri,
         new AlluxioURI(PathUtils.concatPath(toUri.toString(),
             String.format("%s-%s", fromUri.getName(), UUID.randomUUID().toString()))),
-        RenameOptions.defaults());
+        RenameContext.defaults());
     try (JournalContext journalContext = createJournalContext()) {
       mergeStoreInternal(fromFileId, toFileId);
       journalContext.append(newMergeStoreEntry(fromFileId, toFileId));
@@ -370,11 +377,11 @@ public class DefaultKeyValueMaster extends CoreMaster implements KeyValueMaster 
 
   private alluxio.proto.journal.Journal.JournalEntry newCompletePartitionEntry(long fileId,
       PartitionInfo info) {
-    KeyValue.CompletePartitionEntry completePartition =
-        KeyValue.CompletePartitionEntry.newBuilder().setStoreId(fileId)
-            .setBlockId(info.getBlockId()).setKeyStart(new String(info.bufferForKeyStart().array()))
-            .setKeyLimit(new String(info.bufferForKeyLimit().array()))
-            .setKeyCount(info.getKeyCount()).build();
+    KeyValue.CompletePartitionEntry completePartition = KeyValue.CompletePartitionEntry.newBuilder()
+        .setStoreId(fileId).setBlockId(info.getBlockId())
+        .setKeyStartBytes(ByteString.copyFrom(info.getKeyStart().toByteArray()))
+        .setKeyLimitBytes(ByteString.copyFrom(info.getKeyLimit().toByteArray()))
+        .setKeyCount(info.getKeyCount()).build();
     return alluxio.proto.journal.Journal.JournalEntry.newBuilder()
         .setCompletePartition(completePartition).build();
   }

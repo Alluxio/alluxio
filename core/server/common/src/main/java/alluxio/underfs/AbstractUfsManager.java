@@ -18,6 +18,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.util.IdUtils;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -72,7 +73,7 @@ public abstract class AbstractUfsManager implements UfsManager {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("authority", mAuthority)
           .add("scheme", mScheme)
           .add("properties", mProperties)

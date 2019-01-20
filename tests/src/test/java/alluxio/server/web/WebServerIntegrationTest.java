@@ -105,6 +105,7 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
         "http://" + webAddr.getAddress().getHostAddress() + ":"
         + webAddr.getPort() + path).openConnection();
     webService.connect();
+
     Assert.assertEquals(200, webService.getResponseCode());
 
     Scanner pageScanner = null;

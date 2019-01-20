@@ -13,7 +13,6 @@ package alluxio.job.util;
 
 import alluxio.AlluxioURI;
 import alluxio.client.Cancelable;
-import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
@@ -27,6 +26,8 @@ import alluxio.collections.IndexedSet;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.BlockLocation;
@@ -125,9 +126,11 @@ public final class JobUtils {
     // renamed, the job is still working on the correct file.
     URIStatus status = fs.getStatus(new AlluxioURI(path));
 
-    InStreamOptions inOptions = new InStreamOptions(status);
-    inOptions.getOptions().setReadType(ReadType.NO_CACHE)
-        .setUfsReadLocationPolicy(new LocalFirstPolicy());
+    OpenFilePOptions openOptions =
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE)
+            .setFileReadLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).build();
+
+    InStreamOptions inOptions = new InStreamOptions(status, openOptions);
     OutStreamOptions outOptions = OutStreamOptions.defaults();
 
     // use -1 to reuse the existing block size for this block

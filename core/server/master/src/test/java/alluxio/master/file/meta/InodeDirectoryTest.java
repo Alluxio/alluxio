@@ -12,8 +12,9 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.master.file.options.CreateDirectoryOptions;
+import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.security.authorization.Mode;
+import alluxio.util.ModeUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Sets;
@@ -66,9 +67,9 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    */
   @Test
   public void equalsTest() throws Exception {
-    InodeDirectory inode1 = InodeDirectory.create(1, 0, "test1", CreateDirectoryOptions.defaults());
-    InodeDirectory inode2 = InodeDirectory.create(1, 0, "test2", CreateDirectoryOptions.defaults());
-    InodeDirectory inode3 = InodeDirectory.create(3, 0, "test3", CreateDirectoryOptions.defaults());
+    InodeDirectory inode1 = InodeDirectory.create(1, 0, "test1", CreateDirectoryContext.defaults());
+    InodeDirectory inode2 = InodeDirectory.create(1, 0, "test2", CreateDirectoryContext.defaults());
+    InodeDirectory inode3 = InodeDirectory.create(3, 0, "test3", CreateDirectoryContext.defaults());
     Assert.assertTrue(inode1.equals(inode2));
     Assert.assertTrue(inode1.equals(inode1));
     Assert.assertFalse(inode1.equals(inode3));
@@ -246,7 +247,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     InodeDirectory inode2 = createInodeDirectory();
     Assert.assertEquals(TEST_OWNER, inode2.getOwner());
     Assert.assertEquals(TEST_GROUP, inode2.getGroup());
-    Assert.assertEquals(Mode.defaults().applyDirectoryUMask().toShort(), inode2.getMode());
+    Assert.assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults()).toShort(), inode2.getMode());
   }
 
   /**

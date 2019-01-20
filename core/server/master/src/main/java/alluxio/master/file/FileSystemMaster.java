@@ -29,28 +29,28 @@ import alluxio.master.Master;
 import alluxio.wire.SyncPointInfo;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.options.CheckConsistencyOptions;
-import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.FreeOptions;
-import alluxio.master.file.options.GetStatusOptions;
-import alluxio.master.file.options.ListStatusOptions;
-import alluxio.master.file.options.LoadMetadataOptions;
-import alluxio.master.file.options.MountOptions;
-import alluxio.master.file.options.RenameOptions;
-import alluxio.master.file.options.SetAclOptions;
-import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.file.options.WorkerHeartbeatOptions;
+import alluxio.master.file.contexts.CheckConsistencyContext;
+import alluxio.master.file.contexts.CompleteFileContext;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.FreeContext;
+import alluxio.master.file.contexts.GetStatusContext;
+import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.file.contexts.LoadMetadataContext;
+import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.SetAclContext;
+import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.security.authorization.AclEntry;
-import alluxio.thrift.FileSystemCommand;
-import alluxio.thrift.UfsInfo;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.wire.FileSystemCommand;
+import alluxio.grpc.SetAclAction;
+import alluxio.wire.UfsInfo;
+import alluxio.underfs.UfsMode;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SetAclAction;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
@@ -61,7 +61,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 /**
- * The interface of file system master.
+ * The interface of file system master service.
  */
 public interface FileSystemMaster extends Master {
   /**
@@ -105,13 +105,13 @@ public interface FileSystemMaster extends Master {
    * This operation requires users to have READ permission on the path.
    *
    * @param path the path to get the {@link FileInfo} for
-   * @param options the {@link GetStatusOptions}
+   * @param context the method context
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path is not valid
    * @throws AccessControlException if permission checking fails
    */
-  FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
+  FileInfo getFileInfo(AlluxioURI path, GetStatusContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnavailableException, IOException;
 
@@ -134,13 +134,13 @@ public interface FileSystemMaster extends Master {
    * EXECUTE permission on the path if it is a directory.
    *
    * @param path the path to get the {@link FileInfo} list for
-   * @param listStatusOptions the {@link alluxio.master.file.options.ListStatusOptions}
+   * @param context the method context
    * @return the list of {@link FileInfo}s
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
+  List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
       UnavailableException, IOException;
 
@@ -153,13 +153,13 @@ public interface FileSystemMaster extends Master {
    * Checks the consistency of the files and directories in the subtree under the path.
    *
    * @param path the root of the subtree to check
-   * @param options the options to use for the checkConsistency method
+   * @param context the context to use for the checkConsistency method
    * @return a list of paths in Alluxio which are not consistent with the under storage
    * @throws AccessControlException if the permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
+  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException;
 
   /**
@@ -168,7 +168,7 @@ public interface FileSystemMaster extends Master {
    * This operation requires users to have WRITE permission on the path.
    *
    * @param path the file path to complete
-   * @param options the method options
+   * @param context the method context
    * @throws BlockInfoException if a block information exception is encountered
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if an invalid path is encountered
@@ -176,7 +176,7 @@ public interface FileSystemMaster extends Master {
    * @throws FileAlreadyCompletedException if the file is already completed
    * @throws AccessControlException if permission checking fails
    */
-  void completeFile(AlluxioURI path, CompleteFileOptions options)
+  void completeFile(AlluxioURI path, CompleteFileContext context)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException,
       UnavailableException;
@@ -187,7 +187,7 @@ public interface FileSystemMaster extends Master {
    * This operation requires WRITE permission on the parent of this path.
    *
    * @param path the file to create
-   * @param options method options
+   * @param context the method context
    * @return the id of the created file
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileAlreadyExistsException if the file already exists
@@ -196,7 +196,7 @@ public interface FileSystemMaster extends Master {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  long createFile(AlluxioURI path, CreateFileOptions options)
+  long createFile(AlluxioURI path, CreateFileContext context)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException;
 
@@ -244,13 +244,13 @@ public interface FileSystemMaster extends Master {
    * This operation requires user to have WRITE permission on the parent of the path.
    *
    * @param path the path to delete
-   * @param options method options
+   * @param context method context
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  void delete(AlluxioURI path, DeleteOptions options)
+  void delete(AlluxioURI path, DeleteContext context)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException;
 
@@ -286,7 +286,7 @@ public interface FileSystemMaster extends Master {
    * This operation requires the client user to have WRITE permission on the parent of the path.
    *
    * @param path the path of the directory
-   * @param options method options
+   * @param context method context
    * @return the id of the created directory
    * @throws InvalidPathException when the path is invalid
    * @throws FileAlreadyExistsException when there is already a file at path
@@ -294,7 +294,7 @@ public interface FileSystemMaster extends Master {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  long createDirectory(AlluxioURI path, CreateDirectoryOptions options)
+  long createDirectory(AlluxioURI path, CreateDirectoryContext context)
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
       FileDoesNotExistException;
 
@@ -306,13 +306,13 @@ public interface FileSystemMaster extends Master {
    *
    * @param srcPath the source path to rename
    * @param dstPath the destination path to rename the file to
-   * @param options method options
+   * @param context method context
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws AccessControlException if permission checking fails
    * @throws FileAlreadyExistsException if the file already exists
    */
-  void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenameOptions options)
+  void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenameContext context)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException;
 
@@ -322,8 +322,8 @@ public interface FileSystemMaster extends Master {
    * <p>
    * This operation requires users to have READ permission on the path.
    *
-   * @param path the path to free
-   * @param options options to free
+   * @param path the path to free method
+   * @param context context to free method
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
@@ -333,7 +333,7 @@ public interface FileSystemMaster extends Master {
   // UnexpectedAlluxioException is thrown because we want to keep backwards compatibility with
   // clients of earlier versions prior to 1.5. If a new exception is added, it will be converted
   // into RuntimeException on the client.
-  void free(AlluxioURI path, FreeOptions options)
+  void free(AlluxioURI path, FreeContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException;
 
@@ -381,7 +381,7 @@ public interface FileSystemMaster extends Master {
    * parent path if path is a directory.
    *
    * @param path the path for which metadata should be loaded
-   * @param options the load metadata options
+   * @param context the load metadata context
    * @return the file id of the loaded path
    * @throws BlockInfoException if an invalid block size is encountered
    * @throws FileDoesNotExistException if there is no UFS path
@@ -390,7 +390,7 @@ public interface FileSystemMaster extends Master {
    * @throws FileAlreadyCompletedException if the file is already completed
    * @throws AccessControlException if permission checking fails
    */
-  long loadMetadata(AlluxioURI path, LoadMetadataOptions options)
+  long loadMetadata(AlluxioURI path, LoadMetadataContext context)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException;
 
@@ -402,13 +402,13 @@ public interface FileSystemMaster extends Master {
    *
    * @param alluxioPath the Alluxio path to mount to
    * @param ufsPath the UFS path to mount
-   * @param options the mount options
+   * @param context the mount context
    * @throws FileAlreadyExistsException if the path to be mounted to already exists
    * @throws FileDoesNotExistException if the parent of the path to be mounted to does not exist
    * @throws InvalidPathException if an invalid path is encountered
    * @throws AccessControlException if the permission check fails
    */
-  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
+  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountContext context)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException;
 
@@ -432,12 +432,12 @@ public interface FileSystemMaster extends Master {
    * @param path the path to set attribute for
    * @param action the set action to perform
    * @param entries the list of ACL entries for setting ACL
-   * @param options the options for setting ACL
+   * @param context the context for setting ACL
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
    */
-  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclOptions options)
+  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclContext context)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException,
       IOException;
 
@@ -449,12 +449,12 @@ public interface FileSystemMaster extends Master {
    * or the owner when setting the group or permission.
    *
    * @param path the path to set attribute for
-   * @param options attributes to be set, see {@link SetAttributeOptions}
+   * @param options master operation context
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the given path is invalid
    */
-  void setAttribute(AlluxioURI path, SetAttributeOptions options)
+  void setAttribute(AlluxioURI path, SetAttributeContext options)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException,
       IOException;
 
@@ -473,7 +473,7 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidPathException if ufs path is not used by any mount point
    * @throws InvalidArgumentException if arguments for the method are invalid
    */
-  void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
+  void updateUfsMode(AlluxioURI ufsPath, UfsMode ufsMode)
       throws InvalidPathException, InvalidArgumentException, UnavailableException,
       AccessControlException;
 
@@ -493,14 +493,14 @@ public interface FileSystemMaster extends Master {
    *
    * @param workerId the id of the worker that heartbeats
    * @param persistedFiles the files that persisted on the worker
-   * @param options the method options
+   * @param context the method context
    * @return the command for persisting the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if permission checking fails
    */
   FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
-      WorkerHeartbeatOptions options)
+      WorkerHeartbeatContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
 
   /**

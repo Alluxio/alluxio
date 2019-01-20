@@ -15,6 +15,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.clock.SystemClock;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -31,13 +33,11 @@ import alluxio.metrics.WorkerMetrics;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.thrift.MetricsMasterClientService;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -188,10 +188,10 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster {
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    services.put(Constants.METRICS_MASTER_CLIENT_SERVICE_NAME,
-        new MetricsMasterClientService.Processor<>(getMasterServiceHandler()));
+  public Map<ServiceType, GrpcService> getServices() {
+    Map<ServiceType, GrpcService> services = new HashMap<>();
+    services.put(ServiceType.METRICS_MASTER_CLIENT_SERVICE,
+        new GrpcService(getMasterServiceHandler()));
     return services;
   }
 

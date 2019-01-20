@@ -11,10 +11,10 @@
 
 package alluxio.master.job.command;
 
+import alluxio.grpc.JobCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.TestJobConfig;
 import alluxio.job.util.SerializationUtils;
-import alluxio.thrift.JobCommand;
 
 import com.google.common.collect.Lists;
 import org.junit.Assert;
@@ -48,9 +48,9 @@ public final class CommandManagerTest {
     Assert.assertEquals(jobId, command.getRunTaskCommand().getJobId());
     Assert.assertEquals(taskId, command.getRunTaskCommand().getTaskId());
     Assert.assertEquals(jobConfig,
-        SerializationUtils.deserialize(command.getRunTaskCommand().getJobConfig()));
+        SerializationUtils.deserialize(command.getRunTaskCommand().getJobConfig().toByteArray()));
     Assert.assertEquals(args,
-        SerializationUtils.deserialize(command.getRunTaskCommand().getTaskArgs()));
+        SerializationUtils.deserialize(command.getRunTaskCommand().getTaskArgs().toByteArray()));
   }
 
   @Test

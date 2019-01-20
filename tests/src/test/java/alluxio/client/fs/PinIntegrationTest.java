@@ -12,13 +12,13 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientConfig;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -43,15 +43,15 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
       new LocalAlluxioClusterResource.Builder().build();
   private FileSystem mFileSystem = null;
   private FileSystemMasterClient mFSMasterClient;
-  private SetAttributeOptions mSetPinned;
-  private SetAttributeOptions mUnsetPinned;
+  private SetAttributePOptions mSetPinned;
+  private SetAttributePOptions mUnsetPinned;
 
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mFSMasterClient = new FileSystemMasterClient(MasterClientConfig.defaults());
-    mSetPinned = SetAttributeOptions.defaults().setPinned(true);
-    mUnsetPinned = SetAttributeOptions.defaults().setPinned(false);
+    mSetPinned = SetAttributePOptions.newBuilder().setPinned(true).build();
+    mUnsetPinned = SetAttributePOptions.newBuilder().setPinned(false).build();
   }
 
   @After
@@ -155,7 +155,8 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
   }
 
   private void createEmptyFile(AlluxioURI fileURI) throws IOException, AlluxioException {
-    CreateFileOptions options = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+    CreateFilePOptions options =
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build();
     FileOutStream os = mFileSystem.createFile(fileURI, options);
     os.close();
   }

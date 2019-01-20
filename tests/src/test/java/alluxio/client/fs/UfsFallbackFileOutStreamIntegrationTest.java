@@ -14,10 +14,10 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -89,7 +89,8 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
       }
     }).toResource()) {
       AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-      CreateFileOptions op = CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH);
+      CreateFilePOptions op = CreateFilePOptions.newBuilder()
+          .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build();
       writeIncreasingBytesToFile(filePath, mFileLength, op);
 
       CommonUtils.sleepMs(1);
@@ -111,7 +112,7 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
 
   @Ignore("Files may be lost due to evicting and committing before file is complete.")
   @Test
-  public void nettyWrite() throws Exception {
+  public void grpcWrite() throws Exception {
     try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
         put(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(mUserFileBufferSize));
@@ -120,7 +121,8 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
       }
     }).toResource()) {
       AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-      CreateFileOptions op = CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH);
+      CreateFilePOptions op = CreateFilePOptions.newBuilder()
+          .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build();
       writeIncreasingBytesToFile(filePath, mFileLength, op);
 
       CommonUtils.sleepMs(1);

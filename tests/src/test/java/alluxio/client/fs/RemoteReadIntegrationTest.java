@@ -13,8 +13,6 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
-import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
@@ -24,16 +22,17 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.InStreamOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
+import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.testutils.BaseIntegrationTest;
-import alluxio.testutils.IntegrationTestConstants;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
@@ -48,19 +47,13 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for reading from a remote worker.
  */
-@RunWith(Parameterized.class)
 public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
@@ -73,32 +66,16 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource;
   private FileSystem mFileSystem = null;
-  private CreateFileOptions mWriteAlluxio;
-  private CreateFileOptions mWriteUnderStore;
-  private OpenFileOptions mReadNoCache;
-  private OpenFileOptions mReadCache;
-
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
-    // creates a new instance of RemoteBlockInStreamTest for each network type
-    List<Object[]> list = new ArrayList<>();
-    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.MAPPED_TRANSFER});
-    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.FILE_CHANNEL_TRANSFER});
-    return list;
-  }
+  private CreateFilePOptions mWriteAlluxio;
+  private CreateFilePOptions mWriteUnderStore;
+  private OpenFilePOptions mReadNoCache;
+  private OpenFilePOptions mReadCache;
 
   /**
    * Constructor for {@link RemoteReadIntegrationTest}.
-   *
-   * @param dataServer the address of the worker's data server
-   * @param transferType the file transfer type used by the worker
    */
-  public RemoteReadIntegrationTest(String dataServer, String transferType) {
+  public RemoteReadIntegrationTest() {
     mLocalAlluxioClusterResource = new LocalAlluxioClusterResource.Builder()
-        .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, dataServer)
-        .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, transferType)
         .setProperty(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100")
         .setProperty(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX, 2)
         .build();
@@ -110,10 +87,12 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
-    mWriteUnderStore = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
-    mReadCache = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
-    mReadNoCache = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    mWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
+        .setRecursive(true).build();
+    mWriteUnderStore = CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH)
+        .setRecursive(true).build();
+    mReadCache = OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
+    mReadNoCache = OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
   }
 
   /**
@@ -373,7 +352,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.Name.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS, "1sec"})
+      PropertyKey.Name.WORKER_NETWORK_KEEPALIVE_TIME_MS, "1sec"})
   public void heartbeat1() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     int size = 100;

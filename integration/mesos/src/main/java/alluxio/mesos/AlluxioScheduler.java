@@ -361,9 +361,6 @@ public class AlluxioScheduler implements Scheduler {
             .addRange(Protos.Value.Range.newBuilder()
                 .setBegin(Configuration.getLong(PropertyKey.WORKER_RPC_PORT))
                 .setEnd(Configuration.getLong(PropertyKey.WORKER_RPC_PORT)))
-            .addRange(Protos.Value.Range.newBuilder()
-                .setBegin(Configuration.getLong(PropertyKey.WORKER_DATA_PORT))
-                .setEnd(Configuration.getLong(PropertyKey.WORKER_DATA_PORT)))
             .addRange((Protos.Value.Range.newBuilder()
                 .setBegin(Configuration.getLong(PropertyKey.WORKER_WEB_PORT))
                 .setEnd(Configuration.getLong(PropertyKey.WORKER_WEB_PORT))))).build());

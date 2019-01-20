@@ -16,10 +16,10 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CheckConsistencyOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.CheckConsistencyPOptions;
+import alluxio.grpc.DeletePOptions;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -89,9 +89,9 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
    * @throws IOException
    */
   private void checkConsistency(AlluxioURI path, boolean repairConsistency) throws
-      AlluxioException, IOException {
-    CheckConsistencyOptions options = CheckConsistencyOptions.defaults();
-    List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(path, options);
+  AlluxioException, IOException {
+    List<AlluxioURI> inconsistentUris =
+        FileSystemUtils.checkConsistency(path, CheckConsistencyPOptions.getDefaultInstance());
     if (inconsistentUris.isEmpty()) {
       System.out.println(path + " is consistent with the under storage system.");
       return;
@@ -113,15 +113,15 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
           continue;
         }
         System.out.println("repairing path: " + inconsistentUri);
-        DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true);
+        DeletePOptions deleteOptions = DeletePOptions.newBuilder().setAlluxioOnly(true).build();
         mFileSystem.delete(inconsistentUri, deleteOptions);
         mFileSystem.exists(inconsistentUri);
         System.out.println(inconsistentUri + " repaired");
         System.out.println();
       }
       for (AlluxioURI uri : inconsistentDirs) {
-        DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true)
-            .setRecursive(true);
+        DeletePOptions deleteOptions =
+            DeletePOptions.newBuilder().setAlluxioOnly(true).setRecursive(true).build();
         System.out.println("repairing path: " + uri);
         mFileSystem.delete(uri, deleteOptions);
         mFileSystem.exists(uri);

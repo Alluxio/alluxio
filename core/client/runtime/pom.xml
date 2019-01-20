@@ -73,8 +73,6 @@
       <!--dependencies introduced by applications. The protobuf dependency is already shaded in the internal protobuf-->
       <!--module rather than in the runtime module, because it is also depended by other libraries included in-->
       <!--the runtime module, thus shading protobuf during the runtime jar packaging will over-shade references of protobuf.-->
-      <!--Ideally, the thrift dependency should also be shaded in the public jar in the same way as shading protobuf,-->
-      <!--however, this will break compilation due to existing signatures referencing thrift shared among modules.-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -107,6 +105,18 @@
                   <shadedPattern>${shading.prefix}.com.google.common</shadedPattern>
                 </relocation>
                 <relocation>
+                  <pattern>com.google.protobuf</pattern>
+                  <shadedPattern>${shading.prefix}.com.google.protobuf</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io.grpc</pattern>
+                  <shadedPattern>${shading.prefix}.io.grpc</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io.opencensus</pattern>
+                  <shadedPattern>${shading.prefix}.io.opencensus</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>io.netty</pattern>
                   <shadedPattern>${shading.prefix}.io.netty</shadedPattern>
                 </relocation>
@@ -131,10 +141,6 @@
                   <shadedPattern>${shading.prefix}.org.apache.jute</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache.thrift</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.thrift</shadedPattern>
-                </relocation>
-                <relocation>
                   <pattern>org.apache.zookeeper</pattern>
                   <shadedPattern>${shading.prefix}.org.apache.zookeeper</shadedPattern>
                 </relocation>
@@ -154,8 +160,6 @@
                 <filter>
                   <artifact>*:*</artifact>
                   <excludes>
-                    <!-- Enforce no unshaded protobuf classes as the input of shading. See ALLUXIO-3278 -->
-                    <exclude>com/google/protobuf/**</exclude>
                     <exclude>LICENSE</exclude>
                     <exclude>META-INF/LICENSE</exclude>
                     <exclude>META-INF/*.SF</exclude>

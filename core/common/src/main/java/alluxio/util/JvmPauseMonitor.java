@@ -187,7 +187,7 @@ public final class JvmPauseMonitor {
 
     @Override
     public void run() {
-      Stopwatch sw = new Stopwatch();
+      Stopwatch sw = Stopwatch.createUnstarted();
       Map<String, GarbageCollectorMXBean> gcBeanMapBeforeSleep = getGarbageCollectorMXBeans();
       while (true) {
         sw.reset().start();

@@ -280,9 +280,9 @@ public class CapacityCommand {
     GetWorkerReportOptions workerOptions = GetWorkerReportOptions.defaults();
 
     Set<WorkerInfoField> fieldRange = new HashSet<>(Arrays.asList(WorkerInfoField.ADDRESS,
-        WorkerInfoField.CAPACITY_BYTES, WorkerInfoField.CAPACITY_BYTES_ON_TIERS,
-        WorkerInfoField.LAST_CONTACT_SEC, WorkerInfoField.USED_BYTES,
-        WorkerInfoField.USED_BYTES_ON_TIERS));
+        WorkerInfoField.WORKER_CAPACITY_BYTES, WorkerInfoField.WORKER_CAPACITY_BYTES_ON_TIERS,
+        WorkerInfoField.LAST_CONTACT_SEC, WorkerInfoField.WORKER_USED_BYTES,
+        WorkerInfoField.WORKER_USED_BYTES_ON_TIERS));
     workerOptions.setFieldRange(fieldRange);
 
     if (cl.hasOption(ReportCommand.LIVE_OPTION_NAME)) {

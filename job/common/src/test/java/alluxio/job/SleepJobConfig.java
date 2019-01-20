@@ -12,6 +12,7 @@
 package alluxio.job;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -63,7 +64,7 @@ public class SleepJobConfig implements JobConfig {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("timeMs", mTimeMs).toString();
+    return MoreObjects.toStringHelper(this).add("timeMs", mTimeMs).toString();
   }
 
   @Override

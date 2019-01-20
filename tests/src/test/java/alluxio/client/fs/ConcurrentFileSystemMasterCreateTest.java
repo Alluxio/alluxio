@@ -18,18 +18,18 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.ListStatusOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
-import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
@@ -127,8 +127,8 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     AlluxioURI[] paths = new AlluxioURI[numThreads];
 
     // Create the existing path with CACHE_THROUGH that it will be persisted.
-    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"),
-        CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.CACHE_THROUGH));
+    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"), CreateDirectoryPOptions
+        .newBuilder().setRecursive(true).setWriteType(WritePType.CACHE_THROUGH).build());
 
     for (int i = 0; i < numThreads; i++) {
       paths[i] =
@@ -154,8 +154,8 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     AlluxioURI[] paths = new AlluxioURI[numThreads];
 
     // Create the existing path with MUST_CACHE, so subsequent creates have to persist the dirs.
-    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"),
-        CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.MUST_CACHE));
+    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"), CreateDirectoryPOptions
+        .newBuilder().setRecursive(true).setWriteType(WritePType.MUST_CACHE).build());
 
     for (int i = 0; i < numThreads; i++) {
       paths[i] =
@@ -176,12 +176,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
   @Test
   public void concurrentLoadFileMetadataExistingDir() throws Exception {
-    runLoadMetadata(WriteType.CACHE_THROUGH, false, true, false);
+    runLoadMetadata(WritePType.CACHE_THROUGH, false, true, false);
   }
 
   @Test
   public void concurrentLoadFileMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WriteType.MUST_CACHE, false, true, false);
+    runLoadMetadata(WritePType.MUST_CACHE, false, true, false);
   }
 
   @Test
@@ -191,12 +191,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
   @Test
   public void concurrentLoadSameFileMetadataExistingDir() throws Exception {
-    runLoadMetadata(WriteType.CACHE_THROUGH, true, true, false);
+    runLoadMetadata(WritePType.CACHE_THROUGH, true, true, false);
   }
 
   @Test
   public void concurrentLoadSameFileMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WriteType.MUST_CACHE, true, true, false);
+    runLoadMetadata(WritePType.MUST_CACHE, true, true, false);
   }
 
   @Test
@@ -206,12 +206,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
   @Test
   public void concurrentLoadDirMetadataExistingDir() throws Exception {
-    runLoadMetadata(WriteType.CACHE_THROUGH, false, false, false);
+    runLoadMetadata(WritePType.CACHE_THROUGH, false, false, false);
   }
 
   @Test
   public void concurrentLoadDirMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WriteType.MUST_CACHE, false, false, false);
+    runLoadMetadata(WritePType.MUST_CACHE, false, false, false);
   }
 
   @Test
@@ -221,12 +221,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
   @Test
   public void concurrentLoadSameDirMetadataExistingDir() throws Exception {
-    runLoadMetadata(WriteType.CACHE_THROUGH, true, false, false);
+    runLoadMetadata(WritePType.CACHE_THROUGH, true, false, false);
   }
 
   @Test
   public void concurrentLoadSameDirMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WriteType.MUST_CACHE, true, false, false);
+    runLoadMetadata(WritePType.MUST_CACHE, true, false, false);
   }
 
   @Test
@@ -236,12 +236,12 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
   @Test
   public void concurrentListDirsExistingDir() throws Exception {
-    runLoadMetadata(WriteType.CACHE_THROUGH, false, false, true);
+    runLoadMetadata(WritePType.CACHE_THROUGH, false, false, true);
   }
 
   @Test
   public void concurrentListDirsNonPersistedDir() throws Exception {
-    runLoadMetadata(WriteType.MUST_CACHE, false, false, true);
+    runLoadMetadata(WritePType.MUST_CACHE, false, false, true);
   }
 
   @Test
@@ -251,23 +251,23 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
   @Test
   public void concurrentListFilesExistingDir() throws Exception {
-    runLoadMetadata(WriteType.CACHE_THROUGH, false, true, true);
+    runLoadMetadata(WritePType.CACHE_THROUGH, false, true, true);
   }
 
   @Test
   public void concurrentListFilesNonPersistedDir() throws Exception {
-    runLoadMetadata(WriteType.MUST_CACHE, false, true, true);
+    runLoadMetadata(WritePType.MUST_CACHE, false, true, true);
   }
 
   /**
    * Runs load metadata tests.
    *
-   * @param writeType the {@link WriteType} to create ancestors, if not null
+   * @param writeType the {@link WritePType} to create ancestors, if not null
    * @param useSinglePath if true, threads will only use a single path
    * @param createFiles if true, will create files at the bottom of the tree, directories otherwise
    * @param listParentDir if true, will list the parent dir to load the metadata
    */
-  private void runLoadMetadata(WriteType writeType, boolean useSinglePath, boolean createFiles,
+  private void runLoadMetadata(WritePType writeType, boolean useSinglePath, boolean createFiles,
       boolean listParentDir) throws Exception {
     int numThreads = CONCURRENCY_FACTOR;
     int bufferFactor = CONCURRENCY_FACTOR / 2;
@@ -276,7 +276,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
 
     int uniquePaths = useSinglePath ? 1 : numThreads;
 
-    if (writeType != WriteType.CACHE_THROUGH) {
+    if (writeType != WritePType.CACHE_THROUGH) {
       // all 3 components must be synced to UFS.
       limitMs = 3 * SLEEP_MS * bufferFactor;
     }
@@ -302,7 +302,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     if (writeType != null) {
       // create inodes in Alluxio
       mFileSystem.createDirectory(new AlluxioURI("/existing/path/"),
-          CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(writeType));
+          CreateDirectoryPOptions.newBuilder().setRecursive(true).setWriteType(writeType).build());
     }
 
     // Generate path names for threads.
@@ -332,8 +332,8 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
           + "\n" + Throwables.getStackTraceAsString(errors.get(0)));
     }
 
-    ListStatusOptions listOptions = ListStatusOptions.defaults().setLoadMetadataType(
-        LoadMetadataType.Never);
+    ListStatusPOptions listOptions =
+        ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"), listOptions);
     Assert.assertEquals(1, files.size());
