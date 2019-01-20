@@ -56,8 +56,7 @@ public final class LocalFileDataReader implements DataReader {
    * @param len the length to read
    * @param chunkSize the chunk size
    */
-  private LocalFileDataReader(LocalFileBlockReader reader, long offset, long len, long chunkSize)
-      throws IOException {
+  private LocalFileDataReader(LocalFileBlockReader reader, long offset, long len, long chunkSize) {
     mReader = reader;
     Preconditions.checkArgument(chunkSize > 0);
     mPos = offset;
