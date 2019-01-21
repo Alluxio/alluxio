@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -154,6 +155,7 @@ import alluxio.wire.MountPointInfo;
 import alluxio.grpc.SetAclAction;
 import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerInfo;
+import alluxio.worker.job.JobMasterClientConfig;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -395,7 +397,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.MASTER_WHITELIST, ","));
 
     mPermissionChecker = new DefaultPermissionChecker(mInodeTree);
-    mJobMasterClientPool = new alluxio.client.job.JobMasterClientPool(ServerConfiguration.global());
+    mJobMasterClientPool =
+        new alluxio.client.job.JobMasterClientPool(JobMasterClientConfig
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     mPersistRequests = new java.util.concurrent.ConcurrentHashMap<>();
     mPersistJobs = new java.util.concurrent.ConcurrentHashMap<>();
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);

@@ -11,6 +11,7 @@
 
 package alluxio.worker;
 
+import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -68,8 +69,8 @@ public final class JobWorker extends AbstractWorker {
     super(
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("job-worker-heartbeat-%d", true)));
     mUfsManager = ufsManager;
-    mJobMasterClient = JobMasterClient.Factory.create(
-        JobMasterClientConfig.newBuilder(ServerConfiguration.global()).build());
+    mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientConfig
+        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     mTaskExecutorManager = new TaskExecutorManager();
   }
 

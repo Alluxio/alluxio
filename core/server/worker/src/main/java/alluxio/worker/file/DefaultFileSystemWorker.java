@@ -11,6 +11,7 @@
 
 package alluxio.worker.file;
 
+import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -80,7 +81,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient =
         new FileSystemMasterClient(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build());
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
   }
 
   @Override

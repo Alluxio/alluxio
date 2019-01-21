@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -154,7 +155,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
   private MetaMasterClient getMetaClient(MultiProcessCluster cluster) {
     return new RetryHandlingMetaMasterClient(
-        MasterClientConfig.newBuilder(ServerConfiguration.global())
+        MasterClientConfig.newBuilder(ClientContext.create(ServerConfiguration.global()))
             .setMasterInquireClient(cluster.getMasterInquireClient())
             .build());
   }

@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientConfig;
@@ -31,42 +32,37 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
-  private final MasterInquireClient mMasterInquireClient;
   private final Queue<FileSystemMasterClient> mClientList;
-  private final Subject mSubject;
-  private final AlluxioConfiguration mAlluxioConf;
+  private final MasterClientConfig mMasterContext;
 
   /**
    * Creates a new file system master client pool.
    *
-   * @param subject the parent subject
+   * @param context information for connecting to processes in the cluster
    * @param masterInquireClient a client for determining the master address
-   * @param alluxioConf Alluxio configuration
    */
-  public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
-      AlluxioConfiguration alluxioConf) {
-    super(alluxioConf.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
-    mMasterInquireClient = masterInquireClient;
+  public FileSystemMasterClientPool(ClientContext context,
+      MasterInquireClient masterInquireClient) {
+    super(context.getConf().getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
     mClientList = new ConcurrentLinkedQueue<>();
-    mSubject = subject;
-    mAlluxioConf = alluxioConf;
+    mMasterContext = MasterClientConfig.newBuilder(context)
+            .setMasterInquireClient(masterInquireClient).build();
   }
 
   /**
    * Creates a new file system master client pool.
    *
    * @param subject the parent subject
+   * @param alluxioConf Alluxio configuration
    * @param masterInquireClient a client for determining the master address
    * @param clientThreads the number of client threads to use
-   * @param alluxioConf Alluxio configuration
    */
-  public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
-      int clientThreads, AlluxioConfiguration alluxioConf) {
+  public FileSystemMasterClientPool(Subject subject, AlluxioConfiguration alluxioConf,
+      MasterInquireClient masterInquireClient, int clientThreads) {
     super(clientThreads);
-    mMasterInquireClient = masterInquireClient;
+    mMasterContext = MasterClientConfig.newBuilder(ClientContext.create(subject, alluxioConf))
+        .setMasterInquireClient(masterInquireClient).build();
     mClientList = new ConcurrentLinkedQueue<>();
-    mSubject = subject;
-    mAlluxioConf = alluxioConf;
   }
 
   @Override
@@ -81,9 +77,7 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
 
   @Override
   protected FileSystemMasterClient createNewResource() {
-    FileSystemMasterClient client = FileSystemMasterClient.Factory.create(MasterClientConfig
-        .newBuilder(mAlluxioConf).setSubject(mSubject).setMasterInquireClient(mMasterInquireClient)
-        .build());
+    FileSystemMasterClient client = FileSystemMasterClient.Factory.create(mMasterContext);
     mClientList.add(client);
     return client;
   }

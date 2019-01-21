@@ -11,9 +11,9 @@
 
 package alluxio.hadoop.mapreduce;
 
+import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -46,13 +46,13 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
    *
    * @param outputPath the job's output path, or null if the output committer is a noop
    * @param taskContext the task's context
-   * @param alluxioConf Alluxio configuration
+   * @param ctx Alluxio client configuration
    */
   public KeyValueOutputCommitter(Path outputPath, TaskAttemptContext taskContext,
-      AlluxioConfiguration alluxioConf)
+      ClientContext ctx)
       throws IOException {
     super(outputPath, taskContext);
-    mKeyValueSystem = KeyValueSystem.Factory.create(alluxioConf);
+    mKeyValueSystem = KeyValueSystem.Factory.create(ctx);
   }
 
   /**

@@ -12,8 +12,8 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AbstractClient;
+import alluxio.ClientContext;
 import alluxio.Constants;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.GetNextKeysPRequest;
 import alluxio.grpc.GetPRequest;
@@ -47,10 +47,10 @@ public final class KeyValueWorkerClient extends AbstractClient {
    * Creates a {@link KeyValueWorkerClient}.
    *
    * @param workerNetAddress location of the worker to connect to
-   * @param alluxioConf Alluxio configuration
+   * @param ctx Alluxio client configuration
    */
-  public KeyValueWorkerClient(WorkerNetAddress workerNetAddress, AlluxioConfiguration alluxioConf) {
-    super(null, alluxioConf, NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress));
+  public KeyValueWorkerClient(WorkerNetAddress workerNetAddress, ClientContext ctx) {
+    super(ctx, NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress));
   }
 
   @Override

@@ -11,6 +11,7 @@
 
 package alluxio.server.web;
 
+import alluxio.ClientContext;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ConnectionFailedException;
@@ -68,7 +69,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
     // connect Master RPC service
     mBlockMasterClient =
         BlockMasterClient.Factory.create(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build());
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
@@ -164,7 +165,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
     InetSocketAddress masterRpcAddr = new InetSocketAddress("127.0.0.1",
         mLocalAlluxioCluster.getLocalAlluxioMaster().getRpcLocalPort());
     mBlockMasterClient = BlockMasterClient.Factory.create(MasterClientConfig
-        .newBuilder(ServerConfiguration.global())
+        .newBuilder(ClientContext.create(ServerConfiguration.global()))
         .setMasterInquireClient(new SingleMasterInquireClient(masterRpcAddr))
         .build());
     try {

@@ -12,6 +12,7 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -74,7 +75,8 @@ public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sKeyValueSystem = KeyValueSystem.Factory.create(ServerConfiguration.global());
+    sKeyValueSystem =
+        KeyValueSystem.Factory.create(ClientContext.create(ServerConfiguration.global()));
   }
 
   @Before
@@ -334,7 +336,7 @@ public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
   private int getPartitionNumber(AlluxioURI storeUri) throws Exception {
     try (KeyValueMasterClient client =
              new KeyValueMasterClient(MasterClientConfig
-                 .newBuilder(ServerConfiguration.global()).build())) {
+                 .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       return client.getPartitionInfo(storeUri).size();
     }
   }
@@ -514,7 +516,8 @@ public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void create() {
-    KeyValueSystem system = KeyValueSystem.Factory.create(ServerConfiguration.global());
+    KeyValueSystem system =
+        KeyValueSystem.Factory.create(ClientContext.create(ServerConfiguration.global()));
     Assert.assertNotNull(system);
   }
 }

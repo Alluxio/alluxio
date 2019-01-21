@@ -15,6 +15,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
@@ -105,7 +106,7 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
     mFs.free(new AlluxioURI("/"), FreePOptions.newBuilder().setRecursive(true).build());
     BlockMasterClient blockClient =
         BlockMasterClient.Factory.create(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build());
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     CommonUtils.waitFor("data to be freed", () -> {
       try {
         return blockClient.getUsedBytes() == 0;

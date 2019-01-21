@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.conf.PropertyKey;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
@@ -48,7 +49,7 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
     try {
       FileSystem fs = cluster.getFileSystemClient();
       MetaMasterClient metaClient = new RetryHandlingMetaMasterClient(
-          MasterClientConfig.newBuilder(ServerConfiguration.global())
+          MasterClientConfig.newBuilder(ClientContext.create(ServerConfiguration.global()))
               .setMasterInquireClient(cluster.getMasterInquireClient())
               .build());
       for (int i = 0; i < NUM_DIRS; i++) {

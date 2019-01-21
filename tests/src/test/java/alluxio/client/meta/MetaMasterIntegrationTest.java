@@ -13,6 +13,7 @@ package alluxio.client.meta;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.ClientContext;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.MetaMasterConfigClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
@@ -52,7 +53,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   public void getInfoAllFields() throws Exception {
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build())) {
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       MasterInfo info = client.getMasterInfo(Collections.emptySet());
       assertEquals(mWebPort, info.getWebPort());
     }
@@ -62,7 +63,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   public void getMasterInfoWebPort() throws Exception {
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build())) {
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       MasterInfo info = client.getMasterInfo(new HashSet<>(Arrays
           .asList(MasterInfoField.WEB_PORT)));
       assertEquals(mWebPort, info.getWebPort());
@@ -73,7 +74,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   public void getConfigurationWebPort() throws Exception {
     try (MetaMasterConfigClient client =
              new RetryHandlingMetaMasterConfigClient(MasterClientConfig
-                 .newBuilder(ServerConfiguration.global()).build())) {
+                 .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       List<ConfigProperty> configList = client.getConfiguration();
       int configWebPort = -1;
       for (ConfigProperty info : configList) {

@@ -12,6 +12,7 @@
 package alluxio.cli;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -101,8 +102,9 @@ public final class AlluxioFrameworkIntegrationTest {
     try {
       startAlluxioFramework(env);
       LOG.info("Launched Alluxio cluster, waiting for worker to register with master");
+      ClientContext ctx = ClientContext.create(sConf);
       try (final BlockMasterClient client =
-          BlockMasterClient.Factory.create(MasterClientConfig.newBuilder(sConf).build())) {
+          BlockMasterClient.Factory.create(MasterClientConfig.newBuilder(ctx).build())) {
         CommonUtils.waitFor("Alluxio worker to register with master", () -> {
           try {
             try {

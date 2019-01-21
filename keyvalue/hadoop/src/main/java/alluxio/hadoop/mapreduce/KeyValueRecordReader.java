@@ -11,11 +11,11 @@
 
 package alluxio.hadoop.mapreduce;
 
+import alluxio.ClientContext;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValuePartitionReader;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 
@@ -49,15 +49,15 @@ final class KeyValueRecordReader extends RecordReader<BytesWritable, BytesWritab
   /** Current value. */
   private BytesWritable mCurrentValue;
 
-  private final AlluxioConfiguration mConf;
+  private final ClientContext mCtx;
 
   /**
    * Creates a {@link KeyValueRecordReader} for generating key-value pairs of a partition.
    *
-   * @param alluxioConf Alluxio configuration
+   * @param ctx Alluxio client configuration
    */
-  public KeyValueRecordReader(AlluxioConfiguration alluxioConf) {
-    mConf = alluxioConf;
+  public KeyValueRecordReader(ClientContext ctx) {
+    mCtx = ctx;
   }
 
   @Override
@@ -70,7 +70,7 @@ final class KeyValueRecordReader extends RecordReader<BytesWritable, BytesWritab
       }
       mReader =
           KeyValuePartitionReader.Factory.create(((KeyValueInputSplit) split).getPartitionId(),
-              mConf);
+              mCtx);
       mKeyValuePairIterator = mReader.iterator();
       mNumVisitedKeyValuePairs = 0;
       mNumKeyValuePairs = mReader.size();

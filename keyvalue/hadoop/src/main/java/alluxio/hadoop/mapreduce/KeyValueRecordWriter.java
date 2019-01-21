@@ -12,9 +12,9 @@
 package alluxio.hadoop.mapreduce;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 
 import org.apache.hadoop.io.BytesWritable;
@@ -38,9 +38,9 @@ final class KeyValueRecordWriter extends RecordWriter<BytesWritable, BytesWritab
    *
    * @param storeUri the URI for the temporary key-value store to be created by this record writer
    */
-  public KeyValueRecordWriter(AlluxioURI storeUri, AlluxioConfiguration conf) throws IOException {
+  public KeyValueRecordWriter(AlluxioURI storeUri, ClientContext ctx) throws IOException {
     try {
-      mWriter = KeyValueSystem.Factory.create(conf).createStore(storeUri);
+      mWriter = KeyValueSystem.Factory.create(ctx).createStore(storeUri);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }

@@ -14,7 +14,6 @@ package alluxio.conf;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.util.ConfigurationUtils;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +24,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -125,8 +123,7 @@ public final class ServerConfiguration {
    *
    * @param key the key to unset
    */
-  public static void unset(@Nonnull PropertyKey key) {
-    Preconditions.checkNotNull(key, "key");
+  public static void unset(PropertyKey key) {
     sConf.unset(key);
   }
 

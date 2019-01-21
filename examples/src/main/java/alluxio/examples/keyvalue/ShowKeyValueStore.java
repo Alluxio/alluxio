@@ -12,6 +12,7 @@
 package alluxio.examples.keyvalue;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.RuntimeConstants;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
@@ -67,7 +68,8 @@ public final class ShowKeyValueStore {
     }
 
     KeyValueStoreReader reader =
-        KeyValueSystem.Factory.create(sConf).openStore(new AlluxioURI(args[0]));
+        KeyValueSystem.Factory.create(ClientContext.create(sConf))
+            .openStore(new AlluxioURI(args[0]));
     KeyValueIterator iterator = reader.iterator();
     while (iterator.hasNext()) {
       show(iterator.next(), args[1]);

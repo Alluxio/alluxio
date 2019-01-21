@@ -12,7 +12,7 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.PartitionInfo;
 import alluxio.master.MasterClientConfig;
@@ -41,21 +41,21 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   /** A list of partitions of the store. */
   private final List<PartitionInfo> mPartitions;
 
-  private final AlluxioConfiguration mConf;
+  private final ClientContext mCtx;
 
   /**
    * Constructs a {@link BaseKeyValueStoreReader} instance.
    *
    * @param uri URI of the key-value store
-   * @param alluxioConf Alluxio configuration
+   * @param ctx Alluxio client configuration
    */
-  BaseKeyValueStoreReader(AlluxioURI uri, AlluxioConfiguration alluxioConf) throws IOException {
+  BaseKeyValueStoreReader(AlluxioURI uri, ClientContext ctx) throws IOException {
     // TODO(binfan): use a thread pool to manage the client.
     LOG.info("Create KeyValueStoreReader for {}", uri);
-    mMasterClient = new KeyValueMasterClient(MasterClientConfig.newBuilder(alluxioConf).build());
+    mMasterClient = new KeyValueMasterClient(MasterClientConfig.newBuilder(ctx).build());
     mPartitions = mMasterClient.getPartitionInfo(uri);
     mMasterClient.close();
-    mConf = alluxioConf;
+    mCtx = ctx;
   }
 
   @Override
@@ -90,7 +90,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
         // The key is either in this partition or not in the key-value store
         long blockId = partition.getBlockId();
         try (KeyValuePartitionReader reader =
-                 KeyValuePartitionReader.Factory.create(blockId, mConf)) {
+                 KeyValuePartitionReader.Factory.create(blockId, mCtx)) {
           return reader.get(key);
         }
       }
@@ -100,7 +100,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
 
   @Override
   public KeyValueIterator iterator() throws IOException, AlluxioException {
-    return new KeyValueStoreIterator(mPartitions, mConf);
+    return new KeyValueStoreIterator(mPartitions, mCtx);
   }
 
   @Override

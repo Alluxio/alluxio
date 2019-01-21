@@ -12,6 +12,7 @@
 package alluxio.examples.keyvalue;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.RuntimeConstants;
 import alluxio.cli.CliUtils;
 import alluxio.client.keyvalue.KeyValueIterator;
@@ -52,7 +53,7 @@ public final class SameKeyValueStoresTest implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    KeyValueSystem kvs = KeyValueSystem.Factory.create(sConf);
+    KeyValueSystem kvs = KeyValueSystem.Factory.create(ClientContext.create(sConf));
     KeyValueStoreReader reader1 = kvs.openStore(mStoreUri1);
     KeyValueStoreReader reader2 = kvs.openStore(mStoreUri2);
     boolean pass = areTheSameStores(reader1, reader2);

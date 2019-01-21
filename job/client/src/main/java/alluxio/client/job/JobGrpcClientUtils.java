@@ -11,6 +11,7 @@
 
 package alluxio.client.job;
 
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.job.JobConfig;
@@ -53,7 +54,7 @@ public final class JobGrpcClientUtils {
     while (retryPolicy.attempt()) {
       long jobId;
       try (JobMasterClient client = JobMasterClient.Factory.create(
-          JobMasterClientConfig.newBuilder(alluxioConf).build())) {
+          JobMasterClientConfig.newBuilder(ClientContext.create(alluxioConf)).build())) {
         jobId = client.run(config);
       } catch (Exception e) {
         // job could not be started, retry
@@ -118,7 +119,8 @@ public final class JobGrpcClientUtils {
       throws InterruptedException {
     final AtomicReference<JobInfo> finishedJobInfo = new AtomicReference<>();
     try (final JobMasterClient client =
-        JobMasterClient.Factory.create(JobMasterClientConfig.newBuilder(alluxioConf).build())) {
+        JobMasterClient.Factory.create(JobMasterClientConfig
+            .newBuilder(ClientContext.create(alluxioConf)).build())) {
       CommonUtils.waitFor("Job to finish", ()-> {
         JobInfo jobInfo;
         try {

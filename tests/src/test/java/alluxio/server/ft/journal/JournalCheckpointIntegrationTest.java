@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.MetaMasterClient;
@@ -80,7 +81,7 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
   public void recoverUfsState() throws Exception {
     FileSystemMasterClient client =
         new RetryHandlingFileSystemMasterClient(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build());
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     client.updateUfsMode(new AlluxioURI(""),
         UpdateUfsModePOptions.newBuilder().setUfsMode(UfsPMode.READ_ONLY).build());
 
@@ -98,7 +99,7 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
     File backup = mFolder.newFolder("backup");
     MetaMasterClient metaClient =
         new RetryHandlingMetaMasterClient(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build());
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     AlluxioURI backupURI = metaClient.backup(backup.getAbsolutePath(), true).getBackupUri();
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupURI);
     mCluster.formatAndRestartMasters();

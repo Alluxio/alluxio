@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,13 +48,14 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   /** Source of the truth of all property values (default or customized). */
   protected AlluxioProperties mProperties;
 
-  private AtomicBoolean mClusterDefaultsLoaded = new AtomicBoolean(false);
+  private final boolean mClusterDefaultsLoaded;
 
   /**
    * @param properties alluxio properties underlying this configuration
    */
   public InstancedConfiguration(AlluxioProperties properties) {
     mProperties = properties;
+    mClusterDefaultsLoaded = false;
   }
 
   /**
@@ -64,7 +64,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    */
   public InstancedConfiguration(AlluxioProperties properties, boolean clusterDefaultsLoaded) {
     mProperties = properties;
-    mClusterDefaultsLoaded.set(clusterDefaultsLoaded);
+    mClusterDefaultsLoaded = clusterDefaultsLoaded;
   }
 
   /**
@@ -72,7 +72,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    */
   public InstancedConfiguration(InstancedConfiguration conf) {
     mProperties = new AlluxioProperties(conf.mProperties);
-    mClusterDefaultsLoaded.set(conf.clusterDefaultsLoaded());
+    mClusterDefaultsLoaded = conf.mClusterDefaultsLoaded;
   }
 
   /**
@@ -161,9 +161,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
-   * Unsets the value for the appropriate key in the {@link Properties}.
-   * If the PropertyKey has a default value, it will still be considered set after executing this
-   * method.
+   * Unsets the value for the appropriate key in the {@link Properties}. If the {@link PropertyKey}
+   * has a default value, it will still be considered set after executing this method.
    *
    * @param key the key to unset
    */
@@ -174,8 +173,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   /**
    * Merges map of properties into the current alluxio properties.
-   * @param properties Map of keys to values
-   * @param source The source type for these properties
+   *
+   * @param properties map of keys to values
+   * @param source the source type for these properties
    */
   public void merge(Map<?, ?> properties, Source source) {
     mProperties.merge(properties, source);
@@ -353,7 +353,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public boolean clusterDefaultsLoaded() {
-    return mClusterDefaultsLoaded.get();
+    return mClusterDefaultsLoaded;
   }
 
   /**

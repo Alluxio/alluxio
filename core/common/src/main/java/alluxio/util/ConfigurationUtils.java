@@ -276,14 +276,12 @@ public final class ConfigurationUtils {
    * Returns an instance of {@link AlluxioConfiguration} with the defaults and values from
    * alluxio-site properties.
    *
-   * @return The default set of Alluxio properties loaded from the site-properties file
+   * @return The set of Alluxio properties loaded from the site-properties file
    */
   public static AlluxioProperties defaults() {
-
     if (sDefaultProperties == null) {
       synchronized (DEFAULT_PROPERTIES_LOCK) { // We don't want multiple threads to reload
         // properties at the same time.
-
         // Check if properties are still null so we don't reload a second time.
         if (sDefaultProperties == null) {
           reloadProperties();
@@ -294,7 +292,7 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Forces the static site properties to be reloaded from disk.
+   * Reloads site properties from disk.
    */
   public static synchronized void reloadProperties() {
     // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio.home
@@ -337,16 +335,6 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Validates the configuration.
-   *
-   * @param conf the configuration to validate
-   * @throws IllegalStateException if invalid configuration is encountered
-   */
-  public static void validate(AlluxioProperties conf) {
-    new InstancedConfiguration(conf).validate();
-  }
-
-  /**
    * Merges the current configuration properties with new properties. If a property exists
    * both in the new and current configuration, the one from the new configuration wins if
    * its priority is higher or equal than the existing one.
@@ -354,13 +342,11 @@ public final class ConfigurationUtils {
    * @param conf the base configuration
    * @param properties the source {@link Properties} to be merged
    * @param source the source of the the properties (e.g., system property, default and etc)
-   * @return The configuration with the new properties merged in
    */
-  public static AlluxioConfiguration merge(AlluxioConfiguration conf, Map<?, ?> properties,
+  public static void  merge(AlluxioConfiguration conf, Map<?, ?> properties,
       Source source) {
     AlluxioProperties props = conf.getProperties();
     props.merge(properties, source);
-    return new InstancedConfiguration(props);
   }
 
   /**
@@ -377,70 +363,68 @@ public final class ConfigurationUtils {
         || conf.clusterDefaultsLoaded()) {
       return conf;
     }
-    synchronized (conf) {
-      if (conf.clusterDefaultsLoaded()) {
-        return conf;
-      }
-      LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
-          RuntimeConstants.VERSION, address);
-
-      GrpcChannel channel = null;
-      List<alluxio.grpc.ConfigProperty> clusterConfig;
-
-      try {
-        channel = GrpcChannelBuilder.forAddress(address, conf).disableAuthentication().build();
-        MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
-            MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
-        clusterConfig =
-            client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
-                .getConfigsList();
-      } catch (io.grpc.StatusRuntimeException e) {
-        AlluxioStatusException ase = GrpcExceptionUtils.fromGrpcStatusException(e);
-        LOG.warn("Failed to handshake with master {} : {}", address, ase.getMessage());
-        throw new UnavailableException(String.format(
-            "Failed to handshake with master %s to load cluster default configuration values",
-            address), e);
-      } catch (UnauthenticatedException e) {
-        throw new RuntimeException(String.format(
-            "Received authentication exception during boot-strap connect with host:%s", address),
-            e);
-      } finally {
-        if (channel != null) {
-          channel.shutdown();
-        }
-      }
-
-      // merge conf returned by master as the cluster default into ServerConfiguration
-      Properties clusterProps = new Properties();
-      for (ConfigProperty property : clusterConfig) {
-        String name = property.getName();
-        // TODO(binfan): support propagating unsetting properties from master
-        if (PropertyKey.isValid(name) && property.hasValue()) {
-          PropertyKey key = PropertyKey.fromString(name);
-          if (!GrpcUtils.contains(key.getScope(), Scope.CLIENT)) {
-            // Only propagate client properties.
-            continue;
-          }
-          String value = property.getValue();
-          clusterProps.put(key, value);
-          LOG.debug("Loading cluster default: {} ({}) -> {}", key, key.getScope(), value);
-        }
-      }
-
-      String clientVersion = conf.get(PropertyKey.VERSION);
-      String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
-      if (!clientVersion.equals(clusterVersion)) {
-        LOG.warn("Alluxio client version ({}) does not match Alluxio cluster version ({})",
-            clientVersion, clusterVersion);
-        clusterProps.remove(PropertyKey.VERSION);
-      }
-      AlluxioProperties props = conf.getProperties();
-      props.merge(clusterProps, Source.CLUSTER_DEFAULT);
-      // Use the constructor to set cluster defaults as being laoded.
-      InstancedConfiguration updatedConf = new InstancedConfiguration(props, true);
-      updatedConf.validate();
-      LOG.info("Alluxio client has bootstrap-connected with {}", address);
-      return updatedConf;
+    if (conf.clusterDefaultsLoaded()) {
+      return conf;
     }
+    LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
+        RuntimeConstants.VERSION, address);
+
+    GrpcChannel channel = null;
+    List<alluxio.grpc.ConfigProperty> clusterConfig;
+
+    try {
+      channel = GrpcChannelBuilder.newBuilder(address, conf).disableAuthentication().build();
+      MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
+          MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
+      clusterConfig =
+          client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
+              .getConfigsList();
+    } catch (io.grpc.StatusRuntimeException e) {
+      AlluxioStatusException ase = GrpcExceptionUtils.fromGrpcStatusException(e);
+      LOG.warn("Failed to handshake with master {} : {}", address, ase.getMessage());
+      throw new UnavailableException(String.format(
+          "Failed to handshake with master %s to load cluster default configuration values",
+          address), e);
+    } catch (UnauthenticatedException e) {
+      throw new RuntimeException(String.format(
+          "Received authentication exception during boot-strap connect with host:%s", address),
+          e);
+    } finally {
+      if (channel != null) {
+        channel.shutdown();
+      }
+    }
+
+    // merge conf returned by master as the cluster default into conf object
+    Properties clusterProps = new Properties();
+    for (ConfigProperty property : clusterConfig) {
+      String name = property.getName();
+      // TODO(binfan): support propagating unsetting properties from master
+      if (PropertyKey.isValid(name) && property.hasValue()) {
+        PropertyKey key = PropertyKey.fromString(name);
+        if (!GrpcUtils.contains(key.getScope(), Scope.CLIENT)) {
+          // Only propagate client properties.
+          continue;
+        }
+        String value = property.getValue();
+        clusterProps.put(key, value);
+        LOG.debug("Loading cluster default: {} ({}) -> {}", key, key.getScope(), value);
+      }
+    }
+
+    String clientVersion = conf.get(PropertyKey.VERSION);
+    String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
+    if (!clientVersion.equals(clusterVersion)) {
+      LOG.warn("Alluxio client version ({}) does not match Alluxio cluster version ({})",
+          clientVersion, clusterVersion);
+      clusterProps.remove(PropertyKey.VERSION);
+    }
+    AlluxioProperties props = conf.getProperties().copy();
+    props.merge(clusterProps, Source.CLUSTER_DEFAULT);
+    // Use the constructor to set cluster defaults as being laoded.
+    InstancedConfiguration updatedConf = new InstancedConfiguration(props, true);
+    updatedConf.validate();
+    LOG.info("Alluxio client has bootstrap-connected with {}", address);
+    return updatedConf;
   }
 }

@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
@@ -45,7 +46,7 @@ public final class JobUfsManager extends AbstractUfsManager {
   public JobUfsManager() {
     mMasterClient =
         mCloser.register(new FileSystemMasterClient(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build()));
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build()));
   }
 
   @Override

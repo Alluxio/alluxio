@@ -12,6 +12,7 @@
 package alluxio.testutils;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
@@ -60,7 +61,7 @@ public final class IntegrationTestUtils {
       final AlluxioURI uri, int timeoutMs) throws InterruptedException, TimeoutException {
     try (FileSystemMasterClient client =
         FileSystemMasterClient.Factory.create(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build())) {
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       CommonUtils.waitFor(uri + " to be persisted", () -> {
         try {
           return client.getStatus(uri, GetStatusPOptions.getDefaultInstance()).isPersisted();

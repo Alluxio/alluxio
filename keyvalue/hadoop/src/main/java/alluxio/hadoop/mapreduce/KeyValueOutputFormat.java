@@ -12,9 +12,9 @@
 package alluxio.hadoop.mapreduce;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 
 import org.apache.hadoop.fs.Path;
@@ -44,15 +44,15 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, BytesWritable> {
   private OutputCommitter mCommitter;
-  private final AlluxioConfiguration mConf;
+  private final ClientContext mCtx;
 
   /**
    * Constructs a new {@link KeyValueOutputFormat}.
    *
-   * @param alluxioConf Alluxio configuration
+   * @param ctx Alluxio client configuration
    */
-  public KeyValueOutputFormat(AlluxioConfiguration alluxioConf) {
-    mConf = alluxioConf;
+  public KeyValueOutputFormat(ClientContext ctx) {
+    mCtx = ctx;
   }
 
   /**
@@ -75,7 +75,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   @Override
   public RecordWriter<BytesWritable, BytesWritable> getRecordWriter(
       TaskAttemptContext taskAttemptContext) throws IOException {
-    return new KeyValueRecordWriter(getTaskOutputURI(taskAttemptContext), mConf);
+    return new KeyValueRecordWriter(getTaskOutputURI(taskAttemptContext), mCtx);
   }
 
   /**
@@ -89,7 +89,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   public void checkOutputSpecs(JobContext jobContext) throws IOException {
     super.checkOutputSpecs(jobContext);
     try {
-      KeyValueSystem.Factory.create(mConf)
+      KeyValueSystem.Factory.create(mCtx)
           .createStore(KeyValueOutputFormat.getJobOutputURI(jobContext))
           .close();
     } catch (AlluxioException e) {
@@ -105,7 +105,7 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   public OutputCommitter getOutputCommitter(TaskAttemptContext taskContext) throws IOException {
     if (mCommitter == null) {
       mCommitter = new KeyValueOutputCommitter(new Path(KeyValueOutputFormat.getJobOutputURI(
-          taskContext).toString()), taskContext, mConf);
+          taskContext).toString()), taskContext, mCtx);
     }
     return mCommitter;
   }
