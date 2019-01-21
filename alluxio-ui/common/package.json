@@ -23,10 +23,10 @@
     "build-js": "react-scripts build",
     "start": "npm-run-all --parallel watch-css start-js",
     "build": "npm-run-all --parallel build-css build-js",
-    "test": "npm run build-css && react-scripts test --env=jsdom --watch",
-    "test-ci": "npm run build-css && CI=true react-scripts test --env=jsdom",
-    "coverage": "npm run build-css && react-scripts test --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx --watch",
-    "coverage-ci": "npm run build-css && CI=true react-scripts test --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx",
+    "test": "npm run build-css && npm run build-css && react-scripts test --env=jsdom --watch --verbose=false",
+    "test-ci": "npm run build-css && npm run build-css && CI=true react-scripts test --env=jsdom",
+    "coverage": "npm run build-css && npm run build-css && react-scripts test --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx --watch",
+    "coverage-ci": "npm run build-css && npm run build-css && CI=true react-scripts test --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx",
     "eject": "react-scripts eject"
   },
   "devDependencies": {
