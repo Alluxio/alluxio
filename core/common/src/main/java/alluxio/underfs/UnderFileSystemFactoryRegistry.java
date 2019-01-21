@@ -109,12 +109,8 @@ public final class UnderFileSystemFactoryRegistry {
    */
   public static List<UnderFileSystemFactory> findAll(String path,
       UnderFileSystemConfiguration ufsConf, AlluxioConfiguration alluxioConf) {
-<<<<<<< HEAD
-    List<UnderFileSystemFactory> eligibleFactories = sRegistryInstance.findAll(path, ufsConf, alluxioConf);
-=======
     List<UnderFileSystemFactory> eligibleFactories = sRegistryInstance.findAll(path, ufsConf,
         alluxioConf);
->>>>>>> 30168f3ec0... merge fixes
     if (eligibleFactories.isEmpty() && ufsConf != null) {
       // Check if any versioned factory supports the default configuration
       List<UnderFileSystemFactory> factories = sRegistryInstance.findAll(path, null, alluxioConf);

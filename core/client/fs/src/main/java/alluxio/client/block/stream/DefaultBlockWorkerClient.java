@@ -11,7 +11,6 @@
 
 package alluxio.client.block.stream;
 
-
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
@@ -69,10 +68,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private GrpcChannel mStreamingChannel;
   private GrpcChannel mRpcChannel;
   private SocketAddress mAddress;
+  private final long mDataTimeoutMs;
+
   private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
   private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
   private BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
-  private final long mDataTimeoutMs;
 
   /**
    * Creates a client instance for communicating with block worker.

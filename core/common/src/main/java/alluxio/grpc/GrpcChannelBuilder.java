@@ -198,8 +198,7 @@ public final class GrpcChannelBuilder {
 
       if (mAuthenticateChannel) {
         // Create channel authenticator based on provided content.
-        AuthType authType = mConfiguration
-          .getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+        ChannelAuthenticator channelAuthenticator;
         if (mUseSubject) {
           channelAuthenticator = new ChannelAuthenticator(mParentSubject, mConfiguration);
         } else {

@@ -123,9 +123,10 @@ public final class LocalFileDataReader implements DataReader {
       boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
       OpenLocalBlockRequest request = OpenLocalBlockRequest.newBuilder()
           .setBlockId(mBlockId).setPromote(isPromote).build();
+
       mBlockWorker = context.acquireBlockWorkerClient(address);
       try {
-        mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock, mReaderBufferSize,
+        mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock, mChunkSize,
             address.toString());
         mStream.send(request, mDataTimeoutMs);
         OpenLocalBlockResponse response = mStream.receive(mDataTimeoutMs);

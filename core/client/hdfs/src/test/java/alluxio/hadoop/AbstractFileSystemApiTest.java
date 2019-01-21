@@ -59,7 +59,7 @@ public final class AbstractFileSystemApiTest {
   public void unknownAuthorityTriggersWarning() throws IOException {
     URI unknown = URI.create("alluxio://test/");
     mThrown.expectMessage("Authority \"test\" is unknown. The client can not be configured with "
-        + "this authority.");
+        + "the authority from " + unknown);
     FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration());
   }
 

@@ -4,6 +4,8 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.resource.LockResource;
+import alluxio.util.ConfigurationUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -68,19 +70,22 @@ public class GrpcManagedChannelPool {
   private HashMap<ChannelKey, ManagedChannelReference> mChannels;
   /** Used to control access to mChannel */
   private ReentrantReadWriteLock mLock;
-  /** Timeout for health check on managed channels. */
-  private long mHealthCheckTimeoutMs;
 
   private final long mChannelShutdownTimeoutMs;
+
+  /** Scheduler for destruction of idle channels. */
+  protected ScheduledExecutorService mScheduler;
+  /** Timeout for health check on managed channels. */
+  private final long mHealthCheckTimeoutMs;
 
   /**
    * Creates a new {@link GrpcManagedChannelPool}.
    */
-  public GrpcManagedChannelPool(long channelShutdownTimeoutMs) {
+  public GrpcManagedChannelPool(long healthCheckTimeoutMs, long channelShutdownTimeoutMs) {
     mChannels = new HashMap<>();
     mLock = new ReentrantReadWriteLock(true);
-    mHealthCheckTimeoutMs =
-        Configuration.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS);
+    mChannelShutdownTimeoutMs = channelShutdownTimeoutMs;
+    mHealthCheckTimeoutMs = healthCheckTimeoutMs;
   }
 
   private void shutdownManagedChannel(ManagedChannel managedChannel) {

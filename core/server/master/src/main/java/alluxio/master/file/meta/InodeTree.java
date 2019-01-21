@@ -13,8 +13,8 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
-import alluxio.concurrent.LockMode;
 import alluxio.conf.ServerConfiguration;
+import alluxio.concurrent.LockMode;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
