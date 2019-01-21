@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWebUIConfiguration implements Serializable {
-  private static final long serialVersionUID = 0L;
+  private static final long serialVersionUID = -2277858633604882055L;
 
   private List<String> mWhitelist;
   private TreeSet<Triple<String, String, String>> mConfiguration;

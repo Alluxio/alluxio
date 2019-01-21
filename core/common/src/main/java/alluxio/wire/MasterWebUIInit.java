@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWebUIInit implements Serializable {
-  private static final long serialVersionUID = 0L;
+  private static final long serialVersionUID = -6482980420852879864L;
 
   private boolean mDebug;
   private boolean mWebFileInfoEnabled;

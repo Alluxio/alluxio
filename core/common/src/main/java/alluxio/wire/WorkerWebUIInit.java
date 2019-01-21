@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class WorkerWebUIInit implements Serializable {
-  private static final long serialVersionUID = 0L;
+  private static final long serialVersionUID = 5444572986825500764L;
 
   private boolean mDebug;
   private boolean mWebFileInfoEnabled;

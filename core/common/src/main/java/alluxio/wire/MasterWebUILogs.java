@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWebUILogs implements Serializable {
-  private static final long serialVersionUID = 0L;
+  private static final long serialVersionUID = -122516271374678772L;
 
   private boolean mDebug;
   private int mNTotalFile;
