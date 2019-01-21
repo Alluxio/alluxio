@@ -137,6 +137,12 @@ public final class LocalAlluxioJobCluster {
     }
   }
 
+  /**
+   * Overrides properties for the Job Master and Worker before starting.
+   *
+   * @param pk the property key to set
+   * @param value the value to set for the key
+   */
   public void setProperty(PropertyKey pk, String value) {
     mConfiguration.put(pk, value);
   }
