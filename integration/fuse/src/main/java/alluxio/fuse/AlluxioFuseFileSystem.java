@@ -20,16 +20,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
-<<<<<<< HEAD
-import alluxio.security.authorization.Mode;
-=======
-import alluxio.exception.AlluxioException;
-import alluxio.exception.DirectoryNotEmptyException;
-import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.grpc.SetAttributePOptions;
->>>>>>> 8cc5a292f4c6e38ed0066ce5bd700cc946dc3803
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
