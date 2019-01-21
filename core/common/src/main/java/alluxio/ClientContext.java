@@ -32,10 +32,10 @@ import javax.security.auth.Subject;
  * cluster defaults upon connecting to the Alluxio master.
  *
  * Ideally only a single {@link ClientContext} should be needed when initializing an application.
- * This will use as few network resources as possible
+ * This will use as few network resources as possible.
  */
 public class ClientContext {
-  private AlluxioConfiguration mConf;
+  private volatile AlluxioConfiguration mConf;
   private final Subject mSubject;
 
   /**
@@ -97,7 +97,7 @@ public class ClientContext {
    * @param address the address to load cluster defaults from
    * @throws AlluxioStatusException
    */
-  protected synchronized void updateWithClusterDefaults(InetSocketAddress address)
+  synchronized void updateWithClusterDefaults(InetSocketAddress address)
       throws AlluxioStatusException {
     mConf = ConfigurationUtils.loadClusterDefaults(address, mConf);
   }
