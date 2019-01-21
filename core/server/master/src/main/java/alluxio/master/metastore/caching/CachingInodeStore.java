@@ -45,8 +45,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.concurrent.GuardedBy;
-
 /**
  * An inode store which caches inode tree metadata and delegates to another inode store for cache
  * misses.
