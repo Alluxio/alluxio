@@ -12,8 +12,8 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -38,16 +38,16 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BaseKeyValueSystem implements KeyValueSystem {
   private final KeyValueMasterClient mMasterClient;
-  private final AlluxioConfiguration mConf;
+  private final ClientContext mConf;
 
   /**
    * Constructs a new {@link BaseKeyValueSystem}.
    *
-   * @param alluxioConf Alluxio configuration
+   * @param ctx Alluxio client configuration
    */
-  public BaseKeyValueSystem(AlluxioConfiguration alluxioConf) {
-    mMasterClient = new KeyValueMasterClient(MasterClientConfig.newBuilder(alluxioConf).build());
-    mConf = alluxioConf;
+  public BaseKeyValueSystem(ClientContext ctx) {
+    mMasterClient = new KeyValueMasterClient(MasterClientConfig.newBuilder(ctx).build());
+    mConf = ctx;
   }
 
   @Override

@@ -49,8 +49,7 @@ public final class GetUsedBytesCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext.getClientContext()
-        .getConf());
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext.getClientContext());
     long usedBytes = blockStore.getUsedBytes();
     System.out.println("Used Bytes: " + usedBytes);
     return 0;

@@ -85,7 +85,7 @@ public final class LoadDefinition
     List<String> missingJobWorkerHosts = new ArrayList<>();
     List<BlockWorkerInfo> workers = new ArrayList<>();
     for (BlockWorkerInfo worker :
-        AlluxioBlockStore.create(ServerConfiguration.global()).getAllWorkers()) {
+        AlluxioBlockStore.create(mFsContext.getClientContext()).getAllWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
         workers.add(worker);
       } else {

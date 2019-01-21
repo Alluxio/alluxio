@@ -76,8 +76,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
       } else {
         System.out.println(path + " is a file path.");
         System.out.println(status);
-        AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext.getClientContext()
-            .getConf());
+        AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext.getClientContext());
         List<Long> blockIds = status.getBlockIds();
         if (blockIds.isEmpty()) {
           System.out.println("This file does not contain any blocks.");

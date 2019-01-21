@@ -12,8 +12,8 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 
 import com.google.common.base.Preconditions;
@@ -42,15 +42,15 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
      * @param uri Alluxio URI of the key-value partition to use as input
      * @return an instance of a {@link KeyValuePartitionReader}
      */
-    public static KeyValuePartitionReader create(AlluxioURI uri, AlluxioConfiguration conf)
+    public static KeyValuePartitionReader create(AlluxioURI uri, ClientContext ctx)
         throws AlluxioException, IOException {
       Preconditions.checkNotNull(uri, "uri");
-      FileSystem fs = FileSystem.Factory.get(conf);
+      FileSystem fs = FileSystem.Factory.get(ctx);
       List<Long> blockIds = fs.getStatus(uri).getBlockIds();
       // Each partition file should only contain one block.
       // TODO(binfan): throw exception if a partition file has more than one blocks
       long blockId = blockIds.get(0);
-      return new BaseKeyValuePartitionReader(blockId, conf);
+      return new BaseKeyValuePartitionReader(blockId, ctx);
     }
 
     /**
@@ -60,9 +60,9 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
      * @param blockId blockId the key-value partition to use as input
      * @return an instance of a {@link KeyValuePartitionReader}
      */
-    public static KeyValuePartitionReader create(long blockId, AlluxioConfiguration conf)
+    public static KeyValuePartitionReader create(long blockId, ClientContext ctx)
         throws AlluxioException, IOException {
-      return new BaseKeyValuePartitionReader(blockId, conf);
+      return new BaseKeyValuePartitionReader(blockId, ctx);
     }
   }
 

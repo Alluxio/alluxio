@@ -16,6 +16,7 @@ import static org.junit.Assume.assumeFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
@@ -500,7 +501,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // Make sure that the blocks are cleaned up
     BlockMasterClient blockClient =
         BlockMasterClient.Factory.create(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build());
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     CommonUtils.waitFor("data to be deleted", () -> {
       try {
         return blockClient.getUsedBytes() == 0;

@@ -14,7 +14,7 @@ package alluxio.client.block;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
@@ -77,11 +77,11 @@ public final class AlluxioBlockStore {
   /**
    * Creates an Alluxio block store with default file system context and default local hostname.
    *
-   * @param alluxioConf Alluxio configuration
+   * @param ctx Alluxio client configuration
    * @return the {@link AlluxioBlockStore} created
    */
-  public static AlluxioBlockStore create(AlluxioConfiguration alluxioConf) {
-    return create(FileSystemContext.create(alluxioConf));
+  public static AlluxioBlockStore create(ClientContext ctx) {
+    return create(FileSystemContext.create(ctx));
   }
 
   /**

@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
@@ -30,7 +29,6 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
 import alluxio.grpc.GrpcChannel;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.grpc.GrpcExceptionUtils;
 
@@ -42,11 +40,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * The base class for clients.
@@ -84,29 +80,27 @@ public abstract class AbstractClient implements Client {
   /**
    * Creates a new client base.
    *
-   * @param subject the parent subject, set to null if not present
-   * @param conf Alluxio configuration
+   * @param context information required to connect to Alluxio
    * @param address the address
    */
-  public AbstractClient(Subject subject, AlluxioConfiguration conf, InetSocketAddress address) {
-    this(subject, conf, address, () -> RetryUtils.defaultClientRetry(
-          conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-          conf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-          conf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
+  public AbstractClient(ClientContext context, InetSocketAddress address) {
+    this(context, address, () -> RetryUtils.defaultClientRetry(
+        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
+        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
+        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
   }
 
   /**
    * Creates a new client base.
    *
-   * @param subject the parent subject, set to null if not present
-   * @param conf Alluxio configuration
+   * @param context information required to connect to Alluxio
    * @param address the address
    * @param retryPolicySupplier factory for retry policies to be used when performing RPCs
    */
-  public AbstractClient(Subject subject, AlluxioConfiguration conf, InetSocketAddress address,
+  public AbstractClient(ClientContext context, InetSocketAddress address,
       Supplier<RetryPolicy> retryPolicySupplier) {
     mAddress = address;
-    mContext = ClientContext.create(subject, conf);
+    mContext = Preconditions.checkNotNull(context);
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
   }
@@ -162,19 +156,14 @@ public abstract class AbstractClient implements Client {
   /**
    * This method is called before the connection is connected. Implementations should add any
    * additional operations before the connection is connected.
-   * @param configurationUpdateCallback The function to update the context configuration after
    * loading the cluster defaults
    */
-  protected void beforeConnect(Consumer<AlluxioConfiguration> configurationUpdateCallback)
+  protected void beforeConnect()
       throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
-      // Unfortunately not as simple as before..... we'll need to pass some kind of callback which
-      // updates the configuration within the client context.
       if (!mContext.getConf().clusterDefaultsLoaded()) {
-        AlluxioConfiguration conf = ConfigurationUtils.loadClusterDefaults(mAddress,
-            mContext.getConf());
-        configurationUpdateCallback.accept(conf);
+        mContext.updateWithClusterDefaults(mAddress);
       }
     }
   }
@@ -221,15 +210,11 @@ public abstract class AbstractClient implements Client {
         continue;
       }
       try {
-        beforeConnect((AlluxioConfiguration conf) -> {
-          synchronized (this) {
-            mContext = ClientContext.create(mContext.getSubject(), conf);
-          }
-        });
+        beforeConnect();
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
-            .forAddress(mAddress, mContext.getConf())
+            .newBuilder(mAddress, mContext.getConf())
             .setSubject(mContext.getSubject())
             .build();
         // Create stub for version service on host

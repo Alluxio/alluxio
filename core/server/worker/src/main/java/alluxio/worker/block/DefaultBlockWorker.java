@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -130,7 +131,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   DefaultBlockWorker(UfsManager ufsManager) {
     this(new BlockMasterClientPool(),
         new FileSystemMasterClient(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build()),
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build()),
         new Sessions(), new TieredBlockStore(), ufsManager);
   }
 

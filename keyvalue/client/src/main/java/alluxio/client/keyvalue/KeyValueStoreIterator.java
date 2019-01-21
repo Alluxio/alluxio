@@ -11,7 +11,7 @@
 
 package alluxio.client.keyvalue;
 
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.PartitionInfo;
 
@@ -35,20 +35,20 @@ public final class KeyValueStoreIterator implements KeyValueIterator {
   /** Iterator of the partition being visited. */
   private KeyValueIterator mPartitionIterator;
 
-  private final AlluxioConfiguration mConf;
+  private final ClientContext mCtx;
 
   /**
    * @param partitions the partitions to use
-   * @param alluxioConf Alluxio configuration
+   * @param ctx Alluxio client configuration
    */
-  public KeyValueStoreIterator(List<PartitionInfo> partitions, AlluxioConfiguration alluxioConf)
+  public KeyValueStoreIterator(List<PartitionInfo> partitions, ClientContext ctx)
       throws IOException, AlluxioException {
     mPartitions = Preconditions.checkNotNull(partitions, "partitions");
-    mConf = alluxioConf;
+    mCtx = ctx;
     if (mPartitions.size() > 0) {
       mPartitionIndex = 0;
       long blockId = mPartitions.get(0).getBlockId();
-      KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId, alluxioConf);
+      KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId, mCtx);
       mPartitionIterator = reader.iterator();
     }
   }
@@ -70,7 +70,7 @@ public final class KeyValueStoreIterator implements KeyValueIterator {
       mPartitionIndex++;
       if (mPartitionIndex < mPartitions.size()) {
         long blockId = mPartitions.get(mPartitionIndex).getBlockId();
-        KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId, mConf);
+        KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId, mCtx);
         mPartitionIterator = reader.iterator();
       } else {
         mPartitionIterator = null;

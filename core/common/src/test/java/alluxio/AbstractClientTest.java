@@ -39,7 +39,7 @@ public final class AbstractClientTest {
 
   private static class BaseTestClient extends AbstractClient {
     protected BaseTestClient() {
-      super(null, new InstancedConfiguration(ConfigurationUtils.defaults()), null,
+      super(ClientContext.create(new InstancedConfiguration(ConfigurationUtils.defaults())), null,
           () -> new CountingRetry(1));
     }
 

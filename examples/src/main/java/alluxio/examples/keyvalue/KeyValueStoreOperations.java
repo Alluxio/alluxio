@@ -12,6 +12,7 @@
 package alluxio.examples.keyvalue;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -61,7 +62,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
     sConf.set(PropertyKey.KEY_VALUE_ENABLED, String.valueOf(true));
     sConf.set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
 
-    KeyValueSystem kvs = KeyValueSystem.Factory.create(sConf);
+    KeyValueSystem kvs = KeyValueSystem.Factory.create(ClientContext.create(sConf));
 
     KeyValueStoreWriter writer = kvs.createStore(mStoreUri);
     putKeyValuePairs(writer);

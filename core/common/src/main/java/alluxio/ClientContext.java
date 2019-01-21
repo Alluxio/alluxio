@@ -13,38 +13,48 @@ package alluxio;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.util.ConfigurationUtils;
+
+import java.net.InetSocketAddress;
 
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
 
 /**
- * A ClientContext contains information about a security subject and Alluxio configuration which
- * is used to perform client operations in an Alluxio cluster.
+ * A {@link ClientContext} contains information required and pertaining to making network
+ * connections and performing operations with remote Alluxio processes. The {@link ClientContext}
+ * should only contain the information which is necessary to make those connections.
+ *
+ * A {@link ClientContext} are not expensive objects to create, however it is important to be
+ * aware that if the configuration with which the instance is created does not have the cluster
+ * default configuration loaded that any new clients which use the context will need to load the
+ * cluster defaults upon connecting to the Alluxio master.
+ *
+ * Ideally only a single {@link ClientContext} should be needed when initializing an application.
+ * This will use as few network resources as possible
  */
 public class ClientContext {
-
-  private final AlluxioConfiguration mConf;
+  private AlluxioConfiguration mConf;
   private final Subject mSubject;
 
   /**
    * A client context with information about the subject and configuration of the client.
    *
-   * @param subject The security subject to use
-   * @param alluxioConf The {@link AlluxioConfiguration} to use. If null, the site property defaults
-   * will be loaded
+   * @param subject the security subject to use
+   * @param alluxioConf the {@link AlluxioConfiguration} to use. If null, the site property defaults
+   *     will be loaded
    * @return A new client context with the specified properties and subject
    */
-  public static ClientContext create(@Nullable Subject subject,
-      @Nullable AlluxioConfiguration alluxioConf) {
+  public static ClientContext create(Subject subject, AlluxioConfiguration alluxioConf) {
     return new ClientContext(subject, alluxioConf);
   }
 
   /**
-   * @param alluxioConf The specified {@link AlluxioConfiguration} to use
+   * @param alluxioConf the specified {@link AlluxioConfiguration} to use
    * @return the client context with the given properties and an empty subject
    */
-  public static ClientContext create(@Nullable AlluxioConfiguration alluxioConf) {
+  public static ClientContext create(AlluxioConfiguration alluxioConf) {
     return new ClientContext(null, alluxioConf);
   }
 
@@ -56,8 +66,17 @@ public class ClientContext {
     return new ClientContext(null, null);
   }
 
+  protected ClientContext(ClientContext ctx) {
+    mSubject = ctx.mSubject;
+    mConf = ctx.mConf;
+  }
+
   private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
-    mSubject = subject;
+    if (subject != null) {
+      mSubject = subject;
+    } else {
+      mSubject = new Subject();
+    }
     // Copy the properties so that future modification doesn't affect this ClientContext.
     if (alluxioConf != null) {
       mConf = new InstancedConfiguration(alluxioConf.getProperties().copy(),
@@ -68,6 +87,22 @@ public class ClientContext {
   }
 
   /**
+   * This method will attempt to load the cluster defaults and update the configuration if
+   * necessary.
+   *
+   * This method should be synchronized so that concurrent calls to it don't continually overwrite
+   * the previous configuration. The cluster defaults should only ever need to be updated once
+   * per {@link ClientContext} reference.
+   *
+   * @param address the address to load cluster defaults from
+   * @throws AlluxioStatusException
+   */
+  protected synchronized void updateWithClusterDefaults(InetSocketAddress address)
+      throws AlluxioStatusException {
+    mConf = ConfigurationUtils.loadClusterDefaults(address, mConf);
+  }
+
+  /**
    * @return the {@link AlluxioConfiguration} backing this context
    */
   public AlluxioConfiguration getConf() {
@@ -75,7 +110,7 @@ public class ClientContext {
   }
 
   /**
-   * @return The Subject backing this context
+   * @return the Subject backing this context
    */
   public Subject getSubject() {
     return mSubject;

@@ -12,8 +12,8 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -35,11 +35,12 @@ public interface KeyValueSystem {
     private Factory() {} // to prevent initialization
 
     /**
+     * @param ctx Alluxio client configuration
      * @return a {@link KeyValueSystem} instance
      */
-    public static synchronized KeyValueSystem create(AlluxioConfiguration conf) {
+    public static synchronized KeyValueSystem create(ClientContext ctx) {
       if (sKeyValueSystem == null) {
-        sKeyValueSystem = new BaseKeyValueSystem(conf);
+        sKeyValueSystem = new BaseKeyValueSystem(ctx);
       }
       return sKeyValueSystem;
     }

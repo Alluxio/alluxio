@@ -13,6 +13,7 @@ package alluxio.multi.process;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
@@ -339,7 +340,7 @@ public final class MultiProcessCluster {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a meta master client, but state was %s", mState);
     return new RetryHandlingMetaMasterClient(MasterClientConfig
-        .newBuilder(ServerConfiguration.global())
+        .newBuilder(ClientContext.create(ServerConfiguration.global()))
         .setMasterInquireClient(getMasterInquireClient())
         .build());
   }
@@ -351,7 +352,7 @@ public final class MultiProcessCluster {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a meta master client, but state was %s", mState);
     MasterClientConfig config = MasterClientConfig
-        .newBuilder(ServerConfiguration.global())
+        .newBuilder(ClientContext.create(ServerConfiguration.global()))
         .setMasterInquireClient(getMasterInquireClient()).build();
     return new Clients(getFileSystemClient(),
         new RetryHandlingFileSystemMasterClient(config),

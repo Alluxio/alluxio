@@ -14,6 +14,7 @@ package alluxio.server.ft;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -183,7 +184,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   private void replicateFileBlocks(AlluxioURI filePath) throws Exception {
-    AlluxioBlockStore store = AlluxioBlockStore.create(ServerConfiguration.global());
+    AlluxioBlockStore store =
+        AlluxioBlockStore.create(ClientContext.create(ServerConfiguration.global()));
     URIStatus status =  mResource.get().getClient().getStatus(filePath);
     List<FileBlockInfo> blocks = status.getFileBlockInfos();
     List<BlockWorkerInfo> workers = store.getAllWorkers();

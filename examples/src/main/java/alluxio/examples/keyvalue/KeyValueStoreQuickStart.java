@@ -12,6 +12,7 @@
 package alluxio.examples.keyvalue;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.RuntimeConstants;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
@@ -42,7 +43,7 @@ public final class KeyValueStoreQuickStart {
     }
 
     AlluxioURI storeUri = new AlluxioURI(args[0]);
-    KeyValueSystem kvs = KeyValueSystem.Factory.create(sConf);
+    KeyValueSystem kvs = KeyValueSystem.Factory.create(ClientContext.create(sConf));
 
     // Creates a store.
     KeyValueStoreWriter writer = kvs.createStore(storeUri);

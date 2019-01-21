@@ -35,7 +35,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * @param clientConf master client configuration
    */
   public AbstractMasterClient(MasterClientConfig clientConf) {
-    super(clientConf.getSubject(), clientConf.getConfiguration(), null);
+    super(clientConf, null);
     mMasterInquireClient = clientConf.getMasterInquireClient();
   }
 
@@ -48,7 +48,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    */
   public AbstractMasterClient(MasterClientConfig clientConf, InetSocketAddress address,
       Supplier<RetryPolicy> retryPolicySupplier) {
-    super(clientConf.getSubject(), clientConf.getConfiguration(), address, retryPolicySupplier);
+    super(clientConf, address, retryPolicySupplier);
     mMasterInquireClient = clientConf.getMasterInquireClient();
   }
 

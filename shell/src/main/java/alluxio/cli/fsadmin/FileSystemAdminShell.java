@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin;
 
+import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -74,7 +75,8 @@ public final class FileSystemAdminShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
-    MasterClientConfig masterConfig = MasterClientConfig.newBuilder(mConfiguration).build();
+    ClientContext ctx = ClientContext.create(mConfiguration);
+    MasterClientConfig masterConfig = MasterClientConfig.newBuilder(ctx).build();
     Context context = new Context(
         new RetryHandlingFileSystemMasterClient(masterConfig),
         new RetryHandlingBlockMasterClient(masterConfig),

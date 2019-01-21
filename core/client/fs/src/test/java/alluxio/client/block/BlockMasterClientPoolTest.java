@@ -17,6 +17,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.master.MasterClientConfig;
@@ -41,7 +42,8 @@ public class BlockMasterClientPoolTest {
         .create(any(MasterClientConfig.class)))
         .thenReturn(expectedClient);
     BlockMasterClient client;
-    try (BlockMasterClientPool pool = new BlockMasterClientPool(null, null, mConf)) {
+    try (BlockMasterClientPool pool = new BlockMasterClientPool(ClientContext.create(mConf),
+        null)) {
       client = pool.acquire();
       assertEquals(expectedClient, client);
       pool.release(client);

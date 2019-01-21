@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
@@ -135,15 +136,14 @@ public final class GetConf {
   /**
    * Implements get configuration.
    *
-   * @param alluxioConf Alluxio configuration
+   * @param ctx Alluxio client configuration
    * @param args list of arguments
    * @return 0 on success, 1 on failures
    */
-  public static int getConf(AlluxioConfiguration alluxioConf, String... args) {
+  public static int getConf(ClientContext ctx, String... args) {
     return getConfImpl(
-        () -> new RetryHandlingMetaMasterConfigClient(MasterClientConfig
-            .newBuilder(alluxioConf).build()),
-        alluxioConf, args);
+        () -> new RetryHandlingMetaMasterConfigClient(MasterClientConfig.newBuilder(ctx).build()),
+        ctx.getConf(), args);
   }
 
   /**
@@ -266,7 +266,8 @@ public final class GetConf {
    * @param args the arguments to specify the unit (optional) and configuration key (optional)
    */
   public static void main(String[] args) {
-    System.exit(getConf(new InstancedConfiguration(ConfigurationUtils.defaults()), args));
+    System.exit(getConf(
+        ClientContext.create(new InstancedConfiguration(ConfigurationUtils.defaults())), args));
   }
 
   private GetConf() {} // this class is not intended for instantiation

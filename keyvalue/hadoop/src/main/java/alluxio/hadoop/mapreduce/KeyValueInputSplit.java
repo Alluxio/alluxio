@@ -11,10 +11,10 @@
 
 package alluxio.hadoop.mapreduce;
 
+import alluxio.ClientContext;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.PartitionInfo;
 
@@ -45,8 +45,8 @@ final class KeyValueInputSplit extends InputSplit implements Writable {
    * Default constructor, to be used together with {@link #readFields(DataInput)} when
    * de-serializing {@link KeyValueInputSplit}.
    */
-  public KeyValueInputSplit(AlluxioConfiguration conf) {
-    mBlockStore = AlluxioBlockStore.create(conf);
+  public KeyValueInputSplit(ClientContext ctx) {
+    mBlockStore = AlluxioBlockStore.create(ctx);
     mBlockId = INVALID_BLOCK_ID;
   }
 
@@ -55,8 +55,8 @@ final class KeyValueInputSplit extends InputSplit implements Writable {
    *
    * @param partitionInfo the partition info
    */
-  public KeyValueInputSplit(PartitionInfo partitionInfo, AlluxioConfiguration conf) {
-    mBlockStore = AlluxioBlockStore.create(conf);
+  public KeyValueInputSplit(PartitionInfo partitionInfo, ClientContext ctx) {
+    mBlockStore = AlluxioBlockStore.create(ctx);
     mBlockId = partitionInfo.getBlockId();
   }
 

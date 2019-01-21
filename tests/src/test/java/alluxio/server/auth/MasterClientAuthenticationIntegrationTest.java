@@ -12,6 +12,7 @@
 package alluxio.server.auth;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.GetStatusPOptions;
@@ -94,7 +95,7 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
   public void customAuthenticationDenyConnect() throws Exception {
     try (FileSystemMasterClient masterClient =
         FileSystemMasterClient.Factory.create(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build())) {
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
       LoginUserTestUtils.resetLoginUser("no-alluxio");
@@ -109,7 +110,7 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
   public void simpleAuthenticationIsolatedClassLoader() throws Exception {
     FileSystemMasterClient masterClient =
         FileSystemMasterClient.Factory.create(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build());
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     Assert.assertFalse(masterClient.isConnected());
 
     // Get the current context class loader to retrieve the classpath URLs.
@@ -138,7 +139,7 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient =
         FileSystemMasterClient.Factory.create(MasterClientConfig
-            .newBuilder(ServerConfiguration.global()).build());
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
