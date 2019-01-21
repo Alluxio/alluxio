@@ -57,12 +57,13 @@ public final class GrpcChannelBuilder {
   }
 
   /**
-   * Create a channel builder for given address.
+   * Create a channel builder for given address using the given configuration.
    *
    * @param address the host address
+   * @param conf Alluxio configuration
    * @return a new instance of {@link GrpcChannelBuilder}
    */
-  public static GrpcChannelBuilder forAddress(SocketAddress address, AlluxioConfiguration conf) {
+  public static GrpcChannelBuilder newBuilder(SocketAddress address, AlluxioConfiguration conf) {
     return new GrpcChannelBuilder(address, conf);
   }
 

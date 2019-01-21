@@ -58,7 +58,7 @@ public class GrpcSecurityTest {
     GrpcServer server = createServer(AuthType.SIMPLE);
     server.start();
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.forAddress(getServerConnectAddress(server), mConfiguration);
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     channelBuilder.build();
     server.shutdown();
   }
@@ -68,7 +68,7 @@ public class GrpcSecurityTest {
     GrpcServer server = createServer(AuthType.NOSASL);
     server.start();
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.forAddress(getServerConnectAddress(server), mConfiguration);
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     channelBuilder.build();
     server.shutdown();
   }
@@ -82,7 +82,7 @@ public class GrpcSecurityTest {
     GrpcServer server = createServer(AuthType.CUSTOM);
     server.start();
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.forAddress(getServerConnectAddress(server), mConfiguration);
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     channelBuilder.setCredentials(ExactlyMatchAuthenticationProvider.USERNAME,
         ExactlyMatchAuthenticationProvider.PASSWORD, null).build();
     server.shutdown();
@@ -97,7 +97,7 @@ public class GrpcSecurityTest {
     GrpcServer server = createServer(AuthType.CUSTOM);
     server.start();
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.forAddress(getServerConnectAddress(server), mConfiguration);
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     mThrown.expect(UnauthenticatedException.class);
     channelBuilder.setCredentials("fail", "fail", null).build();
     server.shutdown();
@@ -108,7 +108,7 @@ public class GrpcSecurityTest {
     GrpcServer server = createServer(AuthType.SIMPLE);
     server.start();
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.forAddress(getServerConnectAddress(server), mConfiguration);
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     channelBuilder.disableAuthentication().build();
     server.shutdown();
   }
@@ -119,7 +119,7 @@ public class GrpcSecurityTest {
     server.start();
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.forAddress(getServerConnectAddress(server), mConfiguration);
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     mThrown.expect(UnauthenticatedException.class);
     channelBuilder.build();
     server.shutdown();
