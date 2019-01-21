@@ -354,16 +354,14 @@ public final class ConfigurationUtils {
    *
    * @param address the master address
    * @param conf configuration to use
-   * @return An updated configuration object containing the cluster defaults
+   * @return An configuration object containing the original configuration merged with cluster
+   *         defaults, or the original object if the cluster defaults have already been loaded
    */
   public static AlluxioConfiguration loadClusterDefaults(InetSocketAddress address,
       AlluxioConfiguration conf)
       throws AlluxioStatusException {
     if (!conf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
         || conf.clusterDefaultsLoaded()) {
-      return conf;
-    }
-    if (conf.clusterDefaultsLoaded()) {
       return conf;
     }
     LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",

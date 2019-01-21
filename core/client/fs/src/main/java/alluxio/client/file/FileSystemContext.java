@@ -67,8 +67,14 @@ import javax.security.auth.Subject;
  * A second {@link FileSystemContext} object should only be created when a user needs to connect to
  * Alluxio with a different {@link Subject} and/or {@link AlluxioConfiguration}.
  * {@link FileSystemContext} instances should be created sparingly because each instance creates
- * its own thread pool of {@link FileSystemMasterClient} and {@link BlockMasterClient} which can
+ * its own thread pools of {@link FileSystemMasterClient} and {@link BlockMasterClient} which can
  * lead to inefficient use of client machine resources.
+ *
+ * A {@link FileSystemContext} should be closed once the user is done performing operations with
+ * Alluxio and no more connections need to be made. Once a {@link FileSystemContext} is closed it
+ * is preferred that the user of the class create a new instance with
+ * {@link FileSystemContext#create} to create a new context, rather than reinitializing using the
+ * {@link FileSystemContext#init} method.
  *
  * NOTE: Each context maintains a pool of file system master clients that is already thread-safe.
  * Synchronizing {@link FileSystemContext} methods could lead to deadlock: thread A attempts to

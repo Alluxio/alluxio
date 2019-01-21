@@ -65,6 +65,7 @@ public final class ServerConfiguration {
    * alluxio-site properties.
    */
   public static void reset() {
+    ConfigurationUtils.reloadProperties();
     sConf = new InstancedConfiguration(ConfigurationUtils.defaults());
   }
 

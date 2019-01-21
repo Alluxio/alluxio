@@ -21,7 +21,6 @@ import alluxio.SystemPropertyRule;
 import alluxio.cli.GetConf;
 import alluxio.client.RetryHandlingMetaMasterConfigClient;
 import alluxio.grpc.ConfigProperty;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -130,14 +129,13 @@ public final class GetConfTest {
     try (Closeable p = new SystemPropertyRule(ImmutableMap.of(
         PropertyKey.CONF_VALIDATION_ENABLED.toString(), "false",
         PropertyKey.ZOOKEEPER_ENABLED.toString(), "true")).toResource()) {
-      ConfigurationUtils.reloadProperties();
       ServerConfiguration.reset();
       ClientContext ctx = ClientContext.create(ServerConfiguration.global());
       assertEquals(0, GetConf.getConf(ctx,
           PropertyKey.ZOOKEEPER_ENABLED.toString()));
       assertEquals("true\n", mOutputStream.toString());
     } finally {
-      ConfigurationUtils.reloadProperties();
+      ServerConfiguration.reset();
     }
   }
 

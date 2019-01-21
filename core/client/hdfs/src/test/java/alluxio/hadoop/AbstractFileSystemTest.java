@@ -22,7 +22,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -34,7 +33,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
-import alluxio.master.MasterInquireClient;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
@@ -54,7 +52,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -94,10 +91,6 @@ public class AbstractFileSystemTest {
 
   private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
   private FileSystemContext mMockFileSystemContext = mock(FileSystemContext.class);
-  private FileSystemContext mMockFileSystemContextCustomized;
-  private FileSystemMasterClient mMockFileSystemMasterClient;
-  private MasterInquireClient mMockMasterInquireClient;
-  private ClientContext mClientContext;
 
   @Rule
   public ExpectedException mExpectedException = ExpectedException.none();
@@ -107,7 +100,6 @@ public class AbstractFileSystemTest {
    */
   @Before
   public void before() throws Exception {
-    mockFileSystemContextAndMasterClient();
     mockUserGroupInformation("");
 
     if (HadoopClientTestUtils.isHadoop1x()) {
@@ -691,11 +683,6 @@ public class AbstractFileSystemTest {
       conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
     }
     return conf;
-  }
-
-  private void mockFileSystemContextAndMasterClient() throws Exception {
-    mMockMasterInquireClient = Mockito.mock(MasterInquireClient.class);
-    mMockFileSystemMasterClient = mock(FileSystemMasterClient.class);
   }
 
   private FileSystem getHadoopFilesystem(org.apache.hadoop.fs.FileSystem fs) {
