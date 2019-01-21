@@ -35,18 +35,19 @@ public final class HadoopConfigurationUtils {
   private HadoopConfigurationUtils() {} // Prevent instantiation.
 
   /**
-   * Merges Hadoop {@link org.apache.hadoop.conf.Configuration} into Alluxio properties.
+   * Merges Hadoop {@link org.apache.hadoop.conf.Configuration} with Alluxio properties.
    *
-   * @param source the {@link org.apache.hadoop.conf.Configuration} to merge
-   * @param alluxioProps the Alluxio properties to merge to
+   * @param hadoopConf the {@link org.apache.hadoop.conf.Configuration} to merge
+   * @param alluxioProps the Alluxio properties to merge
+   * @return A configuration with properties all merged
    */
-  public static InstancedConfiguration mergeHadoopConfiguration(org.apache.hadoop.conf.Configuration source,
-      AlluxioProperties alluxioProps) {
+  public static InstancedConfiguration mergeHadoopConfiguration(
+      org.apache.hadoop.conf.Configuration hadoopConf, AlluxioProperties alluxioProps) {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system
     // Push Alluxio configuration to the Job configuration
     Properties alluxioConfProperties = new Properties();
     // Load any Alluxio configuration parameters existing in the Hadoop configuration.
-    for (Map.Entry<String, String> entry : source) {
+    for (Map.Entry<String, String> entry : hadoopConf) {
       String propertyName = entry.getKey();
       if (PropertyKey.isValid(propertyName)) {
         alluxioConfProperties.put(propertyName, entry.getValue());
