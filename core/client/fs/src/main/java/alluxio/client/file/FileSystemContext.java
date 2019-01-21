@@ -24,13 +24,12 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
-import alluxio.security.authentication.SaslParticipantProviderUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
+import alluxio.security.authentication.SaslParticipantProviderUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -39,9 +38,9 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +50,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -60,13 +60,16 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 
 /**
- * A context that isolates all operations within a {@link FileSystem}. Typically a user
- * will only need more than one instance of a {@link FileSystemContext} if they wish to connect
- * to Alluxio under different configuration values within the same JVM. {@link FileSystemContext}
- * instances should be created sparingly as each instance creates its own thread pool of
- * {@link FileSystemMasterClient} which can lead to inefficient use of client machine resources.
+ * An object which houses resources and information for performing {@link FileSystem} operations.
+ * Typically, a single JVM should only need one instance of a {@link FileSystem} to connect to
+ * Alluxio. The reference to that client object should be shared among threads.
  *
- * <p>
+ * A second {@link FileSystemContext} object should only be created when a user needs to connect to
+ * Alluxio with a different {@link Subject} and/or {@link AlluxioConfiguration}.
+ * {@link FileSystemContext} instances should be created sparingly because each instance creates
+ * its own thread pool of {@link FileSystemMasterClient} and {@link BlockMasterClient} which can
+ * lead to inefficient use of client machine resources.
+ *
  * NOTE: Each context maintains a pool of file system master clients that is already thread-safe.
  * Synchronizing {@link FileSystemContext} methods could lead to deadlock: thread A attempts to
  * acquire a client when there are no clients left in the pool and blocks holding a lock on the
@@ -136,8 +139,7 @@ public final class FileSystemContext implements Closeable {
    * @param alluxioConf Alluxio configuration
    * @return a context
    */
-  public static FileSystemContext create(Subject subject,
-      @Nullable AlluxioConfiguration alluxioConf) {
+  public static FileSystemContext create(Subject subject, AlluxioConfiguration alluxioConf) {
     FileSystemContext context = new FileSystemContext(subject, alluxioConf);
     context.init(MasterInquireClient.Factory.create(context.mClientContext.getConf()));
     return context;
@@ -178,7 +180,7 @@ public final class FileSystemContext implements Closeable {
    *
    * @param subject the parent subject, set to null if not present
    */
-  private FileSystemContext(Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
+  private FileSystemContext(Subject subject, AlluxioConfiguration alluxioConf) {
       this(ClientContext.create(subject, alluxioConf));
   }
 
@@ -201,24 +203,21 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Initializes the context. Only called in the factory methods and reset.
+   * Initializes the context. Only called in the factory methods.
    *
    * @param masterInquireClient the client to use for determining the master
    */
   private synchronized void init(MasterInquireClient masterInquireClient) {
     mMasterInquireClient = masterInquireClient;
     mFileSystemMasterClientPool =
-        new FileSystemMasterClientPool(mClientContext.getSubject(), mMasterInquireClient,
-            mClientContext.getConf());
-    mBlockMasterClientPool = new BlockMasterClientPool(mClientContext.getSubject(),
-        mMasterInquireClient, mClientContext.getConf());
+        new FileSystemMasterClientPool(mClientContext, mMasterInquireClient);
+    mBlockMasterClientPool = new BlockMasterClientPool(mClientContext, mMasterInquireClient);
     mClosed.set(false);
 
     if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
       mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig
-          .newBuilder(mClientContext.getConf())
-          .setSubject(mClientContext.getSubject())
+          .newBuilder(mClientContext)
           .setMasterInquireClient(mMasterInquireClient)
           .build());
       mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, mAppId);
@@ -274,16 +273,6 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Resets the context. It is only used in {@link alluxio.hadoop.AbstractFileSystem} and tests to
-   * reset the default file system context.
-   *
-   */
-  public synchronized void reset() throws IOException {
-    close();
-    init(MasterInquireClient.Factory.create(mClientContext.getConf()));
-  }
-
-  /**
    * @return the {@link ClientContext} backing this {@link FileSystemContext}
    */
   public ClientContext getClientContext() {
@@ -295,13 +284,6 @@ public final class FileSystemContext implements Closeable {
    */
   public AlluxioConfiguration getConf() {
     return mClientContext.getConf();
-  }
-
-  /**
-   * @return The application ID associated with this {@link FileSystemContext}
-   */
-  public String getAppId() {
-    return mAppId;
   }
 
   /**

@@ -166,7 +166,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private GrpcChannel buildChannel(Subject subject, SocketAddress address,
       GrpcManagedChannelPool.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf)
       throws UnauthenticatedException, UnavailableException {
-    return GrpcChannelBuilder.forAddress(address, alluxioConf).setSubject(subject)
+    return GrpcChannelBuilder.newBuilder(address, alluxioConf).setSubject(subject)
         .setChannelType(NettyUtils
             .getClientChannelClass(!(address instanceof InetSocketAddress), alluxioConf))
         .setPoolingStrategy(poolingStrategy)

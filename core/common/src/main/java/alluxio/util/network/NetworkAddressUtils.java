@@ -646,7 +646,7 @@ public final class NetworkAddressUtils {
       throws UnauthenticatedException, UnavailableException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
-    GrpcChannel channel = GrpcChannelBuilder.forAddress(address, conf).build();
+    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, conf).build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
     versionClient.getServiceVersion(

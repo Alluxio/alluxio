@@ -472,11 +472,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
         PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
+    if (mFsContext != null) {
+      throw new IOException("The AbstractFileSystem has already been initialized.");
+    }
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
-    if (mFsContext != null) {
-      mFsContext.close(); // close is a no-op if it's already been closed
-    }
     HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
 
@@ -504,15 +504,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     synchronized (this) {
-      if (mInitialized) {
-        if (!connectDetailsMatch(uriConfProperties, conf)) {
-          LOG.warn(ExceptionMessage.DIFFERENT_CONNECTION_DETAILS.getMessage(
-              mFsContext.getMasterInquireClient().getConnectDetails()));
-          mergeConfigurations(uriConfProperties, conf, alluxioProps);
-        }
-      } else {
-        mergeConfigurations(uriConfProperties, conf, alluxioProps);
-      }
+
+      mergeConfigurations(uriConfProperties, conf, alluxioProps);
 
       AlluxioConfiguration alluxioConf = new InstancedConfiguration(alluxioProps);
       LOG.info("Initializing filesystem context with connect details {}",

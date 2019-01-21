@@ -106,7 +106,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   private void pingMetaService(InetSocketAddress address)
       throws UnauthenticatedException, UnavailableException {
-    GrpcChannel channel = GrpcChannelBuilder.forAddress(address, mConfiguration).build();
+    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, mConfiguration).build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
     versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()

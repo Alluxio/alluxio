@@ -19,7 +19,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
@@ -51,7 +50,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -248,20 +246,6 @@ public class AbstractFileSystemTest {
       final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
       assertTrue(fs instanceof FileSystem);
     }
-  }
-
-  /**
-   * Tests that initializing the {@link AbstractFileSystem} will reinitialize the file system
-   * context.
-   */
-  @Ignore("This test isn't applicable anymore because a new context is created for each filesystem")
-  @Test
-  public void resetContext() throws Exception {
-    // Change to otherhost:410
-    URI uri = URI.create(Constants.HEADER + "otherhost:410/");
-    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-
-    verify(mMockFileSystemContextCustomized).reset();
   }
 
   @Test
