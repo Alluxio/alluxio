@@ -19,7 +19,6 @@ import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.java.HeapBlockStore;
 import alluxio.master.metastore.java.HeapInodeStore;
-import alluxio.master.metastore.rocks.RocksInodeStore;
 
 /**
  * Util methods to help with master testing.
