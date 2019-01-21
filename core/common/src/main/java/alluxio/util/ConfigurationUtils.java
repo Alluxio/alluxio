@@ -342,11 +342,13 @@ public final class ConfigurationUtils {
    * @param conf the base configuration
    * @param properties the source {@link Properties} to be merged
    * @param source the source of the the properties (e.g., system property, default and etc)
+   * @return A new configuration representing the merged properties
    */
-  public static void  merge(AlluxioConfiguration conf, Map<?, ?> properties,
+  public static AlluxioConfiguration merge(AlluxioConfiguration conf, Map<?, ?> properties,
       Source source) {
-    AlluxioProperties props = conf.getProperties();
+    AlluxioProperties props = conf.copyProperties();
     props.merge(properties, source);
+    return new InstancedConfiguration(props);
   }
 
   /**
@@ -417,7 +419,7 @@ public final class ConfigurationUtils {
           clientVersion, clusterVersion);
       clusterProps.remove(PropertyKey.VERSION);
     }
-    AlluxioProperties props = conf.getProperties().copy();
+    AlluxioProperties props = conf.copyProperties();
     props.merge(clusterProps, Source.CLUSTER_DEFAULT);
     // Use the constructor to set cluster defaults as being laoded.
     InstancedConfiguration updatedConf = new InstancedConfiguration(props, true);

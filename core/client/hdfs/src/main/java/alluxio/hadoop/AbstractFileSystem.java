@@ -494,8 +494,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
 
       AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
-      mergeConfigurations(uriConfProperties, conf, alluxioProps);
-      AlluxioConfiguration alluxioConf = new InstancedConfiguration(alluxioProps);
+      AlluxioConfiguration alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioProps);
 
       Subject subject = getHadoopSubject();
       if (subject != null) {
@@ -525,15 +524,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param conf the hadoop conf
    * @param alluxioProps Alluxio configuration properties
    */
-  private void mergeConfigurations(Map<String, Object> uriConfProperties,
+  private AlluxioConfiguration mergeConfigurations(Map<String, Object> uriConfProperties,
       org.apache.hadoop.conf.Configuration conf, AlluxioProperties alluxioProps)
       throws IOException {
     // take the URI properties, hadoop configuration, and given Alluxio configuration and merge
     // all three into a single object.
-    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, alluxioProps);
-
+    InstancedConfiguration newConf = HadoopConfigurationUtils.mergeHadoopConfiguration(conf,
+        alluxioProps);
     // Connection details in the URI has the highest priority
-    alluxioProps.merge(uriConfProperties, Source.RUNTIME);
+    newConf.merge(uriConfProperties, Source.RUNTIME);
+    return newConf;
   }
 
   /**

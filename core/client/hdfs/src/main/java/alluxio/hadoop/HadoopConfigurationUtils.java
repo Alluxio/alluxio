@@ -40,7 +40,7 @@ public final class HadoopConfigurationUtils {
    * @param source the {@link org.apache.hadoop.conf.Configuration} to merge
    * @param alluxioProps the Alluxio properties to merge to
    */
-  public static void mergeHadoopConfiguration(org.apache.hadoop.conf.Configuration source,
+  public static InstancedConfiguration mergeHadoopConfiguration(org.apache.hadoop.conf.Configuration source,
       AlluxioProperties alluxioProps) {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system
     // Push Alluxio configuration to the Job configuration
@@ -57,7 +57,9 @@ public final class HadoopConfigurationUtils {
 
     alluxioProps.merge(alluxioConfProperties, Source.RUNTIME);
     // Creting a new instanced configuration from an AlluxioProperties object isn't expensive.
-    new InstancedConfiguration(alluxioProps).validate();
+    InstancedConfiguration mergedConf = new InstancedConfiguration(alluxioProps);
+    mergedConf.validate();
+    return mergedConf;
   }
 
   /**
@@ -72,7 +74,7 @@ public final class HadoopConfigurationUtils {
       org.apache.hadoop.conf.Configuration source, AlluxioConfiguration alluxioConf) {
     org.apache.hadoop.conf.Configuration mergedConf = new org.apache.hadoop.conf.Configuration();
     source.forEach((Map.Entry<String, String> e) -> mergedConf.set(e.getKey(), e.getValue()));
-    alluxioConf.getProperties().forEach((PropertyKey pk, String val) -> {
+    alluxioConf.copyProperties().forEach((PropertyKey pk, String val) -> {
       if (val != null) {
         mergedConf.set(pk.getName(), val);
       }

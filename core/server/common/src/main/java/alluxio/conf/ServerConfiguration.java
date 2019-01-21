@@ -75,14 +75,7 @@ public final class ServerConfiguration {
    * @return a copy of properties
    */
   public static AlluxioProperties copyProperties() {
-    return new AlluxioProperties(sConf.getProperties());
-  }
-
-  /**
-   * @return the {@link AlluxioProperties} backing the configuration
-   */
-  public static AlluxioProperties getProperties() {
-    return sConf.getProperties();
+    return new AlluxioProperties(sConf.copyProperties());
   }
 
   /**
@@ -354,7 +347,7 @@ public final class ServerConfiguration {
   public static synchronized void loadClusterDefaults(InetSocketAddress address)
       throws AlluxioStatusException {
     AlluxioConfiguration conf = ConfigurationUtils.loadClusterDefaults(address, global());
-    sConf = new InstancedConfiguration(conf.getProperties(), conf.clusterDefaultsLoaded());
+    sConf = new InstancedConfiguration(conf.copyProperties(), conf.clusterDefaultsLoaded());
   }
 
   private ServerConfiguration() {} // prevent instantiation

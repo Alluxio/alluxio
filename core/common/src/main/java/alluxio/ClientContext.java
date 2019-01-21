@@ -82,7 +82,7 @@ public class ClientContext {
     }
     // Copy the properties so that future modification doesn't affect this ClientContext.
     if (alluxioConf != null) {
-      mConf = new InstancedConfiguration(alluxioConf.getProperties().copy(),
+      mConf = new InstancedConfiguration(alluxioConf.copyProperties(),
           alluxioConf.clusterDefaultsLoaded());
     } else {
       mConf = new InstancedConfiguration(ConfigurationUtils.defaults());

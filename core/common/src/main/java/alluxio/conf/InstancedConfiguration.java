@@ -70,16 +70,16 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   /**
    * @param conf configuration to copy
    */
-  public InstancedConfiguration(InstancedConfiguration conf) {
-    mProperties = new AlluxioProperties(conf.mProperties);
-    mClusterDefaultsLoaded = conf.mClusterDefaultsLoaded;
+  public InstancedConfiguration(AlluxioConfiguration conf) {
+    mProperties = conf.copyProperties();
+    mClusterDefaultsLoaded = conf.clusterDefaultsLoaded();
   }
 
   /**
    * @return the properties backing this configuration
    */
-  public AlluxioProperties getProperties() {
-    return mProperties;
+  public AlluxioProperties copyProperties() {
+    return mProperties.copy();
   }
 
   @Override

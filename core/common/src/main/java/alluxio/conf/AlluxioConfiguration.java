@@ -177,11 +177,11 @@ public interface AlluxioConfiguration {
   Map<String, String> getNestedProperties(PropertyKey prefixKey);
 
   /**
-   * Gets the {@link AlluxioProperties} which back the {@link AlluxioConfiguration}.
+   * Gets a copy of the {@link AlluxioProperties} which back the {@link AlluxioConfiguration}.
    *
-   * @return A set of AlluxioProperties representing the configuration
+   * @return A copy of AlluxioProperties representing the configuration
    */
-  AlluxioProperties getProperties();
+  AlluxioProperties copyProperties();
 
   /**
    * @param key the property key
