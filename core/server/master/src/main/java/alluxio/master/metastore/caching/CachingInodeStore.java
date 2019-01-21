@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
@@ -205,6 +206,16 @@ public final class CachingInodeStore implements InodeStore {
     }
 
     @Override
+    protected void writeToBackingStore(Long key, MutableInode<?> value) {
+      mBackingStore.writeInode(value);
+    }
+
+    @Override
+    protected void removeFromBackingStore(Long key) {
+      mBackingStore.remove(key);
+    }
+
+    @Override
     protected void flushEntries(List<Entry> entries) {
       if (mBackingStore.supportsBatchWrite()) {
         batchFlush(entries);
@@ -365,79 +376,82 @@ public final class CachingInodeStore implements InodeStore {
     }
 
     @Override
-    protected void flushEntries(List<Entry> entries) {
-      if (entries.size() > 0 && mBackingStore.supportsBatchWrite()) {
-        batchFlush(entries);
-      }
-      for (Entry entry : entries) {
-        Edge edge = entry.mKey;
-        Optional<LockResource> lockOpt = mLockManager.tryLockEdge(edge, LockMode.WRITE);
-        if (!lockOpt.isPresent()) {
-          continue;
-        }
-        try (LockResource lr = lockOpt.get()) {
-          if (entry.mValue == null) {
-            mBackingStore.removeChild(edge.getId(), edge.getName());
-          } else {
-            mBackingStore.addChild(edge.getId(), edge.getName(), entry.mValue);
-          }
-          entry.mDirty = false;
-        }
-      }
-    }
-
-    private void batchFlush(List<Entry> entries) {
-      WriteBatch batch = mBackingStore.createWriteBatch();
-      for (Entry entry : entries) {
-        Edge edge = entry.mKey;
-        Optional<LockResource> lockOpt = mLockManager.tryLockEdge(edge, LockMode.WRITE);
-        if (!lockOpt.isPresent()) {
-          continue;
-        }
-        try (LockResource lr = lockOpt.get()) {
-          if (entry.mValue == null) {
-            batch.removeChild(edge.getId(), edge.getName());
-          } else {
-            batch.addChild(edge.getId(), edge.getName(), entry.mValue);
-          }
-          entry.mDirty = false;
-        }
-      }
-      batch.commit();
+    protected void writeToBackingStore(Edge key, Long value) {
+      mBackingStore.addChild(key.getId(), key.getName(), value);
     }
 
     @Override
-    protected void onAdd(Edge edge, Long childId) {
-      mListingCache.addEdge(edge, childId);
-      mIdToChildMap.compute(edge.getId(), (key, value) -> {
-        if (value == null) {
-          value = new ConcurrentSkipListMap<>();
+    protected void removeFromBackingStore(Edge key) {
+      mBackingStore.removeChild(key.getId(), key.getName());
+    }
+
+    @Override
+    protected void flushEntries(List<Entry> entries) {
+      boolean useBatch = entries.size() > 0 && mBackingStore.supportsBatchWrite();
+      WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null;
+      for (Entry entry : entries) {
+        Edge edge = entry.mKey;
+        Optional<LockResource> lockOpt = mLockManager.tryLockEdge(edge, LockMode.WRITE);
+        if (!lockOpt.isPresent()) {
+          continue;
         }
-        value.put(edge.getName(), childId);
-        return value;
-      });
-//      removeFromUnflushedDeletes(edge.getId(), edge.getName());
+        try (LockResource lr = lockOpt.get()) {
+          if (entry.mValue == null) {
+            if (useBatch) {
+              batch.removeChild(edge.getId(), edge.getName());
+            } else {
+              mBackingStore.removeChild(edge.getId(), edge.getName());
+            }
+          } else {
+            if (useBatch) {
+              batch.addChild(edge.getId(), edge.getName(), entry.mValue);
+            } else {
+              mBackingStore.addChild(edge.getId(), edge.getName(), entry.mValue);
+            }
+          }
+          entry.mDirty = false;
+        }
+      }
+      if (useBatch) {
+        batch.commit();
+      }
+    }
+
+    @Override
+    protected void onCacheUpdate(Edge edge, Long childId) {
+      if (childId == null) {
+        addToIdToChildMap(edge.getId(), edge.getName(), childId);
+        addToUnflushedDeletes(edge.getId(), edge.getName());
+      }
+      removeFromIdToChildMap(edge.getId(), edge.getName());
+      removeFromUnflushedDeletes(edge.getId(), edge.getName());
+    }
+
+    @Override
+    protected void onNew(Edge edge, Long childId) {
+      mListingCache.addEdge(edge, childId);
     }
 
     @Override
     protected void onRemove(Edge edge) {
       mListingCache.removeEdge(edge);
-      removeFromIdToChildMap(edge.getId(), edge.getName());
-      mUnflushedDeletes.compute(edge.getId(), (key, value) -> {
-        if (value == null) {
-          value = ConcurrentHashMap.newKeySet();
-        }
-        value.add(edge.getName());
-        return value;
-      });
     }
 
     @Override
     protected void onEvict(Edge edge, Long childId) {
-      System.out.printf("Evict %s%n", edge.getName());
       mFullyCached = false;
       removeFromIdToChildMap(edge.getId(), edge.getName());
       removeFromUnflushedDeletes(edge.getId(), edge.getName());
+    }
+
+    private void addToIdToChildMap(Long parentId, String childName, Long childId) {
+      mIdToChildMap.compute(parentId, (key, children) -> {
+        if (children == null) {
+          children = new ConcurrentSkipListMap<>();
+        }
+        children.put(childName, childId);
+        return children;
+      });
     }
 
     private void removeFromIdToChildMap(Long parentId, String childName) {
@@ -453,16 +467,26 @@ public final class CachingInodeStore implements InodeStore {
       });
     }
 
+    private void addToUnflushedDeletes(long parentId, String childName) {
+      mUnflushedDeletes.computeIfPresent(parentId, (key, children) -> {
+        if (children == null) {
+          children = new ConcurrentSkipListSet<>();
+        }
+        children.add(childName);
+        return children;
+      });
+    }
+
     private void removeFromUnflushedDeletes(Long parentId, String childName) {
-      mUnflushedDeletes.computeIfPresent(parentId, (key, value) -> {
-        if (value == null) {
+      mUnflushedDeletes.computeIfPresent(parentId, (key, children) -> {
+        if (children == null) {
           return null;
         }
-        value.remove(childName);
-        if (value.isEmpty()) {
+        children.remove(childName);
+        if (children.isEmpty()) {
           return null;
         }
-        return value;
+        return children;
       });
     }
   }

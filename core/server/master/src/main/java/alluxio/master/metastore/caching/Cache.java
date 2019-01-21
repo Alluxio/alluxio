@@ -34,9 +34,14 @@ import javax.annotation.Nullable;
  *
  * The cache uses water mark based eviction. A dedicated thread waits for the cache to reach its
  * high water mark, then evicts entries until the cache size reaches the low water mark. All backing
- * store write operations are performed asynchronously in the eviction thread. Cache methods don't
- * block unless the cache reaches maximum capacity. For best performance, maximum capacity should
- * never be reached. This requires that the eviction thread can keep up cache writes.
+ * store write operations are performed asynchronously in the eviction thread, unless the cache hits
+ * maximum capacity. At maximum capacity, methods interact synchronously with the backing store. For
+ * best performance, maximum capacity should never be reached. This requires that the eviction
+ * thread can keep up cache writes.
+ *
+ * The cache requires external synchronization for concurrent modifications on the same key. All
+ * other concurrent operations are supported. Cache hit reads are served without any locking. Writes
+ * and cache miss reads take locks on their key.
  *
  * @param <K> the cache key type
  * @param <V> the cache value type
@@ -52,6 +57,7 @@ public abstract class Cache<K, V> {
   private final int mEvictBatchSize;
   private final String mName;
 
+  // TODO(andrew): Support using multiple threads to speed up backing store writes.
   private final EvictionThread mEvictionThread;
   private final Object mCacheFull = new Object();
 
@@ -75,12 +81,30 @@ public abstract class Cache<K, V> {
   /**
    * Retrieves a value from the cache, loading it from the backing store if necessary.
    *
+   * If the value needs to be loaded, concurrent calls to get(key) will block while waiting for the
+   * first call to finish loading the value.
+   *
    * @param key the key to get the value for
    * @return the value, or empty if the key doesn't exist in the cache or in the backing store
    */
   public Optional<V> get(K key) {
-    blockIfCacheFull();
-    Entry entry = mMap.computeIfAbsent(key, this::loadEntry);
+    if (cacheIsFull()) {
+      Entry entry = mMap.get(key);
+      if (entry == null) {
+        return load(key);
+      }
+      return Optional.ofNullable(entry.mValue);
+    }
+    Entry entry = mMap.computeIfAbsent(key, k -> {
+      Optional<V> value = load(key);
+      if (value.isPresent()) {
+        onCacheUpdate(key, value.get());
+        Entry newEntry = new Entry(key, value.get());
+        newEntry.mDirty = false;
+        return newEntry;
+      }
+      return null;
+    });
     if (entry == null || entry.mValue == null) {
       return Optional.empty();
     }
@@ -96,16 +120,20 @@ public abstract class Cache<K, V> {
    * @param value the value
    */
   public void put(K key, V value) {
-    blockIfCacheFull();
-    mMap.compute(key, (prevKey, prevValue) -> {
-      if (prevValue == null || prevValue.mValue == null) {
-        onAdd(key, value);
+    mMap.compute(key, (k, entry) -> {
+      onNew(key, value);
+      if (entry == null && cacheIsFull()) {
+        writeToBackingStore(key, value);
+        return null;
+      }
+      if (entry == null || entry.mValue == null) {
+        onCacheUpdate(key, value);
         return new Entry(key, value);
       }
-      prevValue.mValue = value;
-      prevValue.mReferenced = true;
-      prevValue.mDirty = true;
-      return prevValue;
+      entry.mValue = value;
+      entry.mReferenced = true;
+      entry.mDirty = true;
+      return entry;
     });
     wakeEvictionThreadIfNecessary();
   }
@@ -123,12 +151,17 @@ public abstract class Cache<K, V> {
     // Set the entry so that it will be removed from the backing store when it is encountered by
     // the eviction thread.
     mMap.compute(key, (k, entry) -> {
+      if (entry == null && cacheIsFull()) {
+        removeFromBackingStore(k);
+        return null;
+      }
+      onCacheUpdate(key, null);
+      onRemove(key);
       if (entry == null) {
         entry = new Entry(key, null);
       } else {
         entry.mValue = null;
       }
-      onRemove(key);
       entry.mReferenced = false;
       entry.mDirty = true;
       return entry;
@@ -142,10 +175,53 @@ public abstract class Cache<K, V> {
    */
   public void clear() {
     mMap.forEach((key, value) -> {
-      onRemove(key);
+      onCacheUpdate(key, value.mValue);
       onEvict(key, null);
     });
     mMap.clear();
+  }
+
+  private boolean overLowWaterMark() {
+    return mMap.size() >= mLowWaterMark;
+  }
+
+  private boolean overHighWaterMark() {
+    return mMap.size() >= mHighWaterMark;
+  }
+
+  private boolean cacheIsFull() {
+    return mMap.size() >= mMaxSize;
+  }
+
+  // At maximum capacity, the cache must wait for the eviction thread before it can serve more
+  // requests. If we try to go around the cache and and access the ufs directly,
+  private void blockIfCacheFull() {
+    if (cacheIsFull()) {
+      kickEvictionThread();
+      // Wait for the eviction thread to finish before continuing.
+      while (evictionIsRunning() || cacheIsFull()) {
+        synchronized (mCacheFull) {
+          try {
+            if (cacheIsFull()) {
+              mCacheFull.wait();
+            }
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+          }
+        }
+      }
+    }
+  }
+
+  private boolean evictionIsRunning() {
+    return mEvictionThread.mIsSleeping == false;
+  }
+
+  private void wakeEvictionThreadIfNecessary() {
+    if (mEvictionThread.mIsSleeping && mMap.size() >= mHighWaterMark) {
+      kickEvictionThread();
+    }
   }
 
   private void kickEvictionThread() {
@@ -157,52 +233,13 @@ public abstract class Cache<K, V> {
     }
   }
 
-  private void blockIfCacheFull() {
-    while (mMap.size() >= mMaxSize) {
-      LOG.info("{}: map size: {}, max size: {}, high water: {}", mName, mMap.size(), mMaxSize,
-          mHighWaterMark);
-      kickEvictionThread();
-      // Wait for the eviction thread to finish before continuing.
-      synchronized (mCacheFull) {
-        try {
-          if (mMap.size() >= mMaxSize) {
-            mCacheFull.wait();
-          }
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          throw new RuntimeException(e);
-        }
-      }
-    }
-  }
-
-  private void wakeEvictionThreadIfNecessary() {
-    if (mEvictionThread.mIsSleeping && mMap.size() >= mHighWaterMark) {
-      kickEvictionThread();
-    }
-  }
-
-  @Nullable
-  private Entry loadEntry(K key) {
-    Optional<V> value = load(key);
-    if (value.isPresent()) {
-      onAdd(key, value.get());
-      Entry entry = new Entry(key, value.get());
-      entry.mDirty = false;
-      return entry;
-    }
-    return null;
-  }
-
   private class EvictionThread extends Thread {
     private final TemporalAmount mWarnInterval = Duration.ofSeconds(30);
 
-    private volatile boolean mIsSleeping = false;
+    private volatile boolean mIsSleeping = true;
 
     private Iterator<Entry> mEvictionHead = Collections.emptyIterator();
     private Instant mNextAllowedSizeWarning = Instant.EPOCH;
-    private Instant mEvictionStart = Instant.EPOCH;
-    private int mEvictionCount = 0;
 
     // This is used temporarily in each call to evictEntries. We store it as a field to avoid
     // re-allocating the array on each eviction.
@@ -216,44 +253,53 @@ public abstract class Cache<K, V> {
     @Override
     public void run() {
       while (true) {
-        while (mMap.size() <= mLowWaterMark) {
-          synchronized (mEvictionThread) { // Same as synchronized (this)
-            if (mMap.size() <= mLowWaterMark) {
-              if (mEvictionCount > 0) {
-                LOG.info("{}: Evicted {} entries in {}ms", mName, mEvictionCount,
-                    Duration.between(mEvictionStart, Instant.now()).toMillis());
-              }
+        // Wait for the cache to get over the high water mark.
+        while (!overHighWaterMark()) {
+          synchronized (mEvictionThread) {
+            try {
+              mEvictionThread.mIsSleeping = true;
               synchronized (mCacheFull) {
                 mCacheFull.notifyAll();
               }
-              try {
-                mEvictionThread.mIsSleeping = true;
-                mEvictionThread.wait();
-                mEvictionThread.mIsSleeping = false;
-                mEvictionStart = Instant.now();
-                mEvictionCount = 0;
-              } catch (InterruptedException e) {
-                return;
-              }
+              mEvictionThread.wait();
+              mEvictionThread.mIsSleeping = false;
+            } catch (InterruptedException e) {
+              return;
             }
           }
         }
+        evictToLowWaterMark();
+      }
+    }
 
-        evictBatch(Math.min(mMap.size(), mEvictBatchSize));
-        if (mMap.size() >= mMaxSize) {
+    private void evictToLowWaterMark() {
+      Instant evictionStart = Instant.now();
+      int evictionCount = 0;
+      while (overLowWaterMark()) {
+        if (cacheIsFull()) {
           Instant now = Instant.now();
           if (now.isAfter(mNextAllowedSizeWarning)) {
             LOG.warn(
-                "Cache is full. Consider increasing the cache size or lowering the high "
-                    + "water mark. size:{} maxSize:{} highWaterMark:{} lowWaterMark:{}",
+                "Cache is full. Consider increase the cache size or lower the high "
+                    + "water mark. size:{} lowWaterMark:{} highWaterMark:{} maxSize:{}",
                 mMap.size(), mMaxSize, mHighWaterMark, mLowWaterMark);
             mNextAllowedSizeWarning = now.plus(mWarnInterval);
           }
         }
+        evictionCount += evictBatch(Math.min(mMap.size(), mEvictBatchSize));
+      }
+      if (evictionCount > 0) {
+        LOG.debug("{}: Evicted {} entries in {}ms", mName, evictionCount,
+            Duration.between(evictionStart, Instant.now()).toMillis());
       }
     }
 
-    private void evictBatch(int batchSize) {
+    /**
+     * @param batchSize the target number of entries to evict
+     * @return the number of entries evicted
+     */
+    private int evictBatch(int batchSize) {
+      int evictionCount = 0;
       mEvictionCandidates.clear();
       while (mEvictionCandidates.size() < batchSize) {
         // Every iteration either sets a referenced bit from true to false or adds a new candidate.
@@ -262,7 +308,7 @@ public abstract class Cache<K, V> {
         }
         Entry candidate = mEvictionHead.next();
         if (candidate == null) {
-          return; // cache is empty, nothing to evict
+          return evictionCount; // cache is empty, nothing to evict
         }
         if (candidate.mReferenced) {
           candidate.mReferenced = false;
@@ -279,9 +325,10 @@ public abstract class Cache<K, V> {
           onEvict(key, entry.mValue);
           return null;
         })) {
-          mEvictionCount++;
+          evictionCount++;
         }
       }
+      return evictionCount;
     }
   }
 
@@ -289,30 +336,27 @@ public abstract class Cache<K, V> {
   // Callbacks so that sub-classes can listen for cache changes. All callbacks on the same key
   // happen atomically with respect to each other and other cache operations.
   //
-  // Any key/value pair loaded to the cache can go through 3 type of state change
-  //
-  // 1. Addition: The key/value pair is added to the cache, either because the user called put(key,
-  //    value) or because the user called get(key) and the key existed in the backing store. Either
-  //    way, the addition synchronously triggers the onAdd callback
-  // 2. Removal: The key/value pair is removed via remove(key). This immediately removes the key
-  //    from the cache, and asynchronously removes it from the backing store. The onRemove()
-  //    callback runs synchronously in the call to remove(key).
-  // 3. Eviction: The key/value pair is asynchronously evicted from the cache. This triggers
-  //    onEvict(key, value). If the key was removed, value will be null.
-  //
 
   /**
-   * Callback triggered whenever a new key/value pair is added to the cache. This does not include
-   * updating an existing key.
+   * Callback triggered when an update is made to a key/value pair in the cache. For removals, value
+   * will be null
    *
-   * @param key the added key
-   * @param value the added value
+   * @param key the updated key
+   * @param value the updated value, or null if the key is being removed
    */
-  protected void onAdd(K key, V value) {}
+  protected void onCacheUpdate(K key, @Nullable V value) {}
 
   /**
-   * Callback triggered whenever a key is removed from the cache. This does not include removing
-   * a key that exists only in the backing store.
+   * Callback triggered whenever a new key/value pair is created by put(key, value). This does not
+   * count loading key/value pairs from the backing store.
+   *
+   * @param key the new key
+   * @param value the new value
+   */
+  protected void onNew(K key, V value) {}
+
+  /**
+   * Callback triggered whenever a key is removed by remove(key).
    *
    * @param key the removed key
    */
@@ -343,6 +387,21 @@ public abstract class Cache<K, V> {
   protected abstract Optional<V> load(K key);
 
   /**
+   * Writes a key/value pair to the backing store.
+   *
+   * @param key the key
+   * @param value the value
+   */
+  protected abstract void writeToBackingStore(K key, V value);
+
+  /**
+   * Removes a key from the backing store.
+   *
+   * @param key the key
+   */
+  protected abstract void removeFromBackingStore(K key);
+
+  /**
    * Attempts to flush the given entries to the backing store.
    *
    * The subclass is responsible for setting each candidate's mDirty field to false on success.
@@ -353,8 +412,8 @@ public abstract class Cache<K, V> {
 
   protected class Entry {
     protected K mKey;
-    // null value means that the key has been removed, and needs to be removed from the backing
-    // store.
+    // null value means that the key has been removed from the cache, but still needs to be removed
+    // from the backing store.
     @Nullable
     protected V mValue;
 
