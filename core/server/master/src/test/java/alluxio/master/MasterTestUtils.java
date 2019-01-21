@@ -18,6 +18,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.java.HeapBlockStore;
+import alluxio.master.metastore.java.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
 
 /**
@@ -47,7 +48,7 @@ public final class MasterTestUtils {
         // TODO(andrew): switch this back to heap inode store
 //        .setInodeStoreFactory(args -> new HeapInodeStore())
         .setInodeStoreFactory(
-            args -> new CachingInodeStore(new RocksInodeStore(conf), args.getLockManager(), conf))
+            args -> new CachingInodeStore(new HeapInodeStore(), args.getLockManager(), conf))
         .setStartTimeMs(-1)
         .setPort(-1)
         .build();

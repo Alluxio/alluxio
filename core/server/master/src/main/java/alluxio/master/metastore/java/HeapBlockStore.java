@@ -99,12 +99,11 @@ public class HeapBlockStore implements BlockStore {
     mBlockLocations.compute(blockId, (key, locations) -> {
       if (locations != null) {
         locations.remove(workerId);
-      }
-      if (locations.isEmpty()) {
-        return null;
+        if (locations.isEmpty()) {
+          return null;
+        }
       }
       return locations;
     });
-    mBlockLocations.get(blockId).remove(workerId);
   }
 }
