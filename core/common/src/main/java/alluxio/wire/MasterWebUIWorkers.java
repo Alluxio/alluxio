@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWebUIWorkers implements Serializable {
-  private static final long serialVersionUID = 6589358568781503724L;
+  private static final long serialVersionUID = 1320235517686567983L;
 
   private boolean mDebug;
   private NodeInfo[] mFailedNodeInfos;

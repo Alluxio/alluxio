@@ -40,8 +40,6 @@ public final class RestUtils {
    * @return the response object
    */
   public static <T> Response call(RestUtils.RestCallable<T> callable) {
-    boolean isCORS = Configuration.getBoolean(PropertyKey.DEBUG);
-
     try {
       // TODO(cc): reconsider how to enable authentication
       if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
@@ -49,14 +47,14 @@ public final class RestUtils {
       }
     } catch (IOException e) {
       LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());
-      return createErrorResponse(e, isCORS);
+      return createErrorResponse(e);
     }
 
     try {
-      return createResponse(callable.call(), isCORS);
+      return createResponse(callable.call());
     } catch (Exception e) {
       LOG.warn("Unexpected error invoking rest endpoint: {}", e.getMessage());
-      return createErrorResponse(e, isCORS);
+      return createErrorResponse(e);
     }
   }
 
@@ -80,7 +78,7 @@ public final class RestUtils {
    * @param object the object to respond with
    * @return the response
    */
-  private static Response createResponse(Object object, boolean isCORS) {
+  private static Response createResponse(Object object) {
     if (object instanceof Void) {
       return Response.ok().build();
     }
@@ -90,13 +88,14 @@ public final class RestUtils {
       try {
         return Response.ok(mapper.writeValueAsString(object)).build();
       } catch (JsonProcessingException e) {
-        return createErrorResponse(e, isCORS);
+        return createErrorResponse(e);
       }
     }
 
     Response.ResponseBuilder rb = Response.ok(object);
 
-    if (isCORS) {
+    boolean corsEnabled = Configuration.getBoolean(PropertyKey.WEBUI_CORS_ENABLED);
+    if (corsEnabled) {
       return makeCORS(rb).build();
     }
 
@@ -147,13 +146,14 @@ public final class RestUtils {
    * @param e the exception to be converted into {@link ErrorResponse} and encoded into json
    * @return the response
    */
-  private static Response createErrorResponse(Exception e, boolean isCORS) {
+  private static Response createErrorResponse(Exception e) {
     AlluxioStatusException se = AlluxioStatusException.fromThrowable(e);
     ErrorResponse response = new ErrorResponse(se.getStatus(), se.getMessage());
 
     Response.ResponseBuilder rb = Response.serverError().entity(response);
 
-    if (isCORS) {
+    boolean corsEnabled = Configuration.getBoolean(PropertyKey.WEBUI_CORS_ENABLED);
+    if (corsEnabled) {
       return makeCORS(rb).build();
     }
 
@@ -169,6 +169,7 @@ public final class RestUtils {
    */
   public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder responseBuilder,
       String returnMethod) {
+    // TODO(william): Make origin, methods, and headers configurable.
     Response.ResponseBuilder rb = responseBuilder.header("Access-Control-Allow-Origin", "*")
         .header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 
@@ -182,11 +183,11 @@ public final class RestUtils {
   /**
    *  Makes the responseBuilder CORS compatible, assumes default methods.
    *
-   * @param req the modified response builder
+   * @param responseBuilder the modified response builder
    * @return response builder
    */
-  public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder req) {
-    return makeCORS(req, "");
+  public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder responseBuilder) {
+    return makeCORS(responseBuilder, "");
   }
 
   private RestUtils() {

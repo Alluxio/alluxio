@@ -147,7 +147,7 @@ const mapStateToProps = ({overview, refresh}: IApplicationState) => ({
   data: overview.data,
   errors: overview.errors,
   loading: overview.loading,
-  refresh: refresh.refresh
+  refresh: refresh.data
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

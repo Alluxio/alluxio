@@ -25,6 +25,9 @@ import {IConfigState} from './config/types';
 import {dataReducer, initialDataState} from './data/reducer';
 import {dataSaga} from './data/sagas';
 import {IDataState} from './data/types';
+import {initialInitState, initReducer} from './init/reducer';
+import {initSaga} from './init/sagas';
+import {IInitState} from './init/types';
 import {initialLogsState, logsReducer} from './logs/reducer';
 import {logsSaga} from './logs/sagas';
 import {ILogsState} from './logs/types';
@@ -42,6 +45,7 @@ export interface IApplicationState {
   browse: IBrowseState;
   config: IConfigState;
   data: IDataState;
+  init: IInitState;
   logs: ILogsState;
   metrics: IMetricsState;
   overview: IOverviewState;
@@ -54,6 +58,7 @@ export const rootReducer = (history: History) => combineReducers<IApplicationSta
   browse: browseReducer,
   config: configReducer,
   data: dataReducer,
+  init: initReducer,
   logs: logsReducer,
   metrics: metricsReducer,
   overview: overviewReducer,
@@ -67,6 +72,7 @@ export const rootSaga = function* () {
     fork(browseSaga),
     fork(configSaga),
     fork(dataSaga),
+    fork(initSaga),
     fork(logsSaga),
     fork(metricsSaga),
     fork(overviewSaga),
@@ -78,6 +84,7 @@ export const initialState: IApplicationState = {
   browse: initialBrowseState,
   config: initialConfigState,
   data: initialDataState,
+  init: initialInitState,
   logs: initialLogsState,
   metrics: initialMetricsState,
   overview: initialOverviewState,

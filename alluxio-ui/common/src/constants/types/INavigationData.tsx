@@ -9,9 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+export interface INavigationDataCallbackParameters {
+  [key: string]: string | number | boolean;
+}
+
 export interface INavigationData {
   attributes?: any;
   innerNavs?: INavigationData[];
   innerText: string;
-  url?: string | (() => string);
+  url?: string | ((parameters: INavigationDataCallbackParameters) => string);
 }
+

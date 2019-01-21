@@ -30,6 +30,7 @@ import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.webui.UIFileBlockInfo;
 import alluxio.util.webui.UIFileInfo;
 import alluxio.util.webui.UIStorageDir;
@@ -41,6 +42,7 @@ import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.LogInfo;
 import alluxio.wire.WorkerWebUIBlockInfo;
+import alluxio.wire.WorkerWebUIInit;
 import alluxio.wire.WorkerWebUILogs;
 import alluxio.wire.WorkerWebUIMetrics;
 import alluxio.wire.WorkerWebUIOverview;
@@ -99,6 +101,7 @@ public final class AlluxioWorkerRestServiceHandler {
 
   // endpoints
   public static final String GET_INFO = "info";
+  public static final String WEBUI_INIT = "webui_init";
   public static final String WEBUI_OVERVIEW = "webui_overview";
   public static final String WEBUI_LOGS = "webui_logs";
   public static final String WEBUI_BLOCKINFO = "webui_blockinfo";
@@ -166,6 +169,31 @@ public final class AlluxioWorkerRestServiceHandler {
             .setUptimeMs(mWorkerProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION);
         return result;
       }
+    });
+  }
+
+  /**
+   * Gets Web UI initialization data.
+   *
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_INIT)
+  @ReturnType("alluxio.wire.WorkerWebUIInit")
+  public Response getWebUIInit() {
+    return RestUtils.call(() -> {
+      WorkerWebUIInit response = new WorkerWebUIInit();
+
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
+          .setWebFileInfoEnabled(Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
+          .setSecurityAuthorizationPermissionEnabled(
+              Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
+          .setMasterHostname(
+              NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_WEB))
+          .setMasterPort(Configuration.getInt(PropertyKey.MASTER_WEB_PORT))
+          .setRefreshInterval(Configuration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
+
+      return response;
     });
   }
 

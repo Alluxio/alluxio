@@ -226,7 +226,7 @@ const mapStateToProps = ({logs, refresh}: IApplicationState) => ({
   data: logs.data,
   errors: logs.errors,
   loading: logs.loading,
-  refresh: refresh.refresh
+  refresh: refresh.data
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

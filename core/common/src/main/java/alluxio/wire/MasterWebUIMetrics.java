@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWebUIMetrics implements Serializable {
-  private static final long serialVersionUID = 6589358568781503724L;
+  private static final long serialVersionUID = -2078580961778090417L;
 
   private int mMasterCapacityFreePercentage;
   private int mMasterCapacityUsedPercentage;

@@ -381,6 +381,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "should be the same on the clients and server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
+  public static final PropertyKey WEBUI_CORS_ENABLED =
+      new Builder(Name.WEBUI_CORS_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable Cross-Origin Resource Sharing for RESTful API"
+              + "endpoints.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey WEBUI_REFRESH_INTERVAL_MS =
+      new Builder(Name.WEBUI_REFRESH_INTERVAL_MS)
+          .setDefaultValue(15000)
+          .setDescription("The amount of time in milliseconds to await before refreshing the Web "
+              + "UI if it is set to auto refresh.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   /**
    * @deprecated since 1.8.0 and will be removed in 2.0.
    */
@@ -3477,6 +3491,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_TEMP_PATH = "alluxio.web.temp.path";
     public static final String WEB_THREADS = "alluxio.web.threads";
+    public static final String WEBUI_CORS_ENABLED = "alluxio.webui.cors.enabled";
+    public static final String WEBUI_REFRESH_INTERVAL_MS =
+        "alluxio.webui.refresh.interval.ms";
     public static final String WORK_DIR = "alluxio.work.dir";
     public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
     public static final String ZOOKEEPER_CONNECTION_TIMEOUT =

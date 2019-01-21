@@ -11,8 +11,6 @@
 
 package alluxio.master.meta;
 
-import static alluxio.Configuration.getBoolean;
-
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationValueOptions;
@@ -72,6 +70,7 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.MasterWebUIBrowse;
 import alluxio.wire.MasterWebUIConfiguration;
 import alluxio.wire.MasterWebUIData;
+import alluxio.wire.MasterWebUIInit;
 import alluxio.wire.MasterWebUIOverview;
 import alluxio.wire.MasterWebUIWorkers;
 import alluxio.wire.WorkerInfo;
@@ -130,6 +129,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   // endpoints
   public static final String GET_INFO = "info";
+  public static final String WEBUI_INIT = "webui_init";
   public static final String WEBUI_OVERVIEW = "webui_overview";
   public static final String WEBUI_BROWSE = "webui_browse";
   public static final String WEBUI_DATA = "webui_data";
@@ -214,7 +214,30 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * Gets web ui overview page data.
+   * Gets Web UI initialization data.
+   *
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_INIT)
+  @ReturnType("alluxio.wire.MasterWebUIInit")
+  public Response getWebUIInit() {
+    return RestUtils.call(() -> {
+      MasterWebUIInit response = new MasterWebUIInit();
+
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
+          .setWebFileInfoEnabled(Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
+          .setSecurityAuthorizationPermissionEnabled(
+              Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
+          .setWorkerPort(Configuration.getInt(PropertyKey.WORKER_WEB_PORT))
+          .setRefreshInterval(Configuration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
+
+      return response;
+    });
+  }
+
+  /**
+   * Gets Web UI overview page data.
    *
    * @return the response object
    */
@@ -311,7 +334,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * Gets web ui browse page data.
+   * Gets Web UI browse page data.
    *
    * @param requestPath the request path
    * @param requestOffset the request offset
@@ -517,7 +540,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * Gets web ui data page data.
+   * Gets Web UI data page data.
    *
    * @param requestOffset the request offset
    * @param requestLimit the request limit
@@ -588,7 +611,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * Gets web ui logs page data.
+   * Gets Web UI logs page data.
    *
    * @param requestPath the request path
    * @param requestOffset the request offset
@@ -725,7 +748,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * Gets web ui configuration page data.
+   * Gets Web UI configuration page data.
    *
    * @return the response object
    */
@@ -757,7 +780,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * Gets web ui workers page data.
+   * Gets Web UI workers page data.
    *
    * @return the response object
    */
@@ -768,7 +791,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIWorkers response = new MasterWebUIWorkers();
 
-      response.setDebug(getBoolean(PropertyKey.DEBUG));
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
 
       List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
       NodeInfo[] normalNodeInfos = WebUtils.generateOrderedNodeInfos(workerInfos);
@@ -783,7 +806,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * Gets web ui metrics page data.
+   * Gets Web UI metrics page data.
    *
    * @return the response object
    */

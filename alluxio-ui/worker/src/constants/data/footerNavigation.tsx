@@ -9,20 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {INavigationData} from '..';
+import {INavigationData} from '@alluxio/common-ui/src/constants';
 
 export const footerNavigationData : INavigationData[] = [{
   innerText: 'Project Website',
-  url: 'http://alluxio.org/'
+  url: 'https://alluxio.org/'
 }, {
   innerText: 'User Mailing List',
   url: 'https://groups.google.com/forum/#!forum/alluxio-users'
 }, {
   innerText: 'User Survey',
-  url: 'http://alluxio.org/resources/survey-users'
+  url: 'https://alluxio.org/resources/survey-users'
 }, {
   innerText: 'Workers',
-  url: '/workers'
+  url: ({masterHostname, masterPort}) => `${window.location.protocol}//${masterHostname}:${masterPort}/workers`
 }, {
   innerText: 'Resources',
   url: 'https://alluxio.org/alluxio-resources/'

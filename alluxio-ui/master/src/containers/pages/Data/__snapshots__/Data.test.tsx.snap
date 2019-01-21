@@ -35,6 +35,7 @@ exports[`Data App with connected component Matches snapshot 1`] = `
     }
   >
     <App
+      fetchRequest={[Function]}
       history={
         Object {
           "action": "PUSH",
@@ -55,6 +56,17 @@ exports[`Data App with connected component Matches snapshot 1`] = `
           "replace": [Function],
         }
       }
+      init={
+        Object {
+          "debug": false,
+          "refreshInterval": 15000,
+          "securityAuthorizationPermissionEnabled": false,
+          "webFileInfoEnabled": false,
+          "workerPort": 30000,
+        }
+      }
+      loading={true}
+      refresh={false}
       triggerRefresh={[Function]}
     >
       <Connect(ConnectedRouterWithContext)
@@ -926,7 +938,7 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                       Array [
                         Object {
                           "innerText": "Project Website",
-                          "url": "http://alluxio.org/",
+                          "url": "https://alluxio.org/",
                         },
                         Object {
                           "innerText": "User Mailing List",
@@ -934,7 +946,7 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                         },
                         Object {
                           "innerText": "User Survey",
-                          "url": "http://alluxio.org/resources/survey-users",
+                          "url": "https://alluxio.org/resources/survey-users",
                         },
                         Object {
                           "innerText": "Workers",
@@ -961,19 +973,19 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                             className="nav"
                           >
                             <NavItem
-                              key="http://alluxio.org/"
+                              key="https://alluxio.org/"
                               tag="li"
                             >
                               <li
                                 className="nav-item"
                               >
                                 <NavLink
-                                  href="http://alluxio.org/"
+                                  href="https://alluxio.org/"
                                   tag="a"
                                 >
                                   <a
                                     className="nav-link"
-                                    href="http://alluxio.org/"
+                                    href="https://alluxio.org/"
                                     onClick={[Function]}
                                   >
                                     Project Website
@@ -1003,19 +1015,19 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                               </li>
                             </NavItem>
                             <NavItem
-                              key="http://alluxio.org/resources/survey-users"
+                              key="https://alluxio.org/resources/survey-users"
                               tag="li"
                             >
                               <li
                                 className="nav-item"
                               >
                                 <NavLink
-                                  href="http://alluxio.org/resources/survey-users"
+                                  href="https://alluxio.org/resources/survey-users"
                                   tag="a"
                                 >
                                   <a
                                     className="nav-link"
-                                    href="http://alluxio.org/resources/survey-users"
+                                    href="https://alluxio.org/resources/survey-users"
                                     onClick={[Function]}
                                   >
                                     User Survey

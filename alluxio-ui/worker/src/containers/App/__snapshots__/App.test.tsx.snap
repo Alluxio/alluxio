@@ -13,6 +13,7 @@ exports[`App Connected component Matches snapshot 1`] = `
   }
 >
   <Connect(App)
+    fetchRequest={[Function]}
     history={
       Object {
         "action": "REPLACE",
@@ -33,8 +34,22 @@ exports[`App Connected component Matches snapshot 1`] = `
         "replace": [Function],
       }
     }
+    init={
+      Object {
+        "debug": false,
+        "masterHostname": "",
+        "masterPort": 19999,
+        "refreshInterval": 15000,
+        "securityAuthorizationPermissionEnabled": false,
+        "webFileInfoEnabled": false,
+      }
+    }
+    loading={false}
+    refresh={false}
+    triggerRefresh={[Function]}
   >
     <App
+      fetchRequest={[Function]}
       history={
         Object {
           "action": "REPLACE",
@@ -55,6 +70,18 @@ exports[`App Connected component Matches snapshot 1`] = `
           "replace": [Function],
         }
       }
+      init={
+        Object {
+          "debug": false,
+          "masterHostname": "",
+          "masterPort": 19999,
+          "refreshInterval": 15000,
+          "securityAuthorizationPermissionEnabled": false,
+          "webFileInfoEnabled": false,
+        }
+      }
+      loading={true}
+      refresh={false}
       triggerRefresh={[Function]}
     >
       <Connect(ConnectedRouterWithContext)
@@ -164,6 +191,12 @@ exports[`App Connected component Matches snapshot 1`] = `
                 >
                   <Header
                     autoRefreshCallback={[Function]}
+                    callbackParameters={
+                      Object {
+                        "masterHostname": "",
+                        "masterPort": 19999,
+                      }
+                    }
                     data={
                       Array [
                         Object {
@@ -452,7 +485,7 @@ exports[`App Connected component Matches snapshot 1`] = `
                                       </li>
                                     </NavItem>
                                     <NavItem
-                                      key="http://localhost"
+                                      key="http://:19999"
                                       tag="li"
                                     >
                                       <li
@@ -460,23 +493,23 @@ exports[`App Connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={false}
-                                          href="http://localhost"
+                                          href="http://:19999"
                                           onClick={[Function]}
                                           tag={[Function]}
-                                          to="http://localhost"
+                                          to="http://:19999"
                                         >
                                           <NavLink
                                             className="nav-link"
-                                            href="http://localhost"
+                                            href="http://:19999"
                                             onClick={[Function]}
                                             tag="a"
-                                            to="http://localhost"
+                                            to="http://:19999"
                                           >
                                             <a
                                               className="nav-link nav-link"
-                                              href="http://localhost"
+                                              href="http://:19999"
                                               onClick={[Function]}
-                                              to="http://localhost"
+                                              to="http://:19999"
                                             >
                                               Return to Master
                                             </a>
@@ -884,11 +917,17 @@ exports[`App Connected component Matches snapshot 1`] = `
                   className="container-fluid footer-wrapper"
                 >
                   <Footer
+                    callbackParameters={
+                      Object {
+                        "masterHostname": "",
+                        "masterPort": 19999,
+                      }
+                    }
                     data={
                       Array [
                         Object {
                           "innerText": "Project Website",
-                          "url": "http://alluxio.org/",
+                          "url": "https://alluxio.org/",
                         },
                         Object {
                           "innerText": "User Mailing List",
@@ -896,11 +935,11 @@ exports[`App Connected component Matches snapshot 1`] = `
                         },
                         Object {
                           "innerText": "User Survey",
-                          "url": "http://alluxio.org/resources/survey-users",
+                          "url": "https://alluxio.org/resources/survey-users",
                         },
                         Object {
                           "innerText": "Workers",
-                          "url": "/workers",
+                          "url": [Function],
                         },
                         Object {
                           "innerText": "Resources",
@@ -923,19 +962,19 @@ exports[`App Connected component Matches snapshot 1`] = `
                             className="nav"
                           >
                             <NavItem
-                              key="http://alluxio.org/"
+                              key="https://alluxio.org/"
                               tag="li"
                             >
                               <li
                                 className="nav-item"
                               >
                                 <NavLink
-                                  href="http://alluxio.org/"
+                                  href="https://alluxio.org/"
                                   tag="a"
                                 >
                                   <a
                                     className="nav-link"
-                                    href="http://alluxio.org/"
+                                    href="https://alluxio.org/"
                                     onClick={[Function]}
                                   >
                                     Project Website
@@ -965,19 +1004,19 @@ exports[`App Connected component Matches snapshot 1`] = `
                               </li>
                             </NavItem>
                             <NavItem
-                              key="http://alluxio.org/resources/survey-users"
+                              key="https://alluxio.org/resources/survey-users"
                               tag="li"
                             >
                               <li
                                 className="nav-item"
                               >
                                 <NavLink
-                                  href="http://alluxio.org/resources/survey-users"
+                                  href="https://alluxio.org/resources/survey-users"
                                   tag="a"
                                 >
                                   <a
                                     className="nav-link"
-                                    href="http://alluxio.org/resources/survey-users"
+                                    href="https://alluxio.org/resources/survey-users"
                                     onClick={[Function]}
                                   >
                                     User Survey
@@ -986,19 +1025,19 @@ exports[`App Connected component Matches snapshot 1`] = `
                               </li>
                             </NavItem>
                             <NavItem
-                              key="/workers"
+                              key="http://:19999/workers"
                               tag="li"
                             >
                               <li
                                 className="nav-item"
                               >
                                 <NavLink
-                                  href="/workers"
+                                  href="http://:19999/workers"
                                   tag="a"
                                 >
                                   <a
                                     className="nav-link"
-                                    href="/workers"
+                                    href="http://:19999/workers"
                                     onClick={[Function]}
                                   >
                                     Workers
@@ -1074,6 +1113,12 @@ exports[`App Shallow component Matches snapshot 1`] = `
     >
       <Header
         autoRefreshCallback={[Function]}
+        callbackParameters={
+          Object {
+            "masterHostname": "",
+            "masterPort": 19999,
+          }
+        }
         data={
           Array [
             Object {
@@ -1158,11 +1203,17 @@ exports[`App Shallow component Matches snapshot 1`] = `
       className="container-fluid footer-wrapper"
     >
       <Footer
+        callbackParameters={
+          Object {
+            "masterHostname": "",
+            "masterPort": 19999,
+          }
+        }
         data={
           Array [
             Object {
               "innerText": "Project Website",
-              "url": "http://alluxio.org/",
+              "url": "https://alluxio.org/",
             },
             Object {
               "innerText": "User Mailing List",
@@ -1170,11 +1221,11 @@ exports[`App Shallow component Matches snapshot 1`] = `
             },
             Object {
               "innerText": "User Survey",
-              "url": "http://alluxio.org/resources/survey-users",
+              "url": "https://alluxio.org/resources/survey-users",
             },
             Object {
               "innerText": "Workers",
-              "url": "/workers",
+              "url": [Function],
             },
             Object {
               "innerText": "Resources",

@@ -52,10 +52,8 @@ history.listen((loc: Location, action: Action) => {
 const store = configureStore(history, initialState);
 
 ReactDOM.render(
-  <React.Fragment>
-    <Provider store={store}>
-      <App history={history}/>
-    </Provider>
-  </React.Fragment>,
+  <Provider store={store}>
+    <App history={history}/>
+  </Provider>,
   document.getElementById('root') as HTMLElement
 );

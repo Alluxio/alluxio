@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class WorkerWebUIOverview implements Serializable {
-  private static final long serialVersionUID = 6589358568781503724L;
+  private static final long serialVersionUID = -518535767688463473L;
 
   private List<UIStorageDir> mStorageDirs;
   private List<UIUsageOnTier> mUsageOnTiers;

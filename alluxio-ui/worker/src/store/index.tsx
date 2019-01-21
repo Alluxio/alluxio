@@ -28,9 +28,13 @@ import {IMetricsState} from './metrics/types';
 import {initialOverviewState, overviewReducer} from './overview/reducer';
 import {overviewSaga} from './overview/sagas';
 import {IOverviewState} from './overview/types';
+import {IInit, IInitState} from './init/types';
+import {initialInitState, initReducer} from './init/reducer';
+import {initSaga} from './init/sagas';
 
 export interface IApplicationState {
-  blockInfo: IBlockInfoState
+  blockInfo: IBlockInfoState;
+  init: IInitState;
   logs: ILogsState;
   metrics: IMetricsState;
   overview: IOverviewState;
@@ -40,6 +44,7 @@ export interface IApplicationState {
 
 export const rootReducer = (history: History) => combineReducers<IApplicationState>({
   blockInfo: blockInfoReducer,
+  init: initReducer,
   logs: logsReducer,
   metrics: metricsReducer,
   overview: overviewReducer,
@@ -50,6 +55,7 @@ export const rootReducer = (history: History) => combineReducers<IApplicationSta
 export const rootSaga = function* () {
   yield all([
     fork(blockInfoSaga),
+    fork(initSaga),
     fork(logsSaga),
     fork(metricsSaga),
     fork(overviewSaga)
@@ -58,6 +64,7 @@ export const rootSaga = function* () {
 
 export const initialState: IApplicationState = {
   blockInfo: initialBlockInfoState,
+  init: initialInitState,
   logs: initialLogsState,
   metrics: initialMetricsState,
   overview: initialOverviewState,

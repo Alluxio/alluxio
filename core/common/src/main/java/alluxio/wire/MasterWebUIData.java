@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWebUIData implements Serializable {
-  private static final long serialVersionUID = 6589358568781503724L;
+  private static final long serialVersionUID = 6230017471420697680L;
 
   private boolean mShowPermissions;
   private int mInAlluxioFileNum;
