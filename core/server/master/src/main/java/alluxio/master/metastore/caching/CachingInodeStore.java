@@ -534,11 +534,9 @@ public final class CachingInodeStore implements InodeStore {
     public void addEdge(Edge edge, Long childId) {
       mMap.compute(edge.getId(), (key, entry) -> {
         if (entry != null) {
-          synchronized (entry) {
-            entry.mModified = true;
-            if (entry.mChildren != null) {
-              entry.addChild(edge.getName(), childId);
-            }
+          entry.mModified = true;
+          if (entry.mChildren != null) {
+            entry.addChild(edge.getName(), childId);
           }
         }
         return entry;
@@ -553,11 +551,9 @@ public final class CachingInodeStore implements InodeStore {
     public void removeEdge(Edge edge) {
       mMap.compute(edge.getId(), (key, entry) -> {
         if (entry != null) {
-          synchronized (entry) {
-            entry.mModified = true;
-            if (entry.mChildren != null) {
-              entry.removeChild(edge.getName());
-            }
+          entry.mModified = true;
+          if (entry.mChildren != null) {
+            entry.removeChild(edge.getName());
           }
         }
         return entry;
@@ -599,6 +595,9 @@ public final class CachingInodeStore implements InodeStore {
       }
       if (mWeight.get() < mMaxSize && entry.mLoading.compareAndSet(false, true)) {
         try {
+          if (entry.mChildren != null) {
+            return entry.mChildren.values();
+          }
           return loadChildren(inodeId, entry).values();
         } finally {
           entry.mLoading.set(false);
@@ -608,13 +607,7 @@ public final class CachingInodeStore implements InodeStore {
     }
 
     private SortedMap<String, Long> loadChildren(Long inodeId, ListingCacheEntry entry) {
-      synchronized (entry) {
-        if (entry.mChildren != null) {
-          return entry.mChildren;
-        }
-        entry.mModified = false;
-      }
-
+      entry.mModified = false;
       if (mWeight.get() > mHighWaterMark) {
         if (mEvictionLock.tryLock()) {
           try {
@@ -629,13 +622,17 @@ public final class CachingInodeStore implements InodeStore {
           }
         }
       }
+
       SortedMap<String, Long> listing = mEdgeCache.getChildIds(inodeId);
-      synchronized (entry) {
+      mMap.computeIfPresent(inodeId, (key, children) -> {
+        // Perform the update inside computeIfPresent to prevent concurrent modification to the
+        // cache entry.
         if (!entry.mModified) {
           entry.mChildren = new ConcurrentSkipListMap<>(listing);
           mWeight.addAndGet(entry.mChildren.size() + 1);
         }
-      }
+        return children;
+      });
       return listing;
     }
 
@@ -666,13 +663,10 @@ public final class CachingInodeStore implements InodeStore {
     }
 
     private class ListingCacheEntry {
-      private boolean mModified = false;
-      private boolean mReferenced = false;
-      private AtomicBoolean mLoading = new AtomicBoolean(false);
-      // All modifications to mChildren, whether setting mChildren itself or modifying the map,
-      // should be synchronized on the ListingCacheEntry.
-      @GuardedBy("this")
-      private ConcurrentSkipListMap<String, Long> mChildren = null;
+      private final AtomicBoolean mLoading = new AtomicBoolean(false);
+      private volatile boolean mModified = false;
+      private volatile boolean mReferenced = false;
+      private volatile ConcurrentSkipListMap<String, Long> mChildren = null;
 
       public void addChild(String name, Long id) {
         if (mChildren.put(name, id) == null) {

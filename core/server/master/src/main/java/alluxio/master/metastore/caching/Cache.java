@@ -16,6 +16,7 @@ import alluxio.metrics.MetricsSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.Thread.State;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
@@ -69,7 +70,6 @@ public abstract class Cache<K, V> {
     mEvictionThread = new EvictionThread();
     mEvictionThread.setDaemon(true);
     mEvictionThread.setPriority(6);
-    mEvictionThread.start();
   }
 
   /**
@@ -148,14 +148,20 @@ public abstract class Cache<K, V> {
     mMap.clear();
   }
 
+  private void kickEvictionThread() {
+    synchronized (mEvictionThread) {
+      if (mEvictionThread.getState() == State.NEW) {
+        mEvictionThread.start();
+      }
+      mEvictionThread.notifyAll();
+    }
+  }
+
   private void blockIfCacheFull() {
     while (mMap.size() >= mMaxSize) {
       LOG.info("{}: map size: {}, max size: {}, high water: {}", mName, mMap.size(), mMaxSize,
           mHighWaterMark);
-      // Make sure the eviction thread is doing work.
-      synchronized (mEvictionThread) {
-        mEvictionThread.notify();
-      }
+      kickEvictionThread();
       // Wait for the eviction thread to finish before continuing.
       synchronized (mCacheFull) {
         try {
@@ -172,9 +178,7 @@ public abstract class Cache<K, V> {
 
   private void wakeEvictionThreadIfNecessary() {
     if (mEvictionThread.mIsSleeping && mMap.size() >= mHighWaterMark) {
-      synchronized (mEvictionThread) {
-        mEvictionThread.notify();
-      }
+      kickEvictionThread();
     }
   }
 
@@ -361,6 +365,7 @@ public abstract class Cache<K, V> {
     // Whether the entry has been recently accessed. Accesses set the bit to true, while the
     // eviction thread sets it to false. This is the same as the "referenced" bit described in the
     // CLOCK algorithm.
+
     private volatile boolean mReferenced = true;
 
     private Entry(K key, V value) {

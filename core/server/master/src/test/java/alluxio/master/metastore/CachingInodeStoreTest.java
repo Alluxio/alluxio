@@ -54,7 +54,7 @@ public class CachingInodeStoreTest {
         InstancedConfiguration.newBuilder()
             .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE)
             .build());
-    mStore.writeNewInode(TEST_INODE_DIR, true);
+    mStore.writeNewInode(TEST_INODE_DIR);
   }
 
   @Test
@@ -112,7 +112,7 @@ public class CachingInodeStoreTest {
       MutableInodeFile child =
           MutableInodeFile.create(id, TEST_INODE_ID, "child" + id, 0, CreateFileOptions.defaults());
       children.add(Inode.wrap(child));
-      mStore.writeNewInode(child, true);
+      mStore.writeNewInode(child);
       mStore.addChild(TEST_INODE_ID, child);
     }
     assertEquals(10, Iterables.size(mStore.getChildren(TEST_INODE_DIR)));
