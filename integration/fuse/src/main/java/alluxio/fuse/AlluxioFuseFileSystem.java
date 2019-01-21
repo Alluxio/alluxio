@@ -415,7 +415,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       }
 
       if (mOpenFiles.size() >= MAX_OPEN_FILES) {
-        LOG.error("Cannot open {}: too many open files", path);
+        LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})", path, MAX_OPEN_FILES);
         return ErrorCodes.EMFILE();
       }
 
@@ -441,7 +441,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @param buf FUSE buffer to fill with data read
    * @param size how many bytes to read. The maximum value that is accepted
    *             on this method is {@link Integer#MAX_VALUE} (note that current
-   *             FUSE implementation will call this metod whit a size of
+   *             FUSE implementation will call this method with a size of
    *             at most 128K).
    * @param offset offset of the read operation
    * @param fi FileInfo data structure kept by FUSE
@@ -580,7 +580,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         }
       }
     } catch (Throwable t) {
-      LOG.error("Failed to rename {} to ", oldPath, newPath, t);
+      LOG.error("Failed to rename {} to {}", oldPath, newPath, t);
       return AlluxioFuseUtils.getErrorCode(t);
     }
 

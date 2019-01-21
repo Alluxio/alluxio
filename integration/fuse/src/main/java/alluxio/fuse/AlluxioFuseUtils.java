@@ -168,6 +168,8 @@ public final class AlluxioFuseUtils {
    * @return the corresponding error code
    */
   public static int getErrorCode(Throwable t) {
+    // Error codes and their explanations are described in
+    // the Errno.java in jnr-constants
     if (t instanceof AlluxioException) {
       return getAlluxioErrorCode((AlluxioException) t);
     } else if (t instanceof IOException) {
