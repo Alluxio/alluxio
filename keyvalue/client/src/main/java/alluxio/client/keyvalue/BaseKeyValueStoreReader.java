@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.PartitionInfo;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
@@ -52,7 +52,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   BaseKeyValueStoreReader(AlluxioURI uri, ClientContext ctx) throws IOException {
     // TODO(binfan): use a thread pool to manage the client.
     LOG.info("Create KeyValueStoreReader for {}", uri);
-    mMasterClient = new KeyValueMasterClient(MasterClientConfig.newBuilder(ctx).build());
+    mMasterClient = new KeyValueMasterClient(MasterClientContext.newBuilder(ctx).build());
     mPartitions = mMasterClient.getPartitionInfo(uri);
     mMasterClient.close();
     mCtx = ctx;

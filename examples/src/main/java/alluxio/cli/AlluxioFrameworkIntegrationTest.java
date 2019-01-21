@@ -21,7 +21,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.WaitForOptions;
@@ -104,7 +104,7 @@ public final class AlluxioFrameworkIntegrationTest {
       LOG.info("Launched Alluxio cluster, waiting for worker to register with master");
       ClientContext ctx = ClientContext.create(sConf);
       try (final BlockMasterClient client =
-          BlockMasterClient.Factory.create(MasterClientConfig.newBuilder(ctx).build())) {
+          BlockMasterClient.Factory.create(MasterClientContext.newBuilder(ctx).build())) {
         CommonUtils.waitFor("Alluxio worker to register with master", () -> {
           try {
             try {

@@ -26,7 +26,7 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.TierList;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -50,7 +50,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    *
    * @param conf master client configuration
    */
-  public BlockMasterClient(MasterClientConfig conf) {
+  public BlockMasterClient(MasterClientContext conf) {
     super(conf);
   }
 

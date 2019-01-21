@@ -16,24 +16,24 @@ import alluxio.ClientContext;
 /**
  * Configuration for constructing an Alluxio master client.
  */
-public class MasterClientConfig extends ClientContext {
+public class MasterClientContext extends ClientContext {
   private MasterInquireClient mMasterInquireClient;
 
   // Prevent outside instantiation
-  protected MasterClientConfig(ClientContext ctx, MasterInquireClient masterInquireClient) {
+  protected MasterClientContext(ClientContext ctx, MasterInquireClient masterInquireClient) {
     super(ctx);
     mMasterInquireClient = masterInquireClient;
   }
 
   /**
-   * Create an instance of a {@link MasterClientConfigBuilder} which can be used to obtain and
-   * instance of {@link MasterClientConfig}.
+   * Create an instance of a {@link MasterClientContextBuilder} which can be used to obtain and
+   * instance of {@link MasterClientContext}.
    *
    * @param ctx The context to base
-   * @return A builder for a {@link MasterClientConfig}
+   * @return A builder for a {@link MasterClientContext}
    */
-  public static MasterClientConfigBuilder newBuilder(ClientContext ctx) {
-    return new MasterClientConfigBuilder(ctx);
+  public static MasterClientContextBuilder newBuilder(ClientContext ctx) {
+    return new MasterClientContextBuilder(ctx);
   }
 
   /**

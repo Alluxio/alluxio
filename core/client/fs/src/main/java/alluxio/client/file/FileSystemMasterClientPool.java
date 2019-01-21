@@ -13,7 +13,7 @@ package alluxio.client.file;
 
 import alluxio.ClientContext;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.ResourcePool;
 
@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
   private final Queue<FileSystemMasterClient> mClientList;
-  private final MasterClientConfig mMasterContext;
+  private final MasterClientContext mMasterContext;
 
   /**
    * Creates a new file system master client pool.
@@ -43,7 +43,7 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
       MasterInquireClient masterInquireClient) {
     super(context.getConf().getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
     mClientList = new ConcurrentLinkedQueue<>();
-    mMasterContext = MasterClientConfig.newBuilder(context)
+    mMasterContext = MasterClientContext.newBuilder(context)
             .setMasterInquireClient(masterInquireClient).build();
   }
 

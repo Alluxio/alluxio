@@ -17,7 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.UfsInfo;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.master.file.FileSystemMasterClient;
 import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
@@ -45,7 +45,7 @@ public final class JobUfsManager extends AbstractUfsManager {
    */
   public JobUfsManager() {
     mMasterClient =
-        mCloser.register(new FileSystemMasterClient(MasterClientConfig
+        mCloser.register(new FileSystemMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build()));
   }
 

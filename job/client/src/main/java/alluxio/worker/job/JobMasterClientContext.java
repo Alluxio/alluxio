@@ -13,25 +13,25 @@ package alluxio.worker.job;
 
 import alluxio.ClientContext;
 
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 
 /**
- * Extension of MasterClientConfig with defaults that make sense for job master clients.
+ * Extension of MasterClientContext with defaults that make sense for job master clients.
  */
-public class JobMasterClientConfig extends MasterClientConfig {
+public class JobMasterClientContext extends MasterClientContext {
 
   /**
-   * Create a builder for {@link JobMasterClientConfig}.
+   * Create a builder for {@link JobMasterClientContext}.
    *
    * @param context information used to connect to Alluxio
-   * @return the builder for {@link JobMasterClientConfig}
+   * @return the builder for {@link JobMasterClientContext}
    */
-  public static JobMasterClientConfigBuilder newBuilder(ClientContext context) {
-    return new JobMasterClientConfigBuilder(context);
+  public static JobMasterClientContextBuilder newBuilder(ClientContext context) {
+    return new JobMasterClientContextBuilder(context);
   }
 
-  protected JobMasterClientConfig(ClientContext context, MasterInquireClient masterInquireClient) {
+  protected JobMasterClientContext(ClientContext context, MasterInquireClient masterInquireClient) {
     super(context, masterInquireClient);
   }
 }

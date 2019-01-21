@@ -13,7 +13,7 @@ package alluxio.client.block;
 
 import alluxio.Client;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
@@ -44,7 +44,7 @@ public interface BlockMasterClient extends Client {
      * @param conf master client configuration
      * @return a new {@link BlockMasterClient} instance
      */
-    public static BlockMasterClient create(MasterClientConfig conf) {
+    public static BlockMasterClient create(MasterClientContext conf) {
       return new RetryHandlingBlockMasterClient(conf);
     }
   }

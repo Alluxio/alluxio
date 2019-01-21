@@ -22,7 +22,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -52,7 +52,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void getInfoAllFields() throws Exception {
     try (MetaMasterClient client =
-        new RetryHandlingMetaMasterClient(MasterClientConfig
+        new RetryHandlingMetaMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       MasterInfo info = client.getMasterInfo(Collections.emptySet());
       assertEquals(mWebPort, info.getWebPort());
@@ -62,7 +62,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void getMasterInfoWebPort() throws Exception {
     try (MetaMasterClient client =
-        new RetryHandlingMetaMasterClient(MasterClientConfig
+        new RetryHandlingMetaMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       MasterInfo info = client.getMasterInfo(new HashSet<>(Arrays
           .asList(MasterInfoField.WEB_PORT)));
@@ -73,7 +73,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void getConfigurationWebPort() throws Exception {
     try (MetaMasterConfigClient client =
-             new RetryHandlingMetaMasterConfigClient(MasterClientConfig
+             new RetryHandlingMetaMasterConfigClient(MasterClientContext
                  .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       List<ConfigProperty> configList = client.getConfiguration();
       int configWebPort = -1;

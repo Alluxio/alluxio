@@ -13,7 +13,7 @@ package alluxio.client.job;
 
 import alluxio.conf.PropertyKey;
 import alluxio.resource.ResourcePool;
-import alluxio.worker.job.JobMasterClientConfig;
+import alluxio.worker.job.JobMasterClientContext;
 
 import java.io.IOException;
 import java.util.Queue;
@@ -29,14 +29,14 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class JobMasterClientPool extends ResourcePool<JobMasterClient> {
   private final Queue<JobMasterClient> mClientList;
-  private final JobMasterClientConfig mMasterContext;
+  private final JobMasterClientContext mMasterContext;
 
   /**
    * Creates a new job master client pool.
    *
    * @param context Job master connection information
    */
-  public JobMasterClientPool(JobMasterClientConfig context) {
+  public JobMasterClientPool(JobMasterClientContext context) {
     super(context.getConf().getInt(PropertyKey.JOB_MASTER_CLIENT_THREADS));
     mClientList = new ConcurrentLinkedQueue<>();
     mMasterContext = context;

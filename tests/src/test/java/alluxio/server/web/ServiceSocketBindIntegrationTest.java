@@ -17,7 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.master.SingleMasterInquireClient;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -68,7 +68,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
     mBlockMasterClient =
-        BlockMasterClient.Factory.create(MasterClientConfig
+        BlockMasterClient.Factory.create(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     mBlockMasterClient.connect();
 
@@ -164,7 +164,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRpcAddr = new InetSocketAddress("127.0.0.1",
         mLocalAlluxioCluster.getLocalAlluxioMaster().getRpcLocalPort());
-    mBlockMasterClient = BlockMasterClient.Factory.create(MasterClientConfig
+    mBlockMasterClient = BlockMasterClient.Factory.create(MasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global()))
         .setMasterInquireClient(new SingleMasterInquireClient(masterRpcAddr))
         .build());

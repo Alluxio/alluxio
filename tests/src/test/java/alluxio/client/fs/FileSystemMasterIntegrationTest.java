@@ -47,7 +47,7 @@ import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -500,7 +500,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     assertFalse(fs.exists(dir));
     // Make sure that the blocks are cleaned up
     BlockMasterClient blockClient =
-        BlockMasterClient.Factory.create(MasterClientConfig
+        BlockMasterClient.Factory.create(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     CommonUtils.waitFor("data to be deleted", () -> {
       try {

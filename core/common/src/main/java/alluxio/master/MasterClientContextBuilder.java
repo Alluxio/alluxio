@@ -16,19 +16,19 @@ import alluxio.ClientContext;
 import com.google.common.base.Preconditions;
 
 /**
- * This class can be used to obtain instances of a {@link MasterClientConfig}. This is the
+ * This class can be used to obtain instances of a {@link MasterClientContext}. This is the
  * preferred method of creating master client configurations.
  */
-public class MasterClientConfigBuilder {
+public class MasterClientContextBuilder {
   protected ClientContext mContext;
   protected MasterInquireClient mMasterInquireClient;
 
   /**
-   * Create an instance of a {@link MasterClientConfigBuilder}.
+   * Create an instance of a {@link MasterClientContextBuilder}.
    *
    * @param ctx The {@link ClientContext} to base the configuration on
    */
-  public MasterClientConfigBuilder(ClientContext ctx) {
+  public MasterClientContextBuilder(ClientContext ctx) {
     mContext = Preconditions.checkNotNull(ctx);
   }
 
@@ -38,19 +38,19 @@ public class MasterClientConfigBuilder {
    * @param masterInquireClient the master inquire client
    * @return the builder
    */
-  public MasterClientConfigBuilder setMasterInquireClient(
+  public MasterClientContextBuilder setMasterInquireClient(
       MasterInquireClient masterInquireClient) {
     mMasterInquireClient = masterInquireClient;
     return this;
   }
 
   /**
-   * @return an instance of {@link MasterClientConfig}
+   * @return an instance of {@link MasterClientContext}
    */
-  public MasterClientConfig build() {
+  public MasterClientContext build() {
     if (mMasterInquireClient == null) {
       mMasterInquireClient = MasterInquireClient.Factory.create(mContext.getConf());
     }
-    return new MasterClientConfig(mContext, mMasterInquireClient);
+    return new MasterClientContext(mContext, mMasterInquireClient);
   }
 }

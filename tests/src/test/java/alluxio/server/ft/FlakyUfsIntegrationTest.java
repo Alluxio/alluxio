@@ -28,7 +28,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystem;
@@ -105,7 +105,7 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
     assertThat(deleted, Matchers.lessThan(90));
     mFs.free(new AlluxioURI("/"), FreePOptions.newBuilder().setRecursive(true).build());
     BlockMasterClient blockClient =
-        BlockMasterClient.Factory.create(MasterClientConfig
+        BlockMasterClient.Factory.create(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     CommonUtils.waitFor("data to be freed", () -> {
       try {

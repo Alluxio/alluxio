@@ -216,7 +216,7 @@ public final class FileSystemContext implements Closeable {
 
     if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
-      mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig
+      mMetricsMasterClient = new MetricsMasterClient(MasterClientContext
           .newBuilder(mClientContext)
           .setMasterInquireClient(mMasterInquireClient)
           .build());

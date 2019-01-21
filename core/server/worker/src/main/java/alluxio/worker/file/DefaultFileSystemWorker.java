@@ -20,7 +20,7 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -80,7 +80,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
 
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient =
-        new FileSystemMasterClient(MasterClientConfig
+        new FileSystemMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
   }
 

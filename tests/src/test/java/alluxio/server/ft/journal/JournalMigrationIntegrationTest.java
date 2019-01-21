@@ -21,7 +21,7 @@ import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
@@ -49,7 +49,7 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
     try {
       FileSystem fs = cluster.getFileSystemClient();
       MetaMasterClient metaClient = new RetryHandlingMetaMasterClient(
-          MasterClientConfig.newBuilder(ClientContext.create(ServerConfiguration.global()))
+          MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
               .setMasterInquireClient(cluster.getMasterInquireClient())
               .build());
       for (int i = 0; i < NUM_DIRS; i++) {

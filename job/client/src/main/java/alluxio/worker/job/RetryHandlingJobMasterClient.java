@@ -41,7 +41,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
    *
    * @param conf job master client configuration
    */
-  public RetryHandlingJobMasterClient(JobMasterClientConfig conf) {
+  public RetryHandlingJobMasterClient(JobMasterClientContext conf) {
     super(conf);
   }
 

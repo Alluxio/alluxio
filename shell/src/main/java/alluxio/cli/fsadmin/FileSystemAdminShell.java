@@ -23,7 +23,7 @@ import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.conf.Source;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
@@ -76,7 +76,7 @@ public final class FileSystemAdminShell extends AbstractShell {
   @Override
   protected Map<String, Command> loadCommands() {
     ClientContext ctx = ClientContext.create(mConfiguration);
-    MasterClientConfig masterConfig = MasterClientConfig.newBuilder(ctx).build();
+    MasterClientContext masterConfig = MasterClientContext.newBuilder(ctx).build();
     Context context = new Context(
         new RetryHandlingFileSystemMasterClient(masterConfig),
         new RetryHandlingBlockMasterClient(masterConfig),

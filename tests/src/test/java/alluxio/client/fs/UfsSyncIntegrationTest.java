@@ -36,7 +36,7 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -517,7 +517,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
         ExistsPOptions.newBuilder().setCommonOptions(PSYNC_ALWAYS).build()));
     mFileSystem.free(new AlluxioURI("/"), FreePOptions.newBuilder().setRecursive(true).build());
     BlockMasterClient blockClient =
-        BlockMasterClient.Factory.create(MasterClientConfig
+        BlockMasterClient.Factory.create(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     CommonUtils.waitFor("data to be freed", () -> {
       try {
