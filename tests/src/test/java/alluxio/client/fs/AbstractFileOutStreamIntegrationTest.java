@@ -11,7 +11,9 @@
 
 package alluxio.client.fs;
 
+import alluxio.AbstractClient;
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -22,16 +24,22 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.LocalAlluxioJobCluster;
+import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.network.PortUtils;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Abstract classes for all integration tests of {@link FileOutStream}.
@@ -44,30 +52,53 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected LocalAlluxioJobCluster mLocalAlluxioJobCluster;
   protected static final int BLOCK_SIZE_BYTES = 1000;
 
+  private PropertyKey[] mPorts = {PropertyKey.MASTER_RPC_PORT,
+      PropertyKey.JOB_MASTER_RPC_PORT, PropertyKey.JOB_WORKER_RPC_PORT,
+      PropertyKey.WORKER_RPC_PORT,
+      PropertyKey.MASTER_WEB_PORT, PropertyKey.JOB_MASTER_WEB_PORT,
+      PropertyKey.JOB_WORKER_DATA_PORT};
+  private Map<PropertyKey, Integer> mPortMapping;
+
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       buildLocalAlluxioClusterResource();
 
   protected FileSystem mFileSystem = null;
 
+
   @Before
   public void before() throws Exception {
-    mLocalAlluxioJobCluster = new alluxio.master.LocalAlluxioJobCluster();
+    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
+    for (Map.Entry<PropertyKey, Integer> e: mPortMapping.entrySet()) {
+      mLocalAlluxioJobCluster.setProperty(e.getKey(), e.getValue().toString());
+    }
     mLocalAlluxioJobCluster.start();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
-  @org.junit.After
+  @After
   public void after() throws Exception {
     mLocalAlluxioJobCluster.stop();
   }
 
   protected LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
-    return new LocalAlluxioClusterResource.Builder()
+    mPortMapping = new HashMap<>();
+    for (PropertyKey pk : mPorts) {
+      try {
+        mPortMapping.put(pk, PortUtils.getFreePort());
+      } catch (IOException e) {
+        Assert.fail(e.toString());
+      }
+    }
+
+    LocalAlluxioClusterResource.Builder resource = new LocalAlluxioClusterResource.Builder()
         .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
         .setProperty(PropertyKey.USER_FILE_REPLICATION_DURABLE, 1)
-        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
-        .build();
+        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES);
+    for (Map.Entry<PropertyKey, Integer> e: mPortMapping.entrySet()) {
+      resource.setProperty(e.getKey(), e.getValue());
+    }
+    return resource.build();
   }
 
   /**
