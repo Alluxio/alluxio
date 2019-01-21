@@ -94,7 +94,7 @@ public final class RestUtils {
 
     Response.ResponseBuilder rb = Response.ok(object);
 
-    boolean corsEnabled = Configuration.getBoolean(PropertyKey.CORS_ENABLED);
+    boolean corsEnabled = Configuration.getBoolean(PropertyKey.WEBUI_CORS_ENABLED);
     if (corsEnabled) {
       return makeCORS(rb).build();
     }
@@ -152,7 +152,7 @@ public final class RestUtils {
 
     Response.ResponseBuilder rb = Response.serverError().entity(response);
 
-    boolean corsEnabled = Configuration.getBoolean(PropertyKey.CORS_ENABLED);
+    boolean corsEnabled = Configuration.getBoolean(PropertyKey.WEBUI_CORS_ENABLED);
     if (corsEnabled) {
       return makeCORS(rb).build();
     }

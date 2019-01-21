@@ -292,13 +292,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
-  public static final PropertyKey CORS_ENABLED =
-      new Builder(Name.CORS_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Set to true to enable Cross-Origin Resource Sharing for RESTful API"
-              + "endpoints.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .build();
   public static final PropertyKey DEBUG =
       new Builder(Name.DEBUG)
           .setDefaultValue(false)
@@ -387,6 +380,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "periodically heartbeat when there is no activity on a connection. This value "
               + "should be the same on the clients and server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .build();
+  public static final PropertyKey WEBUI_CORS_ENABLED =
+      new Builder(Name.WEBUI_CORS_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable Cross-Origin Resource Sharing for RESTful API"
+              + "endpoints.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey WEBUI_REFRESH_INTERVAL_MS =
       new Builder(Name.WEBUI_REFRESH_INTERVAL_MS)
@@ -3442,7 +3442,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final class Name {
     public static final String CONF_DIR = "alluxio.conf.dir";
     public static final String CONF_VALIDATION_ENABLED = "alluxio.conf.validation.enabled";
-    public static final String CORS_ENABLED = "alluxio.cors.enabled";
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
     public static final String HOME = "alluxio.home";
@@ -3492,6 +3491,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_TEMP_PATH = "alluxio.web.temp.path";
     public static final String WEB_THREADS = "alluxio.web.threads";
+    public static final String WEBUI_CORS_ENABLED = "alluxio.webui.cors.enabled";
     public static final String WEBUI_REFRESH_INTERVAL_MS =
         "alluxio.webui.refresh.interval.ms";
     public static final String WORK_DIR = "alluxio.work.dir";
