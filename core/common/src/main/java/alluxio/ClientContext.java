@@ -67,8 +67,8 @@ public class ClientContext {
   }
 
   protected ClientContext(ClientContext ctx) {
-    mSubject = ctx.mSubject;
-    mConf = ctx.mConf;
+    mSubject = ctx.getSubject();
+    mConf = ctx.getConf();
   }
 
   private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
@@ -97,7 +97,7 @@ public class ClientContext {
    * @param address the address to load cluster defaults from
    * @throws AlluxioStatusException
    */
-  synchronized void updateWithClusterDefaults(InetSocketAddress address)
+  protected synchronized void updateWithClusterDefaults(InetSocketAddress address)
       throws AlluxioStatusException {
     mConf = ConfigurationUtils.loadClusterDefaults(address, mConf);
   }

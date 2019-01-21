@@ -13,6 +13,8 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.client.job.JobMasterClient;
+import alluxio.client.job.JobMasterClientPool;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -332,7 +334,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   private final PrefixList mWhitelist;
 
   /** A pool of job master clients. */
-  private final alluxio.client.job.JobMasterClientPool mJobMasterClientPool;
+  private final JobMasterClientPool mJobMasterClientPool;
 
   /** Set of file IDs to persist. */
   private final Map<Long, alluxio.time.ExponentialTimer> mPersistRequests;
@@ -397,9 +399,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.MASTER_WHITELIST, ","));
 
     mPermissionChecker = new DefaultPermissionChecker(mInodeTree);
-    mJobMasterClientPool =
-        new alluxio.client.job.JobMasterClientPool(JobMasterClientConfig
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+    mJobMasterClientPool = new JobMasterClientPool(JobMasterClientConfig
+        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     mPersistRequests = new java.util.concurrent.ConcurrentHashMap<>();
     mPersistJobs = new java.util.concurrent.ConcurrentHashMap<>();
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
@@ -3893,7 +3894,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
       // Schedule the persist job.
       long jobId;
-      alluxio.client.job.JobMasterClient client = mJobMasterClientPool.acquire();
+      JobMasterClient client = mJobMasterClientPool.acquire();
       try {
         jobId = client.run(config);
       } finally {
@@ -4121,7 +4122,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             break;
           case TO_BE_CANCELED:
             // Send the message to cancel this job
-            alluxio.client.job.JobMasterClient client = mJobMasterClientPool.acquire();
+            JobMasterClient client = mJobMasterClientPool.acquire();
             try {
               client.cancel(job.getId());
               job.setCancelState(PersistJob.CancelState.CANCELING);
@@ -4149,7 +4150,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           continue;
         }
         long jobId = job.getId();
-        alluxio.client.job.JobMasterClient client = mJobMasterClientPool.acquire();
+        JobMasterClient client = mJobMasterClientPool.acquire();
         try {
           alluxio.job.wire.JobInfo jobInfo = client.getStatus(jobId);
           switch (jobInfo.getStatus()) {

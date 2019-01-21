@@ -21,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -34,6 +36,8 @@ public final class LocalAlluxioJobCluster {
 
   private JobMasterProcess mMaster;
   private JobWorkerProcess mWorker;
+
+  private Map<PropertyKey, String> mConfiguration = new HashMap<>();
 
   private String mHostname;
 
@@ -127,6 +131,14 @@ public final class LocalAlluxioJobCluster {
     ServerConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, Integer.toString(0));
     ServerConfiguration.set(PropertyKey.JOB_WORKER_WEB_PORT, Integer.toString(0));
     ServerConfiguration.set(PropertyKey.JOB_WORKER_WEB_BIND_HOST, mHostname);
+
+    for (Map.Entry<PropertyKey, String> e : mConfiguration.entrySet()) {
+      ServerConfiguration.set(e.getKey(), e.getValue());
+    }
+  }
+
+  public void setProperty(PropertyKey pk, String value) {
+    mConfiguration.put(pk, value);
   }
 
   /**
