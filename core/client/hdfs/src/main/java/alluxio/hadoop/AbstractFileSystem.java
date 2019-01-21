@@ -35,7 +35,6 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
@@ -460,54 +459,51 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * {@inheritDoc}
    *
-   * Sets up a lazy connection to Alluxio through mFileSystem. This method will override and
-   * invalidate the current contexts. This must be called before client operations in order to
-   * guarantee the integrity of the contexts, meaning users should not alternate between using the
-   * Hadoop compatible API and native Alluxio API in the same process.
+   * Sets up a lazy connection to Alluxio through mFileSystem and mFsContext. This must be
+   * called before client operations in order to guarantee the integrity of the
+   * {@link FileSystemContext}.
    *
-   * If hadoop file system cache is enabled, this method should only be called when switching user.
+   * If hadoop file system cache is enabled, this method should only be called when switching
+   * user. If it is called twice on the same object an exception will be thrown.
    */
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
         PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
-    if (mFsContext != null) {
-      throw new IOException("The AbstractFileSystem has already been initialized.");
-    }
-    super.initialize(uri, conf);
-    LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
-    HadoopUtils.addSwiftCredentials(conf);
-    setConf(conf);
-
-    // HDFS doesn't allow the authority to be empty; it must be "/" instead.
-    String authority = uri.getAuthority() == null ? "/" : uri.getAuthority();
-    mAlluxioHeader = getScheme() + "://" + authority;
-    // Set the statistics member. Use mStatistics instead of the parent class's variable.
-    mStatistics = statistics;
-
-    Authority auth = Authority.fromString(uri.getAuthority());
-    if (auth instanceof UnknownAuthority) {
-      throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
-              + "configured with this authority.", auth.toString()));
-    }
-
-    mUri = URI.create(mAlluxioHeader);
-
-    Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
-    AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
-    Subject subject = getHadoopSubject();
-    if (subject != null) {
-      LOG.debug("Using Hadoop subject: {}", subject);
-    } else {
-      LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
-    }
-
     synchronized (this) {
+      Preconditions.checkArgument(!mInitialized, "initialized");
+      super.initialize(uri, conf);
+      LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
+      HadoopUtils.addSwiftCredentials(conf);
+      setConf(conf);
 
+      // HDFS doesn't allow the authority to be empty; it must be "/" instead.
+      String authority = uri.getAuthority() == null ? "/" : uri.getAuthority();
+      mAlluxioHeader = getScheme() + "://" + authority;
+      // Set the statistics member. Use mStatistics instead of the parent class's variable.
+      mStatistics = statistics;
+
+      Authority auth = Authority.fromString(uri.getAuthority());
+      if (auth instanceof UnknownAuthority) {
+        throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
+                + "configured with the authority from %s", auth, uri));
+      }
+
+      mUri = URI.create(mAlluxioHeader);
+      Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
+
+      AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
       mergeConfigurations(uriConfProperties, conf, alluxioProps);
-
       AlluxioConfiguration alluxioConf = new InstancedConfiguration(alluxioProps);
+
+      Subject subject = getHadoopSubject();
+      if (subject != null) {
+        LOG.debug("Using Hadoop subject: {}", subject);
+      } else {
+        LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
+      }
+
       LOG.info("Initializing filesystem context with connect details {}",
           Factory.getConnectDetails(alluxioConf));
       mFsContext = FileSystemContext.create(subject, alluxioConf);
@@ -528,7 +524,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param uriConfProperties the configuration properties from the input uri
    * @param conf the hadoop conf
    * @param alluxioProps Alluxio configuration properties
-   * @return a merged configuration of URI, hadoop, and Alluxio properties
    */
   private void mergeConfigurations(Map<String, Object> uriConfProperties,
       org.apache.hadoop.conf.Configuration conf, AlluxioProperties alluxioProps)
@@ -575,30 +570,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     }
     return alluxioConfProperties;
-  }
-
-  /**
-   * Checks whether the connect details from the uri + hadoop conf + global Alluxio conf are the
-   * same as the connect details currently being used by {@link FileSystemContext}.
-   *
-   * @param uriConfProperties the configuration properties from the input URI
-   * @param conf a hadoop conf
-   * @return whether the details match
-   */
-  private boolean connectDetailsMatch(Map<String, Object> uriConfProperties,
-      org.apache.hadoop.conf.Configuration conf) {
-    // Merge hadoop configuration into Alluxio configuration
-    // copy to not modify old properties
-    AlluxioProperties props = mFsContext.getConf().getProperties().copy();
-    HadoopConfigurationUtils.mergeHadoopConfiguration(conf, props);
-
-    // Merge connection details in URI into Alluxio configuration
-    props.merge(uriConfProperties, Source.RUNTIME);
-
-    ConnectDetails newDetails = Factory.getConnectDetails(new InstancedConfiguration(props));
-    ConnectDetails oldDetails = mFsContext.getMasterInquireClient().getConnectDetails();
-
-    return newDetails.equals(oldDetails);
   }
 
   /**
