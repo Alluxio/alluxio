@@ -55,7 +55,7 @@ import alluxio.util.SecurityUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.FileInfo;
-import alluxio.worker.job.JobMasterClientConfig;
+import alluxio.worker.job.JobMasterClientContext;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -538,7 +538,7 @@ public final class PersistenceTest {
     mRegistry.start(true);
     mMockJobMasterClient = Mockito.mock(JobMasterClient.class);
     PowerMockito.mockStatic(JobMasterClient.Factory.class);
-    Mockito.when(JobMasterClient.Factory.create(any(JobMasterClientConfig.class)))
+    Mockito.when(JobMasterClient.Factory.create(any(JobMasterClientContext.class)))
         .thenReturn(mMockJobMasterClient);
   }
 

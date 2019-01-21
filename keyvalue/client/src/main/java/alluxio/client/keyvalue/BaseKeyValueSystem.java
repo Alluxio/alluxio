@@ -21,7 +21,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 
 import com.google.common.base.Preconditions;
 
@@ -46,7 +46,7 @@ public final class BaseKeyValueSystem implements KeyValueSystem {
    * @param ctx Alluxio client configuration
    */
   public BaseKeyValueSystem(ClientContext ctx) {
-    mMasterClient = new KeyValueMasterClient(MasterClientConfig.newBuilder(ctx).build());
+    mMasterClient = new KeyValueMasterClient(MasterClientContext.newBuilder(ctx).build());
     mConf = ctx;
   }
 

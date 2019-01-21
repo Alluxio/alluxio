@@ -17,7 +17,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueMasterClient;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.grpc.PartitionInfo;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -53,7 +53,7 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
    * @param ctx Alluxio client configuration
    */
   public KeyValueInputFormat(ClientContext ctx) {
-    mKeyValueMasterClient = new KeyValueMasterClient(MasterClientConfig
+    mKeyValueMasterClient = new KeyValueMasterClient(MasterClientContext
         .newBuilder(ctx).build());
     mCtx = ctx;
   }

@@ -24,7 +24,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
@@ -216,7 +216,7 @@ public final class FileSystemContext implements Closeable {
 
     if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
-      mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig
+      mMetricsMasterClient = new MetricsMasterClient(MasterClientContext
           .newBuilder(mClientContext)
           .setMasterInquireClient(mMasterInquireClient)
           .build());

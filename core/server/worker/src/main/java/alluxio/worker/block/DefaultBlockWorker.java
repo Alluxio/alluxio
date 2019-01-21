@@ -29,7 +29,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
@@ -130,7 +130,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   DefaultBlockWorker(UfsManager ufsManager) {
     this(new BlockMasterClientPool(),
-        new FileSystemMasterClient(MasterClientConfig
+        new FileSystemMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build()),
         new Sessions(), new TieredBlockStore(), ufsManager);
   }

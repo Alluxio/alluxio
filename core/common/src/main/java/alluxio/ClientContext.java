@@ -66,6 +66,9 @@ public class ClientContext {
     return new ClientContext(null, null);
   }
 
+  /**
+   * This constructor does not create a copy of the configuration.
+   */
   protected ClientContext(ClientContext ctx) {
     mSubject = ctx.getSubject();
     mConf = ctx.getConf();

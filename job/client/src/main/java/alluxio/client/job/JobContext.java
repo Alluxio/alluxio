@@ -16,7 +16,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
-import alluxio.worker.job.JobMasterClientConfig;
+import alluxio.worker.job.JobMasterClientContext;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -66,7 +66,7 @@ public final class JobContext implements Closeable  {
   private synchronized void init(AlluxioConfiguration alluxioConf) {
     mJobMasterInquireClient = MasterInquireClient.Factory.createForJobMaster(alluxioConf);
     mJobMasterClientPool =
-        new JobMasterClientPool(JobMasterClientConfig
+        new JobMasterClientPool(JobMasterClientContext
             .newBuilder(ClientContext.create(alluxioConf)).build());
   }
 

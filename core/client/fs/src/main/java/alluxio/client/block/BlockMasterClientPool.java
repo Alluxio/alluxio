@@ -13,7 +13,7 @@ package alluxio.client.block;
 
 import alluxio.ClientContext;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.ResourcePool;
 
@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
-  private final MasterClientConfig mMasterContext;
+  private final MasterClientContext mMasterContext;
   private final Queue<BlockMasterClient> mClientList;
 
   /**
@@ -45,7 +45,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
     super(context.getConf().getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
     mClientList = new ConcurrentLinkedQueue<>();
     mMasterContext =
-        MasterClientConfig.newBuilder(context).setMasterInquireClient(masterInquireClient).build();
+        MasterClientContext.newBuilder(context).setMasterInquireClient(masterInquireClient).build();
   }
 
   @Override

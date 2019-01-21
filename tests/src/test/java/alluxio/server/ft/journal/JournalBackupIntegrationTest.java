@@ -26,7 +26,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
@@ -155,7 +155,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
   private MetaMasterClient getMetaClient(MultiProcessCluster cluster) {
     return new RetryHandlingMetaMasterClient(
-        MasterClientConfig.newBuilder(ClientContext.create(ServerConfiguration.global()))
+        MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
             .setMasterInquireClient(cluster.getMasterInquireClient())
             .build());
   }

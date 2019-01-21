@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +39,7 @@ public class BlockMasterClientPoolTest {
     BlockMasterClient expectedClient = mock(BlockMasterClient.class);
     PowerMockito.mockStatic(BlockMasterClient.Factory.class);
     when(BlockMasterClient.Factory
-        .create(any(MasterClientConfig.class)))
+        .create(any(MasterClientContext.class)))
         .thenReturn(expectedClient);
     BlockMasterClient client;
     try (BlockMasterClientPool pool = new BlockMasterClientPool(ClientContext.create(mConf),

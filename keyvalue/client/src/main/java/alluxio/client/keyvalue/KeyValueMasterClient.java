@@ -24,7 +24,7 @@ import alluxio.grpc.MergeStorePRequest;
 import alluxio.grpc.PartitionInfo;
 import alluxio.grpc.RenameStorePRequest;
 import alluxio.grpc.ServiceType;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 
 import java.io.IOException;
 import java.util.List;
@@ -47,7 +47,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    *
    * @param conf master client configuration
    */
-  public KeyValueMasterClient(MasterClientConfig conf) {
+  public KeyValueMasterClient(MasterClientContext conf) {
     super(conf);
   }
 

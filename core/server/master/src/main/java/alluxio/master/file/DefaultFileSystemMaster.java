@@ -157,7 +157,7 @@ import alluxio.wire.MountPointInfo;
 import alluxio.grpc.SetAclAction;
 import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerInfo;
-import alluxio.worker.job.JobMasterClientConfig;
+import alluxio.worker.job.JobMasterClientContext;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -399,7 +399,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.MASTER_WHITELIST, ","));
 
     mPermissionChecker = new DefaultPermissionChecker(mInodeTree);
-    mJobMasterClientPool = new JobMasterClientPool(JobMasterClientConfig
+    mJobMasterClientPool = new JobMasterClientPool(JobMasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     mPersistRequests = new java.util.concurrent.ConcurrentHashMap<>();
     mPersistJobs = new java.util.concurrent.ConcurrentHashMap<>();

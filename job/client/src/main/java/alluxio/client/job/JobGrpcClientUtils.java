@@ -20,7 +20,7 @@ import alluxio.job.wire.Status;
 import alluxio.retry.CountingRetry;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.worker.job.JobMasterClientConfig;
+import alluxio.worker.job.JobMasterClientContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +54,7 @@ public final class JobGrpcClientUtils {
     while (retryPolicy.attempt()) {
       long jobId;
       try (JobMasterClient client = JobMasterClient.Factory.create(
-          JobMasterClientConfig.newBuilder(ClientContext.create(alluxioConf)).build())) {
+          JobMasterClientContext.newBuilder(ClientContext.create(alluxioConf)).build())) {
         jobId = client.run(config);
       } catch (Exception e) {
         // job could not be started, retry
@@ -119,7 +119,7 @@ public final class JobGrpcClientUtils {
       throws InterruptedException {
     final AtomicReference<JobInfo> finishedJobInfo = new AtomicReference<>();
     try (final JobMasterClient client =
-        JobMasterClient.Factory.create(JobMasterClientConfig
+        JobMasterClient.Factory.create(JobMasterClientContext
             .newBuilder(ClientContext.create(alluxioConf)).build())) {
       CommonUtils.waitFor("Job to finish", ()-> {
         JobInfo jobInfo;

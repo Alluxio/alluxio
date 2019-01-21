@@ -19,7 +19,7 @@ import alluxio.grpc.MetricsHeartbeatPOptions;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.retry.RetryUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -40,7 +40,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
    *
    * @param conf master client configuration
    */
-  public MetricsMasterClient(MasterClientConfig conf) {
+  public MetricsMasterClient(MasterClientContext conf) {
     super(conf, null, RetryUtils::defaultMetricsClientRetry);
   }
 

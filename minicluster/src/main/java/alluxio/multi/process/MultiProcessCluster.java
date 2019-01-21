@@ -31,7 +31,7 @@ import alluxio.conf.Source;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.MasterInfo;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.PollingMasterInquireClient;
 import alluxio.master.SingleMasterInquireClient;
@@ -339,7 +339,7 @@ public final class MultiProcessCluster {
   public synchronized MetaMasterClient getMetaMasterClient() {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a meta master client, but state was %s", mState);
-    return new RetryHandlingMetaMasterClient(MasterClientConfig
+    return new RetryHandlingMetaMasterClient(MasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global()))
         .setMasterInquireClient(getMasterInquireClient())
         .build());
@@ -351,7 +351,7 @@ public final class MultiProcessCluster {
   public synchronized Clients getClients() {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a meta master client, but state was %s", mState);
-    MasterClientConfig config = MasterClientConfig
+    MasterClientContext config = MasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global()))
         .setMasterInquireClient(getMasterInquireClient()).build();
     return new Clients(getFileSystemClient(),

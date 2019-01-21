@@ -26,7 +26,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClient;
-import alluxio.worker.job.JobMasterClientConfig;
+import alluxio.worker.job.JobMasterClientContext;
 import alluxio.worker.job.command.CommandHandlingExecutor;
 import alluxio.worker.job.task.TaskExecutorManager;
 
@@ -69,7 +69,7 @@ public final class JobWorker extends AbstractWorker {
     super(
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("job-worker-heartbeat-%d", true)));
     mUfsManager = ufsManager;
-    mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientConfig
+    mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     mTaskExecutorManager = new TaskExecutorManager();
   }

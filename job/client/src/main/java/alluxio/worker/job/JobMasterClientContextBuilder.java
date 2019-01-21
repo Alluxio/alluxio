@@ -13,20 +13,20 @@ package alluxio.worker.job;
 
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.master.MasterClientConfigBuilder;
+import alluxio.master.MasterClientContextBuilder;
 import alluxio.master.MasterInquireClient;
 
 /**
- * A builder for instances of {@link JobMasterClientConfig}.
+ * A builder for instances of {@link JobMasterClientContext}.
  */
-public class JobMasterClientConfigBuilder extends MasterClientConfigBuilder {
+public class JobMasterClientContextBuilder extends MasterClientContextBuilder {
 
   /**
    * Creates a builder with the given {@link AlluxioConfiguration}.
    *
    * @param context Alluxio configuration
    */
-  JobMasterClientConfigBuilder(ClientContext context) {
+  JobMasterClientContextBuilder(ClientContext context) {
     super(context);
   }
 
@@ -34,13 +34,13 @@ public class JobMasterClientConfigBuilder extends MasterClientConfigBuilder {
    * Builds the configuration, creating an instance of {@link MasterInquireClient} if none is
    * specified.
    *
-   * @return a {@link JobMasterClientConfig}
+   * @return a {@link JobMasterClientContext}
    */
   @Override
-  public JobMasterClientConfig build() {
+  public JobMasterClientContext build() {
     if (mMasterInquireClient == null) {
       mMasterInquireClient = MasterInquireClient.Factory.createForJobMaster(mContext.getConf());
     }
-    return new JobMasterClientConfig(mContext, mMasterInquireClient);
+    return new JobMasterClientContext(mContext, mMasterInquireClient);
   }
 }

@@ -21,7 +21,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -47,7 +47,7 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
   @Test
   public void openClose() throws AlluxioException, IOException {
     FileSystemMasterClient fsMasterClient =
-        FileSystemMasterClient.Factory.create(MasterClientConfig
+        FileSystemMasterClient.Factory.create(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     AlluxioURI file = new AlluxioURI("/file");
     Assert.assertFalse(fsMasterClient.isConnected());
@@ -69,7 +69,7 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
     // The timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
     FileSystemMasterClient fsMasterClient =
-        FileSystemMasterClient.Factory.create(MasterClientConfig
+        FileSystemMasterClient.Factory.create(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     fsMasterClient.getStatus(new AlluxioURI("/doesNotExist"), GET_STATUS_OPTIONS);
     fsMasterClient.close();
