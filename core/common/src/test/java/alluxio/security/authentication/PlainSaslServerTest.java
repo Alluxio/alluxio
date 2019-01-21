@@ -11,6 +11,9 @@
 
 package alluxio.security.authentication;
 
+import alluxio.security.authentication.plain.PlainSaslServer;
+import alluxio.security.authentication.plain.PlainSaslServerProvider;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -24,13 +27,14 @@ import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.SaslException;
+import javax.security.sasl.SaslServer;
 
 /**
  * Tests the {@link PlainSaslServer} class.
  */
 public final class PlainSaslServerTest {
   private static byte sSEPARATOR = 0x00; // US-ASCII <NUL>
-  private PlainSaslServer mPlainSaslServer = null;
+  private SaslServer mPlainSaslServer = null;
 
   /**
    * The exception expected to be thrown.
@@ -43,7 +47,8 @@ public final class PlainSaslServerTest {
    */
   @Before
   public void before() throws Exception {
-    mPlainSaslServer = new PlainSaslServer(new MockCallbackHandler());
+    mPlainSaslServer = new PlainSaslServer.Factory().createSaslServer(
+        PlainSaslServerProvider.MECHANISM, null, null, null, new MockCallbackHandler());
   }
 
   /**
@@ -149,7 +154,8 @@ public final class PlainSaslServerTest {
   public void unauthorizedCallback() throws Exception {
     String testUser = "alluxio";
     String password = "anonymous";
-    mPlainSaslServer = new PlainSaslServer(new MockCallbackHandlerUnauthorized());
+    mPlainSaslServer = new PlainSaslServer.Factory().createSaslServer(
+        PlainSaslServerProvider.MECHANISM, null, null, null, new MockCallbackHandlerUnauthorized());
 
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("Plain authentication failed: AuthorizeCallback authorized failure");

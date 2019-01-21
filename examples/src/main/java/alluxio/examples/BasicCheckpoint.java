@@ -18,6 +18,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +82,8 @@ public class BasicCheckpoint implements Callable<Boolean> {
       buf.flip();
       AlluxioURI filePath = new AlluxioURI(mFileFolder + "/part-" + i);
       LOG.debug("Writing data to {}", filePath);
-      OutputStream os = fs.createFile(filePath);
+      OutputStream os =
+          fs.createFile(filePath, CreateFilePOptions.newBuilder().setRecursive(true).build());
       os.write(buf.array());
       os.close();
     }

@@ -27,6 +27,7 @@ import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.MasterInfo;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
@@ -40,7 +41,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.MasterInfo;
 import alluxio.zookeeper.RestartableTestingServer;
 
 import com.google.common.base.Preconditions;
@@ -57,6 +57,7 @@ import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -285,14 +286,14 @@ public final class MultiProcessCluster {
     MetaMasterClient metaMasterClient = getMetaMasterClient();
     CommonUtils.waitFor("all nodes registered", () -> {
       try {
-        MasterInfo masterInfo = metaMasterClient.getMasterInfo(null);
-        int liveNodeNum = masterInfo.getMasterAddresses().size()
-            + masterInfo.getWorkerAddresses().size();
+        MasterInfo masterInfo = metaMasterClient.getMasterInfo(Collections.emptySet());
+        int liveNodeNum = masterInfo.getMasterAddressesList().size()
+            + masterInfo.getWorkerAddressesList().size();
         if (liveNodeNum == (mNumMasters + mNumWorkers)) {
           return true;
         } else {
-          LOG.info("Master addresses: {}. Worker addresses: {}", masterInfo.getMasterAddresses(),
-              masterInfo.getWorkerAddresses());
+          LOG.info("Master addresses: {}. Worker addresses: {}",
+              masterInfo.getMasterAddressesList(), masterInfo.getWorkerAddressesList());
           return false;
         }
       } catch (UnavailableException e) {
@@ -555,7 +556,6 @@ public final class MultiProcessCluster {
         ramdisk.getAbsolutePath());
     conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
     conf.put(PropertyKey.WORKER_RPC_PORT, Integer.toString(rpcPort));
-    conf.put(PropertyKey.WORKER_DATA_PORT, Integer.toString(dataPort));
     conf.put(PropertyKey.WORKER_WEB_PORT, Integer.toString(webPort));
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));

@@ -18,6 +18,7 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
@@ -67,7 +68,7 @@ public final class StorageTier {
     String[] dirPaths = Configuration.get(tierDirPathConf).split(",");
 
     for (int i = 0; i < dirPaths.length; i++) {
-      dirPaths[i] = PathUtils.getWorkerDataDirectory(dirPaths[i]);
+      dirPaths[i] = CommonUtils.getWorkerDataDirectory(dirPaths[i]);
     }
 
     PropertyKey tierDirCapacityConf =

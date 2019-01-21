@@ -26,9 +26,9 @@ import java.util.Optional;
 public class InconsistentPropertyTest {
 
   @Test
-  public void thrift() {
+  public void proto() {
     InconsistentProperty inconsistentProperty = createInconsistentProperty();
-    InconsistentProperty other = inconsistentProperty.fromThrift(inconsistentProperty.toThrift());
+    InconsistentProperty other = inconsistentProperty.fromProto(inconsistentProperty.toProto());
     checkEquality(inconsistentProperty, other);
   }
 

@@ -14,14 +14,14 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.OpenFileOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
+import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -52,9 +52,9 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
   private static final int DELTA = 33;
 
   private FileSystem mFileSystem = null;
-  private CreateFileOptions mWriteUnderStore;
-  private OpenFileOptions mReadNoCache;
-  private OpenFileOptions mReadCache;
+  private CreateFilePOptions mWriteUnderStore;
+  private OpenFilePOptions mReadNoCache;
+  private OpenFilePOptions mReadCache;
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -68,9 +68,10 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteUnderStore = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
-    mReadCache = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
-    mReadNoCache = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    mWriteUnderStore = CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH)
+        .setRecursive(true).build();
+    mReadCache = OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
+    mReadNoCache = OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
   }
 
   /**

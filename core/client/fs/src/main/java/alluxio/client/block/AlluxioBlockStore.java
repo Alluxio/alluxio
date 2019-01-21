@@ -17,6 +17,7 @@ import static java.util.stream.Collectors.toSet;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
@@ -36,6 +37,7 @@ import alluxio.refresh.RefreshPolicy;
 import alluxio.refresh.TimeoutRefresh;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FormatUtils;
+import alluxio.util.TieredIdentityUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.TieredIdentity;
@@ -48,7 +50,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -208,7 +209,8 @@ public final class AlluxioBlockStore {
           locations.stream().map(location -> location.getWorkerAddress().getTieredIdentity())
               .collect(toList());
       Collections.shuffle(tieredLocations);
-      Optional<TieredIdentity> nearest = mTieredIdentity.nearest(tieredLocations);
+      Optional<TieredIdentity> nearest =
+          TieredIdentityUtils.nearest(mTieredIdentity, tieredLocations);
       if (nearest.isPresent()) {
         dataSource = locations.stream().map(BlockLocation::getWorkerAddress)
             .filter(addr -> addr.getTieredIdentity().equals(nearest.get())).findFirst().get();
@@ -224,7 +226,7 @@ public final class AlluxioBlockStore {
     if (dataSource == null) {
       dataSourceType = BlockInStreamSource.UFS;
       BlockLocationPolicy policy =
-          Preconditions.checkNotNull(options.getOptions().getUfsReadLocationPolicy(),
+          Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
       blockWorkerInfo = blockWorkerInfo.stream()
           .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
@@ -238,7 +240,7 @@ public final class AlluxioBlockStore {
 
     try {
       return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
-    } catch (ConnectException e) {
+    } catch (UnavailableException e) {
       //When BlockInStream created failed, it will update the passed-in failedWorkers
       //to attempt to avoid reading from this failed worker in next try.
       failedWorkers.put(dataSource, System.currentTimeMillis());
@@ -311,7 +313,7 @@ public final class AlluxioBlockStore {
     // The number of initial copies depends on the write type: if ASYNC_THROUGH, it is the property
     // "alluxio.user.file.replication.durable" before data has been persisted; otherwise
     // "alluxio.user.file.replication.min"
-    int initialReplicas = (options.getWriteType() == alluxio.client.WriteType.ASYNC_THROUGH
+    int initialReplicas = (options.getWriteType() == WriteType.ASYNC_THROUGH
         && options.getReplicationDurable() > options.getReplicationMin())
         ? options.getReplicationDurable() : options.getReplicationMin();
     if (initialReplicas <= 1) {

@@ -48,8 +48,7 @@ public final class OfferUtils {
 
     return ranges != null
         && hasAvailablePorts(Configuration.getInt(PropertyKey.WORKER_WEB_PORT), ranges)
-        && hasAvailablePorts(Configuration.getInt(PropertyKey.WORKER_RPC_PORT), ranges)
-        && hasAvailablePorts(Configuration.getInt(PropertyKey.WORKER_DATA_PORT), ranges);
+        && hasAvailablePorts(Configuration.getInt(PropertyKey.WORKER_RPC_PORT), ranges);
   }
 
   private static boolean hasAvailablePorts(int port, Protos.Value.Ranges ranges) {

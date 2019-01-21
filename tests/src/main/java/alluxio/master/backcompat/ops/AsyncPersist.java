@@ -15,11 +15,11 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.util.CommonUtils;
 
@@ -34,16 +34,14 @@ public final class AsyncPersist extends FsTestOp {
 
   @Override
   public void apply(FileSystem fs) throws Exception {
-    try (FileOutStream out = fs.createFile(FILE, CreateFileOptions.defaults()
-        .setBlockSizeBytes(Constants.KB)
-        .setWriteType(WriteType.ASYNC_THROUGH))) {
+    try (FileOutStream out = fs.createFile(FILE, CreateFilePOptions.newBuilder()
+        .setBlockSizeBytes(Constants.KB).setWriteType(WritePType.ASYNC_THROUGH).build())) {
       out.write("test".getBytes());
     }
     // Nested file
-    try (FileOutStream out = fs.createFile(NESTED_FILE, CreateFileOptions.defaults()
-        .setBlockSizeBytes(Constants.KB)
-        .setWriteType(WriteType.ASYNC_THROUGH)
-        .setRecursive(true))) {
+    try (FileOutStream out =
+        fs.createFile(NESTED_FILE, CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
+            .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build())) {
       out.write("test".getBytes());
     }
     CommonUtils.waitFor("files to be persisted", () -> {

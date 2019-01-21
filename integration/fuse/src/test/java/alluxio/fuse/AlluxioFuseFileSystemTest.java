@@ -35,9 +35,9 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
@@ -95,7 +95,8 @@ public class AlluxioFuseFileSystemTest {
     long mode = 123;
     mFuseFs.chmod("/foo/bar", mode);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    SetAttributeOptions options = SetAttributeOptions.defaults().setMode(new Mode((short) mode));
+    SetAttributePOptions options =
+        SetAttributePOptions.newBuilder().setMode(new Mode((short) mode).toProto()).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
   }
 
@@ -107,8 +108,8 @@ public class AlluxioFuseFileSystemTest {
     String userName = System.getProperty("user.name");
     String groupName = AlluxioFuseUtils.getGroupName(gid);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    SetAttributeOptions options =
-        SetAttributeOptions.defaults().setGroup(groupName).setOwner(userName);
+    SetAttributePOptions options =
+        SetAttributePOptions.newBuilder().setGroup(groupName).setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
   }
 
@@ -120,8 +121,8 @@ public class AlluxioFuseFileSystemTest {
     String userName = System.getProperty("user.name");
     String groupName = AlluxioFuseUtils.getGroupName(userName);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    SetAttributeOptions options =
-        SetAttributeOptions.defaults().setGroup(groupName).setOwner(userName);
+    SetAttributePOptions options =
+        SetAttributePOptions.newBuilder().setGroup(groupName).setOwner(userName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
     gid = AlluxioFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;
@@ -138,8 +139,7 @@ public class AlluxioFuseFileSystemTest {
 
     String groupName = AlluxioFuseUtils.getGroupName(userName);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    SetAttributeOptions options =
-        SetAttributeOptions.defaults().setGroup(groupName);
+    SetAttributePOptions options = SetAttributePOptions.newBuilder().setGroup(groupName).build();
     verify(mFileSystem).setAttribute(expectedPath, options);
 
     uid = AlluxioFuseFileSystem.ID_NOT_SET_VALUE_UNSIGNED;

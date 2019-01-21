@@ -20,9 +20,10 @@ import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.GetStatusOptions;
-import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.testutils.BaseIntegrationTest;
@@ -89,8 +90,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadMetadataAlways() throws Exception {
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always);
+    GetStatusPOptions options =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, true);
@@ -100,8 +101,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadMetadataNever() throws Exception {
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never);
+    GetStatusPOptions options =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
     checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, false);
@@ -112,8 +113,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadMetadataOnce() throws Exception {
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Once);
+    GetStatusPOptions options =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).build();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
     checkGetStatus("/mnt/dir1/dirA/fileDNE2", options, false, true);
@@ -126,8 +127,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadMetadataOnceAfterUfsCreate() throws Exception {
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Once);
+    GetStatusPOptions options =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).build();
     // dirB does not exist yet
     checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, true);
 
@@ -139,7 +140,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
     // load metadata for dirB with 'ALWAYS'
     checkGetStatus("/mnt/dir1/dirA/dirB",
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always), true, true);
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build(), true,
+        true);
 
     // 'ONCE' should now load the metadata
     checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, true);
@@ -147,8 +149,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadMetadataOnceAfterUfsDelete() throws Exception {
-    GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Once);
+    GetStatusPOptions options =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).build();
     // create dirB in UFS
     Assert.assertTrue(new File(mLocalUfsPath + "/dir1/dirA/dirB").mkdirs());
 
@@ -163,7 +165,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
     // force load metadata with 'ALWAYS'
     checkGetStatus("/mnt/dir1/dirA/dirB",
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always), false, true);
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).build(), false,
+        true);
 
     // 'ONCE' should still not load metadata, since the ancestor is absent
     checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false);
@@ -172,7 +175,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadAlwaysConfiguration() throws Exception {
     Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Always.toString());
-    GetStatusOptions options = GetStatusOptions.defaults();
+    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
   }
@@ -180,7 +183,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadOnceConfiguration() throws Exception {
     Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Once.toString());
-    GetStatusOptions options = GetStatusOptions.defaults();
+    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
   }
@@ -188,7 +191,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadNeverConfiguration() throws Exception {
     Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Never.toString());
-    GetStatusOptions options = GetStatusOptions.defaults();
+    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
   }
@@ -196,7 +199,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadRecursive() throws Exception {
     Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Once.toString());
-    ListStatusOptions options = ListStatusOptions.defaults().setRecursive(true);
+    ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         new File(mLocalUfsPath + "/dir" + i + "/dir" + j + "/").mkdirs();
@@ -225,7 +228,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
    * @param expectExists if true, the path should exist
    * @param expectLoadFromUfs if true, the get status call will load from ufs
    */
-  private void checkGetStatus(final String path, GetStatusOptions options, boolean expectExists,
+  private void checkGetStatus(final String path, GetStatusPOptions options, boolean expectExists,
       boolean expectLoadFromUfs)
       throws Exception {
     long startMs = CommonUtils.getCurrentMs();

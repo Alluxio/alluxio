@@ -18,10 +18,18 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+<<<<<<< HEAD
 import alluxio.security.authorization.Mode;
+=======
+import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.grpc.SetAttributePOptions;
+>>>>>>> 8cc5a292f4c6e38ed0066ce5bd700cc946dc3803
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -144,7 +152,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   public int chmod(String path, @mode_t long mode) {
     AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
-    SetAttributeOptions options = SetAttributeOptions.defaults().setMode(new Mode((short) mode));
+    SetAttributePOptions options = SetAttributePOptions.newBuilder()
+        .setMode(new alluxio.security.authorization.Mode((short) mode).toProto()).build();
     try {
       mFileSystem.setAttribute(uri, options);
     } catch (Throwable t) {
@@ -174,7 +183,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     }
 
     try {
-      SetAttributeOptions options = SetAttributeOptions.defaults();
+      SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
       String userName = "";
@@ -185,7 +194,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
           LOG.error("Failed to get user name from uid {}", uid);
           return -ErrorCodes.EINVAL();
         }
-        options.setOwner(userName);
+        optionsBuilder.setOwner(userName);
       }
 
       String groupName = "";
@@ -196,22 +205,22 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
           LOG.error("Failed to get group name from gid {}", gid);
           return -ErrorCodes.EINVAL();
         }
-        options.setGroup(groupName);
+        optionsBuilder.setGroup(groupName);
       } else if (!userName.isEmpty()) {
         groupName = AlluxioFuseUtils.getGroupName(userName);
-        options.setGroup(groupName);
+        optionsBuilder.setGroup(groupName);
       }
 
       if (userName.isEmpty() && groupName.isEmpty()) {
         // This should never be reached
-        LOG.info("Unable to change owner and group of file {} when uid is {} and gid is {}",
-            path, userName, groupName);
+        LOG.info("Unable to change owner and group of file {} when uid is {} and gid is {}", path,
+            userName, groupName);
       } else if (userName.isEmpty()) {
         LOG.info("Change group of file {} to {}", path, groupName);
-        mFileSystem.setAttribute(uri, options);
+        mFileSystem.setAttribute(uri, optionsBuilder.build());
       } else {
         LOG.info("Change owner of file {} to {}", path, groupName);
-        mFileSystem.setAttribute(uri, options);
+        mFileSystem.setAttribute(uri, optionsBuilder.build());
       }
     } catch (Throwable t) {
       LOG.error("Failed to chown {} to uid {} and gid {}", path, uid, gid, t);

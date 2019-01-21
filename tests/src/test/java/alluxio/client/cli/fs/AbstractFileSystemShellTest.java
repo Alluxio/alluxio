@@ -18,17 +18,19 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.job.JobShell;
-import alluxio.client.ReadType;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
+import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
 import alluxio.security.LoginUserTestUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -78,7 +80,8 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
    * @param bytes file size
    */
   protected void copyToLocalWithBytes(int bytes) throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE,
+        bytes);
     mFsShell.run("copyToLocal", "/testFile",
         mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
@@ -218,8 +221,8 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
    * @return the content that has been read
    */
   protected byte[] readContent(AlluxioURI uri, int length) throws IOException, AlluxioException {
-    try (FileInStream tfis = mFileSystem
-        .openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {
+    try (FileInStream tfis = mFileSystem.openFile(uri,
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build())) {
       byte[] read = new byte[length];
       tfis.read(read);
       return read;
@@ -258,6 +261,13 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
   protected void checkFilePersisted(AlluxioURI uri, int size) throws Exception {
     assertTrue(mFileSystem.getStatus(uri).isPersisted());
     mFileSystem.free(uri);
+    CommonUtils.waitFor("file to be completely freed", () -> {
+      try {
+        return mFileSystem.getStatus(uri).getInAlluxioPercentage() == 0;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(10000));
     try (FileInStream tfis = mFileSystem.openFile(uri)) {
       byte[] actual = new byte[size];
       tfis.read(actual);

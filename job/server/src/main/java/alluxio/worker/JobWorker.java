@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Server;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.metrics.MetricsSystem;
@@ -28,12 +30,11 @@ import alluxio.worker.job.command.CommandHandlingExecutor;
 import alluxio.worker.job.task.TaskExecutorManager;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
-import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -82,8 +83,8 @@ public final class JobWorker extends AbstractWorker {
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
-    return Maps.newHashMap();
+  public Map<ServiceType, GrpcService> getServices() {
+    return Collections.emptyMap();
   }
 
   @Override

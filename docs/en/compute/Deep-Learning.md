@@ -67,68 +67,11 @@ when the data is remote from the computation. Since Alluxio can cache the data l
 network I/O is not incurred when accessing the data,
 so deep learning training can be more cost effective and take less time.
 
-## Setting up Alluxio FUSE
-
-In this section, we will follow the instructions in the
-[FUSE section]({{ '/en/api/FUSE-API.html' | relativize_url }}) to setup FUSE,
-access training data of ImageNet in S3, and allow deep learning frameworks to access the data
-through FUSE.
-
-Create a folder at the root in Alluxio
-
-```bash
-$ ./bin/alluxio fs mkdir /training-data
-```
-
-Mount the ImageNet data stored in an S3 bucket into path `/training-data/imagenet`,
-assuming the data is at the S3 path `s3a://alluxio-tensorflow-imagenet/`.
-
-```bash
-$ ./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
-```
-
-Note this command takes options to pass the S3 credentials of the bucket. These credentials
-are associated with the mounting point so that the future accesses will not require credentials.
-
-Start the Alluxio-FUSE process. Create a folder `/mnt/fuse`, change its
-owner to the current user (`ec2-user` in this example), and modify its permissions to allow read and write.
-
-```bash
-$ sudo mkdir -p /mnt/fuse
-$ sudo chown ec2-user:ec2-user /mnt/fuse
-$ chmod 664 /mnt/fuse
-```
-
-Run the Alluxio-FUSE shell to mount Alluxio folder training-data to the local folder
-/`mnt/fuse`.
-
-```bash
-$ ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
-```
-
-Check the status of the FUSE process with:
-
-```bash
-$ ./integration/fuse/bin/alluxio-fuse stat
-```
-
-Browse the data at the mounted folder; it should display the training data stored in the cloud.
-
-```bash
-$ cd /mnt/fuse
-$ ls
-```
-
-This folder is ready for the deep learning frameworks to use, which would treat the Alluxio
-storage as a local folder. This folder will be used for the Tensorflow training in the next
-section.
-
 ## Using Tensorflow on Alluxio FUSE
 
 We use Tensorflow as an example deep learning framework in this page to show how Alluxio can help
-data access and management. To access the training data in S3 via Alluxio, with the Alluxio FUSE,
-we can pass the path `/mnt/fuse/imagenet` to the parameter `data_dir` of the benchmark
-script [tf_cnn_benchmarsk.py](https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py).
+data access and management. We run Tensorflow benchmarks on Alluxio Fuse as described in
+[Alluxio Tensorflow](({{ '/en/compute/Tensorflow.html' | relativize_url }})) docs.
 
 After mounting the under storage once, data in various under storages becomes immediately
 available through Alluxio and can be transparently accessed to the benchmark without any

@@ -14,6 +14,7 @@ package alluxio.job.move;
 import alluxio.job.JobConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -103,7 +104,7 @@ public class MoveConfig implements JobConfig {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("source", mSource)
         .add("destination", mDestination)
         .add("writeType", mWriteType)

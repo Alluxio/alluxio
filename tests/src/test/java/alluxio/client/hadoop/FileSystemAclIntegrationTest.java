@@ -61,6 +61,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName())
           .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
           .build();
   private static String sUfsRoot;
   private static UnderFileSystem sUfs;

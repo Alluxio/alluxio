@@ -13,17 +13,17 @@ package alluxio.server.health;
 
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.RpcContext;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeTree.LockPattern;
-import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.file.contexts.DeleteContext;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -52,7 +52,7 @@ public class BlockMasterIntegrityIntegrationTest {
     int len = 10;
     FileSystem fs = mCluster.getClient();
     BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
-    FileSystemTestUtils.createByteFile(fs, uri, WriteType.MUST_CACHE, len);
+    FileSystemTestUtils.createByteFile(fs, uri, WritePType.MUST_CACHE, len);
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
     mCluster.stopWorkers();
     fs.delete(uri);
@@ -73,7 +73,7 @@ public class BlockMasterIntegrityIntegrationTest {
     int len = 10;
     FileSystem fs = mCluster.getClient();
     BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
-    FileSystemTestUtils.createByteFile(fs, uri, WriteType.MUST_CACHE, len);
+    FileSystemTestUtils.createByteFile(fs, uri, WritePType.MUST_CACHE, len);
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
     removeFileMetadata(uri);
     mCluster.stopWorkers();
@@ -95,7 +95,7 @@ public class BlockMasterIntegrityIntegrationTest {
     int len = 10;
     FileSystem fs = mCluster.getClient();
     BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
-    FileSystemTestUtils.createByteFile(fs, uri, WriteType.MUST_CACHE, len);
+    FileSystemTestUtils.createByteFile(fs, uri, WritePType.MUST_CACHE, len);
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
     removeFileMetadata(uri);
     CommonUtils.waitFor("invalid blocks to be deleted",
@@ -108,9 +108,8 @@ public class BlockMasterIntegrityIntegrationTest {
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(FileSystemMaster.class);
     InodeTree tree = Whitebox.getInternalState(fsm, "mInodeTree");
     LockedInodePath path = tree.lockInodePath(uri, LockPattern.WRITE_EDGE);
-    DeleteOptions options = DeleteOptions.defaults();
     RpcContext rpcContext = ((DefaultFileSystemMaster) fsm).createRpcContext();
-    ((DefaultFileSystemMaster) fsm).deleteInternal(rpcContext, path, options);
+    ((DefaultFileSystemMaster) fsm).deleteInternal(rpcContext, path, DeleteContext.defaults());
     path.close();
     rpcContext.close();
   }

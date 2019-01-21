@@ -99,25 +99,6 @@ public final class BufferUtilsTest {
   }
 
   /**
-   * Tests the {@link BufferUtils#generateNewByteBufferFromThriftRPCResults(ByteBuffer)} method.
-   */
-  @Test
-  public void generateNewByteBufferFromThriftRPCResults() {
-    final int bufferSize = 10;
-    ByteBuffer mockRPCbuf = ByteBuffer.allocate(bufferSize);
-    for (byte i = 0; i < bufferSize; i++) {
-      mockRPCbuf.put(i);
-    }
-    mockRPCbuf.position(bufferSize / 2);
-    ByteBuffer buf = BufferUtils.generateNewByteBufferFromThriftRPCResults(mockRPCbuf);
-    Assert.assertEquals(0, buf.position());
-    Assert.assertEquals(bufferSize / 2, buf.capacity());
-    for (int i = 0; i < bufferSize / 2; i++) {
-      Assert.assertEquals(mockRPCbuf.get(i + bufferSize / 2), buf.get(i));
-    }
-  }
-
-  /**
    * Tests the {@link BufferUtils#putIntByteBuffer(ByteBuffer, int)} method.
    */
   @Test

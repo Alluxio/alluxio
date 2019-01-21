@@ -17,18 +17,18 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.DeleteOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.fuse.AlluxioFuseFileSystem;
 import alluxio.fuse.AlluxioFuseOptions;
 import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
+import alluxio.grpc.WritePType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
@@ -110,7 +110,7 @@ public class FuseFileSystemIntegrationTest {
   @After
   public void after() throws Exception {
     for (URIStatus status : sFileSystem.listStatus(new AlluxioURI(sAlluxioRoot))) {
-      DeleteOptions options = DeleteOptions.defaults().setRecursive(true);
+      DeletePOptions options = DeletePOptions.newBuilder().setRecursive(true).build();
       sFileSystem.delete(new AlluxioURI(status.getPath()), options);
     }
   }
@@ -133,7 +133,7 @@ public class FuseFileSystemIntegrationTest {
     String testFile = "/chgrpTestFile";
     String userName = System.getProperty("user.name");
     String groupName = AlluxioFuseUtils.getGroupName(userName);
-    FileSystemTestUtils.createByteFile(sFileSystem, testFile, WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, testFile, WritePType.MUST_CACHE, 10);
     ShellUtils.execCommand("chgrp", groupName, sMountPoint + testFile);
     Assert.assertEquals(groupName, sFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
   }
@@ -141,7 +141,7 @@ public class FuseFileSystemIntegrationTest {
   @Test
   public void chmod() throws Exception {
     String testFile = "/chmodTestFile";
-    FileSystemTestUtils.createByteFile(sFileSystem, testFile, WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, testFile, WritePType.MUST_CACHE, 10);
     ShellUtils.execCommand("chmod", "777", sMountPoint + testFile);
     Assert.assertEquals((short) 0777, sFileSystem.getStatus(new AlluxioURI(testFile)).getMode());
   }
@@ -149,7 +149,7 @@ public class FuseFileSystemIntegrationTest {
   @Test
   public void chown() throws Exception {
     String testFile = "/chownTestFile";
-    FileSystemTestUtils.createByteFile(sFileSystem, testFile, WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, testFile, WritePType.MUST_CACHE, 10);
 
     String userName = System.getProperty("user.name");
     String groupName = AlluxioFuseUtils.getGroupName(userName);
@@ -176,7 +176,7 @@ public class FuseFileSystemIntegrationTest {
 
     byte[] read = new byte[content.length()];
     try (FileInStream is = sFileSystem.openFile(new AlluxioURI(testFile),
-        OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build())) {
       is.read(read);
     }
     Assert.assertEquals(content, new String(read, "UTF8"));
@@ -235,7 +235,7 @@ public class FuseFileSystemIntegrationTest {
   public void mkdirAndMv() throws Exception {
     String testFile = "/mvTestFile";
     String testFolder = "/mkdirTestFolder";
-    FileSystemTestUtils.createByteFile(sFileSystem, testFile, WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, testFile, WritePType.MUST_CACHE, 10);
     ShellUtils.execCommand("mkdir", sMountPoint + testFolder);
     ShellUtils.execCommand("mv", sMountPoint + testFile,
         sMountPoint + testFolder + testFile);
@@ -256,7 +256,7 @@ public class FuseFileSystemIntegrationTest {
 
   @Test
   public void touchAndLs() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/lsTestFile", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/lsTestFile", WritePType.MUST_CACHE, 10);
     String touchTestFile = "/touchTestFile";
     ShellUtils.execCommand("touch", sMountPoint + touchTestFile);
 

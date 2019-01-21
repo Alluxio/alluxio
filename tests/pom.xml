@@ -82,10 +82,6 @@
       <artifactId>hadoop-minicluster</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.thrift</groupId>
-      <artifactId>libthrift</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
     </dependency>
@@ -142,7 +138,7 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-protobuf</artifactId>
+      <artifactId>alluxio-core-transport</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -317,6 +313,20 @@
 
   <build>
     <plugins>
+      <!-- Inject hadoop.version for tests to fetch at runtime -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemProperties>
+            <property>
+              <name>alluxio.hadoop.version</name>
+              <value>${hadoop.version}</value>
+            </property>
+          </systemProperties>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>

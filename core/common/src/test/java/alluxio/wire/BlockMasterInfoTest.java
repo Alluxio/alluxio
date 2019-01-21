@@ -31,9 +31,9 @@ public final class BlockMasterInfoTest {
   }
 
   @Test
-  public void thrift() {
+  public void proto() {
     BlockMasterInfo blockMasterInfo = createRandom();
-    BlockMasterInfo other = BlockMasterInfo.fromThrift(blockMasterInfo.toThrift());
+    BlockMasterInfo other = BlockMasterInfo.fromProto(blockMasterInfo.toProto());
     checkEquality(blockMasterInfo, other);
   }
 

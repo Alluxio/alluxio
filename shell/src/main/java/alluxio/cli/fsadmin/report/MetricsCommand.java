@@ -12,12 +12,12 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.MetaMasterClient;
+import alluxio.grpc.MetricValue;
 import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.util.FormatUtils;
-import alluxio.wire.MetricValue;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -59,12 +59,17 @@ public class MetricsCommand {
    */
   public int run() throws IOException {
     mMetricsMap = new TreeMap<>(mMetaMasterClient.getMetrics());
-    Long bytesReadLocal = mMetricsMap.getOrDefault(MetricsSystem.getClusterMetricName(
-        ClientMetrics.BYTES_READ_LOCAL), MetricValue.forLong(0L)).getLongValue();
-    Long bytesReadRemote = mMetricsMap.getOrDefault(MetricsSystem.getClusterMetricName(
-        WorkerMetrics.BYTES_READ_ALLUXIO), MetricValue.forLong(0L)).getLongValue();
-    Long bytesReadUfs =  mMetricsMap.getOrDefault(MetricsSystem.getClusterMetricName(
-        WorkerMetrics.BYTES_READ_UFS_ALL), MetricValue.forLong(0L)).getLongValue();
+    Long bytesReadLocal =
+        mMetricsMap.getOrDefault(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
+            MetricValue.newBuilder().setLongValue(0L).build()).getLongValue();
+    Long bytesReadRemote = mMetricsMap
+        .getOrDefault(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO),
+            MetricValue.newBuilder().setLongValue(0L).build())
+        .getLongValue();
+    Long bytesReadUfs = mMetricsMap
+        .getOrDefault(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL),
+            MetricValue.newBuilder().setLongValue(0L).build())
+        .getLongValue();
 
     mPrintStream.println("Total IO: ");
     printMetric(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
@@ -171,9 +176,10 @@ public class MetricsCommand {
    * @return the formatted metric value
    */
   private String getFormattedValue(MetricValue metricValue) {
-    Double doubleValue = metricValue.getDoubleValue();
-    Long longValue = metricValue.getLongValue();
-    return doubleValue == null ? DECIMAL_FORMAT.format(longValue) :
-        DECIMAL_FORMAT.format(doubleValue);
+    if (metricValue.hasDoubleValue()) {
+      return DECIMAL_FORMAT.format(metricValue.getDoubleValue());
+    } else {
+      return DECIMAL_FORMAT.format(metricValue.getLongValue());
+    }
   }
 }

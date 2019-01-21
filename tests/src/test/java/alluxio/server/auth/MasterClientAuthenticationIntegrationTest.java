@@ -12,11 +12,11 @@
 package alluxio.server.auth;
 
 import alluxio.AlluxioURI;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.GetStatusOptions;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authentication.AuthType;
@@ -123,6 +123,7 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
       Thread.currentThread().setContextClassLoader(contextClassLoader);
     }
     Assert.assertTrue(masterClient.isConnected());
+    masterClient.close();
   }
 
   /**
@@ -137,9 +138,9 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
-    masterClient.createFile(new AlluxioURI(filename), CreateFileOptions.defaults());
+    masterClient.createFile(new AlluxioURI(filename), CreateFilePOptions.getDefaultInstance());
     Assert.assertNotNull(
-        masterClient.getStatus(new AlluxioURI(filename), GetStatusOptions.defaults()));
+        masterClient.getStatus(new AlluxioURI(filename), GetStatusPOptions.getDefaultInstance()));
     masterClient.disconnect();
     masterClient.close();
   }

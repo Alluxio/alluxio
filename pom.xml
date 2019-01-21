@@ -139,26 +139,28 @@
   </repositories>
 
   <properties>
-    <apache.curator.version>2.1.0-incubating</apache.curator.version>
+    <apache.curator.version>4.0.1</apache.curator.version>
+    <apache.curator-test.version>2.12.0</apache.curator-test.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
     <copycat.version>1.2.12</copycat.version>
     <cxf.version>2.7.0</cxf.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <gmetric4j.version>1.0.7</gmetric4j.version>
+    <grpc.version>1.17.1</grpc.version>
     <hadoop.version>2.2.0</hadoop.version>
     <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
     <java.version>1.8</java.version>
     <jersey.version>2.22</jersey.version>
     <jetty.version>9.2.16.v20160414</jetty.version>
     <junit.version>4.12</junit.version>
-    <libthrift.version>0.9.3</libthrift.version>
     <log4j.version>1.2.17</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
     <powermock.version>1.6.1</powermock.version>
     <prometheus.version>0.3.0</prometheus.version>
-    <protobuf.version>2.5.0</protobuf.version>
+    <guava.version>27.0.1-jre</guava.version>
+    <protobuf.version>3.5.1</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
     <jackson.version>2.9.7</jackson.version>
@@ -240,7 +242,7 @@
         <!-- using older version to match dependency version from Hadoop -->
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>14.0.1</version>
+        <version>${guava.version}</version>
       </dependency>
       <dependency>
         <!-- using older version to match dependency version from Hadoop -->
@@ -319,11 +321,31 @@
         <artifactId>metrics-jvm</artifactId>
         <version>${metrics.version}</version>
       </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-core</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-netty</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-protobuf</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-stub</artifactId>
+        <version>${grpc.version}</version>
+      </dependency>
       <!-- Netty 4.0.50+ required for shading in client runtime jar to work -->
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
-        <version>4.0.53.Final</version>
+        <version>4.1.30.Final</version>
       </dependency>
       <dependency>
         <groupId>io.prometheus</groupId>
@@ -546,18 +568,6 @@
         <version>2.0.8</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.thrift</groupId>
-        <artifactId>libthrift</artifactId>
-        <version>${libthrift.version}</version>
-        <exclusions>
-          <!-- Excluded to avoid conflict with the version Alluxio uses. -->
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
         <version>3.4.6</version>
@@ -659,8 +669,13 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava-testlib</artifactId>
-        <version>19.0</version>
+        <version>${guava.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-testing</artifactId>
+        <version>${grpc.version}</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -671,7 +686,7 @@
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-test</artifactId>
-        <version>${apache.curator.version}</version>
+        <version>${apache.curator-test.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -968,7 +983,7 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
           <!-- Needs to be 2.4.2 or later to prevent MSHADE-148 -->
-          <version>2.4.3</version>
+          <version>3.2.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1131,7 +1146,7 @@
             <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
           </sourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/org/apache/jsp/**,**/alluxio/thrift/**,**/alluxio/proto/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/alluxio/proto/**,**/alluxio/grpc/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -1159,13 +1174,11 @@
           <excludes>
 
             <!-- Code Exclusions -->
-            <exclude>**/src/main/java/alluxio/thrift/*</exclude>
             <exclude>**/src/main/java/alluxio/proto/**</exclude>
-            <exclude>**/src/main/java/alluxio/perf/thrift/*</exclude>
+            <exclude>**/src/main/java/alluxio/grpc/**</exclude>
             <exclude>**/src/main/resources/*</exclude>
             <exclude>**/src/main/webapp/css/*</exclude>
             <exclude>**/src/main/webapp/js/*</exclude>
-            <exclude>**/src/thrift/*</exclude>
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
