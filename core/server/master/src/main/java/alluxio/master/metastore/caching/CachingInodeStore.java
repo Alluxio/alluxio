@@ -420,11 +420,12 @@ public final class CachingInodeStore implements InodeStore {
     @Override
     protected void onCacheUpdate(Edge edge, Long childId) {
       if (childId == null) {
-        addToIdToChildMap(edge.getId(), edge.getName(), childId);
+        removeFromIdToChildMap(edge.getId(), edge.getName());
         addToUnflushedDeletes(edge.getId(), edge.getName());
+      } else {
+        addToIdToChildMap(edge.getId(), edge.getName(), childId);
+        removeFromUnflushedDeletes(edge.getId(), edge.getName());
       }
-      removeFromIdToChildMap(edge.getId(), edge.getName());
-      removeFromUnflushedDeletes(edge.getId(), edge.getName());
     }
 
     @Override
