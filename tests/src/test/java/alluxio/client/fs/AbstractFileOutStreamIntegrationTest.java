@@ -11,9 +11,7 @@
 
 package alluxio.client.fs;
 
-import alluxio.AbstractClient;
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -24,7 +22,6 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.LocalAlluxioJobCluster;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.network.PortUtils;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -64,7 +61,6 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
       buildLocalAlluxioClusterResource();
 
   protected FileSystem mFileSystem = null;
-
 
   @Before
   public void before() throws Exception {
