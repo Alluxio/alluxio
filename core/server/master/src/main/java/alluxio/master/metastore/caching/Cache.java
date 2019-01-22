@@ -75,7 +75,6 @@ public abstract class Cache<K, V> {
         () -> mMap.size());
     mEvictionThread = new EvictionThread();
     mEvictionThread.setDaemon(true);
-    mEvictionThread.setPriority(6);
   }
 
   /**
@@ -143,7 +142,8 @@ public abstract class Cache<K, V> {
    *
    * The key is not immediately removed from the backing store. Instead, we set the entry's value to
    * null to indicate to the eviction thread that to evict the entry, it must first remove the key
-   * from the backing store.
+   * from the backing store. However, if the cache is full we must synchronously write to the
+   * backing store instead.
    *
    * @param key the key to remove
    */
@@ -191,31 +191,6 @@ public abstract class Cache<K, V> {
 
   private boolean cacheIsFull() {
     return mMap.size() >= mMaxSize;
-  }
-
-  // At maximum capacity, the cache must wait for the eviction thread before it can serve more
-  // requests. If we try to go around the cache and and access the ufs directly,
-  private void blockIfCacheFull() {
-    if (cacheIsFull()) {
-      kickEvictionThread();
-      // Wait for the eviction thread to finish before continuing.
-      while (evictionIsRunning() || cacheIsFull()) {
-        synchronized (mCacheFull) {
-          try {
-            if (cacheIsFull()) {
-              mCacheFull.wait();
-            }
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
-          }
-        }
-      }
-    }
-  }
-
-  private boolean evictionIsRunning() {
-    return mEvictionThread.mIsSleeping == false;
   }
 
   private void wakeEvictionThreadIfNecessary() {
