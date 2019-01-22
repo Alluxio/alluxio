@@ -236,12 +236,14 @@ public abstract class Cache<K, V> {
         // Wait for the cache to get over the high water mark.
         while (!overHighWaterMark()) {
           synchronized (mEvictionThread) {
-            try {
-              mEvictionThread.mIsSleeping = true;
-              mEvictionThread.wait();
-              mEvictionThread.mIsSleeping = false;
-            } catch (InterruptedException e) {
-              return;
+            if (!overHighWaterMark()) {
+              try {
+                mEvictionThread.mIsSleeping = true;
+                mEvictionThread.wait();
+                mEvictionThread.mIsSleeping = false;
+              } catch (InterruptedException e) {
+                return;
+              }
             }
           }
         }
