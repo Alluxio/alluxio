@@ -53,21 +53,6 @@ public final class JournalEntryAssociation {
         || entry.hasBlockInfo()) {
       return Constants.BLOCK_MASTER_NAME;
     }
-    if (entry.hasCompletePartition()
-        || entry.hasCompleteStore()
-        || entry.hasCreateStore()
-        || entry.hasDeleteStore()
-        || entry.hasRenameStore()
-        || entry.hasMergeStore()) {
-      return Constants.KEY_VALUE_MASTER_NAME;
-    }
-    if (entry.hasDeleteLineage()
-        || entry.hasLineageIdGenerator()
-        || entry.hasLineage()) {
-      // Lineage no longer exists, these will now be routed to
-      // FileSystemMaster, where they will be ignored.
-      return Constants.FILE_SYSTEM_MASTER_NAME;
-    }
     throw new IllegalStateException("Unrecognized journal entry: " + entry);
   }
 

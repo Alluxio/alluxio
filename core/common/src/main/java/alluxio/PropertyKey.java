@@ -313,23 +313,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Alluxio installation directory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
-  public static final PropertyKey KEY_VALUE_ENABLED =
-      new Builder(Name.KEY_VALUE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether the key-value service is enabled.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
-      new Builder(Name.KEY_VALUE_PARTITION_SIZE_BYTES_MAX)
-          .setDefaultValue("512MB")
-          .setDescription(String.format(
-              "Maximum allowable size of a single key-value partition "
-                  + "in a store. This value should be no larger than the block size "
-                  + "(%s).", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey LOGGER_TYPE =
       new Builder(Name.LOGGER_TYPE)
           .setDefaultValue("Console")
@@ -3366,9 +3349,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.integration.worker.resource.mem";
     public static final String INTEGRATION_YARN_WORKERS_PER_HOST_MAX =
         "alluxio.integration.yarn.workers.per.host.max";
-    public static final String KEY_VALUE_ENABLED = "alluxio.keyvalue.enabled";
-    public static final String KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
-        "alluxio.keyvalue.partition.size.bytes.max";
     public static final String LOGGER_TYPE = "alluxio.logger.type";
     public static final String LOGS_DIR = "alluxio.logs.dir";
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
