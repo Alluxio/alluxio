@@ -268,7 +268,7 @@ func generateTarball(hadoopDistribution string) error {
 	}
 
 	// Update the web app location.
-	replace("core/common/src/main/java/alluxio/PropertyKey.java", webappDir, webappWar)
+	replace("core/common/src/main/java/alluxio/conf/PropertyKey.java", webappDir, webappWar)
 	// Update the assembly jar paths.
 	replace("libexec/alluxio-config.sh", "assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-client-${VERSION}.jar")
 	replace("libexec/alluxio-config.sh", "assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-server-${VERSION}.jar")
