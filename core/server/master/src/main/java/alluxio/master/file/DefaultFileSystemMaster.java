@@ -1439,6 +1439,52 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
+  public void delete(InodeView inode, DeleteContext context)
+      throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
+      InvalidPathException, AccessControlException {
+    Metrics.DELETE_PATHS_OPS.inc();
+    try (RpcContext rpcContext = createRpcContext();
+         LockedInodePath inodePath =
+             mInodeTree.lockFullInodePath(inode.getId(), LockPattern.WRITE_EDGE);
+         FileSystemMasterAuditContext auditContext =
+             createAuditContext("delete", inodePath.getUri(), null, inodePath.getInodeOrNull())) {
+      AlluxioURI path = inodePath.getUri();
+      mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+      if (context.getOptions().getRecursive()) {
+        try {
+          List<String> failedChildren = new ArrayList<>();
+          for (LockedInodePath childPath : mInodeTree.getImplicitlyLockedDescendants(inodePath)) {
+            try {
+              mPermissionChecker.checkPermission(Mode.Bits.WRITE, childPath);
+            } catch (AccessControlException e) {
+              failedChildren.add(e.getMessage());
+            }
+          }
+          if (failedChildren.size() > 0) {
+            throw new AccessControlException(ExceptionMessage.DELETE_FAILED_DIR_CHILDREN
+                .getMessage(path, StringUtils.join(failedChildren, ",")));
+          }
+        } catch (AccessControlException e) {
+          auditContext.setAllowed(false);
+          throw e;
+        }
+      }
+      mMountTable.checkUnderWritableMountPoint(path);
+      // Possible ufs sync.
+      LockingScheme lockingScheme = createLockingScheme(path,
+          context.getOptions().getCommonOptions(), LockPattern.WRITE_EDGE);
+      syncMetadata(rpcContext, inodePath, lockingScheme,
+          context.getOptions().getRecursive() ? DescendantType.ALL : DescendantType.ONE);
+      if (!inodePath.fullPathExists()) {
+        throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+      }
+
+      deleteInternal(rpcContext, inodePath, context);
+      auditContext.setSucceeded(true);
+    }
+  }
+
+  @Override
   public void delete(AlluxioURI path, DeleteContext context)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException {
@@ -2210,6 +2256,28 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           .setId(ancestor.getId())
           .setPersistenceState(PersistenceState.PERSISTED.name())
           .build());
+    }
+  }
+
+  @Override
+  public void free(InodeView inode, FreeContext context)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnexpectedAlluxioException, IOException {
+    Metrics.FREE_FILE_OPS.inc();
+    // No need to syncMetadata before free.
+    try (RpcContext rpcContext = createRpcContext();
+         LockedInodePath inodePath = mInodeTree.lockFullInodePath(inode.getId(),
+             LockPattern.WRITE_INODE);
+         FileSystemMasterAuditContext auditContext = createAuditContext("free", inodePath.getUri(),
+             null, inodePath.getInodeOrNull())) {
+      try {
+        mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
+      } catch (AccessControlException e) {
+        auditContext.setAllowed(false);
+        throw e;
+      }
+      freeInternal(rpcContext, inodePath, context);
+      auditContext.setSucceeded(true);
     }
   }
 

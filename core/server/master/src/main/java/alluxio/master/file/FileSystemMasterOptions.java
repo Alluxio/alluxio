@@ -48,7 +48,7 @@ public final class FileSystemMasterOptions{
    */
   private static FileSystemMasterCommonPOptions commonDefaults() {
     return FileSystemMasterCommonPOptions.newBuilder()
-        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
+        .setTtl(Configuration.getMs(PropertyKey.USER_FILE_CREATE_TTL))
         .setTtlAction(
             Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class))
         .setSyncIntervalMs(Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))

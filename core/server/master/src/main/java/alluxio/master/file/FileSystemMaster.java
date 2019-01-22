@@ -26,6 +26,7 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
+import alluxio.master.file.meta.InodeView;
 import alluxio.wire.SyncPointInfo;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -239,6 +240,22 @@ public interface FileSystemMaster extends Master {
   int getNumberOfPinnedFiles();
 
   /**
+   * Deletes the path which a node represents.
+   * <p>
+   * This operation requires user to have WRITE permission on the parent of the path.
+   *
+   * @param inode an inode to delete
+   * @param context method context
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  void delete(InodeView inode, DeleteContext context)
+      throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
+      InvalidPathException, AccessControlException;
+
+  /**
    * Deletes a given path.
    * <p>
    * This operation requires user to have WRITE permission on the parent of the path.
@@ -334,6 +351,23 @@ public interface FileSystemMaster extends Master {
   // clients of earlier versions prior to 1.5. If a new exception is added, it will be converted
   // into RuntimeException on the client.
   void free(AlluxioURI path, FreeContext context)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnexpectedAlluxioException, IOException;
+
+  /**
+   * Frees or evicts all of the blocks of the file from alluxio storage. If the given file is a
+   * directory, and the 'recursive' flag is enabled, all descendant files will also be freed.
+   * <p>
+   * This operation requires users to have READ permission on the path.
+   *
+   * @param inode the path to free method
+   * @param context context to free method
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the given path is invalid
+   * @throws UnexpectedAlluxioException if the file or directory can not be freed
+   */
+  void free(InodeView inode, FreeContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException;
 

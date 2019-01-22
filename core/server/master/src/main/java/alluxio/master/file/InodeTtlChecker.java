@@ -11,9 +11,7 @@
 
 package alluxio.master.file;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -62,58 +60,46 @@ final class InodeTtlChecker implements HeartbeatExecutor {
     Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
     for (TtlBucket bucket : expiredBuckets) {
       for (InodeView inode : bucket.getInodes()) {
-        AlluxioURI path = null;
-        try (LockedInodePath inodePath =
-            mInodeTree.lockFullInodePath(inode.getId(), LockPattern.READ)) {
-          path = inodePath.getUri();
-        } catch (FileDoesNotExistException e) {
-          // The inode has already been deleted, nothing needs to be done.
-          continue;
-        } catch (Exception e) {
-          LOG.error("Exception trying to clean up {} for ttl check: {}", inode.toString(),
-              e.toString());
-        }
-        if (path != null) {
-          try {
-            TtlAction ttlAction = inode.getTtlAction();
-            LOG.info("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
-            switch (ttlAction) {
-              case FREE:
-                // public free method will lock the path, and check WRITE permission required at
-                // parent of file
-                if (inode.isDirectory()) {
-                  mFileSystemMaster.free(path, FreeContext
-                      .defaults(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
-                } else {
-                  mFileSystemMaster.free(path,
-                      FreeContext.defaults(FreePOptions.newBuilder().setForced(true)));
-                }
-                try (JournalContext journalContext = mFileSystemMaster.createJournalContext()) {
-                  // Reset state
-                  mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
-                      .setId(inode.getId())
-                      .setTtl(Constants.NO_TTL)
-                      .setTtlAction(ProtobufUtils.toProtobuf(TtlAction.DELETE))
-                      .build());
-                }
-                mTtlBuckets.remove(inode);
-                break;
-              case DELETE:// Default if not set is DELETE
-                // public delete method will lock the path, and check WRITE permission required at
-                // parent of file
-                if (inode.isDirectory()) {
-                  mFileSystemMaster.delete(path,
-                      DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
-                } else {
-                  mFileSystemMaster.delete(path, DeleteContext.defaults());
-                }
-                break;
-              default:
-                LOG.error("Unknown ttl action {}", ttlAction);
-            }
-          } catch (Exception e) {
-            LOG.error("Exception trying to clean up {} for ttl check", inode.toString(), e);
+        try {
+          TtlAction ttlAction = inode.getTtlAction();
+          switch (ttlAction) {
+            case FREE:
+              // public free method will lock the path, and check WRITE permission required at
+              // parent of file
+              if (inode.isDirectory()) {
+                mFileSystemMaster.free(inode, FreeContext
+                    .defaults(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
+              } else {
+                mFileSystemMaster.free(inode,
+                    FreeContext.defaults(FreePOptions.newBuilder().setForced(true)));
+              }
+              try (JournalContext journalContext = mFileSystemMaster.createJournalContext();
+                  LockedInodePath inodePath =
+                      mInodeTree.lockFullInodePath(inode.getId(), LockPattern.WRITE_INODE)) {
+                // Reset state
+                mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
+                    .setId(inode.getId())
+                    .setTtl(Constants.NO_TTL)
+                    .setTtlAction(ProtobufUtils.toProtobuf(TtlAction.DELETE))
+                    .build());
+              }
+              mTtlBuckets.remove(inode);
+              break;
+            case DELETE:// Default if not set is DELETE
+              // public delete method will lock the path, and check WRITE permission required at
+              // parent of file
+              if (inode.isDirectory()) {
+                mFileSystemMaster.delete(inode,
+                    DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
+              } else {
+                mFileSystemMaster.delete(inode, DeleteContext.defaults());
+              }
+              break;
+            default:
+              LOG.error("Unknown ttl action {}", ttlAction);
           }
+        } catch (Exception e) {
+          LOG.error("Exception trying to clean up {} for ttl check", inode.toString(), e);
         }
       }
     }
