@@ -125,7 +125,7 @@ public abstract class Cache<K, V> {
    */
   public void put(K key, V value) {
     mMap.compute(key, (k, entry) -> {
-      onAdd(key, value);
+      onPut(key, value);
       if (entry == null && cacheIsFull()) {
         writeToBackingStore(key, value);
         return null;
@@ -299,6 +299,7 @@ public abstract class Cache<K, V> {
           if (entry.mDirty) {
             return entry; // entry must have been written since we evicted.
           }
+          onCacheRemove(candidate.mKey);
           return null;
         })) {
           evictionCount++;
@@ -323,13 +324,21 @@ public abstract class Cache<K, V> {
   protected void onCacheUpdate(K key, @Nullable V value) {}
 
   /**
-   * Callback triggered whenever a new key/value pair is added by put(key, value). This does not
-   * count loading key/value pairs from the backing store.
+   * Callback triggered when a key is removed from the cache.
+   *
+   * This may be used in conjunction with onCacheUpdate to keep track of all changes to the cache
+   *
+   * @param key the removed key
+   */
+  protected void onCacheRemove(K key) {}
+
+  /**
+   * Callback triggered whenever a new key/value pair is added by put(key, value).
    *
    * @param key the added key
    * @param value the added value
    */
-  protected void onAdd(K key, V value) {}
+  protected void onPut(K key, V value) {}
 
   /**
    * Callback triggered whenever a key is removed by remove(key).

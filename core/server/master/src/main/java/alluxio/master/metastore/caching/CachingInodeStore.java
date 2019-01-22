@@ -432,7 +432,13 @@ public final class CachingInodeStore implements InodeStore {
     }
 
     @Override
-    protected void onAdd(Edge edge, Long childId) {
+    protected void onCacheRemove(Edge edge) {
+      removeFromIdToChildMap(edge.getId(), edge.getName());
+      removeFromUnflushedDeletes(edge.getId(), edge.getName());
+    }
+
+    @Override
+    protected void onPut(Edge edge, Long childId) {
       mListingCache.addEdge(edge, childId);
     }
 
@@ -452,10 +458,7 @@ public final class CachingInodeStore implements InodeStore {
     }
 
     private void removeFromIdToChildMap(Long parentId, String childName) {
-      mIdToChildMap.compute(parentId, (key, children) -> {
-        if (children == null) {
-          return null;
-        }
+      mIdToChildMap.computeIfPresent(parentId, (key, children) -> {
         children.remove(childName);
         if (children.isEmpty()) {
           return null;
@@ -465,7 +468,7 @@ public final class CachingInodeStore implements InodeStore {
     }
 
     private void addToUnflushedDeletes(long parentId, String childName) {
-      mUnflushedDeletes.computeIfPresent(parentId, (key, children) -> {
+      mUnflushedDeletes.compute(parentId, (key, children) -> {
         if (children == null) {
           children = new ConcurrentSkipListSet<>();
         }
@@ -476,9 +479,6 @@ public final class CachingInodeStore implements InodeStore {
 
     private void removeFromUnflushedDeletes(Long parentId, String childName) {
       mUnflushedDeletes.computeIfPresent(parentId, (key, children) -> {
-        if (children == null) {
-          return null;
-        }
         children.remove(childName);
         if (children.isEmpty()) {
           return null;
