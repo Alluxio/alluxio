@@ -17,6 +17,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,17 +142,23 @@ public class S3AInputStream extends InputStream {
     if (mPos > 0) {
       getReq.setRange(mPos);
     }
-    AmazonS3Exception thrownException = null;
+    AmazonS3Exception lastException = null;
     while (mRetryPolicy.attempt()) {
       try {
         mIn = mClient.getObject(getReq).getObjectContent();
+        return;
       } catch (AmazonS3Exception e) {
         LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
             mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
-        thrownException = e;
+        if (e.getStatusCode() != HttpStatus.SC_NOT_FOUND) {
+          throw e;
+        }
+        // Key does not exist
+        lastException = e;
       }
     }
-    throw thrownException;
+    // Failed after retrying key does not exist
+    throw lastException;
   }
 
   /**
