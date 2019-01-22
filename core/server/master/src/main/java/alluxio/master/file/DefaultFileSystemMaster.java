@@ -452,9 +452,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         || mUfsManager.replayJournalEntryFromJournal(entry)
         || mSyncManager.replayJournalEntryFromJournal(entry)) {
       return;
-    } else if (entry.hasReinitializeFile() || entry.hasLineage() || entry.hasLineageIdGenerator()
-        || entry.hasDeleteLineage()) {
-      // lineage is no longer supported, fall through
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }

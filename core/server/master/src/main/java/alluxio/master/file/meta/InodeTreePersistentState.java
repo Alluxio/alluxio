@@ -169,8 +169,6 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
       apply(entry.getInodeLastModificationTime());
     } else if (entry.hasPersistDirectory()) {
       apply(entry.getPersistDirectory());
-    } else if (entry.hasReinitializeFile()) {
-      apply(entry.getReinitializeFile());
     } else if (entry.hasSetAttribute()) {
       apply(entry.getSetAttribute());
     } else {

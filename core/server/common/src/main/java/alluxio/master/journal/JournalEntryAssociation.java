@@ -39,7 +39,6 @@ public final class JournalEntryAssociation {
         || entry.hasPersistDirectory()
         || entry.hasRemoveSyncPoint()
         || entry.hasRename()
-        || entry.hasReinitializeFile()
         || entry.hasSetAcl()
         || entry.hasSetAttribute()
         || entry.hasUpdateUfsMode()
