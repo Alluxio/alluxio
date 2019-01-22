@@ -53,7 +53,7 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
 
   /**
    * @param alluxioConf Alluxio configuration
-   * @return UFS configuration from a given alluxio configuration
+   * @return ufs configuration from a given alluxio configuration
    */
   public static UnderFileSystemConfiguration defaults(AlluxioConfiguration alluxioConf) {
     return new UnderFileSystemConfiguration(alluxioConf.copyProperties());

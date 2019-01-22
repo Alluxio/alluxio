@@ -39,7 +39,7 @@ public final class HadoopConfigurationUtils {
    *
    * @param hadoopConf the {@link org.apache.hadoop.conf.Configuration} to merge
    * @param alluxioProps the Alluxio properties to merge
-   * @return A configuration with properties all merged
+   * @return a configuration with properties all merged
    */
   public static InstancedConfiguration mergeHadoopConfiguration(
       org.apache.hadoop.conf.Configuration hadoopConf, AlluxioProperties alluxioProps) {

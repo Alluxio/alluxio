@@ -44,7 +44,7 @@ public class ClientContext {
    * @param subject the security subject to use
    * @param alluxioConf the {@link AlluxioConfiguration} to use. If null, the site property defaults
    *     will be loaded
-   * @return A new client context with the specified properties and subject
+   * @return a new client context with the specified properties and subject
    */
   public static ClientContext create(Subject subject, AlluxioConfiguration alluxioConf) {
     return new ClientContext(subject, alluxioConf);

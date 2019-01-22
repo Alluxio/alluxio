@@ -30,7 +30,7 @@ public class MasterClientContext extends ClientContext {
    * instance of {@link MasterClientContext}.
    *
    * @param ctx The context to base
-   * @return A builder for a {@link MasterClientContext}
+   * @return a builder for a {@link MasterClientContext}
    */
   public static MasterClientContextBuilder newBuilder(ClientContext ctx) {
     return new MasterClientContextBuilder(ctx);

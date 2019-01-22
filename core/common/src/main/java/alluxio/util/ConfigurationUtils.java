@@ -276,7 +276,7 @@ public final class ConfigurationUtils {
    * Returns an instance of {@link AlluxioConfiguration} with the defaults and values from
    * alluxio-site properties.
    *
-   * @return The set of Alluxio properties loaded from the site-properties file
+   * @return the set of Alluxio properties loaded from the site-properties file
    */
   public static AlluxioProperties defaults() {
     if (sDefaultProperties == null) {
@@ -342,7 +342,7 @@ public final class ConfigurationUtils {
    * @param conf the base configuration
    * @param properties the source {@link Properties} to be merged
    * @param source the source of the the properties (e.g., system property, default and etc)
-   * @return A new configuration representing the merged properties
+   * @return a new configuration representing the merged properties
    */
   public static AlluxioConfiguration merge(AlluxioConfiguration conf, Map<?, ?> properties,
       Source source) {
@@ -356,7 +356,7 @@ public final class ConfigurationUtils {
    *
    * @param address the master address
    * @param conf configuration to use
-   * @return An configuration object containing the original configuration merged with cluster
+   * @return a configuration object containing the original configuration merged with cluster
    *         defaults, or the original object if the cluster defaults have already been loaded
    */
   public static AlluxioConfiguration loadClusterDefaults(InetSocketAddress address,

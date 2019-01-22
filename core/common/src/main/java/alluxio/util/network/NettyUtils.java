@@ -195,7 +195,7 @@ public final class NettyUtils {
    * Gets the ChannelType properly from the USER_NETWORK_NETTY_CHANNEL property key.
    *
    * @param conf Alluxio configuration
-   * @return The proper channel type USER_NETWORK_NETTY_CHANNEL
+   * @return the proper channel type USER_NETWORK_NETTY_CHANNEL
    */
   public static ChannelType getUserChannel(AlluxioConfiguration conf) {
     return getChannelType(PropertyKey.USER_NETWORK_NETTY_CHANNEL, conf);
