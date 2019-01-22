@@ -67,7 +67,7 @@ public final class PathsRestServiceHandler {
   public static final String DELETE = "delete";
   public static final String EXISTS = "exists";
   public static final String FREE = "free";
-  public static final String GET_STATUS = "create-status";
+  public static final String GET_STATUS = "get-status";
   public static final String LIST_STATUS = "list-status";
   public static final String MOUNT = "mount";
   public static final String OPEN_FILE = "open-file";
