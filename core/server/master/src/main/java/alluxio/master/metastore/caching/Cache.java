@@ -43,23 +43,23 @@ import javax.annotation.Nullable;
  * other concurrent operations are supported. Cache hit reads are served without any locking. Writes
  * and cache miss reads take locks on their key.
  *
+ * This class leverages the entry-level locks of ConcurrentHashMap to synchronize operations on the
+ * same key.
+ *
  * @param <K> the cache key type
  * @param <V> the cache value type
  */
 public abstract class Cache<K, V> {
   private static final Logger LOG = LoggerFactory.getLogger(Cache.class);
 
-  private final ConcurrentHashMap<K, Entry> mMap = new ConcurrentHashMap<>();
-
   private final int mMaxSize;
   private final int mHighWaterMark;
   private final int mLowWaterMark;
   private final int mEvictBatchSize;
   private final String mName;
-
+  private final ConcurrentHashMap<K, Entry> mMap;
   // TODO(andrew): Support using multiple threads to speed up backing store writes.
   private final EvictionThread mEvictionThread;
-  private final Object mCacheFull = new Object();
 
   /**
    * @param conf cache configuration
@@ -71,10 +71,12 @@ public abstract class Cache<K, V> {
     mLowWaterMark = conf.getLowWaterMark();
     mEvictBatchSize = conf.getEvictBatchSize();
     mName = name;
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(mName + "-size"),
-        () -> mMap.size());
+    mMap = new ConcurrentHashMap<>(mMaxSize);
     mEvictionThread = new EvictionThread();
     mEvictionThread.setDaemon(true);
+
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(mName + "-size"),
+        () -> mMap.size());
   }
 
   /**
@@ -94,7 +96,11 @@ public abstract class Cache<K, V> {
       }
       return Optional.ofNullable(entry.mValue);
     }
-    Entry entry = mMap.computeIfAbsent(key, k -> {
+    Entry result = mMap.compute(key, (k, entry) -> {
+      if (entry != null) {
+        entry.mReferenced = true;
+        return entry;
+      }
       Optional<V> value = load(key);
       if (value.isPresent()) {
         onCacheUpdate(key, value.get());
@@ -104,12 +110,11 @@ public abstract class Cache<K, V> {
       }
       return null;
     });
-    if (entry == null || entry.mValue == null) {
+    if (result == null || result.mValue == null) {
       return Optional.empty();
     }
-    entry.mReferenced = true;
     wakeEvictionThreadIfNecessary();
-    return Optional.of(entry.mValue);
+    return Optional.of(result.mValue);
   }
 
   /**
@@ -120,7 +125,7 @@ public abstract class Cache<K, V> {
    */
   public void put(K key, V value) {
     mMap.compute(key, (k, entry) -> {
-      onNew(key, value);
+      onAdd(key, value);
       if (entry == null && cacheIsFull()) {
         writeToBackingStore(key, value);
         return null;
@@ -151,12 +156,12 @@ public abstract class Cache<K, V> {
     // Set the entry so that it will be removed from the backing store when it is encountered by
     // the eviction thread.
     mMap.compute(key, (k, entry) -> {
+      onRemove(key);
       if (entry == null && cacheIsFull()) {
         removeFromBackingStore(k);
         return null;
       }
       onCacheUpdate(key, null);
-      onRemove(key);
       if (entry == null) {
         entry = new Entry(key, null);
       } else {
@@ -176,7 +181,7 @@ public abstract class Cache<K, V> {
   public void clear() {
     mMap.forEach((key, value) -> {
       onCacheUpdate(key, value.mValue);
-      onEvict(key, null);
+      onRemove(key);
     });
     mMap.clear();
   }
@@ -233,9 +238,6 @@ public abstract class Cache<K, V> {
           synchronized (mEvictionThread) {
             try {
               mEvictionThread.mIsSleeping = true;
-              synchronized (mCacheFull) {
-                mCacheFull.notifyAll();
-              }
               mEvictionThread.wait();
               mEvictionThread.mIsSleeping = false;
             } catch (InterruptedException e) {
@@ -297,7 +299,6 @@ public abstract class Cache<K, V> {
           if (entry.mDirty) {
             return entry; // entry must have been written since we evicted.
           }
-          onEvict(key, entry.mValue);
           return null;
         })) {
           evictionCount++;
@@ -322,13 +323,13 @@ public abstract class Cache<K, V> {
   protected void onCacheUpdate(K key, @Nullable V value) {}
 
   /**
-   * Callback triggered whenever a new key/value pair is created by put(key, value). This does not
+   * Callback triggered whenever a new key/value pair is added by put(key, value). This does not
    * count loading key/value pairs from the backing store.
    *
-   * @param key the new key
-   * @param value the new value
+   * @param key the added key
+   * @param value the added value
    */
-  protected void onNew(K key, V value) {}
+  protected void onAdd(K key, V value) {}
 
   /**
    * Callback triggered whenever a key is removed by remove(key).
@@ -336,22 +337,6 @@ public abstract class Cache<K, V> {
    * @param key the removed key
    */
   protected void onRemove(K key) {}
-
-  /**
-   * Callback triggered whenever a key/value pair is evicted from the cache.
-   *
-   * Being evicted is different from being flushed - a key could be flushed but then immediately
-   * accessed, causing it to stay in the cache. onEvict is only triggered when a key/value pair is
-   * completely removed from the cache.
-   *
-   * Note that the cache processes removes by creating (key, null) entries and asynchronously
-   * performing the remove in the backing store. onEvict is also triggered when such entries are
-   * processed and removed from the cache. In such cases, value will be null.
-   *
-   * @param key the evicted key
-   * @param value the evicted value, or null if the eviction was on a removal entry
-   */
-  protected void onEvict(K key, V value) {}
 
   /**
    * Loads a key from the backing store.

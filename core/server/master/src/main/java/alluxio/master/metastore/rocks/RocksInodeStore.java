@@ -87,7 +87,6 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public void remove(Long inodeId) {
-    System.out.printf("Remove %s from rocks%n", inodeId);
     try {
       byte[] id = Longs.toByteArray(inodeId);
       mDb.delete(mInodesColumn, mDisableWAL, id);

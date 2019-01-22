@@ -86,7 +86,7 @@ public final class CachingInodeStore implements InodeStore {
   // store. When true, we can optimize lookups for non-existent inodes because we don't need to
   // check the backing store. We can also optimize getChildren by skipping the range query on the
   // backing store.
-  private volatile boolean mFullyCached;
+  private volatile boolean mBackingStoreEmpty;
 
   /**
    * @param backingStore the backing inode store
@@ -103,7 +103,7 @@ public final class CachingInodeStore implements InodeStore {
     int lowWaterMark = Math.round(
         maxSize * conf.getFloat(PropertyKey.MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO));
 
-    mFullyCached = true;
+    mBackingStoreEmpty = true;
     CacheConfiguration cacheConf = CacheConfiguration.newBuilder()
         .setMaxSize(maxSize)
         .setHighWaterMark(highWaterMark)
@@ -199,7 +199,7 @@ public final class CachingInodeStore implements InodeStore {
 
     @Override
     protected Optional<MutableInode<?>> load(Long id) {
-      if (mFullyCached) {
+      if (mBackingStoreEmpty) {
         return Optional.empty();
       }
       return mBackingStore.getMutable(id);
@@ -207,16 +207,20 @@ public final class CachingInodeStore implements InodeStore {
 
     @Override
     protected void writeToBackingStore(Long key, MutableInode<?> value) {
+      mBackingStoreEmpty = false;
       mBackingStore.writeInode(value);
     }
 
     @Override
     protected void removeFromBackingStore(Long key) {
-      mBackingStore.remove(key);
+      if (!mBackingStoreEmpty) {
+        mBackingStore.remove(key);
+      }
     }
 
     @Override
     protected void flushEntries(List<Entry> entries) {
+      mBackingStoreEmpty = false;
       if (mBackingStore.supportsBatchWrite()) {
         batchFlush(entries);
       }
@@ -253,11 +257,6 @@ public final class CachingInodeStore implements InodeStore {
         }
       }
       batch.commit();
-    }
-
-    @Override
-    protected void onEvict(Long id, MutableInode<?> inode) {
-      mFullyCached = false;
     }
   }
 
@@ -302,7 +301,7 @@ public final class CachingInodeStore implements InodeStore {
      * @return the children
      */
     public ConcurrentSkipListMap<String, Long> getChildIds(Long inodeId) {
-      if (mFullyCached) {
+      if (mBackingStoreEmpty) {
         return mIdToChildMap.getOrDefault(inodeId, mEmpty);
       }
       // This implementation must be careful because edges can be asynchronously evicted from the
@@ -369,7 +368,7 @@ public final class CachingInodeStore implements InodeStore {
 
     @Override
     protected Optional<Long> load(Edge edge) {
-      if (mFullyCached) {
+      if (mBackingStoreEmpty) {
         return Optional.empty();
       }
       return mBackingStore.getChildId(edge.getId(), edge.getName());
@@ -377,16 +376,20 @@ public final class CachingInodeStore implements InodeStore {
 
     @Override
     protected void writeToBackingStore(Edge key, Long value) {
+      mBackingStoreEmpty = false;
       mBackingStore.addChild(key.getId(), key.getName(), value);
     }
 
     @Override
     protected void removeFromBackingStore(Edge key) {
-      mBackingStore.removeChild(key.getId(), key.getName());
+      if (!mBackingStoreEmpty) {
+        mBackingStore.removeChild(key.getId(), key.getName());
+      }
     }
 
     @Override
     protected void flushEntries(List<Entry> entries) {
+      mBackingStoreEmpty = false;
       boolean useBatch = entries.size() > 0 && mBackingStore.supportsBatchWrite();
       WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null;
       for (Entry entry : entries) {
@@ -429,20 +432,13 @@ public final class CachingInodeStore implements InodeStore {
     }
 
     @Override
-    protected void onNew(Edge edge, Long childId) {
+    protected void onAdd(Edge edge, Long childId) {
       mListingCache.addEdge(edge, childId);
     }
 
     @Override
     protected void onRemove(Edge edge) {
       mListingCache.removeEdge(edge);
-    }
-
-    @Override
-    protected void onEvict(Edge edge, Long childId) {
-      mFullyCached = false;
-      removeFromIdToChildMap(edge.getId(), edge.getName());
-      removeFromUnflushedDeletes(edge.getId(), edge.getName());
     }
 
     private void addToIdToChildMap(Long parentId, String childName, Long childId) {
