@@ -464,10 +464,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * called before client operations in order to guarantee the integrity of the
    * {@link FileSystemContext}.
    *
-   * If hadoop file system cache is enabled, this method should only be called when switching
-   * user. If it is called twice on the same object an exception will be thrown.
+   * If it is called twice on the same object an exception will be thrown.
    */
-  @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
