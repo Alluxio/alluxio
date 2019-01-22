@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.Constants;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -31,7 +32,6 @@ import alluxio.grpc.TtlAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -99,7 +99,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
             default:
               LOG.error("Unknown ttl action {}", ttlAction);
           }
-        } catch (FileNotFoundException e) {
+        } catch (FileDoesNotExistException e) {
           // The inode has already been deleted, nothing needs to be done.
         } catch (Exception e) {
           LOG.error("Exception trying to clean up {} for ttl check", inode.toString(), e);
