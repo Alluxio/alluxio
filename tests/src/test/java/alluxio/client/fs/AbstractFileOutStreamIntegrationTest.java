@@ -11,6 +11,8 @@
 
 package alluxio.client.fs;
 
+import static org.junit.Assert.fail;
+
 import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
@@ -33,9 +35,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -49,11 +49,6 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected LocalAlluxioJobCluster mLocalAlluxioJobCluster;
   protected static final int BLOCK_SIZE_BYTES = 1000;
 
-  private PropertyKey[] mPorts = {PropertyKey.MASTER_RPC_PORT,
-      PropertyKey.JOB_MASTER_RPC_PORT, PropertyKey.JOB_WORKER_RPC_PORT,
-      PropertyKey.WORKER_RPC_PORT,
-      PropertyKey.MASTER_WEB_PORT, PropertyKey.JOB_MASTER_WEB_PORT,
-      PropertyKey.JOB_WORKER_DATA_PORT};
   private Map<PropertyKey, Integer> mPortMapping;
 
   @Rule
@@ -65,9 +60,13 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   @Before
   public void before() throws Exception {
     mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
-    for (Map.Entry<PropertyKey, Integer> e: mPortMapping.entrySet()) {
-      mLocalAlluxioJobCluster.setProperty(e.getKey(), e.getValue().toString());
+    if (mPortMapping == null) {
+      fail("You must initialize a port mapping for this test in order for the cluster to start "
+          + "properly");
     }
+    mPortMapping.entrySet().forEach((Map.Entry<PropertyKey, Integer> e) -> {
+      mLocalAlluxioJobCluster.setProperty(e.getKey(), e.getValue().toString());
+    });
     mLocalAlluxioJobCluster.start();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
@@ -77,23 +76,21 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
     mLocalAlluxioJobCluster.stop();
   }
 
-  protected LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
-    mPortMapping = new HashMap<>();
-    for (PropertyKey pk : mPorts) {
-      try {
-        mPortMapping.put(pk, PortUtils.getFreePort());
-      } catch (IOException e) {
-        Assert.fail(e.toString());
-      }
-    }
-
-    LocalAlluxioClusterResource.Builder resource = new LocalAlluxioClusterResource.Builder()
-        .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
+  protected void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
+    resource.setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
         .setProperty(PropertyKey.USER_FILE_REPLICATION_DURABLE, 1)
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES);
-    for (Map.Entry<PropertyKey, Integer> e: mPortMapping.entrySet()) {
+  }
+
+  private LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
+    mPortMapping = PortUtils.createPortMapping();
+
+    LocalAlluxioClusterResource.Builder resource = new LocalAlluxioClusterResource.Builder();
+    customizeClusterResource(resource);
+
+    mPortMapping.entrySet().forEach((Map.Entry<PropertyKey, Integer> e) -> {
       resource.setProperty(e.getKey(), e.getValue());
-    }
+    });
     return resource.build();
   }
 

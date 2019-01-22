@@ -71,6 +71,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioClusterResource implements TestRule {
+
   /** Number of Alluxio workers in the cluster. */
   private final int mNumWorkers;
 

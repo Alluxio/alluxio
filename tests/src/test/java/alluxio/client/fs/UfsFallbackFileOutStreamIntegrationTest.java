@@ -48,13 +48,12 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
   protected static final int BUFFER_BYTES = 100;
 
   @Override
-  protected LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
-    return new LocalAlluxioClusterResource.Builder()
+  protected void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
+    resource
         .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, BUFFER_BYTES) // initial buffer for worker
         .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE)
         .setProperty(PropertyKey.USER_FILE_UFS_TIER_ENABLED, true)
-        .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false)
-        .build();
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false);
   }
 
   // varying the client side configuration

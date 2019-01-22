@@ -72,6 +72,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -93,7 +94,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
 
   /** Flag for if the contexts have been initialized. */
-  private volatile boolean mInitialized = false;
+  private final AtomicBoolean mInitialized = new AtomicBoolean(false);
 
   protected FileSystemContext mFsContext = null;
   private FileSystem mFileSystem = null;
@@ -112,7 +113,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   AbstractFileSystem(FileSystem fileSystem) {
     mFileSystem = fileSystem;
-    mInitialized = true;
+    mInitialized.set(true);
   }
 
   /**
@@ -471,49 +472,47 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
         PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
-    synchronized (this) {
-      Preconditions.checkArgument(!mInitialized, "initialized");
-      super.initialize(uri, conf);
-      LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
-      HadoopUtils.addSwiftCredentials(conf);
-      setConf(conf);
+    Preconditions.checkArgument(mInitialized.compareAndSet(false, true), "Cannot invoke "
+        + "initialize() more than once");
+    super.initialize(uri, conf);
+    LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
+    HadoopUtils.addSwiftCredentials(conf);
+    setConf(conf);
 
-      // HDFS doesn't allow the authority to be empty; it must be "/" instead.
-      String authority = uri.getAuthority() == null ? "/" : uri.getAuthority();
-      mAlluxioHeader = getScheme() + "://" + authority;
-      // Set the statistics member. Use mStatistics instead of the parent class's variable.
-      mStatistics = statistics;
+    // HDFS doesn't allow the authority to be empty; it must be "/" instead.
+    String authority = uri.getAuthority() == null ? "/" : uri.getAuthority();
+    mAlluxioHeader = getScheme() + "://" + authority;
+    // Set the statistics member. Use mStatistics instead of the parent class's variable.
+    mStatistics = statistics;
 
-      Authority auth = Authority.fromString(uri.getAuthority());
-      if (auth instanceof UnknownAuthority) {
-        throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
-                + "configured with the authority from %s", auth, uri));
-      }
-
-      mUri = URI.create(mAlluxioHeader);
-      Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
-
-      AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
-      AlluxioConfiguration alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioProps);
-
-      Subject subject = getHadoopSubject();
-      if (subject != null) {
-        LOG.debug("Using Hadoop subject: {}", subject);
-      } else {
-        LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
-      }
-
-      LOG.info("Initializing filesystem context with connect details {}",
-          Factory.getConnectDetails(alluxioConf));
-      mFsContext = FileSystemContext.create(subject, alluxioConf);
-
-      // Sets the file system.
-      //
-      // Must happen inside the lock so that the filesystem context isn't changed by a
-      // concurrent call to initialize.
-      mFileSystem = FileSystem.Factory.get(mFsContext);
-      mInitialized = true;
+    Authority auth = Authority.fromString(uri.getAuthority());
+    if (auth instanceof UnknownAuthority) {
+      throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
+              + "configured with the authority from %s", auth, uri));
     }
+
+    mUri = URI.create(mAlluxioHeader);
+    Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
+
+    AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
+    AlluxioConfiguration alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioProps);
+
+    Subject subject = getHadoopSubject();
+    if (subject != null) {
+      LOG.debug("Using Hadoop subject: {}", subject);
+    } else {
+      LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
+    }
+
+    LOG.info("Initializing filesystem context with connect details {}",
+        Factory.getConnectDetails(alluxioConf));
+    mFsContext = FileSystemContext.create(subject, alluxioConf);
+
+    // Sets the file system.
+    //
+    // Must happen inside the lock so that the filesystem context isn't changed by a
+    // concurrent call to initialize.
+    mFileSystem = FileSystem.Factory.get(mFsContext);
   }
 
   /**
