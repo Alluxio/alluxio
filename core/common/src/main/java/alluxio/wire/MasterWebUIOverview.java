@@ -12,8 +12,10 @@
 package alluxio.wire;
 
 import alluxio.util.webui.StorageTierInfo;
+import alluxio.grpc.ConfigStatus;
+import alluxio.grpc.Scope;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.List;
@@ -29,7 +31,7 @@ public final class MasterWebUIOverview implements Serializable {
   private static final long serialVersionUID = 4814640287979962750L;
 
   private boolean mDebug;
-  private ConfigCheckReport.ConfigStatus mConfigCheckStatus;
+  private ConfigStatus mConfigCheckStatus;
   private int mComfigCheckWarnNum;
   private int mConfigCheckErrorNum;
   private int mInconsistentPaths;
@@ -88,7 +90,7 @@ public final class MasterWebUIOverview implements Serializable {
    *
    * @return the config check status
    */
-  public ConfigCheckReport.ConfigStatus getConfigCheckStatus() {
+  public ConfigStatus getConfigCheckStatus() {
     return mConfigCheckStatus;
   }
 
@@ -286,7 +288,7 @@ public final class MasterWebUIOverview implements Serializable {
    * @return config check status
    */
   public MasterWebUIOverview setConfigCheckStatus(
-      ConfigCheckReport.ConfigStatus configCheckStatus) {
+      ConfigStatus configCheckStatus) {
     mConfigCheckStatus = configCheckStatus;
     return this;
   }
@@ -481,7 +483,7 @@ public final class MasterWebUIOverview implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("capacity", mCapacity)
+    return MoreObjects.toStringHelper(this).add("capacity", mCapacity)
         .add("configCheckErrorNum", mConfigCheckErrorNum)
         .add("configCheckErrors", mConfigCheckErrors).add("configCheckStatus", mConfigCheckStatus)
         .add("configCheckWarns", mConfigCheckWarns)

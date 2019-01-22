@@ -15,7 +15,7 @@ import alluxio.util.webui.UIStorageDir;
 import alluxio.util.webui.UIUsageOnTier;
 import alluxio.util.webui.UIWorkerInfo;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.List;
@@ -164,7 +164,7 @@ public final class WorkerWebUIOverview implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("capacityBytes", mCapacityBytes)
+    return MoreObjects.toStringHelper(this).add("capacityBytes", mCapacityBytes)
         .add("storageDirs", mStorageDirs).add("usageOnTiers", mUsageOnTiers)
         .add("usedBytes", mUsedBytes).add("version", mVersion).add("workerInfo", mWorkerInfo)
         .toString();

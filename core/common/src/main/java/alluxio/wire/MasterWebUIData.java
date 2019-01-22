@@ -13,7 +13,7 @@ package alluxio.wire;
 
 import alluxio.util.webui.UIFileInfo;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.List;
@@ -162,7 +162,7 @@ public final class MasterWebUIData implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("fatalError", mFatalError)
+    return MoreObjects.toStringHelper(this).add("fatalError", mFatalError)
         .add("fileInfos", mFileInfos).add("inAlluxioFileNum", mInAlluxioFileNum)
         .add("masterNodeAddress", mMasterNodeAddress).add("permissionError", mPermissionError)
         .add("showPermissions", mShowPermissions).toString();

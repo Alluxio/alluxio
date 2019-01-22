@@ -11,7 +11,7 @@
 
 package alluxio.wire;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 
@@ -138,7 +138,7 @@ public final class MasterWebUIInit implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("debug", mDebug)
+    return MoreObjects.toStringHelper(this).add("debug", mDebug)
         .add("webFileInfoEnabled", mWebFileInfoEnabled)
         .add("securityAuthorizationPermissionEnabled", mSecurityAuthorizationPermissionEnabled)
         .add("workerPort", mWorkerPort).add("refreshInterval", mRefreshInterval).toString();

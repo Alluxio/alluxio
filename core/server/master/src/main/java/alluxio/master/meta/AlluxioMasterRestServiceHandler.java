@@ -20,23 +20,27 @@ import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
-import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
+import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
-import alluxio.master.file.options.ListStatusOptions;
 import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
@@ -59,11 +63,8 @@ import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.Capacity;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigProperty;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.GetConfigurationOptions;
-import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MasterWebUILogs;
 import alluxio.wire.MasterWebUIMetrics;
 import alluxio.wire.MountPointInfo;
@@ -406,7 +407,8 @@ public final class AlluxioMasterRestServiceHandler {
             String fileData;
             URIStatus status = fs.getStatus(absolutePath);
             if (status.isCompleted()) {
-              OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+              OpenFilePOptions options =
+                  OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
               try (FileInStream is = fs.openFile(absolutePath, options)) {
                 int len = (int) Math.min(5 * Constants.KB, status.getLength() - offset);
                 byte[] data = new byte[len];
@@ -460,8 +462,8 @@ public final class AlluxioMasterRestServiceHandler {
           response.setPathInfos(pathInfos);
         }
 
-        filesInfo = mFileSystemMaster.listStatus(currentPath,
-            ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+        filesInfo = mFileSystemMaster.listStatus(currentPath, ListStatusContext.defaults(
+            ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
       } catch (FileDoesNotExistException e) {
         response.setInvalidPathError("Error: Invalid Path " + e.getMessage());
         return response;
@@ -764,7 +766,7 @@ public final class AlluxioMasterRestServiceHandler {
       TreeSet<Triple<String, String, String>> sortedProperties = new TreeSet<>();
       Set<String> alluxioConfExcludes = Sets.newHashSet(PropertyKey.MASTER_WHITELIST.toString());
       for (ConfigProperty configProperty : mMetaMaster
-          .getConfiguration(GetConfigurationOptions.defaults().setRawValue(true))) {
+          .getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())) {
         String confName = configProperty.getName();
         if (!alluxioConfExcludes.contains(confName)) {
           sortedProperties.add(new ImmutableTriple<>(confName,

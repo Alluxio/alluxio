@@ -13,7 +13,7 @@ package alluxio.wire;
 
 import alluxio.util.webui.NodeInfo;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 
@@ -98,7 +98,7 @@ public final class MasterWebUIWorkers implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("debug", mDebug)
+    return MoreObjects.toStringHelper(this).add("debug", mDebug)
         .add("failedNodeInfos", mFailedNodeInfos).add("normalNodeInfos", mNormalNodeInfos)
         .toString();
   }

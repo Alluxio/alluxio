@@ -11,7 +11,7 @@
 
 package alluxio.wire;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.io.Serializable;
@@ -79,7 +79,7 @@ public final class MasterWebUIConfiguration implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("configuration", mConfiguration)
+    return MoreObjects.toStringHelper(this).add("configuration", mConfiguration)
         .add("whitelist", mWhitelist).toString();
   }
 }

@@ -13,7 +13,7 @@ package alluxio.wire;
 
 import alluxio.util.webui.UIFileInfo;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.List;
@@ -204,7 +204,7 @@ public final class WorkerWebUILogs implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("currentPath", mCurrentPath).add("cebug", mDebug)
+    return MoreObjects.toStringHelper(this).add("currentPath", mCurrentPath).add("cebug", mDebug)
         .add("fatalError", mFatalError).add("fileData", mFileData).add("fileInfos", mFileInfos)
         .add("invalidPathError", mInvalidPathError).add("nTotalFile", mNTotalFile)
         .add("viewingOffset", mViewingOffset).toString();

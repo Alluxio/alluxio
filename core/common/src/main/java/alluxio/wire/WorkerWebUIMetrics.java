@@ -13,7 +13,7 @@ package alluxio.wire;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -120,7 +120,7 @@ public final class WorkerWebUIMetrics implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("workerCapacityUsedPercentage", mWorkerCapacityUsedPercentage)
         .add("workerCapacityFreePercentage", mWorkerCapacityFreePercentage)
         .add("operationMetrics", mOperationMetrics)

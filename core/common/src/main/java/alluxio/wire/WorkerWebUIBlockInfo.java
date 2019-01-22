@@ -14,7 +14,7 @@ package alluxio.wire;
 import alluxio.util.webui.UIFileBlockInfo;
 import alluxio.util.webui.UIFileInfo;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.io.Serializable;
@@ -207,7 +207,7 @@ public final class WorkerWebUIBlockInfo implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("blockSizeBytes", mBlockSizeBytes)
+    return MoreObjects.toStringHelper(this).add("blockSizeBytes", mBlockSizeBytes)
         .add("fatalError", mFatalError).add("fileBlocksOnTier", mFileBlocksOnTier)
         .add("invalidPathError", mInvalidPathError).add("totalFile", mNTotalFile)
         .add("fileInfos", mFileInfos).add("orderedTierAliases", mOrderedTierAliases)

@@ -58,7 +58,8 @@ public final class WorkerWebServer extends WebServer {
     super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
     // REST configuration
-    ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block");
+    ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block")
+        .register(JacksonProtobufObjectMapperProvider.class);
     // Override the init method to inject a reference to AlluxioWorker into the servlet context.
     // ServletContext may not be modified until after super.init() is called.
     ServletContainer servlet = new ServletContainer(config) {

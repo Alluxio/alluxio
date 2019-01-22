@@ -13,7 +13,7 @@ package alluxio.wire;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -503,7 +503,7 @@ public final class MasterWebUIMetrics implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("cacheHitLocal", mCacheHitLocal)
+    return MoreObjects.toStringHelper(this).add("cacheHitLocal", mCacheHitLocal)
         .add("cacheHitRemote", mCacheHitRemote).add("cacheMiss", mCacheMiss)
         .add("masterCapacityFreePercentage", mMasterCapacityFreePercentage)
         .add("masterCapacityUsedPercentage", mMasterCapacityUsedPercentage)

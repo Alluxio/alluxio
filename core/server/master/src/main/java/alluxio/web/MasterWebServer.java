@@ -61,7 +61,8 @@ public final class MasterWebServer extends WebServer {
             "/download");
     // REST configuration
     ResourceConfig config = new ResourceConfig()
-        .packages("alluxio.master", "alluxio.master.block", "alluxio.master.file");
+        .packages("alluxio.master", "alluxio.master.block", "alluxio.master.file")
+        .register(JacksonProtobufObjectMapperProvider.class);
     // Override the init method to inject a reference to AlluxioMaster into the servlet context.
     // ServletContext may not be modified until after super.init() is called.
     ServletContainer servlet = new ServletContainer(config) {

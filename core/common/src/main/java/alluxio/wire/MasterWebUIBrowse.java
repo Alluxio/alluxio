@@ -14,7 +14,7 @@ package alluxio.wire;
 import alluxio.util.webui.UIFileInfo;
 import alluxio.util.webui.UIFileBlockInfo;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.List;
@@ -415,7 +415,7 @@ public final class MasterWebUIBrowse implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("accessControlException", mAccessControlException)
+    return MoreObjects.toStringHelper(this).add("accessControlException", mAccessControlException)
         .add("blockSizeBytes", mBlockSizeBytes).add("currentDirectory", mCurrentDirectory)
         .add("currentPath", mCurrentPath).add("debug", mDebug).add("fatalError", mFatalError)
         .add("fileBlocks", mFileBlocks).add("fileData", mFileData)
