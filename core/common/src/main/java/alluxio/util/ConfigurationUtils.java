@@ -294,44 +294,46 @@ public final class ConfigurationUtils {
   /**
    * Reloads site properties from disk.
    */
-  public static synchronized void reloadProperties() {
-    // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio.home
-    // (likely to be in system properties) to locate the conf dir to search for the site property
-    // file.
-    AlluxioProperties properties = new AlluxioProperties();
-    InstancedConfiguration conf = new InstancedConfiguration(properties);
-    properties.merge(System.getProperties(), Source.SYSTEM_PROPERTY);
-    Properties siteProps = null;
+  public static void reloadProperties() {
+    synchronized (DEFAULT_PROPERTIES_LOCK) {
+      // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio.home
+      // (likely to be in system properties) to locate the conf dir to search for the site property
+      // file.
+      AlluxioProperties properties = new AlluxioProperties();
+      InstancedConfiguration conf = new InstancedConfiguration(properties);
+      properties.merge(System.getProperties(), Source.SYSTEM_PROPERTY);
+      Properties siteProps = null;
 
-    // Step2: Load site specific properties file if not in test mode. Note that we decide whether in
-    // test mode by default properties and system properties (via getBoolean).
-    if (conf.getBoolean(PropertyKey.TEST_MODE)) {
-      conf.validate();
-      sDefaultProperties = properties;
-      return;
-    }
+      // Step2: Load site specific properties file if not in test mode. Note that we decide whether in
+      // test mode by default properties and system properties (via getBoolean).
+      if (conf.getBoolean(PropertyKey.TEST_MODE)) {
+        conf.validate();
+        sDefaultProperties = properties;
+        return;
+      }
 
-    // we are not in test mode, load site properties
-    String confPaths = conf.get(PropertyKey.SITE_CONF_DIR);
-    String[] confPathList = confPaths.split(",");
-    String sitePropertyFile = ConfigurationUtils
-            .searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
-    if (sitePropertyFile != null) {
-      siteProps = loadPropertiesFromFile(sitePropertyFile);
-      sSourcePropertyFile = sitePropertyFile;
-    } else {
-      URL resource =
-          ConfigurationUtils.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
-      if (resource != null) {
-        siteProps = loadPropertiesFromResource(resource);
-        if (siteProps != null) {
-          sSourcePropertyFile = resource.getPath();
+      // we are not in test mode, load site properties
+      String confPaths = conf.get(PropertyKey.SITE_CONF_DIR);
+      String[] confPathList = confPaths.split(",");
+      String sitePropertyFile = ConfigurationUtils
+          .searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
+      if (sitePropertyFile != null) {
+        siteProps = loadPropertiesFromFile(sitePropertyFile);
+        sSourcePropertyFile = sitePropertyFile;
+      } else {
+        URL resource =
+            ConfigurationUtils.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
+        if (resource != null) {
+          siteProps = loadPropertiesFromResource(resource);
+          if (siteProps != null) {
+            sSourcePropertyFile = resource.getPath();
+          }
         }
       }
+      properties.merge(siteProps, Source.siteProperty(sSourcePropertyFile));
+      conf.validate();
+      sDefaultProperties = properties;
     }
-    properties.merge(siteProps, Source.siteProperty(sSourcePropertyFile));
-    conf.validate();
-    sDefaultProperties = properties;
   }
 
   /**
