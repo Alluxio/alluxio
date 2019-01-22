@@ -1886,6 +1886,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   /**
    * Gets the in-Alluxio percentage of an Inode. For a file that has all blocks in Alluxio, it
+   * Gets the in-Alluxio percentage of an Inode. For a file that has all blocks in Alluxio, it
    * returns 100; for a file that has no block in Alluxio, it returns 0. Returns 0 for a directory.
    *
    * @param inode the inode

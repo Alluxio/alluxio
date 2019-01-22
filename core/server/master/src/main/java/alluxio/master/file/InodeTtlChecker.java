@@ -31,6 +31,7 @@ import alluxio.grpc.TtlAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -74,8 +75,8 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                     FreeContext.defaults(FreePOptions.newBuilder().setForced(true)));
               }
               try (JournalContext journalContext = mFileSystemMaster.createJournalContext();
-                  LockedInodePath inodePath =
-                      mInodeTree.lockFullInodePath(inode.getId(), LockPattern.WRITE_INODE)) {
+                   LockedInodePath inodePath =
+                       mInodeTree.lockFullInodePath(inode.getId(), LockPattern.WRITE_INODE)) {
                 // Reset state
                 mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
                     .setId(inode.getId())
@@ -98,6 +99,8 @@ final class InodeTtlChecker implements HeartbeatExecutor {
             default:
               LOG.error("Unknown ttl action {}", ttlAction);
           }
+        } catch (FileNotFoundException e) {
+          // The inode has already been deleted, nothing needs to be done.
         } catch (Exception e) {
           LOG.error("Exception trying to clean up {} for ttl check", inode.toString(), e);
         }
