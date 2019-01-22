@@ -296,16 +296,16 @@ public final class ConfigurationUtils {
    */
   public static void reloadProperties() {
     synchronized (DEFAULT_PROPERTIES_LOCK) {
-      // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio.home
-      // (likely to be in system properties) to locate the conf dir to search for the site property
-      // file.
+      // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio
+      // .home (likely to be in system properties) to locate the conf dir to search for the site
+      // property file.
       AlluxioProperties properties = new AlluxioProperties();
       InstancedConfiguration conf = new InstancedConfiguration(properties);
       properties.merge(System.getProperties(), Source.SYSTEM_PROPERTY);
       Properties siteProps = null;
 
-      // Step2: Load site specific properties file if not in test mode. Note that we decide whether in
-      // test mode by default properties and system properties (via getBoolean).
+      // Step2: Load site specific properties file if not in test mode. Note that we decide
+      // whether in test mode by default properties and system properties (via getBoolean).
       if (conf.getBoolean(PropertyKey.TEST_MODE)) {
         conf.validate();
         sDefaultProperties = properties;
