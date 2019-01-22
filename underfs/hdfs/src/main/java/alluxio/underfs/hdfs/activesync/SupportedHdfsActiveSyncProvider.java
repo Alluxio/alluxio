@@ -59,6 +59,8 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
   private final ExecutorService mExecutorService;
   private final int mActiveUfsSyncMaxActivity;
   private final int mActiveUfsSyncMaxAge;
+  private final long mActiveUfsPollTimeoutMs;
+  private final long mActiveUfsSyncEventRateInterval;
   private Future<?> mPollingThread;
   private List<AlluxioURI> mUfsUriList;
 
@@ -99,6 +101,9 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     mCurrentTxId = SyncInfo.INVALID_TXID;
     mActiveUfsSyncMaxActivity = alluxioConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY);
     mActiveUfsSyncMaxAge = alluxioConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_MAX_AGE);
+    mActiveUfsPollTimeoutMs = alluxioConf.getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT);
+    mActiveUfsSyncEventRateInterval =
+        alluxioConf.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL);
   }
 
   /**
@@ -254,9 +259,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
    */
   public void pollEvent(DFSInotifyEventInputStream eventStream) {
     EventBatch batch;
-    long timeout = Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT);
-    long interval = Configuration.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL);
-    LOG.debug("Polling thread starting, with timeout {} ms", timeout);
+    LOG.debug("Polling thread starting, with timeout {} ms", mActiveUfsPollTimeoutMs);
     int count = 0;
     long start = System.currentTimeMillis();
 
@@ -264,7 +267,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
 
     while (!Thread.currentThread().isInterrupted()) {
       try {
-        batch = eventStream.poll(timeout, TimeUnit.MILLISECONDS);
+        batch = eventStream.poll(mActiveUfsPollTimeoutMs, TimeUnit.MILLISECONDS);
 
         if (batch != null) {
           long txId = batch.getTxid();
@@ -274,7 +277,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
           }
         }
         long end = System.currentTimeMillis();
-        if (end > (start + interval)) {
+        if (end > (start + mActiveUfsSyncEventRateInterval)) {
           long currentlyBehind = eventStream.getTxidsBehindEstimate();
           LOG.info("HDFS generated {} events in {} ms, at a rate of {} rps",
               count + currentlyBehind - behind ,
