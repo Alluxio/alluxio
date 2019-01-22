@@ -60,8 +60,8 @@ public final class AlluxioJobMasterRestServiceHandler {
   /**
    * @summary get the Alluxio job master information
    * @param rawConfiguration if it's true, raw configuration values are returned,
-   *    otherwise, they are looked up; if it's not provided in URL queries, then
-   *    it is null, which means false.
+   *        otherwise, they are looked up; if it's not provided in URL queries, then
+   *        it is null, which means false.
    * @return the response object
    */
   @GET
