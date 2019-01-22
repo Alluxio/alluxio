@@ -11,13 +11,13 @@
 
 package alluxio.job.command;
 
+import alluxio.grpc.JobCommand;
+import alluxio.grpc.RunTaskCommand;
+import alluxio.grpc.TaskInfo;
 import alluxio.job.JobConfig;
 import alluxio.job.JobWorkerContext;
 import alluxio.job.TestJobConfig;
 import alluxio.job.util.SerializationUtils;
-import alluxio.thrift.JobCommand;
-import alluxio.thrift.RunTaskCommand;
-import alluxio.thrift.TaskInfo;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClient;
@@ -25,6 +25,7 @@ import alluxio.worker.job.command.CommandHandlingExecutor;
 import alluxio.worker.job.task.TaskExecutorManager;
 
 import com.google.common.collect.Lists;
+import com.google.protobuf.ByteString;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,20 +66,20 @@ public final class CommandHandlingExecutorTest {
 
   @Test
   public void heartbeat() throws Exception {
-    JobCommand command = new JobCommand();
-    RunTaskCommand runTaskCommand = new RunTaskCommand();
+    JobCommand.Builder command = JobCommand.newBuilder();
+    RunTaskCommand.Builder runTaskCommand = RunTaskCommand.newBuilder();
     long jobId = 1;
     runTaskCommand.setJobId(jobId);
     int taskId = 2;
     runTaskCommand.setTaskId(taskId);
     JobConfig jobConfig = new TestJobConfig("/test");
-    runTaskCommand.setJobConfig(SerializationUtils.serialize(jobConfig));
+    runTaskCommand.setJobConfig(ByteString.copyFrom(SerializationUtils.serialize(jobConfig)));
     Serializable taskArgs = Lists.newArrayList(1);
-    runTaskCommand.setTaskArgs(SerializationUtils.serialize(taskArgs));
+    runTaskCommand.setTaskArgs(ByteString.copyFrom(SerializationUtils.serialize(taskArgs)));
 
     command.setRunTaskCommand(runTaskCommand);
     Mockito.when(mJobMasterClient.heartbeat(mWorkerId, Lists.<TaskInfo>newArrayList()))
-        .thenReturn(Lists.newArrayList(command));
+        .thenReturn(Lists.newArrayList(command.build()));
 
     mCommandHandlingExecutor.heartbeat();
     ExecutorService executorService =

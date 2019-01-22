@@ -12,10 +12,10 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
@@ -46,11 +46,11 @@ public class ConcurrentFileSystemMasterUtils {
   private static final String TEST_USER = "test";
 
   /**
-   * Options to mark a created file as persisted. Note that this does not actually persist the
-   * file but flag the file to be treated as persisted, which will invoke ufs operations.
+   * Options to mark a created file as persisted. Note that this does not actually persist the file
+   * but flag the file to be treated as persisted, which will invoke ufs operations.
    */
-  private static CreateFileOptions sCreatePersistedFileOptions =
-      CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
+  private static CreateFilePOptions sCreatePersistedFileOptions = CreateFilePOptions.newBuilder()
+      .setWriteType(WritePType.THROUGH).setRecursive(true).build();
 
   /**
    * Unary file operations for concurrent tests.

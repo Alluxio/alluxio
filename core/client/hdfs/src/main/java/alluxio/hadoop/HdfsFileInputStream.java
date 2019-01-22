@@ -15,10 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.OpenFilePOptions;
 
 import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.PositionedReadable;
@@ -60,7 +60,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mStatistics = stats;
     FileSystem fs = FileSystem.Factory.get(context);
     try {
-      mInputStream = fs.openFile(uri, OpenFileOptions.defaults());
+      mInputStream = fs.openFile(uri, OpenFilePOptions.getDefaultInstance());
     } catch (FileDoesNotExistException e) {
       // Transform the Alluxio exception to a Java exception to satisfy the HDFS API contract.
       throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));

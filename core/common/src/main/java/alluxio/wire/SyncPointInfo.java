@@ -59,23 +59,22 @@ public class SyncPointInfo {
   }
 
   /**
-   * @return thrift representation of the sync point information
+   * @return proto representation of the sync point information
    */
-  public alluxio.thrift.SyncPointInfo toThrift() {
-    alluxio.thrift.SyncPointStatus status =
-        alluxio.thrift.SyncPointStatus.findByValue(mSyncStatus.ordinal());
+  public alluxio.grpc.SyncPointInfo toProto() {
+    alluxio.grpc.SyncPointStatus status = alluxio.grpc.SyncPointStatus.valueOf(mSyncStatus.name());
 
-    alluxio.thrift.SyncPointInfo info = new alluxio.thrift.SyncPointInfo(
-        mSyncPointUri.getPath(), status);
+    alluxio.grpc.SyncPointInfo info = alluxio.grpc.SyncPointInfo.newBuilder()
+        .setSyncPointUri(mSyncPointUri.getPath()).setSyncStatus(status).build();
     return info;
   }
 
   /**
-   * Generate sync point information from the thrift representation.
-   * @param syncPointInfo the thrift representation
+   * Generate sync point information from the proto representation.
+   * @param syncPointInfo the proto representation
    * @return sync point info object
    */
-  public static SyncPointInfo fromThrift(alluxio.thrift.SyncPointInfo syncPointInfo) {
+  public static SyncPointInfo fromProto(alluxio.grpc.SyncPointInfo syncPointInfo) {
     SyncStatus syncStatus;
     switch (syncPointInfo.getSyncStatus()) {
       case Not_Initially_Synced:

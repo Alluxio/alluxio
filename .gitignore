@@ -43,6 +43,7 @@
 /lib/
 /logs/*.log*
 /logs/*.out*
+/underfs/hdfs/src/main/java/alluxio/UfsConstants.java
 /underFSStorage/
 /web/
 dependency-reduced-pom.xml

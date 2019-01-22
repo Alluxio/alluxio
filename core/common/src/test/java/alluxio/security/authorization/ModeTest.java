@@ -20,6 +20,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.util.ModeUtils;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -140,7 +141,7 @@ public final class ModeTest {
     String umask = "0022";
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
     // after umask 0022, 0777 should change to 0755
-    Mode mode = Mode.defaults().applyDirectoryUMask();
+    Mode mode = ModeUtils.applyDirectoryUMask(Mode.defaults());
     assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
     assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
     assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
@@ -157,7 +158,7 @@ public final class ModeTest {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
-    Mode.defaults().applyDirectoryUMask();
+    ModeUtils.applyDirectoryUMask(Mode.defaults());
   }
 
   /**
@@ -170,7 +171,7 @@ public final class ModeTest {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
-    Mode.defaults().applyDirectoryUMask();
+    ModeUtils.applyDirectoryUMask(Mode.defaults());
   }
 
   @Test

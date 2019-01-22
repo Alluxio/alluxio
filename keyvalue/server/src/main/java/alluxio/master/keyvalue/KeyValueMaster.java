@@ -18,8 +18,8 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.PartitionInfo;
 import alluxio.master.Master;
-import alluxio.thrift.PartitionInfo;
 
 import java.io.IOException;
 import java.util.List;

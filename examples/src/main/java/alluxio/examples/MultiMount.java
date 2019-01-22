@@ -12,11 +12,11 @@
 package alluxio.examples;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 
 import org.apache.commons.io.IOUtils;
 
@@ -101,8 +101,8 @@ public final class MultiMount {
 
       // Open the output stream, setting the write type to make sure result is persisted.
       System.out.print("opening " + outputPath + " ... ");
-      CreateFileOptions options =
-          CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+      CreateFilePOptions options = CreateFilePOptions.newBuilder()
+          .setWriteType(WritePType.CACHE_THROUGH).setRecursive(true).build();
       FileOutStream os = fileSystem.createFile(outputPath, options);
       System.out.println("done");
 

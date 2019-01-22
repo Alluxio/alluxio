@@ -11,6 +11,8 @@
 
 package alluxio.security.authentication;
 
+import alluxio.security.authentication.plain.CustomAuthenticationProvider;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

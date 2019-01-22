@@ -19,7 +19,6 @@ import alluxio.master.journal.JournalEntryReplayable;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.underfs.UnderFileSystem.UfsMode;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,9 +80,9 @@ public final class MasterUfsManager extends AbstractUfsManager
    * @param physicalStores the physical stores for the mount resolution
    * @return the state of physical UFS for given mount resolution
    */
-  public synchronized Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState(
+  public synchronized Map<String, UfsMode> getPhysicalUfsState(
       List<String> physicalStores) {
-    Map<String, UnderFileSystem.UfsMode> ufsModeState = new HashMap<>();
+    Map<String, UfsMode> ufsModeState = new HashMap<>();
     for (String physicalUfs : physicalStores) {
       ufsModeState.put(physicalUfs, mState.getUfsMode(new AlluxioURI(physicalUfs).getRootPath()));
     }

@@ -109,11 +109,6 @@ public final class DynamicResourcePoolTest {
     }
 
     @Override
-    protected void closeResourceSync(Resource resource) {
-      closeResource(resource);
-    }
-
-    @Override
     protected Resource createNewResource() {
       return new Resource(mCounter++);
     }

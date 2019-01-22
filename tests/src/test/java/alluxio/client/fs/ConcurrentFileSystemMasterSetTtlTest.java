@@ -15,11 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
+import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -28,7 +29,6 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
-import alluxio.wire.TtlAction;
 
 import com.google.common.base.Joiner;
 import org.junit.Assert;
@@ -93,8 +93,10 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
 
     for (int i = 0; i < numThreads; i++) {
       files[i] = new AlluxioURI("/file" + i);
-      mFileSystem.createFile(files[i],
-          CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)).close();
+      mFileSystem
+          .createFile(files[i],
+              CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build())
+          .close();
       ttls[i] = random.nextInt(2 * TTL_INTERVAL_MS);
     }
 
@@ -128,8 +130,8 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
           try {
             AuthenticatedClientUser.set(TEST_USER);
             barrier.await();
-            mFileSystem.setAttribute(paths[iteration], SetAttributeOptions.defaults()
-                .setTtl(ttls[iteration]).setTtlAction(TtlAction.DELETE));
+            mFileSystem.setAttribute(paths[iteration], SetAttributePOptions.newBuilder()
+                .setTtl(ttls[iteration]).setTtlAction(TtlAction.DELETE).build());
           } catch (Exception e) {
             throw new RuntimeException(e);
           }

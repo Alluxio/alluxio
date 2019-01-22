@@ -19,13 +19,16 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
-import alluxio.wire.TtlAction;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -59,6 +62,45 @@ public final class OutStreamOptions {
     return new OutStreamOptions();
   }
 
+  /**
+   * Creates an {@link OutStreamOptions} instance from given options.
+   *
+   * @param options CreateFile options
+   * @throws Exception if FileWriteLocationPolicy can't be loaded
+   */
+  public OutStreamOptions(CreateFilePOptions options) {
+    this();
+    if (options.hasBlockSizeBytes()) {
+      mBlockSizeBytes = options.getBlockSizeBytes();
+    }
+    if (options.hasMode()) {
+      mMode = Mode.fromProto(options.getMode());
+    }
+    if (options.hasReplicationDurable()) {
+      mReplicationDurable = options.getReplicationDurable();
+    }
+    if (options.hasReplicationMin()) {
+      mReplicationMin = options.getReplicationMin();
+    }
+    if (options.hasReplicationMax()) {
+      mReplicationMax = options.getReplicationMax();
+    }
+    if (options.hasWriteTier()) {
+      mWriteTier = options.getWriteTier();
+    }
+    if (options.hasWriteType()) {
+      mWriteType = WriteType.fromProto(options.getWriteType());
+    }
+    if (options.hasFileWriteLocationPolicy()) {
+      try {
+        mLocationPolicy = (FileWriteLocationPolicy) CommonUtils.createNewClassInstance(
+            Class.forName(options.getFileWriteLocationPolicy()), new Class[] {}, new Object[] {});
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
   private OutStreamOptions() {
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
@@ -71,7 +113,7 @@ public final class OutStreamOptions {
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mOwner = SecurityUtils.getOwnerFromLoginModule();
     mGroup = SecurityUtils.getGroupFromLoginModule();
-    mMode = Mode.defaults().applyFileUMask();
+    mMode = ModeUtils.applyFileUMask(Mode.defaults());
     mMountId = IdUtils.INVALID_MOUNT_ID;
     mReplicationDurable = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
     mReplicationMax = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
@@ -395,7 +437,7 @@ public final class OutStreamOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("acl", mAcl)
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("group", mGroup)

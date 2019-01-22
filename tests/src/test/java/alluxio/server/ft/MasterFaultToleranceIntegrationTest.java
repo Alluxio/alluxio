@@ -19,21 +19,21 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CommandType;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.WritePType;
 import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.master.block.BlockMaster;
 import alluxio.testutils.BaseIntegrationTest;
-import alluxio.thrift.CommandType;
-import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -183,7 +183,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
         // AlluxioURI(AlluxioURI.SEPARATOR))) because root node can not be deleted.
         for (URIStatus file : mFileSystem.listStatus(new AlluxioURI(AlluxioURI.SEPARATOR))) {
           mFileSystem.delete(new AlluxioURI(file.getPath()),
-              DeleteOptions.defaults().setRecursive(true));
+              DeletePOptions.newBuilder().setRecursive(true).build());
         }
         answer.clear();
         faultTestDataCheck(answer);
@@ -203,8 +203,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   @Test
   public void createFiles() throws Exception {
     int clients = 10;
-    CreateFileOptions option =
-        CreateFileOptions.defaults().setBlockSizeBytes(1024).setWriteType(WriteType.THROUGH);
+    CreateFilePOptions option = CreateFilePOptions.newBuilder().setBlockSizeBytes(1024)
+        .setWriteType(WritePType.THROUGH).build();
     for (int k = 0; k < clients; k++) {
       mFileSystem.createFile(new AlluxioURI(AlluxioURI.SEPARATOR + k), option).close();
     }
@@ -274,22 +274,26 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       long workerId1a =
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster1.workerRegister(workerId1a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          RegisterWorkerPOptions.getDefaultInstance());
 
       // Register worker 2
       long workerId2a =
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
       blockMaster1.workerRegister(workerId2a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          RegisterWorkerPOptions.getDefaultInstance());
 
       assertEquals(2, blockMaster1.getWorkerCount());
       // Worker heartbeats should return "Nothing"
-      assertEquals(CommandType.Nothing, blockMaster1
-          .workerHeartbeat(workerId1a, null, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
-              Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
-      assertEquals(CommandType.Nothing, blockMaster1
-          .workerHeartbeat(workerId2a, null, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
-              Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
+      assertEquals(CommandType.Nothing,
+          blockMaster1.workerHeartbeat(workerId1a, null, Collections.EMPTY_MAP,
+              Collections.EMPTY_LIST, Collections.EMPTY_MAP, Lists.newArrayList())
+              .getCommandType());
+      assertEquals(CommandType.Nothing,
+          blockMaster1.workerHeartbeat(workerId2a, null, Collections.EMPTY_MAP,
+              Collections.EMPTY_LIST, Collections.EMPTY_MAP, Lists.newArrayList())
+              .getCommandType());
 
       assertTrue(cluster.stopLeader());
       cluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
@@ -307,18 +311,21 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       long workerId2b =
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
       blockMaster2.workerRegister(workerId2b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          RegisterWorkerPOptions.getDefaultInstance());
 
       // Worker 1 tries to heartbeat (with original id), and should get "Register" in response.
-      assertEquals(CommandType.Register, blockMaster2
-          .workerHeartbeat(workerId1a, null, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
-              Collections.EMPTY_MAP, Lists.newArrayList()).getCommandType());
+      assertEquals(CommandType.Register,
+          blockMaster2.workerHeartbeat(workerId1a, null, Collections.EMPTY_MAP,
+              Collections.EMPTY_LIST, Collections.EMPTY_MAP, Lists.newArrayList())
+              .getCommandType());
 
       // Worker 1 re-registers (and gets a new worker id)
       long workerId1b =
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster2.workerRegister(workerId1b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          RegisterWorkerPOptions.getDefaultInstance());
     } finally {
       cluster.stop();
     }

@@ -11,6 +11,7 @@
 
 package alluxio.master.job;
 
+import alluxio.grpc.JobCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.JobDefinition;
 import alluxio.job.JobDefinitionRegistry;
@@ -18,7 +19,6 @@ import alluxio.job.JobMasterContext;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
-import alluxio.thrift.JobCommand;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerInfo;
 

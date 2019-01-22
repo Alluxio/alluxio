@@ -35,10 +35,6 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.apache.thrift</groupId>
-      <artifactId>libthrift</artifactId>
-    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>
@@ -137,15 +133,6 @@
                   <include>org.alluxio:alluxio-keyvalue-client</include>
                 </includes>
               </artifactSet>
-              <relocations>
-                <relocation>
-                  <pattern>org.apache.thrift</pattern>
-                   <!--TODO(binfan): instead of hard-coding the shading prefix to be "alluxio.core.client.runtime"-->
-                   <!--to be the same as client runtime jar, make a separate core-thrift module and let other client-->
-                   <!--modules to depend on  this thrift module, similar to core-proto-->
-                  <shadedPattern>alluxio.core.client.runtime.org.apache.thrift</shadedPattern>
-                </relocation>
-              </relocations>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>

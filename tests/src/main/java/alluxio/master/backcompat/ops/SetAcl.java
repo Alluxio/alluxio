@@ -20,7 +20,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Version;
 import alluxio.security.authorization.AclEntry;
-import alluxio.wire.SetAclAction;
+import alluxio.grpc.SetAclAction;
 
 import java.util.Arrays;
 

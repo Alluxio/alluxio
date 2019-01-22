@@ -21,9 +21,9 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientConfig;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
@@ -107,12 +107,12 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
       AlluxioURI dir1 = new AlluxioURI("/dir1");
       fs.createDirectory(dir1,
-          CreateDirectoryOptions.defaults().setWriteType(WriteType.MUST_CACHE));
+          CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
       AlluxioURI backup1 =
           metaClient.backup(backups.getAbsolutePath(), false).getBackupUri();
       AlluxioURI dir2 = new AlluxioURI("/dir2");
       fs.createDirectory(dir2,
-          CreateDirectoryOptions.defaults().setWriteType(WriteType.MUST_CACHE));
+          CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
       AlluxioURI backup2 =
           metaClient.backup(backups.getAbsolutePath(), false).getBackupUri();
 

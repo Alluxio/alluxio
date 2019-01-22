@@ -14,9 +14,10 @@ package alluxio.fuse;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.AlluxioException;
@@ -24,7 +25,7 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.security.authorization.Mode;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -147,7 +148,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   public int chmod(String path, @mode_t long mode) {
     AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
-    SetAttributeOptions options = SetAttributeOptions.defaults().setMode(new Mode((short) mode));
+    SetAttributePOptions options = SetAttributePOptions.newBuilder()
+        .setMode(new alluxio.security.authorization.Mode((short) mode).toProto()).build();
     try {
       mFileSystem.setAttribute(uri, options);
     } catch (IOException | AlluxioException e) {
@@ -177,7 +179,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     }
 
     try {
-      SetAttributeOptions options = SetAttributeOptions.defaults();
+      SetAttributePOptions.Builder optionsBuilder = SetAttributePOptions.newBuilder();
       final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
       String userName = "";
@@ -188,7 +190,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
           LOG.error("Failed to get user name from uid {}", uid);
           return -ErrorCodes.EFAULT();
         }
-        options.setOwner(userName);
+        optionsBuilder.setOwner(userName);
       }
 
       String groupName = "";
@@ -199,22 +201,22 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
           LOG.error("Failed to get group name from gid {}", gid);
           return -ErrorCodes.EFAULT();
         }
-        options.setGroup(groupName);
+        optionsBuilder.setGroup(groupName);
       } else if (!userName.isEmpty()) {
         groupName = AlluxioFuseUtils.getGroupName(userName);
-        options.setGroup(groupName);
+        optionsBuilder.setGroup(groupName);
       }
 
       if (userName.isEmpty() && groupName.isEmpty()) {
         // This should never be reached
-        LOG.info("Unable to change owner and group of file {} when uid is {} and gid is {}",
-            path, userName, groupName);
+        LOG.info("Unable to change owner and group of file {} when uid is {} and gid is {}", path,
+            userName, groupName);
       } else if (userName.isEmpty()) {
         LOG.info("Change group of file {} to {}", path, groupName);
-        mFileSystem.setAttribute(uri, options);
+        mFileSystem.setAttribute(uri, optionsBuilder.build());
       } else {
         LOG.info("Change owner of file {} to {}", path, groupName);
-        mFileSystem.setAttribute(uri, options);
+        mFileSystem.setAttribute(uri, optionsBuilder.build());
       }
     } catch (IOException | AlluxioException e) {
       LOG.error("Exception on {}", path, e);
@@ -238,16 +240,15 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("create({}, {}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
     try {
-      synchronized (mOpenFiles) {
-        if (mOpenFiles.size() >= MAX_OPEN_FILES) {
-          LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})", uri,
-              MAX_OPEN_FILES);
-          return -ErrorCodes.EMFILE();
-        }
+      if (mOpenFiles.size() >= MAX_OPEN_FILES) {
+        LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})", uri,
+            MAX_OPEN_FILES);
+        return -ErrorCodes.EMFILE();
+      }
 
-        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
-            null, mFileSystem.createFile(uri)));
-        LOG.debug("Alluxio OutStream created for {}", path);
+      FileOutStream os = mFileSystem.createFile(uri);
+      synchronized (mOpenFiles) {
+        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path, null, os));
         fi.fh.set(mNextOpenFileId);
 
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
@@ -284,10 +285,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   public int flush(String path, FuseFileInfo fi) {
     LOG.trace("flush({})", path);
     final long fd = fi.fh.get();
-    OpenFileEntry oe;
-    synchronized (mOpenFiles) {
-      oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
-    }
+    OpenFileEntry oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
@@ -317,19 +315,11 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     LOG.trace("getattr({}) [Alluxio: {}]", path, turi);
     try {
-      if (!mFileSystem.exists(turi)) {
-        return -ErrorCodes.ENOENT();
-      }
       URIStatus status = mFileSystem.getStatus(turi);
       if (!status.isCompleted()) {
-        boolean writing;
-        synchronized (mOpenFiles) {
-          // Fuse release() returns but does not finish is not considered as writing here
-          writing = mOpenFiles.contains(PATH_INDEX, path);
-        }
         // Always block waiting for file to be completed except when the file is writing
         // We do not want to block the writing process
-        if (!writing && !waitForFileCompleted(turi)) {
+        if (!mOpenFiles.contains(PATH_INDEX, path) && !waitForFileCompleted(turi)) {
           LOG.error("File {} is not completed", path);
         }
         status = mFileSystem.getStatus(turi);
@@ -451,10 +441,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("open({}, 0x{}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
 
     try {
-      if (!mFileSystem.exists(uri)) {
-        LOG.error("File {} does not exist", uri);
-        return -ErrorCodes.ENOENT();
-      }
       final URIStatus status = mFileSystem.getStatus(uri);
       if (status.isFolder()) {
         LOG.error("File {} is a directory", uri);
@@ -466,16 +452,15 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.EFAULT();
       }
 
+      if (mOpenFiles.size() >= MAX_OPEN_FILES) {
+        LOG.error("Cannot open {}: too many open files", uri);
+        return ErrorCodes.EMFILE();
+      }
+
+      FileInStream is = mFileSystem.openFile(uri);
       synchronized (mOpenFiles) {
-        if (mOpenFiles.size() == MAX_OPEN_FILES) {
-          LOG.error("Cannot open {}: too many open files", uri);
-          return ErrorCodes.EMFILE();
-        }
-
-        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path,
-            mFileSystem.openFile(uri), null));
+        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path, is, null));
         fi.fh.set(mNextOpenFileId);
-
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
       }
@@ -521,10 +506,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("read({}, {}, {})", path, size, offset);
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    OpenFileEntry oe;
-    synchronized (mOpenFiles) {
-      oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
-    }
+    OpenFileEntry oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
@@ -579,13 +561,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("readdir({}) [Alluxio: {}]", path, turi);
 
     try {
-      if (!mFileSystem.exists(turi)) {
-        return -ErrorCodes.ENOENT();
-      }
-      final URIStatus status = mFileSystem.getStatus(turi);
-      if (!status.isFolder()) {
-        return -ErrorCodes.ENOTDIR();
-      }
       final List<URIStatus> ls = mFileSystem.listStatus(turi);
       // standard . and .. entries
       filter.apply(buff, ".", null, 0);
@@ -628,10 +603,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   public int release(String path, FuseFileInfo fi) {
     LOG.trace("release({})", path);
     OpenFileEntry oe;
+    final long fd = fi.fh.get();
     synchronized (mOpenFiles) {
-      // Synchronized as earlier as possible so that hopefully the following getattr()
-      // will be blocked waiting for the {@link FileOutStream.close()} to be completed
-      final long fd = fi.fh.get();
       oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
       mOpenFiles.remove(oe);
     }
@@ -661,14 +634,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("rename({}, {}) [Alluxio: {}, {}]", oldPath, newPath, oldUri, newUri);
 
     try {
-      if (!mFileSystem.exists(oldUri)) {
-        LOG.error("File {} does not exist", oldPath);
-        return -ErrorCodes.ENOENT();
-      }
-      if (mFileSystem.exists(newUri)) {
-        LOG.error("File {} already exists, please delete the destination file first", newPath);
-        return -ErrorCodes.EEXIST();
-      }
       mFileSystem.rename(oldUri, newUri);
       synchronized (mOpenFiles) {
         if (mOpenFiles.contains(PATH_INDEX, oldPath)) {
@@ -679,6 +644,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     } catch (FileDoesNotExistException e) {
       LOG.debug("File {} does not exist", oldPath);
       return -ErrorCodes.ENOENT();
+    } catch (FileAlreadyExistsException e) {
+      LOG.debug("File {} already exists", newPath);
+      return -ErrorCodes.EEXIST();
     } catch (IOException e) {
       LOG.error("IOException while moving {} to {}", oldPath, newPath, e);
       return -ErrorCodes.EIO();
@@ -702,7 +670,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int rmdir(String path) {
     LOG.trace("rmdir({})", path);
-    return rmInternal(path, false);
+    return rmInternal(path);
   }
 
   /**
@@ -711,24 +679,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int truncate(String path, long size) {
-    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    try {
-      if (!mFileSystem.exists(uri)) {
-        LOG.error("File {} does not exist", uri);
-        return -ErrorCodes.ENOENT();
-      }
-    } catch (IOException e) {
-      LOG.error("IOException encountered at path {}", path, e);
-      return -ErrorCodes.EIO();
-    } catch (AlluxioException e) {
-      LOG.error("AlluxioException encountered at path {}", path, e);
-      return -ErrorCodes.EFAULT();
-    } catch (Throwable e) {
-      LOG.error("Unexpected exception at path {}", path, e);
-      return -ErrorCodes.EFAULT();
-    }
-    LOG.error("File {} exists and cannot be overwritten. Please delete the file first", uri);
-    return -ErrorCodes.EEXIST();
+    LOG.error("Truncate is not supported {}", path);
+    return -ErrorCodes.EFAULT();
   }
 
   /**
@@ -740,7 +692,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int unlink(String path) {
     LOG.trace("unlink({})", path);
-    return rmInternal(path, true);
+    return rmInternal(path);
   }
 
   /**
@@ -775,10 +727,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("write({}, {}, {})", path, size, offset);
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    OpenFileEntry oe;
-    synchronized (mOpenFiles) {
-      oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
-    }
+    OpenFileEntry oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
@@ -809,27 +758,15 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Convenience internal method to remove files or directories.
+   * Convenience internal method to remove files or non-empty directories.
    *
    * @param path The path to remove
-   * @param mustBeFile When true, returns an error when trying to
-   *                   remove a directory
    * @return 0 on success, a negative value on error
    */
-  private int rmInternal(String path, boolean mustBeFile) {
+  private int rmInternal(String path) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
 
     try {
-      if (!mFileSystem.exists(turi)) {
-        LOG.error("File {} does not exist", turi);
-        return -ErrorCodes.ENOENT();
-      }
-      final URIStatus status = mFileSystem.getStatus(turi);
-      if (mustBeFile && status.isFolder()) {
-        LOG.error("File {} is a directory", turi);
-        return -ErrorCodes.EISDIR();
-      }
-
       mFileSystem.delete(turi);
     } catch (FileDoesNotExistException e) {
       LOG.debug("File does not exist {}", path, e);

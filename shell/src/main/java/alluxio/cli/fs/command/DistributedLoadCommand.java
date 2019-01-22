@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.job.JobThriftClientUtils;
+import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.load.LoadConfig;
@@ -98,10 +98,10 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         load(newPath, replication);
       }
     } else {
-      Thread thread = JobThriftClientUtils.createProgressThread(System.out);
+      Thread thread = JobGrpcClientUtils.createProgressThread(System.out);
       thread.start();
       try {
-        JobThriftClientUtils.run(new LoadConfig(filePath.getPath(), replication), 3);
+        JobGrpcClientUtils.run(new LoadConfig(filePath.getPath(), replication), 3);
       } finally {
         thread.interrupt();
       }

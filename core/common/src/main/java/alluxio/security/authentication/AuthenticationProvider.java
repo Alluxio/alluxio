@@ -13,6 +13,10 @@ package alluxio.security.authentication;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.security.authentication.plain.CustomAuthenticationProvider;
+import alluxio.security.authentication.plain.PlainSaslServer;
+import alluxio.security.authentication.plain.PlainSaslServerCallbackHandler;
+import alluxio.security.authentication.plain.SimpleAuthenticationProvider;
 
 import javax.security.sasl.AuthenticationException;
 

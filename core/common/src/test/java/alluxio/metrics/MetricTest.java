@@ -25,9 +25,9 @@ import java.util.Random;
 public final class MetricTest {
 
   @Test
-  public void thrift() {
+  public void proto() {
     Metric metric = createRandom();
-    Metric other = Metric.from(metric.toThrift());
+    Metric other = Metric.fromProto(metric.toProto());
     checkEquality(metric, other);
   }
 
