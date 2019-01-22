@@ -13,32 +13,29 @@ package alluxio.master.meta;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetMasterIdPRequest;
+import alluxio.grpc.MasterHeartbeatPRequest;
+import alluxio.grpc.MetaCommand;
+import alluxio.grpc.MetaMasterMasterServiceGrpc;
+import alluxio.grpc.RegisterMasterPOptions;
+import alluxio.grpc.RegisterMasterPRequest;
+import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientConfig;
-import alluxio.thrift.AlluxioService;
-import alluxio.thrift.GetMasterIdTOptions;
-import alluxio.thrift.MasterHeartbeatTOptions;
-import alluxio.thrift.MetaCommand;
-import alluxio.thrift.MetaMasterMasterService;
-import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.wire.Address;
-import alluxio.wire.ConfigProperty;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the primary meta master,
+ * A wrapper for the gRPC client to interact with the primary meta master,
  * used by Alluxio standby masters.
- * <p/>
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
- * to provide retries.
  */
 @ThreadSafe
 public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterClient {
-  private MetaMasterMasterService.Client mClient = null;
+  private MetaMasterMasterServiceGrpc.MetaMasterMasterServiceBlockingStub mClient = null;
 
   /**
    * Creates a instance of {@link RetryHandlingMetaMasterMasterClient}.
@@ -50,8 +47,8 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
   }
 
   @Override
-  protected AlluxioService.Client getClient() {
-    return mClient;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.META_MASTER_MASTER_SERVICE;
   }
 
   @Override
@@ -66,7 +63,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = new MetaMasterMasterService.Client(mProtocol);
+    mClient = MetaMasterMasterServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
@@ -75,9 +72,10 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @param address the address to get a master id for
    * @return a master id
    */
-  public synchronized long getId(final Address address) throws IOException {
+  public long getId(final Address address) throws IOException {
     return retryRPC(() -> mClient
-        .getMasterId(address.toThrift(), new GetMasterIdTOptions()).getMasterId());
+        .getMasterId(GetMasterIdPRequest.newBuilder().setMasterAddress(address.toProto()).build())
+        .getMasterId());
   }
 
   /**
@@ -87,9 +85,10 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @param masterId the master id
    * @return whether this master should re-register
    */
-  public synchronized MetaCommand heartbeat(final long masterId) throws IOException {
-    return retryRPC(() ->
-        mClient.masterHeartbeat(masterId, new MasterHeartbeatTOptions()).getCommand());
+  public MetaCommand heartbeat(final long masterId) throws IOException {
+    return retryRPC(() -> mClient
+        .masterHeartbeat(MasterHeartbeatPRequest.newBuilder().setMasterId(masterId).build())
+        .getCommand());
   }
 
   /**
@@ -98,11 +97,12 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @param masterId the master id of the standby master registering
    * @param configList the configuration of this master
    */
-  public synchronized void register(final long masterId,
-      final List<ConfigProperty> configList) throws IOException {
+  public void register(final long masterId, final List<ConfigProperty> configList)
+      throws IOException {
     retryRPC(() -> {
-      mClient.registerMaster(masterId, new RegisterMasterTOptions(configList
-          .stream().map(ConfigProperty::toThrift).collect(Collectors.toList())));
+      mClient.registerMaster(RegisterMasterPRequest.newBuilder().setMasterId(masterId)
+          .setOptions(RegisterMasterPOptions.newBuilder().addAllConfigs(configList).build())
+          .build());
       return null;
     });
   }

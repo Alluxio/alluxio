@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.file.meta.InodeTree.LockMode;
+import alluxio.concurrent.LockMode;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.util.io.PathUtils;
 
@@ -377,7 +377,7 @@ public class LockedInodePath implements Closeable {
    */
   public LockedInodePath lockChild(InodeView child, LockPattern lockPattern,
       String[] childComponentsHint) throws InvalidPathException {
-    LockedInodePath path = new LockedInodePath(mUri.join(child.getName()), mExistingInodes,
+    LockedInodePath path = new LockedInodePath(mUri.joinUnsafe(child.getName()), mExistingInodes,
         mLockList, childComponentsHint, lockPattern);
     path.traverseOrClose();
     return path;

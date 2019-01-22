@@ -14,8 +14,10 @@ package alluxio.master;
 import alluxio.Registry;
 import alluxio.Server;
 
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
+
 import com.google.common.collect.ImmutableList;
-import org.apache.thrift.TProcessor;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +40,7 @@ public final class RegistryTest {
   public abstract class TestServer implements Server<Void> {
     @Override
     @Nullable
-    public Map<String, TProcessor> getServices() {
+    public Map<ServiceType, GrpcService> getServices() {
       return null;
     }
 

@@ -14,6 +14,7 @@ package alluxio.client.block.policy.options;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockWorkerInfo;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.util.List;
@@ -111,7 +112,7 @@ public final class GetWorkerOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("blockId", mBlockId)
         .add("blockSize", mBlockSize)
         .add("blockWorkerInfos", mBlockWorkerInfos)

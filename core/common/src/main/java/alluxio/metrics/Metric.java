@@ -11,6 +11,7 @@
 
 package alluxio.metrics;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -179,17 +180,18 @@ public final class Metric implements Serializable {
   }
 
   /**
-   * @return the thrift object it converts to. Note the value must be either integer or long
+   * @return the proto object it converts to. Note the value must be either integer or long
    */
-  public alluxio.thrift.Metric toThrift() {
-    alluxio.thrift.Metric metric = new alluxio.thrift.Metric();
-    metric.setInstance(mInstanceType.toString());
-    metric.setHostname(mHostname);
-    metric.setName(mName);
-    metric.setInstanceId(mInstanceId);
-    metric.setValue(mValue);
-    metric.setTags(mTags);
-    return metric;
+  public alluxio.grpc.Metric toProto() {
+    alluxio.grpc.Metric.Builder metric = alluxio.grpc.Metric.newBuilder();
+    metric.setInstance(mInstanceType.toString()).setHostname(mHostname).setName(mName)
+        .setValue(mValue).putAllTags(mTags);
+
+    if (mInstanceId != null && !mInstanceId.isEmpty()) {
+      metric.setInstanceId(mInstanceId);
+    }
+
+    return metric.build();
   }
 
   /**
@@ -276,15 +278,16 @@ public final class Metric implements Serializable {
   }
 
   /**
-   * Constructs the metric object from the thrift format.
+   * Constructs the metric object from the proto format.
    *
-   * @param metric the metric in thrift format
+   * @param metric the metric in proto format
    * @return the constructed metric
    */
-  public static Metric from(alluxio.thrift.Metric metric) {
+  public static Metric fromProto(alluxio.grpc.Metric metric) {
     Metric created = new Metric(MetricsSystem.InstanceType.fromString(metric.getInstance()),
-        metric.getHostname(), metric.getInstanceId(), metric.getName(), metric.getValue());
-    for (Entry<String, String> entry : metric.getTags().entrySet()) {
+        metric.getHostname(), metric.hasInstanceId() ? metric.getInstanceId() : null,
+        metric.getName(), metric.getValue());
+    for (Entry<String, String> entry : metric.getTagsMap().entrySet()) {
       created.addTag(entry.getKey(), entry.getValue());
     }
     return created;
@@ -292,7 +295,7 @@ public final class Metric implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("instanceType", mInstanceType)
+    return MoreObjects.toStringHelper(this).add("instanceType", mInstanceType)
         .add("hostname", mHostname).add("instanceId", mInstanceId).add("name", mName)
         .add("value", mValue).add("tags", mTags).toString();
   }

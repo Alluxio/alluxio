@@ -16,6 +16,7 @@ import alluxio.job.JobConfig;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -116,7 +117,7 @@ public class PersistConfig implements JobConfig {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("filePath", mFilePath).add("mountId", mMountId)
+    return MoreObjects.toStringHelper(this).add("filePath", mFilePath).add("mountId", mMountId)
         .add("overwrite", mOverwrite).add("ufsPath", mUfsPath).toString();
   }
 }

@@ -18,6 +18,7 @@ import com.google.common.collect.Iterators;
 
 import java.io.IOException;
 import java.time.Clock;
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -46,6 +47,6 @@ public abstract class AbstractNonJournaledMaster extends AbstractMaster {
 
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
-    return Iterators.emptyIterator();
+    return Iterators.unmodifiableIterator(Collections.emptyIterator());
   }
 }

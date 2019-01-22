@@ -32,35 +32,35 @@ public final class SecurityUtilsTest {
   }
 
   /**
-   * Tests the {@link SecurityUtils#getOwnerFromThriftClient()} ()} method.
+   * Tests the {@link SecurityUtils#getOwnerFromGrpcClient()} ()} method.
    */
   @Test
-  public void getOwnerFromThriftClient() throws Exception {
+  public void getOwnerFromGrpcClient() throws Exception {
     // When security is not enabled, user and group are not set
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    Assert.assertEquals("", SecurityUtils.getOwnerFromThriftClient());
+    Assert.assertEquals("", SecurityUtils.getOwnerFromGrpcClient());
 
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         IdentityUserGroupsMapping.class.getName());
     AuthenticatedClientUser.set("test_client_user");
-    Assert.assertEquals("test_client_user", SecurityUtils.getOwnerFromThriftClient());
+    Assert.assertEquals("test_client_user", SecurityUtils.getOwnerFromGrpcClient());
   }
 
   /**
-   * Tests the {@link SecurityUtils#getGroupFromThriftClient()} ()} method.
+   * Tests the {@link SecurityUtils#getGroupFromGrpcClient()} ()} method.
    */
   @Test
-  public void getGroupFromThriftClient() throws Exception {
+  public void getGroupFromGrpcClient() throws Exception {
     // When security is not enabled, user and group are not set
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    Assert.assertEquals("", SecurityUtils.getGroupFromThriftClient());
+    Assert.assertEquals("", SecurityUtils.getGroupFromGrpcClient());
 
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         IdentityUserGroupsMapping.class.getName());
     AuthenticatedClientUser.set("test_client_user");
-    Assert.assertEquals("test_client_user", SecurityUtils.getGroupFromThriftClient());
+    Assert.assertEquals("test_client_user", SecurityUtils.getGroupFromGrpcClient());
   }
 
   /**

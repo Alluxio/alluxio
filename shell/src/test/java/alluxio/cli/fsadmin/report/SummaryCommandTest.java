@@ -15,12 +15,11 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.grpc.MasterInfo;
 import alluxio.util.CommonUtils;
 import alluxio.wire.BlockMasterInfo;
-import alluxio.wire.MasterInfo;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.After;
@@ -48,7 +47,7 @@ public class SummaryCommandTest {
     // Generate random values for MasterInfo and BlockMasterInfo
     // Prepare mock meta master client
     mMetaMasterClient = mock(MetaMasterClient.class);
-    MasterInfo masterInfo = new MasterInfo()
+    MasterInfo masterInfo = MasterInfo.newBuilder()
         .setLeaderMasterAddress("testAddress")
         .setWebPort(1231)
         .setRpcPort(8462)
@@ -56,8 +55,9 @@ public class SummaryCommandTest {
         .setUpTimeMs(12412412312L)
         .setVersion("testVersion")
         .setSafeMode(false)
-        .setZookeeperAddresses(Arrays.asList("[zookeeper_hostname1]:2181",
-            "[zookeeper_hostname2]:2181", "[zookeeper_hostname3]:2181"));
+        .addAllZookeeperAddresses(Arrays.asList("[zookeeper_hostname1]:2181",
+            "[zookeeper_hostname2]:2181", "[zookeeper_hostname3]:2181"))
+        .build();
     when(mMetaMasterClient.getMasterInfo(any())).thenReturn(masterInfo);
 
     // Prepare mock block master client

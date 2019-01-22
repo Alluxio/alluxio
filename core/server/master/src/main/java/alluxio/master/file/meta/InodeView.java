@@ -17,7 +17,7 @@ import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import java.util.List;
 

@@ -18,6 +18,7 @@ import static org.junit.Assert.fail;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -53,7 +54,7 @@ public final class FormatTest {
         mTemporaryFolder.newFolder("level2")
     };
     for (File dir : dirs) {
-      workerDataFolder = PathUtils.getWorkerDataDirectory(dir.getPath());
+      workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath());
       FileUtils.createDir(PathUtils.concatPath(workerDataFolder, "subdir"));
       FileUtils.createFile(PathUtils.concatPath(workerDataFolder, "file"));
     }
@@ -68,7 +69,7 @@ public final class FormatTest {
     }).toResource()) {
       Format.format(Format.Mode.WORKER);
       for (File dir : dirs) {
-        workerDataFolder = PathUtils.getWorkerDataDirectory(dir.getPath());
+        workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath());
         assertTrue(FileUtils.exists(dir.getPath()));
         assertTrue(FileUtils.exists(workerDataFolder));
         assertEquals(PosixFilePermissions.fromString(perms), Files.getPosixFilePermissions(Paths
@@ -94,7 +95,7 @@ public final class FormatTest {
     };
     // Have files of same name as the target worker data dir in each tier
     for (File dir : dirs) {
-      workerDataFolder = PathUtils.getWorkerDataDirectory(dir.getPath());
+      workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath());
       FileUtils.createFile(workerDataFolder);
     }
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
@@ -108,7 +109,7 @@ public final class FormatTest {
       final String perms = Configuration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
       Format.format(Format.Mode.WORKER);
       for (File dir : dirs) {
-        workerDataFolder = PathUtils.getWorkerDataDirectory(dir.getPath());
+        workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath());
         assertTrue(Files.isDirectory(Paths.get(workerDataFolder)));
         assertEquals(PosixFilePermissions.fromString(perms), Files.getPosixFilePermissions(Paths
             .get(workerDataFolder)));

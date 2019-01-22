@@ -13,6 +13,7 @@ package alluxio.client.block.policy.options;
 
 import alluxio.annotation.PublicApi;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
@@ -91,7 +92,7 @@ public final class CreateOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("locationPolicyClassName", mLocationPolicyClassName)
         .add("deterministicHashPolicyNumShards", mDeterministicHashPolicyNumShards)
         .toString();

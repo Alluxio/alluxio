@@ -13,7 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.proto.dataserver.Protocol;
+import alluxio.grpc.RequestType;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
@@ -38,16 +38,16 @@ public class UnderFileSystemFileOutStream extends BlockOutStream {
    */
   public static UnderFileSystemFileOutStream create(FileSystemContext context,
       WorkerNetAddress address, OutStreamOptions options) throws IOException {
-    return new UnderFileSystemFileOutStream(NettyPacketWriter.create(context, address,
-        ID_UNUSED, Long.MAX_VALUE, Protocol.RequestType.UFS_FILE, options), address);
+    return new UnderFileSystemFileOutStream(GrpcDataWriter.create(context, address,
+        ID_UNUSED, Long.MAX_VALUE, RequestType.UFS_FILE, options), address);
   }
 
   /**
-   * Constructs a new {@link UnderFileSystemFileOutStream} with only one {@link PacketWriter}.
+   * Constructs a new {@link UnderFileSystemFileOutStream} with only one {@link DataWriter}.
    *
-   * @param packetWriter the packet writer
+   * @param dataWriter the data writer
    */
-  protected UnderFileSystemFileOutStream(PacketWriter packetWriter, WorkerNetAddress address) {
-    super(packetWriter, Long.MAX_VALUE, address);
+  protected UnderFileSystemFileOutStream(DataWriter dataWriter, WorkerNetAddress address) {
+    super(dataWriter, Long.MAX_VALUE, address);
   }
 }

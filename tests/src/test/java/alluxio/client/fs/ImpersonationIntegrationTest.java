@@ -19,7 +19,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -82,7 +82,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     // Give the root dir 777, to write files as different users. This must be run as the user
     // that starts the master process
     FileSystem.Factory.get().setAttribute(new AlluxioURI("/"),
-        SetAttributeOptions.defaults().setMode(new Mode((short) 0777)));
+        SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto()).build());
     // Enable client impersonation by default
     Configuration
         .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_HDFS_USER);

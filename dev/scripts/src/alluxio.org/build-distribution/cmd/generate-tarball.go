@@ -50,6 +50,12 @@ func init() {
 }
 
 func single(_ *cmdline.Env, _ []string) error {
+	if err := updateRootFlags(); err != nil {
+		return err
+	}
+	if err := checkRootFlags(); err != nil {
+		return err
+	}
 	if err := generateTarball(hadoopDistributionFlag); err != nil {
 		return err
 	}
@@ -123,6 +129,34 @@ func getVersion() (string, error) {
 	return match[1], nil
 }
 
+func addModules(srcPath, dstPath, name, moduleFlag, version string, modules map[string]module) {
+	for _, moduleName := range strings.Split(moduleFlag, ",") {
+		moduleEntry, ok := modules[moduleName]
+		if !ok {
+			// This should be impossible, we validate modulesFlag at the start.
+			fmt.Fprintf(os.Stderr, "Unrecognized %v module: %v", name, moduleName)
+			os.Exit(1)
+		}
+		moduleJar := fmt.Sprintf("alluxio-%v-%v-%v.jar", name, moduleEntry.name, version)
+		run(fmt.Sprintf("adding %v module %v to lib/", name, moduleName), "mv", filepath.Join(srcPath, "lib", moduleJar), filepath.Join(dstPath, "lib"))
+	}
+}
+
+func buildModules(srcPath, name, ufsType, moduleFlag, version string, modules map[string]module, mvnArgs []string) {
+	// Compile modules for the main build
+	for _, moduleName := range strings.Split(moduleFlag, ",") {
+		moduleEntry := modules[moduleName]
+		moduleMvnArgs := mvnArgs
+		for _, arg := range strings.Split(moduleEntry.mavenArgs, " ") {
+			moduleMvnArgs = append(moduleMvnArgs, arg)
+		}
+		run(fmt.Sprintf("compiling %v module %v", name, moduleName), "mvn", moduleMvnArgs...)
+		srcJar := fmt.Sprintf("alluxio-%v-%v-%v.jar", name, ufsType, version)
+		dstJar := fmt.Sprintf("alluxio-%v-%v-%v.jar", name, moduleEntry.name, version)
+		run(fmt.Sprintf("saving %v module %v", name, moduleName), "mv", filepath.Join(srcPath, "lib", srcJar), filepath.Join(srcPath, "lib", dstJar))
+	}
+}
+
 func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version string) {
 	chdir(srcPath)
 	pathsToCopy := []string{
@@ -167,7 +201,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/mesos/bin/common.sh",
 		fmt.Sprintf("lib/alluxio-underfs-cos-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-gcs-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-hdfs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-local-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-oss-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-s3a-%v.jar", version),
@@ -202,6 +235,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		symlink(fmt.Sprintf("../../alluxio-%v-%v.jar", jar, version), oldLocation)
 	}
 	mkdir(filepath.Join(dstPath, "assembly/server/target"))
+	mkdir(filepath.Join(dstPath, "lib"))
+	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
 }
 
 func generateTarball(hadoopDistribution string) error {
@@ -246,6 +281,8 @@ func generateTarball(hadoopDistribution string) error {
 
 	mvnArgs := getCommonMvnArgs(hadoopVersion)
 	run("compiling repo", "mvn", mvnArgs...)
+	// Compile ufs modules for the main build
+	buildModules(srcPath, "underfs", "hdfs", ufsModulesFlag, version, ufsModules, mvnArgs)
 
 	tarball := strings.Replace(targetFlag, versionMarker, version, 1)
 	dstDir := strings.TrimSuffix(filepath.Base(tarball), ".tar.gz")
@@ -276,6 +313,10 @@ func generateTarball(hadoopDistribution string) error {
 	}
 
 	addAdditionalFiles(srcPath, dstPath, hadoopVersion, version)
+	hadoopVersion, ok = hadoopDistributions[hadoopDistribution]
+	if !ok {
+		return fmt.Errorf("hadoop distribution %s not recognized\n", hadoopDistribution)
+	}
 
 	chdir(cwd)
 	run("creating the distribution tarball", "tar", "-czvf", tarball, dstDir)

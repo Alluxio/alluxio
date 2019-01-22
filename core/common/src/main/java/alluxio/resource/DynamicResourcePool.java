@@ -270,7 +270,11 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
         for (T resource : resourcesToGc) {
           LOG.info("Resource {} is garbage collected.", resource);
-          closeResource(resource);
+          try {
+            closeResource(resource);
+          } catch (IOException e) {
+            LOG.warn("Failed to close resource {}.", resource, e);
+          }
         }
       }
     }, options.getInitialDelayMs(), options.getGcIntervalMs(), TimeUnit.MILLISECONDS);
@@ -383,7 +387,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * Closes the pool and clears all the resources. The resource pool should not be used after this.
    */
   @Override
-  public void close() {
+  public void close() throws IOException {
     try {
       mLock.lock();
       if (mAvailableResources.size() != mResources.size()) {
@@ -500,15 +504,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    *
    * @param resource the resource to close
    */
-  protected abstract void closeResource(T resource);
-
-  /**
-   * Similar as above but this guarantees that the resource is closed after the function returns
-   * unless it fails to close.
-   *
-   * @param resource the resource to close
-   */
-  protected abstract void closeResourceSync(T resource);
+  protected abstract void closeResource(T resource) throws IOException;
 
   /**
    * Creates a new resource.

@@ -22,10 +22,10 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.job.JobMasterContext;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.BlockInfo;
@@ -151,7 +151,7 @@ public final class MoveDefinitionSelectExecutorsTest {
     setPathToNotExist("/dst/src");
     assignMoves("/src", "/dst/src");
     verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src")),
-        any(CreateDirectoryOptions.class));
+        any(CreateDirectoryPOptions.class));
   }
 
   @Test
@@ -163,7 +163,7 @@ public final class MoveDefinitionSelectExecutorsTest {
     setPathToNotExist("/dst/src");
     assignMoves("/src", "/dst/src");
     verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src/nested")),
-        Matchers.eq(CreateDirectoryOptions.defaults()));
+        Matchers.eq(CreateDirectoryPOptions.getDefaultInstance()));
   }
 
   @Test

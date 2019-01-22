@@ -16,11 +16,11 @@ import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.DeletePOptions;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
-import alluxio.master.file.options.DeleteOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
 
@@ -50,12 +50,12 @@ public final class SafeUfsDeleter implements UfsDeleter {
    * @param deleteOptions delete options
    */
   public SafeUfsDeleter(MountTable mountTable, List<Pair<AlluxioURI, LockedInodePath>> inodes,
-      DeleteOptions deleteOptions)
+      DeletePOptions deleteOptions)
       throws IOException, FileDoesNotExistException, InvalidPathException {
     mMountTable = mountTable;
     // Root of sub-tree occurs before any of its descendants
     mRootPath = inodes.get(0).getFirst();
-    if (!deleteOptions.isUnchecked() && !deleteOptions.isAlluxioOnly()) {
+    if (!deleteOptions.getUnchecked() && !deleteOptions.getAlluxioOnly()) {
       mUfsSyncChecker = new UfsSyncChecker(mMountTable);
       for (Pair<AlluxioURI, LockedInodePath> inodePair : inodes) {
         AlluxioURI alluxioUri = inodePair.getFirst();

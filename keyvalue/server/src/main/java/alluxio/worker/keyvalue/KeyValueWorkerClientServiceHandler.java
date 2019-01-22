@@ -11,32 +11,27 @@
 
 package alluxio.worker.keyvalue;
 
-import alluxio.Constants;
 import alluxio.RpcUtils;
-import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.Sessions;
 import alluxio.client.keyvalue.ByteBufferKeyValuePartitionReader;
 import alluxio.client.keyvalue.Index;
 import alluxio.client.keyvalue.PayloadReader;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.GetNextKeysTOptions;
-import alluxio.thrift.GetNextKeysTResponse;
-import alluxio.thrift.GetServiceVersionTOptions;
-import alluxio.thrift.GetServiceVersionTResponse;
-import alluxio.thrift.GetSizeTOptions;
-import alluxio.thrift.GetSizeTResponse;
-import alluxio.thrift.GetTOptions;
-import alluxio.thrift.GetTResponse;
-import alluxio.thrift.KeyValueWorkerClientService;
-import alluxio.util.io.BufferUtils;
+import alluxio.grpc.GetNextKeysPRequest;
+import alluxio.grpc.GetNextKeysPResponse;
+import alluxio.grpc.GetPRequest;
+import alluxio.grpc.GetPResponse;
+import alluxio.grpc.GetSizePRequest;
+import alluxio.grpc.GetSizePResponse;
+import alluxio.grpc.KeyValueWorkerClientServiceGrpc;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.protobuf.ByteString;
+import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,10 +43,14 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * RPC service handler on worker side to read a local key-value block.
+ *
+ * @deprecated This class is deprecated since version 2.0
  */
 // TODO(binfan): move logic outside and make this a simple wrapper.
 @ThreadSafe
-public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerClientService.Iface {
+@Deprecated
+public final class KeyValueWorkerClientServiceHandler
+    extends KeyValueWorkerClientServiceGrpc.KeyValueWorkerClientServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(KeyValueWorkerClientServiceHandler.class);
 
@@ -66,26 +65,76 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   }
 
   @Override
-  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
-    return new GetServiceVersionTResponse(Constants.KEY_VALUE_WORKER_SERVICE_VERSION);
+  public void get(GetPRequest request, StreamObserver<GetPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetPResponse>) () -> {
+      ByteBuffer value =
+          getInternal(request.getBlockId(), request.getKey().asReadOnlyByteBuffer());
+      GetPResponse.Builder response = GetPResponse.newBuilder();
+      if (value == null) {
+        response.setData(ByteString.copyFrom(new byte[0]));
+      } else {
+        response.setData(ByteString.copyFrom(value));
+      }
+      return response.build();
+    }, "get", "request=%s", responseObserver, request);
   }
 
   @Override
-  public GetTResponse get(final long blockId, final ByteBuffer key, GetTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call((RpcCallableThrowsIOException<GetTResponse>) () -> {
-      ByteBuffer value = getInternal(blockId, key);
-      if (value == null) {
-        return new GetTResponse(ByteBuffer.allocate(0));
+  public void getNextKeys(GetNextKeysPRequest request,
+      StreamObserver<GetNextKeysPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetNextKeysPResponse>) () -> {
+      final long sessionId = Sessions.KEYVALUE_SESSION_ID;
+      final long lockId = mBlockWorker.lockBlock(sessionId, request.getBlockId());
+      GetNextKeysPResponse.Builder response = GetNextKeysPResponse.newBuilder();
+      try {
+        ByteBufferKeyValuePartitionReader reader =
+            getReader(sessionId, lockId, request.getBlockId());
+        Index index = reader.getIndex();
+        PayloadReader payloadReader = reader.getPayloadReader();
+
+        List<ByteString> ret = Lists.newArrayListWithExpectedSize(request.getNumKeys());
+        ByteBuffer currentKey = null;
+        if (request.hasKey()) {
+          currentKey = request.getKey().asReadOnlyByteBuffer();
+        }
+        for (int i = 0; i < request.getNumKeys(); i++) {
+          ByteBuffer nextKey = index.nextKey(currentKey, payloadReader);
+          if (nextKey == null) {
+            break;
+          }
+          ret.add(ByteString.copyFrom(nextKey));
+          currentKey = nextKey;
+        }
+        if (ret.size() > 0) {
+          response.addAllKeys(ret);
+        }
+      } catch (InvalidWorkerStateException e) {
+        // We shall never reach here
+        LOG.error("Reaching invalid state to get all keys", e);
+      } finally {
+        mBlockWorker.unlockBlock(lockId);
       }
-      return new GetTResponse(copyAsNonDirectBuffer(value));
-    });
+      return response.build();
+    }, "getNextKeys", "request=%s", responseObserver, request);
   }
 
-  private ByteBuffer copyAsNonDirectBuffer(ByteBuffer directBuffer) {
-    // Thrift assumes the ByteBuffer returned has array() method, which is not true if the
-    // ByteBuffer is direct. We make a non-direct copy of the ByteBuffer to return.
-    return BufferUtils.cloneByteBuffer(directBuffer);
+  // TODO(cc): Try to remove the duplicated try-catch logic in other methods like getNextKeys.
+  @Override
+  public void getSize(GetSizePRequest request, StreamObserver<GetSizePResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetSizePResponse>) () -> {
+      final long sessionId = Sessions.KEYVALUE_SESSION_ID;
+      final long lockId = mBlockWorker.lockBlock(sessionId, request.getBlockId());
+      GetSizePResponse.Builder response = GetSizePResponse.newBuilder().setSize(0);
+      try {
+        response.setSize(getReader(sessionId, lockId, request.getBlockId()).size());
+      } catch (InvalidWorkerStateException e) {
+        // We shall never reach here
+        LOG.error("Reaching invalid state to get size", e);
+      } finally {
+        mBlockWorker.unlockBlock(lockId);
+      }
+      return response.build();
+    }, "getSize", "request=%s", responseObserver, request);
   }
 
   /**
@@ -120,62 +169,5 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
 
     blockReader.close();
     return reader;
-  }
-
-  @Override
-  public GetNextKeysTResponse getNextKeys(final long blockId, final ByteBuffer key,
-      final int numKeys, GetNextKeysTOptions options) throws AlluxioTException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<GetNextKeysTResponse>() {
-      @Override
-      public GetNextKeysTResponse call() throws AlluxioException, IOException {
-        final long sessionId = Sessions.KEYVALUE_SESSION_ID;
-        final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-        try {
-          ByteBufferKeyValuePartitionReader reader = getReader(sessionId, lockId, blockId);
-          Index index = reader.getIndex();
-          PayloadReader payloadReader = reader.getPayloadReader();
-
-          List<ByteBuffer> ret = Lists.newArrayListWithExpectedSize(numKeys);
-          ByteBuffer currentKey = key;
-          for (int i = 0; i < numKeys; i++) {
-            ByteBuffer nextKey = index.nextKey(currentKey, payloadReader);
-            if (nextKey == null) {
-              break;
-            }
-            ret.add(copyAsNonDirectBuffer(nextKey));
-            currentKey = nextKey;
-          }
-          return new GetNextKeysTResponse(ret);
-        } catch (InvalidWorkerStateException e) {
-          // We shall never reach here
-          LOG.error("Reaching invalid state to get all keys", e);
-        } finally {
-          mBlockWorker.unlockBlock(lockId);
-        }
-        return new GetNextKeysTResponse();
-      }
-    });
-  }
-
-  // TODO(cc): Try to remove the duplicated try-catch logic in other methods like getNextKeys.
-  @Override
-  public GetSizeTResponse getSize(final long blockId, GetSizeTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<GetSizeTResponse>() {
-      @Override
-      public GetSizeTResponse call() throws AlluxioException, IOException {
-        final long sessionId = Sessions.KEYVALUE_SESSION_ID;
-        final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-        try {
-          return new GetSizeTResponse(getReader(sessionId, lockId, blockId).size());
-        } catch (InvalidWorkerStateException e) {
-          // We shall never reach here
-          LOG.error("Reaching invalid state to get size", e);
-        } finally {
-          mBlockWorker.unlockBlock(lockId);
-        }
-        return new GetSizeTResponse(0);
-      }
-    });
   }
 }

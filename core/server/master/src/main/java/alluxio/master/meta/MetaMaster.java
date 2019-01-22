@@ -12,15 +12,15 @@
 package alluxio.master.meta;
 
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.MetaCommand;
+import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.master.Master;
-import alluxio.thrift.MetaCommand;
-import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.wire.Address;
 import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
-import alluxio.wire.ConfigProperty;
-import alluxio.wire.GetConfigurationOptions;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -48,7 +48,7 @@ public interface MetaMaster extends Master {
    * @param options method options
    * @return configuration information list
    */
-  List<ConfigProperty> getConfiguration(GetConfigurationOptions options);
+  List<ConfigProperty> getConfiguration(GetConfigurationPOptions options);
 
   /**
    * @return the addresses of live masters
@@ -108,5 +108,5 @@ public interface MetaMaster extends Master {
    * @param options the options that contains master configuration
    * @throws NotFoundException if masterId cannot be found
    */
-  void masterRegister(long masterId, RegisterMasterTOptions options) throws NotFoundException;
+  void masterRegister(long masterId, RegisterMasterPOptions options) throws NotFoundException;
 }
