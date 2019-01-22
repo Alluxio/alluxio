@@ -43,8 +43,11 @@ public class S3AInputStream extends InputStream {
   /** The current position of the stream. */
   private long mPos;
 
-  /** Retry policy in case the key does not exists (possibly due to eventual consistency. */
-  RetryPolicy mRetryPolicy;
+  /**
+   * Policy determining the retry behavior in case the key does not exist. The key may not exist
+   * because of eventual consistency.
+   */
+  private final RetryPolicy mRetryPolicy;
 
   /**
    * Constructor for an input stream of an object in s3 using the aws-sdk implementation to read
@@ -143,8 +146,8 @@ public class S3AInputStream extends InputStream {
       try {
         mIn = mClient.getObject(getReq).getObjectContent();
       } catch (AmazonS3Exception e) {
-        LOG.warn("{} attempt to open key {} in bucket failed with exception : {}",
-            mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.getMessage());
+        LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
+            mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
         thrownException = e;
       }
     }
