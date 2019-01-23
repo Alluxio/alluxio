@@ -12,7 +12,6 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -99,9 +98,8 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   public void impersonationNotUsed() throws Exception {
     ServerConfiguration
         .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, Constants.IMPERSONATION_NONE);
-    FileSystemContext context = FileSystemContext
-        .getOrCreate(ClientContext.create(createHdfsSubject(),
-        ServerConfiguration.global()));
+    FileSystemContext context = FileSystemContext.create(createHdfsSubject(),
+        ServerConfiguration.global());
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
     fs.createFile(new AlluxioURI("/impersonation-test")).close();
     List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));
@@ -116,9 +114,8 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
     String arbitraryUser = "arbitrary_user";
     ServerConfiguration
         .set(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME, arbitraryUser);
-    FileSystemContext context = FileSystemContext
-        .getOrCreate(ClientContext.create(createHdfsSubject(),
-        ServerConfiguration.global()));
+    FileSystemContext context = FileSystemContext.create(createHdfsSubject(),
+        ServerConfiguration.global());
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
     fs.createFile(new AlluxioURI("/impersonation-test")).close();
     List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));
@@ -236,8 +233,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   }
 
   private void checkCreateFile(Subject subject, String expectedUser) throws Exception {
-    FileSystemContext context = FileSystemContext.getOrCreate(ClientContext.create(subject,
-        ServerConfiguration.global()));
+    FileSystemContext context = FileSystemContext.create(subject, ServerConfiguration.global());
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient(context);
     fs.createFile(new AlluxioURI("/impersonation-test")).close();
     List<URIStatus> listing = fs.listStatus(new AlluxioURI("/"));

@@ -509,13 +509,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     }
   }
 
-  @Override
-  public int hashCode() {
-    // We don't need to hash on mClusterDefaultsLoaded because those parameters will be loaded into
-    // mProperties.
-    return mProperties.hashCode();
-  }
-
   private class UnresolvablePropertyException extends Exception {
 
     public UnresolvablePropertyException(String msg) {
