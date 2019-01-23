@@ -15,6 +15,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -36,9 +37,6 @@ var (
 	hadoopDistributionFlag string
 	targetFlag             string
 	mvnArgsFlag            string
-
-	webappDir = "core/server/common/src/main/webapp"
-	webappWar = "assembly/webapp.war"
 )
 
 func init() {
@@ -239,6 +237,66 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
 }
 
+// CopyFile copies a file from the given source to the given destination.
+// The destination should not exist.
+// If the method fails, the destination is unchanged.
+func CopyFile(src, dst string) error {
+	info, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, info.Mode())
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	if _, err = io.Copy(out, in); err != nil {
+		return err
+	}
+	return nil
+}
+
+// CopyDir copies a source directory to the given destination
+func CopyDir(src, dst string) error {
+	srcFile, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if !srcFile.IsDir() {
+		return fmt.Errorf("Source %q is not a directory", src)
+	}
+
+	// create dest dir
+	if err := os.MkdirAll(dst, srcFile.Mode()); err != nil {
+		return err
+	}
+
+	entries, err := ioutil.ReadDir(src)
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		sfp := filepath.Join(src, entry.Name())
+		dfp := filepath.Join(dst, entry.Name())
+		if entry.IsDir() {
+			if err := CopyDir(sfp, dfp); err != nil {
+				return err
+			}
+		} else {
+			if err := CopyFile(sfp, dfp); err != nil {
+				return err
+			}
+		}
+
+	}
+	return nil
+}
+
 func generateTarball(hadoopDistribution string) error {
 	hadoopVersion := hadoopDistributions[hadoopDistribution]
 	cwd, err := os.Getwd()
@@ -267,8 +325,6 @@ func generateTarball(hadoopDistribution string) error {
 		return err
 	}
 
-	// Update the web app location.
-	replace("core/common/src/main/java/alluxio/PropertyKey.java", webappDir, webappWar)
 	// Update the assembly jar paths.
 	replace("libexec/alluxio-config.sh", "assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-client-${VERSION}.jar")
 	replace("libexec/alluxio-config.sh", "assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-server-${VERSION}.jar")
@@ -301,8 +357,20 @@ func generateTarball(hadoopDistribution string) error {
 	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 	run("adding Alluxio checker jar", "mv", fmt.Sprintf("integration/checker/target/alluxio-checker-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "checker", fmt.Sprintf("alluxio-checker-%v.jar", version)))
-	// Condense the webapp into a single .war file.
-	run("jarring up webapp", "jar", "-cf", filepath.Join(dstPath, webappWar), "-C", webappDir, ".")
+
+	masterWebappBuildDir := "alluxio-ui/master/build"
+	run ("creating alluxio-ui master webapp directory and copying files", "mkdir", "-p", filepath.Join(dstPath, masterWebappBuildDir))
+	err = CopyDir(masterWebappBuildDir, filepath.Join(dstPath, masterWebappBuildDir))
+	if err != nil {
+		return err
+	}
+
+	workerWebappBuildDir := "alluxio-ui/worker/build"
+	run ("creating alluxio-ui worker webapp directory and copying files", "mkdir", "-p", filepath.Join(dstPath, workerWebappBuildDir))
+	err = CopyDir(workerWebappBuildDir, filepath.Join(dstPath, workerWebappBuildDir))
+	if err != nil {
+		return err
+	}
 
 	if includeYarnIntegration(hadoopVersion) {
 		// Update the YARN jar path
