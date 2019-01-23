@@ -130,8 +130,8 @@ public final class FileSystemContext implements Closeable {
    * Returns a filesystem context which is stored in the cache or creates one and then caches it
    * for future use.
    *
-   * @param context The {@link ClientContext} to use
-   * @return A corresponding {@link FileSystemContext}
+   * @param context the {@link ClientContext} to use
+   * @return a corresponding {@link FileSystemContext}
    */
   public static FileSystemContext getOrCreate(ClientContext context) {
     ClientContext ctx = context;
@@ -140,11 +140,9 @@ public final class FileSystemContext implements Closeable {
     }
     FileSystemContext cachedFsContext;
     synchronized (CONTEXT_CACHE_LOCK) {
-      cachedFsContext = CONTEXT_CACHE.get(ctx);
-      if (cachedFsContext == null) {
-        cachedFsContext = FileSystemContext.create(ctx);
-        CONTEXT_CACHE.put(ctx, cachedFsContext);
-      }
+      cachedFsContext = CONTEXT_CACHE.computeIfAbsent(ctx, (ClientContext clientContext) -> {
+        return FileSystemContext.create(clientContext);
+      });
     }
     return cachedFsContext;
   }

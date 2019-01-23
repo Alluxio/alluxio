@@ -76,7 +76,7 @@ public interface FileSystem {
     }
 
     public static FileSystem get(ClientContext context) {
-      Preconditions.checkNotNull(context);
+      Preconditions.checkNotNull(context, "context");
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
         AlluxioConfiguration conf = context.getConf();
@@ -92,6 +92,7 @@ public interface FileSystem {
     }
 
     public static FileSystem get(FileSystemContext context) {
+      Preconditions.checkNotNull(context);
       return BaseFileSystem.create(context);
     }
   }

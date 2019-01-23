@@ -261,4 +261,23 @@ public class AlluxioProperties {
   public int hashCode() {
     return (677 + mPrecomputedHash.get()) * 3347;
   }
+
+  /**
+   * The implementation of this method assumes that all sets of properties which get inserted
+   * into this object will result in a unique hashCode. This method is not 100% correct and could
+   * return inaccurately when there are hash collisions.
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    }
+    if (o == this) {
+      return true;
+    }
+    if (o.getClass() != this.getClass()) {
+      return false;
+    }
+    return Objects.equal(hashCode(), o.hashCode());
+  }
 }
