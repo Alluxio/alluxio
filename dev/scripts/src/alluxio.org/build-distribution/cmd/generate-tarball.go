@@ -15,7 +15,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -237,66 +236,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
 }
 
-// CopyFile copies a file from the given source to the given destination.
-// The destination should not exist.
-// If the method fails, the destination is unchanged.
-func CopyFile(src, dst string) error {
-	info, err := os.Stat(src)
-	if err != nil {
-		return err
-	}
-	in, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-	out, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, info.Mode())
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-	if _, err = io.Copy(out, in); err != nil {
-		return err
-	}
-	return nil
-}
-
-// CopyDir copies a source directory to the given destination
-func CopyDir(src, dst string) error {
-	srcFile, err := os.Stat(src)
-	if err != nil {
-		return err
-	}
-	if !srcFile.IsDir() {
-		return fmt.Errorf("Source %q is not a directory", src)
-	}
-
-	// create dest dir
-	if err := os.MkdirAll(dst, srcFile.Mode()); err != nil {
-		return err
-	}
-
-	entries, err := ioutil.ReadDir(src)
-	if err != nil {
-		return err
-	}
-	for _, entry := range entries {
-		sfp := filepath.Join(src, entry.Name())
-		dfp := filepath.Join(dst, entry.Name())
-		if entry.IsDir() {
-			if err := CopyDir(sfp, dfp); err != nil {
-				return err
-			}
-		} else {
-			if err := CopyFile(sfp, dfp); err != nil {
-				return err
-			}
-		}
-
-	}
-	return nil
-}
-
 func generateTarball(hadoopDistribution string) error {
 	hadoopVersion := hadoopDistributions[hadoopDistribution]
 	cwd, err := os.Getwd()
@@ -358,19 +297,13 @@ func generateTarball(hadoopDistribution string) error {
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 	run("adding Alluxio checker jar", "mv", fmt.Sprintf("integration/checker/target/alluxio-checker-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "checker", fmt.Sprintf("alluxio-checker-%v.jar", version)))
 
-	masterWebappBuildDir := "alluxio-ui/master/build"
-	run ("creating alluxio-ui master webapp directory and copying files", "mkdir", "-p", filepath.Join(dstPath, masterWebappBuildDir))
-	err = CopyDir(masterWebappBuildDir, filepath.Join(dstPath, masterWebappBuildDir))
-	if err != nil {
-		return err
-	}
+	masterWebappDir := "alluxio-ui/master"
+	run("creating alluxio-ui master webapp directory", "mkdir", "-p", filepath.Join(dstPath, masterWebappDir))
+	run("copying alluxio-ui master webapp build directory", "cp", "-r", filepath.Join(masterWebappDir, "build"), filepath.Join(dstPath, masterWebappDir))
 
-	workerWebappBuildDir := "alluxio-ui/worker/build"
-	run ("creating alluxio-ui worker webapp directory and copying files", "mkdir", "-p", filepath.Join(dstPath, workerWebappBuildDir))
-	err = CopyDir(workerWebappBuildDir, filepath.Join(dstPath, workerWebappBuildDir))
-	if err != nil {
-		return err
-	}
+	workerWebappDir := "alluxio-ui/worker"
+	run ("creating alluxio-ui worker webapp directory", "mkdir", "-p", filepath.Join(dstPath, workerWebappDir))
+	run("copying alluxio-ui worker webapp build directory", "cp", "-r", filepath.Join(workerWebappDir, "build"), filepath.Join(dstPath, workerWebappDir))
 
 	if includeYarnIntegration(hadoopVersion) {
 		// Update the YARN jar path
