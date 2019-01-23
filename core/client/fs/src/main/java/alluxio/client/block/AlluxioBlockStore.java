@@ -14,7 +14,6 @@ package alluxio.client.block;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
@@ -73,16 +72,6 @@ public final class AlluxioBlockStore {
   private List<BlockWorkerInfo> mWorkerInfoList = null;
   /** The policy to refresh workers list. */
   private final RefreshPolicy mWorkerRefreshPolicy;
-
-  /**
-   * Creates an Alluxio block store with default file system context and default local hostname.
-   *
-   * @param ctx Alluxio client configuration
-   * @return the {@link AlluxioBlockStore} created
-   */
-  public static AlluxioBlockStore create(ClientContext ctx) {
-    return create(FileSystemContext.create(ctx));
-  }
 
   /**
    * Creates an Alluxio block store with default local hostname.

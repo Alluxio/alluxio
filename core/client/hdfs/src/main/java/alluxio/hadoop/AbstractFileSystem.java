@@ -504,6 +504,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     LOG.info("Initializing filesystem context with connect details {}",
         Factory.getConnectDetails(alluxioConf));
+    // TODO(zac): Is it possible to cache the FileSystemContext?
     mFsContext = FileSystemContext.create(subject, alluxioConf);
 
     // Sets the file system.
