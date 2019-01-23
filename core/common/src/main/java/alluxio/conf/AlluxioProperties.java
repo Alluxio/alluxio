@@ -14,6 +14,7 @@ package alluxio.conf;
 import static java.util.stream.Collectors.toSet;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 import javax.annotation.Nullable;
@@ -57,6 +59,9 @@ public class AlluxioProperties {
   /** Map of property sources. */
   private final ConcurrentHashMap<PropertyKey, Source> mSources = new ConcurrentHashMap<>();
 
+  /** A value representing the running hash code for this set of properties. */
+  private AtomicInteger mPrecomputedHash = new AtomicInteger(0);
+
   /**
    * Constructs a new instance of Alluxio properties.
    */
@@ -68,6 +73,7 @@ public class AlluxioProperties {
   public AlluxioProperties(AlluxioProperties alluxioProperties) {
     mUserProps.putAll(alluxioProperties.mUserProps);
     mSources.putAll(alluxioProperties.mSources);
+    mPrecomputedHash = new AtomicInteger(alluxioProperties.mPrecomputedHash.get());
   }
 
   /**
@@ -89,6 +95,7 @@ public class AlluxioProperties {
   public void clear() {
     mUserProps.clear();
     mSources.clear();
+    mPrecomputedHash = new AtomicInteger(0);
   }
 
   /**
@@ -99,9 +106,18 @@ public class AlluxioProperties {
    * @param source the source of this value for the key
    */
   protected void put(PropertyKey key, String value, Source source) {
-    if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
+    int newHash = Objects.hashCode(key, Optional.ofNullable(value), source);
+    boolean update = false;
+    if (!mUserProps.containsKey(key)) {
+      update = true;
+    } else if (source.compareTo(getSource(key)) >= 0) {
+      remove(key); // this will update the precomputed hash
+      update = true;
+    }
+    if (update) {
       mUserProps.put(key, Optional.ofNullable(value));
       mSources.put(key, source);
+      mPrecomputedHash.addAndGet(newHash);
     }
   }
 
@@ -155,7 +171,11 @@ public class AlluxioProperties {
   public void remove(PropertyKey key) {
     // remove is a nop if the key doesn't already exist
     if (mUserProps.containsKey(key)) {
+      String value = get(key);
+      mPrecomputedHash
+          .addAndGet(-1 * Objects.hashCode(key, Optional.ofNullable(value), getSource(key)));
       mUserProps.remove(key);
+      mSources.remove(key);
     }
   }
 
@@ -218,6 +238,10 @@ public class AlluxioProperties {
    */
   @VisibleForTesting
   public void setSource(PropertyKey key, Source source) {
+    String val = get(key);
+    Source originalSource = getSource(key);
+    mPrecomputedHash.addAndGet(-1 * Objects.hashCode(key, val, originalSource));
+    mPrecomputedHash.addAndGet(Objects.hashCode(key, val, source));
     mSources.put(key, source);
   }
 
@@ -231,5 +255,10 @@ public class AlluxioProperties {
       return source;
     }
     return Source.DEFAULT;
+  }
+
+  @Override
+  public int hashCode() {
+    return (677 + mPrecomputedHash.get()) * 3347;
   }
 }

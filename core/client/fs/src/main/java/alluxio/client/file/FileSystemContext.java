@@ -86,6 +86,12 @@ import javax.security.auth.Subject;
 public final class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
+  private static final Object CONTEXT_CACHE_LOCK = new Object();
+
+  @GuardedBy("CONTEXT_CACHE_LOCK")
+  private static final ConcurrentHashMap<ClientContext, FileSystemContext> CONTEXT_CACHE =
+      new ConcurrentHashMap<>();
+
   // Master client pools.
   private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
   private volatile BlockMasterClientPool mBlockMasterClientPool;
@@ -121,13 +127,36 @@ public final class FileSystemContext implements Closeable {
   private final String mAppId;
 
   /**
+   * Returns a filesystem context which is stored in the cache or creates one and then caches it
+   * for future use.
+   *
+   * @param context The {@link ClientContext} to use
+   * @return A corresponding {@link FileSystemContext}
+   */
+  public static FileSystemContext getOrCreate(ClientContext context) {
+    ClientContext ctx = context;
+    if (ctx == null) {
+      ctx = ClientContext.create();
+    }
+    FileSystemContext cachedFsContext;
+    synchronized (CONTEXT_CACHE_LOCK) {
+      cachedFsContext = CONTEXT_CACHE.get(ctx);
+      if (cachedFsContext == null) {
+        cachedFsContext = FileSystemContext.create(ctx);
+        CONTEXT_CACHE.put(ctx, cachedFsContext);
+      }
+    }
+    return cachedFsContext;
+  }
+
+  /**
    * Creates a {@link FileSystemContext} with a null subject.
    *
    * @param alluxioConf Alluxio configuration
    * @return an instance of file system context with no subject associated
    */
   public static FileSystemContext create(AlluxioConfiguration alluxioConf) {
-    return create(null, alluxioConf);
+    return create(ClientContext.create(null, alluxioConf));
   }
 
   /**
@@ -137,18 +166,7 @@ public final class FileSystemContext implements Closeable {
    * @return an instance of file system context with the given subject and site-properties config
    */
   public static FileSystemContext create(Subject subject) {
-    return create(subject, null);
-  }
-
-  /**
-   * @param subject the parent subject, set to null if not present
-   * @param alluxioConf Alluxio configuration
-   * @return a context
-   */
-  public static FileSystemContext create(Subject subject, AlluxioConfiguration alluxioConf) {
-    FileSystemContext context = new FileSystemContext(subject, alluxioConf);
-    context.init(MasterInquireClient.Factory.create(context.mClientContext.getConf()));
-    return context;
+    return create(ClientContext.create(subject, null));
   }
 
   /**

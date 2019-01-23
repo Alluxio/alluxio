@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -154,5 +155,84 @@ public class AlluxioPropertiesTest {
     assertEquals("value1", mProperties.get(mKeyWithValue));
     assertEquals("value2", mProperties.get(mKeyWithoutValue));
     assertEquals("value3", mProperties.get(newKey));
+  }
+
+  @Test
+  public void hashCodeSameProperties() {
+    AlluxioProperties props = new AlluxioProperties();
+    props.put(PropertyKey.MASTER_RPC_PORT, "1000", Source.RUNTIME);
+    props.put(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES, "1000", Source.RUNTIME);
+    props.put(PropertyKey.MASTER_WEB_PORT, "1000", Source.RUNTIME);
+    props.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, "1000", Source.RUNTIME);
+
+    AlluxioProperties props2 = new AlluxioProperties();
+    props2.put(PropertyKey.MASTER_RPC_PORT, "1000", Source.RUNTIME);
+    props2.put(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES, "1000", Source.RUNTIME);
+    props2.put(PropertyKey.MASTER_WEB_PORT, "1000", Source.RUNTIME);
+    props2.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, "1000", Source.RUNTIME);
+
+    assertEquals(props.hashCode(), props2.hashCode());
+  }
+
+  @Test
+  public void hashCodeSamePropertiesDifferentOrder() {
+    AlluxioProperties props = new AlluxioProperties();
+    props.put(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES, "1000", Source.RUNTIME);
+    props.put(PropertyKey.MASTER_RPC_PORT, "1000", Source.RUNTIME);
+    props.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, "1000", Source.RUNTIME);
+    props.put(PropertyKey.MASTER_WEB_PORT, "1000", Source.RUNTIME);
+
+    AlluxioProperties props2 = new AlluxioProperties();
+    props2.put(PropertyKey.MASTER_RPC_PORT, "1000", Source.RUNTIME);
+    props2.put(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES, "1000", Source.RUNTIME);
+    props2.put(PropertyKey.MASTER_WEB_PORT, "1000", Source.RUNTIME);
+    props2.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS, "1000", Source.RUNTIME);
+
+    assertEquals(props.hashCode(), props2.hashCode());
+  }
+
+  @Test
+  public void hashCodeDifferentProperties() {
+    AlluxioProperties props = new AlluxioProperties();
+    props.put(PropertyKey.MASTER_RPC_PORT, "100", Source.SYSTEM_PROPERTY);
+    AlluxioProperties props2 = new AlluxioProperties();
+    props2.put(PropertyKey.MASTER_RPC_PORT, "100", Source.RUNTIME);
+    assertNotEquals(props.hashCode(), props2.hashCode());
+
+    props = new AlluxioProperties();
+    props.put(PropertyKey.MASTER_RPC_PORT, "1000", Source.RUNTIME);
+    props2 = new AlluxioProperties();
+    props2.put(PropertyKey.MASTER_RPC_PORT, "100", Source.RUNTIME);
+    assertNotEquals(props.hashCode(), props2.hashCode());
+
+    props = new AlluxioProperties();
+    props.put(PropertyKey.MASTER_WEB_PORT, "100", Source.RUNTIME);
+    props2 = new AlluxioProperties();
+    props2.put(PropertyKey.MASTER_RPC_PORT, "100", Source.RUNTIME);
+    assertNotEquals(props.hashCode(), props2.hashCode());
+  }
+
+  @Test
+  public void hashAddThenUpdate() {
+    AlluxioProperties props = new AlluxioProperties();
+    props.put(PropertyKey.MASTER_RPC_PORT, "100", Source.CLUSTER_DEFAULT);
+    AlluxioProperties props2 = new AlluxioProperties();
+    props2.put(PropertyKey.MASTER_RPC_PORT, "100", Source.CLUSTER_DEFAULT);
+    assertEquals(props.hashCode(), props2.hashCode());
+    props2.remove(PropertyKey.MASTER_RPC_PORT);
+    assertNotEquals(props.hashCode(), props2.hashCode());
+    props2.put(PropertyKey.MASTER_RPC_PORT, "100", Source.CLUSTER_DEFAULT);
+    assertEquals(props.hashCode(), props2.hashCode());
+    props2.put(PropertyKey.MASTER_RPC_PORT, "100", Source.DEFAULT);
+    assertEquals(props.hashCode(), props2.hashCode()); // Shouldn't update the property.
+    props2.put(PropertyKey.MASTER_RPC_PORT, "100", Source.siteProperty("test.properties"));
+    assertNotEquals(props.hashCode(), props2.hashCode());
+    props.put(PropertyKey.MASTER_RPC_PORT, "100", Source.siteProperty("test.properties"));
+    assertEquals(props.hashCode(), props2.hashCode());
+
+    props.put(PropertyKey.WEB_THREADS, "0", Source.RUNTIME);
+    assertNotEquals(props.hashCode(), props2.hashCode());
+    props2.put(PropertyKey.WEB_THREADS, "0", Source.RUNTIME);
+    assertEquals(props.hashCode(), props2.hashCode());
   }
 }

@@ -41,6 +41,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,10 +72,11 @@ public interface FileSystem {
     private Factory() {} // prevent instantiation
 
     public static FileSystem get(AlluxioConfiguration alluxioConf) {
-      return get(FileSystemContext.create(alluxioConf));
+      return get(ClientContext.create(alluxioConf));
     }
 
-    public static FileSystem get(FileSystemContext context) {
+    public static FileSystem get(ClientContext context) {
+      Preconditions.checkNotNull(context);
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
         AlluxioConfiguration conf = context.getConf();
@@ -86,11 +88,11 @@ public interface FileSystem {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      return BaseFileSystem.create(context);
+      return BaseFileSystem.create(FileSystemContext.getOrCreate(context));
     }
 
-    public static FileSystem get(ClientContext ctx) {
-      return get(FileSystemContext.create(ctx));
+    public static FileSystem get(FileSystemContext context) {
+      return BaseFileSystem.create(context);
     }
   }
 

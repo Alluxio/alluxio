@@ -14,6 +14,7 @@ package alluxio.hadoop;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioProperties;
@@ -491,9 +492,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     mUri = URI.create(mAlluxioHeader);
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
-
-    AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
-    AlluxioConfiguration alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioProps);
+    AlluxioConfiguration alluxioConf = mergeConfigurations(uriConfProperties, conf,
+        ConfigurationUtils.defaults());
 
     Subject subject = getHadoopSubject();
     if (subject != null) {
@@ -504,13 +504,17 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     LOG.info("Initializing filesystem context with connect details {}",
         Factory.getConnectDetails(alluxioConf));
-    mFsContext = FileSystemContext.create(subject, alluxioConf);
+
+    ClientContext ctx = ClientContext.create(subject, alluxioConf);
+    // Grab a reference to a FileSystemContext which matches our current configuration and
+    // security subject.
+    mFsContext = FileSystemContext.getOrCreate(ctx);
 
     // Sets the file system.
     //
     // Must happen inside the lock so that the filesystem context isn't changed by a
     // concurrent call to initialize.
-    mFileSystem = FileSystem.Factory.get(mFsContext);
+    mFileSystem = FileSystem.Factory.get(ctx);
   }
 
   /**

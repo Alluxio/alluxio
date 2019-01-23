@@ -17,6 +17,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.util.ConfigurationUtils;
 
 import java.net.InetSocketAddress;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
@@ -117,5 +118,35 @@ public class ClientContext {
    */
   public Subject getSubject() {
     return mSubject;
+  }
+
+  @Override
+  public int hashCode() {
+    return com.google.common.base.Objects.hashCode(mSubject, mConf);
+  }
+
+  /**
+   * This method will only return true for this class if the object being compared with this was
+   * created using the constructor which accepts a client context.
+   *
+   * Currently, {@link Object#equals(Object)} is not implemented for
+   * {@link InstancedConfiguration} thus the only way for this to return true are if the
+   * references to mConf are the same which is only possible when the object is created using that
+   * constructor.
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    }
+    if (o == this) {
+      return true;
+    }
+    if (o.getClass() != this.getClass()) {
+      return false;
+    }
+    ClientContext other = (ClientContext) o;
+    return Objects.equals(mSubject, other.mSubject)
+        && Objects.equals(mConf, other.mConf);
   }
 }
