@@ -16,7 +16,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.FormatUtils;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -515,25 +514,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     // We don't need to hash on mClusterDefaultsLoaded because those parameters will be loaded into
     // mProperties.
     return mProperties.hashCode();
-  }
-
-  /**
-   * This method relies on the hashCode for {@link AlluxioProperties} being unique. This is not
-   * guaranteed for different sets of properties. Inaccurate results may be returned when hash
-   * collisions occur.
-   */
-  @Override
-  public boolean equals(Object o) {
-    if (o == null) {
-      return false;
-    }
-    if (o == this) {
-      return true;
-    }
-    if (o.getClass() != this.getClass()) {
-      return false;
-    }
-    return Objects.equal(hashCode(), o.hashCode());
   }
 
   private class UnresolvablePropertyException extends Exception {

@@ -509,6 +509,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Grab a reference to a FileSystemContext which matches our current configuration and
     // security subject.
     mFsContext = FileSystemContext.getOrCreate(ctx);
+
+    // Sets the file system.
+    //
+    // Must happen inside the lock so that the filesystem context isn't changed by a
+    // concurrent call to initialize.
     mFileSystem = FileSystem.Factory.get(ctx);
   }
 

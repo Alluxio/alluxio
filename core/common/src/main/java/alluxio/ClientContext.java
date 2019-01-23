@@ -122,7 +122,7 @@ public class ClientContext {
 
   @Override
   public int hashCode() {
-    return Objects.hash(mSubject, mConf);
+    return com.google.common.base.Objects.hashCode(mSubject, mConf);
   }
 
   /**
