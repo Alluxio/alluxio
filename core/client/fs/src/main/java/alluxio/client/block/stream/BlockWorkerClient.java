@@ -61,6 +61,11 @@ public interface BlockWorkerClient extends Closeable {
   boolean isShutdown();
 
   /**
+   * @return whether the client is healthy
+   */
+  boolean isHealthy();
+
+  /**
    * Writes a block to the worker asynchronously. The caller should pass in a response observer
    * for receiving server responses and handling errors.
    *

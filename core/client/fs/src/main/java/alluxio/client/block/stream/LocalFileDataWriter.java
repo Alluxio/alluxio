@@ -100,8 +100,6 @@ public final class LocalFileDataWriter implements DataWriter {
       return new LocalFileDataWriter(chunkSize, blockWorker,
           writer, createRequest, stream, closer);
     } catch (Exception e) {
-      // Close the client before releasing in order to get it removed from the pool.
-      blockWorker.close();
       throw CommonUtils.closeAndRethrow(closer, e);
     }
   }

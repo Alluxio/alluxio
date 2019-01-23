@@ -96,8 +96,6 @@ public final class GrpcDataWriter implements DataWriter {
       return new GrpcDataWriter(context, address, id, length, chunkSize, type, options,
           grpcClient);
     } catch (Exception e) {
-      // Close the client before releasing in order to get it removed from the pool.
-      grpcClient.close();
       context.releaseBlockWorkerClient(address, grpcClient);
       throw e;
     }
