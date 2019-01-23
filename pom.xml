@@ -177,7 +177,6 @@
     <module>core</module>
     <module>examples</module>
     <module>integration</module>
-    <module>keyvalue</module>
     <module>logserver</module>
     <module>minicluster</module>
     <module>job</module>

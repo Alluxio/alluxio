@@ -72,8 +72,6 @@ public class ConfigurationDocGeneratorTest {
             "worker-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
             "security-configuration.csv")},
-        {TYPE.CSV, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
-            "key-value-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
             "cluster-management-configuration.csv")},
         {TYPE.YML, new Pair<>(PropertyKey.HOME,
@@ -86,8 +84,6 @@ public class ConfigurationDocGeneratorTest {
             "worker-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
             "security-configuration.yml")},
-        {TYPE.YML, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
-            "key-value-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
             "cluster-management-configuration.yml")}
     });
