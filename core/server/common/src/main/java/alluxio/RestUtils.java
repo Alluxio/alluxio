@@ -91,7 +91,15 @@ public final class RestUtils {
         return createErrorResponse(e);
       }
     }
-    return Response.ok(object).build();
+
+    Response.ResponseBuilder rb = Response.ok(object);
+
+    boolean corsEnabled = Configuration.getBoolean(PropertyKey.WEBUI_CORS_ENABLED);
+    if (corsEnabled) {
+      return makeCORS(rb).build();
+    }
+
+    return rb.build();
   }
 
   /**
@@ -114,6 +122,8 @@ public final class RestUtils {
     }
 
     /**
+     * Gets status.
+     *
      * @return the status
      */
     public Status getStatus() {
@@ -121,7 +131,9 @@ public final class RestUtils {
     }
 
     /**
-     * @return the error message
+     * Gets message.
+     *
+     * @return the message
      */
     public String getMessage() {
       return mMessage;
@@ -137,8 +149,47 @@ public final class RestUtils {
   private static Response createErrorResponse(Exception e) {
     AlluxioStatusException se = AlluxioStatusException.fromThrowable(e);
     ErrorResponse response = new ErrorResponse(se.getStatus(), se.getMessage());
-    return Response.serverError().entity(response).build();
+
+    Response.ResponseBuilder rb = Response.serverError().entity(response);
+
+    boolean corsEnabled = Configuration.getBoolean(PropertyKey.WEBUI_CORS_ENABLED);
+    if (corsEnabled) {
+      return makeCORS(rb).build();
+    }
+
+    return rb.build();
   }
 
-  private RestUtils() {} // prevent instantiation
+  /**
+   * Makes the responseBuilder CORS compatible.
+   *
+   * @param responseBuilder the response builder
+   * @param returnMethod the modified response builder
+   * @return response builder
+   */
+  public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder responseBuilder,
+      String returnMethod) {
+    // TODO(william): Make origin, methods, and headers configurable.
+    Response.ResponseBuilder rb = responseBuilder.header("Access-Control-Allow-Origin", "*")
+        .header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+
+    if (!"".equals(returnMethod)) {
+      rb.header("Access-Control-Allow-Headers", returnMethod);
+    }
+
+    return rb;
+  }
+
+  /**
+   *  Makes the responseBuilder CORS compatible, assumes default methods.
+   *
+   * @param responseBuilder the modified response builder
+   * @return response builder
+   */
+  public static Response.ResponseBuilder makeCORS(Response.ResponseBuilder responseBuilder) {
+    return makeCORS(responseBuilder, "");
+  }
+
+  private RestUtils() {
+  } // prevent instantiation
 }

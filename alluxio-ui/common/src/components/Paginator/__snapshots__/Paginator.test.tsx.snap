@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Paginator React component Matches snapshot 1`] = `
+<StaticRouter
+  basename=""
+  context={Object {}}
+  location="someLocation"
+>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "someLocation",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Paginator
+      baseUrl=""
+      total={0}
+    />
+  </Router>
+</StaticRouter>
+`;
+
+exports[`Paginator Shallow component Matches snapshot 1`] = `""`;

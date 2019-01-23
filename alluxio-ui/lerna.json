@@ -1,0 +1,9 @@
+{
+  "packages": [
+    "common",
+    "master",
+    "worker"
+  ],
+  "hoist": true,
+  "version": "1.0.0"
+}

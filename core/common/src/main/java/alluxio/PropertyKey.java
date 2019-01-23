@@ -424,7 +424,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WEB_RESOURCES =
       new Builder(Name.WEB_RESOURCES)
-          .setDefaultValue(String.format("${%s}/core/server/common/src/main/webapp", Name.HOME))
+          .setDefaultValue(String.format("${%s}/alluxio-ui/", Name.HOME))
           .setDescription("Path to the web application resources.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -442,6 +442,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("How many threads to use for the web server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WEBUI_CORS_ENABLED =
+      new Builder(Name.WEBUI_CORS_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable Cross-Origin Resource Sharing for RESTful API"
+              + "endpoints.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey WEBUI_REFRESH_INTERVAL_MS =
+      new Builder(Name.WEBUI_REFRESH_INTERVAL_MS)
+          .setDefaultValue(15000)
+          .setDescription("The amount of time in milliseconds to await before refreshing the Web "
+              + "UI if it is set to auto refresh.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey WORK_DIR =
       new Builder(Name.WORK_DIR)
@@ -3386,6 +3400,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_TEMP_PATH = "alluxio.web.temp.path";
     public static final String WEB_THREADS = "alluxio.web.threads";
+    public static final String WEBUI_CORS_ENABLED = "alluxio.webui.cors.enabled";
+    public static final String WEBUI_REFRESH_INTERVAL_MS =
+        "alluxio.webui.refresh.interval.ms";
     public static final String WORK_DIR = "alluxio.work.dir";
     public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
     public static final String ZOOKEEPER_CONNECTION_TIMEOUT =
