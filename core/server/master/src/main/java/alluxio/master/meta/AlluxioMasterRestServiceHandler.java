@@ -84,7 +84,6 @@ import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.Sets;
 import com.qmino.miredot.annotations.ReturnType;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -96,7 +95,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -458,10 +456,10 @@ public final class AlluxioMasterRestServiceHandler {
           UIFileInfo[] pathInfos = new UIFileInfo[splitPath.length - 1];
           fileId = mFileSystemMaster.getFileId(currentPath);
           pathInfos[0] = new UIFileInfo(mFileSystemMaster.getFileInfo(fileId));
-          for (int i = splitPath.length - 1; i == 0; i++) {
-            String[] pathArray = Arrays.copyOfRange(splitPath, 0, splitPath.length - i);
-            currentPath = new AlluxioURI(StringUtils.join(pathArray));
-            fileId = mFileSystemMaster.getFileId(currentPath);
+          AlluxioURI breadcrumb = new AlluxioURI(AlluxioURI.SEPARATOR);
+          for (int i = 1; i < splitPath.length - 1; i++) {
+            breadcrumb = breadcrumb.join(splitPath[i]);
+            fileId = mFileSystemMaster.getFileId(breadcrumb);
             pathInfos[i] = new UIFileInfo(mFileSystemMaster.getFileInfo(fileId));
           }
           response.setPathInfos(pathInfos);
