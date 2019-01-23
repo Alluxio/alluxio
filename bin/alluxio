@@ -27,7 +27,6 @@ function printUsage {
   echo -e "  logLevel      \t Set or get log level of Alluxio servers."
   echo -e "  runClass      \t Run the main method of an Alluxio class."
   echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
-  echo -e "  runKVTest     \t Run a test of key-value store operations."
   echo -e "  runTests      \t Run all end-to-end tests on an Alluxio cluster."
   echo -e "  runJournalCrashTest\t Test the Master Journal System in a crash scenario. Try 'alluxio runJournalCrashTest -help' for more help."
   echo -e "                \t NOTE: This command will stop the existing server and creates a new one!"
@@ -317,13 +316,6 @@ function main {
   "runTest")
     CLASS="alluxio.cli.TestRunner"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
-    runJavaClass "$@"
-  ;;
-  "runKVTest")
-    CLASS="alluxio.examples.keyvalue.KeyValueStoreOperations"
-    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    PARAMETER="/default_tests_files/KeyValueStoreOperations"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;

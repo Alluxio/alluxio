@@ -188,16 +188,6 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-keyvalue-client</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-keyvalue-server</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-minicluster</artifactId>
       <version>${project.version}</version>
     </dependency>
