@@ -608,27 +608,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
       new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS)
           .setDefaultValue("50ms")
-          .setDescription("Block reads from S3A automatically retry for transient "
+          .setDescription("Block reads from an object store automatically retry for transient "
               + "errors with an exponential backoff. This property determines the base time in the "
-              + "exponential backoff.")
+              + "exponential backoff. Only applicable for S3A.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
       new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM)
           .setDefaultValue(20)
-          .setDescription("Block reads from S3A automatically retry for transient "
+          .setDescription("Block reads from an object store automatically retry for transient "
               + "errors with an exponential backoff. This property determines the maximum number of"
-              + " retries.")
+              + " retries. Only applicable for S3A.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
       new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS)
           .setDefaultValue("30sec")
-          .setDescription("Block reads from S3A automatically retry for transient "
+          .setDescription("Block reads from an object store automatically retry for transient "
               + "errors with an exponential backoff. This property determines the maximum wait time"
-              + " in the backoff.")
+              + " in the backoff. Only applicable for S3A.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
