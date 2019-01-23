@@ -38,7 +38,7 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
 
   /**
    * Creates {@link AuthenticationServer} with given authentication server.
-   * 
+   *
    * @param authenticationServer the authentication server
    */
   public AuthenticatedUserInjector(AuthenticationServer authenticationServer) {
