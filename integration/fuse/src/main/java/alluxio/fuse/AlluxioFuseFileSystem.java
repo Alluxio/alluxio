@@ -155,9 +155,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         .setMode(new alluxio.security.authorization.Mode((short) mode).toProto()).build();
     try {
       mFileSystem.setAttribute(uri, options);
-    } catch (IOException | AlluxioException e) {
-      LOG.error("Exception on {} of changing mode to {}", path, mode, e);
-      return -ErrorCodes.EIO();
+    } catch (Throwable t) {
+      LOG.error("Failed to change {} to mode {}", path, mode, t);
+      return AlluxioFuseUtils.getErrorCode(t);
     }
 
     return 0;
@@ -165,7 +165,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
 
   /**
    * Changes the user and group ownership of an Alluxio file.
-   * This operation only works when the user group translation is enabled in Alluxio-Fuse.
+   * This operation only works when the user group translation is enabled in Alluxio-FUSE.
    *
    * @param path the path of the file
    * @param uid the uid to change to
@@ -175,10 +175,10 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
     if (!mIsUserGroupTranslation) {
-      LOG.info("Cannot change the owner of path {}. Please set {} to be true to enable "
-          + "user group translation in Alluxio-Fuse.",
+      LOG.info("Cannot change the owner/group of path {}. Please set {} to be true to enable "
+          + "user group translation in Alluxio-FUSE.",
           path, PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED.getName());
-      return -ErrorCodes.ENOSYS();
+      return -ErrorCodes.EOPNOTSUPP();
     }
 
     try {
@@ -190,8 +190,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         userName = AlluxioFuseUtils.getUserName(uid);
         if (userName.isEmpty()) {
           // This should never be reached
-          LOG.error("Failed to create user name from uid {}", uid);
-          return -ErrorCodes.EFAULT();
+          LOG.error("Failed to get user name from uid {}", uid);
+          return -ErrorCodes.EINVAL();
         }
         optionsBuilder.setOwner(userName);
       }
@@ -202,7 +202,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         if (groupName.isEmpty()) {
           // This should never be reached
           LOG.error("Failed to get group name from gid {}", gid);
-          return -ErrorCodes.EFAULT();
+          return -ErrorCodes.EINVAL();
         }
         optionsBuilder.setGroup(groupName);
       } else if (!userName.isEmpty()) {
@@ -221,9 +221,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         LOG.info("Change owner of file {} to {}", path, groupName);
         mFileSystem.setAttribute(uri, optionsBuilder.build());
       }
-    } catch (IOException | AlluxioException e) {
-      LOG.error("Exception on {}", path, e);
-      return -ErrorCodes.EIO();
+    } catch (Throwable t) {
+      LOG.error("Failed to chown {} to uid {} and gid {}", path, uid, gid, t);
+      return AlluxioFuseUtils.getErrorCode(t);
     }
     return 0;
   }
@@ -244,7 +244,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
 
     try {
       if (mOpenFiles.size() >= MAX_OPEN_FILES) {
-        LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})", uri,
+        LOG.error("Cannot create {}: too many open files (MAX_OPEN_FILES: {})", path,
             MAX_OPEN_FILES);
         return -ErrorCodes.EMFILE();
       }
@@ -258,18 +258,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         mNextOpenFileId += 1;
       }
       LOG.debug("{} created and opened", path);
-    } catch (FileAlreadyExistsException e) {
-      LOG.debug("File {} already exists", uri, e);
-      return -ErrorCodes.EEXIST();
-    } catch (IOException e) {
-      LOG.error("IOException on  {}", uri, e);
-      return -ErrorCodes.EIO();
-    } catch (AlluxioException e) {
-      LOG.error("AlluxioException on {}", uri, e);
-      return -ErrorCodes.EFAULT();
-    } catch (Throwable e) {
-      LOG.error("Unexpected exception on {}", path, e);
-      return -ErrorCodes.EFAULT();
+    } catch (Throwable t) {
+      LOG.error("Failed to create {}", path, t);
+      return AlluxioFuseUtils.getErrorCode(t);
     }
 
     return 0;
@@ -297,7 +288,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       try {
         oe.getOut().flush();
       } catch (IOException e) {
-        LOG.error("IOException on  {}", path, e);
+        LOG.error("Failed to flush {}", path, e);
         return -ErrorCodes.EIO();
       }
     } else {
@@ -365,21 +356,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       }
       stat.st_mode.set(mode);
       stat.st_nlink.set(1);
-    } catch (InvalidPathException e) {
-      LOG.debug("Invalid path {}", path, e);
-      return -ErrorCodes.ENOENT();
-    } catch (FileDoesNotExistException e) {
-      LOG.debug("File does not exist {}", path, e);
-      return -ErrorCodes.ENOENT();
-    } catch (IOException e) {
-      LOG.error("IOException on {}", path, e);
-      return -ErrorCodes.EIO();
-    } catch (AlluxioException e) {
-      LOG.error("AlluxioException on {}", path, e);
-      return -ErrorCodes.EFAULT();
-    } catch (Throwable e) {
-      LOG.error("Unexpected exception on {}", path, e);
-      return -ErrorCodes.EFAULT();
+    } catch (Throwable t) {
+      LOG.error("Failed to get info of {}", path, t);
+      return AlluxioFuseUtils.getErrorCode(t);
     }
 
     return 0;
@@ -406,21 +385,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("mkdir({}) [Alluxio: {}]", path, turi);
     try {
       mFileSystem.createDirectory(turi);
-    } catch (FileAlreadyExistsException e) {
-      LOG.debug("Cannot make dir. {} already exists", path, e);
-      return -ErrorCodes.EEXIST();
-    } catch (InvalidPathException e) {
-      LOG.debug("Cannot make dir. Invalid path: {}", path, e);
-      return -ErrorCodes.ENOENT();
-    } catch (IOException e) {
-      LOG.error("Cannot make dir. IOException: {}", path, e);
-      return -ErrorCodes.EIO();
-    } catch (AlluxioException e) {
-      LOG.error("Cannot make dir. {}", path, e);
-      return -ErrorCodes.EFAULT();
-    } catch (Throwable e) {
-      LOG.error("Unexpected exception on {}", path, e);
-      return -ErrorCodes.EFAULT();
+    } catch (Throwable t) {
+      LOG.error("Failed to create directory {}", path, t);
+      return AlluxioFuseUtils.getErrorCode(t);
     }
 
     return 0;
@@ -446,17 +413,17 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     try {
       final URIStatus status = mFileSystem.getStatus(uri);
       if (status.isFolder()) {
-        LOG.error("File {} is a directory", uri);
+        LOG.error("Cannot open folder {}", path);
         return -ErrorCodes.EISDIR();
       }
 
       if (!status.isCompleted() && !waitForFileCompleted(uri)) {
-        LOG.error("File {} has not completed", uri);
+        LOG.error("Cannot open incomplete folder {}", path);
         return -ErrorCodes.EFAULT();
       }
 
       if (mOpenFiles.size() >= MAX_OPEN_FILES) {
-        LOG.error("Cannot open {}: too many open files", uri);
+        LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})", path, MAX_OPEN_FILES);
         return ErrorCodes.EMFILE();
       }
 
@@ -467,18 +434,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
       }
-    } catch (FileDoesNotExistException e) {
-      LOG.debug("File does not exist {}", path, e);
-      return -ErrorCodes.ENOENT();
-    } catch (IOException e) {
-      LOG.error("IOException on {}", path, e);
-      return -ErrorCodes.EIO();
-    } catch (AlluxioException e) {
-      LOG.error("AlluxioException on {}", path, e);
-      return -ErrorCodes.EFAULT();
-    } catch (Throwable e) {
-      LOG.error("Unexpected exception on {}", path, e);
-      return -ErrorCodes.EFAULT();
+    } catch (Throwable t) {
+      LOG.error("Failed to open file {}", path, t);
+      return AlluxioFuseUtils.getErrorCode(t);
     }
 
     return 0;
@@ -491,7 +449,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @param buf FUSE buffer to fill with data read
    * @param size how many bytes to read. The maximum value that is accepted
    *             on this method is {@link Integer#MAX_VALUE} (note that current
-   *             FUSE implementation will call this metod whit a size of
+   *             FUSE implementation will call this method with a size of
    *             at most 128K).
    * @param offset offset of the read operation
    * @param fi FileInfo data structure kept by FUSE
@@ -536,12 +494,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       } else if (nread > 0) {
         buf.put(0, dest, 0, nread);
       }
-    } catch (IOException e) {
-      LOG.error("IOException while reading from {}.", path, e);
-      return -ErrorCodes.EIO();
-    } catch (Throwable e) {
-      LOG.error("Unexpected exception on {}", path, e);
-      return -ErrorCodes.EFAULT();
+    } catch (Throwable t) {
+      LOG.error("Failed to read file {}", path, t);
+      return AlluxioFuseUtils.getErrorCode(t);
     }
 
     return nread;
@@ -572,21 +527,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       for (final URIStatus file : ls) {
         filter.apply(buff, file.getName(), null, 0);
       }
-    } catch (FileDoesNotExistException e) {
-      LOG.debug("File does not exist {}", path, e);
-      return -ErrorCodes.ENOENT();
-    } catch (InvalidPathException e) {
-      LOG.debug("Invalid path {}", path, e);
-      return -ErrorCodes.ENOENT();
-    } catch (IOException e) {
-      LOG.error("IOException on {}", path, e);
-      return -ErrorCodes.EIO();
-    } catch (AlluxioException e) {
-      LOG.error("AlluxioException on {}", path, e);
-      return -ErrorCodes.EFAULT();
-    } catch (Throwable e) {
-      LOG.error("Unexpected exception on {}", path, e);
-      return -ErrorCodes.EFAULT();
+    } catch (Throwable t) {
+      LOG.error("Failed to read directory {}", path, t);
+      return AlluxioFuseUtils.getErrorCode(t);
     }
 
     return 0;
@@ -644,21 +587,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
           oe.setPath(newPath);
         }
       }
-    } catch (FileDoesNotExistException e) {
-      LOG.debug("File {} does not exist", oldPath);
-      return -ErrorCodes.ENOENT();
-    } catch (FileAlreadyExistsException e) {
-      LOG.debug("File {} already exists", newPath);
-      return -ErrorCodes.EEXIST();
-    } catch (IOException e) {
-      LOG.error("IOException while moving {} to {}", oldPath, newPath, e);
-      return -ErrorCodes.EIO();
-    } catch (AlluxioException e) {
-      LOG.error("Exception while moving {} to {}", oldPath, newPath, e);
-      return -ErrorCodes.EFAULT();
-    } catch (Throwable e) {
-      LOG.error("Unexpected exception on mv {} {}", oldPath, newPath, e);
-      return -ErrorCodes.EFAULT();
+    } catch (Throwable t) {
+      LOG.error("Failed to rename {} to {}", oldPath, newPath, t);
+      return AlluxioFuseUtils.getErrorCode(t);
     }
 
     return 0;
@@ -683,7 +614,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int truncate(String path, long size) {
     LOG.error("Truncate is not supported {}", path);
-    return -ErrorCodes.EFAULT();
+    return -ErrorCodes.EOPNOTSUPP();
   }
 
   /**
@@ -771,21 +702,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
 
     try {
       mFileSystem.delete(turi);
-    } catch (FileDoesNotExistException e) {
-      LOG.debug("File does not exist {}", path, e);
-      return -ErrorCodes.ENOENT();
-    } catch (IOException e) {
-      LOG.error("IOException on {}", path, e);
-      return -ErrorCodes.EIO();
-    } catch (DirectoryNotEmptyException e) {
-      LOG.error("{} is not empty", path, e);
-      return -ErrorCodes.ENOTEMPTY();
-    } catch (AlluxioException e) {
-      LOG.error("AlluxioException on {}", path, e);
-      return -ErrorCodes.EFAULT();
-    } catch (Throwable e) {
-      LOG.error("Unexpected exception on {}", path, e);
-      return -ErrorCodes.EFAULT();
+    } catch (Throwable t) {
+      LOG.error("Failed to remove {}", path, t);
+      return AlluxioFuseUtils.getErrorCode(t);
     }
 
     return 0;

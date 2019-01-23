@@ -1,0 +1,466 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Header React component Matches snapshot 1`] = `
+<StaticRouter
+  basename=""
+  context={Object {}}
+  location={
+    Object {
+      "hash": "",
+      "pathname": "/",
+      "search": "",
+      "state": undefined,
+    }
+  }
+>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "/",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Header
+      data={Array []}
+      history={
+        Object {
+          "action": "PUSH",
+          "block": [Function],
+          "createHref": [Function],
+          "go": [Function],
+          "goBack": [Function],
+          "goForward": [Function],
+          "length": 2,
+          "listen": [Function],
+          "location": Object {
+            "hash": "",
+            "pathname": "/",
+            "search": "",
+            "state": undefined,
+          },
+          "push": [Function],
+          "replace": [Function],
+        }
+      }
+    >
+      <div
+        className="header card bg-light"
+      >
+        <Navbar
+          className="headerNavigation"
+          expand="lg"
+          light={true}
+          tag="nav"
+        >
+          <nav
+            className="headerNavigation navbar navbar-expand-lg navbar-light"
+          >
+            <NavbarBrand
+              href="/"
+              tag={[Function]}
+              to="/"
+            >
+              <Link
+                className="navbar-brand"
+                href="/"
+                replace={false}
+                to="/"
+              >
+                <a
+                  className="navbar-brand"
+                  href="/"
+                  onClick={[Function]}
+                >
+                  <div
+                    className="headerLogo align-top d-inline-block ml-lg-2"
+                  >
+                    <div
+                      className="brand"
+                    >
+                      <div
+                        className="brandImage d-inline-block"
+                      >
+                        <img
+                          className="brandSpin"
+                          src="alluxio-mark-tight-sm.svg"
+                        />
+                      </div>
+                      <div
+                        className="brandName d-inline-block align-middle pl-1"
+                      >
+                        ALLUXIO
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </Link>
+            </NavbarBrand>
+            <NavbarToggler
+              className="mr-1"
+              onClick={[Function]}
+              tag="button"
+              type="button"
+            >
+              <button
+                className="mr-1 navbar-toggler"
+                onClick={[Function]}
+                type="button"
+              >
+                <span
+                  className="navbar-toggler-icon"
+                />
+              </button>
+            </NavbarToggler>
+            <Collapse
+              appear={false}
+              className="d-lg-inline-flex justify-content-lg-center tabs"
+              enter={true}
+              exit={true}
+              in={false}
+              isOpen={false}
+              mountOnEnter={false}
+              navbar={true}
+              onEnter={[Function]}
+              onEntered={[Function]}
+              onEntering={[Function]}
+              onExit={[Function]}
+              onExited={[Function]}
+              onExiting={[Function]}
+              tag="div"
+              timeout={350}
+              unmountOnExit={false}
+            >
+              <Transition
+                appear={false}
+                enter={true}
+                exit={true}
+                in={false}
+                mountOnEnter={false}
+                onEnter={[Function]}
+                onEntered={[Function]}
+                onEntering={[Function]}
+                onExit={[Function]}
+                onExited={[Function]}
+                onExiting={[Function]}
+                timeout={350}
+                unmountOnExit={false}
+              >
+                <div
+                  className="d-lg-inline-flex justify-content-lg-center tabs collapse navbar-collapse"
+                  style={Object {}}
+                >
+                  <Nav
+                    tabs={true}
+                    tag="ul"
+                    vertical={false}
+                  >
+                    <ul
+                      className="nav nav-tabs"
+                    />
+                  </Nav>
+                </div>
+              </Transition>
+            </Collapse>
+            <Collapse
+              appear={false}
+              className="d-lg-inline-flex justify-content-lg-end tabs"
+              enter={true}
+              exit={true}
+              in={false}
+              isOpen={false}
+              mountOnEnter={false}
+              navbar={true}
+              onEnter={[Function]}
+              onEntered={[Function]}
+              onEntering={[Function]}
+              onExit={[Function]}
+              onExited={[Function]}
+              onExiting={[Function]}
+              tag="div"
+              timeout={350}
+              unmountOnExit={false}
+            >
+              <Transition
+                appear={false}
+                enter={true}
+                exit={true}
+                in={false}
+                mountOnEnter={false}
+                onEnter={[Function]}
+                onEntered={[Function]}
+                onEntering={[Function]}
+                onExit={[Function]}
+                onExited={[Function]}
+                onExiting={[Function]}
+                timeout={350}
+                unmountOnExit={false}
+              >
+                <div
+                  className="d-lg-inline-flex justify-content-lg-end tabs collapse navbar-collapse"
+                  style={Object {}}
+                >
+                  <Nav
+                    tabs={true}
+                    tag="ul"
+                    vertical={false}
+                  >
+                    <ul
+                      className="nav nav-tabs"
+                    >
+                      <NavItem
+                        tag="li"
+                      >
+                        <li
+                          className="nav-item"
+                        >
+                          <ButtonGroup
+                            className="auto-refresh-button"
+                            role="group"
+                            tag="div"
+                          >
+                            <div
+                              className="auto-refresh-button btn-group"
+                              role="group"
+                            >
+                              <Button
+                                active={false}
+                                color="secondary"
+                                onClick={[Function]}
+                                outline={true}
+                                size="sm"
+                                tag="button"
+                              >
+                                <button
+                                  aria-label={null}
+                                  className="btn btn-outline-secondary btn-sm"
+                                  onClick={[Function]}
+                                  type="button"
+                                >
+                                  <FontAwesomeIcon
+                                    border={false}
+                                    className=""
+                                    fixedWidth={false}
+                                    flip={null}
+                                    icon={
+                                      Object {
+                                        "icon": Array [
+                                          448,
+                                          512,
+                                          Array [],
+                                          "f0c8",
+                                          "M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-6 400H54c-3.3 0-6-2.7-6-6V86c0-3.3 2.7-6 6-6h340c3.3 0 6 2.7 6 6v340c0 3.3-2.7 6-6 6z",
+                                        ],
+                                        "iconName": "square",
+                                        "prefix": "far",
+                                      }
+                                    }
+                                    inverse={false}
+                                    listItem={false}
+                                    mask={null}
+                                    pull={null}
+                                    pulse={false}
+                                    rotation={null}
+                                    size={null}
+                                    spin={false}
+                                    symbol={false}
+                                    title=""
+                                    transform={null}
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      className="svg-inline--fa fa-square fa-w-14 "
+                                      data-icon="square"
+                                      data-prefix="far"
+                                      role="img"
+                                      style={Object {}}
+                                      viewBox="0 0 448 512"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-6 400H54c-3.3 0-6-2.7-6-6V86c0-3.3 2.7-6 6-6h340c3.3 0 6 2.7 6 6v340c0 3.3-2.7 6-6 6z"
+                                        fill="currentColor"
+                                        style={Object {}}
+                                      />
+                                    </svg>
+                                  </FontAwesomeIcon>
+                                    Auto Refresh
+                                </button>
+                              </Button>
+                            </div>
+                          </ButtonGroup>
+                        </li>
+                      </NavItem>
+                    </ul>
+                  </Nav>
+                </div>
+              </Transition>
+            </Collapse>
+          </nav>
+        </Navbar>
+      </div>
+    </Header>
+  </Router>
+</StaticRouter>
+`;
+
+exports[`Header Shallow component Matches snapshot 1`] = `
+<div
+  className="header card bg-light"
+>
+  <Navbar
+    className="headerNavigation"
+    expand="lg"
+    light={true}
+    tag="nav"
+  >
+    <NavbarBrand
+      href="/"
+      tag={[Function]}
+      to="/"
+    >
+      <div
+        className="headerLogo align-top d-inline-block ml-lg-2"
+      >
+        <div
+          className="brand"
+        >
+          <div
+            className="brandImage d-inline-block"
+          >
+            <img
+              className="brandSpin"
+              src="alluxio-mark-tight-sm.svg"
+            />
+          </div>
+          <div
+            className="brandName d-inline-block align-middle pl-1"
+          >
+            ALLUXIO
+          </div>
+        </div>
+      </div>
+    </NavbarBrand>
+    <NavbarToggler
+      className="mr-1"
+      onClick={[Function]}
+      tag="button"
+      type="button"
+    />
+    <Collapse
+      appear={false}
+      className="d-lg-inline-flex justify-content-lg-center tabs"
+      enter={true}
+      exit={true}
+      in={false}
+      isOpen={false}
+      mountOnEnter={false}
+      navbar={true}
+      onEnter={[Function]}
+      onEntered={[Function]}
+      onEntering={[Function]}
+      onExit={[Function]}
+      onExited={[Function]}
+      onExiting={[Function]}
+      tag="div"
+      timeout={350}
+      unmountOnExit={false}
+    >
+      <Nav
+        tabs={true}
+        tag="ul"
+        vertical={false}
+      />
+    </Collapse>
+    <Collapse
+      appear={false}
+      className="d-lg-inline-flex justify-content-lg-end tabs"
+      enter={true}
+      exit={true}
+      in={false}
+      isOpen={false}
+      mountOnEnter={false}
+      navbar={true}
+      onEnter={[Function]}
+      onEntered={[Function]}
+      onEntering={[Function]}
+      onExit={[Function]}
+      onExited={[Function]}
+      onExiting={[Function]}
+      tag="div"
+      timeout={350}
+      unmountOnExit={false}
+    >
+      <Nav
+        tabs={true}
+        tag="ul"
+        vertical={false}
+      >
+        <NavItem
+          tag="li"
+        >
+          <ButtonGroup
+            className="auto-refresh-button"
+            role="group"
+            tag="div"
+          >
+            <Button
+              active={false}
+              color="secondary"
+              onClick={[Function]}
+              outline={true}
+              size="sm"
+              tag="button"
+            >
+              <FontAwesomeIcon
+                border={false}
+                className=""
+                fixedWidth={false}
+                flip={null}
+                icon={
+                  Object {
+                    "icon": Array [
+                      448,
+                      512,
+                      Array [],
+                      "f0c8",
+                      "M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-6 400H54c-3.3 0-6-2.7-6-6V86c0-3.3 2.7-6 6-6h340c3.3 0 6 2.7 6 6v340c0 3.3-2.7 6-6 6z",
+                    ],
+                    "iconName": "square",
+                    "prefix": "far",
+                  }
+                }
+                inverse={false}
+                listItem={false}
+                mask={null}
+                pull={null}
+                pulse={false}
+                rotation={null}
+                size={null}
+                spin={false}
+                symbol={false}
+                title=""
+                transform={null}
+              />
+                Auto Refresh
+            </Button>
+          </ButtonGroup>
+        </NavItem>
+      </Nav>
+    </Collapse>
+  </Navbar>
+</div>
+`;

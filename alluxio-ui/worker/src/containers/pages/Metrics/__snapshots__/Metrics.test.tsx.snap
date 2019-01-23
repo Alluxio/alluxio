@@ -1,0 +1,1243 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Metrics App with connected component Matches snapshot 1`] = `
+<Provider
+  store={
+    Object {
+      "dispatch": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+      Symbol(observable): [Function],
+    }
+  }
+>
+  <Connect(App)
+    history={
+      Object {
+        "action": "PUSH",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 2,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "/metrics",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <App
+      fetchRequest={[Function]}
+      history={
+        Object {
+          "action": "PUSH",
+          "block": [Function],
+          "createHref": [Function],
+          "go": [Function],
+          "goBack": [Function],
+          "goForward": [Function],
+          "length": 2,
+          "listen": [Function],
+          "location": Object {
+            "hash": "",
+            "pathname": "/metrics",
+            "search": "",
+            "state": undefined,
+          },
+          "push": [Function],
+          "replace": [Function],
+        }
+      }
+      init={
+        Object {
+          "debug": false,
+          "masterHostname": "",
+          "masterPort": 19999,
+          "refreshInterval": 15000,
+          "securityAuthorizationPermissionEnabled": false,
+          "webFileInfoEnabled": false,
+        }
+      }
+      loading={true}
+      refresh={false}
+      triggerRefresh={[Function]}
+    >
+      <Connect(ConnectedRouterWithContext)
+        history={
+          Object {
+            "action": "PUSH",
+            "block": [Function],
+            "createHref": [Function],
+            "go": [Function],
+            "goBack": [Function],
+            "goForward": [Function],
+            "length": 2,
+            "listen": [Function],
+            "location": Object {
+              "hash": "",
+              "pathname": "/metrics",
+              "search": "",
+              "state": undefined,
+            },
+            "push": [Function],
+            "replace": [Function],
+          }
+        }
+      >
+        <ConnectedRouterWithContext
+          history={
+            Object {
+              "action": "PUSH",
+              "block": [Function],
+              "createHref": [Function],
+              "go": [Function],
+              "goBack": [Function],
+              "goForward": [Function],
+              "length": 2,
+              "listen": [Function],
+              "location": Object {
+                "hash": "",
+                "pathname": "/metrics",
+                "search": "",
+                "state": undefined,
+              },
+              "push": [Function],
+              "replace": [Function],
+            }
+          }
+          onLocationChanged={[Function]}
+        >
+          <ConnectedRouter
+            history={
+              Object {
+                "action": "PUSH",
+                "block": [Function],
+                "createHref": [Function],
+                "go": [Function],
+                "goBack": [Function],
+                "goForward": [Function],
+                "length": 2,
+                "listen": [Function],
+                "location": Object {
+                  "hash": "",
+                  "pathname": "/metrics",
+                  "search": "",
+                  "state": undefined,
+                },
+                "push": [Function],
+                "replace": [Function],
+              }
+            }
+            onLocationChanged={[Function]}
+            store={
+              Object {
+                "dispatch": [Function],
+                "getState": [Function],
+                "replaceReducer": [Function],
+                "subscribe": [Function],
+                Symbol(observable): [Function],
+              }
+            }
+          >
+            <Router
+              history={
+                Object {
+                  "action": "PUSH",
+                  "block": [Function],
+                  "createHref": [Function],
+                  "go": [Function],
+                  "goBack": [Function],
+                  "goForward": [Function],
+                  "length": 2,
+                  "listen": [Function],
+                  "location": Object {
+                    "hash": "",
+                    "pathname": "/metrics",
+                    "search": "",
+                    "state": undefined,
+                  },
+                  "push": [Function],
+                  "replace": [Function],
+                }
+              }
+            >
+              <div
+                className="App pt-5 pb-4"
+              >
+                <div
+                  className="container-fluid sticky-top header-wrapper"
+                >
+                  <Header
+                    autoRefreshCallback={[Function]}
+                    callbackParameters={
+                      Object {
+                        "masterHostname": "",
+                        "masterPort": 19999,
+                      }
+                    }
+                    data={
+                      Array [
+                        Object {
+                          "innerText": "Overview",
+                          "url": "/overview",
+                        },
+                        Object {
+                          "innerText": "BlockInfo",
+                          "url": "/blockInfo",
+                        },
+                        Object {
+                          "innerText": "Logs",
+                          "url": "/logs",
+                        },
+                        Object {
+                          "innerText": "Metrics",
+                          "url": "/metrics",
+                        },
+                        Object {
+                          "innerText": "Return to Master",
+                          "url": [Function],
+                        },
+                      ]
+                    }
+                    history={
+                      Object {
+                        "action": "PUSH",
+                        "block": [Function],
+                        "createHref": [Function],
+                        "go": [Function],
+                        "goBack": [Function],
+                        "goForward": [Function],
+                        "length": 2,
+                        "listen": [Function],
+                        "location": Object {
+                          "hash": "",
+                          "pathname": "/metrics",
+                          "search": "",
+                          "state": undefined,
+                        },
+                        "push": [Function],
+                        "replace": [Function],
+                      }
+                    }
+                  >
+                    <div
+                      className="header card bg-light"
+                    >
+                      <Navbar
+                        className="headerNavigation"
+                        expand="lg"
+                        light={true}
+                        tag="nav"
+                      >
+                        <nav
+                          className="headerNavigation navbar navbar-expand-lg navbar-light"
+                        >
+                          <NavbarBrand
+                            href="/"
+                            tag={[Function]}
+                            to="/"
+                          >
+                            <Link
+                              className="navbar-brand"
+                              href="/"
+                              replace={false}
+                              to="/"
+                            >
+                              <a
+                                className="navbar-brand"
+                                href="/"
+                                onClick={[Function]}
+                              >
+                                <div
+                                  className="headerLogo align-top d-inline-block ml-lg-2"
+                                >
+                                  <div
+                                    className="brand"
+                                  >
+                                    <div
+                                      className="brandImage d-inline-block"
+                                    >
+                                      <img
+                                        className="brandSpin"
+                                        src="alluxio-mark-tight-sm.svg"
+                                      />
+                                    </div>
+                                    <div
+                                      className="brandName d-inline-block align-middle pl-1"
+                                    >
+                                      ALLUXIO
+                                    </div>
+                                  </div>
+                                </div>
+                              </a>
+                            </Link>
+                          </NavbarBrand>
+                          <NavbarToggler
+                            className="mr-1"
+                            onClick={[Function]}
+                            tag="button"
+                            type="button"
+                          >
+                            <button
+                              className="mr-1 navbar-toggler"
+                              onClick={[Function]}
+                              type="button"
+                            >
+                              <span
+                                className="navbar-toggler-icon"
+                              />
+                            </button>
+                          </NavbarToggler>
+                          <Collapse
+                            appear={false}
+                            className="d-lg-inline-flex justify-content-lg-center tabs"
+                            enter={true}
+                            exit={true}
+                            in={false}
+                            isOpen={false}
+                            mountOnEnter={false}
+                            navbar={true}
+                            onEnter={[Function]}
+                            onEntered={[Function]}
+                            onEntering={[Function]}
+                            onExit={[Function]}
+                            onExited={[Function]}
+                            onExiting={[Function]}
+                            tag="div"
+                            timeout={350}
+                            unmountOnExit={false}
+                          >
+                            <Transition
+                              appear={false}
+                              enter={true}
+                              exit={true}
+                              in={false}
+                              mountOnEnter={false}
+                              onEnter={[Function]}
+                              onEntered={[Function]}
+                              onEntering={[Function]}
+                              onExit={[Function]}
+                              onExited={[Function]}
+                              onExiting={[Function]}
+                              timeout={350}
+                              unmountOnExit={false}
+                            >
+                              <div
+                                className="d-lg-inline-flex justify-content-lg-center tabs collapse navbar-collapse"
+                                style={Object {}}
+                              >
+                                <Nav
+                                  tabs={true}
+                                  tag="ul"
+                                  vertical={false}
+                                >
+                                  <ul
+                                    className="nav nav-tabs"
+                                  >
+                                    <NavItem
+                                      key="/overview"
+                                      tag="li"
+                                    >
+                                      <li
+                                        className="nav-item"
+                                      >
+                                        <NavLink
+                                          active={false}
+                                          href="/overview"
+                                          onClick={[Function]}
+                                          tag={[Function]}
+                                          to="/overview"
+                                        >
+                                          <Link
+                                            className="nav-link"
+                                            href="/overview"
+                                            onClick={[Function]}
+                                            replace={false}
+                                            to="/overview"
+                                          >
+                                            <a
+                                              className="nav-link"
+                                              href="/overview"
+                                              onClick={[Function]}
+                                            >
+                                              Overview
+                                            </a>
+                                          </Link>
+                                        </NavLink>
+                                      </li>
+                                    </NavItem>
+                                    <NavItem
+                                      key="/blockInfo"
+                                      tag="li"
+                                    >
+                                      <li
+                                        className="nav-item"
+                                      >
+                                        <NavLink
+                                          active={false}
+                                          href="/blockInfo"
+                                          onClick={[Function]}
+                                          tag={[Function]}
+                                          to="/blockInfo"
+                                        >
+                                          <Link
+                                            className="nav-link"
+                                            href="/blockInfo"
+                                            onClick={[Function]}
+                                            replace={false}
+                                            to="/blockInfo"
+                                          >
+                                            <a
+                                              className="nav-link"
+                                              href="/blockInfo"
+                                              onClick={[Function]}
+                                            >
+                                              BlockInfo
+                                            </a>
+                                          </Link>
+                                        </NavLink>
+                                      </li>
+                                    </NavItem>
+                                    <NavItem
+                                      key="/logs"
+                                      tag="li"
+                                    >
+                                      <li
+                                        className="nav-item"
+                                      >
+                                        <NavLink
+                                          active={false}
+                                          href="/logs"
+                                          onClick={[Function]}
+                                          tag={[Function]}
+                                          to="/logs"
+                                        >
+                                          <Link
+                                            className="nav-link"
+                                            href="/logs"
+                                            onClick={[Function]}
+                                            replace={false}
+                                            to="/logs"
+                                          >
+                                            <a
+                                              className="nav-link"
+                                              href="/logs"
+                                              onClick={[Function]}
+                                            >
+                                              Logs
+                                            </a>
+                                          </Link>
+                                        </NavLink>
+                                      </li>
+                                    </NavItem>
+                                    <NavItem
+                                      key="/metrics"
+                                      tag="li"
+                                    >
+                                      <li
+                                        className="nav-item"
+                                      >
+                                        <NavLink
+                                          active={true}
+                                          href="/metrics"
+                                          onClick={[Function]}
+                                          tag={[Function]}
+                                          to="/metrics"
+                                        >
+                                          <Link
+                                            className="nav-link active"
+                                            href="/metrics"
+                                            onClick={[Function]}
+                                            replace={false}
+                                            to="/metrics"
+                                          >
+                                            <a
+                                              className="nav-link active"
+                                              href="/metrics"
+                                              onClick={[Function]}
+                                            >
+                                              Metrics
+                                            </a>
+                                          </Link>
+                                        </NavLink>
+                                      </li>
+                                    </NavItem>
+                                    <NavItem
+                                      key="http://:19999"
+                                      tag="li"
+                                    >
+                                      <li
+                                        className="nav-item"
+                                      >
+                                        <NavLink
+                                          active={false}
+                                          href="http://:19999"
+                                          onClick={[Function]}
+                                          tag={[Function]}
+                                          to="http://:19999"
+                                        >
+                                          <NavLink
+                                            className="nav-link"
+                                            href="http://:19999"
+                                            onClick={[Function]}
+                                            tag="a"
+                                            to="http://:19999"
+                                          >
+                                            <a
+                                              className="nav-link nav-link"
+                                              href="http://:19999"
+                                              onClick={[Function]}
+                                              to="http://:19999"
+                                            >
+                                              Return to Master
+                                            </a>
+                                          </NavLink>
+                                        </NavLink>
+                                      </li>
+                                    </NavItem>
+                                  </ul>
+                                </Nav>
+                              </div>
+                            </Transition>
+                          </Collapse>
+                          <Collapse
+                            appear={false}
+                            className="d-lg-inline-flex justify-content-lg-end tabs"
+                            enter={true}
+                            exit={true}
+                            in={false}
+                            isOpen={false}
+                            mountOnEnter={false}
+                            navbar={true}
+                            onEnter={[Function]}
+                            onEntered={[Function]}
+                            onEntering={[Function]}
+                            onExit={[Function]}
+                            onExited={[Function]}
+                            onExiting={[Function]}
+                            tag="div"
+                            timeout={350}
+                            unmountOnExit={false}
+                          >
+                            <Transition
+                              appear={false}
+                              enter={true}
+                              exit={true}
+                              in={false}
+                              mountOnEnter={false}
+                              onEnter={[Function]}
+                              onEntered={[Function]}
+                              onEntering={[Function]}
+                              onExit={[Function]}
+                              onExited={[Function]}
+                              onExiting={[Function]}
+                              timeout={350}
+                              unmountOnExit={false}
+                            >
+                              <div
+                                className="d-lg-inline-flex justify-content-lg-end tabs collapse navbar-collapse"
+                                style={Object {}}
+                              >
+                                <Nav
+                                  tabs={true}
+                                  tag="ul"
+                                  vertical={false}
+                                >
+                                  <ul
+                                    className="nav nav-tabs"
+                                  >
+                                    <NavItem
+                                      tag="li"
+                                    >
+                                      <li
+                                        className="nav-item"
+                                      >
+                                        <ButtonGroup
+                                          className="auto-refresh-button"
+                                          role="group"
+                                          tag="div"
+                                        >
+                                          <div
+                                            className="auto-refresh-button btn-group"
+                                            role="group"
+                                          >
+                                            <Button
+                                              active={false}
+                                              color="secondary"
+                                              onClick={[Function]}
+                                              outline={true}
+                                              size="sm"
+                                              tag="button"
+                                            >
+                                              <button
+                                                aria-label={null}
+                                                className="btn btn-outline-secondary btn-sm"
+                                                onClick={[Function]}
+                                                type="button"
+                                              >
+                                                <FontAwesomeIcon
+                                                  border={false}
+                                                  className=""
+                                                  fixedWidth={false}
+                                                  flip={null}
+                                                  icon={
+                                                    Object {
+                                                      "icon": Array [
+                                                        448,
+                                                        512,
+                                                        Array [],
+                                                        "f0c8",
+                                                        "M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-6 400H54c-3.3 0-6-2.7-6-6V86c0-3.3 2.7-6 6-6h340c3.3 0 6 2.7 6 6v340c0 3.3-2.7 6-6 6z",
+                                                      ],
+                                                      "iconName": "square",
+                                                      "prefix": "far",
+                                                    }
+                                                  }
+                                                  inverse={false}
+                                                  listItem={false}
+                                                  mask={null}
+                                                  pull={null}
+                                                  pulse={false}
+                                                  rotation={null}
+                                                  size={null}
+                                                  spin={false}
+                                                  symbol={false}
+                                                  title=""
+                                                  transform={null}
+                                                >
+                                                  <svg
+                                                    aria-hidden="true"
+                                                    className="svg-inline--fa fa-square fa-w-14 "
+                                                    data-icon="square"
+                                                    data-prefix="far"
+                                                    role="img"
+                                                    style={Object {}}
+                                                    viewBox="0 0 448 512"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                  >
+                                                    <path
+                                                      d="M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-6 400H54c-3.3 0-6-2.7-6-6V86c0-3.3 2.7-6 6-6h340c3.3 0 6 2.7 6 6v340c0 3.3-2.7 6-6 6z"
+                                                      fill="currentColor"
+                                                      style={Object {}}
+                                                    />
+                                                  </svg>
+                                                </FontAwesomeIcon>
+                                                  Auto Refresh
+                                              </button>
+                                            </Button>
+                                          </div>
+                                        </ButtonGroup>
+                                      </li>
+                                    </NavItem>
+                                  </ul>
+                                </Nav>
+                              </div>
+                            </Transition>
+                          </Collapse>
+                        </nav>
+                      </Navbar>
+                    </div>
+                  </Header>
+                </div>
+                <div
+                  className="pages container-fluid mt-3"
+                >
+                  <Switch>
+                    <Route
+                      component={[Function]}
+                      computedMatch={
+                        Object {
+                          "isExact": true,
+                          "params": Object {},
+                          "path": "/metrics",
+                          "url": "/metrics",
+                        }
+                      }
+                      exact={true}
+                      location={
+                        Object {
+                          "hash": "",
+                          "pathname": "/metrics",
+                          "search": "",
+                          "state": undefined,
+                        }
+                      }
+                      path="/metrics"
+                    >
+                      <Connect(Metrics)
+                        history={
+                          Object {
+                            "action": "PUSH",
+                            "block": [Function],
+                            "createHref": [Function],
+                            "go": [Function],
+                            "goBack": [Function],
+                            "goForward": [Function],
+                            "length": 2,
+                            "listen": [Function],
+                            "location": Object {
+                              "hash": "",
+                              "pathname": "/metrics",
+                              "search": "",
+                              "state": undefined,
+                            },
+                            "push": [Function],
+                            "replace": [Function],
+                          }
+                        }
+                        location={
+                          Object {
+                            "hash": "",
+                            "pathname": "/metrics",
+                            "search": "",
+                            "state": undefined,
+                          }
+                        }
+                        match={
+                          Object {
+                            "isExact": true,
+                            "params": Object {},
+                            "path": "/metrics",
+                            "url": "/metrics",
+                          }
+                        }
+                      >
+                        <Metrics
+                          data={
+                            Object {
+                              "operationMetrics": Object {},
+                              "rpcInvocationMetrics": Object {},
+                              "workerCapacityFreePercentage": 0,
+                              "workerCapacityUsedPercentage": 0,
+                            }
+                          }
+                          fetchRequest={[Function]}
+                          history={
+                            Object {
+                              "action": "PUSH",
+                              "block": [Function],
+                              "createHref": [Function],
+                              "go": [Function],
+                              "goBack": [Function],
+                              "goForward": [Function],
+                              "length": 2,
+                              "listen": [Function],
+                              "location": Object {
+                                "hash": "",
+                                "pathname": "/metrics",
+                                "search": "",
+                                "state": undefined,
+                              },
+                              "push": [Function],
+                              "replace": [Function],
+                            }
+                          }
+                          loading={true}
+                          location={
+                            Object {
+                              "hash": "",
+                              "pathname": "/metrics",
+                              "search": "",
+                              "state": undefined,
+                            }
+                          }
+                          match={
+                            Object {
+                              "isExact": true,
+                              "params": Object {},
+                              "path": "/metrics",
+                              "url": "/metrics",
+                            }
+                          }
+                          refresh={false}
+                        >
+                          <div
+                            className="metrics-page"
+                          >
+                            <div
+                              className="container-fluid"
+                            >
+                              <div
+                                className="row"
+                              >
+                                <div
+                                  className="col-12"
+                                >
+                                  <h5>
+                                    Worker Gauges
+                                  </h5>
+                                  <Table
+                                    hover={true}
+                                    responsiveTag="div"
+                                    tag="table"
+                                  >
+                                    <table
+                                      className="table table-hover"
+                                    >
+                                      <tbody>
+                                        <tr>
+                                          <th
+                                            scope="row"
+                                          >
+                                            Worker Capacity
+                                          </th>
+                                          <td>
+                                            <Progress
+                                              max={100}
+                                              multi={true}
+                                              tag="div"
+                                              value={0}
+                                            >
+                                              <div
+                                                className="progress"
+                                              >
+                                                <Progress
+                                                  bar={true}
+                                                  color="success"
+                                                  max={100}
+                                                  tag="div"
+                                                  value="0"
+                                                >
+                                                  <div
+                                                    aria-valuemax={100}
+                                                    aria-valuemin="0"
+                                                    aria-valuenow="0"
+                                                    className="progress-bar bg-success"
+                                                    role="progressbar"
+                                                    style={
+                                                      Object {
+                                                        "width": "0%",
+                                                      }
+                                                    }
+                                                  >
+                                                    0
+                                                    % Free
+                                                  </div>
+                                                </Progress>
+                                                <Progress
+                                                  bar={true}
+                                                  color="danger"
+                                                  max={100}
+                                                  tag="div"
+                                                  value="0"
+                                                >
+                                                  <div
+                                                    aria-valuemax={100}
+                                                    aria-valuemin="0"
+                                                    aria-valuenow="0"
+                                                    className="progress-bar bg-danger"
+                                                    role="progressbar"
+                                                    style={
+                                                      Object {
+                                                        "width": "0%",
+                                                      }
+                                                    }
+                                                  >
+                                                    0
+                                                    % Used
+                                                  </div>
+                                                </Progress>
+                                              </div>
+                                            </Progress>
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </Table>
+                                </div>
+                                <div
+                                  className="col-12"
+                                >
+                                  <h5>
+                                    Logical Operations
+                                  </h5>
+                                  <Table
+                                    hover={true}
+                                    responsiveTag="div"
+                                    tag="table"
+                                  >
+                                    <table
+                                      className="table table-hover"
+                                    >
+                                      <tbody>
+                                        <tr>
+                                          <th>
+                                            Blocks Accessed
+                                          </th>
+                                          <td>
+                                            0
+                                          </td>
+                                          <th>
+                                            Blocks Cached
+                                          </th>
+                                          <td>
+                                            0
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <th>
+                                            Blocks Canceled
+                                          </th>
+                                          <td>
+                                            0
+                                          </td>
+                                          <th>
+                                            Blocks Deleted
+                                          </th>
+                                          <td>
+                                            0
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <th>
+                                            Blocks Evicted
+                                          </th>
+                                          <td>
+                                            0
+                                          </td>
+                                          <th>
+                                            Blocks Promoted
+                                          </th>
+                                          <td>
+                                            0
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                          <th>
+                                            Bytes Read Remotely
+                                          </th>
+                                          <td>
+                                            0
+                                          </td>
+                                          <th>
+                                            Bytes Written Remotely
+                                          </th>
+                                          <td>
+                                            0
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </Table>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </Metrics>
+                      </Connect(Metrics)>
+                    </Route>
+                  </Switch>
+                </div>
+                <div
+                  className="container-fluid footer-wrapper"
+                >
+                  <Footer
+                    callbackParameters={
+                      Object {
+                        "masterHostname": "",
+                        "masterPort": 19999,
+                      }
+                    }
+                    data={
+                      Array [
+                        Object {
+                          "innerText": "Project Website",
+                          "url": "https://alluxio.org/",
+                        },
+                        Object {
+                          "innerText": "User Mailing List",
+                          "url": "https://groups.google.com/forum/#!forum/alluxio-users",
+                        },
+                        Object {
+                          "innerText": "User Survey",
+                          "url": "https://alluxio.org/resources/survey-users",
+                        },
+                        Object {
+                          "innerText": "Workers",
+                          "url": [Function],
+                        },
+                        Object {
+                          "innerText": "Resources",
+                          "url": "https://alluxio.org/alluxio-resources/",
+                        },
+                      ]
+                    }
+                  >
+                    <div
+                      className="footer mt-auto card bg-light"
+                    >
+                      <div
+                        className="mx-auto"
+                      >
+                        <Nav
+                          tag="ul"
+                          vertical={false}
+                        >
+                          <ul
+                            className="nav"
+                          >
+                            <NavItem
+                              key="https://alluxio.org/"
+                              tag="li"
+                            >
+                              <li
+                                className="nav-item"
+                              >
+                                <NavLink
+                                  href="https://alluxio.org/"
+                                  tag="a"
+                                >
+                                  <a
+                                    className="nav-link"
+                                    href="https://alluxio.org/"
+                                    onClick={[Function]}
+                                  >
+                                    Project Website
+                                  </a>
+                                </NavLink>
+                              </li>
+                            </NavItem>
+                            <NavItem
+                              key="https://groups.google.com/forum/#!forum/alluxio-users"
+                              tag="li"
+                            >
+                              <li
+                                className="nav-item"
+                              >
+                                <NavLink
+                                  href="https://groups.google.com/forum/#!forum/alluxio-users"
+                                  tag="a"
+                                >
+                                  <a
+                                    className="nav-link"
+                                    href="https://groups.google.com/forum/#!forum/alluxio-users"
+                                    onClick={[Function]}
+                                  >
+                                    User Mailing List
+                                  </a>
+                                </NavLink>
+                              </li>
+                            </NavItem>
+                            <NavItem
+                              key="https://alluxio.org/resources/survey-users"
+                              tag="li"
+                            >
+                              <li
+                                className="nav-item"
+                              >
+                                <NavLink
+                                  href="https://alluxio.org/resources/survey-users"
+                                  tag="a"
+                                >
+                                  <a
+                                    className="nav-link"
+                                    href="https://alluxio.org/resources/survey-users"
+                                    onClick={[Function]}
+                                  >
+                                    User Survey
+                                  </a>
+                                </NavLink>
+                              </li>
+                            </NavItem>
+                            <NavItem
+                              key="http://:19999/workers"
+                              tag="li"
+                            >
+                              <li
+                                className="nav-item"
+                              >
+                                <NavLink
+                                  href="http://:19999/workers"
+                                  tag="a"
+                                >
+                                  <a
+                                    className="nav-link"
+                                    href="http://:19999/workers"
+                                    onClick={[Function]}
+                                  >
+                                    Workers
+                                  </a>
+                                </NavLink>
+                              </li>
+                            </NavItem>
+                            <NavItem
+                              key="https://alluxio.org/alluxio-resources/"
+                              tag="li"
+                            >
+                              <li
+                                className="nav-item"
+                              >
+                                <NavLink
+                                  href="https://alluxio.org/alluxio-resources/"
+                                  tag="a"
+                                >
+                                  <a
+                                    className="nav-link"
+                                    href="https://alluxio.org/alluxio-resources/"
+                                    onClick={[Function]}
+                                  >
+                                    Resources
+                                  </a>
+                                </NavLink>
+                              </li>
+                            </NavItem>
+                          </ul>
+                        </Nav>
+                      </div>
+                    </div>
+                  </Footer>
+                </div>
+              </div>
+            </Router>
+          </ConnectedRouter>
+        </ConnectedRouterWithContext>
+      </Connect(ConnectedRouterWithContext)>
+    </App>
+  </Connect(App)>
+</Provider>
+`;
+
+exports[`Metrics Shallow component Matches snapshot 1`] = `
+<div
+  className="metrics-page"
+>
+  <div
+    className="container-fluid"
+  >
+    <div
+      className="row"
+    >
+      <div
+        className="col-12"
+      >
+        <h5>
+          Worker Gauges
+        </h5>
+        <Table
+          hover={true}
+          responsiveTag="div"
+          tag="table"
+        >
+          <tbody>
+            <tr>
+              <th
+                scope="row"
+              >
+                Worker Capacity
+              </th>
+              <td>
+                <Progress
+                  max={100}
+                  multi={true}
+                  tag="div"
+                  value={0}
+                >
+                  <Progress
+                    bar={true}
+                    color="success"
+                    max={100}
+                    tag="div"
+                    value="0"
+                  >
+                    0
+                    % Free
+                  </Progress>
+                  <Progress
+                    bar={true}
+                    color="danger"
+                    max={100}
+                    tag="div"
+                    value="0"
+                  >
+                    0
+                    % Used
+                  </Progress>
+                </Progress>
+              </td>
+            </tr>
+          </tbody>
+        </Table>
+      </div>
+      <div
+        className="col-12"
+      >
+        <h5>
+          Logical Operations
+        </h5>
+        <Table
+          hover={true}
+          responsiveTag="div"
+          tag="table"
+        >
+          <tbody>
+            <tr>
+              <th>
+                Blocks Accessed
+              </th>
+              <td>
+                0
+              </td>
+              <th>
+                Blocks Cached
+              </th>
+              <td>
+                0
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Blocks Canceled
+              </th>
+              <td>
+                0
+              </td>
+              <th>
+                Blocks Deleted
+              </th>
+              <td>
+                0
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Blocks Evicted
+              </th>
+              <td>
+                0
+              </td>
+              <th>
+                Blocks Promoted
+              </th>
+              <td>
+                0
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Bytes Read Remotely
+              </th>
+              <td>
+                0
+              </td>
+              <th>
+                Bytes Written Remotely
+              </th>
+              <td>
+                0
+              </td>
+            </tr>
+          </tbody>
+        </Table>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -110,8 +110,8 @@ public final class ConfigurationTestUtils {
     //conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
     conf.put(PropertyKey.WEB_THREADS, "1");
-    conf.put(PropertyKey.WEB_RESOURCES, PathUtils
-        .concatPath(System.getProperty("user.dir"), "../core/server/common/src/main/webapp"));
+    conf.put(PropertyKey.WEB_RESOURCES,
+        PathUtils.concatPath(System.getProperty("user.dir"), "../alluxio-ui"));
     conf.put(PropertyKey.WORKER_MEMORY_SIZE, "100MB");
     conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
     conf.put(PropertyKey.WORKER_BLOCK_THREADS_MIN, "1");

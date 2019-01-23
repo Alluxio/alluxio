@@ -84,7 +84,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, ServerConfiguration.global());
     mMasterWebService = (HttpURLConnection) new URL(
         "http://" + masterWebAddr.getAddress().getHostAddress() + ":" + masterWebAddr.getPort()
-            + "/css/custom.min.css").openConnection();
+            + "/index.html").openConnection();
     mMasterWebService.connect();
 
     // connect Worker Web service
@@ -92,7 +92,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
         new InetSocketAddress(workerAddress.getHost(), workerAddress.getWebPort());
     mWorkerWebService = (HttpURLConnection) new URL(
         "http://" + workerWebAddr.getAddress().getHostAddress() + ":" + workerWebAddr.getPort()
-            + "/css/custom.min.css").openConnection();
+            + "/index.html").openConnection();
     mWorkerWebService.connect();
   }
 
