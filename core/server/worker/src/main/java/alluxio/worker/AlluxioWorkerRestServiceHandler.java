@@ -101,6 +101,8 @@ public final class AlluxioWorkerRestServiceHandler {
 
   // endpoints
   public static final String GET_INFO = "info";
+
+  // webui endpoints // TODO(william): DRY up these enpoints
   public static final String WEBUI_INIT = "webui_init";
   public static final String WEBUI_OVERVIEW = "webui_overview";
   public static final String WEBUI_LOGS = "webui_logs";
