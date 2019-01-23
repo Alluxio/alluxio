@@ -13,8 +13,6 @@ package alluxio.util.webui;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -219,24 +217,24 @@ public final class UIFileInfo {
   /**
    * Gets creation time.
    *
+   * @param dateFormatPattern the pattern to use when formatting the timestamp
    * @return the creation time (in milliseconds)
    */
-  public String getCreationTime() {
+  public String getCreationTime(String dateFormatPattern) {
     if (mCreationTimeMs == UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME) {
       return "";
     }
-    return CommonUtils.convertMsToDate(mCreationTimeMs,
-        ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
+    return CommonUtils.convertMsToDate(mCreationTimeMs, dateFormatPattern);
   }
 
   /**
    * Gets modification time.
    *
+   * @param dateFormatPattern the pattern to use when formatting the timestamp
    * @return the modification time (in milliseconds)
    */
-  public String getModificationTime() {
-    return CommonUtils.convertMsToDate(mLastModificationTimeMs,
-        ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
+  public String getModificationTime(String dateFormatPattern) {
+    return CommonUtils.convertMsToDate(mLastModificationTimeMs, dateFormatPattern);
   }
 
   /**

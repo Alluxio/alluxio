@@ -15,6 +15,7 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.util.ConfigurationUtils;
@@ -143,7 +144,8 @@ public final class LogLevel {
         int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, conf);
         targetInfoList.add(new TargetInfo(masterHost, masterPort, ROLE_MASTER));
       } else if (target.equals(ROLE_WORKERS)) {
-        AlluxioBlockStore alluxioBlockStore = AlluxioBlockStore.create(ClientContext.create(conf));
+        AlluxioBlockStore alluxioBlockStore =
+            AlluxioBlockStore.create(FileSystemContext.create(ClientContext.create(conf)));
         List<BlockWorkerInfo> workerInfoList = alluxioBlockStore.getAllWorkers();
         for (BlockWorkerInfo workerInfo : workerInfoList) {
           WorkerNetAddress netAddress = workerInfo.getNetAddress();

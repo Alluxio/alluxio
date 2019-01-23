@@ -12,7 +12,6 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.conf.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
@@ -257,7 +256,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
       long blockId = status.getBlockIds().get(0);
       AlluxioBlockStore blockStore =
-          AlluxioBlockStore.create(ClientContext.create(ServerConfiguration.global()));
+          AlluxioBlockStore.create(FileSystemContext.create(ServerConfiguration.global()));
       BlockInfo info = blockStore.getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
@@ -293,7 +292,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
       long blockId = status.getBlockIds().get(0);
       BlockInfo info =
-          AlluxioBlockStore.create(ClientContext.create(ServerConfiguration.global()))
+          AlluxioBlockStore.create(FileSystemContext.create(ServerConfiguration.global()))
               .getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
@@ -323,7 +322,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
       long blockId = status.getBlockIds().get(0);
       BlockInfo info =
-          AlluxioBlockStore.create(ClientContext
+          AlluxioBlockStore.create(FileSystemContext
               .create(ServerConfiguration.global())).getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
@@ -568,7 +567,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
       long blockId = status.getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore
-          .create(ClientContext.create(ServerConfiguration.global())).getInfo(blockId);
+          .create(FileSystemContext.create(ServerConfiguration.global())).getInfo(blockId);
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =

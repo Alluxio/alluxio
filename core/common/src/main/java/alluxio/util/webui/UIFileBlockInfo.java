@@ -11,8 +11,8 @@
 
 package alluxio.util.webui;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 
@@ -131,10 +131,11 @@ public final class UIFileBlockInfo {
   /**
    * Gets whether the block is in the highest tier alias.
    *
+   * @param conf configuration to to check for global level 0 tier alias
    * @return true if it's in the highest tier alias
    */
-  public boolean getIsInHighestTier() {
+  public boolean getIsInHighestTier(AlluxioConfiguration conf) {
     return mTierAliases
-        .contains(Configuration.get(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
+        .contains(conf.get(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
   }
 }

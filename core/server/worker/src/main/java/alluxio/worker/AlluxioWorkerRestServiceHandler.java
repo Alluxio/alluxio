@@ -133,6 +133,7 @@ public final class AlluxioWorkerRestServiceHandler {
   private final WorkerProcess mWorkerProcess;
   private final BlockStoreMeta mStoreMeta;
   private final BlockWorker mBlockWorker;
+  private final FileSystem mFsClient;
 
   /**
    * @param context context for the servlet
@@ -142,6 +143,7 @@ public final class AlluxioWorkerRestServiceHandler {
         (WorkerProcess) context.getAttribute(WorkerWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY);
     mBlockWorker = mWorkerProcess.getWorker(BlockWorker.class);
     mStoreMeta = mWorkerProcess.getWorker(BlockWorker.class).getStoreMeta();
+    mFsClient = FileSystem.Factory.get(ServerConfiguration.global());
   }
 
   /**
@@ -186,17 +188,18 @@ public final class AlluxioWorkerRestServiceHandler {
     return RestUtils.call(() -> {
       WorkerWebUIInit response = new WorkerWebUIInit();
 
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
-          .setWebFileInfoEnabled(Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG))
+          .setWebFileInfoEnabled(ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
           .setSecurityAuthorizationPermissionEnabled(
-              Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
-          .setMasterHostname(
-              NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_WEB))
-          .setMasterPort(Configuration.getInt(PropertyKey.MASTER_WEB_PORT))
-          .setRefreshInterval(Configuration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
+              ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
+          .setMasterHostname(NetworkAddressUtils
+              .getConnectHost(NetworkAddressUtils.ServiceType.MASTER_WEB,
+                  ServerConfiguration.global()))
+          .setMasterPort(ServerConfiguration.getInt(PropertyKey.MASTER_WEB_PORT))
+          .setRefreshInterval(ServerConfiguration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -212,7 +215,8 @@ public final class AlluxioWorkerRestServiceHandler {
       WorkerWebUIOverview response = new WorkerWebUIOverview();
 
       response.setWorkerInfo(new UIWorkerInfo(mWorkerProcess.getRpcAddress().toString(),
-          mWorkerProcess.getStartTimeMs()));
+          mWorkerProcess.getStartTimeMs(),
+          ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)));
 
       BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
       long capacityBytes = 0L;
@@ -246,7 +250,7 @@ public final class AlluxioWorkerRestServiceHandler {
       response.setStorageDirs(storageDirs);
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -266,14 +270,14 @@ public final class AlluxioWorkerRestServiceHandler {
     return RestUtils.call(() -> {
       WorkerWebUIBlockInfo response = new WorkerWebUIBlockInfo();
 
-      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
       response.setFatalError("").setInvalidPathError("");
       if (!(requestPath == null || requestPath.isEmpty())) {
         // Display file block info
         try {
-          URIStatus status = FileSystem.Factory.get().getStatus(new AlluxioURI(requestPath));
+          URIStatus status = mFsClient.getStatus(new AlluxioURI(requestPath));
           UIFileInfo uiFileInfo = new UIFileInfo(status);
           for (long blockId : status.getBlockIds()) {
             if (mBlockWorker.hasBlockMeta(blockId)) {
@@ -358,7 +362,7 @@ public final class AlluxioWorkerRestServiceHandler {
       }
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -420,7 +424,7 @@ public final class AlluxioWorkerRestServiceHandler {
       response.setRpcInvocationMetrics(rpcInvocations);
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -443,16 +447,16 @@ public final class AlluxioWorkerRestServiceHandler {
       FilenameFilter filenameFilter = (dir, name) -> name.toLowerCase().endsWith(".log");
       WorkerWebUILogs response = new WorkerWebUILogs();
 
-      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
           .setViewingOffset(0).setCurrentPath("");
       //response.setDownloadLogFile(1);
       //response.setBaseUrl("./browseLogs");
       //response.setShowPermissions(false);
 
-      String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
+      String logsPath = ServerConfiguration.get(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
       String requestFile = requestPath;
 
@@ -557,7 +561,7 @@ public final class AlluxioWorkerRestServiceHandler {
       }
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**

@@ -12,6 +12,7 @@
 package alluxio;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.Status;
 import alluxio.security.LoginUser;
@@ -51,14 +52,15 @@ public final class RestUtils {
       }
     } catch (IOException e) {
       LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());
-      return createErrorResponse(e);
+      return createErrorResponse(e, alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED));
     }
 
     try {
-      return createResponse(callable.call());
+      return createResponse(callable.call(),
+          alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED));
     } catch (Exception e) {
       LOG.warn("Unexpected error invoking rest endpoint: {}", e.getMessage());
-      return createErrorResponse(e);
+      return createErrorResponse(e, alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED));
     }
   }
 
@@ -82,7 +84,7 @@ public final class RestUtils {
    * @param object the object to respond with
    * @return the response
    */
-  private static Response createResponse(Object object) {
+  private static Response createResponse(Object object, boolean corsEnabled) {
     if (object instanceof Void) {
       return Response.ok().build();
     }
@@ -92,13 +94,12 @@ public final class RestUtils {
       try {
         return Response.ok(mapper.writeValueAsString(object)).build();
       } catch (JsonProcessingException e) {
-        return createErrorResponse(e);
+        return createErrorResponse(e, corsEnabled);
       }
     }
 
     Response.ResponseBuilder rb = Response.ok(object);
 
-    boolean corsEnabled = Configuration.getBoolean(PropertyKey.WEBUI_CORS_ENABLED);
     if (corsEnabled) {
       return makeCORS(rb).build();
     }
@@ -150,13 +151,11 @@ public final class RestUtils {
    * @param e the exception to be converted into {@link ErrorResponse} and encoded into json
    * @return the response
    */
-  private static Response createErrorResponse(Exception e) {
+  private static Response createErrorResponse(Exception e, boolean corsEnabled) {
     AlluxioStatusException se = AlluxioStatusException.fromThrowable(e);
     ErrorResponse response = new ErrorResponse(se.getStatus(), se.getMessage());
 
     Response.ResponseBuilder rb = Response.serverError().entity(response);
-
-    boolean corsEnabled = Configuration.getBoolean(PropertyKey.WEBUI_CORS_ENABLED);
     if (corsEnabled) {
       return makeCORS(rb).build();
     }

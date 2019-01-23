@@ -12,12 +12,11 @@
 package alluxio.master.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
-import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
@@ -172,6 +171,7 @@ public final class AlluxioMasterRestServiceHandler {
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
   private final MetaMaster mMetaMaster;
+  private final FileSystem mFsClient;
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.
@@ -185,6 +185,7 @@ public final class AlluxioMasterRestServiceHandler {
     mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
+    mFsClient = FileSystem.Factory.get(ServerConfiguration.global());
   }
 
   /**
@@ -229,15 +230,15 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIInit response = new MasterWebUIInit();
 
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
-          .setWebFileInfoEnabled(Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG))
+          .setWebFileInfoEnabled(ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
           .setSecurityAuthorizationPermissionEnabled(
-              Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
-          .setWorkerPort(Configuration.getInt(PropertyKey.WORKER_WEB_PORT))
-          .setRefreshInterval(Configuration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
+              ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
+          .setWorkerPort(ServerConfiguration.getInt(PropertyKey.WORKER_WEB_PORT))
+          .setRefreshInterval(ServerConfiguration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -252,10 +253,11 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIOverview response = new MasterWebUIOverview();
 
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG))
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setUptime(CommonUtils
           .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()))
-          .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()))
+          .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs(),
+              ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)))
           .setVersion(RuntimeConstants.VERSION)
           .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
           .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
@@ -334,7 +336,7 @@ public final class AlluxioMasterRestServiceHandler {
       }
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -356,14 +358,15 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIBrowse response = new MasterWebUIBrowse();
 
-      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
-      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
-        AuthenticatedClientUser.set(LoginUser.get().getName());
+      if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
+          && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
+        AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
       }
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setShowPermissions(
-          Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG)).setShowPermissions(
+          ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setInvalidPathError("");
       List<FileInfo> filesInfo;
       String path = requestPath;
@@ -406,7 +409,7 @@ public final class AlluxioMasterRestServiceHandler {
           }
           try {
             AlluxioURI absolutePath = new AlluxioURI(currentFileInfo.getAbsolutePath());
-            FileSystem fs = FileSystem.Factory.get();
+            FileSystem fs = mFsClient;
             String fileData;
             URIStatus status = fs.getStatus(absolutePath);
             if (status.isCompleted()) {
@@ -542,7 +545,7 @@ public final class AlluxioMasterRestServiceHandler {
       }
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -560,16 +563,17 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIData response = new MasterWebUIData();
 
-      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
 
-      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
-        AuthenticatedClientUser.set(LoginUser.get().getName());
+      if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
+          && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
+        AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
       }
       response.setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setFatalError("")
-          .setShowPermissions(
-              Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
+          .setShowPermissions(ServerConfiguration
+              .getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
       List<AlluxioURI> inAlluxioFiles = mFileSystemMaster.getInAlluxioFiles();
       Collections.sort(inAlluxioFiles);
@@ -613,7 +617,7 @@ public final class AlluxioMasterRestServiceHandler {
       }
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -636,16 +640,16 @@ public final class AlluxioMasterRestServiceHandler {
       FilenameFilter filenameFilter = (dir, name) -> name.toLowerCase().endsWith(".log");
       MasterWebUILogs response = new MasterWebUILogs();
 
-      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
           .setViewingOffset(0).setCurrentPath("");
       //response.setDownloadLogFile(1);
       //response.setBaseUrl("./browseLogs");
       //response.setShowPermissions(false);
 
-      String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
+      String logsPath = ServerConfiguration.get(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
       String requestFile = requestPath;
 
@@ -750,11 +754,11 @@ public final class AlluxioMasterRestServiceHandler {
       }
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
-   * Gets Web UI configuration page data.
+   * Gets Web UI ServerConfiguration page data.
    *
    * @return the response object
    */
@@ -782,7 +786,7 @@ public final class AlluxioMasterRestServiceHandler {
       response.setConfiguration(sortedProperties);
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -797,7 +801,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIWorkers response = new MasterWebUIWorkers();
 
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG));
 
       List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
       NodeInfo[] normalNodeInfos = WebUtils.generateOrderedNodeInfos(workerInfos);
@@ -808,7 +812,7 @@ public final class AlluxioMasterRestServiceHandler {
       response.setFailedNodeInfos(failedNodeInfos);
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -979,7 +983,7 @@ public final class AlluxioMasterRestServiceHandler {
       response.setOperationMetrics(operations).setRpcInvocationMetrics(rpcInvocationsUpdated);
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**

@@ -48,7 +48,7 @@ public final class GetCapacityBytesCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    AlluxioBlockStore alluxioBlockStore = AlluxioBlockStore.create(mFsContext.getClientContext());
+    AlluxioBlockStore alluxioBlockStore = AlluxioBlockStore.create(mFsContext);
     long capacityBytes = alluxioBlockStore.getCapacityBytes();
     System.out.println("Capacity Bytes: " + capacityBytes);
     return 0;

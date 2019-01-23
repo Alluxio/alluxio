@@ -16,7 +16,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -161,7 +161,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
       waitForWorkerRegistration(AlluxioBlockStore
-              .create(ClientContext.create(ServerConfiguration.global())), 1,
+              .create(FileSystemContext.create(ServerConfiguration.global())), 1,
           CLUSTER_WAIT_TIMEOUT_MS);
       faultTestDataCheck(answer);
       faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
@@ -176,7 +176,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
       waitForWorkerRegistration(AlluxioBlockStore
-              .create(ClientContext.create(ServerConfiguration.global())), 1,
+              .create(FileSystemContext.create(ServerConfiguration.global())), 1,
           CLUSTER_WAIT_TIMEOUT_MS);
 
       if (kills % 2 != 0) {
@@ -250,7 +250,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   @Test
   public void workerReRegister() throws Exception {
     AlluxioBlockStore store =
-        AlluxioBlockStore.create(ClientContext.create(ServerConfiguration.global()));
+        AlluxioBlockStore.create(FileSystemContext.create(ServerConfiguration.global()));
     assertEquals(WORKER_CAPACITY_BYTES, store.getCapacityBytes());
 
     for (int kills = 0; kills < MASTERS - 1; kills++) {

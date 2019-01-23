@@ -51,7 +51,7 @@ public final class LocationCommand extends AbstractFileSystemCommand {
     URIStatus status = mFileSystem.getStatus(plainPath);
 
     System.out.println(plainPath + " with file id " + status.getFileId() + " is on nodes: ");
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext.getClientContext());
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
     for (long blockId : status.getBlockIds()) {
       for (BlockLocation location : blockStore.getInfo(blockId).getLocations()) {
         System.out.println(location.getWorkerAddress().getHost());

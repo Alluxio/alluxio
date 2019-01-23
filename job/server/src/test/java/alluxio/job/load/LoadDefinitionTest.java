@@ -79,7 +79,7 @@ public class LoadDefinitionTest {
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mMockFsContext = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(Mockito.any(ClientContext.class)))
+    PowerMockito.when(AlluxioBlockStore.create(Mockito.any(FileSystemContext.class)))
         .thenReturn(mMockBlockStore);
     Mockito.when(mMockBlockStore.getAllWorkers()).thenReturn(BLOCK_WORKERS);
     PowerMockito.when(mMockFsContext.getClientContext())

@@ -11,9 +11,9 @@
 
 package alluxio.web;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.MasterProcess;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.util.io.PathUtils;
@@ -82,7 +82,7 @@ public final class MasterWebServer extends WebServer {
     // STATIC assets
     try {
       String resourceDirPathString =
-          Configuration.get(PropertyKey.WEB_RESOURCES) + "/master/build/";
+          ServerConfiguration.get(PropertyKey.WEB_RESOURCES) + "/master/build/";
       File resourceDir = new File(resourceDirPathString);
       mServletContextHandler.setBaseResource(Resource.newResource(resourceDir.getAbsolutePath()));
       mServletContextHandler.setWelcomeFiles(new String[] {"index.html"});
