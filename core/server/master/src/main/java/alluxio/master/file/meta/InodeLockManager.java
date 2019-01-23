@@ -209,7 +209,7 @@ public class InodeLockManager {
 
   private Optional<LockResource> tryLock(Lock lock) {
     if (lock.tryLock()) {
-      return Optional.of(new LockResource(lock, true));
+      return Optional.of(new LockResource(lock, false));
     }
     return Optional.empty();
   }

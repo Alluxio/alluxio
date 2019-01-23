@@ -1222,6 +1222,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
       new Builder(Name.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE)
+          // TODO(andrew): benchmark different batch sizes to improve the default and provide a
+          // tuning guideline
           .setDefaultValue("1000")
           .setDescription("The batch size for evicting entries from the inode cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1251,7 +1253,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_METASTORE_INODE_CACHE_MAX_SIZE)
           .setDefaultValue("10000000")
           .setDescription("The number of inodes to cache on-heap. "
-              + "This only applies to off-heap metastores, e.g. ROCKS.")
+              + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
+              + "the on-heap inode cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();

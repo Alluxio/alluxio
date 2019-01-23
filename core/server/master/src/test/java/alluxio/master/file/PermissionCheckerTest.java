@@ -189,7 +189,8 @@ public final class PermissionCheckerTest {
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
     InodeLockManager lockManager = new InodeLockManager();
-    sInodeStore = masterContext.getInodeStoreFactory().apply(new InodeStoreArgs(lockManager));
+    sInodeStore = masterContext.getInodeStoreFactory()
+        .apply(new InodeStoreArgs(lockManager, Configuration.global()));
     sTree = new InodeTree(sInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);
 
     sRegistry.start(true);

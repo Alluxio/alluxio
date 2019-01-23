@@ -384,8 +384,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
     mInodeLockManager = new InodeLockManager();
-    InodeStore inodeStore =
-        masterContext.getInodeStoreFactory().apply(new InodeStoreArgs(mInodeLockManager));
+    InodeStore inodeStore = masterContext.getInodeStoreFactory()
+        .apply(new InodeStoreArgs(mInodeLockManager, Configuration.global()));
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
     mInodeTree = new InodeTree(inodeStore, mBlockMaster,
         mDirectoryIdGenerator, mMountTable, mInodeLockManager);
@@ -3302,6 +3302,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
     }
     return true;
+  }
+
+  @VisibleForTesting
+  ReadOnlyInodeStore getInodeStore() {
+    return mInodeStore;
   }
 
   /**

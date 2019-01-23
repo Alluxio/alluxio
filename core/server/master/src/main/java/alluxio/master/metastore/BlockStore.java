@@ -11,6 +11,7 @@
 
 package alluxio.master.metastore;
 
+import alluxio.AlluxioConfiguration;
 import alluxio.master.metastore.BlockStore.Block;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
@@ -105,7 +106,23 @@ public interface BlockStore extends Iterable<Block> {
   /**
    * Arguments for creating a block store.
    */
-  class BlockStoreArgs {}
+  class BlockStoreArgs {
+    private final AlluxioConfiguration mConf;
+
+    /**
+     * @param conf configuration
+     */
+    public BlockStoreArgs(AlluxioConfiguration conf) {
+      mConf = conf;
+    }
+
+    /**
+     * @return the configuration
+     */
+    public AlluxioConfiguration getConfiguration() {
+      return mConf;
+    }
+  }
 
   /**
    * Factory for creating block stores.

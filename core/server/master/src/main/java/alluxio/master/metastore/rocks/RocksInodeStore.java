@@ -11,8 +11,9 @@
 
 package alluxio.master.metastore.rocks;
 
+import alluxio.AlluxioConfiguration;
 import alluxio.PropertyKey;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
@@ -42,9 +43,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * File store backed by RocksDB.
@@ -55,10 +58,11 @@ public class RocksInodeStore implements InodeStore {
   private static final String INODES_COLUMN = "inodes";
   private static final String EDGES_COLUMN = "edges";
 
+  // These are fields instead of constants because they depend on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mReadPrefixSameAsStart;
 
-  private final InstancedConfiguration mConf;
+  private final AlluxioConfiguration mConf;
   private final String mBaseDir;
 
   private String mDbPath;
@@ -70,11 +74,11 @@ public class RocksInodeStore implements InodeStore {
   /**
    * Creates and initializes a rocks block store.
    *
-   * @param conf configuration
+   * @param args inode store arguments
    */
-  public RocksInodeStore(InstancedConfiguration conf) {
-    mConf = conf;
-    mBaseDir = conf.get(PropertyKey.MASTER_METASTORE_DIR);
+  public RocksInodeStore(InodeStoreArgs args) {
+    mConf = args.getConf();
+    mBaseDir = mConf.get(PropertyKey.MASTER_METASTORE_DIR);
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
@@ -222,6 +226,33 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
+  public Set<EdgeEntry> allEdges() {
+    Set<EdgeEntry> edges = new HashSet<>();
+    RocksIterator iter = mDb.newIterator(mEdgesColumn);
+    iter.seekToFirst();
+    while (iter.isValid()) {
+      long parentId = RocksUtils.readLong(iter.key(), 0);
+      String childName = new String(iter.key(), Longs.BYTES, iter.key().length - Longs.BYTES);
+      long childId = Longs.fromByteArray(iter.value());
+      edges.add(new EdgeEntry(parentId, childName, childId));
+      iter.next();
+    }
+    return edges;
+  }
+
+  @Override
+  public Set<MutableInode<?>> allInodes() {
+    Set<MutableInode<?>> inodes = new HashSet<>();
+    RocksIterator iter = mDb.newIterator(mInodesColumn);
+    iter.seekToFirst();
+    while (iter.isValid()) {
+      inodes.add(getMutable(Longs.fromByteArray(iter.key())).get());
+      iter.next();
+    }
+    return inodes;
+  }
+
+  @Override
   public boolean supportsBatchWrite() {
     return true;
   }
@@ -298,6 +329,8 @@ public class RocksInodeStore implements InodeStore {
     new File(mBaseDir).mkdirs();
 
     TableFormatConfig tableFormatConfig;
+    // Plain table format is optimized for low-latency media like RAM, while block-based config is
+    // designed to work well with slower media like HDD.
     if (mConf.getBoolean(PropertyKey.MASTER_METASTORE_ROCKS_IN_MEMORY)) {
       tableFormatConfig = new PlainTableConfig();
     } else {

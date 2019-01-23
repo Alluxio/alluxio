@@ -11,23 +11,29 @@
 
 package alluxio.master.metastore.caching;
 
+import alluxio.Constants;
 import alluxio.metrics.MetricsSystem;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.lang.Thread.State;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Base class for write-back caches which asynchronously evict entries to backing stores.
@@ -39,9 +45,8 @@ import javax.annotation.Nullable;
  * best performance, maximum capacity should never be reached. This requires that the eviction
  * thread can keep up cache writes.
  *
- * The cache requires external synchronization for concurrent modifications on the same key. All
- * other concurrent operations are supported. Cache hit reads are served without any locking. Writes
- * and cache miss reads take locks on their key.
+ * Cache hit reads are served without any locking. Writes and cache miss reads take locks on their
+ * cache key.
  *
  * This class leverages the entry-level locks of ConcurrentHashMap to synchronize operations on the
  * same key.
@@ -49,7 +54,8 @@ import javax.annotation.Nullable;
  * @param <K> the cache key type
  * @param <V> the cache value type
  */
-public abstract class Cache<K, V> {
+@ThreadSafe
+public abstract class Cache<K, V> implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Cache.class);
 
   private final int mMaxSize;
@@ -59,6 +65,7 @@ public abstract class Cache<K, V> {
   private final String mName;
   private final ConcurrentHashMap<K, Entry> mMap;
   // TODO(andrew): Support using multiple threads to speed up backing store writes.
+  // Thread for performing eviction to the backing store.
   private final EvictionThread mEvictionThread;
 
   /**
@@ -74,6 +81,7 @@ public abstract class Cache<K, V> {
     mMap = new ConcurrentHashMap<>(mMaxSize);
     mEvictionThread = new EvictionThread();
     mEvictionThread.setDaemon(true);
+    // The eviction thread is started lazily when we first reach the high water mark.
 
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(mName + "-size"),
         () -> mMap.size());
@@ -213,6 +221,20 @@ public abstract class Cache<K, V> {
     }
   }
 
+  @Override
+  public void close() {
+    mEvictionThread.interrupt();
+    try {
+      mEvictionThread.join(10 * Constants.SECOND_MS);
+      if (mEvictionThread.isAlive()) {
+        LOG.warn("Failed to stop eviction thread");
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    }
+  }
+
   private class EvictionThread extends Thread {
     private final TemporalAmount mWarnInterval = Duration.ofSeconds(30);
 
@@ -226,21 +248,21 @@ public abstract class Cache<K, V> {
     private List<Entry> mEvictionCandidates;
 
     private EvictionThread() {
-      super("eviction-thread");
+      super(mName + "-eviction-thread");
       mEvictionCandidates = new ArrayList<>(mEvictBatchSize);
     }
 
     @Override
     public void run() {
-      while (true) {
+      while (!Thread.interrupted()) {
         // Wait for the cache to get over the high water mark.
         while (!overHighWaterMark()) {
           synchronized (mEvictionThread) {
             if (!overHighWaterMark()) {
               try {
-                mEvictionThread.mIsSleeping = true;
+                mIsSleeping = true;
                 mEvictionThread.wait();
-                mEvictionThread.mIsSleeping = false;
+                mIsSleeping = false;
               } catch (InterruptedException e) {
                 return;
               }
@@ -259,13 +281,13 @@ public abstract class Cache<K, V> {
           Instant now = Instant.now();
           if (now.isAfter(mNextAllowedSizeWarning)) {
             LOG.warn(
-                "Cache is full. Consider increase the cache size or lower the high "
-                    + "water mark. size:{} lowWaterMark:{} highWaterMark:{} maxSize:{}",
-                mMap.size(), mMaxSize, mHighWaterMark, mLowWaterMark);
+                "Metastore {} cache is full. Consider increasing the cache size or lowering the "
+                    + "high water mark. size:{} lowWaterMark:{} highWaterMark:{} maxSize:{}",
+                mName, mMap.size(), mLowWaterMark, mHighWaterMark, mMaxSize);
             mNextAllowedSizeWarning = now.plus(mWarnInterval);
           }
         }
-        evictionCount += evictBatch(Math.min(mMap.size(), mEvictBatchSize));
+        evictionCount += evictBatch(Math.min(mMap.size() - mLowWaterMark, mEvictBatchSize));
       }
       if (evictionCount > 0) {
         LOG.debug("{}: Evicted {} entries in {}ms", mName, evictionCount,
@@ -295,6 +317,9 @@ public abstract class Cache<K, V> {
         }
         mEvictionCandidates.add(candidate);
       }
+      if (mEvictionCandidates.isEmpty()) {
+        return 0;
+      }
       flushEntries(mEvictionCandidates);
       for (Entry candidate : mEvictionCandidates) {
         if (null == mMap.computeIfPresent(candidate.mKey, (key, entry) -> {
@@ -309,6 +334,11 @@ public abstract class Cache<K, V> {
       }
       return evictionCount;
     }
+  }
+
+  @VisibleForTesting
+  protected Map<K, Entry> getCacheMap() {
+    return new HashMap<>(mMap);
   }
 
   //

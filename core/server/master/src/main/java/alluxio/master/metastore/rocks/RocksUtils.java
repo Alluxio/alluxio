@@ -70,4 +70,14 @@ public final class RocksUtils {
     System.arraycopy(strBytes, 0, key, Longs.BYTES, strBytes.length);
     return key;
   }
+
+  /**
+   * @param bytes an array of bytes
+   * @param start the place in the array to read the long from
+   * @return the long
+   */
+  public static long readLong(byte[] bytes, int start) {
+    return Longs.fromBytes(bytes[start], bytes[start + 1], bytes[start + 2], bytes[start + 3],
+        bytes[start + 4], bytes[start + 5], bytes[start + 6], bytes[start + 7]);
+  }
 }

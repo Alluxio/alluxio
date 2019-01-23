@@ -25,6 +25,7 @@ import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metastore.InodeStore.WriteBatch;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.java.HeapInodeStore;
@@ -53,10 +54,11 @@ public class InodeStoreTest {
             AlluxioTestDirectory.createTemporaryDirectory("inode-store-test"))
         .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE)
         .build();
+    InodeStoreArgs args = new InodeStoreArgs(new InodeLockManager(), conf);
     return Arrays.asList(
-        () -> new HeapInodeStore(),
-        () -> new RocksInodeStore(conf),
-        () -> new CachingInodeStore(new RocksInodeStore(conf), new InodeLockManager(), conf));
+        () -> new HeapInodeStore(args),
+        () -> new RocksInodeStore(args),
+        () -> new CachingInodeStore(new RocksInodeStore(args), args));
   }
 
   private final MutableInodeDirectory mRoot = inodeDir(0, -1, "");

@@ -65,6 +65,7 @@ import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
@@ -146,7 +147,8 @@ public final class FileSystemMasterTest {
   private JournalSystem mJournalSystem;
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
-  private FileSystemMaster mFileSystemMaster;
+  private DefaultFileSystemMaster mFileSystemMaster;
+  private ReadOnlyInodeStore mInodeStore;
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
   private int mPort;
@@ -363,6 +365,15 @@ public final class FileSystemMasterTest {
     Files.delete(Paths.get(ufsMount.join("dir1").getPath()));
     assertEquals(IdUtils.INVALID_FILE_ID,
         mFileSystemMaster.getFileId(new AlluxioURI("/mnt/local/dir1")));
+  }
+
+  @Test
+  public void deleteRecursiveClearsInnerInodesAndEdges() throws Exception {
+    createFileWithSingleBlock(new AlluxioURI("/a/b/c/d/e"));
+    createFileWithSingleBlock(new AlluxioURI("/a/b/x/y/z"));
+    mFileSystemMaster.delete(new AlluxioURI("/a/b"), DeleteOptions.defaults().setRecursive(true));
+    assertEquals(1, mInodeStore.allEdges().size());
+    assertEquals(2, mInodeStore.allInodes().size());
   }
 
   @Test
@@ -2671,6 +2682,7 @@ public final class FileSystemMasterTest {
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mInodeStore = mFileSystemMaster.getInodeStore();
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();

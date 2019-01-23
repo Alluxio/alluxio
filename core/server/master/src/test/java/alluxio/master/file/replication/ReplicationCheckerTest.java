@@ -134,7 +134,8 @@ public final class ReplicationCheckerTest {
     UfsManager manager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(manager, mock(MountInfo.class));
     InodeLockManager lockManager = new InodeLockManager();
-    mInodeStore = context.getInodeStoreFactory().apply(new InodeStoreArgs(lockManager));
+    mInodeStore = context.getInodeStoreFactory()
+        .apply(new InodeStoreArgs(lockManager, Configuration.global()));
     mInodeTree =
         new InodeTree(mInodeStore, mBlockMaster, directoryIdGenerator, mountTable, lockManager);
 

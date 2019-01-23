@@ -11,6 +11,7 @@
 
 package alluxio.master.metastore.java;
 
+import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.master.metastore.BlockStore;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
@@ -36,7 +37,13 @@ public class HeapBlockStore implements BlockStore {
   // Map from block id to block metadata.
   public final Map<Long, BlockMeta> mBlocks = new ConcurrentHashMap<>();
   // Map from block id to block locations.
-  public final Map<Long, Map<Long, BlockLocation>> mBlockLocations = new ConcurrentHashMap<>();
+  public final TwoKeyConcurrentMap<Long, Long, BlockLocation, Map<Long, BlockLocation>>
+      mBlockLocations = new TwoKeyConcurrentMap<>(() -> new HashMap<>(4));
+
+  /**
+   * @param args block store args
+   */
+  public HeapBlockStore(BlockStoreArgs args) {}
 
   @Override
   public Optional<BlockMeta> getBlock(long id) {
@@ -85,25 +92,11 @@ public class HeapBlockStore implements BlockStore {
 
   @Override
   public void addLocation(long blockId, BlockLocation location) {
-    mBlockLocations.compute(blockId, (key, locations) -> {
-      if (locations == null) {
-        locations = new HashMap<>(4);
-      }
-      locations.put(location.getWorkerId(), location);
-      return locations;
-    });
+    mBlockLocations.addInnerValue(blockId, location.getWorkerId(), location);
   }
 
   @Override
   public void removeLocation(long blockId, long workerId) {
-    mBlockLocations.compute(blockId, (key, locations) -> {
-      if (locations != null) {
-        locations.remove(workerId);
-        if (locations.isEmpty()) {
-          return null;
-        }
-      }
-      return locations;
-    });
+    mBlockLocations.removeInnerValue(blockId, workerId);
   }
 }

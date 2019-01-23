@@ -76,8 +76,8 @@ public class MasterTestUtils {
         .setJournalSystem(journalSystem)
         .setSafeModeManager(safeModeManager)
         .setBackupManager(mock(BackupManager.class))
-        .setBlockStoreFactory(args -> new HeapBlockStore())
-        .setInodeStoreFactory(args -> new HeapInodeStore())
+        .setBlockStoreFactory(args -> new HeapBlockStore(args))
+        .setInodeStoreFactory(args -> new HeapInodeStore(args))
         .setStartTimeMs(startTimeMs)
         .setPort(port)
         .build();

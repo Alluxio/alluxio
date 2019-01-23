@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -118,7 +119,8 @@ public final class InodeTreeTest {
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
     InodeLockManager lockManager = new InodeLockManager();
-    mInodeStore = context.getInodeStoreFactory().apply(new InodeStoreArgs(lockManager));
+    mInodeStore = context.getInodeStoreFactory()
+        .apply(new InodeStoreArgs(lockManager, Configuration.global()));
     mTree = new InodeTree(mInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);
 
     mRegistry.start(true);

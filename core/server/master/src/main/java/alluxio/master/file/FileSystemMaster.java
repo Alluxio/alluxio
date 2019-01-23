@@ -26,7 +26,6 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
-import alluxio.wire.SyncPointInfo;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.options.CheckConsistencyOptions;
@@ -51,6 +50,7 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SetAclAction;
+import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;

@@ -11,12 +11,17 @@
 
 package alluxio.master.metastore;
 
-import alluxio.master.file.meta.InodeDirectoryView;
+import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeDirectoryView;
+import alluxio.master.file.meta.MutableInode;
+
+import com.google.common.annotations.VisibleForTesting;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Read-only access to the inode store.
@@ -52,6 +57,12 @@ public interface ReadOnlyInodeStore {
   }
 
   /**
+   * Returns an iterator over the children of the specified inode.
+   *
+   * The iterator is weakly consistent. It can operate in the presence of concurrent modification,
+   * but it is undefined whether concurrently removed inodes will be excluded or whether
+   * concurrently added inodes will be included.
+   *
    * @param inodeId an inode id
    * @return an iterable over the children of the inode with the given id
    */
@@ -136,4 +147,16 @@ public interface ReadOnlyInodeStore {
    * @return whether the inode has any children
    */
   boolean hasChildren(InodeDirectoryView inode);
+
+  /**
+   * @return all edges in the inode store
+   */
+  @VisibleForTesting
+  Set<EdgeEntry> allEdges();
+
+  /**
+   * @return all inodes in the inode store
+   */
+  @VisibleForTesting
+  Set<MutableInode<?>> allInodes();
 }

@@ -11,6 +11,7 @@
 
 package alluxio.master.metastore;
 
+import alluxio.AlluxioConfiguration;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeView;
@@ -24,6 +25,9 @@ import java.util.function.Function;
  *
  * The inode store manages metadata about individual inodes, as well as the parent-child
  * relationships between them.
+ *
+ * Writes to the inode store happen atomically, so it is safe to concurrently read and write the
+ * same key. It is undefined whether the read will see the old value or the new value.
  */
 public interface InodeStore extends ReadOnlyInodeStore {
   /**
@@ -54,7 +58,19 @@ public interface InodeStore extends ReadOnlyInodeStore {
   }
 
   /**
+   * Removes an inode and the edge leading to it from the inode store.
+   *
+   * @param inode an inode to remove
+   */
+  default void removeInodeAndParentEdge(InodeView inode) {
+    remove(inode);
+    removeChild(inode.getParentId(), inode.getName());
+  }
+
+  /**
    * Adds the given inode, or overwrites it if it already exists.
+   *
+   * If it is known that the inode is new, prefer {@link #writeNewInode(MutableInode)}.
    *
    * @param inode the inode to write
    */
@@ -62,6 +78,9 @@ public interface InodeStore extends ReadOnlyInodeStore {
 
   /**
    * Adds a new inode.
+   *
+   * This method is similar to {@link #writeInode(MutableInode)}, but with an added information that
+   * the inode is new. This allows some inode stores to perform extra optimizations.
    *
    * @param inode the inode to write
    */
@@ -121,6 +140,9 @@ public interface InodeStore extends ReadOnlyInodeStore {
 
   /**
    * Used to perform batched writes. Call {@link #createWriteBatch()} to use batched writes.
+   *
+   * Applying a write batch is functionally equivalent to applying all of the write batch's
+   * modifications one by one.
    */
   interface WriteBatch {
     /**
@@ -162,16 +184,19 @@ public interface InodeStore extends ReadOnlyInodeStore {
   }
 
   /**
-   * Inode store arguments.
+   * Arguments for creating an inode store.
    */
   class InodeStoreArgs {
     private final InodeLockManager mLockManager;
+    private final AlluxioConfiguration mConf;
 
     /**
      * @param lockManager inode lock manager
+     * @param conf configuration
      */
-    public InodeStoreArgs(InodeLockManager lockManager) {
+    public InodeStoreArgs(InodeLockManager lockManager, AlluxioConfiguration conf) {
       mLockManager = lockManager;
+      mConf = conf;
     }
 
     /**
@@ -179,6 +204,13 @@ public interface InodeStore extends ReadOnlyInodeStore {
      */
     public InodeLockManager getLockManager() {
       return mLockManager;
+    }
+
+    /**
+     * @return the configuration
+     */
+    public AlluxioConfiguration getConf() {
+      return mConf;
     }
   }
 

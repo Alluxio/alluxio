@@ -13,14 +13,18 @@ package alluxio.master.metastore.java;
 
 import static java.util.stream.Collectors.toList;
 
+import alluxio.collections.TwoKeyConcurrentMap;
+import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.metastore.InodeStore;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -30,7 +34,13 @@ import java.util.concurrent.ConcurrentSkipListMap;
 public class HeapInodeStore implements InodeStore {
   private final Map<Long, MutableInode<?>> mInodes = new ConcurrentHashMap<>();
   // Map from inode id to ids of children of that inode. The inner maps are ordered by child name.
-  private final Map<Long, Map<String, Long>> mEdges = new ConcurrentHashMap<>();
+  private final TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>> mEdges =
+      new TwoKeyConcurrentMap<>(() -> new ConcurrentSkipListMap<>());
+
+  /**
+   * @param args inode store arguments
+   */
+  public HeapInodeStore(InodeStoreArgs args) {}
 
   @Override
   public void remove(Long inodeId) {
@@ -44,13 +54,12 @@ public class HeapInodeStore implements InodeStore {
 
   @Override
   public void addChild(long parentId, String childName, Long childId) {
-    mEdges.putIfAbsent(parentId, new ConcurrentSkipListMap<>());
-    mEdges.get(parentId).put(childName, childId);
+    mEdges.addInnerValue(parentId, childName, childId);
   }
 
   @Override
   public void removeChild(long parentId, String name) {
-    children(parentId).remove(name);
+    mEdges.removeInnerValue(parentId, name);
   }
 
   @Override
@@ -93,6 +102,16 @@ public class HeapInodeStore implements InodeStore {
   @Override
   public boolean hasChildren(InodeDirectoryView dir) {
     return !children(dir.getId()).isEmpty();
+  }
+
+  @Override
+  public Set<EdgeEntry> allEdges() {
+    return mEdges.flattenEntries((a, b, c) -> new EdgeEntry(a, b, c));
+  }
+
+  @Override
+  public Set<MutableInode<?>> allInodes() {
+    return new HashSet<>(mInodes.values());
   }
 
   @Override

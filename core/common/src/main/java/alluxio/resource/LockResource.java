@@ -33,18 +33,18 @@ public class LockResource implements Closeable {
    * @param lock the lock to acquire
    */
   public LockResource(Lock lock) {
-    this(lock, false);
+    this(lock, true);
   }
 
   /**
    * Creates a new instance of {@link LockResource} using the given lock.
    *
    * @param lock the lock to acquire
-   * @param alreadyLocked whether the lock resource needs to be locked, or is already locked
+   * @param acquireLock whether to lock the lock
    */
-  public LockResource(Lock lock, boolean alreadyLocked) {
+  public LockResource(Lock lock, boolean acquireLock) {
     mLock = lock;
-    if (!alreadyLocked) {
+    if (acquireLock) {
       mLock.lock();
     }
   }

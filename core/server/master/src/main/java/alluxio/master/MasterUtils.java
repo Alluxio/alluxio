@@ -68,9 +68,9 @@ final class MasterUtils {
     MetastoreType type = Configuration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
-        return lockManger -> new HeapBlockStore();
+        return args -> new HeapBlockStore(args);
       case ROCKS:
-        return args -> new RocksBlockStore(Configuration.global());
+        return args -> new RocksBlockStore(args);
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
     }
@@ -83,11 +83,14 @@ final class MasterUtils {
     MetastoreType type = Configuration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
-        return lockManger -> new HeapInodeStore();
+        return args -> new HeapInodeStore(args);
       case ROCKS:
         InstancedConfiguration conf = Configuration.global();
-        return args -> new CachingInodeStore(new RocksInodeStore(conf), args.getLockManager(),
-            conf);
+        if (conf.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE) == 0) {
+          return args -> new RocksInodeStore(args);
+        } else {
+          return args -> new CachingInodeStore(new RocksInodeStore(args), args);
+        }
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
     }

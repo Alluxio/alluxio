@@ -26,10 +26,12 @@ import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.java.HeapInodeStore;
 
 import com.google.common.collect.Iterables;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -49,12 +51,18 @@ public class CachingInodeStoreTest {
 
   @Before
   public void before() {
-    mBackingStore = spy(new HeapInodeStore());
-    mStore = new CachingInodeStore(mBackingStore, new InodeLockManager(),
+    InodeStoreArgs args = new InodeStoreArgs(new InodeLockManager(),
         InstancedConfiguration.newBuilder()
             .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE)
             .build());
+    mBackingStore = spy(new HeapInodeStore(args));
+    mStore = new CachingInodeStore(mBackingStore, args);
     mStore.writeNewInode(TEST_INODE_DIR);
+  }
+
+  @After
+  public void after() {
+    mStore.close();
   }
 
   @Test
@@ -132,6 +140,11 @@ public class CachingInodeStoreTest {
       assertTrue(mStore.getChild(TEST_INODE_DIR, "child" + id).isPresent());
     }
     verify(mBackingStore, Mockito.atLeastOnce()).getMutable(anyLong());
+  }
+
+  @Test
+  public void edgeIndexTest() {
+    // Runs many concurrent operations, then checks that the edge cache's indices are accurate.
   }
 
   private void verifyNoBackingStoreReads() {

@@ -11,10 +11,13 @@
 
 package alluxio.master.metastore;
 
+import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
+import alluxio.master.file.meta.MutableInode;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Wrapper for providing read-only access to an inode store.
@@ -77,5 +80,15 @@ public class DelegatingReadOnlyInodeStore implements ReadOnlyInodeStore {
   @Override
   public boolean hasChildren(InodeDirectoryView inode) {
     return mDelegate.hasChildren(inode);
+  }
+
+  @Override
+  public Set<EdgeEntry> allEdges() {
+    return mDelegate.allEdges();
+  }
+
+  @Override
+  public Set<MutableInode<?>> allInodes() {
+    return mDelegate.allInodes();
   }
 }

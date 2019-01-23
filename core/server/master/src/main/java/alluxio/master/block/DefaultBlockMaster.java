@@ -247,7 +247,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
-    mBlockStore = masterContext.getBlockStoreFactory().apply(new BlockStoreArgs());
+    mBlockStore =
+        masterContext.getBlockStoreFactory().apply(new BlockStoreArgs(Configuration.global()));
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);
