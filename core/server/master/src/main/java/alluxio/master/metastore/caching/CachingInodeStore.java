@@ -314,10 +314,11 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   private class EdgeCache extends Cache<Edge, Long> {
     private final ConcurrentSkipListMap<String, Long> mEmpty = new ConcurrentSkipListMap<>();
 
-    // Indexes non-removed cache entries by parent id
+    // Indexes non-removed cache entries by parent id. The inner map is from child name to child id
     private TwoKeyConcurrentMap<Long, String, Long, ConcurrentSkipListMap<String, Long>>
         mIdToChildMap = new TwoKeyConcurrentMap<>(() -> new ConcurrentSkipListMap<>());
-    // Indexes removed cache entries by parent id
+    // Indexes removed cache entries by parent id. The inner set contains the names of deleted
+    // children.
     private Map<Long, Set<String>> mUnflushedDeletes = new ConcurrentHashMap<>();
 
     public EdgeCache(CacheConfiguration conf) {
