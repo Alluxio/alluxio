@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  */
 public class TwoKeyConcurrentMap<K1, K2, V, M extends Map<K2, V>> extends ConcurrentHashMap<K1, M> {
   private static final long serialVersionUID = 0L;
-  
+
   private final Supplier<M> mInnerMapFn;
 
   /**
