@@ -84,7 +84,7 @@ export class App extends React.Component<AllProps> {
     }
 
     return (
-      <ConnectedRouter history={history as any}>
+      <ConnectedRouter history={history}>
         <div className="App pt-5 pb-4">
           <div className="container-fluid sticky-top header-wrapper">
             <Header history={history} data={headerNavigationData}
