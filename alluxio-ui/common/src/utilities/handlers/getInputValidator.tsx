@@ -20,7 +20,7 @@ export const getInputValidator = (elementId: string, elementName: string, fieldV
     const elementValue = element && element.getAttribute('value') || '';
     const errors = fieldValidatorFunctions.map((validator: FieldValidatorFunctionType) => validator(elementName, elementValue)).filter((value: string) => value !== '');
     this.setState((prevState: any) => {
-      if (errors.length) {
+      if (errors && errors.length) {
         return {validationErrors: {...prevState.validationErrors, ...{[elementId]: errors}}};
       }
 

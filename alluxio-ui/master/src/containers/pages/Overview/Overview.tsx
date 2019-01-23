@@ -87,7 +87,7 @@ export class Overview extends React.Component<AllProps> {
                   <th scope="row">Startup Consistency Check</th>
                   <td>{data.consistencyCheckStatus}</td>
                 </tr>
-                {this.renderInconsistendPaths(data.inconsistentPathItems)}
+                {this.renderInconsistentPaths(data.inconsistentPathItems)}
                 <tr>
                   <th scope="row">Server Configuration Check</th>
                   <td className={data.configCheckStatus === 'FAILED' ? 'text-danger' : ''}>
@@ -158,8 +158,8 @@ export class Overview extends React.Component<AllProps> {
     );
   }
 
-  private renderInconsistendPaths(paths: string[]) {
-    if (!paths.length) {
+  private renderInconsistentPaths(paths: string[]) {
+    if (!paths || !paths.length) {
       return null;
     }
 
@@ -174,7 +174,7 @@ export class Overview extends React.Component<AllProps> {
   }
 
   private renderConfigurationIssues(issues: IScopedPropertyInfo[], className: string) {
-    if (!issues.length) {
+    if (!issues || !issues.length) {
       return null;
     }
 

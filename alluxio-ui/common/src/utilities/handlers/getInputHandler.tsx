@@ -17,7 +17,7 @@ export type InputValidatorFunctionType = (this: any, event: React.FormEvent<HTML
 
 export const getInputHandler = (elementId: string, elementName: string, fieldValidatorFunctions: FieldValidatorFunctionsType) => {
   let inputValidatorFunction: InputValidatorFunctionType;
-  if (fieldValidatorFunctions.length) {
+  if (fieldValidatorFunctions && fieldValidatorFunctions.length) {
     inputValidatorFunction = getInputValidator(elementId, elementName, fieldValidatorFunctions);
   }
 
