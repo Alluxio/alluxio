@@ -58,25 +58,30 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
 
 #### Developing within the alluxio-ui project
 
+1. Follow the prerequisite instructions above.
 1. Enable CORS for the alluxio RESTful api endpoints by setting `alluxio.webui.enable.cors=true` in `conf/alluxio-site.properties`
-1. Start a development server in a different terminal for each package you intend to work on:
-    1. common-ui: `cd alluxio-ui/common-ui && npm run start`
-    1. master-ui: `cd alluxio-ui/master-ui && npm run start`
-    1. worker-ui: `cd alluxio-ui/worker-ui && npm run start`
+1. Start a development server in one of the following ways:
+    1. For all packages: `lerna run start --parallel --stream`
+    1. For each package independently:
+        1. common-ui: `cd alluxio-ui/common-ui && npm run start`
+        1. master-ui: `cd alluxio-ui/master-ui && npm run start`
+        1. worker-ui: `cd alluxio-ui/worker-ui && npm run start`
 
     This will open two browser windows with the common-ui at `http://localhost:3000`, the master-ui at `http://localhost:3001`, and the worker-ui at `http://localhost:3002`. Your work will be recompiled and updated as you make changes to each package. You will see compile-time errors in the terminal windows and runtime errors in the browser console.
 
-1. (Optionally) Start a test watcher in a different terminal for each package you intend to work on:
-    1. common-ui: `cd alluxio-ui/common-ui && npm run test`
-    1. master-ui: `cd alluxio-ui/master-ui && npm run test`
-    1. worker-ui: `cd alluxio-ui/worker-ui && npm run test`
+1. (Optionally) Start a test watcher for each package independently (using lerna for this is possible, but you will not be able to interact with the console):
+        1. common-ui: `cd alluxio-ui/common-ui && npm run test`
+        1. master-ui: `cd alluxio-ui/master-ui && npm run test`
+        1. worker-ui: `cd alluxio-ui/worker-ui && npm run test`
 
     This will continuously run your tests and will show you when tests pass or fail as you work.
 
-1. (Optionally) Execute a test coverage report to investigate places you could test further:
-    1. common-ui: `cd alluxio-ui/common-ui && npm run coverage`
-    1. master-ui: `cd alluxio-ui/master-ui && npm run coverage`
-    1. worker-ui: `cd alluxio-ui/worker-ui && npm run coverage`
+1. (Optionally) Run a test coverage report in one of the following ways:
+    1. For all packages: `lerna run coverage-ci`
+    1. For each package independently:
+        1. common-ui: `cd alluxio-ui/common-ui && npm run coverage`
+        1. master-ui: `cd alluxio-ui/master-ui && npm run coverage`
+        1. worker-ui: `cd alluxio-ui/worker-ui && npm run coverage`
 
     This will also generate a coverage report within each package: `common/coverage/lcov-report/index.html`, `master/coverage/lcov-report/index.html`, `worker/coverage/lcov-report/index.html`. You may also run `coverage-ci` instead of `coverage` in this step if you would like this to execute only once.
 
