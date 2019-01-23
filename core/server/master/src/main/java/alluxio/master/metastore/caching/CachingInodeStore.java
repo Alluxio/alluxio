@@ -686,8 +686,9 @@ public final class CachingInodeStore implements InodeStore, Closeable {
 
     private void evict() {
       long startTime = System.currentTimeMillis();
-      AtomicInteger toEvict = new AtomicInteger(mMap.size() - mLowWaterMark);
-      while (toEvict.get() > 0) {
+      int evictTarget = mMap.size() - mLowWaterMark;
+      AtomicInteger evicted = new AtomicInteger(0);
+      while (evicted.get() < evictTarget) {
         if (!mEvictionHead.hasNext()) {
           mEvictionHead = mMap.entrySet().iterator();
         }
@@ -702,7 +703,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
         mMap.compute(candidate.getKey(), (key, entry) -> {
           if (entry != null && entry.mChildren != null) {
             mWeight.addAndGet(-weight(entry));
-            toEvict.addAndGet(-weight(entry));
+            evicted.addAndGet(weight(entry));
             return null;
           }
           return entry;
@@ -711,7 +712,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
           break;
         }
       }
-      LOG.debug("Evicted weight={} from listing cache down to weight={} in {}ms", toEvict,
+      LOG.debug("Evicted weight={} from listing cache down to weight={} in {}ms", evicted.get(),
           mMap.size(), System.currentTimeMillis() - startTime);
     }
 
