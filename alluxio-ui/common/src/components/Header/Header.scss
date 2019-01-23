@@ -1,0 +1,75 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+.header {
+  .navbar {
+    padding: 0;
+
+    .navbar-brand {
+      padding: 0;
+
+      .headerLogo {
+        .brand {
+          padding: 0.25em;
+
+          .brandImage {
+            @media only screen {
+              img.brandSpin {
+                height: 1.75em;
+                width: 1.75em;
+                -webkit-animation: brandSpin 20s ease-in-out infinite;
+                -moz-animation: brandSpin 20s ease-in-out infinite;
+                animation: brandSpin 20s ease-in-out infinite;
+              }
+            }
+          }
+
+          .brandName {
+            color: #156fdb;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            transform: scaleY(0.8);
+            image-rendering: crisp-edges;
+          }
+        }
+
+        @keyframes brandSpin {
+          0%, 90% {
+            transform: rotateY(0deg);
+          }
+          95% {
+            transform: rotateY(90deg);
+          }
+          100% {
+            transform: rotateY(0deg);
+          }
+        }
+      }
+    }
+
+    .tabs {
+      margin-bottom: -0.9em;
+
+      .nav-tabs {
+        border: 0;
+
+        .nav-link {
+          padding: 0.25em 0.5em;
+        }
+
+        .auto-refresh-button {
+          margin-top: -1.125em;
+          margin-right: 0.33em;
+        }
+      }
+    }
+  }
+}

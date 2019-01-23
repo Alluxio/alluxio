@@ -30,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class WorkerNetAddress implements Serializable {
-  private static final long serialVersionUID = 5822347646342091434L;
+  private static final long serialVersionUID = 0L;
 
   private String mHost = "";
   private int mRpcPort;
