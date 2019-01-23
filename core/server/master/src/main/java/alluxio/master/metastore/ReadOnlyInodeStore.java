@@ -81,7 +81,8 @@ public interface ReadOnlyInodeStore {
         @Override
         public Inode next() {
           if (!hasNext()) {
-            throw new NoSuchElementException("No more inodes");
+            throw new NoSuchElementException(
+                "No more children in iterator for inode id " + inodeId);
           }
           Inode next = mNext;
           mNext = null;

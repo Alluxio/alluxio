@@ -18,6 +18,7 @@ import static org.junit.Assume.assumeTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.PropertyKey;
+import alluxio.conf.ConfigurationBuilder;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeLockManager;
@@ -49,7 +50,7 @@ public class InodeStoreTest {
 
   @Parameters
   public static Iterable<Supplier<InodeStore>> parameters() throws Exception {
-    InstancedConfiguration conf = InstancedConfiguration.newBuilder()
+    InstancedConfiguration conf = new ConfigurationBuilder()
         .setProperty(PropertyKey.MASTER_METASTORE_DIR,
             AlluxioTestDirectory.createTemporaryDirectory("inode-store-test"))
         .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE)

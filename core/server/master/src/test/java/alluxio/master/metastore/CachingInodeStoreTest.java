@@ -19,7 +19,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import alluxio.PropertyKey;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.ConfigurationBuilder;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.MutableInodeDirectory;
@@ -52,7 +52,7 @@ public class CachingInodeStoreTest {
   @Before
   public void before() {
     InodeStoreArgs args = new InodeStoreArgs(new InodeLockManager(),
-        InstancedConfiguration.newBuilder()
+        new ConfigurationBuilder()
             .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE)
             .build());
     mBackingStore = spy(new HeapInodeStore(args));

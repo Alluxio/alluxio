@@ -458,39 +458,4 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       super(msg);
     }
   }
-
-  /**
-   * @return a configuration builder
-   */
-  public static Builder newBuilder() {
-    return new Builder();
-  }
-
-  /**
-   * Class for building configuration.
-   */
-  public static class Builder {
-    private final AlluxioProperties mProperties = new AlluxioProperties();
-    /**
-     * Use {@link InstancedConfiguration#newBuilder()} instead.
-     */
-    private Builder() {}
-
-    /**
-     * @param key the property key to set
-     * @param value the value to set
-     * @return the updated configuration builder
-     */
-    public Builder setProperty(PropertyKey key, Object value) {
-      mProperties.put(key, value.toString(), Source.RUNTIME);
-      return this;
-    }
-
-    /**
-     * @return a constructed configuration
-     */
-    public InstancedConfiguration build() {
-      return new InstancedConfiguration(mProperties);
-    }
-  }
 }
