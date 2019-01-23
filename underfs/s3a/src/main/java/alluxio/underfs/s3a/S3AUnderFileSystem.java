@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -589,7 +591,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected InputStream openObject(String key, OpenOptions options) throws IOException {
     try {
-      return new S3AInputStream(mBucketName, key, mClient, options.getOffset());
+      RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+          (int) mUfsConf.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS),
+          (int) mUfsConf.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS),
+          mUfsConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM));
+      return new S3AInputStream(mBucketName, key, mClient, retryPolicy, options.getOffset());
     } catch (AmazonClientException e) {
       throw new IOException(e);
     }
