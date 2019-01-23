@@ -296,7 +296,8 @@ public abstract class Cache<K, V> implements Closeable {
     }
 
     /**
-     * @param batchSize the target number of entries to evict
+     * @param batchSize the target number of entries to evict. If batchSize is less than 1, no
+     *        entries will be evicted
      * @return the number of entries evicted
      */
     private int evictBatch(int batchSize) {
