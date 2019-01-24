@@ -14,8 +14,8 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.job.JobGrpcClientUtils;
+import alluxio.client.file.FileSystem;
+import alluxio.client.job.JobThriftClientUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.migrate.MigrateConfig;
@@ -26,21 +26,21 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 
 /**
- * Moves a file or directory specified by args.
+ * Copies a file or directory specified by args.
  */
 @ThreadSafe
-public final class DistributedMvCommand extends AbstractFileSystemCommand {
+public final class DistributedCpCommand extends AbstractFileSystemCommand {
 
   /**
-   * @param fsContext the filesystem of Alluxio
+   * @param fs the filesystem of Alluxio
    */
-  public DistributedMvCommand(FileSystemContext fsContext) {
-    super(fsContext);
+  public DistributedCpCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
   public String getCommandName() {
-    return "distributedMv";
+    return "distributedCp";
   }
 
   @Override
@@ -53,38 +53,27 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
-<<<<<<< HEAD
-    if (mFileSystem.exists(dstPath)) {
-      throw new RuntimeException(dstPath + " already exists");
-    }
-    Thread thread = JobGrpcClientUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
-    thread.start();
-    try {
-      JobGrpcClientUtils.run(new MoveConfig(srcPath.getPath(), dstPath.getPath(), null, true),
-          3, mFsContext.getConf());
-=======
     Thread thread = JobThriftClientUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
     thread.start();
     try {
-      JobThriftClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(), null, true, true), 3);
->>>>>>> 7e9fabe811... [AE-588] Distributed copy (#1550)
+      JobThriftClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(), null, true, false), 3);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;
     } finally {
       thread.interrupt();
     }
-    System.out.println("Moved " + srcPath + " to " + dstPath);
+    System.out.println("Copied " + srcPath + " to " + dstPath);
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "distributedMv <src> <dst>";
+    return "distributedCp <src> <dst>";
   }
 
   @Override
   public String getDescription() {
-    return "Moves a file or directory in parallel at file level.";
+    return "Copies a file or directory in parallel at file level.";
   }
 }
