@@ -50,11 +50,10 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
       Metadata headers, ServerCallHandler<ReqT, RespT> next) {
     /**
      * For streaming calls, below will make sure authenticated user is injected prior to creating
-     * the stream.
+     * the stream. If the call gets closed during authentication, the listener we return below
+     * will not continue.
      */
-    if (!authenticateCall(call, headers)) {
-      return next.startCall(call, headers);
-    }
+    authenticateCall(call, headers);
 
     /**
      * For non-streaming calls to server, below listener will be invoked in the same thread that is
@@ -74,7 +73,7 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
   private <ReqT, RespT> boolean authenticateCall(ServerCall<ReqT, RespT> call, Metadata headers) {
     // Try to fetch channel Id from the metadata.
     UUID channelId = headers.get(ChannelIdInjector.S_CLIENT_ID_KEY);
-    boolean callClosed = false;
+    boolean callAuthenticated = false;
     if (channelId != null) {
       try {
         // Fetch authenticated username for this channel and set it.
@@ -84,18 +83,17 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
         } else {
           AuthenticatedClientUser.remove();
         }
+        callAuthenticated = true;
       } catch (UnauthenticatedException e) {
         LOG.debug("Channel:{} is not authenticated for call:{}", channelId.toString(),
             call.getMethodDescriptor().getFullMethodName());
         call.close(Status.UNAUTHENTICATED, headers);
-        callClosed = true;
       }
     } else {
       LOG.debug("Channel Id is missing for call:{}.",
           call.getMethodDescriptor().getFullMethodName());
       call.close(Status.UNAUTHENTICATED, headers);
-      callClosed = true;
     }
-    return !callClosed;
+    return callAuthenticated;
   }
 }
