@@ -170,6 +170,9 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
         Sets.newHashSet(status0.getFileId(), status3.getFileId()));
   }
 
+  /**
+   * Make sure Pinning and Unpinning would recursively sync the directory if ufs sync is on.
+   */
   @Test
   public void pinDiscoverNewFiles() throws Exception {
     final String deeplyNestedDir = "/tmp/tmp2/tmp3";
