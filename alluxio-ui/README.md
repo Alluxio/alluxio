@@ -87,4 +87,4 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
 
 ### Shrinkwrapping dependencies
 
-Once changes are tested and things work as planned, please run `npm shrinkwrap` to lock package dependency versions.
+Once changes are tested and things work as planned, please run `npm shrinkwrap && lerna exec npm shrinkwrap` to lock package dependency versions.
