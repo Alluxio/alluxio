@@ -302,7 +302,8 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected InputStream openObject(String key, OpenOptions options) throws IOException {
     try {
-      return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset());
+      return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset(),
+          mAlluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     } catch (CosClientException e) {
       throw new IOException(e.getMessage());
     }

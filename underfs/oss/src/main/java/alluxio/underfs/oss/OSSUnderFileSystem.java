@@ -280,7 +280,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected InputStream openObject(String key, OpenOptions options) throws IOException {
     try {
-      return new OSSInputStream(mBucketName, key, mClient, options.getOffset());
+      return new OSSInputStream(mBucketName, key, mClient, options.getOffset(),
+          mAlluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     } catch (ServiceException e) {
       throw new IOException(e.getMessage());
     }
