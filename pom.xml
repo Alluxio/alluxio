@@ -1177,8 +1177,6 @@
             <exclude>**/src/main/java/alluxio/proto/**</exclude>
             <exclude>**/src/main/java/alluxio/grpc/**</exclude>
             <exclude>**/src/main/resources/*</exclude>
-            <exclude>**/src/main/webapp/css/*</exclude>
-            <exclude>**/src/main/webapp/js/*</exclude>
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
@@ -1337,32 +1335,6 @@
       </properties>
     </profile>
 
-    <!-- profile that compiles jsp files -->
-    <profile>
-      <id>compileJsp</id>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.apache.sling</groupId>
-              <artifactId>maven-jspc-plugin</artifactId>
-              <executions>
-                <execution>
-                  <phase>prepare-package</phase>
-                  <id>compile-jsp</id>
-                  <goals>
-                    <goal>jspc</goal>
-                  </goals>
-                  <configuration>
-                    <sourceDirectory>src/main/webapp</sourceDirectory>
-                  </configuration>
-                </execution>
-              </executions>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
     <profile>
       <id>generateDocs</id>
       <build>
