@@ -12,25 +12,48 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+<<<<<<< HEAD
 import alluxio.client.WriteType;
+||||||| parent of 4713811569... [SMALLFIX]  Ensure pinning and unpinning to recursively sync before the pin and unpin (#8303)
+=======
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+>>>>>>> 4713811569... [SMALLFIX]  Ensure pinning and unpinning to recursively sync before the pin and unpin (#8303)
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
+<<<<<<< HEAD
+||||||| parent of 4713811569... [SMALLFIX]  Ensure pinning and unpinning to recursively sync before the pin and unpin (#8303)
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.WritePType;
+=======
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.WritePType;
+>>>>>>> 4713811569... [SMALLFIX]  Ensure pinning and unpinning to recursively sync before the pin and unpin (#8303)
 import alluxio.master.MasterClientConfig;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.LoadMetadataType;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
 
@@ -40,18 +63,42 @@ import java.util.HashSet;
 public final class PinIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH").build();
   private FileSystem mFileSystem = null;
   private FileSystemMasterClient mFSMasterClient;
+<<<<<<< HEAD
   private SetAttributeOptions mSetPinned;
   private SetAttributeOptions mUnsetPinned;
+||||||| parent of 4713811569... [SMALLFIX]  Ensure pinning and unpinning to recursively sync before the pin and unpin (#8303)
+  private SetAttributePOptions mSetPinned;
+  private SetAttributePOptions mUnsetPinned;
+=======
+  private SetAttributePOptions mSetPinned;
+  private SetAttributePOptions mUnsetPinned;
+  private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
+
+  private static final FileSystemMasterCommonPOptions SYNC_ALWAYS =
+      FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
+  private static final FileSystemMasterCommonPOptions SYNC_NEVER =
+      FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build();
+>>>>>>> 4713811569... [SMALLFIX]  Ensure pinning and unpinning to recursively sync before the pin and unpin (#8303)
 
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mFSMasterClient = new FileSystemMasterClient(MasterClientConfig.defaults());
+<<<<<<< HEAD
     mSetPinned = SetAttributeOptions.defaults().setPinned(true);
     mUnsetPinned = SetAttributeOptions.defaults().setPinned(false);
+||||||| parent of 4713811569... [SMALLFIX]  Ensure pinning and unpinning to recursively sync before the pin and unpin (#8303)
+    mSetPinned = SetAttributePOptions.newBuilder().setPinned(true).build();
+    mUnsetPinned = SetAttributePOptions.newBuilder().setPinned(false).build();
+=======
+    mSetPinned = SetAttributePOptions.newBuilder().setPinned(true).build();
+    mUnsetPinned = SetAttributePOptions.newBuilder().setPinned(false).build();
+    mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI(mLocalUfsPath));
+>>>>>>> 4713811569... [SMALLFIX]  Ensure pinning and unpinning to recursively sync before the pin and unpin (#8303)
   }
 
   @After
@@ -152,6 +199,39 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(status3.isPinned());
     Assert.assertEquals(new HashSet<>(mFSMasterClient.getPinList()),
         Sets.newHashSet(status0.getFileId(), status3.getFileId()));
+  }
+
+  /**
+   * Make sure Pinning and Unpinning would recursively sync the directory if ufs sync is on.
+   */
+  @Test
+  public void pinDiscoverNewFiles() throws Exception {
+    String deeplyNestedDir = "/tmp/tmp2/tmp3";
+
+    // Create a dir
+    new File(ufsPath(deeplyNestedDir)).mkdirs();
+    // Write a file in UFS
+    FileWriter fileWriter = new FileWriter(ufsPath(PathUtils.concatPath(deeplyNestedDir,
+        "/newfile")));
+    fileWriter.write("test");
+    fileWriter.close();
+
+    SetAttributePOptions attributeOption = SetAttributePOptions.newBuilder().setPinned(true)
+        .setCommonOptions(SYNC_ALWAYS).build();
+    GetStatusPOptions getStatusOption = GetStatusPOptions.newBuilder()
+        .setCommonOptions(SYNC_NEVER).build();
+    // Pin the dir
+    mFileSystem.setAttribute(new AlluxioURI("/mnt/tmp/"), attributeOption);
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Never.toString());
+    URIStatus dirStat = mFileSystem.getStatus(new AlluxioURI("/mnt/tmp/"), getStatusOption);
+    URIStatus fileStat = mFileSystem.getStatus(new AlluxioURI(PathUtils.concatPath("/mnt" ,
+        deeplyNestedDir, "newfile")), getStatusOption);
+    Assert.assertTrue(dirStat.isPinned());
+    Assert.assertTrue(fileStat.isPinned());
+  }
+
+  private String ufsPath(String path) {
+    return PathUtils.concatPath(mLocalUfsPath, path);
   }
 
   private void createEmptyFile(AlluxioURI fileURI) throws IOException, AlluxioException {
