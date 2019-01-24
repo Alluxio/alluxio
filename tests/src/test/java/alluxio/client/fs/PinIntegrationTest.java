@@ -26,6 +26,7 @@ import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientConfig;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.LoadMetadataType;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -56,9 +57,9 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
   private SetAttributePOptions mUnsetPinned;
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 
-  private static final FileSystemMasterCommonPOptions PSYNC_ALWAYS =
+  private static final FileSystemMasterCommonPOptions SYNC_ALWAYS =
       FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
-  private static final FileSystemMasterCommonPOptions PSYNC_NEVER =
+  private static final FileSystemMasterCommonPOptions SYNC_NEVER =
       FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build();
 
   @Before
@@ -175,31 +176,31 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void pinDiscoverNewFiles() throws Exception {
-    final String deeplyNestedDir = "/tmp/tmp2/tmp3";
+    String deeplyNestedDir = "/tmp/tmp2/tmp3";
 
     // Create a dir
     new File(ufsPath(deeplyNestedDir)).mkdirs();
     // Write a file in UFS
-    FileWriter fileWriter = new FileWriter(ufsPath(deeplyNestedDir + "/newfile"));
+    FileWriter fileWriter = new FileWriter(ufsPath(PathUtils.concatPath(deeplyNestedDir,"/newfile")));
     fileWriter.write("test");
     fileWriter.close();
 
     SetAttributePOptions attributeOption = SetAttributePOptions.newBuilder().setPinned(true)
-        .setCommonOptions(PSYNC_ALWAYS).build();
+        .setCommonOptions(SYNC_ALWAYS).build();
     GetStatusPOptions getStatusOption = GetStatusPOptions.newBuilder()
-        .setCommonOptions(PSYNC_NEVER).build();
+        .setCommonOptions(SYNC_NEVER).build();
     // Pin the dir
     mFileSystem.setAttribute(new AlluxioURI("/mnt/tmp/"), attributeOption);
     Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Never.toString());
     URIStatus dirStat = mFileSystem.getStatus(new AlluxioURI("/mnt/tmp/"), getStatusOption);
-    URIStatus fileStat = mFileSystem.getStatus(new AlluxioURI("/mnt" + deeplyNestedDir
-        + "/newfile"), getStatusOption);
+    URIStatus fileStat = mFileSystem.getStatus(new AlluxioURI(PathUtils.concatPath("/mnt" ,
+        deeplyNestedDir, "newfile")), getStatusOption);
     Assert.assertTrue(dirStat.isPinned());
     Assert.assertTrue(fileStat.isPinned());
   }
 
   private String ufsPath(String path) {
-    return mLocalUfsPath + path;
+    return PathUtils.concatPath(mLocalUfsPath, path);
   }
 
   private void createEmptyFile(AlluxioURI fileURI) throws IOException, AlluxioException {

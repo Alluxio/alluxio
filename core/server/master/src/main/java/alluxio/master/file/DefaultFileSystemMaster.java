@@ -3003,8 +3003,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
              createAuditContext(commandName, path, null, inodePath.getInodeOrNull())) {
       mMountTable.checkUnderWritableMountPoint(path);
       // Force recursive sync metadata if it is a pinning and unpinning operation
-      boolean recursiveSync = options.hasPinned();
-      recursiveSync = recursiveSync || options.getRecursive();
+      boolean recursiveSync = options.hasPinned() || options.getRecursive();
 
       // Possible ufs sync.
       syncMetadata(rpcContext, inodePath, lockingScheme,
