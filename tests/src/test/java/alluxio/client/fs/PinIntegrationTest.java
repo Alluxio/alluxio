@@ -181,7 +181,8 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
     // Create a dir
     new File(ufsPath(deeplyNestedDir)).mkdirs();
     // Write a file in UFS
-    FileWriter fileWriter = new FileWriter(ufsPath(PathUtils.concatPath(deeplyNestedDir,"/newfile")));
+    FileWriter fileWriter = new FileWriter(ufsPath(PathUtils.concatPath(deeplyNestedDir,
+        "/newfile")));
     fileWriter.write("test");
     fileWriter.close();
 
