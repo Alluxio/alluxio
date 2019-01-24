@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.metastore;
+package alluxio.master.metastore.caching;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -26,8 +27,8 @@ import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.InodeStore.InodeStoreArgs;
-import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.java.HeapInodeStore;
 
 import com.google.common.collect.Iterables;
@@ -37,8 +38,13 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CachingInodeStoreTest {
   private static final long CACHE_SIZE = 20;
@@ -143,8 +149,68 @@ public class CachingInodeStoreTest {
   }
 
   @Test
-  public void edgeIndexTest() {
-    // Runs many concurrent operations, then checks that the edge cache's indices are accurate.
+  public void edgeIndexTest() throws Exception {
+    // Run many concurrent operations, then check that the edge cache's indices are accurate.
+    long endTimeMs = System.currentTimeMillis() + 200;
+    ThreadLocalRandom random = ThreadLocalRandom.current();
+    List<MutableInodeDirectory> dirs = new ArrayList<>();
+    for (int i = 1; i < 5; i++) {
+      MutableInodeDirectory dir = inodeDir(i, 0);
+      dirs.add(dir);
+      mStore.writeInode(dir);
+      mStore.addChild(TEST_INODE_ID, dir);
+    }
+
+    AtomicInteger operations = new AtomicInteger(0);
+    ExecutorService executor = Executors.newFixedThreadPool(10);
+    int numThreads = 10;
+    executor.invokeAll(Collections.nCopies(numThreads, () -> {
+      while (operations.get() < 10_000 || System.currentTimeMillis() < endTimeMs) {
+        // Sometimes add, sometimes delete.
+        if (random.nextBoolean()) {
+          MutableInodeDirectory dir = inodeDir(random.nextLong(10, 15), random.nextLong(1, 5));
+          mStore.writeInode(dir);
+          mStore.addChild(dir.getParentId(), dir);
+        } else {
+          mStore.removeChild(dirs.get(random.nextInt(dirs.size())).getId(),
+              Long.toString(random.nextLong(10, 15)));
+        }
+        operations.incrementAndGet();
+        assertTrue(mStore.mEdgeCache.mMap.size() <= CACHE_SIZE + numThreads);
+      }
+      return null;
+    }));
+    alluxio.util.CommonUtils.waitFor("eviction thread to finish",
+        () -> mStore.mEdgeCache.mEvictionThread.mIsSleeping);
+    mStore.mEdgeCache.verifyIndices();
+  }
+
+  @Test
+  public void listingCacheManyDirsEviction() throws Exception {
+    for (int i = 1; i < CACHE_SIZE * 3; i++) {
+      mStore.writeNewInode(inodeDir(i, TEST_INODE_ID));
+    }
+    assertFalse(mStore.mListingCache.getCachedChildIds(TEST_INODE_ID).isPresent());
+  }
+
+  @Test
+  public void listingCacheBigDirEviction() throws Exception {
+    MutableInodeDirectory bigDir = inodeDir(1, 0);
+    mStore.writeNewInode(bigDir);
+    long dirSize = CACHE_SIZE;
+    for (int i = 2; i < 2 + CACHE_SIZE; i++) {
+      mStore.addChild(bigDir.getId(), inodeDir(i, bigDir.getId()));
+    }
+    // Cache the large directory
+    assertEquals(dirSize, Iterables.size(mStore.getChildIds(bigDir.getId())));
+    // Perform another operation to trigger eviction
+    mStore.addChild(bigDir.getId(), inodeDir(10000, bigDir.getId()));
+    assertFalse(mStore.mListingCache.getCachedChildIds(TEST_INODE_ID).isPresent());
+  }
+
+  private static MutableInodeDirectory inodeDir(long id, long parentId) {
+    return MutableInodeDirectory.create(id, parentId, Long.toString(id),
+        CreateDirectoryOptions.defaults());
   }
 
   private void verifyNoBackingStoreReads() {

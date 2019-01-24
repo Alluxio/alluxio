@@ -63,10 +63,12 @@ public abstract class Cache<K, V> implements Closeable {
   private final int mLowWaterMark;
   private final int mEvictBatchSize;
   private final String mName;
-  private final ConcurrentHashMap<K, Entry> mMap;
+  @VisibleForTesting
+  final ConcurrentHashMap<K, Entry> mMap;
   // TODO(andrew): Support using multiple threads to speed up backing store writes.
   // Thread for performing eviction to the backing store.
-  private final EvictionThread mEvictionThread;
+  @VisibleForTesting
+  final EvictionThread mEvictionThread;
 
   /**
    * @param conf cache configuration
@@ -195,7 +197,7 @@ public abstract class Cache<K, V> implements Closeable {
   }
 
   private boolean overLowWaterMark() {
-    return mMap.size() >= mLowWaterMark;
+    return mMap.size() > mLowWaterMark;
   }
 
   private boolean overHighWaterMark() {
@@ -235,10 +237,12 @@ public abstract class Cache<K, V> implements Closeable {
     }
   }
 
-  private class EvictionThread extends Thread {
+  @VisibleForTesting
+  class EvictionThread extends Thread {
     private final TemporalAmount mWarnInterval = Duration.ofSeconds(30);
 
-    private volatile boolean mIsSleeping = true;
+    @VisibleForTesting
+    volatile boolean mIsSleeping = true;
 
     private Iterator<Entry> mEvictionHead = Collections.emptyIterator();
     private Instant mNextAllowedSizeWarning = Instant.EPOCH;
@@ -275,8 +279,9 @@ public abstract class Cache<K, V> implements Closeable {
 
     private void evictToLowWaterMark() {
       Instant evictionStart = Instant.now();
+      int toEvict = mMap.size() - mLowWaterMark;
       int evictionCount = 0;
-      while (overLowWaterMark()) {
+      while (evictionCount < toEvict) {
         if (cacheIsFull()) {
           Instant now = Instant.now();
           if (now.isAfter(mNextAllowedSizeWarning)) {
@@ -287,7 +292,7 @@ public abstract class Cache<K, V> implements Closeable {
             mNextAllowedSizeWarning = now.plus(mWarnInterval);
           }
         }
-        evictionCount += evictBatch(Math.min(mMap.size() - mLowWaterMark, mEvictBatchSize));
+        evictionCount += evictBatch(Math.min(toEvict - evictionCount, mEvictBatchSize));
       }
       if (evictionCount > 0) {
         LOG.debug("{}: Evicted {} entries in {}ms", mName, evictionCount,

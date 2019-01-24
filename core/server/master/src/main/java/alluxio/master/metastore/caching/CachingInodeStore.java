@@ -91,9 +91,11 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   private final InodeCache mInodeCache;
 
   // Cache recently-accessed inode tree edges.
-  private final EdgeCache mEdgeCache;
+  @VisibleForTesting
+  final EdgeCache mEdgeCache;
 
-  private final ListingCache mListingCache;
+  @VisibleForTesting
+  final ListingCache mListingCache;
 
   // Starts true, but becomes permanently false if we ever need to spill metadata to the backing
   // store. When true, we can optimize lookups for non-existent inodes because we don't need to
@@ -311,15 +313,18 @@ public final class CachingInodeStore implements InodeStore, Closeable {
    * parent id. Removal entries exist for edges which have been removed from the cache, but not yet
    * removed from the backing store.
    */
-  private class EdgeCache extends Cache<Edge, Long> {
+  @VisibleForTesting
+  class EdgeCache extends Cache<Edge, Long> {
     private final ConcurrentSkipListMap<String, Long> mEmpty = new ConcurrentSkipListMap<>();
 
     // Indexes non-removed cache entries by parent id. The inner map is from child name to child id
-    private TwoKeyConcurrentMap<Long, String, Long, ConcurrentSkipListMap<String, Long>>
+    @VisibleForTesting
+    TwoKeyConcurrentMap<Long, String, Long, ConcurrentSkipListMap<String, Long>>
         mIdToChildMap = new TwoKeyConcurrentMap<>(() -> new ConcurrentSkipListMap<>());
     // Indexes removed cache entries by parent id. The inner set contains the names of deleted
     // children.
-    private Map<Long, Set<String>> mUnflushedDeletes = new ConcurrentHashMap<>();
+    @VisibleForTesting
+    Map<Long, Set<String>> mUnflushedDeletes = new ConcurrentHashMap<>();
 
     public EdgeCache(CacheConfiguration conf) {
       super(conf, "edge-cache");
@@ -517,6 +522,38 @@ public final class CachingInodeStore implements InodeStore, Closeable {
               .collect(toSet());
       return Sets.union(cacheEntries, backingStoreEntries);
     }
+
+    @VisibleForTesting
+    void verifyIndices() {
+      mMap.forEachValue(1, entry -> {
+        if (entry.mValue == null) {
+          if (!mUnflushedDeletes.get(entry.mKey.getId()).contains(entry.mKey.getName())) {
+            throw new IllegalStateException(
+                "Missing entry " + entry.mKey + " in unflushed deletes index");
+          }
+        } else {
+          if (mIdToChildMap.get(entry.mKey.getId()).get(entry.mKey.getName()) != entry.mValue) {
+            throw new IllegalStateException(String
+                .format("Missing entry %s=%s from id to child map", entry.mKey, entry.mValue));
+          }
+        }
+      });
+      mIdToChildMap.flattenEntries((parentId, childName, childId) -> {
+        if (mMap.get(new Edge(parentId, childName)).mValue != childId) {
+          throw new IllegalStateException(String.format(
+              "Entry %s->%s=%s exists in the index but not the map", parentId, childName, childId));
+        }
+        return null;
+      });
+      mUnflushedDeletes.forEach((id, names) -> {
+        for (String name : names) {
+          if (mMap.get(new Edge(id, name)).mValue != null) {
+            throw new IllegalStateException(String.format(
+                "Entry %s->%s exists in the unflushed index but not in the map", id, name));
+          }
+        }
+      });
+    }
   }
 
   /**
@@ -542,7 +579,8 @@ public final class CachingInodeStore implements InodeStore, Closeable {
    * the listing. Once the weight reaches the high water mark, the first thread to acquire the
    * eviction lock will evict down to the low watermark before computing and caching its result.
    */
-  private class ListingCache {
+  @VisibleForTesting
+  class ListingCache {
     private final int mMaxSize;
     private final int mHighWaterMark;
     private final int mLowWaterMark;
@@ -568,7 +606,9 @@ public final class CachingInodeStore implements InodeStore, Closeable {
      * @param inodeId the inode id of the directory
      */
     public void addEmptyDirectory(long inodeId) {
+      evictIfNecessary();
       mMap.computeIfAbsent(inodeId, x -> {
+        mWeight.incrementAndGet();
         ListingCacheEntry entry = new ListingCacheEntry();
         entry.mChildren = new ConcurrentSkipListMap<>();
         return entry;
@@ -582,11 +622,11 @@ public final class CachingInodeStore implements InodeStore, Closeable {
      * @param childId the child of the edge
      */
     public void addEdge(Edge edge, Long childId) {
-      mMap.compute(edge.getId(), (key, entry) -> {
-        if (entry != null) {
-          entry.mModified = true;
-          entry.addChild(edge.getName(), childId);
-        }
+      evictIfNecessary();
+      mMap.computeIfPresent(edge.getId(), (key, entry) -> {
+        mWeight.incrementAndGet();
+        entry.mModified = true;
+        entry.addChild(edge.getName(), childId);
         return entry;
       });
     }
@@ -597,11 +637,10 @@ public final class CachingInodeStore implements InodeStore, Closeable {
      * @param edge the removed edge
      */
     public void removeEdge(Edge edge) {
-      mMap.compute(edge.getId(), (key, entry) -> {
-        if (entry != null) {
-          entry.mModified = true;
-          entry.removeChild(edge.getName());
-        }
+      mMap.computeIfPresent(edge.getId(), (key, entry) -> {
+        mWeight.incrementAndGet();
+        entry.mModified = true;
+        entry.removeChild(edge.getName());
         return entry;
       });
     }
@@ -655,38 +694,38 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     }
 
     private SortedMap<String, Long> loadChildren(Long inodeId, ListingCacheEntry entry) {
+      evictIfNecessary();
       entry.mModified = false;
-      if (mWeight.get() > mHighWaterMark) {
-        if (mEvictionLock.tryLock()) {
-          try {
-            evict();
-          } finally {
-            mEvictionLock.unlock();
-          }
-        } else {
-          if (mWeight.get() >= mMaxSize) {
-            // Cache is full and someone else is evicting, so we skip caching altogether.
-            return mEdgeCache.getChildIds(inodeId);
-          }
-        }
-      }
-
       SortedMap<String, Long> listing = mEdgeCache.getChildIds(inodeId);
-      mMap.computeIfPresent(inodeId, (key, children) -> {
+      mMap.computeIfPresent(inodeId, (key, value) -> {
         // Perform the update inside computeIfPresent to prevent concurrent modification to the
         // cache entry.
         if (!entry.mModified) {
           entry.mChildren = new ConcurrentSkipListMap<>(listing);
           mWeight.addAndGet(weight(entry));
+          return entry;
         }
         return null;
       });
       return listing;
     }
 
+    private void evictIfNecessary() {
+      if (mWeight.get() <= mHighWaterMark) {
+        return;
+      }
+      if (mEvictionLock.tryLock()) {
+        try {
+          evict();
+        } finally {
+          mEvictionLock.unlock();
+        }
+      }
+    }
+
     private void evict() {
       long startTime = System.currentTimeMillis();
-      int evictTarget = mMap.size() - mLowWaterMark;
+      long evictTarget = mWeight.get() - mLowWaterMark;
       AtomicInteger evicted = new AtomicInteger(0);
       while (evicted.get() < evictTarget) {
         if (!mEvictionHead.hasNext()) {
@@ -713,7 +752,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
         }
       }
       LOG.debug("Evicted weight={} from listing cache down to weight={} in {}ms", evicted.get(),
-          mMap.size(), System.currentTimeMillis() - startTime);
+          mWeight.get(), System.currentTimeMillis() - startTime);
     }
 
     private int weight(ListingCacheEntry entry) {
