@@ -103,9 +103,7 @@ public final class GrpcChannel extends Channel {
               responseListener) {
             @Override
             public void onClose(io.grpc.Status status, Metadata trailers) {
-              if (status == Status.UNAUTHENTICATED) {
-                mGrpcChannel.mChannelHealthy = false;
-              } else if (status == Status.UNAVAILABLE) {
+              if (status == Status.UNAUTHENTICATED || status == Status.UNAVAILABLE) {
                 mGrpcChannel.mChannelHealthy = false;
               }
               super.onClose(status, trailers);
