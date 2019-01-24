@@ -64,3 +64,4 @@ tests.log*
 /alluxio-ui/**/node
 /alluxio-ui/**/node_modules
 /alluxio-ui/**/npm-debug.log
+/alluxio-ui/**/package-lock.json
