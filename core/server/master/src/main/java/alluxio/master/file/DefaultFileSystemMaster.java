@@ -3002,9 +3002,13 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
          FileSystemMasterAuditContext auditContext =
              createAuditContext(commandName, path, null, inodePath.getInodeOrNull())) {
       mMountTable.checkUnderWritableMountPoint(path);
+      // Force recursive sync metadata if it is a pinning and unpinning operation
+      boolean recursiveSync = options.hasPinned();
+      recursiveSync = recursiveSync || options.getRecursive();
+
       // Possible ufs sync.
       syncMetadata(rpcContext, inodePath, lockingScheme,
-          options.getRecursive() ? DescendantType.ALL : DescendantType.ONE);
+          recursiveSync ? DescendantType.ALL : DescendantType.ONE);
       if (!inodePath.fullPathExists()) {
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }

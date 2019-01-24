@@ -12,25 +12,33 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientConfig;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.wire.LoadMetadataType;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
 
@@ -40,11 +48,18 @@ import java.util.HashSet;
 public final class PinIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH").build();
   private FileSystem mFileSystem = null;
   private FileSystemMasterClient mFSMasterClient;
   private SetAttributePOptions mSetPinned;
   private SetAttributePOptions mUnsetPinned;
+  private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
+
+  private static final FileSystemMasterCommonPOptions PSYNC_ALWAYS =
+      FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
+  private static final FileSystemMasterCommonPOptions PSYNC_NEVER =
+      FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build();
 
   @Before
   public final void before() throws Exception {
@@ -52,6 +67,7 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
     mFSMasterClient = new FileSystemMasterClient(MasterClientConfig.defaults());
     mSetPinned = SetAttributePOptions.newBuilder().setPinned(true).build();
     mUnsetPinned = SetAttributePOptions.newBuilder().setPinned(false).build();
+    mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI(mLocalUfsPath));
   }
 
   @After
@@ -152,6 +168,35 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(status3.isPinned());
     Assert.assertEquals(new HashSet<>(mFSMasterClient.getPinList()),
         Sets.newHashSet(status0.getFileId(), status3.getFileId()));
+  }
+
+  @Test
+  public void pinDiscoverNewFiles() throws Exception {
+    final String deeplyNestedDir = "/tmp/tmp2/tmp3";
+
+    // Create a dir
+    new File(ufsPath(deeplyNestedDir)).mkdirs();
+    // Write a file in UFS
+    FileWriter fileWriter = new FileWriter(ufsPath(deeplyNestedDir + "/newfile"));
+    fileWriter.write("test");
+    fileWriter.close();
+
+    SetAttributePOptions attributeOption = SetAttributePOptions.newBuilder().setPinned(true)
+        .setCommonOptions(PSYNC_ALWAYS).build();
+    GetStatusPOptions getStatusOption = GetStatusPOptions.newBuilder()
+        .setCommonOptions(PSYNC_NEVER).build();
+    // Pin the dir
+    mFileSystem.setAttribute(new AlluxioURI("/mnt/tmp/"), attributeOption);
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Never.toString());
+    URIStatus dirStat = mFileSystem.getStatus(new AlluxioURI("/mnt/tmp/"), getStatusOption);
+    URIStatus fileStat = mFileSystem.getStatus(new AlluxioURI("/mnt" + deeplyNestedDir
+        + "/newfile"), getStatusOption);
+    Assert.assertTrue(dirStat.isPinned());
+    Assert.assertTrue(fileStat.isPinned());
+  }
+
+  private String ufsPath(String path) {
+    return mLocalUfsPath + path;
   }
 
   private void createEmptyFile(AlluxioURI fileURI) throws IOException, AlluxioException {
