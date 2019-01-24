@@ -59,7 +59,7 @@ public final class ConfigurationUtils {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationUtils.class);
 
   @GuardedBy("DEFAULT_PROPERTIES_LOCK")
-  private static AlluxioProperties sDefaultProperties = null;
+  private static volatile AlluxioProperties sDefaultProperties = null;
   private static String sSourcePropertyFile = null;
 
   private static final Object DEFAULT_PROPERTIES_LOCK = new Object();
@@ -302,7 +302,6 @@ public final class ConfigurationUtils {
       AlluxioProperties properties = new AlluxioProperties();
       InstancedConfiguration conf = new InstancedConfiguration(properties);
       properties.merge(System.getProperties(), Source.SYSTEM_PROPERTY);
-      Properties siteProps = null;
 
       // Step2: Load site specific properties file if not in test mode. Note that we decide
       // whether in test mode by default properties and system properties (via getBoolean).
@@ -317,6 +316,7 @@ public final class ConfigurationUtils {
       String[] confPathList = confPaths.split(",");
       String sitePropertyFile = ConfigurationUtils
           .searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
+      Properties siteProps = null;
       if (sitePropertyFile != null) {
         siteProps = loadPropertiesFromFile(sitePropertyFile);
         sSourcePropertyFile = sitePropertyFile;
