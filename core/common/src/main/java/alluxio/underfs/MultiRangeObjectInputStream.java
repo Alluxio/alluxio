@@ -114,7 +114,7 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
    * @param endPos end position in bytes (exclusive)
    * @return a new {@link InputStream}
    */
-  protected abstract InputStream createStream(long startPos, long endPos, long blockSize)
+  protected abstract InputStream createStream(long startPos, long endPos)
       throws IOException;
 
   /**
@@ -142,6 +142,6 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
     }
     final long endPos = mPos + mBlockSize - (mPos % mBlockSize);
     mEndPos = endPos;
-    mStream = createStream(mPos, endPos, mBlockSize);
+    mStream = createStream(mPos, endPos);
   }
 }

@@ -74,7 +74,7 @@ public class COSInputStream extends MultiRangeObjectInputStream {
   }
 
   @Override
-  protected InputStream createStream(long startPos, long endPos, long blockSize)
+  protected InputStream createStream(long startPos, long endPos)
       throws IOException {
     GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
     // COS returns entire object if we read past the end
