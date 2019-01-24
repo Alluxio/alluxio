@@ -36,9 +36,6 @@ var (
 	hadoopDistributionFlag string
 	targetFlag             string
 	mvnArgsFlag            string
-
-	webappDir = "core/server/common/src/main/webapp"
-	webappWar = "assembly/webapp.war"
 )
 
 func init() {
@@ -267,8 +264,6 @@ func generateTarball(hadoopDistribution string) error {
 		return err
 	}
 
-	// Update the web app location.
-	replace("core/common/src/main/java/alluxio/PropertyKey.java", webappDir, webappWar)
 	// Update the assembly jar paths.
 	replace("libexec/alluxio-config.sh", "assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-client-${VERSION}.jar")
 	replace("libexec/alluxio-config.sh", "assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-server-${VERSION}.jar")
@@ -301,8 +296,14 @@ func generateTarball(hadoopDistribution string) error {
 	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 	run("adding Alluxio checker jar", "mv", fmt.Sprintf("integration/checker/target/alluxio-checker-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "checker", fmt.Sprintf("alluxio-checker-%v.jar", version)))
-	// Condense the webapp into a single .war file.
-	run("jarring up webapp", "jar", "-cf", filepath.Join(dstPath, webappWar), "-C", webappDir, ".")
+
+	masterWebappDir := "alluxio-ui/master"
+	run("creating alluxio-ui master webapp directory", "mkdir", "-p", filepath.Join(dstPath, masterWebappDir))
+	run("copying alluxio-ui master webapp build directory", "cp", "-r", filepath.Join(masterWebappDir, "build"), filepath.Join(dstPath, masterWebappDir))
+
+	workerWebappDir := "alluxio-ui/worker"
+	run ("creating alluxio-ui worker webapp directory", "mkdir", "-p", filepath.Join(dstPath, workerWebappDir))
+	run("copying alluxio-ui worker webapp build directory", "cp", "-r", filepath.Join(workerWebappDir, "build"), filepath.Join(dstPath, workerWebappDir))
 
 	if includeYarnIntegration(hadoopVersion) {
 		// Update the YARN jar path
