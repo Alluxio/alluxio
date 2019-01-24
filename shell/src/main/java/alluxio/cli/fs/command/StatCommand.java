@@ -15,9 +15,14 @@ import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.master.block.BlockId;
+import alluxio.resource.CloseableResource;
+import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -76,16 +81,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
       } else {
         System.out.println(path + " is a file path.");
         System.out.println(status);
-        AlluxioBlockStore blockStore = AlluxioBlockStore.create();
-        List<Long> blockIds = status.getBlockIds();
-        if (blockIds.isEmpty()) {
-          System.out.println("This file does not contain any blocks.");
-        } else {
-          System.out.println("Containing the following blocks: ");
-          for (long blockId : blockIds) {
-            System.out.println(blockStore.getInfo(blockId));
-          }
-        }
+        printBlockInfo(status.getBlockIds());
       }
     }
   }
@@ -93,21 +89,26 @@ public final class StatCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path, cl);
+    try {
+      long blockId = Long.parseLong(args[0]);
+      printFileInfoFromBlockId(blockId);
+    } catch (NumberFormatException e) {
+      AlluxioURI path = new AlluxioURI(args[0]);
+      runWildCardCmd(path, cl);
+    }
 
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "stat [-f <format>] <path>";
+    return "stat [-f <format>] <path/blockId>";
   }
 
   @Override
   public String getDescription() {
-    return "Displays info for the specified path both file and directory."
-        + " Specify -f to display info in given format:"
+    return "Displays info for the specified path or block id."
+        + " Specify -f to display info in given format when given path:"
         + "   \"%N\": name of the file;"
         + "   \"%z\": size of file in bytes;"
         + "   \"%u\": owner;"
@@ -125,6 +126,29 @@ public final class StatCommand extends AbstractFileSystemCommand {
 
   private static final String FORMAT_REGEX = "%([bguyzNY])";
   private static final Pattern FORMAT_PATTERN = Pattern.compile(FORMAT_REGEX);
+
+  private void printFileInfoFromBlockId(long blockId) throws IOException {
+    try (CloseableResource<FileSystemMasterClient> client =
+        FileSystemContext.get().acquireMasterClientResource()) {
+      long blockContainerId = BlockId.getContainerId(blockId);
+      long fileId = BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber());
+      FileInfo info = client.get().getFileInfo(fileId);
+      System.out.println(info);
+      printBlockInfo(info.getBlockIds());
+    }
+  }
+
+  private void printBlockInfo(List<Long> blockIds) throws IOException {
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create();
+    if (blockIds.isEmpty()) {
+      System.out.println("This file does not contain any blocks.");
+    } else {
+      System.out.println("Containing the following blocks: ");
+      for (long blockId : blockIds) {
+        System.out.println(blockStore.getInfo(blockId));
+      }
+    }
+  }
 
   private String formatOutput(CommandLine cl, URIStatus status) {
     String format = cl.getOptionValue('f');

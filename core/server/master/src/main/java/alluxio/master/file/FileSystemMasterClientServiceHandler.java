@@ -33,6 +33,9 @@ import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.FreePResponse;
+import alluxio.grpc.GetFileInfoPOptions;
+import alluxio.grpc.GetFileInfoPRequest;
+import alluxio.grpc.GetFileInfoPResponse;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetMountTablePResponse;
 import alluxio.grpc.GetNewBlockIdForFilePOptions;
@@ -182,6 +185,20 @@ public final class FileSystemMasterClientServiceHandler
       mFileSystemMaster.free(new AlluxioURI(path), FreeContext.defaults(options.toBuilder()));
       return FreePResponse.newBuilder().build();
     }, "Free", "path=%s, options=%s", responseObserver, path, options);
+  }
+
+  @Override
+  public void getFileInfo(GetFileInfoPRequest request,
+      StreamObserver<GetFileInfoPResponse> responseObserver) {
+
+    final long fileId = request.getFileId();
+    GetFileInfoPOptions options = request.getOptions();
+
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
+            .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
+            .build(),
+        "getFileInfo", "fileId=%s, options=%s", responseObserver, fileId, options);
   }
 
   @Override

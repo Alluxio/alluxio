@@ -471,6 +471,11 @@ service FileSystemMasterClientService {
    */
   rpc Free(FreePRequest) returns (FreePResponse);
 
+  /*
+   * Returns the file information for a file or directory identified by the given file id.
+   */
+  rpc GetFileInfo(GetFileInfoPRequest) returns (GetFileInfoPResponse);
+
   /**
   * Returns a map from each Alluxio path to information of corresponding mount point
   */

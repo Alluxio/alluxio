@@ -28,6 +28,7 @@ import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
+import alluxio.grpc.GetFileInfoPRequest;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetNewBlockIdForFilePOptions;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
@@ -56,6 +57,7 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.AclEntry;
+import alluxio.wire.FileInfo;
 import alluxio.wire.SyncPointInfo;
 
 import java.util.ArrayList;
@@ -182,6 +184,14 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
                 .setOptions(GetNewBlockIdForFilePOptions.newBuilder().build()).build())
             .getId(),
         "GetNewBlockIdForFile");
+  }
+
+  @Override
+  public FileInfo getFileInfo(long id)
+      throws AlluxioStatusException {
+    GetFileInfoPRequest request = GetFileInfoPRequest.newBuilder().setFileId(id).build();
+    return retryRPC(() -> GrpcUtils.fromProto(mClient.getFileInfo(request).getFileInfo()),
+        "GetFileInfo");
   }
 
   @Override

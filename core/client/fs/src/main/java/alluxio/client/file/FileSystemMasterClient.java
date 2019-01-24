@@ -32,6 +32,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.AclEntry;
+import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
@@ -119,10 +120,18 @@ public interface FileSystemMasterClient extends Client {
   /**
    * @param path the file path
    * @param options the getStatus options
-   * @return the file info for the given file id
+   * @return the file info for the given file path
    * @throws NotFoundException if the path does not exist
    */
   URIStatus getStatus(AlluxioURI path, GetStatusPOptions options) throws AlluxioStatusException;
+
+  /**
+   * Gets file information from file id.
+   *
+   * @param id a file id
+   * @return the infile info for the given file id
+   */
+  FileInfo getFileInfo(long id) throws AlluxioStatusException;
 
   /**
    * @param path the file path
