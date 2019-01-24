@@ -532,14 +532,15 @@ public final class CachingInodeStore implements InodeStore, Closeable {
                 "Missing entry " + entry.mKey + " in unflushed deletes index");
           }
         } else {
-          if (mIdToChildMap.get(entry.mKey.getId()).get(entry.mKey.getName()) != entry.mValue) {
+          if (!mIdToChildMap.get(entry.mKey.getId()).get(entry.mKey.getName())
+              .equals(entry.mValue)) {
             throw new IllegalStateException(String
                 .format("Missing entry %s=%s from id to child map", entry.mKey, entry.mValue));
           }
         }
       });
       mIdToChildMap.flattenEntries((parentId, childName, childId) -> {
-        if (mMap.get(new Edge(parentId, childName)).mValue != childId) {
+        if (!mMap.get(new Edge(parentId, childName)).mValue.equals(childId)) {
           throw new IllegalStateException(String.format(
               "Entry %s->%s=%s exists in the index but not the map", parentId, childName, childId));
         }
