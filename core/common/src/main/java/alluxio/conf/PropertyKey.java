@@ -3916,7 +3916,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
-    public static final String USER_COPY_FROM_LOCAL_THREADS = "alluxio.user.copy.from.local.threads";
+    public static final String USER_COPY_FROM_LOCAL_THREADS =
+        "alluxio.user.copy.from.local.threads";
 
     //
     // FUSE integration related properties
