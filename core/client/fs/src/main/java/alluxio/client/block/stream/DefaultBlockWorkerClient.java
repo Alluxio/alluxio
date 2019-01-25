@@ -107,6 +107,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
+  public boolean isHealthy() {
+    return !isShutdown() && mStreamingChannel.isHealthy() && mRpcChannel.isHealthy();
+  }
+
+  @Override
   public void close() throws IOException {
     try (Closer closer = Closer.create()) {
       closer.register(() -> mStreamingChannel.shutdown());

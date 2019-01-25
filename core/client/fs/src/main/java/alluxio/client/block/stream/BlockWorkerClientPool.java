@@ -79,7 +79,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
    */
   @Override
   protected boolean isHealthy(BlockWorkerClient client) {
-    return !client.isShutdown();
+    return client.isHealthy();
   }
 
   @Override
