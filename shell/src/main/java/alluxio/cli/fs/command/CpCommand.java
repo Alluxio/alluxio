@@ -66,6 +66,15 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .hasArg(false)
           .desc("copy files in subdirectories recursively")
           .build();
+  private static final Option THREAD_OPTION =
+      Option.builder("t")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("threads")
+          .type(Integer.class)
+          .desc("Number of threads used to copy files in parallel")
+          .build();
   private static final String COPY_PROGRESS_DONE = "#";
 
   private ThreadPoolExecutor mCopyExecutor;
@@ -144,7 +153,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(RECURSIVE_OPTION);
+    return new Options().addOption(RECURSIVE_OPTION)
+        .addOption(THREAD_OPTION);
   }
 
   @Override
