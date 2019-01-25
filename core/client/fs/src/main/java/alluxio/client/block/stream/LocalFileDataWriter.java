@@ -41,7 +41,6 @@ public final class LocalFileDataWriter implements DataWriter {
   private static final Logger LOG = LoggerFactory.getLogger(LocalFileDataWriter.class);
 
   private final long mFileBufferBytes;
-  private final int mWriterBufferSizeMessages;
   private final long mDataTimeoutMs;
   private final BlockWorkerClient mBlockWorker;
   private final LocalFileBlockWriter mWriter;
@@ -103,7 +102,7 @@ public final class LocalFileDataWriter implements DataWriter {
       LocalFileBlockWriter writer =
           closer.register(new LocalFileBlockWriter(response.getPath()));
       return new LocalFileDataWriter(chunkSize, blockWorker,
-          writer, createRequest, stream, closer, writerBufferSizeMessages, fileBufferByes,
+          writer, createRequest, stream, closer, fileBufferByes,
           dataTimeout);
     } catch (Exception e) {
       throw CommonUtils.closeAndRethrow(closer, e);
@@ -180,8 +179,7 @@ public final class LocalFileDataWriter implements DataWriter {
       BlockWorkerClient blockWorker, LocalFileBlockWriter writer,
       CreateLocalBlockRequest createRequest,
       GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> stream,
-      Closer closer, int writerBufferMessagesSize, long fileBufferBytes, long dataTimeoutMs) {
-    mWriterBufferSizeMessages = writerBufferMessagesSize;
+      Closer closer, long fileBufferBytes, long dataTimeoutMs) {
     mFileBufferBytes = fileBufferBytes;
     mDataTimeoutMs = dataTimeoutMs;
     mBlockWorker = blockWorker;

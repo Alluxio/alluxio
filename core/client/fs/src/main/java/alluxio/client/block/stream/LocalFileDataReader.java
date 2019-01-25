@@ -97,7 +97,8 @@ public final class LocalFileDataReader implements DataReader {
     private final WorkerNetAddress mAddress;
     private final long mBlockId;
     private final String mPath;
-    private final int mChunkSize;
+    private final long mLocalReaderChunkSize;
+    private final int mReadBufferSize;
     private final GrpcBlockingStream<OpenLocalBlockRequest, OpenLocalBlockResponse> mStream;
     private LocalFileBlockReader mReader;
     private final long mDataTimeoutMs;
@@ -109,15 +110,17 @@ public final class LocalFileDataReader implements DataReader {
      * @param context the file system context
      * @param address the worker address
      * @param blockId the block ID
+     * @param localReaderChunkSize chunk size in bytes for local reads
      * @param options the instream options
      */
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
-        InStreamOptions options) throws IOException {
+        long localReaderChunkSize, InStreamOptions options) throws IOException {
       AlluxioConfiguration conf = context.getConf();
       mContext = context;
       mAddress = address;
       mBlockId = blockId;
-      mChunkSize = (int) conf.getBytes(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
+      mLocalReaderChunkSize = localReaderChunkSize;
+      mReadBufferSize = conf.getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
       mDataTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
 
       boolean isPromote = ReadType.fromProto(options.getOptions().getReadType()).isPromote();
@@ -126,7 +129,7 @@ public final class LocalFileDataReader implements DataReader {
 
       mBlockWorker = context.acquireBlockWorkerClient(address);
       try {
-        mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock, mChunkSize,
+        mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock, mReadBufferSize,
             address.toString());
         mStream.send(request, mDataTimeoutMs);
         OpenLocalBlockResponse response = mStream.receive(mDataTimeoutMs);
@@ -145,7 +148,7 @@ public final class LocalFileDataReader implements DataReader {
       }
       Preconditions.checkState(mReader.getUsageCount() == 0);
       mReader.increaseUsageCount();
-      return new LocalFileDataReader(mReader, offset, len, mChunkSize);
+      return new LocalFileDataReader(mReader, offset, len, mLocalReaderChunkSize);
     }
 
     @Override
