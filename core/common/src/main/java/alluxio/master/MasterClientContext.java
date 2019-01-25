@@ -11,45 +11,29 @@
 
 package alluxio.master;
 
-import javax.security.auth.Subject;
+import alluxio.ClientContext;
 
 /**
  * Configuration for constructing an Alluxio master client.
  */
-public class MasterClientConfig {
-  private Subject mSubject;
+public class MasterClientContext extends ClientContext {
   private MasterInquireClient mMasterInquireClient;
 
-  /**
-   * @return a master client configuration with default values
-   */
-  public static MasterClientConfig defaults() {
-    return new MasterClientConfig().withMasterInquireClient(MasterInquireClient.Factory.create());
-  }
-
-  /**
-   * @param subject a subject
-   * @return the updated config
-   */
-  public MasterClientConfig withSubject(Subject subject) {
-    mSubject = subject;
-    return this;
-  }
-
-  /**
-   * @param masterInquireClient a master inquire client
-   * @return the updated config
-   */
-  public MasterClientConfig withMasterInquireClient(MasterInquireClient masterInquireClient) {
+  // Prevent outside instantiation
+  protected MasterClientContext(ClientContext ctx, MasterInquireClient masterInquireClient) {
+    super(ctx);
     mMasterInquireClient = masterInquireClient;
-    return this;
   }
 
   /**
-   * @return the subject
+   * Create an instance of a {@link MasterClientContextBuilder} which can be used to obtain and
+   * instance of {@link MasterClientContext}.
+   *
+   * @param ctx The context to base
+   * @return a builder for a {@link MasterClientContext}
    */
-  public Subject getSubject() {
-    return mSubject;
+  public static MasterClientContextBuilder newBuilder(ClientContext ctx) {
+    return new MasterClientContextBuilder(ctx);
   }
 
   /**

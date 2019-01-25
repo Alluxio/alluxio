@@ -12,9 +12,8 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
@@ -53,7 +52,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void persistDirectory() throws Exception {
     // Set the default write type to MUST_CACHE, so that directories are not persisted by default
-    Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    ServerConfiguration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
     Assert
@@ -71,7 +70,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     checkFilePersisted(new AlluxioURI(testDir + "/foo/foobar2"), 20);
     checkFilePersisted(new AlluxioURI(testDir + "/bar/foobar3"), 30);
     checkFilePersisted(new AlluxioURI(testDir + "/foobar4"), 40);
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   @Test
@@ -99,7 +98,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
    */
   @Test
   public void persistMultiFilesAndDirs() throws Exception {
-    Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    ServerConfiguration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir + "/foo")).isPersisted());
@@ -118,7 +117,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     checkFilePersisted(new AlluxioURI(testDir + "/foo/foobar1"), 10);
     checkFilePersisted(new AlluxioURI(testDir + "/bar/foobar3"), 30);
     checkFilePersisted(new AlluxioURI(testDir + "/foobar4"), 40);
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   @Test
@@ -148,8 +147,8 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void persistWithAncestorPermission() throws Exception {
     String ufsRoot =
-        PathUtils.concatPath(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
-    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot();
+        PathUtils.concatPath(ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
+    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     // Skip non-local and non-HDFS UFSs.
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(ufs) || UnderFileSystemUtils.isHdfs(ufs));
 

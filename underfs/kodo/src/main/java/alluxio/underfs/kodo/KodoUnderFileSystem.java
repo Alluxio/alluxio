@@ -13,7 +13,8 @@ package alluxio.underfs.kodo;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -57,13 +58,13 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
   private final KodoClient mKodoClinet;
 
   protected KodoUnderFileSystem(AlluxioURI uri, KodoClient kodoclient,
-      UnderFileSystemConfiguration conf) {
-    super(uri, conf);
+      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+    super(uri, conf, alluxioConf);
     mKodoClinet = kodoclient;
   }
 
   protected static KodoUnderFileSystem creatInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration conf) {
+      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(conf.isSet(PropertyKey.KODO_ACCESS_KEY),
         "Property %s is required to connect to Kodo", PropertyKey.KODO_ACCESS_KEY);
@@ -83,7 +84,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
     OkHttpClient okHttpClient = okHttpBuilder.build();
     KodoClient kodoClient =
         new KodoClient(auth, bucketName, souceHost, endPoint, configuration, okHttpClient);
-    return new KodoUnderFileSystem(uri, kodoClient, conf);
+    return new KodoUnderFileSystem(uri, kodoClient, conf, alluxioConf);
   }
 
   private static Builder initializeKodoClientConfig(UnderFileSystemConfiguration conf) {
@@ -131,7 +132,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    return new KodoOutputStream(key, mKodoClinet);
+    return new KodoOutputStream(key, mKodoClinet, mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
   }
 
   @Override
@@ -157,9 +158,10 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     key = key.equals(PATH_SEPARATOR) ? "" : key;
-    FileListing result = getObjectListingChunk(key, getListingChunkLength(), delimiter);
+    FileListing result = getObjectListingChunk(key, getListingChunkLength(mAlluxioConf), delimiter);
     if (result != null) {
-      return new KodoObjectListingChunk(result, getListingChunkLength(), delimiter, key);
+      return new KodoObjectListingChunk(result, getListingChunkLength(mAlluxioConf), delimiter,
+          key);
     }
     return null;
   }

@@ -11,6 +11,8 @@
 
 package alluxio.grpc;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthenticationServer;
 import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.util.SecurityUtils;
@@ -22,6 +24,8 @@ import io.grpc.netty.NettyServerBuilder;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
 import java.util.HashSet;
@@ -43,11 +47,16 @@ public final class GrpcServerBuilder {
   /** Authentication server instance that will be used by this server. */
   private AuthenticationServer mAuthenticationServer;
 
-  private GrpcServerBuilder(NettyServerBuilder nettyServerBuilder) {
+  /** Configuration object used for  */
+  private AlluxioConfiguration mConfiguration;
+
+  private GrpcServerBuilder(NettyServerBuilder nettyServerBuilder, AlluxioConfiguration conf) {
+    mConfiguration = conf;
     mServices = new HashSet<>();
     mNettyServerBuilder = nettyServerBuilder;
-    if (SecurityUtils.isAuthenticationEnabled()) {
-      mAuthenticationServer = new DefaultAuthenticationServer();
+    if (SecurityUtils.isAuthenticationEnabled(conf)) {
+      LoggerFactory.getLogger(GrpcServerBuilder.class).warn("Authentication ENABLED");
+      mAuthenticationServer = new DefaultAuthenticationServer(conf);
       addService(new GrpcService(mAuthenticationServer).disableAuthentication());
     }
   }
@@ -58,8 +67,8 @@ public final class GrpcServerBuilder {
    * @param address the address
    * @return a new instance of {@link GrpcServerBuilder}
    */
-  public static GrpcServerBuilder forAddress(SocketAddress address) {
-    return new GrpcServerBuilder(NettyServerBuilder.forAddress(address));
+  public static GrpcServerBuilder forAddress(SocketAddress address, AlluxioConfiguration conf) {
+    return new GrpcServerBuilder(NettyServerBuilder.forAddress(address), conf);
   }
 
   /**
@@ -173,7 +182,7 @@ public final class GrpcServerBuilder {
    */
   public GrpcServerBuilder addService(GrpcService serviceDefinition) {
     ServerServiceDefinition service = serviceDefinition.getServiceDefinition();
-    if (SecurityUtils.isAuthenticationEnabled() && serviceDefinition.isAuthenticated()) {
+    if (SecurityUtils.isAuthenticationEnabled(mConfiguration) && serviceDefinition.isAuthenticated()) {
       service = ServerInterceptors.intercept(service, mAuthenticationServer.getInterceptors());
     }
     mNettyServerBuilder = mNettyServerBuilder.addService(service);
@@ -200,6 +209,7 @@ public final class GrpcServerBuilder {
   public GrpcServer build() {
     addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices))
         .disableAuthentication());
-    return new GrpcServer(mNettyServerBuilder.build());
+    return new GrpcServer(mNettyServerBuilder.build(),
+        mConfiguration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT));
   }
 }

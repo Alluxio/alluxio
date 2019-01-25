@@ -12,6 +12,7 @@
 package alluxio.jobmaster;
 
 import alluxio.common.RpcPortHealthCheckClient;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ServiceType;
 import alluxio.retry.RetryPolicy;
 
@@ -32,9 +33,11 @@ public class JobMasterHealthCheckClient extends RpcPortHealthCheckClient {
    *
    * @param jobMasterAddress The potential job_master address
    * @param retryPolicySupplier the retry policy supplier
+   * @param alluxioConf Alluxio configuration
    */
   public JobMasterHealthCheckClient(InetSocketAddress jobMasterAddress,
-      Supplier<RetryPolicy> retryPolicySupplier) {
-    super(jobMasterAddress, ServiceType.JOB_MASTER_CLIENT_SERVICE, retryPolicySupplier);
+      Supplier<RetryPolicy> retryPolicySupplier, AlluxioConfiguration alluxioConf) {
+    super(jobMasterAddress, ServiceType.JOB_MASTER_CLIENT_SERVICE, retryPolicySupplier,
+        alluxioConf);
   }
 }

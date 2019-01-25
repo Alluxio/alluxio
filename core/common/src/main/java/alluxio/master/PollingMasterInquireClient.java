@@ -13,6 +13,7 @@ package alluxio.master;
 
 import static java.util.stream.Collectors.joining;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -45,22 +46,29 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   private final MultiMasterConnectDetails mConnectDetails;
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
+  private final AlluxioConfiguration mConfiguration;
 
   /**
    * @param masterAddresses the potential master addresses
+   * @param alluxioConf Alluxio configuration
    */
-  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses) {
-    this(masterAddresses, () -> new ExponentialBackoffRetry(20, 2000, 30));
+  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
+      AlluxioConfiguration alluxioConf) {
+    this(masterAddresses, () -> new ExponentialBackoffRetry(20, 2000, 30),
+        alluxioConf);
   }
 
   /**
    * @param masterAddresses the potential master addresses
    * @param retryPolicySupplier the retry policy supplier
+   * @param alluxioConf Alluxio configuration
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
-      Supplier<RetryPolicy> retryPolicySupplier) {
+      Supplier<RetryPolicy> retryPolicySupplier,
+      AlluxioConfiguration alluxioConf) {
     mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
     mRetryPolicySupplier = retryPolicySupplier;
+    mConfiguration = alluxioConf;
   }
 
   @Override
@@ -98,7 +106,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   private void pingMetaService(InetSocketAddress address)
       throws UnauthenticatedException, UnavailableException {
-    GrpcChannel channel = GrpcChannelBuilder.forAddress(address).build();
+    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, mConfiguration).build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
     versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()

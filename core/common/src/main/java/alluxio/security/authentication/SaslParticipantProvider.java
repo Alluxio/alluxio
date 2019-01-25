@@ -11,6 +11,7 @@
 
 package alluxio.security.authentication;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.authentication.plain.SaslParticipantProviderPlain;
 
@@ -28,10 +29,12 @@ public interface SaslParticipantProvider {
    * Creates {@link SaslClient} for given {@link Subject}.
    *
    * @param subject subject
+   * @param conf Alluxio configuration
    * @return created {@link SaslClient}
    * @throws UnauthenticatedException
    */
-  public SaslClient createSaslClient(Subject subject) throws UnauthenticatedException;
+  public SaslClient createSaslClient(Subject subject, AlluxioConfiguration conf)
+      throws UnauthenticatedException;
 
   /**
    * Creates {@link SaslClient} for given authentication info.
@@ -49,20 +52,24 @@ public interface SaslParticipantProvider {
    * Creates {@link SaslServer}.
    *
    * @param serverName server name
+   * @param conf Alluxio configuration
    * @return created {@link SaslServer}
    * @throws SaslException
    */
-  public SaslServer createSaslServer(String serverName) throws SaslException;
+  public SaslServer createSaslServer(String serverName, AlluxioConfiguration conf)
+      throws SaslException;
 
   /**
    * Creates {@link SaslServer}.
    *
    * @param runnable callback for after authentication
    * @param serverName server name
+   * @param conf Alluxio configuration
    * @return created {@link SaslServer}
    * @throws SaslException
    */
-  public SaslServer createSaslServer(Runnable runnable, String serverName) throws SaslException;
+  public SaslServer createSaslServer(Runnable runnable, String serverName,
+      AlluxioConfiguration conf) throws SaslException;
 
   /**
    * Factory for {@link SaslParticipantProvider}.

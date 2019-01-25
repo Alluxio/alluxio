@@ -11,8 +11,8 @@
 
 package alluxio.cli.validation;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.ShellUtils;
 import alluxio.util.UnixMountInfo;
 
@@ -79,7 +79,7 @@ public final class Utils {
    * @return list of the node names, null when file fails to read
    */
   public static List<String> readNodeList(String fileName) {
-    String confDir = Configuration.get(PropertyKey.CONF_DIR);
+    String confDir = ServerConfiguration.get(PropertyKey.CONF_DIR);
     List<String> lines;
     try {
       lines = Files.readAllLines(Paths.get(confDir, fileName), StandardCharsets.UTF_8);

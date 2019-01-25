@@ -13,8 +13,9 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
@@ -29,10 +30,10 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -141,12 +142,13 @@ public final class LsCommand extends AbstractFileSystemCommand {
    * @param inAlluxioPercentage whether the file is in Alluxio
    * @param persistenceState the persistence state of the file
    * @param path path of the file or folder
+   * @param dateFormatPattern the format to follow when printing dates
    * @return the formatted string according to acl and isFolder
    */
   public static String formatLsString(boolean hSize, boolean acl, boolean isFolder, String
       permission,
       String userName, String groupName, long size, long lastModifiedTime, int inAlluxioPercentage,
-      String persistenceState, String path) {
+      String persistenceState, String path, String dateFormatPattern) {
     String inAlluxioState;
     String sizeStr;
     if (isFolder) {
@@ -159,11 +161,12 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
     if (acl) {
       return String.format(LS_FORMAT, permission, userName, groupName,
-          sizeStr, persistenceState, CommonUtils.convertMsToDate(lastModifiedTime),
-          inAlluxioState, path);
+          sizeStr, persistenceState, CommonUtils.convertMsToDate(lastModifiedTime,
+              dateFormatPattern), inAlluxioState, path);
     } else {
       return String.format(LS_FORMAT_NO_ACL, sizeStr,
-          persistenceState, CommonUtils.convertMsToDate(lastModifiedTime), inAlluxioState, path);
+          persistenceState, CommonUtils.convertMsToDate(lastModifiedTime, dateFormatPattern),
+          inAlluxioState, path);
     }
   }
 
@@ -172,21 +175,24 @@ public final class LsCommand extends AbstractFileSystemCommand {
     boolean hasExtended = status.getAcl().hasExtended()
         || !status.getDefaultAcl().isEmpty();
 
-    System.out.print(formatLsString(hSize, SecurityUtils.isSecurityEnabled(), status.isFolder(),
+    System.out.print(formatLsString(hSize,
+        SecurityUtils.isSecurityEnabled(mFsContext.getConf()),
+        status.isFolder(),
         FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended),
         status.getOwner(), status.getGroup(), status.getLength(),
         status.getLastModificationTimeMs(), status.getInAlluxioPercentage(),
-        status.getPersistenceState(), status.getPath()));
+        status.getPersistenceState(), status.getPath(),
+        mFsContext.getConf().get(PropertyKey.USER_DATE_FORMAT_PATTERN)));
   }
 
   /**
    * Constructs a new instance to display information for all directories and files directly under
    * the path specified in args.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public LsCommand(FileSystem fs) {
-    super(fs);
+  public LsCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

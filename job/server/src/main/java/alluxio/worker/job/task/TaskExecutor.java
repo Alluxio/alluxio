@@ -11,8 +11,8 @@
 
 package alluxio.worker.job.task;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.job.JobConfig;
 import alluxio.job.JobDefinition;
 import alluxio.job.JobDefinitionRegistry;
@@ -82,7 +82,7 @@ public final class TaskExecutor implements Runnable {
       mTaskExecutorManager.notifyTaskCancellation(mJobId, mTaskId);
       return;
     } catch (Throwable t) {
-      if (Configuration.getBoolean(PropertyKey.DEBUG)) {
+      if (ServerConfiguration.getBoolean(PropertyKey.DEBUG)) {
         mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, ExceptionUtils.getStackTrace(t));
       } else {
         mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, t.getMessage());

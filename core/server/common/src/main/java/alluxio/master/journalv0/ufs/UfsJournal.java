@@ -11,8 +11,8 @@
 
 package alluxio.master.journalv0.ufs;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journalv0.Journal;
 import alluxio.master.journalv0.JournalFormatter;
 import alluxio.master.journalv0.JournalReader;
@@ -129,13 +129,13 @@ public class UfsJournal implements Journal {
 
   @Override
   public boolean isFormatted() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(mLocation);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(mLocation, ServerConfiguration.global());
     UfsStatus[] files = ufs.listStatus(mLocation.toString());
     if (files == null) {
       return false;
     }
     // Search for the format file.
-    String formatFilePrefix = Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
+    String formatFilePrefix = ServerConfiguration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
     for (UfsStatus file : files) {
       if (file.getName().startsWith(formatFilePrefix)) {
         return true;

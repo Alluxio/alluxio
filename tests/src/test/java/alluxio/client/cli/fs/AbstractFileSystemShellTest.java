@@ -21,6 +21,8 @@ import alluxio.cli.job.JobShell;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -28,7 +30,9 @@ import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
+import alluxio.network.PortUtils;
 import alluxio.security.LoginUserTestUtils;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
@@ -42,6 +46,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -55,16 +60,28 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
   protected JobMaster mJobMaster;
   protected LocalAlluxioJobCluster mLocalAlluxioJobCluster = null;
   protected JobShell mJobShell = null;
+  protected Map<PropertyKey, Integer> mPortMapping;
+
+  @Override
+  protected void customizeLocalAlluxioCluster(LocalAlluxioClusterResource.Builder resource) {
+    mPortMapping = PortUtils.createPortMapping();
+    mPortMapping.forEach((PropertyKey pk, Integer val) -> {
+      resource.setProperty(pk, val);
+    });
+  }
 
   @Before
   public final void before() throws Exception {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
-    mFileSystem = mLocalAlluxioCluster.getClient();
-    mFsShell = new FileSystemShell();
     mLocalAlluxioJobCluster = new alluxio.master.LocalAlluxioJobCluster();
+    mPortMapping.forEach((PropertyKey pk, Integer val) -> {
+      mLocalAlluxioJobCluster.setProperty(pk, val.toString());
+    });
     mLocalAlluxioJobCluster.start();
+    mFileSystem = mLocalAlluxioCluster.getClient();
     mJobMaster = mLocalAlluxioJobCluster.getMaster().getJobMaster();
-    mJobShell = new alluxio.cli.job.JobShell();
+    mJobShell = new alluxio.cli.job.JobShell(ServerConfiguration.global());
+    mFsShell = new FileSystemShell(ServerConfiguration.global());
   }
 
   @After

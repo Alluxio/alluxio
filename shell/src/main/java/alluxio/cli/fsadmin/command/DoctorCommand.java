@@ -14,6 +14,7 @@ package alluxio.cli.fsadmin.command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.doctor.ConfigurationCommand;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -41,11 +42,15 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
     CONFIGURATION, // Show server-side configuration errors/warnings
   }
 
+  private final AlluxioConfiguration mConf;
+
   /**
    * @param context fsadmin command context
+   * @param alluxioConf Alluxio configuration
    */
-  public DoctorCommand(Context context) {
+  public DoctorCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
+    mConf = alluxioConf;
   }
 
   @Override
@@ -63,7 +68,7 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
       return 0;
     }
 
-    FileSystemAdminShellUtils.checkMasterClientService();
+    FileSystemAdminShellUtils.checkMasterClientService(mConf);
 
     // Get the doctor category
     Command command = Command.ALL;

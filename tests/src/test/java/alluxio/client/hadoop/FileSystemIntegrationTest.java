@@ -11,8 +11,10 @@
 
 package alluxio.client.hadoop;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.FileSystem;
+import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -46,7 +48,8 @@ public class FileSystemIntegrationTest {
 
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
 
-    sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    sTFS = org.apache.hadoop.fs.FileSystem.get(uri, HadoopConfigurationUtils
+        .mergeAlluxioConfiguration(conf, ServerConfiguration.global()));
   }
 
   @Test

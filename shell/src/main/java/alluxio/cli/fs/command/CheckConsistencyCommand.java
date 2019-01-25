@@ -13,7 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -43,10 +43,10 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
           .build();
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public CheckConsistencyCommand(FileSystem fs) {
-    super(fs);
+  public CheckConsistencyCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -89,9 +89,10 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
    * @throws IOException
    */
   private void checkConsistency(AlluxioURI path, boolean repairConsistency) throws
-  AlluxioException, IOException {
+      AlluxioException, IOException {
     List<AlluxioURI> inconsistentUris =
-        FileSystemUtils.checkConsistency(path, CheckConsistencyPOptions.getDefaultInstance());
+        FileSystemUtils.checkConsistency(mFsContext, path,
+            CheckConsistencyPOptions.getDefaultInstance());
     if (inconsistentUris.isEmpty()) {
       System.out.println(path + " is consistent with the under storage system.");
       return;

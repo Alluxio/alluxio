@@ -31,10 +31,16 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class LsCommand implements Command {
   private static final Logger LOG = LoggerFactory.getLogger(LsCommand.class);
 
+  private final String mExtensionsDir;
+
   /**
    * Constructs a new instance of {@link LsCommand}.
+   *
+   * @param extensionsDir the path to the directory containing the extensions
    */
-  public LsCommand() {}
+  public LsCommand(String extensionsDir) {
+    mExtensionsDir = extensionsDir;
+  }
 
   @Override
   public String getCommandName() {
@@ -58,7 +64,7 @@ public final class LsCommand implements Command {
 
   @Override
   public int run(CommandLine cl) {
-    for (File extension : ExtensionUtils.listExtensions()) {
+    for (File extension : ExtensionUtils.listExtensions(mExtensionsDir)) {
       System.out.println(extension.getName());
     }
     return 0;

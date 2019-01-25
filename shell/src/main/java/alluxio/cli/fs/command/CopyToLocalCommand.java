@@ -12,16 +12,15 @@
 package alluxio.cli.fs.command;
 
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Copies a file or a directory from the Alluxio filesystem to the local filesystem.
@@ -32,11 +31,11 @@ public final class CopyToLocalCommand extends AbstractFileSystemCommand {
   private CpCommand mCpCommand;
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public CopyToLocalCommand(FileSystem fs) {
-    super(fs);
-    mCpCommand = new CpCommand(fs);
+  public CopyToLocalCommand(FileSystemContext fsContext) {
+    super(fsContext);
+    mCpCommand = new CpCommand(fsContext);
   }
 
   @Override

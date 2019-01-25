@@ -12,8 +12,9 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.ClientContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
@@ -69,22 +70,27 @@ public interface FileSystem {
 
     private Factory() {} // prevent instantiation
 
-    public static FileSystem get() {
-      return get(FileSystemContext.get());
+    public static FileSystem get(AlluxioConfiguration alluxioConf) {
+      return get(FileSystemContext.create(alluxioConf));
     }
 
     public static FileSystem get(FileSystemContext context) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
-        List<PropertyKey> keys = new ArrayList<>(Configuration.keySet());
+        AlluxioConfiguration conf = context.getConf();
+        List<PropertyKey> keys = new ArrayList<>(conf.keySet());
         Collections.sort(keys, Comparator.comparing(PropertyKey::getName));
         for (PropertyKey key : keys) {
-          String value = Configuration.getOrDefault(key, null);
-          Source source = Configuration.getSource(key);
+          String value = conf.getOrDefault(key, null);
+          Source source = conf.getSource(key);
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      return BaseFileSystem.get(context);
+      return BaseFileSystem.create(context);
+    }
+
+    public static FileSystem get(ClientContext ctx) {
+      return get(FileSystemContext.create(ctx));
     }
   }
 

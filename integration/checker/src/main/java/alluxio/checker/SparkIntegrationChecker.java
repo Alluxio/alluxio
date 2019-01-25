@@ -12,13 +12,16 @@
 package alluxio.checker;
 
 import alluxio.checker.CheckerUtils.Status;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.util.ConfigurationUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.SparkConf;
 import scala.Serializable;
 import scala.Tuple2;
 
@@ -71,7 +74,7 @@ public class SparkIntegrationChecker implements Serializable{
    * @param reportWriter save user-facing messages to a generated file
    * @return performIntegrationChecks results
    */
-  private Status run(JavaSparkContext sc, PrintWriter reportWriter) {
+  private Status run(JavaSparkContext sc, PrintWriter reportWriter, AlluxioConfiguration conf) {
     // Check whether Spark driver can recognize Alluxio classes and filesystem
     Status driverStatus = CheckerUtils.performIntegrationChecks();
     String driverAddress = sc.getConf().get("spark.driver.host");
@@ -90,7 +93,7 @@ public class SparkIntegrationChecker implements Serializable{
         break;
     }
 
-    if (!CheckerUtils.supportAlluxioHA(reportWriter)) {
+    if (!CheckerUtils.supportAlluxioHA(reportWriter, conf)) {
       return Status.FAIL_TO_SUPPORT_HA;
     }
 
@@ -189,6 +192,7 @@ public class SparkIntegrationChecker implements Serializable{
    * @param args optional argument mPartitions may be passed in
    */
   public static void main(String[] args) throws Exception {
+    AlluxioConfiguration alluxioConf = new InstancedConfiguration(ConfigurationUtils.defaults());
     SparkIntegrationChecker checker = new SparkIntegrationChecker();
     JCommander jCommander = new JCommander(checker, args);
     jCommander.setProgramName("SparkIntegrationChecker");
@@ -200,7 +204,7 @@ public class SparkIntegrationChecker implements Serializable{
       JavaSparkContext sc = new JavaSparkContext(conf);
 
       checker.printConfigInfo(conf, reportWriter);
-      Status resultStatus = checker.run(sc, reportWriter);
+      Status resultStatus = checker.run(sc, reportWriter, alluxioConf);
       checker.printResultInfo(resultStatus, reportWriter);
       reportWriter.flush();
       System.exit(resultStatus.equals(Status.SUCCESS) ? 0 : 1);

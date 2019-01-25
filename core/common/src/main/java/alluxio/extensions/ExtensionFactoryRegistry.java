@@ -11,8 +11,8 @@
 
 package alluxio.extensions;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.ExtensionUtils;
 import alluxio.util.io.PathUtils;
 
@@ -78,9 +78,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>, S> {
   private static final Logger LOG = LoggerFactory.getLogger(ExtensionFactoryRegistry.class);
 
-  public static final String LIB_DIR =
-      PathUtils.concatPath(Configuration.get(PropertyKey.HOME), "lib");
-
   /**
    * The base list of factories, which does not include any lib or extension factories. The only
    * factories in the base list will be built-in factories, and any additional factories
@@ -128,14 +125,17 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>, S> {
    *
    * @param path path
    * @param conf configuration of the extension
+   * @param alluxioConf Alluxio configuration
    * @return list of factories that support the given path which may be an empty list
    */
-  public List<T> findAll(String path, @Nullable S conf) {
+  public List<T> findAll(String path, @Nullable S conf, AlluxioConfiguration alluxioConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<T> factories = new ArrayList<>(mFactories);
-    scanLibs(factories);
-    scanExtensions(factories);
+    String libDir = PathUtils.concatPath(alluxioConf.get(PropertyKey.HOME), "lib");
+    String extensionDir = alluxioConf.get(PropertyKey.EXTENSIONS_DIR);
+    scanLibs(factories, libDir);
+    scanExtensions(factories, extensionDir);
 
     List<T> eligibleFactories = new ArrayList<>();
     for (T factory : factories) {
@@ -156,9 +156,9 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>, S> {
    *
    * @param factories list of factories to add to
    */
-  private void scanExtensions(List<T> factories) {
-    LOG.info("Loading extension jars from {}", Configuration.get(PropertyKey.EXTENSIONS_DIR));
-    scan(Arrays.asList(ExtensionUtils.listExtensions()), factories);
+  private void scanExtensions(List<T> factories, String extensionsDir) {
+    LOG.info("Loading extension jars from {}", extensionsDir);
+    scan(Arrays.asList(ExtensionUtils.listExtensions(extensionsDir)), factories);
   }
 
   /**
@@ -166,11 +166,11 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>, S> {
    *
    * @param factories list of factories to add to
    */
-  private void scanLibs(List<T> factories) {
-    LOG.info("Loading core jars from {}", LIB_DIR);
+  private void scanLibs(List<T> factories, String libDir) {
+    LOG.info("Loading core jars from {}", libDir);
     List<File> files = new ArrayList<>();
     try (DirectoryStream<Path> stream =
-        Files.newDirectoryStream(Paths.get(LIB_DIR), mExtensionPattern)) {
+        Files.newDirectoryStream(Paths.get(libDir), mExtensionPattern)) {
       for (Path entry : stream) {
         if (entry.toFile().isFile()) {
           files.add(entry.toFile());

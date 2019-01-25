@@ -11,9 +11,7 @@
 
 package alluxio.util;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 
@@ -35,10 +33,11 @@ public final class TieredIdentityUtils {
    *
    * @param tier a wire type locality tier
    * @param otherTier a wire type locality tier to compare to
+   * @param resolveIpAddress whether or not to resolve hostnames to IP addresses for node locality
    * @return true if the wire type locality tier matches the given tier
    */
   public static boolean matches(TieredIdentity.LocalityTier tier,
-      TieredIdentity.LocalityTier otherTier) {
+      TieredIdentity.LocalityTier otherTier, boolean resolveIpAddress) {
     String otherTierName = otherTier.getTierName();
     if (!tier.getTierName().equals(otherTierName)) {
       return false;
@@ -50,7 +49,7 @@ public final class TieredIdentityUtils {
     // For node tiers, attempt to resolve hostnames to IP addresses, this avoids common
     // misconfiguration errors where a worker is using one hostname and the client is using
     // another.
-    if (Configuration.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP)) {
+    if (resolveIpAddress) {
       if (Constants.LOCALITY_NODE.equals(tier.getTierName())) {
         try {
           String tierIpAddress = NetworkAddressUtils.resolveIpAddress(tier.getValue());
@@ -69,18 +68,19 @@ public final class TieredIdentityUtils {
   /**
    * @param tieredIdentity the tiered identity
    * @param identities the tiered identities to compare to
+   * @param resolveIpAddress whether or not to resolve IP addresses for node locality
    * @return the identity closest to this one. If none of the identities match, the first identity
    *         is returned
    */
   public static Optional<TieredIdentity> nearest(TieredIdentity tieredIdentity,
-      List<TieredIdentity> identities) {
+      List<TieredIdentity> identities, boolean resolveIpAddress) {
     if (identities.isEmpty()) {
       return Optional.empty();
     }
     for (TieredIdentity.LocalityTier tier : tieredIdentity.getTiers()) {
       for (TieredIdentity identity : identities) {
         for (TieredIdentity.LocalityTier otherTier : identity.getTiers()) {
-          if (tier != null && matches(tier, otherTier)) {
+          if (tier != null && matches(tier, otherTier, resolveIpAddress)) {
             return Optional.of(identity);
           }
         }

@@ -30,7 +30,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -56,7 +56,7 @@ public interface FileSystemMasterClient extends Client {
      * @param conf master client configuration
      * @return a new {@link FileSystemMasterClient} instance
      */
-    public static FileSystemMasterClient create(MasterClientConfig conf) {
+    public static FileSystemMasterClient create(MasterClientContext conf) {
       return new RetryHandlingFileSystemMasterClient(conf);
     }
   }

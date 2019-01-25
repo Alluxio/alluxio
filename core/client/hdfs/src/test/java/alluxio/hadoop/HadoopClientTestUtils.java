@@ -11,13 +11,11 @@
 
 package alluxio.hadoop;
 
-import alluxio.Configuration;
 import alluxio.ProjectConstants;
-import alluxio.PropertyKey;
-import alluxio.client.file.FileSystemContext;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 
 import org.powermock.core.classloader.MockClassLoader;
-import org.powermock.reflect.Whitebox;
 
 import java.net.URL;
 
@@ -26,20 +24,12 @@ import java.net.URL;
  */
 public final class HadoopClientTestUtils {
   /**
-   * Resets the client to its initial state, re-initializing Alluxio and Hadoop contexts. Resets the
-   * initialized flag in {@link AbstractFileSystem} allowing FileSystems with different URIs to be
-   * initialized.
+   * Disables metrics in a configuration
    *
    * This method should only be used as a cleanup mechanism between tests.
    */
-  public static void resetClient() {
-    try {
-      Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
-      FileSystemContext.get().reset(Configuration.global());
-      Whitebox.setInternalState(AbstractFileSystem.class, "sInitialized", false);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+  public static void disableMetrics(InstancedConfiguration conf) {
+    conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
   }
 
   /**

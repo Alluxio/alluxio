@@ -16,10 +16,12 @@ import static org.junit.Assume.assumeFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.Configuration;
+import alluxio.ClientContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
-import alluxio.PropertyKey.Name;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.PropertyKey.Name;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -45,7 +47,7 @@ import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -152,7 +154,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @Rule
-  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
+      ServerConfiguration.global());
 
   private FileSystemMaster mFsMaster;
 
@@ -356,7 +359,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         CreateDirectoryContext.defaults().setPersisted(true));
     mFsMaster.createDirectory(new AlluxioURI("/testFolder/child"),
         CreateDirectoryContext.defaults().setPersisted(true));
-    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "testFolder", "ufsOnlyDir"));
     try {
       mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteContext
@@ -496,7 +499,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     fs.delete(dir, DeletePOptions.newBuilder().setRecursive(true).build());
     assertFalse(fs.exists(dir));
     // Make sure that the blocks are cleaned up
-    BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
+    BlockMasterClient blockClient =
+        BlockMasterClient.Factory.create(MasterClientContext
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     CommonUtils.waitFor("data to be deleted", () -> {
       try {
         return blockClient.getUsedBytes() == 0;
@@ -803,7 +808,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(alluxioFile.getName(), files.get(0).getName());
 
     // Add ufs only paths
-    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "ufs_dir"));
     Files.createFile(Paths.get(ufs, "ufs_file"));
 
@@ -839,7 +844,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     AlluxioURI dir = new AlluxioURI("/dir/");
 
     // Add ufs nested file.
-    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "dir"));
     Files.createFile(Paths.get(ufs, "dir", "file"));
 
@@ -901,7 +906,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsDirectoryStatus ufsStatus = new
         UfsDirectoryStatus("test", "owner", "group", (short) 511);
-    Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any())).thenReturn(mockUfs);
+    Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any(),
+        Matchers.any(AlluxioConfiguration.class))).thenReturn(mockUfs);
     Mockito.when(mockUfs.isDirectory(ufsBase)).thenReturn(true);
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), ""))
         .thenReturn(new AlluxioURI(ufsBase));
@@ -1152,7 +1158,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void createDirectoryInNestedDirectories() throws Exception {
-    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String targetPath = Paths.get(ufs, "d1", "d2", "d3").toString();
     FileUtils.createDir(targetPath);
     FileUtils.changeLocalFilePermission(targetPath, new Mode((short) 0755).toString());
@@ -1177,7 +1183,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void loadMetadataInNestedDirectories() throws Exception {
-    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String targetPath = Paths.get(ufs, "d1", "d2", "d3").toString();
     FileUtils.createDir(targetPath);
     FileUtils.changeLocalFilePermission(targetPath, new Mode((short) 0755).toString());
@@ -1201,7 +1207,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void createNestedDirectories() throws Exception {
-    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String parentPath = Paths.get(ufs, "d1").toString();
     FileUtils.createDir(parentPath);
     FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0755).toString());
@@ -1228,7 +1234,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // Assume the user is not root. This test doesn't work as root because root *is* allowed to
     // create subdirectories even without execute permission on the parent directory.
     assumeFalse(ShellUtils.execCommand("id", "-u").trim().equals("0"));
-    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String parentPath = Paths.get(ufs, "d1").toString();
     FileUtils.createDir(parentPath);
     FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0600).toString());
@@ -1246,7 +1252,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadDirectoryTimestamps() throws Exception {
     String name = "d1";
-    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String ufsPath = Paths.get(ufs, name).toString();
     FileUtils.createDir(ufsPath);
     File file = new File(ufsPath);
@@ -1270,7 +1276,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadFileTimestamps() throws Exception {
     String name = "f1";
-    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String ufsPath = Paths.get(ufs, name).toString();
     FileUtils.createFile(ufsPath);
     File file = new File(ufsPath);
@@ -1295,7 +1301,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public void loadParentDirectoryTimestamps() throws Exception {
     String parentName = "d1";
     String childName = "d2";
-    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String parentUfsPath = Paths.get(ufs, parentName).toString();
     FileUtils.createDir(parentUfsPath);
     File file = new File(parentUfsPath);
@@ -1630,8 +1636,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
               .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true));
           mFsMaster.createDirectory(dstPath.getParent(), context);
         } catch (FileAlreadyExistsException | InvalidPathException e) {
-          // FileAlreadyExistsException: This is an acceptable exception to get, since we don't know
-          // if the parent has been created yet by another thread.
+          // FileAlreadyExistsException: This is an acceptable exception to get, since we
+          // don't know if the parent has been created yet by another thread.
           // InvalidPathException: This could happen if we are renaming something that's a child of
           // the root.
         }

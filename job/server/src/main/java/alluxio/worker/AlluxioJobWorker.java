@@ -11,10 +11,10 @@
 
 package alluxio.worker;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.ProcessUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryUtils;
@@ -48,7 +48,7 @@ public final class AlluxioJobWorker {
       System.exit(-1);
     }
 
-    if (!ConfigurationUtils.masterHostConfigured()) {
+    if (!ConfigurationUtils.masterHostConfigured(ServerConfiguration.global())) {
       System.out.println(String.format(
           "Cannot run alluxio job worker; master hostname is not "
               + "configured. Please modify %s to either set %s or configure zookeeper with "
@@ -58,7 +58,7 @@ public final class AlluxioJobWorker {
       System.exit(1);
     }
 
-    if (!ConfigurationUtils.jobMasterHostConfigured()) {
+    if (!ConfigurationUtils.jobMasterHostConfigured(ServerConfiguration.global())) {
       System.out.println(String.format(
           "Cannot run alluxio job worker; job master hostname is not "
               + "configured. Please modify %s to either set %s or configure zookeeper with "
@@ -69,12 +69,15 @@ public final class AlluxioJobWorker {
     }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.JOB_WORKER);
-    MasterInquireClient masterInquireClient = MasterInquireClient.Factory.create();
+    MasterInquireClient masterInquireClient =
+        MasterInquireClient.Factory.create(ServerConfiguration.global());
     try {
       RetryUtils.retry("load cluster default configuration with master", () -> {
         InetSocketAddress masterAddress = masterInquireClient.getPrimaryRpcAddress();
-        Configuration.loadClusterDefault(masterAddress);
-      }, RetryUtils.defaultWorkerMasterClientRetry());
+        ServerConfiguration.loadClusterDefaults(masterAddress);
+      },
+          RetryUtils.defaultWorkerMasterClientRetry(
+              ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (IOException e) {
       ProcessUtils.fatalError(LOG,
           "Failed to load cluster default configuration for job worker: %s", e.getMessage());

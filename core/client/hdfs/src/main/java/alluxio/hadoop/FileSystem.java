@@ -11,9 +11,8 @@
 
 package alluxio.hadoop;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.annotation.PublicApi;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -51,6 +50,6 @@ public final class FileSystem extends AbstractFileSystem {
 
   @Override
   protected boolean isZookeeperMode() {
-    return Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
+    return mFsContext.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
   }
 }

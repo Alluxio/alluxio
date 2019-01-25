@@ -13,7 +13,7 @@ package alluxio.client.cli.fs;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.SystemOutRule;
 import alluxio.cli.GetConfKey;
 

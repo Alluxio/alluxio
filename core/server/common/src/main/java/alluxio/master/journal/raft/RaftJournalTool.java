@@ -13,6 +13,7 @@ package alluxio.master.journal.raft;
 
 import alluxio.Constants;
 import alluxio.ProcessUtils;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
@@ -128,7 +129,9 @@ public final class RaftJournalTool {
       ServerSocket socket = new ServerSocket(0);
       int port = socket.getLocalPort();
       CopycatServer server = CopycatServer
-          .builder(new Address(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RAFT), port))
+          .builder(new Address(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RAFT,
+              ServerConfiguration.global()),
+              port))
           .withSnapshotAllowed(new AtomicBoolean(false))
           .withTransport(new NettyTransport())
           .withSerializer(RaftJournalSystem.createSerializer())

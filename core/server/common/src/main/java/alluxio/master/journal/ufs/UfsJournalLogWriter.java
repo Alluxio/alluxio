@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
@@ -98,7 +98,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mUfs = mJournal.getUfs();
     mNextSequenceNumber = nextSequenceNumber;
-    mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+    mMaxLogSize = ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
 
     mRotateLogForNextWrite = true;
     UfsJournalFile currentLog = UfsJournalSnapshot.getCurrentLog(mJournal);
@@ -268,7 +268,8 @@ final class UfsJournalLogWriter implements JournalWriter {
     UfsJournalFile currentLog = UfsJournalFile.createLogFile(newLog, mNextSequenceNumber,
         UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
     OutputStream outputStream = mUfs.create(currentLog.getLocation().toString(),
-        CreateOptions.defaults().setEnsureAtomic(false).setCreateParent(true));
+        CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(false)
+            .setCreateParent(true));
     mJournalOutputStream = new JournalOutputStream(currentLog, outputStream);
     LOG.info("Created current log file: {}", currentLog);
   }

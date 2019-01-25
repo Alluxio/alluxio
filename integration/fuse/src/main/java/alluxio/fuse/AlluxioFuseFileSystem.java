@@ -12,14 +12,14 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -107,23 +107,26 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private final IndexedSet<OpenFileEntry> mOpenFiles;
 
   private long mNextOpenFileId;
+  private final String mFsName;
 
   /**
    * Creates a new instance of {@link AlluxioFuseFileSystem}.
    *
    * @param fs Alluxio file system
    * @param opts options
+   * @param conf Alluxio configuration
    */
-  public AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts) {
+  public AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts, AlluxioConfiguration conf) {
     super();
+    mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mNextOpenFileId = 0L;
     mOpenFiles = new IndexedSet<>(ID_INDEX, PATH_INDEX);
 
-    final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
+    final int maxCachedPaths = conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
     mIsUserGroupTranslation
-        = Configuration.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
+        = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
@@ -361,7 +364,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public String getFSName() {
-    return Configuration.get(PropertyKey.FUSE_FS_NAME);
+    return mFsName;
   }
 
   /**

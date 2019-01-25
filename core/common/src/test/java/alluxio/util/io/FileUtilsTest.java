@@ -18,6 +18,8 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.PropertyKey;
+import alluxio.util.ConfigurationUtils;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,6 +48,9 @@ import javax.annotation.Nullable;
  * Tests for the {@link FileUtils} class.
  */
 public class FileUtilsTest {
+
+  private String mWorkerDataFolderPerms = ConfigurationUtils.defaults()
+      .get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
 
   /**
    * The temporary folder.
@@ -228,7 +233,7 @@ public class FileUtilsTest {
   public void createBlockPath() throws IOException {
     String absolutePath = PathUtils.concatPath(mTestFolder.getRoot(), "tmp", "bar");
     File tempFile = new File(absolutePath);
-    FileUtils.createBlockPath(tempFile.getAbsolutePath());
+    FileUtils.createBlockPath(tempFile.getAbsolutePath(), mWorkerDataFolderPerms);
     assertTrue(FileUtils.exists(tempFile.getParent()));
   }
 
@@ -291,14 +296,14 @@ public class FileUtilsTest {
     File blockFile = new File(storageDir, "200");
 
     // When storage dir doesn't exist
-    FileUtils.createBlockPath(blockFile.getAbsolutePath());
+    FileUtils.createBlockPath(blockFile.getAbsolutePath(), mWorkerDataFolderPerms);
     assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
     assertEquals(
         PosixFilePermissions.fromString("rwxrwxrwx"),
         Files.getPosixFilePermissions(Paths.get(storageDir.getAbsolutePath())));
 
     // When storage dir exists
-    FileUtils.createBlockPath(blockFile.getAbsolutePath());
+    FileUtils.createBlockPath(blockFile.getAbsolutePath(), mWorkerDataFolderPerms);
     assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
   }
 
@@ -324,7 +329,7 @@ public class FileUtilsTest {
       @Nullable
       public Void call() throws Exception {
         mBarrier.await(); // Await until all threads submitted
-        FileUtils.createBlockPath(mPath);
+        FileUtils.createBlockPath(mPath, mWorkerDataFolderPerms);
         return null;
       }
     }

@@ -11,9 +11,9 @@
 
 package alluxio.web;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
@@ -79,7 +79,7 @@ public final class WorkerWebServer extends WebServer {
     // STATIC assets
     try {
       String resourceDirPathString =
-          Configuration.get(PropertyKey.WEB_RESOURCES) + "/worker/build/";
+          ServerConfiguration.get(PropertyKey.WEB_RESOURCES) + "/worker/build/";
       File resourceDir = new File(resourceDirPathString);
       mServletContextHandler.setBaseResource(Resource.newResource(resourceDir.getAbsolutePath()));
       mServletContextHandler.setWelcomeFiles(new String[] {"index.html"});

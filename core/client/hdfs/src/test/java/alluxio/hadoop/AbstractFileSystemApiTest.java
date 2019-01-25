@@ -15,15 +15,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.TestLoggerRule;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -37,23 +38,29 @@ public final class AbstractFileSystemApiTest {
   @Rule
   public TestLoggerRule mTestLogger = new TestLoggerRule();
 
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
+
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+
   @Before
   public void before() {
     // To make the test run faster.
-    Configuration.set(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT, "0sec");
+    mConf.set(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT, "0sec");
   }
 
   @After
   public void after() {
-    HadoopClientTestUtils.resetClient();
-    ConfigurationTestUtils.resetConfiguration();
+    mConf = ConfigurationTestUtils.defaults();
+    HadoopClientTestUtils.disableMetrics(mConf);
   }
 
   @Test
   public void unknownAuthorityTriggersWarning() throws IOException {
     URI unknown = URI.create("alluxio://test/");
+    mThrown.expectMessage("Authority \"test\" is unknown. The client can not be configured with "
+        + "the authority from " + unknown);
     FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration());
-    assertTrue(mTestLogger.wasLogged("Authority \"test\" is unknown"));
   }
 
   @Test
@@ -72,10 +79,14 @@ public final class AbstractFileSystemApiTest {
 
   @Test
   public void parseZkUriWithPlusDelimiters() throws Exception {
-    FileSystem.get(URI.create("alluxio://zk@a:0+b:1+c:2/"),
+    org.apache.hadoop.fs.FileSystem fs = FileSystem.get(URI.create("alluxio://zk@a:0+b:1+c:2/"),
         new org.apache.hadoop.conf.Configuration());
-    assertTrue(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
-    assertEquals("a:0,b:1,c:2", Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
+    assertTrue(fs instanceof AbstractFileSystem);
+    AbstractFileSystem afs = (AbstractFileSystem) fs;
+    assertTrue(afs.mFsContext.getConf()
+        .getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    assertEquals("a:0,b:1,c:2", afs.mFsContext.getConf()
+        .get(PropertyKey.ZOOKEEPER_ADDRESS));
   }
 
   private boolean loggedAuthorityWarning() {

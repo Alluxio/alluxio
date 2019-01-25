@@ -11,8 +11,10 @@
 
 package alluxio.client.file.policy;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.test.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -40,7 +42,7 @@ public final class RoundRobinPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 2 * (long) Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker3")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
-    RoundRobinPolicy policy = new RoundRobinPolicy();
+    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.defaults());
 
     Assert.assertNotEquals(
         policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost(),
@@ -49,6 +51,8 @@ public final class RoundRobinPolicyTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonUtils.testEquals(RoundRobinPolicy.class);
+    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    CommonUtils.testEquals(RoundRobinPolicy.class, new Class[]{AlluxioConfiguration.class},
+        new Object[]{conf});
   }
 }

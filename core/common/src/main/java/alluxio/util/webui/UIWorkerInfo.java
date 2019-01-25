@@ -19,16 +19,19 @@ import alluxio.util.CommonUtils;
 public class UIWorkerInfo {
   private final String mWorkerAddress;
   private final long mStartTimeMs;
+  private final String mDateFormatPattern;
 
   /**
    * Creates a new instance of {@link UIWorkerInfo}.
    *
    * @param workerAddress worker address
    * @param startTimeMs start time in milliseconds
+   * @param dateFormatPattern The pattern to format timestamps with
    */
-  public UIWorkerInfo(String workerAddress, long startTimeMs) {
+  public UIWorkerInfo(String workerAddress, long startTimeMs, String dateFormatPattern) {
     mWorkerAddress = workerAddress;
     mStartTimeMs = startTimeMs;
+    mDateFormatPattern = dateFormatPattern;
   }
 
   /**
@@ -37,7 +40,7 @@ public class UIWorkerInfo {
    * @return the start time
    */
   public String getStartTime() {
-    return CommonUtils.convertMsToDate(mStartTimeMs);
+    return CommonUtils.convertMsToDate(mStartTimeMs, mDateFormatPattern);
   }
 
   /**

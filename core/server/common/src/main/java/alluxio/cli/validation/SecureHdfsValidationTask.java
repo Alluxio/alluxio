@@ -11,8 +11,8 @@
 
 package alluxio.cli.validation;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -80,8 +80,8 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
       return true;
     }
     String principal = null;
-    if (Configuration.isSet(mPrincipalProperty)) {
-      principal = Configuration.get(mPrincipalProperty);
+    if (ServerConfiguration.isSet(mPrincipalProperty)) {
+      principal = ServerConfiguration.get(mPrincipalProperty);
     }
     if (principal == null || principal.isEmpty()) {
       System.out.format("Skip validation for secure HDFS. %s is not specified.%n",
@@ -93,7 +93,7 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
 
   private boolean validatePrincipalLogin() {
     // Check whether can login with specified principal and keytab
-    String principal = Configuration.get(mPrincipalProperty);
+    String principal = ServerConfiguration.get(mPrincipalProperty);
     Matcher matchPrincipal = PRINCIPAL_PATTERN.matcher(principal);
     if (!matchPrincipal.matches()) {
       System.err.format("Principal %s is not in the right format.%n", principal);
@@ -104,7 +104,7 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
     String realm = matchPrincipal.group("realm");
 
     // Login with principal and keytab
-    String keytab = Configuration.get(mKeytabProperty);
+    String keytab = ServerConfiguration.get(mKeytabProperty);
     int exitVal =
         Utils.getResultFromProcess(new String[] {"kinit", "-kt", keytab, principal}).getExitValue();
     if (exitVal != 0) {

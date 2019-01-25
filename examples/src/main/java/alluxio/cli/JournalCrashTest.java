@@ -12,8 +12,8 @@
 package alluxio.cli;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
@@ -21,6 +21,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -40,6 +41,9 @@ import java.util.List;
  * generates journal events. Check if the master can generate and reproduce the journal correctly.
  */
 public final class JournalCrashTest {
+
+  private static InstancedConfiguration sConf =
+      new InstancedConfiguration(ConfigurationUtils.defaults());
 
   private JournalCrashTest() {} // prevent instantiation
 
@@ -263,7 +267,7 @@ public final class JournalCrashTest {
       LOG.info("Round {}: Planning Master Alive Time {}ms.", rounds, aliveTimeMs);
 
       System.out.println("Round " + rounds + " : Launch Clients...");
-      sFileSystem = FileSystem.Factory.get();
+      sFileSystem = FileSystem.Factory.get(sConf);
       try {
         sFileSystem.delete(new AlluxioURI(sTestDir));
       } catch (Exception e) {
@@ -381,7 +385,7 @@ public final class JournalCrashTest {
    * Starts Alluxio Master by executing the launch script.
    */
   private static void startMaster() {
-    String alluxioStartPath = PathUtils.concatPath(Configuration.get(PropertyKey.HOME),
+    String alluxioStartPath = PathUtils.concatPath(sConf.get(PropertyKey.HOME),
         "bin", "alluxio-start.sh");
     String startMasterCommand = String.format("%s master", alluxioStartPath);
     try {
@@ -398,7 +402,7 @@ public final class JournalCrashTest {
    */
   private static void stopCluster() {
     String alluxioStopPath =
-        PathUtils.concatPath(Configuration.get(PropertyKey.HOME), "bin", "alluxio-stop.sh");
+        PathUtils.concatPath(sConf.get(PropertyKey.HOME), "bin", "alluxio-stop.sh");
     String stopClusterCommand = String.format("%s all", alluxioStopPath);
     try {
       Runtime.getRuntime().exec(stopClusterCommand).waitFor();

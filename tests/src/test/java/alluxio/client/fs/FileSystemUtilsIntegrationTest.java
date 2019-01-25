@@ -12,8 +12,8 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
@@ -88,7 +88,8 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
       @Override
       public void run() {
         try {
-          boolean completed = FileSystemUtils.waitCompleted(sFileSystem, uri);
+          boolean completed = FileSystemUtils.waitCompleted(sFileSystem, uri,
+              ServerConfiguration.getMs(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS));
           Assert.assertTrue(completed);
           completed = sFileSystem.getStatus(uri).isCompleted();
           Assert.assertTrue(completed);
@@ -142,17 +143,18 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
         try {
           // set the slow default polling period to a more sensible value, in order
           // to speed up the tests artificial waiting times
-          String original = Configuration.get(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
-          Configuration.set(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
+          String original = ServerConfiguration.get(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
+          ServerConfiguration.set(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
           try {
             // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
             boolean completed = FileSystemUtils.waitCompleted(sFileSystem, uri, 300,
-                TimeUnit.MILLISECONDS);
+                TimeUnit.MILLISECONDS, ServerConfiguration
+                    .getMs(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS));
             Assert.assertFalse(completed);
             completed = sFileSystem.getStatus(uri).isCompleted();
             Assert.assertFalse(completed);
           } finally {
-            Configuration.set(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS, original);
+            ServerConfiguration.set(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS, original);
           }
         } catch (Exception e) {
           e.printStackTrace();

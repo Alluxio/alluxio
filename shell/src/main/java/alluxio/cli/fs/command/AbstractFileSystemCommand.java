@@ -15,16 +15,20 @@ import alluxio.AlluxioURI;
 import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.util.ConfigurationUtils;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The base class for all the FileSystem {@link alluxio.cli.Command} classes.
@@ -34,9 +38,17 @@ import java.util.List;
 public abstract class AbstractFileSystemCommand implements Command {
 
   protected FileSystem mFileSystem;
+  protected FileSystemContext mFsContext;
 
-  protected AbstractFileSystemCommand(FileSystem fs) {
-    mFileSystem = fs;
+  // The FilesystemContext contains configuration information and is also used to instantiate a
+  // filesystem client, if null - load default properties
+  protected AbstractFileSystemCommand(@Nullable FileSystemContext fsContext) {
+    if (fsContext == null) {
+      fsContext =
+          FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+    }
+    mFsContext = fsContext;
+    mFileSystem = FileSystem.Factory.get(fsContext);
   }
 
   /**

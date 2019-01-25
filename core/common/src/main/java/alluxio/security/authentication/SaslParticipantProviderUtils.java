@@ -11,9 +11,9 @@
 
 package alluxio.security.authentication;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.security.User;
 
 import org.slf4j.Logger;
@@ -34,10 +34,11 @@ public final class SaslParticipantProviderUtils {
 
   /**
    * @param subject the subject to use (can be null)
+   * @param conf Alluxio configuration
    * @return the configured impersonation user, or null if impersonation is not used
    */
   @Nullable
-  public static String getImpersonationUser(Subject subject) {
+  public static String getImpersonationUser(Subject subject, AlluxioConfiguration conf) {
     // The user of the hdfs client
     String hdfsUser = null;
 
@@ -52,8 +53,8 @@ public final class SaslParticipantProviderUtils {
 
     // Determine the impersonation user
     String impersonationUser = null;
-    if (Configuration.isSet(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)) {
-      impersonationUser = Configuration.get(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME);
+    if (conf.isSet(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)) {
+      impersonationUser = conf.get(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME);
       LOG.debug("Impersonation: configured: {}", impersonationUser);
       if (Constants.IMPERSONATION_HDFS_USER.equals(impersonationUser)) {
         // Impersonate as the hdfs client user

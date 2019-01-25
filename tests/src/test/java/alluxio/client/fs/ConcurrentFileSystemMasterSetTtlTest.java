@@ -14,9 +14,10 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
@@ -67,7 +68,8 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
   private FileSystem mFileSystem;
 
   @Rule
-  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
+      ServerConfiguration.global());
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
@@ -81,7 +83,7 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
 
   @Before
   public void before() {
-    mFileSystem = FileSystem.Factory.get();
+    mFileSystem = FileSystem.Factory.get(ServerConfiguration.global());
   }
 
   @Test

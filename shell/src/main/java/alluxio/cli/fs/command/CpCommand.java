@@ -12,20 +12,19 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -130,10 +129,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
   }
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public CpCommand(FileSystem fs) {
-    super(fs);
+  public CpCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -402,8 +401,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
     FileOutStream os = null;
     try (Closer closer = Closer.create()) {
       CreateFilePOptions createOptions = CreateFilePOptions.newBuilder()
-          .setFileWriteLocationPolicy(
-              Configuration.get(PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY))
+          .setFileWriteLocationPolicy(mFsContext.getConf().get(
+                  PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY))
           .build();
       os = closer.register(mFileSystem.createFile(dstPath, createOptions));
       FileInputStream in = closer.register(new FileInputStream(src));

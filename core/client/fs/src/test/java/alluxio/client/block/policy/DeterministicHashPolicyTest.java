@@ -11,10 +11,12 @@
 
 package alluxio.client.block.policy;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
@@ -33,6 +35,7 @@ public final class DeterministicHashPolicyTest {
   private static final int PORT = 1;
 
   private final List<BlockWorkerInfo> mWorkerInfos = new ArrayList<>();
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
 
   @Before
   public void before() {
@@ -55,14 +58,14 @@ public final class DeterministicHashPolicyTest {
   public void getWorkerDeterministically() {
     DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
         CreateOptions.defaults()
-            .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()));
+            .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()), sConf);
     String host = policy.getWorker(
         GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos).setBlockId(1)
             .setBlockSize(2 * (long) Constants.GB)).getHost();
     for (int i = 0; i < 10; i++) {
       DeterministicHashPolicy p = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
           CreateOptions.defaults()
-              .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()));
+              .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()), sConf);
       // For the same block, always return the same worker.
       Assert.assertEquals(host, p.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos).setBlockId(1)
@@ -77,7 +80,7 @@ public final class DeterministicHashPolicyTest {
   public void getWorkerEnoughCapacity() {
     DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
         CreateOptions.defaults()
-            .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()));
+            .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()), sConf);
     for (long blockId = 0; blockId < 100; blockId++) {
       // worker1 does not have enough capacity. It should never be picked.
       Assert.assertNotEquals("worker1", policy.getWorker(
@@ -91,7 +94,7 @@ public final class DeterministicHashPolicyTest {
     DeterministicHashPolicy policy2 = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
         CreateOptions.defaults()
             .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName())
-            .setDeterministicHashPolicyNumShards(2));
+            .setDeterministicHashPolicyNumShards(2), sConf);
     Set<String> addresses1 = new HashSet<>();
     Set<String> addresses2 = new HashSet<>();
     for (int i = 0; i < 100; i++) {

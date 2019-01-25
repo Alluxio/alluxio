@@ -11,7 +11,7 @@
 
 package alluxio.client.rest;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;

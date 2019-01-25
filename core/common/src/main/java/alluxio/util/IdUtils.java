@@ -11,6 +11,8 @@
 
 package alluxio.util;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.block.BlockId;
 
 import org.slf4j.Logger;
@@ -97,5 +99,18 @@ public final class IdUtils {
    */
   public static String createFileSystemContextId() {
     return "app-" + Math.abs(sRandom.nextLong());
+  }
+
+  /**
+   *
+   * @param conf an alluxio configuration with the USER_APP_ID property key
+   * @return a string representing the USER_APP_ID
+   */
+  public static String createOrGetAppIdFromConfig(AlluxioConfiguration conf) {
+    if (conf.isSet(PropertyKey.USER_APP_ID)) {
+      return conf.get(PropertyKey.USER_APP_ID);
+    } else {
+      return IdUtils.createFileSystemContextId();
+    }
   }
 }

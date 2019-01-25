@@ -15,9 +15,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.util.CommonUtils;
@@ -46,7 +46,7 @@ import java.util.concurrent.TimeoutException;
 
 public abstract class ReadHandlerTest {
   protected static final long CHUNK_SIZE =
-      Configuration.getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
+      ServerConfiguration.getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
   private final Random mRandom = new Random();
 
   protected String mFile;

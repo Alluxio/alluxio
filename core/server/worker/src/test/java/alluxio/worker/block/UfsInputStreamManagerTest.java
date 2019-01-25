@@ -21,7 +21,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.test.util.ConcurrencyUtils;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
@@ -110,7 +111,7 @@ public final class UfsInputStreamManagerTest {
       {
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "2");
       }
-    }).toResource()) {
+    }, ServerConfiguration.global()).toResource()) {
       mManager = new UfsInputStreamManager();
       // check out a stream
       InputStream instream =
@@ -134,7 +135,7 @@ public final class UfsInputStreamManagerTest {
         // use very large number
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "200000");
       }
-    }).toResource()) {
+    }, ServerConfiguration.global()).toResource()) {
       mManager = new UfsInputStreamManager();
       List<Thread> threads = new ArrayList<>();
       int numCheckOutPerThread = 10;
@@ -179,7 +180,7 @@ public final class UfsInputStreamManagerTest {
       {
         put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "20");
       }
-    }).toResource()) {
+    }, ServerConfiguration.global()).toResource()) {
       mManager = new UfsInputStreamManager();
       List<Thread> threads = new ArrayList<>();
       int numCheckOutPerThread = 4;

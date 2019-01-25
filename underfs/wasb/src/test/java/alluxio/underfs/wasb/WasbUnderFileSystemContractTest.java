@@ -11,6 +11,8 @@
 
 package alluxio.underfs.wasb;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.AbstractUnderFileSystemContractTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -24,6 +26,7 @@ import org.junit.BeforeClass;
 public final class WasbUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
   private static final String WASB_BASE_DIR_CONF = "testWasbBaseDir";
   private static final String WASB_BASE_DIR = System.getProperty(WASB_BASE_DIR_CONF);
+  private static InstancedConfiguration sAlluxioConf = ConfigurationTestUtils.defaults();
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -35,7 +38,7 @@ public final class WasbUnderFileSystemContractTest extends AbstractUnderFileSyst
   @Override
   public UnderFileSystem createUfs(String path, UnderFileSystemConfiguration conf)
       throws Exception {
-    return new WasbUnderFileSystemFactory().create(path, conf);
+    return new WasbUnderFileSystemFactory().create(path, conf, sAlluxioConf);
   }
 
   @Override

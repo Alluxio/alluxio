@@ -11,9 +11,8 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
@@ -86,8 +85,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class S3ALowLevelOutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(S3ALowLevelOutputStream.class);
 
-  private static final boolean SSE_ENABLED =
-      Configuration.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED);
+  private final boolean mSseEnabled;
+
+  private final List<String> mTmpDirs;
 
   /**
    * Only parts bigger than 5MB could be uploaded through S3A low-level multipart upload,
@@ -154,14 +154,20 @@ public class S3ALowLevelOutputStream extends OutputStream {
    * @param key the key of the file
    * @param s3Client the Amazon S3 client to upload the file with
    * @param executor a thread pool executor
+   * @param streamingUploadPartitionSize the size in bytes for partitions of streaming uploads
+   * @param tmpDirs a list of temporary directories
+   * @param sseEnabled whether or not server side encryption is enabled
    */
   public S3ALowLevelOutputStream(String bucketName, String key, AmazonS3 s3Client,
-      ListeningExecutorService executor) {
+      ListeningExecutorService executor, long streamingUploadPartitionSize, List<String> tmpDirs,
+      boolean sseEnabled) {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "
         + "not be null or empty.");
     mBucketName = bucketName;
     mClient = s3Client;
     mExecutor = executor;
+    mTmpDirs = tmpDirs;
+    mSseEnabled = sseEnabled;
     try {
       mHash = MessageDigest.getInstance("MD5");
     } catch (NoSuchAlgorithmException e) {
@@ -171,8 +177,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
     mKey = key;
     // Partition size should be at least 5 MB, since S3 low-level multipart upload does not
     // accept intermediate part smaller than 5 MB.
-    mPartitionSize = Math.max(UPLOAD_THRESHOLD,
-        Configuration.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE));
+    mPartitionSize = Math.max(UPLOAD_THRESHOLD, streamingUploadPartitionSize);
     mPartNumber = new AtomicInteger(1);
   }
 
@@ -274,7 +279,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
     // Generate the object metadata by setting server side encryption, md5 checksum,
     // and encoding as octet stream since no assumptions are made about the file type
     ObjectMetadata meta = new ObjectMetadata();
-    if (SSE_ENABLED) {
+    if (mSseEnabled) {
       meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
     }
     if (mHash != null) {
@@ -302,7 +307,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
    * Creates a new temp file to write to.
    */
   private void initNewFile() throws IOException {
-    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
+    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(mTmpDirs), UUID.randomUUID()));
     if (mHash != null) {
       mLocalOutputStream =
           new BufferedOutputStream(new DigestOutputStream(new FileOutputStream(mFile), mHash));

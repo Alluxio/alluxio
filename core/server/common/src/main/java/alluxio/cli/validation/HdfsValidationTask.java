@@ -12,8 +12,8 @@
 package alluxio.cli.validation;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.io.PathUtils;
 
@@ -58,8 +58,8 @@ public class HdfsValidationTask extends AbstractValidationTask {
   }
 
   protected boolean shouldSkip() {
-    String scheme =
-        new AlluxioURI(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).getScheme();
+    String scheme = new AlluxioURI(ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
+        .getScheme();
     if (scheme == null || !scheme.startsWith("hdfs")) {
       System.out.format("Root underFS is not HDFS. Skipping validation for HDFS properties.%n");
       return true;
@@ -82,10 +82,10 @@ public class HdfsValidationTask extends AbstractValidationTask {
     String serverCoreSiteFilePath = PathUtils.concatPath(serverHadoopConfDirPath, "/core-site.xml");
     String serverHdfsSiteFilePath = PathUtils.concatPath(serverHadoopConfDirPath, "/hdfs-site.xml");
 
-    // If Configuration does not contain the key, then a {@link RuntimeException} will be thrown
-    // before calling the {@link String#split} method.
+    // If ServerConfiguration does not contain the key, then a {@link RuntimeException} will be
+    // thrown before calling the {@link String#split} method.
     String[] clientHadoopConfFilePaths =
-        Configuration.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":");
+        ServerConfiguration.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":");
     String clientCoreSiteFilePath = null;
     String clientHdfsSiteFilePath = null;
     for (String path : clientHadoopConfFilePaths) {

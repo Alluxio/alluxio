@@ -16,8 +16,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -56,6 +57,8 @@ public class S3ALowLevelOutputStreamTest {
   private static final String PARTITION_SIZE = "8MB";
   private static final String KEY = "testKey";
   private static final String UPLOAD_ID = "testUploadId";
+  private static InstancedConfiguration sConf = new InstancedConfiguration(
+      ConfigurationUtils.defaults());
 
   private AmazonS3 mMockS3Client;
   private ListeningExecutorService mMockExecutor;
@@ -71,8 +74,11 @@ public class S3ALowLevelOutputStreamTest {
   public void before() throws Exception {
     mockS3ClientAndExecutor();
     mockFileAndOutputStream();
-    Configuration.set(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE, PARTITION_SIZE);
-    mStream = new S3ALowLevelOutputStream(BUCKET_NAME, KEY, mMockS3Client, mMockExecutor);
+    sConf.set(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE, PARTITION_SIZE);
+    mStream = new S3ALowLevelOutputStream(BUCKET_NAME, KEY, mMockS3Client, mMockExecutor,
+        sConf.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE),
+        sConf.getList(PropertyKey.TMP_DIRS, ","),
+        sConf.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
   }
 
   @Test

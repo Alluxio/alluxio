@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -30,7 +29,6 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -49,10 +47,10 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public LoadCommand(FileSystem fs) {
-    super(fs);
+  public LoadCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -99,7 +97,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       OpenFilePOptions options =
           OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
       if (local) {
-        if (!FileSystemContext.get().hasLocalWorker()) {
+        if (!mFsContext.hasLocalWorker()) {
           System.out.println("When local option is specified,"
               + " there must be a local worker available");
           return;

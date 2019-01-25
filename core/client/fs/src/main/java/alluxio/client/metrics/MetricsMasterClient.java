@@ -19,15 +19,14 @@ import alluxio.grpc.MetricsHeartbeatPOptions;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
-import alluxio.master.MasterClientConfig;
-import alluxio.metrics.MetricsSystem;
+import alluxio.master.MasterClientContext;
 import alluxio.retry.RetryUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A client to use for interacting with a metrics master.
@@ -41,7 +40,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
    *
    * @param conf master client configuration
    */
-  public MetricsMasterClient(MasterClientConfig conf) {
+  public MetricsMasterClient(MasterClientContext conf) {
     super(conf, null, RetryUtils::defaultMetricsClientRetry);
   }
 
@@ -74,8 +73,8 @@ public class MetricsMasterClient extends AbstractMasterClient {
     connect();
     try {
       MetricsHeartbeatPRequest.Builder request = MetricsHeartbeatPRequest.newBuilder();
-      request.setClientId(MetricsSystem.getAppId());
-      request.setHostname(NetworkAddressUtils.getClientHostName());
+      request.setClientId(IdUtils.createOrGetAppIdFromConfig(mContext.getConf()));
+      request.setHostname(NetworkAddressUtils.getClientHostName(mContext.getConf()));
       request.setOptions(MetricsHeartbeatPOptions.newBuilder().addAllMetrics(metrics).build());
       mClient.metricsHeartbeat(request.build());
     } catch (io.grpc.StatusRuntimeException e) {

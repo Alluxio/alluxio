@@ -15,9 +15,9 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.ClientContext;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -36,7 +36,7 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -83,7 +83,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 
   @Rule
-  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test",
+      ServerConfiguration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -91,12 +92,12 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @After
   public void after() throws Exception {
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   @Before
   public void before() throws Exception {
-    mFileSystem = FileSystem.Factory.get();
+    mFileSystem = FileSystem.Factory.get(ServerConfiguration.global());
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI(mLocalUfsPath));
 
     new File(ufsPath(EXISTING_DIR)).mkdirs();
@@ -515,7 +516,9 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(EXISTING_FILE)),
         ExistsPOptions.newBuilder().setCommonOptions(PSYNC_ALWAYS).build()));
     mFileSystem.free(new AlluxioURI("/"), FreePOptions.newBuilder().setRecursive(true).build());
-    BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
+    BlockMasterClient blockClient =
+        BlockMasterClient.Factory.create(MasterClientContext
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     CommonUtils.waitFor("data to be freed", () -> {
       try {
         return blockClient.getUsedBytes() == 0;
@@ -527,7 +530,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void createNestedFileSync() throws Exception {
-    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
+    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
 
     mFileSystem.createFile(new AlluxioURI(alluxioPath(NEW_NESTED_FILE)),
         CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
@@ -540,8 +543,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void recursiveSync() throws Exception {
-    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
-    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, "Never");
+    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
+    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, "Never");
 
     // make nested directories/files in UFS
     new File(ufsPath("/dir1")).mkdirs();
@@ -564,13 +567,13 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     }
 
     // Enable UFS sync, before next recursive setAttribute.
-    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
+    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
     long ttl = 123456789;
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
         SetAttributePOptions.newBuilder().setRecursive(true).setTtl(ttl).build());
 
     // Verify recursive set TTL by getting info, without sync.
-    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
+    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
     URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(fileA)));
     Assert.assertEquals(ttl, status.getTtl());
 
@@ -579,13 +582,13 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(new File(ufsPath(fileA)).delete());
 
     // Enable UFS sync, before next recursive setAttribute.
-    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
+    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
     ttl = 987654321;
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
         SetAttributePOptions.newBuilder().setRecursive(true).setTtl(ttl).build());
 
     // Verify recursive set TTL by getting info, without sync.
-    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
+    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
     status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(fileB)));
     Assert.assertEquals(ttl, status.getTtl());
 
@@ -668,7 +671,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
             + ") are inconsistent. path: " + uriStatus.getPath());
       }
       // Check fingerprint.
-      UnderFileSystem ufs = UnderFileSystem.Factory.create(uriStatus.getUfsPath());
+      UnderFileSystem ufs = UnderFileSystem.Factory.create(uriStatus.getUfsPath(),
+          ServerConfiguration.global());
       String ufsFingerprint = ufs.getFingerprint(uriStatus.getUfsPath());
       String alluxioFingerprint = uriStatus.getUfsFingerprint();
       if (!ufsFingerprint.equals(alluxioFingerprint)) {

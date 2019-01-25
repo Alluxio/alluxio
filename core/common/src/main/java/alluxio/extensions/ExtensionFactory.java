@@ -11,6 +11,8 @@
 
 package alluxio.extensions;
 
+import alluxio.conf.AlluxioConfiguration;
+
 import javax.annotation.Nullable;
 
 /**
@@ -26,13 +28,14 @@ public interface ExtensionFactory<T, S> {
    *
    * @param path file path with scheme for which the extension will be created
    * @param conf optional configuration object for the extension, may be null
+   * @param alluxioConf Alluxio configuration object
    * @return the new extension
    */
-  T create(String path, @Nullable S conf);
+  T create(String path, @Nullable S conf, AlluxioConfiguration alluxioConf);
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, S)} can succeed for this path.
+   * {@link #create(String, S, AlluxioConfiguration)} can succeed for this path.
    *
    * @param path file path with scheme for which the extension will be created
    * @param conf optional configuration object for the extension, may be null

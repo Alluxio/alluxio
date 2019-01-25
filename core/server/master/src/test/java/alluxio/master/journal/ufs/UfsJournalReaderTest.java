@@ -11,7 +11,7 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader;
 import alluxio.proto.journal.Journal;
@@ -43,13 +43,13 @@ public final class UfsJournalReaderTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
-    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location));
+    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location, ServerConfiguration.global()));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
   }
 
   @After
   public void after() throws Exception {
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   /**

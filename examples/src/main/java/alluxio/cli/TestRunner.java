@@ -15,9 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.examples.BasicNonByteBufferOperations;
 import alluxio.examples.BasicOperations;
 import alluxio.grpc.DeletePOptions;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
@@ -107,7 +110,10 @@ public final class TestRunner {
     mDirectory = PathUtils.concatPath(mDirectory, TEST_DIRECTORY_NAME);
 
     AlluxioURI testDir = new AlluxioURI(mDirectory);
-    FileSystem fs = FileSystem.Factory.get();
+    FileSystemContext fsContext =
+        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+    FileSystem fs =
+        FileSystem.Factory.get(fsContext);
     if (fs.exists(testDir)) {
       fs.delete(testDir, DeletePOptions.newBuilder().setRecursive(true).setUnchecked(true).build());
     }
@@ -125,7 +131,7 @@ public final class TestRunner {
       for (WriteType writeType : writeTypes) {
         for (OperationType opType : operations) {
           System.out.println(String.format("runTest %s %s %s", opType, readType, writeType));
-          failed += runTest(opType, readType, writeType);
+          failed += runTest(opType, readType, writeType, fsContext);
         }
       }
     }
@@ -143,18 +149,20 @@ public final class TestRunner {
    * @param writeType write type
    * @return 0 on success, 1 on failure
    */
-  private int runTest(OperationType opType, ReadType readType, WriteType writeType) {
+  private int runTest(OperationType opType, ReadType readType, WriteType writeType,
+      FileSystemContext fsContext) {
     AlluxioURI filePath =
         new AlluxioURI(String.format("%s/%s_%s_%s", mDirectory, opType, readType, writeType));
 
     boolean result = true;
     switch (opType) {
       case BASIC:
-        result = CliUtils.runExample(new BasicOperations(filePath, readType, writeType));
+        result = CliUtils.runExample(new BasicOperations(filePath, readType, writeType, fsContext));
         break;
       case BASIC_NON_BYTE_BUFFER:
         result = CliUtils
-            .runExample(new BasicNonByteBufferOperations(filePath, readType, writeType, true, 20));
+            .runExample(new BasicNonByteBufferOperations(filePath, readType, writeType, true, 20,
+             fsContext));
         break;
       default:
         System.out.println("Unrecognized operation type " + opType);

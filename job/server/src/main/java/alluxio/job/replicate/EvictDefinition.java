@@ -11,6 +11,8 @@
 
 package alluxio.job.replicate;
 
+import alluxio.client.file.FileSystem;
+import alluxio.conf.ServerConfiguration;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
@@ -50,22 +52,22 @@ public final class EvictDefinition
     extends AbstractVoidJobDefinition<EvictConfig, SerializableVoid> {
   private static final Logger LOG = LoggerFactory.getLogger(EvictDefinition.class);
 
-  private final FileSystemContext mFileSystemContext;
+  private final FileSystemContext mFsContext;
 
   /**
    * Constructs a new {@link EvictDefinition}.
    */
   public EvictDefinition() {
-    mFileSystemContext = FileSystemContext.get();
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
   }
 
   /**
-   * Constructs a new {@link EvictDefinition} with FileSystem context and instance.
+   * Constructs a new {@link EvictDefinition} with the given {@link FileSystemContext}.
    *
-   * @param fileSystemContext file system context
+   * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
    */
-  public EvictDefinition(FileSystemContext fileSystemContext) {
-    mFileSystemContext = fileSystemContext;
+  public EvictDefinition(FileSystemContext fsContext) {
+    mFsContext = fsContext;
   }
 
   @Override
@@ -81,7 +83,7 @@ public final class EvictDefinition
     long blockId = config.getBlockId();
     int numReplicas = config.getReplicas();
 
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext);
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
     BlockInfo blockInfo = blockStore.getInfo(blockId);
 
     Set<String> hosts = new HashSet<>();
@@ -111,10 +113,11 @@ public final class EvictDefinition
   @Override
   public SerializableVoid runTask(EvictConfig config, SerializableVoid args,
       JobWorkerContext jobWorkerContext) throws Exception {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create();
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
 
     long blockId = config.getBlockId();
-    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC);
+    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
+        ServerConfiguration.global());
     List<BlockWorkerInfo> workerInfoList = blockStore.getAllWorkers();
     WorkerNetAddress localNetAddress = null;
 
@@ -132,7 +135,7 @@ public final class EvictDefinition
     RemoveBlockRequest request = RemoveBlockRequest.newBuilder().setBlockId(blockId).build();
     BlockWorkerClient blockWorker = null;
     try {
-      blockWorker = FileSystemContext.get().acquireBlockWorkerClient(localNetAddress);
+      blockWorker = mFsContext.acquireBlockWorkerClient(localNetAddress);
       blockWorker.removeBlock(request);
     } catch (NotFoundException e) {
       // Instead of throwing this exception, we continue here because the block to evict does not
@@ -140,7 +143,7 @@ public final class EvictDefinition
       LOG.warn("Failed to delete block {} on {}: block does not exist", blockId, localNetAddress);
     } finally {
       if (blockWorker != null) {
-        FileSystemContext.get().releaseBlockWorkerClient(localNetAddress, blockWorker);
+        mFsContext.releaseBlockWorkerClient(localNetAddress, blockWorker);
       }
     }
     return null;

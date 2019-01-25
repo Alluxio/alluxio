@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.HealthCheckClient;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.ShellUtils;
 
@@ -36,6 +37,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
   private String mAlluxioMasterName;
   private boolean mProcessCheck;
   private ExecutorService mExecutorService;
+  private AlluxioConfiguration mConf;
 
   /**
    * Builder for a {@link MasterHealthCheckClient}.
@@ -43,13 +45,17 @@ public class MasterHealthCheckClient implements HealthCheckClient {
   public static class Builder {
     private boolean mProcessCheck;
     private String mAlluxioMasterName;
+    private AlluxioConfiguration mConf;
 
     /**
      * Constructs the builder with default values.
+     *
+     * @param alluxioConf Alluxio configuration
      */
-    public Builder() {
+    public Builder(AlluxioConfiguration alluxioConf) {
       mProcessCheck = true;
       mAlluxioMasterName = "alluxio.master.AlluxioMaster";
+      mConf = alluxioConf;
     }
 
     /**
@@ -58,6 +64,16 @@ public class MasterHealthCheckClient implements HealthCheckClient {
      */
     public Builder withProcessCheck(boolean processCheck) {
       mProcessCheck = processCheck;
+      return this;
+    }
+
+    /**
+     *
+     * @param alluxioConf Alluxio configuration
+     * @return a builder which utlizes the given alluxio configuration
+     */
+    public Builder withConfiguration(AlluxioConfiguration alluxioConf) {
+      mConf = alluxioConf;
       return this;
     }
 
@@ -74,7 +90,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
      * @return a {@link MasterHealthCheckClient} for the current builder values
      */
     public HealthCheckClient build() {
-      return new MasterHealthCheckClient(mAlluxioMasterName, mProcessCheck);
+      return new MasterHealthCheckClient(mAlluxioMasterName, mProcessCheck, mConf);
     }
   }
 
@@ -87,7 +103,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
     public void run() {
       try {
         LOG.debug("Checking master is serving requests");
-        FileSystem fs = FileSystem.Factory.get();
+        FileSystem fs = FileSystem.Factory.get(mConf);
         fs.exists(new AlluxioURI("/"));
         LOG.debug("Master is serving requests");
       } catch (Throwable e) {
@@ -114,7 +130,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
 
     @Override
     public void run() {
-      MasterInquireClient client = MasterInquireClient.Factory.create();
+      MasterInquireClient client = MasterInquireClient.Factory.create(mConf);
       try {
         while (true) {
           List<InetSocketAddress> addresses = client.getMasterRpcAddresses();
@@ -152,11 +168,14 @@ public class MasterHealthCheckClient implements HealthCheckClient {
    *
    * @param alluxioMasterName the Alluxio master process name
    * @param processCheck whether to check the AlluxioMaster process is alive
+   * @param alluxioConf Alluxio configuration
    */
-  public MasterHealthCheckClient(String alluxioMasterName, boolean processCheck) {
+  public MasterHealthCheckClient(String alluxioMasterName, boolean processCheck,
+      AlluxioConfiguration alluxioConf) {
     mAlluxioMasterName = alluxioMasterName;
     mProcessCheck = processCheck;
     mExecutorService = Executors.newFixedThreadPool(2);
+    mConf = alluxioConf;
   }
 
   @Override

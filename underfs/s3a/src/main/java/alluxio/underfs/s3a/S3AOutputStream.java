@@ -11,8 +11,6 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -33,6 +31,7 @@ import java.io.OutputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -47,8 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class S3AOutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(S3AOutputStream.class);
 
-  private static final boolean SSE_ENABLED =
-      Configuration.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED);
+  private final boolean mSseEnabled;
 
   /** Bucket name of the Alluxio S3 bucket. */
   private final String mBucketName;
@@ -85,15 +83,18 @@ public class S3AOutputStream extends OutputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param manager the transfer manager to upload the file with
+   * @param tmpDirs a list of temporary directories
+   * @param sseEnabled whether or not server side encryption is enabled
    */
-  public S3AOutputStream(String bucketName, String key, TransferManager manager)
-      throws IOException {
+  public S3AOutputStream(String bucketName, String key, TransferManager manager,
+      List<String> tmpDirs, boolean sseEnabled) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "
         + "not be null or empty.");
     mBucketName = bucketName;
     mKey = key;
     mManager = manager;
-    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
+    mSseEnabled = sseEnabled;
+    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(tmpDirs), UUID.randomUUID()));
     try {
       mHash = MessageDigest.getInstance("MD5");
       mLocalOutputStream =
@@ -136,7 +137,7 @@ public class S3AOutputStream extends OutputStream {
       // Generate the object metadata by setting server side encryption, md5 checksum, the file
       // length, and encoding as octet stream since no assumptions are made about the file type
       ObjectMetadata meta = new ObjectMetadata();
-      if (SSE_ENABLED) {
+      if (mSseEnabled) {
         meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
       }
       if (mHash != null) {

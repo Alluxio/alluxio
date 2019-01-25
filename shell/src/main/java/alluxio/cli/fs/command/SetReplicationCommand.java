@@ -13,7 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.SetAttributePOptions;
@@ -43,10 +43,10 @@ public final class SetReplicationCommand extends AbstractFileSystemCommand {
           .build();
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public SetReplicationCommand(FileSystem fs) {
-    super(fs);
+  public SetReplicationCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

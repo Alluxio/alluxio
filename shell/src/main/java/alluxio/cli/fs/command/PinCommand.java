@@ -13,7 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -31,10 +31,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class PinCommand extends AbstractFileSystemCommand {
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public PinCommand(FileSystem fs) {
-    super(fs);
+  public PinCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

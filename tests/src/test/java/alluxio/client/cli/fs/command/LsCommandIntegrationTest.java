@@ -12,10 +12,11 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.fs.command.LsCommand;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
@@ -63,7 +64,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     return String
         .format(LsCommand.LS_FORMAT, FormatUtils.formatMode((short) permission, isDir, hasExtended),
             testUser, testGroup, String.valueOf(size), persistenceState,
-            CommonUtils.convertMsToDate(createTime),
+            CommonUtils.convertMsToDate(createTime,
+                ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)),
             isDir ? LsCommand.IN_ALLUXIO_STATE_DIR : inAlluxioState, path);
   }
 
@@ -93,7 +95,9 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
       sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     }
     return String.format(LsCommand.LS_FORMAT_NO_ACL, sizeStr, persistenceState,
-        CommonUtils.convertMsToDate(createTime), inAlluxioState, path);
+        CommonUtils.convertMsToDate(createTime,
+            ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)), inAlluxioState,
+        path);
   }
 
   // Helper function to create a set of files in the file system

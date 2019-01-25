@@ -14,9 +14,9 @@ package alluxio.client.fs;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -70,7 +70,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mWriteBoth = CreateFilePOptions.newBuilder().setRecursive(true)
         .setWriteType(WritePType.CACHE_THROUGH).build();
-    mUfs = UnderFileSystem.Factory.createForRoot();
+    mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
   }
 
   @Test
@@ -182,7 +182,8 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
    */
   private String createAlternateUfs() throws Exception {
     AlluxioURI parentURI =
-        new AlluxioURI(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).getParent();
+        new AlluxioURI(ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
+            .getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, alternateUfsRoot);
     return alternateUfsRoot;
@@ -238,7 +239,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   @Test
   public void mountPrefixUfs() throws Exception {
     // Primary UFS cannot be re-mounted
-    String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, ufsSubdir);
     try {
@@ -275,7 +276,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void mountShadowUfs() throws Exception {
-    String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, ufsSubdir);
 

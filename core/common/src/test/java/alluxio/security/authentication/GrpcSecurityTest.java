@@ -11,14 +11,16 @@
 
 package alluxio.security.authentication;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -37,6 +39,13 @@ public class GrpcSecurityTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  private InstancedConfiguration mConfiguration;
+
+  @Before
+  public void before() {
+    mConfiguration = new InstancedConfiguration(ConfigurationUtils.defaults());
+  }
+
   @Test
   public void testServerUnsupportedAuthentication() {
     mThrown.expect(RuntimeException.class);
@@ -49,7 +58,7 @@ public class GrpcSecurityTest {
     GrpcServer server = createServer(AuthType.SIMPLE);
     server.start();
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     channelBuilder.build();
     server.shutdown();
   }
@@ -59,7 +68,7 @@ public class GrpcSecurityTest {
     GrpcServer server = createServer(AuthType.NOSASL);
     server.start();
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     channelBuilder.build();
     server.shutdown();
   }
@@ -67,13 +76,13 @@ public class GrpcSecurityTest {
   @Test
   public void testCustomAuthentication() throws Exception {
 
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     GrpcServer server = createServer(AuthType.CUSTOM);
     server.start();
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     channelBuilder.setCredentials(ExactlyMatchAuthenticationProvider.USERNAME,
         ExactlyMatchAuthenticationProvider.PASSWORD, null).build();
     server.shutdown();
@@ -82,13 +91,13 @@ public class GrpcSecurityTest {
   @Test
   public void testCustomAuthenticationFails() throws Exception {
 
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     GrpcServer server = createServer(AuthType.CUSTOM);
     server.start();
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     mThrown.expect(UnauthenticatedException.class);
     channelBuilder.setCredentials("fail", "fail", null).build();
     server.shutdown();
@@ -99,7 +108,7 @@ public class GrpcSecurityTest {
     GrpcServer server = createServer(AuthType.SIMPLE);
     server.start();
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     channelBuilder.disableAuthentication().build();
     server.shutdown();
   }
@@ -108,22 +117,26 @@ public class GrpcSecurityTest {
   public void testAuthMismatch() throws Exception {
     GrpcServer server = createServer(AuthType.NOSASL);
     server.start();
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     GrpcChannelBuilder channelBuilder =
-        GrpcChannelBuilder.forAddress(getServerConnectAddress(server));
+        GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
     mThrown.expect(UnauthenticatedException.class);
     channelBuilder.build();
     server.shutdown();
   }
 
   private InetSocketAddress getServerConnectAddress(GrpcServer server) {
-    return new InetSocketAddress(NetworkAddressUtils.getLocalHostName(), server.getBindPort());
+    return new InetSocketAddress(NetworkAddressUtils
+        .getLocalHostName((int) mConfiguration
+            .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), server.getBindPort());
   }
 
   private GrpcServer createServer(AuthType authType) {
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, authType.name());
+    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, authType.name());
     GrpcServerBuilder serverBuilder = GrpcServerBuilder
-        .forAddress(new InetSocketAddress(NetworkAddressUtils.getLocalHostName(), 0));
+        .forAddress(new InetSocketAddress(NetworkAddressUtils
+            .getLocalHostName((int) mConfiguration
+                .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 0), mConfiguration);
     return serverBuilder.build();
   }
 

@@ -12,8 +12,8 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -68,11 +68,12 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+    if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
       return;
     }
-    if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
-      AuthenticatedClientUser.set(LoginUser.get().getName());
+    if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
+        && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
+      AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
     }
     String requestPath = request.getParameter("path");
     if (requestPath == null || requestPath.isEmpty()) {
@@ -110,7 +111,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   private void downloadFile(AlluxioURI path, HttpServletRequest request,
       HttpServletResponse response) throws FileDoesNotExistException, IOException,
       InvalidPathException, AlluxioException {
-    FileSystem alluxioClient = FileSystem.Factory.get();
+    FileSystem alluxioClient = FileSystem.Factory.get(ServerConfiguration.global());
     URIStatus status = alluxioClient.getStatus(path);
     long len = status.getLength();
     String fileName = path.getName();

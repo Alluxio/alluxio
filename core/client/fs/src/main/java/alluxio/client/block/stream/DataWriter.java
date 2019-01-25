@@ -11,8 +11,8 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.Cancelable;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
@@ -56,11 +56,12 @@ public interface DataWriter extends Closeable, Cancelable {
      */
     public static DataWriter create(FileSystemContext context, long blockId, long blockSize,
         WorkerNetAddress address, OutStreamOptions options) throws IOException {
-      if (CommonUtils.isLocalHost(address) && Configuration
+      AlluxioConfiguration alluxioConf = context.getConf();
+      if (CommonUtils.isLocalHost(address, alluxioConf) && alluxioConf
           .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
-          .isDomainSocketSupported(address)) {
+          .isDomainSocketSupported(address, alluxioConf)) {
         if (options.getWriteType() == WriteType.ASYNC_THROUGH
-            && Configuration.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
+            && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
           LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,
               address);
           return UfsFallbackLocalFileDataWriter.create(
@@ -70,7 +71,7 @@ public interface DataWriter extends Closeable, Cancelable {
         return LocalFileDataWriter.create(context, address, blockId, options);
       } else {
         LOG.debug("Creating gRPC output stream for block {} @ {} from client {}", blockId, address,
-            NetworkAddressUtils.getClientHostName());
+            NetworkAddressUtils.getClientHostName(alluxioConf));
         return GrpcDataWriter
             .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
                 options);
