@@ -85,6 +85,6 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
 
     This will also generate a coverage report within each package: `common/coverage/lcov-report/index.html`, `master/coverage/lcov-report/index.html`, `worker/coverage/lcov-report/index.html`. You may also run `coverage-ci` instead of `coverage` in this step if you would like this to execute only once.
 
-### Shrinkwrapping dependencies
+#### Shrinkwrapping dependencies
 
 Once changes are tested and things work as planned, please run `npm shrinkwrap && lerna exec npm shrinkwrap` to lock package dependency versions.
