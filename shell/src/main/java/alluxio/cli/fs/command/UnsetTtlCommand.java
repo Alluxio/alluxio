@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.TtlAction;
@@ -32,10 +32,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class UnsetTtlCommand extends AbstractFileSystemCommand {
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public UnsetTtlCommand(FileSystem fs) {
-    super(fs);
+  public UnsetTtlCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

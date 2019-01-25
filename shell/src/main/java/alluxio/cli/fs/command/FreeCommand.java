@@ -12,10 +12,9 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.FreePOptions;
@@ -49,10 +48,10 @@ public final class FreeCommand extends AbstractFileSystemCommand {
   /**
    * Constructs a new instance to free the given file or folder from Alluxio.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public FreeCommand(FileSystem fs) {
-    super(fs);
+  public FreeCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -69,7 +68,8 @@ public final class FreeCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     int interval =
-        Math.toIntExact(Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+        Math.toIntExact(mFsContext.getConf()
+            .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     FreePOptions options =
         FreePOptions.newBuilder().setRecursive(true).setForced(cl.hasOption("f")).build();
     mFileSystem.free(path, options);

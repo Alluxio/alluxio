@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -59,11 +60,13 @@ public class KodoOutputStream extends OutputStream {
    *
    * @param key the key of the file
    * @param kodoClient the client for Kodo
+   * @param tmpDirs a list of temporary directories
    */
-  public KodoOutputStream(String key, KodoClient kodoClient) throws IOException {
+  public KodoOutputStream(String key, KodoClient kodoClient, List<String> tmpDirs)
+      throws IOException {
     mKey = key;
     mKodoClient = kodoClient;
-    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
+    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(tmpDirs), UUID.randomUUID()));
 
     try {
       mHash = MessageDigest.getInstance("MD5");

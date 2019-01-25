@@ -11,9 +11,9 @@
 
 package alluxio.client.cli.fsadmin.command;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.ProjectConstants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.fsadmin.command.ReportCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.util.network.NetworkAddressUtils;
@@ -51,13 +51,14 @@ public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest
 
     // Check if meta master values are available
     String expectedMasterAddress = NetworkAddressUtils
-        .getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC).toString();
+        .getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC,
+            ServerConfiguration.global()).toString();
     Assert.assertThat(output, CoreMatchers.containsString(
         "Master Address: " + expectedMasterAddress));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Web Port: " + Configuration.get(PropertyKey.MASTER_WEB_PORT)));
+        "Web Port: " + ServerConfiguration.get(PropertyKey.MASTER_WEB_PORT)));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Rpc Port: " + Configuration.get(PropertyKey.MASTER_RPC_PORT)));
+        "Rpc Port: " + ServerConfiguration.get(PropertyKey.MASTER_RPC_PORT)));
     Assert.assertFalse(output.contains("Started: 12-31-1969 16:00:00:000"));
     Assert.assertThat(output, CoreMatchers.containsString(
         "Version: " + ProjectConstants.VERSION));

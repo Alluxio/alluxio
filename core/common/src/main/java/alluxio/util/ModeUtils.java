@@ -11,9 +11,8 @@
 
 package alluxio.util;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.PMode;
 import alluxio.security.authorization.Mode;
@@ -33,10 +32,11 @@ public final class ModeUtils {
    * Applies the default umask for newly created files to this mode.
    *
    * @param mode the mode to update
+   * @param authUmask the umask to apply on the file
    * @return the updated object
    */
-  public static Mode applyFileUMask(Mode mode) {
-    mode = applyUMask(mode, getUMask());
+  public static Mode applyFileUMask(Mode mode, String authUmask) {
+    mode = applyUMask(mode, getUMask(authUmask));
     mode = applyUMask(mode, FILE_UMASK);
     return mode;
   }
@@ -45,10 +45,11 @@ public final class ModeUtils {
    * Applies the default umask for newly created directories to this mode.
    *
    * @param mode the mode to update
+   * @param authUmask the umask to apply on the directory
    * @return the updated object
    */
-  public static Mode applyDirectoryUMask(Mode mode) {
-    return applyUMask(mode, getUMask());
+  public static Mode applyDirectoryUMask(Mode mode, String authUmask) {
+    return applyUMask(mode, getUMask(authUmask));
   }
 
   /**
@@ -80,9 +81,8 @@ public final class ModeUtils {
    *
    * @return the umask {@link Mode}
    */
-  private static Mode getUMask() {
+  private static Mode getUMask(String confUmask) {
     int umask = Constants.DEFAULT_FILE_SYSTEM_UMASK;
-    String confUmask = Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
     if (confUmask != null) {
       if ((confUmask.length() > 4) || !isValid(confUmask)) {
         throw new IllegalArgumentException(ExceptionMessage.INVALID_CONFIGURATION_VALUE

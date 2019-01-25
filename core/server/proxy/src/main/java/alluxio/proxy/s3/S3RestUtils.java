@@ -12,8 +12,8 @@
 package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
@@ -47,8 +47,9 @@ public final class S3RestUtils {
   public static <T> Response call(String resource, S3RestUtils.RestCallable<T> callable) {
     try {
       // TODO(cc): reconsider how to enable authentication
-      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
-        AuthenticatedClientUser.set(LoginUser.get().getName());
+      if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
+              && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
+        AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
       }
     } catch (IOException e) {
       LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());
@@ -143,7 +144,7 @@ public final class S3RestUtils {
    */
   public static String getMultipartTemporaryDirForObject(String bucketPath, String objectKey) {
     String multipartTemporaryDirSuffix =
-        Configuration.get(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
+        ServerConfiguration.get(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
     return bucketPath + AlluxioURI.SEPARATOR + objectKey + multipartTemporaryDirSuffix;
   }
 

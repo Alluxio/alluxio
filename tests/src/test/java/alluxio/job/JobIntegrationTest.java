@@ -12,13 +12,16 @@
 package alluxio.job;
 
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.ServerConfiguration;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
+import alluxio.network.PortUtils;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -26,6 +29,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -38,28 +42,46 @@ public abstract class JobIntegrationTest extends BaseIntegrationTest {
 
   protected JobMaster mJobMaster;
   protected FileSystem mFileSystem = null;
+  protected FileSystemContext mFsContext;
   protected LocalAlluxioJobCluster mLocalAlluxioJobCluster;
+  protected Map<PropertyKey, Integer> mPortMapping;
 
   @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS, 20)
-          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
-          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES))
-          .setProperty(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB")
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
-          .build();
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource = buildLocalAlluxioCluster();
+
+  protected void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
+    mPortMapping = PortUtils.createPortMapping();
+    mPortMapping.forEach((PropertyKey pk, Integer val) -> {
+      resource.setProperty(pk, val);
+    });
+  }
+
+  private LocalAlluxioClusterResource buildLocalAlluxioCluster() {
+    LocalAlluxioClusterResource.Builder resource = new LocalAlluxioClusterResource.Builder()
+        .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS, 20)
+        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
+        .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES))
+        .setProperty(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB")
+        .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES);
+    customizeClusterResource(resource);
+    return resource.build();
+  }
 
   @Before
   public void before() throws Exception {
     mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
+    mPortMapping.forEach((PropertyKey pk, Integer val) -> {
+      mLocalAlluxioJobCluster.setProperty(pk, val.toString());
+    });
     mLocalAlluxioJobCluster.start();
     mJobMaster = mLocalAlluxioJobCluster.getMaster().getJobMaster();
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
   @After
   public void after() throws Exception {
+    mFsContext.close();
     mLocalAlluxioJobCluster.stop();
   }
 

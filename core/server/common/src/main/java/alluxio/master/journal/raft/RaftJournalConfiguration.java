@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.raft;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -53,14 +53,15 @@ public class RaftJournalConfiguration {
     return new RaftJournalConfiguration()
         .setClusterAddresses(defaultClusterAddresses(serviceType))
         .setElectionTimeoutMs(
-            Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))
         .setHeartbeatIntervalMs(
-            Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL))
-        .setLocalAddress(NetworkAddressUtils.getConnectAddress(serviceType))
-        .setMaxLogSize(Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL))
+        .setLocalAddress(NetworkAddressUtils.getConnectAddress(serviceType,
+            ServerConfiguration.global()))
+        .setMaxLogSize(ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))
         .setPath(new File(JournalUtils.getJournalLocation().getPath()))
-        .setStorageLevel(Configuration.getEnum(PropertyKey.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL,
-            StorageLevel.class));
+        .setStorageLevel(ServerConfiguration
+            .getEnum(PropertyKey.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL, StorageLevel.class));
   }
 
   /**
@@ -184,10 +185,12 @@ public class RaftJournalConfiguration {
       // If the job master embedded journal addresses aren't explicitly configured, default to
       // using the same hostnames as the alluxio master embedded journal addresses, but with the job
       // master port.
-      if (!Configuration.containsKey(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)) {
+      if (!ServerConfiguration.isSet(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)) {
         List<InetSocketAddress> addrs = defaultClusterAddresses(ServiceType.MASTER_RAFT);
         List<InetSocketAddress> jobAddrs = new ArrayList<>(addrs.size());
-        int port = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_RAFT);
+        int port = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_RAFT,
+            ServerConfiguration.global()
+        );
         for (InetSocketAddress addr : addrs) {
           jobAddrs.add(new InetSocketAddress(addr.getHostName(), port));
         }
@@ -195,7 +198,7 @@ public class RaftJournalConfiguration {
       }
       addressKey = PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES;
     }
-    List<String> addresses = Configuration.getList(addressKey, ",");
+    List<String> addresses = ServerConfiguration.getList(addressKey, ",");
     List<InetSocketAddress> inetAddresses = new ArrayList<>();
     for (String address : addresses) {
       try {

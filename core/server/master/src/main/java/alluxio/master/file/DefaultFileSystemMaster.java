@@ -12,9 +12,12 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.ClientContext;
+import alluxio.client.job.JobMasterClient;
+import alluxio.client.job.JobMasterClientPool;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
@@ -154,6 +157,7 @@ import alluxio.wire.MountPointInfo;
 import alluxio.grpc.SetAclAction;
 import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerInfo;
+import alluxio.worker.job.JobMasterClientContext;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -330,7 +334,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   private final PrefixList mWhitelist;
 
   /** A pool of job master clients. */
-  private final alluxio.client.job.JobMasterClientPool mJobMasterClientPool;
+  private final JobMasterClientPool mJobMasterClientPool;
 
   /** Set of file IDs to persist. */
   private final Map<Long, alluxio.time.ExponentialTimer> mPersistRequests;
@@ -392,10 +396,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mInodeLockManager = mInodeTree.getInodeLockManager();
 
     // TODO(gene): Handle default config value for whitelist.
-    mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST, ","));
+    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.MASTER_WHITELIST, ","));
 
     mPermissionChecker = new DefaultPermissionChecker(mInodeTree);
-    mJobMasterClientPool = new alluxio.client.job.JobMasterClientPool();
+    mJobMasterClientPool = new JobMasterClientPool(JobMasterClientContext
+        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     mPersistRequests = new java.util.concurrent.ConcurrentHashMap<>();
     mPersistJobs = new java.util.concurrent.ConcurrentHashMap<>();
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
@@ -409,11 +414,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
     try (CloseableResource<UnderFileSystem> resource = ufsManager.getRoot().acquireUfsResource()) {
-      String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      String rootUfsUri = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       boolean shared = resource.get().isObjectStorage()
-          && Configuration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
+          && ServerConfiguration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
       Map<String, String> rootUfsConf =
-          Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+          ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
       MountPOptions mountOptions = MountContext
           .defaults(MountPOptions.newBuilder().setShared(shared).putAllProperties(rootUfsConf))
           .getOptions().build();
@@ -489,17 +494,20 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       InodeDirectoryView root = mInodeTree.getRoot();
       if (root == null) {
         try (JournalContext context = createJournalContext()) {
-          mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(),
-              SecurityUtils.getGroupFromLoginModule(),
-              ModeUtils.applyDirectoryUMask(Mode.createFullAccess()), context);
+          mInodeTree.initializeRoot(
+              SecurityUtils.getOwnerFromLoginModule(ServerConfiguration.global()),
+              SecurityUtils.getGroupFromLoginModule(ServerConfiguration.global()),
+              ModeUtils.applyDirectoryUMask(Mode.createFullAccess(),
+                  ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)),
+              context);
         }
       } else {
         // For backwards-compatibility:
         // Empty root owner indicates that previously the master had no security. In this case, the
         // master is allowed to be started with security turned on.
-        String serverOwner = SecurityUtils.getOwnerFromLoginModule();
-        if (SecurityUtils.isSecurityEnabled() && !root.getOwner().isEmpty()
-            && !root.getOwner().equals(serverOwner)) {
+        String serverOwner = SecurityUtils.getOwnerFromLoginModule(ServerConfiguration.global());
+        if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
+            && !root.getOwner().isEmpty() && !root.getOwner().equals(serverOwner)) {
           // user is not the previous owner
           throw new PermissionDeniedException(ExceptionMessage.PERMISSION_DENIED.getMessage(String
               .format("Unauthorized user on root. inode owner: %s current user: %s",
@@ -513,9 +521,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           continue;
         }
         MountInfo mountInfo = mMountTable.getMountTable().get(key);
-        UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults()
-            .setMountSpecificConf(mountInfo.getOptions().getPropertiesMap());
-        mUfsManager.addMount(mountInfo.getMountId(), mountInfo.getUfsUri(), ufsConf);
+        UnderFileSystemConfiguration ufsConf =
+            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
+            .createMountSpecificConf(mountInfo.getOptions().getPropertiesMap());
+        mUfsManager.addMount(mountInfo.getMountId(), new AlluxioURI(key), ufsConf);
       }
       // Startup Checks and Periodic Threads.
       // Rebuild the list of persist jobs (mPersistJobs) and map of pending persist requests
@@ -542,10 +551,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
                     mInodeTree.getPath(inodeFile), inodeFile.getTempUfsPath());
               } else {
                 mPersistRequests.put(inodeFile.getId(), new alluxio.time.ExponentialTimer(
-                    Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-                    Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-                    Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
-                    Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+                    ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+                    ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+                    ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+                    ServerConfiguration.getMs(
+                        PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
               }
             }
           }
@@ -553,34 +563,41 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       } catch (InvalidPathException | FileDoesNotExistException e) {
         throw new IllegalStateException(e);
       }
-      if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
+      if (ServerConfiguration
+          .getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
         validateInodeBlocks(true);
       }
 
-      int blockIntegrityCheckInterval =
-          (int) Configuration.getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL);
+      int blockIntegrityCheckInterval = (int) ServerConfiguration
+          .getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL);
+
       if (blockIntegrityCheckInterval > 0) { // negative or zero interval implies disabled
         getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_BLOCK_INTEGRITY_CHECK,
-                new BlockIntegrityChecker(this), blockIntegrityCheckInterval));
+                new BlockIntegrityChecker(this), blockIntegrityCheckInterval,
+                ServerConfiguration.global()));
       }
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree),
-              (int) Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS)));
+              (int) ServerConfiguration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS),
+              ServerConfiguration.global()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
               new LostFileDetector(this, mInodeTree),
-              (int) Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL)));
+              (int) ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL),
+              ServerConfiguration.global()));
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_REPLICATION_CHECK,
           new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,
               mSafeModeManager, mJobMasterClientPool),
-          (int) Configuration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS)));
+          (int) ServerConfiguration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS),
+          ServerConfiguration.global()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
               new PersistenceScheduler(),
-              (int) Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS)));
+              (int) ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS),
+              ServerConfiguration.global()));
       mPersistCheckerPool =
           new java.util.concurrent.ThreadPoolExecutor(PERSIST_CHECKER_POOL_THREADS,
               PERSIST_CHECKER_POOL_THREADS, 1, java.util.concurrent.TimeUnit.MINUTES,
@@ -590,20 +607,22 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_CHECKER,
               new PersistenceChecker(),
-              (int) Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS)));
-      if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
+              (int) ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS),
+              ServerConfiguration.global()));
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
         mStartupConsistencyCheck = getExecutorService().submit(() -> startupCheckConsistency(
             ExecutorServiceFactories
                .fixedThreadPool("startup-consistency-check", 32).create()));
       }
-      if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
         mAsyncAuditLogWriter.start();
       }
-      if (Configuration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
+      if (ServerConfiguration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
         getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
-                (int) Configuration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL)));
+                (int) ServerConfiguration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL),
+                ServerConfiguration.global()));
       }
       mSyncManager.start();
     }
@@ -752,7 +771,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   @Override
   public StartupConsistencyCheck getStartupConsistencyCheck() {
-    if (!Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
+    if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
       return StartupConsistencyCheck.disabled();
     }
     if (mStartupConsistencyCheck == null) {
@@ -2294,7 +2313,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   @Override
   public String getUfsAddress() {
-    return Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    return ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
   }
 
   @Override
@@ -2723,15 +2742,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     AlluxioURI alluxioPath = inodePath.getUri();
     // Adding the mount point will not create the UFS instance and thus not connect to UFS
     mUfsManager.addMount(mountId, new AlluxioURI(ufsPath.toString()),
-        UnderFileSystemConfiguration.defaults().setReadOnly(context.getOptions().getReadOnly())
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
+            .setReadOnly(context.getOptions().getReadOnly())
             .setShared(context.getOptions().getShared())
-            .setMountSpecificConf(context.getOptions().getPropertiesMap()));
+            .createMountSpecificConf(context.getOptions().getPropertiesMap()));
     try {
       try (CloseableResource<UnderFileSystem> ufsResource =
           mUfsManager.get(mountId).acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
         ufs.connectFromMaster(
-            NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
+            NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
+                ServerConfiguration.global()));
         // Check that the ufsPath exists and is a directory
         if (!ufs.isDirectory(ufsPath.toString())) {
           throw new IOException(
@@ -3037,7 +3058,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    */
   private void checkUserBelongsToGroup(String owner, String group)
       throws IOException {
-    List<String> groups = CommonUtils.getGroups(owner);
+    List<String> groups = CommonUtils.getGroups(owner, ServerConfiguration.global());
     if (groups == null || !groups.contains(group)) {
       throw new FailedPreconditionException("Owner " + owner
           + " does not belong to the group " + group);
@@ -3075,10 +3096,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
           .build());
       mPersistRequests.put(inodePath.getInode().getId(), new alluxio.time.ExponentialTimer(
-          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
-          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
   }
 
@@ -3759,10 +3780,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     alluxio.time.ExponentialTimer timer = mPersistRequests.remove(fileId);
     if (timer == null) {
       timer = new alluxio.time.ExponentialTimer(
-          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
-          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS));
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS));
     }
     mPersistJobs.put(fileId, new PersistJob(jobId, fileId, uri, tempUfsPath, timer));
   }
@@ -3873,7 +3894,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
       // Schedule the persist job.
       long jobId;
-      alluxio.client.job.JobMasterClient client = mJobMasterClientPool.acquire();
+      JobMasterClient client = mJobMasterClientPool.acquire();
       try {
         jobId = client.run(config);
       } finally {
@@ -4101,7 +4122,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             break;
           case TO_BE_CANCELED:
             // Send the message to cancel this job
-            alluxio.client.job.JobMasterClient client = mJobMasterClientPool.acquire();
+            JobMasterClient client = mJobMasterClientPool.acquire();
             try {
               client.cancel(job.getId());
               job.setCancelState(PersistJob.CancelState.CANCELING);
@@ -4129,7 +4150,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           continue;
         }
         long jobId = job.getId();
-        alluxio.client.job.JobMasterClient client = mJobMasterClientPool.acquire();
+        JobMasterClient client = mJobMasterClientPool.acquire();
         try {
           alluxio.job.wire.JobInfo jobInfo = client.getStatus(jobId);
           switch (jobInfo.getStatus()) {
@@ -4306,7 +4327,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               .getMetricName(MasterMetrics.PATHS_TOTAL),
           () -> master.getNumberOfPaths());
 
-      final String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      final String ufsDataFolder = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem
               .getMetricName(MasterMetrics.UFS_CAPACITY_TOTAL),
@@ -4369,17 +4390,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     FileSystemMasterAuditContext auditContext =
         new FileSystemMasterAuditContext(mAsyncAuditLogWriter);
     if (mAsyncAuditLogWriter != null) {
-      String user = AuthenticatedClientUser.getClientUser();
+      String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
       String ugi;
       try {
-        String primaryGroup = CommonUtils.getPrimaryGroupName(user);
+        String primaryGroup = CommonUtils.getPrimaryGroupName(user, ServerConfiguration.global());
         ugi = user + "," + primaryGroup;
       } catch (IOException e) {
         LOG.warn("Failed to get primary group for user {}.", user);
         ugi = user;
       }
       AuthType authType =
-          Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+          ServerConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       auditContext.setUgi(ugi)
           .setAuthType(authType)
           .setIp(ClientIpAddressInjector.getIpAddress())
@@ -4427,6 +4448,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   private boolean isAclEnabled() {
-    return Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
+    return ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
   }
 }

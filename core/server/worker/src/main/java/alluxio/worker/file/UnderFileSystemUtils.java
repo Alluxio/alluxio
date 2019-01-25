@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode;
@@ -59,7 +60,8 @@ public final class UnderFileSystemUtils {
           throw new IOException(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(curUfsPath));
         }
         ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
-            MkdirsOptions.defaults().setCreateParent(false).setOwner(curDirStatus.getOwner())
+            MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
+                .setOwner(curDirStatus.getOwner())
                 .setGroup(curDirStatus.getGroup())
                 .setMode(new Mode((short) curDirStatus.getMode()))));
         curAlluxioPath = curAlluxioPath.getParent();

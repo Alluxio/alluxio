@@ -11,6 +11,7 @@
 
 package alluxio.testutils.underfs.delegating;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -35,7 +36,8 @@ public class DelegatingUnderFileSystemFactory implements UnderFileSystemFactory 
   }
 
   @Override
-  public UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf) {
+  public UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf) {
     return mUfs;
   }
 

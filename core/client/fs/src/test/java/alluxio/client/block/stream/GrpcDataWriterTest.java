@@ -16,8 +16,11 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.grpc.Chunk;
@@ -69,10 +72,12 @@ public final class GrpcDataWriterTest {
   private WorkerNetAddress mAddress;
   private BlockWorkerClient mClient;
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES,
-          String.valueOf(CHUNK_SIZE));
+          String.valueOf(CHUNK_SIZE), mConf);
 
   @Before
   public void before() throws Exception {
@@ -82,6 +87,9 @@ public final class GrpcDataWriterTest {
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
     PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
+    PowerMockito.when(mContext.getClientContext())
+        .thenReturn(ClientContext.create(mConf));
+    PowerMockito.when(mContext.getConf()).thenReturn(mConf);
     PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
     PowerMockito.when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
     PowerMockito.when(mRequestObserver.isReady()).thenReturn(true);
@@ -180,7 +188,7 @@ public final class GrpcDataWriterTest {
     DataWriter writer =
         GrpcDataWriter.create(mContext, mAddress, BLOCK_ID, length,
             RequestType.ALLUXIO_BLOCK,
-            OutStreamOptions.defaults().setWriteTier(TIER));
+            OutStreamOptions.defaults(mConf).setWriteTier(TIER));
     return writer;
   }
 

@@ -11,10 +11,10 @@
 
 package alluxio.network;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
-import alluxio.PropertyKey.Template;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.PropertyKey.Template;
 import alluxio.util.ShellUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
@@ -52,13 +52,14 @@ public final class TieredIdentityFactory {
   private static volatile TieredIdentity sInstance = null;
 
   /**
+   * @param conf Alluxio configuration
    * @return the singleton tiered identity instance for this JVM
    */
-  public static TieredIdentity localIdentity() {
+  public static TieredIdentity localIdentity(AlluxioConfiguration conf) {
     if (sInstance == null) {
       synchronized (LOCK) {
         if (sInstance == null) {
-          sInstance = create();
+          sInstance = create(conf);
           LOG.info("Initialized tiered identity {}", sInstance);
         }
       }
@@ -72,11 +73,11 @@ public final class TieredIdentityFactory {
    * @return the created tiered identity
    */
   @VisibleForTesting
-  static TieredIdentity create() {
-    TieredIdentity scriptIdentity = fromScript();
+  static TieredIdentity create(AlluxioConfiguration conf) {
+    TieredIdentity scriptIdentity = fromScript(conf);
 
     List<LocalityTier> tiers = new ArrayList<>();
-    List<String> orderedTierNames = Configuration.getList(PropertyKey.LOCALITY_ORDER, ",");
+    List<String> orderedTierNames = conf.getList(PropertyKey.LOCALITY_ORDER, ",");
     for (int i = 0; i < orderedTierNames.size(); i++) {
       String tierName = orderedTierNames.get(i);
       String value = null;
@@ -86,26 +87,27 @@ public final class TieredIdentityFactory {
         value = scriptTier.getValue();
       }
       // Explicit configuration overrides script output.
-      if (Configuration.isSet(Template.LOCALITY_TIER.format(tierName))) {
-        value = Configuration.get(Template.LOCALITY_TIER.format(tierName));
+      if (conf.isSet(Template.LOCALITY_TIER.format(tierName))) {
+        value = conf.get(Template.LOCALITY_TIER.format(tierName));
       }
       tiers.add(new LocalityTier(tierName, value));
     }
     // If the user doesn't specify the value of the "node" tier, we fill in a sensible default.
     if (tiers.size() > 0 && tiers.get(0).getTierName().equals(Constants.LOCALITY_NODE)
         && tiers.get(0).getValue() == null) {
-      String name = NetworkAddressUtils.getLocalNodeName();
+      String name = NetworkAddressUtils.getLocalNodeName(conf);
       tiers.set(0, new LocalityTier(Constants.LOCALITY_NODE, name));
     }
     return new TieredIdentity(tiers);
   }
 
   /**
+   * @param conf Alluxio configuration
    * @return a tiered identity created from running the user-provided script
    */
   @Nullable
-  private static TieredIdentity fromScript() {
-    String scriptName = Configuration.get(PropertyKey.LOCALITY_SCRIPT);
+  private static TieredIdentity fromScript(AlluxioConfiguration conf) {
+    String scriptName = conf.get(PropertyKey.LOCALITY_SCRIPT);
     Path script = Paths.get(scriptName);
     if (!Files.exists(script)) {
       URL resource = TieredIdentityFactory.class.getClassLoader().getResource(scriptName);
@@ -124,7 +126,7 @@ public final class TieredIdentityFactory {
           String.format("Failed to run script %s: %s", script, e.toString()), e);
     }
     try {
-      return fromString(identityString);
+      return fromString(identityString, conf);
     } catch (IOException e) {
       throw new RuntimeException(
           String.format("Failed to parse output of running %s: %s", script, e.getMessage()), e);
@@ -133,10 +135,12 @@ public final class TieredIdentityFactory {
 
   /**
    * @param identityString tiered identity string to parse
+   * @param conf Alluxio configuration
    * @return the parsed tiered identity
    */
-  public static TieredIdentity fromString(String identityString) throws IOException {
-    Set<String> allTiers = Sets.newHashSet(Configuration.getList(PropertyKey.LOCALITY_ORDER, ","));
+  public static TieredIdentity fromString(String identityString, AlluxioConfiguration conf)
+      throws IOException {
+    Set<String> allTiers = Sets.newHashSet(conf.getList(PropertyKey.LOCALITY_ORDER, ","));
     Map<String, String> tiers = new HashMap<>();
     for (String tier : identityString.split(",")) {
       String[] parts = tier.split("=");
@@ -159,7 +163,7 @@ public final class TieredIdentityFactory {
       tiers.put(key, parts[1].trim());
     }
     List<LocalityTier> tieredIdentity = new ArrayList<>();
-    for (String localityTier : Configuration.getList(PropertyKey.LOCALITY_ORDER, ",")) {
+    for (String localityTier : conf.getList(PropertyKey.LOCALITY_ORDER, ",")) {
       String value = tiers.containsKey(localityTier) ? tiers.get(localityTier) : null;
       tieredIdentity.add(new LocalityTier(localityTier, value));
     }

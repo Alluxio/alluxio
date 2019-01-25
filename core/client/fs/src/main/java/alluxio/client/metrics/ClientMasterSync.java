@@ -11,7 +11,6 @@
 
 package alluxio.client.metrics;
 
-import alluxio.client.file.FileSystemContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
@@ -39,24 +38,24 @@ public final class ClientMasterSync implements HeartbeatExecutor {
 
   /** Client for communicating to metrics master. */
   private final MetricsMasterClient mMasterClient;
-  private final FileSystemContext mContext;
+  private final String mAppId;
 
   /**
    * Constructs a new {@link ClientMasterSync}.
    *
    * @param masterClient the master client
-   * @param context the filesystem context
+   * @param appId the app ID for this client
    */
-  public ClientMasterSync(MetricsMasterClient masterClient, FileSystemContext context) {
+  public ClientMasterSync(MetricsMasterClient masterClient, String appId) {
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
-    mContext = Preconditions.checkNotNull(context, "context");
+    mAppId = Preconditions.checkNotNull(appId, "appId");
   }
 
   @Override
   public synchronized void heartbeat() throws InterruptedException {
     List<alluxio.grpc.Metric> metrics = new ArrayList<>();
     for (Metric metric : MetricsSystem.allClientMetrics()) {
-      metric.setInstanceId(MetricsSystem.getAppId());
+      metric.setInstanceId(mAppId);
       metrics.add(metric.toProto());
     }
     try {

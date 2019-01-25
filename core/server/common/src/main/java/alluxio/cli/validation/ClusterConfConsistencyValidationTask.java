@@ -11,8 +11,8 @@
 
 package alluxio.cli.validation;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.Scope;
 import alluxio.grpc.GrpcUtils;
 
@@ -125,7 +125,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
 
   private Properties getNodeConf(String node) {
     try {
-      String homeDir = Configuration.get(PropertyKey.HOME);
+      String homeDir = ServerConfiguration.get(PropertyKey.HOME);
       String remoteCommand = String.format(
           "%s/bin/alluxio getConf", homeDir);
       String localCommand = String.format(

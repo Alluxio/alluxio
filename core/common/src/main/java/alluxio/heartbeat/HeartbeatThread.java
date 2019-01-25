@@ -11,6 +11,7 @@
 
 package alluxio.heartbeat;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
@@ -35,6 +36,7 @@ public final class HeartbeatThread implements Runnable {
   private final String mThreadName;
   private final HeartbeatExecutor mExecutor;
   private HeartbeatTimer mTimer;
+  private AlluxioConfiguration mConfiguration;
 
   /**
    * Creates a {@link Runnable} to execute heartbeats for the given {@link HeartbeatExecutor}.
@@ -45,20 +47,24 @@ public final class HeartbeatThread implements Runnable {
    * @param executor identifies the heartbeat thread executor; an instance of a class that
    *        implements the HeartbeatExecutor interface
    * @param intervalMs Sleep time between different heartbeat
+   * @param conf Alluxio configuration
    */
-  public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs) {
+  public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs,
+      AlluxioConfiguration conf) {
     mThreadName = threadName;
     mExecutor = Preconditions.checkNotNull(executor, "executor");
     Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(threadName);
     mTimer = CommonUtils.createNewClassInstance(timerClass, new Class[] {String.class, long.class},
         new Object[] {threadName, intervalMs});
+    mConfiguration = conf;
   }
 
   @Override
   public void run() {
     try {
-      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
-        AuthenticatedClientUser.set(LoginUser.get().getName());
+      if (SecurityUtils.isSecurityEnabled(mConfiguration)
+          && AuthenticatedClientUser.get(mConfiguration) == null) {
+        AuthenticatedClientUser.set(LoginUser.get(mConfiguration).getName());
       }
     } catch (IOException e) {
       LOG.error("Failed to set AuthenticatedClientUser in HeartbeatThread.");

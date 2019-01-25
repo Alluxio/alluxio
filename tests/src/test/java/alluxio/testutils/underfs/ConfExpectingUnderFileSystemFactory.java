@@ -12,6 +12,7 @@
 package alluxio.testutils.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -37,11 +38,13 @@ public final class ConfExpectingUnderFileSystemFactory implements UnderFileSyste
   }
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf) {
     Preconditions.checkNotNull(path, "path");
     Preconditions.checkArgument(mExpectedConf.equals(conf.getMountSpecificConf()),
         "ufs conf {} does not match expected {}", conf, mExpectedConf);
-    return new LocalUnderFileSystem(new AlluxioURI(new AlluxioURI(path).getPath()), conf);
+    return new LocalUnderFileSystem(new AlluxioURI(new AlluxioURI(path).getPath()), conf,
+        alluxioConf);
   }
 
   @Override

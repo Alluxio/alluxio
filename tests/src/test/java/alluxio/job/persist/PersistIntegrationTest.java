@@ -12,11 +12,11 @@
 package alluxio.job.persist;
 
 import alluxio.AlluxioURI;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
@@ -56,7 +56,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     // run the persist job and check that it succeeds
     waitForJobToFinish(mJobMaster.run(new PersistConfig("/test", 1, true, status.getUfsPath())));
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
     Assert.assertTrue(ufs.exists(ufsPath));
 
     // run the persist job again with the overwrite flag and check that it succeeds
@@ -89,12 +89,11 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     // kill job worker
     mLocalAlluxioJobCluster.getWorker().stop();
     // persist the file
-    FileSystemContext context = FileSystemContext.get();
-    FileSystemMasterClient client = context.acquireMasterClient();
+    FileSystemMasterClient client = mFsContext.acquireMasterClient();
     try {
       client.scheduleAsyncPersist(new AlluxioURI(TEST_URI));
     } finally {
-      context.releaseMasterClient(client);
+      mFsContext.releaseMasterClient(client);
     }
     CommonUtils.waitFor("persist timeout", () -> {
       try {
@@ -113,7 +112,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
     Assert.assertFalse(ufs.exists(ufsPath));
   }
 }

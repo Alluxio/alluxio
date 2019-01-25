@@ -1,9 +1,11 @@
 package alluxio.grpc;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.resource.LockResource;
+import alluxio.util.ConfigurationUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -23,6 +25,7 @@ import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,7 +45,12 @@ public class GrpcManagedChannelPool {
   private static GrpcManagedChannelPool sInstance;
 
   static {
-    sInstance = new GrpcManagedChannelPool();
+    // TODO(zac): Find a better way to handle handle this instance
+    sInstance = new GrpcManagedChannelPool(
+        new InstancedConfiguration(ConfigurationUtils.defaults())
+            .getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS),
+        new InstancedConfiguration(ConfigurationUtils.defaults())
+            .getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
   }
 
   /**
@@ -62,25 +70,28 @@ public class GrpcManagedChannelPool {
   private HashMap<ChannelKey, ManagedChannelReference> mChannels;
   /** Used to control access to mChannel */
   private ReentrantReadWriteLock mLock;
+
+  private final long mChannelShutdownTimeoutMs;
+
+  /** Scheduler for destruction of idle channels. */
+  protected ScheduledExecutorService mScheduler;
   /** Timeout for health check on managed channels. */
-  private long mHealthCheckTimeoutMs;
+  private final long mHealthCheckTimeoutMs;
 
   /**
    * Creates a new {@link GrpcManagedChannelPool}.
    */
-  public GrpcManagedChannelPool() {
+  public GrpcManagedChannelPool(long healthCheckTimeoutMs, long channelShutdownTimeoutMs) {
     mChannels = new HashMap<>();
     mLock = new ReentrantReadWriteLock(true);
-    mHealthCheckTimeoutMs =
-        Configuration.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS);
+    mChannelShutdownTimeoutMs = channelShutdownTimeoutMs;
+    mHealthCheckTimeoutMs = healthCheckTimeoutMs;
   }
 
   private void shutdownManagedChannel(ManagedChannel managedChannel) {
     managedChannel.shutdown();
     try {
-      managedChannel.awaitTermination(
-          Configuration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT),
-          TimeUnit.MILLISECONDS);
+      managedChannel.awaitTermination(mChannelShutdownTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       // Allow thread to exit.
@@ -288,7 +299,7 @@ public class GrpcManagedChannelPool {
 
     /**
      * Plaintext channel with no transport security.
-     * 
+     *
      * @return the modified {@link ChannelKey}
      */
     public ChannelKey usePlaintext() {

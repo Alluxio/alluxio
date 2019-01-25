@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
@@ -39,15 +40,19 @@ public abstract class AbstractShell implements Closeable {
 
   private Map<String, String[]> mCommandAlias;
   private Map<String, Command> mCommands;
+  protected InstancedConfiguration mConfiguration;
 
   /**
    * Creates a new instance of {@link AbstractShell}.
    *
    * @param commandAlias replacements for commands
+   * @param conf Alluxio configuration
    */
-  public AbstractShell(Map<String, String[]> commandAlias) {
-    mCommands = loadCommands();
+  public AbstractShell(Map<String, String[]> commandAlias, InstancedConfiguration conf) {
+    mConfiguration = conf; // This needs to go first in case loadCommands() uses the reference to
+    // the configuration
     mCommandAlias = commandAlias;
+    mCommands = loadCommands();
   }
 
   /**

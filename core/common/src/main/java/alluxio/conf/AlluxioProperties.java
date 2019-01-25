@@ -13,8 +13,6 @@ package alluxio.conf;
 
 import static java.util.stream.Collectors.toSet;
 
-import alluxio.PropertyKey;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -100,11 +98,21 @@ public class AlluxioProperties {
    * @param value value to put
    * @param source the source of this value for the key
    */
-  public void put(PropertyKey key, String value, Source source) {
+  protected void put(PropertyKey key, String value, Source source) {
     if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
       mUserProps.put(key, Optional.ofNullable(value));
       mSources.put(key, source);
     }
+  }
+
+  /**
+   * Puts the key value pair specified by users.
+   *
+   * @param key key to put
+   * @param value value to put
+   */
+  public void set(PropertyKey key, String value) {
+    put(key, value, Source.RUNTIME);
   }
 
   /**
@@ -145,7 +153,10 @@ public class AlluxioProperties {
    * @param key key to remove
    */
   public void remove(PropertyKey key) {
-    mUserProps.put(key, Optional.empty());
+    // remove is a nop if the key doesn't already exist
+    if (mUserProps.containsKey(key)) {
+      mUserProps.remove(key);
+    }
   }
 
   /**
@@ -156,7 +167,8 @@ public class AlluxioProperties {
    */
   public boolean isSet(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
-      return mUserProps.get(key).isPresent();
+      Optional<String> val = mUserProps.get(key);
+      return val.isPresent();
     }
     // In case key is not the reference to the original key
     return PropertyKey.fromString(key.toString()).getDefaultValue() != null;
@@ -187,6 +199,15 @@ public class AlluxioProperties {
     for (Map.Entry<PropertyKey, String> entry : entrySet()) {
       action.accept(entry.getKey(), entry.getValue());
     }
+  }
+
+  /**
+   * Makes a copy of the backing properties and returns them in a new object.
+   *
+   * @return a copy of the current properties
+   */
+  public AlluxioProperties copy() {
+    return new AlluxioProperties(this);
   }
 
   /**

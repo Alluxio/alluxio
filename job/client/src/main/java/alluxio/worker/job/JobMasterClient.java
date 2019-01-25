@@ -39,7 +39,7 @@ public interface JobMasterClient extends Client {
      * @param conf job master client configuration
      * @return a new {@link JobMasterClient} instance
      */
-    public static JobMasterClient create(JobMasterClientConfig conf) {
+    public static JobMasterClient create(JobMasterClientContext conf) {
       return new RetryHandlingJobMasterClient(conf);
     }
   }

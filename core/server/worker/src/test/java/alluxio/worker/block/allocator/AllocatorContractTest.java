@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.allocator;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
@@ -64,7 +64,7 @@ public final class AllocatorContractTest extends AllocatorTestBase {
   @Test
   public void shouldNotAllocate() throws Exception {
     for (String strategyName : mStrategies) {
-      Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
+      ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
       Allocator allocator = Allocator.Factory.create(getManagerView());
       assertTempBlockMeta(allocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE + 1, false);
@@ -81,7 +81,7 @@ public final class AllocatorContractTest extends AllocatorTestBase {
   @Test
   public void shouldAllocate() throws Exception {
     for (String strategyName : mStrategies) {
-      Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
+      ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
       Allocator tierAllocator = Allocator.Factory.create(getManagerView());
       for (int i = 0; i < DEFAULT_RAM_NUM; i++) {

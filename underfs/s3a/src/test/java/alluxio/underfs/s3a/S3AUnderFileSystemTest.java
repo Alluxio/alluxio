@@ -13,7 +13,9 @@ package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -51,6 +53,7 @@ public class S3AUnderFileSystemTest {
   private static final String PATH = "path";
   private static final String SRC = "src";
   private static final String DST = "dst";
+  private static  InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
 
   private static final String BUCKET_NAME = "bucket";
   private static final String DEFAULT_OWNER = "";
@@ -70,7 +73,8 @@ public class S3AUnderFileSystemTest {
     mExecutor = Mockito.mock(ListeningExecutorService.class);
     mManager = Mockito.mock(TransferManager.class);
     mS3UnderFileSystem = new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient,
-        BUCKET_NAME, mExecutor, mManager, UnderFileSystemConfiguration.defaults(), false);
+        BUCKET_NAME, mExecutor, mManager, UnderFileSystemConfiguration.defaults(),
+        sConf, false);
   }
 
   @Test
@@ -126,8 +130,8 @@ public class S3AUnderFileSystemTest {
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.S3A_ACCESS_KEY, "key1");
     conf.put(PropertyKey.S3A_SECRET_KEY, "key2");
-    try (Closeable c = new ConfigurationRule(conf).toResource()) {
-      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults();
+    try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
+      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(sConf);
       AWSCredentialsProvider credentialsProvider =
           S3AUnderFileSystem.createAwsCredentialsProvider(ufsConf);
       Assert.assertEquals("key1", credentialsProvider.getCredentials().getAWSAccessKeyId());
@@ -142,7 +146,7 @@ public class S3AUnderFileSystemTest {
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.S3A_ACCESS_KEY, null);
     conf.put(PropertyKey.S3A_SECRET_KEY, null);
-    try (Closeable c = new ConfigurationRule(conf).toResource()) {
+    try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
       UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults();
       AWSCredentialsProvider credentialsProvider =
           S3AUnderFileSystem.createAwsCredentialsProvider(ufsConf);

@@ -11,8 +11,7 @@
 
 package alluxio.underfs;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.exception.ExceptionMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +32,9 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
   protected long mPos;
   /** Position the current stream was open till (exclusive). */
   protected long mEndPos;
+
+  /** The block size to read with. */
+  protected long mBlockSize = -1L;
 
   @Override
   public void close() throws IOException {
@@ -112,7 +114,8 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
    * @param endPos end position in bytes (exclusive)
    * @return a new {@link InputStream}
    */
-  protected abstract InputStream createStream(long startPos, long endPos) throws IOException;
+  protected abstract InputStream createStream(long startPos, long endPos)
+      throws IOException;
 
   /**
    * Block size for reading an object in chunks.
@@ -120,7 +123,7 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
    * @return block size in bytes
    */
   private long getBlockSize() {
-    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return mBlockSize;
   }
 
   /**
@@ -130,11 +133,14 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
     if (mClosed) {
       throw new IOException("Stream closed");
     }
+    if (mBlockSize <= 0) {
+      throw new IOException(ExceptionMessage.BLOCK_SIZE_INVALID.getMessage(mBlockSize));
+    }
+
     if (mStream != null) { // stream is already open
       return;
     }
-    final long blockSize = getBlockSize();
-    final long endPos = mPos + blockSize - (mPos % blockSize);
+    final long endPos = mPos + mBlockSize - (mPos % mBlockSize);
     mEndPos = endPos;
     mStream = createStream(mPos, endPos);
   }

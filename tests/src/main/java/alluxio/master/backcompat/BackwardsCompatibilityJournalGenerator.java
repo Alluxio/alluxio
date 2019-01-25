@@ -14,6 +14,7 @@ package alluxio.master.backcompat;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.ProjectConstants;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.backcompat.ops.AsyncPersist;
 import alluxio.master.backcompat.ops.CreateDirectory;
 import alluxio.master.backcompat.ops.CreateFile;
@@ -87,7 +88,7 @@ public final class BackwardsCompatibilityJournalGenerator {
   public static void main(String[] args) throws Exception {
     BackwardsCompatibilityJournalGenerator generator = new BackwardsCompatibilityJournalGenerator();
     new JCommander(generator, args);
-    if (!LoginUser.get().getName().equals("root")) {
+    if (!LoginUser.get(ServerConfiguration.global()).getName().equals("root")) {
       System.err
           .printf("Journals must be generated as root so that they can be replayed by root%n");
       System.exit(-1);

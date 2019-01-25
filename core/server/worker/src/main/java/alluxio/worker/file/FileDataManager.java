@@ -12,8 +12,8 @@
 package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -98,8 +98,8 @@ public final class FileDataManager {
    */
   public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter,
       UfsManager ufsManager) {
-    this(blockWorker, persistenceRateLimiter, ufsManager, FileSystem.Factory::get,
-         BufferUtils::fastCopy);
+    this(blockWorker, persistenceRateLimiter, ufsManager,
+        () -> FileSystem.Factory.get(ServerConfiguration.global()), BufferUtils::fastCopy);
   }
 
   /**
@@ -266,7 +266,8 @@ public final class FileDataManager {
         mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       String dstPath = prepareUfsFilePath(fileInfo, ufs);
-      OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
+      OutputStream outputStream = ufs.create(dstPath,
+          CreateOptions.defaults(ServerConfiguration.global())
           .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
           .setMode(new Mode((short) fileInfo.getMode())));
       final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
@@ -275,7 +276,7 @@ public final class FileDataManager {
         for (long blockId : blockIds) {
           long lockId = blockIdToLockId.get(blockId);
 
-          if (Configuration.getBoolean(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
+          if (ServerConfiguration.getBoolean(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
             BlockMeta blockMeta =
                 mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
             mPersistenceRateLimiter.acquire((int) blockMeta.getBlockSize());

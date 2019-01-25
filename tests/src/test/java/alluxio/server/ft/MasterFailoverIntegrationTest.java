@@ -14,9 +14,9 @@ package alluxio.server.ft;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
@@ -48,7 +48,8 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
 
   // An under file system which has slow directory deletion.
   private static final UnderFileSystem UFS =
-      new DelegatingUnderFileSystem(UnderFileSystem.Factory.create(LOCAL_UFS_PATH)) {
+      new DelegatingUnderFileSystem(UnderFileSystem.Factory.create(LOCAL_UFS_PATH,
+          ServerConfiguration.global())) {
         @Override
         public boolean deleteDirectory(String path) throws IOException {
           CommonUtils.sleepMs(DELETE_DELAY);
@@ -71,9 +72,9 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
     mMultiMasterLocalAlluxioCluster =
         new MultiMasterLocalAlluxioCluster(2);
     mMultiMasterLocalAlluxioCluster.initConfiguration();
-    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "15sec");
-    Configuration.set(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "30sec");
-    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+    ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "15sec");
+    ServerConfiguration.set(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "30sec");
+    ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
         DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH);
     mMultiMasterLocalAlluxioCluster.start();
     mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();

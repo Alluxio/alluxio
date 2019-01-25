@@ -12,11 +12,11 @@
 package alluxio.metrics;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.metrics.sink.Sink;
 import alluxio.util.CommonUtils;
-import alluxio.util.IdUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.Counter;
@@ -54,7 +54,9 @@ public final class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsSystem.class);
 
   private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
-  private static String sAppId;
+  private static int sResolveTimeout =
+      (int) new InstancedConfiguration(ConfigurationUtils.defaults())
+               .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
 
   /**
    * An enum of supported instance type.
@@ -122,15 +124,16 @@ public final class MetricsSystem {
   /**
    * Starts sinks specified in the configuration. This is an no-op if the sinks have already been
    * started. Note: This has to be called after Alluxio configuration is initialized.
+   *
+   * @param metricsConfFile the location of the metrics configuration file
    */
-  public static void startSinks() {
+  public static void startSinks(String metricsConfFile) {
     synchronized (MetricsSystem.class) {
       if (sSinks != null) {
         LOG.info("Sinks have already been started.");
         return;
       }
     }
-    String metricsConfFile = Configuration.get(PropertyKey.METRICS_CONF_FILE);
     if (metricsConfFile.isEmpty()) {
       LOG.info("Metrics is not enabled.");
       return;
@@ -312,7 +315,10 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    return instance + "." + NetworkAddressUtils.getLocalHostMetricName() + "." + name;
+    return instance
+        + "."
+        + NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout)
+        + "." + name;
   }
 
   /**
@@ -425,20 +431,6 @@ public final class MetricsSystem {
    */
   public static List<Metric> allClientMetrics() {
     return allMetrics(InstanceType.CLIENT);
-  }
-
-  /**
-   * @return the app ID for this MetricsSystem
-   */
-  public static synchronized String getAppId() {
-    if (sAppId == null) {
-      sAppId = Configuration.containsKey(PropertyKey.USER_APP_ID)
-          ? Configuration.get(PropertyKey.USER_APP_ID) : IdUtils.createFileSystemContextId();
-      LOG.info("Created metrics system with id {}. This ID will be used for identifying metrics "
-              + "data from the client. It can be set manually through the {} property",
-          sAppId, PropertyKey.Name.USER_APP_ID);
-    }
-    return sAppId;
   }
 
   private static List<Metric> allMetrics(MetricsSystem.InstanceType instanceType) {

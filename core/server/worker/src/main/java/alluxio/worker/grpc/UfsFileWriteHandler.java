@@ -11,6 +11,7 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.metrics.Metric;
@@ -148,7 +149,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource();
     context.setUfsResource(ufsResource);
     UnderFileSystem ufs = ufsResource.get();
-    CreateOptions createOptions = CreateOptions.defaults()
+    CreateOptions createOptions = CreateOptions.defaults(ServerConfiguration.global())
         .setOwner(createUfsFileOptions.getOwner()).setGroup(createUfsFileOptions.getGroup())
         .setMode(new Mode((short) createUfsFileOptions.getMode()));
     if (createUfsFileOptions.hasAcl()) {

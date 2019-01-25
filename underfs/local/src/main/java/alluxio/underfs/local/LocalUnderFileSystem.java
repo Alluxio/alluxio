@@ -12,8 +12,8 @@
 package alluxio.underfs.local;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.AtomicFileOutputStream;
@@ -75,9 +75,11 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param ufsConf UFS configuration
+   * @param alluxioConf Alluxio configuration
    */
-  public LocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
-    super(uri, ufsConf);
+  public LocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
+      AlluxioConfiguration alluxioConf) {
+    super(uri, ufsConf, alluxioConf);
   }
 
   @Override
@@ -169,7 +171,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     if (!file.exists()) {
       throw new FileNotFoundException(path);
     }
-    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return mAlluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -185,7 +187,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<>();
-    ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC));
+    ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mAlluxioConf));
     return ret;
   }
 
@@ -383,7 +385,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
       LOG.debug("Exception: ", e);
       LOG.warn("In order for Alluxio to modify ownership of local files, "
           + "Alluxio should be the local file system superuser.");
-      if (!Configuration.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
+      if (!mAlluxioConf.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
         throw e;
       } else {
         LOG.warn("Failure is ignored, which may cause permission inconsistency between "

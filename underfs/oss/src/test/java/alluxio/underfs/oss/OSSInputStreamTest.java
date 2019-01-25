@@ -19,6 +19,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.ConfigurationUtils;
+
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.GetObjectRequest;
 import com.aliyun.oss.model.OSSObject;
@@ -41,6 +46,8 @@ public class OSSInputStreamTest {
 
   private static final String BUCKET_NAME = "testBucket";
   private static final String OBJECT_KEY = "testObjectKey";
+  private static AlluxioConfiguration sConf =
+      new InstancedConfiguration(ConfigurationUtils.defaults());
 
   private OSSInputStream mOssInputStream;
   private OSSClient mOssClient;
@@ -76,7 +83,8 @@ public class OSSInputStreamTest {
       mInputStreamSpy[i] = spy(new ByteArrayInputStream(mockInput));
       when(mOssObject[i].getObjectContent()).thenReturn(mInputStreamSpy[i]);
     }
-    mOssInputStream = new OSSInputStream(BUCKET_NAME, OBJECT_KEY, mOssClient);
+    mOssInputStream = new OSSInputStream(BUCKET_NAME, OBJECT_KEY, mOssClient,
+        sConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
   }
 
   @Test

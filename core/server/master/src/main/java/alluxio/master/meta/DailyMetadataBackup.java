@@ -11,9 +11,9 @@
 
 package alluxio.master.meta;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.BackupManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -65,8 +65,8 @@ public final class DailyMetadataBackup {
   DailyMetadataBackup(MetaMaster metaMaster,
       ScheduledExecutorService service, UnderFileSystem ufs) {
     mMetaMaster = metaMaster;
-    mBackupDir = Configuration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
-    mRetainedFiles = Configuration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
+    mBackupDir = ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
+    mRetainedFiles = ServerConfiguration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
     mScheduledExecutor = service;
     mUfs = ufs;
     mIsLocal = ufs.getUnderFSType().equals("local");
@@ -93,7 +93,7 @@ public final class DailyMetadataBackup {
     LocalDateTime now = LocalDateTime.now(Clock.systemUTC());
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm");
-    LocalTime backupTime = LocalTime.parse(Configuration
+    LocalTime backupTime = LocalTime.parse(ServerConfiguration
         .get(PropertyKey.MASTER_DAILY_BACKUP_TIME), formatter);
     LocalDateTime nextBackupTime = now.withHour(backupTime.getHour())
         .withMinute(backupTime.getMinute());

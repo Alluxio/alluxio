@@ -11,8 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationValueOptions;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.ConfigurationValueOptions;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.web.JobMasterWebServer;
@@ -60,8 +60,8 @@ public final class AlluxioJobMasterRestServiceHandler {
   /**
    * @summary get the Alluxio job master information
    * @param rawConfiguration if it's true, raw configuration values are returned,
-   *    otherwise, they are looked up; if it's not provided in URL queries, then
-   *    it is null, which means false.
+   *        otherwise, they are looked up; if it's not provided in URL queries, then
+   *        it is null, which means false.
    * @return the response object
    */
   @GET
@@ -82,14 +82,14 @@ public final class AlluxioJobMasterRestServiceHandler {
               .setVersion(RuntimeConstants.VERSION)
               .setWorkers(mJobMaster.getJobMaster().getWorkerInfoList());
       return result;
-    });
+    }, ServerConfiguration.global());
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
     if (raw) {
-      return Configuration.toMap(ConfigurationValueOptions.defaults().useRawValue(raw));
+      return ServerConfiguration.toMap(ConfigurationValueOptions.defaults().useRawValue(raw));
     } else {
-      return Configuration.toMap();
+      return ServerConfiguration.toMap();
     }
   }
 }

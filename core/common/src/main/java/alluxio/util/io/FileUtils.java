@@ -12,8 +12,6 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.exception.InvalidPathException;
 
 import org.slf4j.Logger;
@@ -184,10 +182,12 @@ public final class FileUtils {
    * permissions.
    *
    * @param path the path of the block
+   * @param workerDataFolderPermissions The permissions to set on the worker's data folder
    */
-  public static void createBlockPath(String path) throws IOException {
+  public static void createBlockPath(String path, String workerDataFolderPermissions)
+      throws IOException {
     try {
-      createStorageDirPath(PathUtils.getParent(path));
+      createStorageDirPath(PathUtils.getParent(path), workerDataFolderPermissions);
     } catch (InvalidPathException e) {
       throw new IOException("Failed to create block path, get parent path of " + path + "failed",
           e);
@@ -251,9 +251,11 @@ public final class FileUtils {
    * Also, appropriate directory permissions (w/ StickyBit) are set.
    *
    * @param path storage directory path to create
+   * @param workerDataFolderPermissions the permissions to set for the worker's data folder
    * @return true if the directory is created and false if the directory already exists
    */
-  public static boolean createStorageDirPath(String path) throws IOException {
+  public static boolean createStorageDirPath(String path, String workerDataFolderPermissions)
+      throws IOException {
     if (Files.exists(Paths.get(path))) {
       return false;
     }
@@ -264,8 +266,7 @@ public final class FileUtils {
       throw new IOException("Failed to create folder " + path, e);
     }
     String absolutePath = storagePath.toAbsolutePath().toString();
-    String perms = Configuration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
-    changeLocalFilePermission(absolutePath, perms);
+    changeLocalFilePermission(absolutePath, workerDataFolderPermissions);
     setLocalDirStickyBit(absolutePath);
     return true;
   }

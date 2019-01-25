@@ -11,10 +11,10 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.WriteRequestCommand;
@@ -54,7 +54,7 @@ public final class UfsFallbackBlockWriteHandler
     extends AbstractWriteHandler<BlockWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(UfsFallbackBlockWriteHandler.class);
   private static final long FILE_BUFFER_SIZE =
-      Configuration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
+      ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
@@ -217,7 +217,9 @@ public final class UfsFallbackBlockWriteHandler
     UnderFileSystem ufs = ufsResource.get();
     // Set the atomic flag to be true to ensure only the creation of this file is atomic on close.
     OutputStream ufsOutputStream =
-        ufs.create(ufsPath, CreateOptions.defaults().setEnsureAtomic(true).setCreateParent(true));
+        ufs.create(ufsPath,
+            CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(true)
+                .setCreateParent(true));
     context.setOutputStream(ufsOutputStream);
     context.setUfsPath(ufsPath);
 

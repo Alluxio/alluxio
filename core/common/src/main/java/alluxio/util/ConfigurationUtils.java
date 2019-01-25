@@ -13,11 +13,23 @@ package alluxio.util;
 
 import static java.util.stream.Collectors.toList;
 
-import alluxio.AlluxioConfiguration;
-import alluxio.Configuration;
-import alluxio.ConfigurationValueOptions;
-import alluxio.PropertyKey;
+import alluxio.Constants;
+import alluxio.RuntimeConstants;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnauthenticatedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcExceptionUtils;
+import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.grpc.GrpcUtils;
 import alluxio.util.io.PathUtils;
@@ -34,15 +46,23 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Utilities for working with Alluxio configurations.
  */
 public final class ConfigurationUtils {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationUtils.class);
+
+  @GuardedBy("DEFAULT_PROPERTIES_LOCK")
+  private static volatile AlluxioProperties sDefaultProperties = null;
+  private static String sSourcePropertyFile = null;
+
+  private static final Object DEFAULT_PROPERTIES_LOCK = new Object();
 
   private ConfigurationUtils() {} // prevent instantiation
 
@@ -68,7 +88,8 @@ public final class ConfigurationUtils {
    * @return the job master rpc addresses
    */
   public static List<InetSocketAddress> getJobMasterRpcAddresses(AlluxioConfiguration conf) {
-    int jobRpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC);
+    int jobRpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC,
+        conf);
     if (conf.isSet(PropertyKey.JOB_MASTER_RPC_ADDRESSES)) {
       return parseInetSocketAddresses(
           conf.getList(PropertyKey.JOB_MASTER_RPC_ADDRESSES, ","));
@@ -191,49 +212,52 @@ public final class ConfigurationUtils {
   }
 
   /**
+   * @param conf the configuration to use
    * @return whether the configuration describes how to find the job master host, either through
    *         explicit configuration or through zookeeper
    */
-  public static boolean jobMasterHostConfigured() {
-    boolean usingZk = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
-        && Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
-    return Configuration.isSet(PropertyKey.JOB_MASTER_HOSTNAME) || usingZk
-        || getJobMasterRpcAddresses(Configuration.global()).size() > 1;
+  public static boolean jobMasterHostConfigured(AlluxioConfiguration conf) {
+    boolean usingZk = conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
+        && conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
+    return conf.isSet(PropertyKey.JOB_MASTER_HOSTNAME) || usingZk
+        || getJobMasterRpcAddresses(conf).size() > 1;
   }
 
   /**
+   * @param conf the configuration to use
    * @return whether the configuration describes how to find the master host, either through
    *         explicit configuration or through zookeeper
    */
-  public static boolean masterHostConfigured() {
-    boolean usingZk = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
-        && Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
-    return Configuration.isSet(PropertyKey.MASTER_HOSTNAME) || usingZk
-        || getMasterRpcAddresses(Configuration.global()).size() > 1;
+  public static boolean masterHostConfigured(AlluxioConfiguration conf) {
+    boolean usingZk = conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
+        && conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
+    return conf.isSet(PropertyKey.MASTER_HOSTNAME) || usingZk
+        || getMasterRpcAddresses(conf).size() > 1;
   }
 
   /**
-   * Gets all global configuration properties filtered by the specified scope.
+   * Gets all configuration properties filtered by the specified scope.
    *
+   * @param conf the configuration to use
    * @param scope the scope to filter by
    * @return the properties
    */
-  public static List<ConfigProperty> getConfiguration(Scope scope) {
+  public static List<ConfigProperty> getConfiguration(AlluxioConfiguration conf, Scope scope) {
     ConfigurationValueOptions useRawDisplayValue =
         ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true);
 
     List<ConfigProperty> configs = new ArrayList<>();
     List<PropertyKey> selectedKeys =
-        Configuration.keySet().stream()
+        conf.keySet().stream()
             .filter(key -> GrpcUtils.contains(key.getScope(), scope))
             .filter(key -> key.isValid(key.getName()))
             .collect(toList());
 
     for (PropertyKey key : selectedKeys) {
       ConfigProperty.Builder configProp = ConfigProperty.newBuilder().setName(key.getName())
-          .setSource(Configuration.getSource(key).toString());
-      if (Configuration.isSet(key)) {
-        configProp.setValue(Configuration.get(key, useRawDisplayValue));
+          .setSource(conf.getSource(key).toString());
+      if (conf.isSet(key)) {
+        configProp.setValue(conf.get(key, useRawDisplayValue));
       }
       configs.add(configProp.build());
     }
@@ -246,5 +270,163 @@ public final class ConfigurationUtils {
    */
   public static String valueAsString(String value) {
     return value == null ? "(no value set)" : value;
+  }
+
+  /**
+   * Returns an instance of {@link AlluxioConfiguration} with the defaults and values from
+   * alluxio-site properties.
+   *
+   * @return the set of Alluxio properties loaded from the site-properties file
+   */
+  public static AlluxioProperties defaults() {
+    if (sDefaultProperties == null) {
+      synchronized (DEFAULT_PROPERTIES_LOCK) { // We don't want multiple threads to reload
+        // properties at the same time.
+        // Check if properties are still null so we don't reload a second time.
+        if (sDefaultProperties == null) {
+          reloadProperties();
+        }
+      }
+    }
+    return sDefaultProperties.copy();
+  }
+
+  /**
+   * Reloads site properties from disk.
+   */
+  public static void reloadProperties() {
+    synchronized (DEFAULT_PROPERTIES_LOCK) {
+      // Step1: bootstrap the configuration. This is necessary because we need to resolve alluxio
+      // .home (likely to be in system properties) to locate the conf dir to search for the site
+      // property file.
+      AlluxioProperties properties = new AlluxioProperties();
+      InstancedConfiguration conf = new InstancedConfiguration(properties);
+      properties.merge(System.getProperties(), Source.SYSTEM_PROPERTY);
+
+      // Step2: Load site specific properties file if not in test mode. Note that we decide
+      // whether in test mode by default properties and system properties (via getBoolean).
+      if (conf.getBoolean(PropertyKey.TEST_MODE)) {
+        conf.validate();
+        sDefaultProperties = properties;
+        return;
+      }
+
+      // we are not in test mode, load site properties
+      String confPaths = conf.get(PropertyKey.SITE_CONF_DIR);
+      String[] confPathList = confPaths.split(",");
+      String sitePropertyFile = ConfigurationUtils
+          .searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
+      Properties siteProps = null;
+      if (sitePropertyFile != null) {
+        siteProps = loadPropertiesFromFile(sitePropertyFile);
+        sSourcePropertyFile = sitePropertyFile;
+      } else {
+        URL resource =
+            ConfigurationUtils.class.getClassLoader().getResource(Constants.SITE_PROPERTIES);
+        if (resource != null) {
+          siteProps = loadPropertiesFromResource(resource);
+          if (siteProps != null) {
+            sSourcePropertyFile = resource.getPath();
+          }
+        }
+      }
+      properties.merge(siteProps, Source.siteProperty(sSourcePropertyFile));
+      conf.validate();
+      sDefaultProperties = properties;
+    }
+  }
+
+  /**
+   * Merges the current configuration properties with new properties. If a property exists
+   * both in the new and current configuration, the one from the new configuration wins if
+   * its priority is higher or equal than the existing one.
+   *
+   * @param conf the base configuration
+   * @param properties the source {@link Properties} to be merged
+   * @param source the source of the the properties (e.g., system property, default and etc)
+   * @return a new configuration representing the merged properties
+   */
+  public static AlluxioConfiguration merge(AlluxioConfiguration conf, Map<?, ?> properties,
+      Source source) {
+    AlluxioProperties props = conf.copyProperties();
+    props.merge(properties, source);
+    return new InstancedConfiguration(props);
+  }
+
+  /**
+   * Loads cluster default values from the meta master.
+   *
+   * @param address the master address
+   * @param conf configuration to use
+   * @return a configuration object containing the original configuration merged with cluster
+   *         defaults, or the original object if the cluster defaults have already been loaded
+   */
+  public static AlluxioConfiguration loadClusterDefaults(InetSocketAddress address,
+      AlluxioConfiguration conf)
+      throws AlluxioStatusException {
+    if (!conf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
+        || conf.clusterDefaultsLoaded()) {
+      return conf;
+    }
+    LOG.info("Alluxio client (version {}) is trying to bootstrap-connect with {}",
+        RuntimeConstants.VERSION, address);
+
+    GrpcChannel channel = null;
+    List<alluxio.grpc.ConfigProperty> clusterConfig;
+
+    try {
+      channel = GrpcChannelBuilder.newBuilder(address, conf).disableAuthentication().build();
+      MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
+          MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
+      clusterConfig =
+          client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
+              .getConfigsList();
+    } catch (io.grpc.StatusRuntimeException e) {
+      AlluxioStatusException ase = GrpcExceptionUtils.fromGrpcStatusException(e);
+      LOG.warn("Failed to handshake with master {} : {}", address, ase.getMessage());
+      throw new UnavailableException(String.format(
+          "Failed to handshake with master %s to load cluster default configuration values",
+          address), e);
+    } catch (UnauthenticatedException e) {
+      throw new RuntimeException(String.format(
+          "Received authentication exception during boot-strap connect with host:%s", address),
+          e);
+    } finally {
+      if (channel != null) {
+        channel.shutdown();
+      }
+    }
+
+    // merge conf returned by master as the cluster default into conf object
+    Properties clusterProps = new Properties();
+    for (ConfigProperty property : clusterConfig) {
+      String name = property.getName();
+      // TODO(binfan): support propagating unsetting properties from master
+      if (PropertyKey.isValid(name) && property.hasValue()) {
+        PropertyKey key = PropertyKey.fromString(name);
+        if (!GrpcUtils.contains(key.getScope(), Scope.CLIENT)) {
+          // Only propagate client properties.
+          continue;
+        }
+        String value = property.getValue();
+        clusterProps.put(key, value);
+        LOG.debug("Loading cluster default: {} ({}) -> {}", key, key.getScope(), value);
+      }
+    }
+
+    String clientVersion = conf.get(PropertyKey.VERSION);
+    String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
+    if (!clientVersion.equals(clusterVersion)) {
+      LOG.warn("Alluxio client version ({}) does not match Alluxio cluster version ({})",
+          clientVersion, clusterVersion);
+      clusterProps.remove(PropertyKey.VERSION);
+    }
+    AlluxioProperties props = conf.copyProperties();
+    props.merge(clusterProps, Source.CLUSTER_DEFAULT);
+    // Use the constructor to set cluster defaults as being laoded.
+    InstancedConfiguration updatedConf = new InstancedConfiguration(props, true);
+    updatedConf.validate();
+    LOG.info("Alluxio client has bootstrap-connected with {}", address);
+    return updatedConf;
   }
 }

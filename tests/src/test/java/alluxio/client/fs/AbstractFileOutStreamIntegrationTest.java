@@ -11,26 +11,32 @@
 
 package alluxio.client.fs;
 
+import static org.junit.Assert.fail;
+
 import alluxio.AlluxioURI;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.LocalAlluxioJobCluster;
+import alluxio.network.PortUtils;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * Abstract classes for all integration tests of {@link FileOutStream}.
@@ -43,6 +49,8 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected LocalAlluxioJobCluster mLocalAlluxioJobCluster;
   protected static final int BLOCK_SIZE_BYTES = 1000;
 
+  private Map<PropertyKey, Integer> mPortMapping;
+
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       buildLocalAlluxioClusterResource();
@@ -51,22 +59,39 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
 
   @Before
   public void before() throws Exception {
-    mLocalAlluxioJobCluster = new alluxio.master.LocalAlluxioJobCluster();
+    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
+    if (mPortMapping == null) {
+      fail("You must initialize a port mapping for this test in order for the cluster to start "
+          + "properly");
+    }
+    mPortMapping.entrySet().forEach((Map.Entry<PropertyKey, Integer> e) -> {
+      mLocalAlluxioJobCluster.setProperty(e.getKey(), e.getValue().toString());
+    });
     mLocalAlluxioJobCluster.start();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
-  @org.junit.After
+  @After
   public void after() throws Exception {
     mLocalAlluxioJobCluster.stop();
   }
 
-  protected LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
-    return new LocalAlluxioClusterResource.Builder()
-        .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
+  protected void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
+    resource.setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
         .setProperty(PropertyKey.USER_FILE_REPLICATION_DURABLE, 1)
-        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
-        .build();
+        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES);
+  }
+
+  private LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
+    mPortMapping = PortUtils.createPortMapping();
+
+    LocalAlluxioClusterResource.Builder resource = new LocalAlluxioClusterResource.Builder();
+    customizeClusterResource(resource);
+
+    mPortMapping.entrySet().forEach((Map.Entry<PropertyKey, Integer> e) -> {
+      resource.setProperty(e.getKey(), e.getValue());
+    });
+    return resource.build();
   }
 
   /**
@@ -78,7 +103,21 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
    */
   protected void writeIncreasingBytesToFile(AlluxioURI filePath, int fileLen, CreateFilePOptions op)
       throws Exception {
-    try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
+    writeIncreasingBytesToFile(mFileSystem, filePath, fileLen, op);
+  }
+
+  /**
+   * Helper to write an Alluxio file with stream of bytes of increasing byte value.
+   *
+   * @param fs the FileSystemClient to use
+   * @param filePath path of the tmp file
+   * @param fileLen length of the file
+   * @param op options to create file
+   */
+  protected void writeIncreasingBytesToFile(FileSystem fs, AlluxioURI filePath, int fileLen,
+      CreateFilePOptions op)
+      throws Exception {
+    try (FileOutStream os = fs.createFile(filePath, op)) {
       for (int k = 0; k < fileLen; k++) {
         os.write((byte) k);
       }
@@ -146,7 +185,8 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected void checkFileInUnderStorage(AlluxioURI filePath, int fileLen) throws Exception {
     URIStatus status = mFileSystem.getStatus(filePath);
     String checkpointPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(checkpointPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(checkpointPath,
+        ServerConfiguration.global());
 
     try (InputStream is = ufs.open(checkpointPath)) {
       byte[] res = new byte[(int) status.getLength()];

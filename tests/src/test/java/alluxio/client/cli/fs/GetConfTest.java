@@ -13,8 +13,9 @@ package alluxio.client.cli.fs;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.ClientContext;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.SystemOutRule;
 import alluxio.SystemPropertyRule;
 import alluxio.cli.GetConf;
@@ -43,23 +44,29 @@ public final class GetConfTest {
 
   @After
   public void after() {
-    Configuration.reset();
+    ServerConfiguration.reset();
   }
 
   @Test
   public void getConf() throws Exception {
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
-    assertEquals(0, GetConf.getConf(PropertyKey.WORKER_MEMORY_SIZE.toString()));
+    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
+    ClientContext ctx = ClientContext.create(ServerConfiguration.global());
+    assertEquals(0, GetConf.getConf(ctx,
+        PropertyKey.WORKER_MEMORY_SIZE.toString()));
     assertEquals("2048\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "2MB");
-    assertEquals(0, GetConf.getConf(PropertyKey.WORKER_MEMORY_SIZE.toString()));
+    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2MB");
+    ctx = ClientContext.create(ServerConfiguration.global());
+    assertEquals(0, GetConf.getConf(ctx,
+        PropertyKey.WORKER_MEMORY_SIZE.toString()));
     assertEquals("2MB\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "Nonsense");
-    assertEquals(0, GetConf.getConf(PropertyKey.WORKER_MEMORY_SIZE.toString()));
+    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "Nonsense");
+    ctx = ClientContext.create(ServerConfiguration.global());
+    assertEquals(0, GetConf.getConf(ctx,
+        PropertyKey.WORKER_MEMORY_SIZE.toString()));
     assertEquals("Nonsense\n", mOutputStream.toString());
   }
 
@@ -69,42 +76,52 @@ public final class GetConfTest {
         .setAlias(new String[] {"alluxio.test.property.alias"})
         .setDefaultValue("testValue")
         .build();
-    assertEquals(0, GetConf.getConf("alluxio.test.property.alias"));
+    ClientContext ctx = ClientContext.create(ServerConfiguration.global());
+    assertEquals(0, GetConf.getConf(ctx, "alluxio.test.property.alias"));
     assertEquals("testValue\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    assertEquals(0, GetConf.getConf("alluxio.test.property"));
+    assertEquals(0, GetConf.getConf(ctx, "alluxio.test.property"));
     assertEquals("testValue\n", mOutputStream.toString());
     PropertyKey.unregister(testProperty);
   }
 
   @Test
   public void getConfWithCorrectUnit() throws Exception {
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
-    assertEquals(0, GetConf.getConf("--unit", "B", PropertyKey.WORKER_MEMORY_SIZE.toString()));
+    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
+    ClientContext ctx = ClientContext.create(ServerConfiguration.global());
+    assertEquals(0, GetConf.getConf(ctx, "--unit", "B",
+        PropertyKey.WORKER_MEMORY_SIZE.toString()));
     assertEquals("2048\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
-    assertEquals(0, GetConf.getConf("--unit", "KB", PropertyKey.WORKER_MEMORY_SIZE.toString()));
+    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
+    ctx = ClientContext.create(ServerConfiguration.global());
+    assertEquals(0, GetConf.getConf(ctx, "--unit", "KB",
+        PropertyKey.WORKER_MEMORY_SIZE.toString()));
     assertEquals("2\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "2MB");
-    assertEquals(0, GetConf.getConf("--unit", "KB", PropertyKey.WORKER_MEMORY_SIZE.toString()));
+    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2MB");
+    ctx = ClientContext.create(ServerConfiguration.global());
+    assertEquals(0, GetConf.getConf(ctx, "--unit", "KB",
+        PropertyKey.WORKER_MEMORY_SIZE.toString()));
     assertEquals("2048\n", mOutputStream.toString());
 
     mOutputStream.reset();
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "2MB");
-    assertEquals(0, GetConf.getConf("--unit", "MB", PropertyKey.WORKER_MEMORY_SIZE.toString()));
+    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2MB");
+    ctx = ClientContext.create(ServerConfiguration.global());
+    assertEquals(0, GetConf.getConf(ctx, "--unit", "MB",
+        PropertyKey.WORKER_MEMORY_SIZE.toString()));
     assertEquals("2\n", mOutputStream.toString());
   }
 
   @Test
   public void getConfWithWrongUnit() throws Exception {
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
+    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, "2048");
     assertEquals(1,
-        GetConf.getConf("--unit", "bad_unit", PropertyKey.WORKER_MEMORY_SIZE.toString()));
+        GetConf.getConf(ClientContext.create(ServerConfiguration.global()), "--unit", "bad_unit",
+            PropertyKey.WORKER_MEMORY_SIZE.toString()));
   }
 
   @Test
@@ -112,9 +129,13 @@ public final class GetConfTest {
     try (Closeable p = new SystemPropertyRule(ImmutableMap.of(
         PropertyKey.CONF_VALIDATION_ENABLED.toString(), "false",
         PropertyKey.ZOOKEEPER_ENABLED.toString(), "true")).toResource()) {
-      Configuration.reset();
-      assertEquals(0, GetConf.getConf(PropertyKey.ZOOKEEPER_ENABLED.toString()));
+      ServerConfiguration.reset();
+      ClientContext ctx = ClientContext.create(ServerConfiguration.global());
+      assertEquals(0, GetConf.getConf(ctx,
+          PropertyKey.ZOOKEEPER_ENABLED.toString()));
       assertEquals("true\n", mOutputStream.toString());
+    } finally {
+      ServerConfiguration.reset();
     }
   }
 
@@ -126,7 +147,7 @@ public final class GetConfTest {
     List<ConfigProperty> configList = prepareConfigList();
     Mockito.when(client.getConfiguration()).thenReturn(configList);
 
-    assertEquals(0, GetConf.getConfImpl(() -> client, "--master"));
+    assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master"));
     String expectedOutput = "alluxio.logger.type=MASTER_LOGGER\n"
         + "alluxio.master.audit.logger.type=MASTER_AUDIT_LOGGER\n"
         + "alluxio.master.hostname=localhost\n"
@@ -143,7 +164,8 @@ public final class GetConfTest {
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
     List<ConfigProperty> configList = prepareConfigList();
     Mockito.when(client.getConfiguration()).thenReturn(configList);
-    assertEquals(0, GetConf.getConfImpl(() -> client, "--master", "--source"));
+    assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master",
+        "--source"));
     // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
     String expectedOutput =
         "alluxio.logger.type=MASTER_LOGGER (SYSTEM_PROPERTY)\n"

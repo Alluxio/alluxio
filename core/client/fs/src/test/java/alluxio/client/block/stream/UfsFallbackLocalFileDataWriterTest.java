@@ -19,8 +19,11 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.status.ResourceExhaustedException;
@@ -134,23 +137,29 @@ public class UfsFallbackLocalFileDataWriterTest {
 
   private ByteBuffer mBuffer;
   private FixedCapacityTestDataWriter mLocalWriter;
+  private ClientContext mClientContext;
   private FileSystemContext mContext;
   private WorkerNetAddress mAddress;
   private BlockWorkerClient mClient;
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
 
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES,
-          String.valueOf(CHUNK_SIZE));
+          String.valueOf(CHUNK_SIZE), mConf);
 
   @Before
   public void before() throws Exception {
+    mClientContext = ClientContext.create(mConf);
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = Mockito.mock(WorkerNetAddress.class);
 
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
+    PowerMockito.when(mContext.getClientContext()).thenReturn(mClientContext);
+    PowerMockito.when(mContext.getConf()).thenReturn(mConf);
     PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
     PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
     PowerMockito.when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
@@ -174,7 +183,7 @@ public class UfsFallbackLocalFileDataWriterTest {
     mLocalWriter = new FixedCapacityTestDataWriter(mBuffer);
     DataWriter writer =
         new UfsFallbackLocalFileDataWriter(mLocalWriter, null, mContext, mAddress, BLOCK_ID,
-            blockSize, OutStreamOptions.defaults().setMountId(MOUNT_ID));
+            blockSize, OutStreamOptions.defaults(mConf).setMountId(MOUNT_ID));
     return writer;
   }
 

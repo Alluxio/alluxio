@@ -11,8 +11,8 @@
 
 package alluxio.client.rest;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.network.NetworkAddressUtils;
@@ -49,7 +49,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getCapacity() throws Exception {
-    long total = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
+    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     Capacity capacity = getInfo().getCapacity();
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());
@@ -57,7 +57,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getConfiguration() throws Exception {
-    Configuration.set(PropertyKey.METRICS_CONF_FILE, "abc");
+    ServerConfiguration.set(PropertyKey.METRICS_CONF_FILE, "abc");
     Assert.assertEquals("abc",
         getInfo().getConfiguration().get(PropertyKey.METRICS_CONF_FILE.toString()));
   }
@@ -81,7 +81,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getTierCapacity() throws Exception {
-    long total = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
+    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     Capacity capacity = getInfo().getTierCapacity().get("MEM");
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());

@@ -11,9 +11,11 @@
 
 package alluxio.yarn;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -106,6 +108,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   /** Network address of the container allocated for Alluxio master. */
   private String mMasterContainerNetAddress;
 
+  private final AlluxioConfiguration mAlluxioConf;
+
   private volatile ContainerAllocator mContainerAllocator;
 
   /**
@@ -130,8 +134,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param numWorkers the number of workers to launch
    * @param masterAddress the address at which to start the Alluxio master
    * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
+   * @param alluxioConf Alluxio configuration
    */
-  public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
+  public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
+      AlluxioConfiguration alluxioConf) {
     this(numWorkers, masterAddress, resourcePath, YarnClient.createYarnClient(),
         NMClient.createNMClient(), new AMRMClientAsyncFactory() {
           @Override
@@ -139,7 +145,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
               CallbackHandler handler) {
             return AMRMClientAsync.createAMRMClientAsync(heartbeatMs, handler);
           }
-        });
+        }, alluxioConf);
   }
 
   /**
@@ -153,26 +159,29 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param yarnClient the client to use for communicating with Yarn
    * @param nMClient the client to use for communicating with the node manager
    * @param amrmFactory a factory for creating an {@link AMRMClientAsync}
+   * @param alluxioConf Alluxio configuration
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
-      YarnClient yarnClient, NMClient nMClient, AMRMClientAsyncFactory amrmFactory) {
-    mMasterCpu = Configuration.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
+      YarnClient yarnClient, NMClient nMClient, AMRMClientAsyncFactory amrmFactory,
+      AlluxioConfiguration alluxioConf) {
+    mMasterCpu = alluxioConf.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
     mMasterMemInMB =
-        (int) (Configuration.getBytes(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
-    mWorkerCpu = Configuration.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
+        (int) (alluxioConf.getBytes(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
+    mWorkerCpu = alluxioConf.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
     // TODO(binfan): request worker container and ramdisk container separately
     // memory for running worker
     mWorkerMemInMB =
-        (int) (Configuration.getBytes(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
+        (int) (alluxioConf.getBytes(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     // memory for running ramdisk
-    mRamdiskMemInMB = (int) (Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
-    mMaxWorkersPerHost = Configuration.getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
+    mRamdiskMemInMB = (int) (alluxioConf.getBytes(PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
+    mMaxWorkersPerHost = alluxioConf.getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
     mNumWorkers = numWorkers;
     mMasterAddress = masterAddress;
     mResourcePath = resourcePath;
     mApplicationDoneLatch = new CountDownLatch(1);
     mYarnClient = yarnClient;
     mNMClient = nMClient;
+    mAlluxioConf = alluxioConf;
     // Heartbeat to the resource manager every 500ms.
     mRMClient = amrmFactory.createAMRMClientAsync(500, this);
   }
@@ -190,7 +199,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     try {
       LOG.info("Starting Application Master with args {}", Arrays.toString(args));
       final CommandLine cliParser = new GnuParser().parse(options, args);
-
+      AlluxioConfiguration alluxioConf = new InstancedConfiguration(ConfigurationUtils.defaults());
       YarnConfiguration conf = new YarnConfiguration();
       UserGroupInformation.setConfiguration(conf);
       if (UserGroupInformation.isSecurityEnabled()) {
@@ -203,12 +212,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         ugi.doAs(new PrivilegedExceptionAction<Void>() {
           @Override
           public Void run() throws Exception {
-            runApplicationMaster(cliParser);
+            runApplicationMaster(cliParser, alluxioConf);
             return null;
           }
         });
       } else {
-        runApplicationMaster(cliParser);
+        runApplicationMaster(cliParser, alluxioConf);
       }
     } catch (Exception e) {
       LOG.error("Error running Application Master", e);
@@ -221,13 +230,14 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    *
    * @param cliParser client arguments parser
    */
-  private static void runApplicationMaster(final CommandLine cliParser) throws Exception {
+  private static void runApplicationMaster(final CommandLine cliParser,
+      AlluxioConfiguration alluxioConf) throws Exception {
     int numWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
     String masterAddress = cliParser.getOptionValue("master_address");
     String resourcePath = cliParser.getOptionValue("resource_path");
 
     ApplicationMaster applicationMaster =
-        new ApplicationMaster(numWorkers, masterAddress, resourcePath);
+        new ApplicationMaster(numWorkers, masterAddress, resourcePath, alluxioConf);
     applicationMaster.start();
     applicationMaster.requestAndLaunchContainers();
     applicationMaster.waitForShutdown();
@@ -302,7 +312,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mYarnClient.start();
 
     // Register with ResourceManager
-    String hostname = NetworkAddressUtils.getLocalHostName();
+    String hostname = NetworkAddressUtils.getLocalHostName((int) mAlluxioConf
+            .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     mRMClient.registerApplicationMaster(hostname, 0 /* port */, "" /* tracking url */);
     LOG.info("ApplicationMaster registered");
   }
@@ -412,7 +423,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    */
   private boolean masterExists() {
 
-    String webPort = Configuration.get(PropertyKey.MASTER_WEB_PORT);
+    String webPort = mAlluxioConf.get(PropertyKey.MASTER_WEB_PORT);
 
     try {
       URL myURL = new URL("http://" + mMasterAddress + ":" + webPort + Constants.REST_API_PREFIX + "/master/version");

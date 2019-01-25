@@ -13,6 +13,8 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -49,23 +51,29 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class DeterministicHashPolicy implements BlockLocationPolicy {
   /** The default number of shards to serve a block. */
-  private static final int DEFAULT_NUM_SHARDS = 1;
   private final int mShards;
   private final Random mRandom = new Random();
   private final HashFunction mHashFunc = Hashing.md5();
 
   /**
    * Constructs a new {@link DeterministicHashPolicy}.
+   *
+   * @param alluxioConf Alluxio configuration
    */
-  public DeterministicHashPolicy() {
-    this(DEFAULT_NUM_SHARDS);
+  public DeterministicHashPolicy(AlluxioConfiguration alluxioConf) {
+    int numShards = alluxioConf
+        .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS);
+    Preconditions.checkArgument(numShards >= 1);
+    mShards = numShards;
   }
 
   /**
    * Constructs a new {@link DeterministicHashPolicy}.
    *
    * @param numShards the number of shards a block's traffic can be sharded to
+   * @deprecated This constructor will be removed in 2.0 in favor of passing a configuration object
    */
+  @Deprecated
   public DeterministicHashPolicy(Integer numShards) {
     Preconditions.checkArgument(numShards >= 1);
     mShards = numShards;

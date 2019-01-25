@@ -108,8 +108,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
 
   /**
    * Creates a block. This method is only called from a data server.
-   * Calls {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the block.
-   * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
+   * Calls {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the
+   * block. Throws an {@link IllegalArgumentException} if the location does not belong to tiered
+   * storage.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be created

@@ -11,7 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.collect.ImmutableMap;
 

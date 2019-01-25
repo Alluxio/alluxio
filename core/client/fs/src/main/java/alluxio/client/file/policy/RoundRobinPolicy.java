@@ -14,6 +14,7 @@ package alluxio.client.file.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -42,8 +43,10 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
 
   /**
    * Constructs a new {@link RoundRobinPolicy}.
+   *
+   * @param alluxioConf Alluxio configuration
    */
-  public RoundRobinPolicy() {}
+  public RoundRobinPolicy(AlluxioConfiguration alluxioConf) {}
 
   /**
    * The policy uses the first fetch of worker info list as the base, and visits each of them in a

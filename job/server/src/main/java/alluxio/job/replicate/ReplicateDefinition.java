@@ -12,8 +12,10 @@
 package alluxio.job.replicate;
 
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.ServerConfiguration;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.JobMasterContext;
 import alluxio.job.JobWorkerContext;
@@ -45,34 +47,27 @@ public final class ReplicateDefinition
     extends AbstractVoidJobDefinition<ReplicateConfig, SerializableVoid> {
   private static final Logger LOG = LoggerFactory.getLogger(ReplicateDefinition.class);
 
-  private final FileSystemContext mFileSystemContext;
   private final FileSystem mFileSystem;
-
-  /**
-   * Constructs a new {@link ReplicateDefinition} instance.
-   */
-  public ReplicateDefinition() {
-    this(FileSystemContext.get());
-  }
+  private final FileSystemContext mFsContext;
 
   /**
    * Constructs a new {@link ReplicateDefinition} instance with FileSystem context and instance.
    *
-   * @param fileSystemContext file system context
    */
-  public ReplicateDefinition(FileSystemContext fileSystemContext) {
-    this(FileSystem.Factory.get(), fileSystemContext);
+  public ReplicateDefinition() {
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
+    mFileSystem = BaseFileSystem.create(mFsContext);
   }
 
   /**
    * Constructs a new {@link ReplicateDefinition} instance.
    *
-   * @param fileSystem file system
-   * @param fileSystemContext file system context
+   * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
+   * @param fileSystem the {@link FileSystem} client
    */
-  public ReplicateDefinition(FileSystem fileSystem, FileSystemContext fileSystemContext) {
+  public ReplicateDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
+    mFsContext = fsContext;
     mFileSystem = fileSystem;
-    mFileSystemContext = fileSystemContext;
   }
 
   @Override
@@ -89,7 +84,7 @@ public final class ReplicateDefinition
     int numReplicas = config.getReplicas();
     Preconditions.checkArgument(numReplicas > 0);
 
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFileSystemContext);
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
     BlockInfo blockInfo = blockStore.getInfo(blockId);
 
     Set<String> hosts = new HashSet<>();
@@ -119,7 +114,7 @@ public final class ReplicateDefinition
   @Override
   public SerializableVoid runTask(ReplicateConfig config, SerializableVoid arg,
       JobWorkerContext jobWorkerContext) throws Exception {
-    JobUtils.loadBlock(mFileSystem, mFileSystemContext, config.getPath(), config.getBlockId());
+    JobUtils.loadBlock(mFileSystem, mFsContext, config.getPath(), config.getBlockId());
     return null;
   }
 }

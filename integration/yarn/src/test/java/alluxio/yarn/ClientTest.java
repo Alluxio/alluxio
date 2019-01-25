@@ -14,10 +14,10 @@ package alluxio.yarn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doReturn;
 
-import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
@@ -44,6 +44,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public final class ClientTest {
 
   private YarnClient mYarnClient;
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -58,7 +59,7 @@ public final class ClientTest {
 
   @After
   public void after() {
-    ConfigurationTestUtils.resetConfiguration();
+    mConf = ConfigurationTestUtils.defaults();
   }
 
   @Test
@@ -74,7 +75,7 @@ public final class ClientTest {
         "-am_memory", Integer.toString(appMasterMem),
         "-am_vcores", "2"
     };
-    Client client = new Client(args);
+    Client client = new Client(args, mConf);
     client.run();
   }
 
@@ -92,75 +93,75 @@ public final class ClientTest {
         "-am_memory", Integer.toString(appMasterMem),
         "-am_vcores", Integer.toString(appMasterCore)
     };
-    Client client = new Client(args);
+    Client client = new Client(args, mConf);
     client.run();
   }
 
   @Test
   public void notEnoughMemoryForAlluxioMaster() throws Exception {
-    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM, "2048.00MB");
-    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU, "4");
-    int masterMemInMB = (int) (Configuration.getBytes(
+    mConf.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM, "2048.00MB");
+    mConf.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU, "4");
+    int masterMemInMB = (int) (mConf.getBytes(
         PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
     Resource resource = Resource.newInstance(masterMemInMB / 2, 4);
     generateMaxAllocation(resource);
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES.getMessage(
         "Alluxio Master", "memory", masterMemInMB, resource.getMemory()));
-    Client client = new Client();
+    Client client = new Client(mConf);
     client.run();
   }
 
   @Test
   public void notEnoughVCoreForAlluxioMaster() throws Exception {
-    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM, "2048.00MB");
-    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU, "4");
-    int masterMemInMB = (int) (Configuration.getBytes(
+    mConf.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM, "2048.00MB");
+    mConf.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU, "4");
+    int masterMemInMB = (int) (mConf.getBytes(
         PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
-    int masterVCores = Configuration.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
+    int masterVCores = mConf.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
     Resource resource = Resource.newInstance(masterMemInMB, 3);
     generateMaxAllocation(resource);
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES.getMessage(
         "Alluxio Master", "virtual cores", masterVCores, resource.getVirtualCores()));
-    Client client = new Client();
+    Client client = new Client(mConf);
     client.run();
   }
 
   @Test
   public void notEnoughMemoryForAlluxioWorker() throws Exception {
-    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "2048.00MB");
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "4096.00MB");
-    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU, "8");
-    int workerMemInMB = (int) (Configuration.getBytes(
+    mConf.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "2048.00MB");
+    mConf.set(PropertyKey.WORKER_MEMORY_SIZE, "4096.00MB");
+    mConf.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU, "8");
+    int workerMemInMB = (int) (mConf.getBytes(
         PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
-    int ramdiskMemInMB = (int) (Configuration.getBytes(
+    int ramdiskMemInMB = (int) (mConf.getBytes(
         PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
     Resource resource = Resource.newInstance((workerMemInMB + ramdiskMemInMB) / 2, 4);
     generateMaxAllocation(resource);
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES.getMessage(
         "Alluxio Worker", "memory", (workerMemInMB + ramdiskMemInMB), resource.getMemory()));
-    Client client = new Client();
+    Client client = new Client(mConf);
     client.run();
   }
 
   @Test
   public void notEnoughVCoreForAlluxioWorker() throws Exception {
-    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "2048.00MB");
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "4096.00MB");
-    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU, "8");
-    int workerMemInMB = (int) (Configuration.getBytes(
+    mConf.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "2048.00MB");
+    mConf.set(PropertyKey.WORKER_MEMORY_SIZE, "4096.00MB");
+    mConf.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU, "8");
+    int workerMemInMB = (int) (mConf.getBytes(
         PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
-    int ramdiskMemInMB = (int) (Configuration.getBytes(
+    int ramdiskMemInMB = (int) (mConf.getBytes(
         PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
-    int workerVCore = Configuration.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
+    int workerVCore = mConf.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
     Resource resource = Resource.newInstance((workerMemInMB + ramdiskMemInMB), 4);
     generateMaxAllocation(resource);
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES.getMessage(
         "Alluxio Worker", "virtual cores", workerVCore, resource.getVirtualCores()));
-    Client client = new Client();
+    Client client = new Client(mConf);
     client.run();
   }
 

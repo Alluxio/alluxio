@@ -11,9 +11,9 @@
 
 package alluxio.master.job;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -71,7 +71,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class JobMaster extends AbstractNonJournaledMaster {
   private static final Logger LOG = LoggerFactory.getLogger(JobMaster.class);
   private static final long RETENTION_MS =
-      Configuration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_MS);
+      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_MS);
 
   // Worker metadata management.
   private final IndexDefinition<MasterWorkerInfo, Long> mIdIndex =
@@ -93,7 +93,7 @@ public final class JobMaster extends AbstractNonJournaledMaster {
   /**
    * The total number of jobs that the JobMaster may run at any moment.
    */
-  private final long mCapacity = Configuration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
+  private final long mCapacity = ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
 
   /**
    * All worker information. Access must be controlled on mWorkers using the RW lock(mWorkerRWLock).
@@ -167,7 +167,8 @@ public final class JobMaster extends AbstractNonJournaledMaster {
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
               new LostWorkerDetectionHeartbeatExecutor(),
-              Configuration.getInt(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL_MS)));
+              ServerConfiguration.getInt(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL_MS),
+              ServerConfiguration.global()));
     }
   }
 
@@ -367,7 +368,8 @@ public final class JobMaster extends AbstractNonJournaledMaster {
 
     @Override
     public void heartbeat() {
-      int masterWorkerTimeoutMs = Configuration.getInt(PropertyKey.JOB_MASTER_WORKER_TIMEOUT_MS);
+      int masterWorkerTimeoutMs = ServerConfiguration
+          .getInt(PropertyKey.JOB_MASTER_WORKER_TIMEOUT_MS);
       List<MasterWorkerInfo> lostWorkers = new ArrayList<MasterWorkerInfo>();
       // Run under shared lock for mWorkers
       try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {

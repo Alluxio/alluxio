@@ -13,9 +13,9 @@ package alluxio.testutils.master;
 
 import static org.mockito.Mockito.mock;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.master.BackupManager;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -64,11 +64,11 @@ public class MasterTestUtils {
    */
   private static MasterRegistry createFileSystemMasterFromJournal(boolean isLeader)
       throws Exception {
-    String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    String masterJournal = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
     SafeModeManager safeModeManager = new TestSafeModeManager();
     long startTimeMs = System.currentTimeMillis();
-    int port = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
+    int port = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
     CoreMasterContext masterContext = CoreMasterContext.newBuilder()
         .setJournalSystem(journalSystem)
