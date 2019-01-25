@@ -49,8 +49,9 @@ public class COSInputStream extends MultiRangeObjectInputStream {
    * @param key the key of the file
    * @param client the client for COS
    */
-  COSInputStream(String bucketName, String key, COSClient client) throws IOException {
-    this(bucketName, key, client, 0L);
+  COSInputStream(String bucketName, String key, COSClient client, long blockSize)
+      throws IOException {
+    this(bucketName, key, client, 0L, blockSize);
   }
 
   /**
@@ -61,8 +62,9 @@ public class COSInputStream extends MultiRangeObjectInputStream {
    * @param client the client for COS
    * @param position the position to begin reading from
    */
-  COSInputStream(String bucketName, String key, COSClient client, long position)
+  COSInputStream(String bucketName, String key, COSClient client, long position, long blockSize)
       throws IOException {
+    mBlockSize = blockSize;
     mBucketName = bucketName;
     mKey = key;
     mCosClient = client;
@@ -72,7 +74,8 @@ public class COSInputStream extends MultiRangeObjectInputStream {
   }
 
   @Override
-  protected InputStream createStream(long startPos, long endPos) throws IOException {
+  protected InputStream createStream(long startPos, long endPos)
+      throws IOException {
     GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
     // COS returns entire object if we read past the end
     req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);

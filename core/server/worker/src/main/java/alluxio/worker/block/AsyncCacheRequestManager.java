@@ -15,6 +15,9 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -52,6 +55,7 @@ public class AsyncCacheRequestManager {
   private final BlockWorker mBlockWorker;
   private final ConcurrentHashMap<Long, AsyncCacheRequest> mPendingRequests;
   private final String mLocalWorkerHostname;
+  private final FileSystemContext mFsContext;
 
   /**
    * @param service thread pool to run the background caching work
@@ -61,7 +65,12 @@ public class AsyncCacheRequestManager {
     mAsyncCacheExecutor = service;
     mBlockWorker = blockWorker;
     mPendingRequests = new ConcurrentHashMap<>();
-    mLocalWorkerHostname = NetworkAddressUtils.getLocalHostName();
+    mLocalWorkerHostname =
+        NetworkAddressUtils.getLocalHostName(
+            (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    // TODO(zac): Make this object accept FileSystemContext parameter. Shouldn't be creating one
+    //  here
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
   }
 
   /**
@@ -199,7 +208,7 @@ public class AsyncCacheRequestManager {
       return false;
     }
     try (BlockReader reader =
-        new RemoteBlockReader(blockId, blockSize, sourceAddress, openUfsBlockOptions);
+        new RemoteBlockReader(mFsContext, blockId, blockSize, sourceAddress, openUfsBlockOptions);
         BlockWriter writer =
             mBlockWorker.getTempBlockWriterRemote(Sessions.ASYNC_CACHE_SESSION_ID, blockId)) {
       BufferUtils.fastCopy(reader.getChannel(), writer.getChannel());

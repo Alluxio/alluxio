@@ -11,7 +11,8 @@
 
 package alluxio.cli;
 
-import alluxio.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,7 @@ public final class ValidateConf {
   public static void main(String[] args) {
     LOG.info("Validating configuration.");
     try {
-      Configuration.validate();
+      new InstancedConfiguration(ConfigurationUtils.defaults()).validate();
       LOG.info("Configuration is valid.");
     } catch (IllegalStateException e) {
       LOG.error("Configuration is invalid: {}", e.getMessage());

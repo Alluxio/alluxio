@@ -11,11 +11,21 @@
 
 package alluxio.fuse;
 
+import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.FileAlreadyCompletedException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.IOException;
 
@@ -149,5 +159,53 @@ public final class AlluxioFuseUtils {
       return -1;
     }
     return Long.parseLong(output);
+  }
+
+  /**
+   * Gets the corresponding error code of a throwable.
+   *
+   * @param t throwable
+   * @return the corresponding error code
+   */
+  public static int getErrorCode(Throwable t) {
+    // Error codes and their explanations are described in
+    // the Errno.java in jnr-constants
+    if (t instanceof AlluxioException) {
+      return getAlluxioErrorCode((AlluxioException) t);
+    } else if (t instanceof IOException) {
+      return -ErrorCodes.EIO();
+    } else {
+      return -ErrorCodes.EBADMSG();
+    }
+  }
+
+  /**
+   * Gets the corresponding error code of an Alluxio exception.
+   *
+   * @param e an Alluxio exception
+   * @return the corresponding error code
+   */
+  private static int getAlluxioErrorCode(AlluxioException e) {
+    try {
+      throw e;
+    } catch (FileDoesNotExistException ex) {
+      return -ErrorCodes.ENOENT();
+    } catch (FileAlreadyExistsException ex) {
+      return -ErrorCodes.EEXIST();
+    } catch (InvalidPathException ex) {
+      return -ErrorCodes.EFAULT();
+    } catch (BlockDoesNotExistException ex) {
+      return -ErrorCodes.ENODATA();
+    } catch (DirectoryNotEmptyException ex) {
+      return -ErrorCodes.ENOTEMPTY();
+    } catch (AccessControlException ex) {
+      return -ErrorCodes.EACCES();
+    } catch (ConnectionFailedException ex) {
+      return -ErrorCodes.ECONNREFUSED();
+    } catch (FileAlreadyCompletedException ex) {
+      return -ErrorCodes.EOPNOTSUPP();
+    } catch (AlluxioException ex) {
+      return -ErrorCodes.EBADMSG();
+    }
   }
 }

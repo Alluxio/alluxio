@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -74,8 +74,8 @@ public class EvictorTestBase {
     mManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
-    Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, evictorClassName);
-    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, evictorClassName);
+    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     mAllocator = Allocator.Factory.create(mManagerView);
     mEvictor = Evictor.Factory.create(mManagerView, mAllocator);
   }

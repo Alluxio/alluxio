@@ -12,6 +12,7 @@
 package alluxio.mesos;
 
 import alluxio.cli.Format;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.AlluxioMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
@@ -79,7 +80,7 @@ public class AlluxioMasterExecutor implements Executor {
           JournalSystem journalSystem =
               new JournalSystem.Builder().setLocation(JournalUtils.getJournalLocation()).build();
           if (!journalSystem.isFormatted()) {
-            Format.format(Format.Mode.MASTER);
+            Format.format(Format.Mode.MASTER, ServerConfiguration.global());
           }
           AlluxioMaster.main(new String[] {});
 

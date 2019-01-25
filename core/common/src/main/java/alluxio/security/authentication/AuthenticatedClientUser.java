@@ -11,6 +11,7 @@
 
 package alluxio.security.authentication;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.User;
@@ -59,11 +60,12 @@ public final class AuthenticatedClientUser {
   /**
    * Gets the {@link User} from the {@link ThreadLocal} variable.
    *
+   * @param conf Alluxio configuration
    * @return the client user, null if the user is not present
    */
   // TODO(peis): Fail early if the user is not able to be set to avoid returning null.
-  public static User get() throws IOException {
-    if (!SecurityUtils.isAuthenticationEnabled()) {
+  public static User get(AlluxioConfiguration conf) throws IOException {
+    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
       throw new IOException(ExceptionMessage.AUTHENTICATION_IS_NOT_ENABLED.getMessage());
     }
     return sUserThreadLocal.get();
@@ -79,13 +81,14 @@ public final class AuthenticatedClientUser {
   /**
    * Gets the user name from the {@link ThreadLocal} variable.
    *
+   * @param conf Alluxio configuration
    * @return the client user in string
    * @throws AccessControlException there is no authenticated user for this thread or
    *         the authentication is not enabled
    */
-  public static String getClientUser() throws AccessControlException {
+  public static String getClientUser(AlluxioConfiguration conf) throws AccessControlException {
     try {
-      User user = get();
+      User user = get(conf);
       if (user == null) {
         throw new AccessControlException(
             ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());

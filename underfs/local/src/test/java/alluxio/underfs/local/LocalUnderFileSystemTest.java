@@ -16,10 +16,14 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -43,6 +47,8 @@ import java.util.Map;
 public class LocalUnderFileSystemTest {
   private String mLocalUfsRoot;
   private UnderFileSystem mLocalUfs;
+  private static AlluxioConfiguration sConf =
+      new InstancedConfiguration(ConfigurationUtils.defaults());
 
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
@@ -50,7 +56,7 @@ public class LocalUnderFileSystemTest {
   @Before
   public void before() throws IOException {
     mLocalUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
-    mLocalUfs = UnderFileSystem.Factory.create(mLocalUfsRoot);
+    mLocalUfs = UnderFileSystem.Factory.create(mLocalUfsRoot, sConf);
   }
 
   @Test
@@ -133,7 +139,7 @@ public class LocalUnderFileSystemTest {
   public void mkdirsWithCreateParentEqualToFalse() throws IOException {
     String parentPath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     String dirpath = PathUtils.concatPath(parentPath, getUniqueFileName());
-    mLocalUfs.mkdirs(dirpath, MkdirsOptions.defaults().setCreateParent(false));
+    mLocalUfs.mkdirs(dirpath, MkdirsOptions.defaults(sConf).setCreateParent(false));
 
     assertFalse(mLocalUfs.isDirectory(dirpath));
 
@@ -169,7 +175,9 @@ public class LocalUnderFileSystemTest {
 
     List<String> fileLocations = mLocalUfs.getFileLocations(filepath);
     assertEquals(1, fileLocations.size());
-    assertEquals(NetworkAddressUtils.getLocalHostName(), fileLocations.get(0));
+    assertEquals(NetworkAddressUtils.getLocalHostName(
+        (int) sConf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+        fileLocations.get(0));
   }
 
   @Test

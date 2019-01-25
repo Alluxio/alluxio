@@ -18,8 +18,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.PropertyKey;
-
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.After;
@@ -87,7 +85,7 @@ public class AlluxioPropertiesTest {
   @Test
   public void remove() {
     mProperties.remove(mKeyWithValue);
-    assertEquals(null, mProperties.get(mKeyWithValue));
+    assertEquals(mKeyWithValue.getDefaultValue(), mProperties.get(mKeyWithValue));
   }
 
   @Test
@@ -96,7 +94,7 @@ public class AlluxioPropertiesTest {
     assertFalse(mProperties.isSet(mKeyWithoutValue));
     mProperties.remove(mKeyWithValue);
     mProperties.put(mKeyWithoutValue, "value", Source.RUNTIME);
-    assertFalse(mProperties.isSet(mKeyWithValue));
+    assertTrue(mProperties.isSet(mKeyWithValue));
     assertTrue(mProperties.isSet(mKeyWithoutValue));
   }
 

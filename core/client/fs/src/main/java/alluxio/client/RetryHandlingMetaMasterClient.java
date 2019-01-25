@@ -23,7 +23,7 @@ import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 
@@ -46,7 +46,7 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
    *
    * @param conf master client configuration
    */
-  public RetryHandlingMetaMasterClient(MasterClientConfig conf) {
+  public RetryHandlingMetaMasterClient(MasterClientContext conf) {
     super(conf);
   }
 

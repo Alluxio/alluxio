@@ -12,9 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.util.CommonUtils;
@@ -49,15 +48,16 @@ public final class FileSystemUtils {
    *
    * @param fs a {@link FileSystem} instance
    * @param uri the URI of the file on which the thread should wait
+   * @param waitCompletedPollMs milliseconds to wait between polling the filesystem
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
-   * @see #waitCompleted(FileSystem, AlluxioURI, long, TimeUnit)
+   * @see #waitCompleted(FileSystem, AlluxioURI, long, TimeUnit, long)
    */
-  public static boolean waitCompleted(FileSystem fs, AlluxioURI uri)
+  public static boolean waitCompleted(FileSystem fs, AlluxioURI uri, long waitCompletedPollMs)
       throws IOException, AlluxioException, InterruptedException {
-    return FileSystemUtils.waitCompleted(fs, uri, -1, TimeUnit.MILLISECONDS);
+    return FileSystemUtils.waitCompleted(fs, uri, -1, TimeUnit.MILLISECONDS, waitCompletedPollMs);
   }
 
   /**
@@ -84,17 +84,17 @@ public final class FileSystemUtils {
    * @param uri the URI of the file whose completion status is to be watied for
    * @param timeout maximum time the calling thread should be blocked on this call
    * @param tunit the @{link TimeUnit} instance describing the {@code timeout} parameter
+   * @param fileWaitCompletedPollMs the milliseconds to wait between polling
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
    */
   public static boolean waitCompleted(final FileSystem fs, final AlluxioURI uri,
-      final long timeout, final TimeUnit tunit)
+      final long timeout, final TimeUnit tunit, long fileWaitCompletedPollMs)
           throws IOException, AlluxioException, InterruptedException {
 
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
-    final long pollPeriod = Configuration.getMs(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
     boolean completed = false;
     long timeleft = deadline - System.currentTimeMillis();
 
@@ -112,8 +112,8 @@ public final class FileSystemUtils {
       } else if (!completed) {
         long toSleep;
 
-        if (timeout < 0 || timeleft > pollPeriod) {
-          toSleep = pollPeriod;
+        if (timeout < 0 || timeleft > fileWaitCompletedPollMs) {
+          toSleep = fileWaitCompletedPollMs;
         } else {
           toSleep = timeleft;
         }
@@ -130,16 +130,17 @@ public final class FileSystemUtils {
    * Persists the given file to the under file system.
    *
    * @param fs {@link FileSystem} to carry out Alluxio operations
+   * @param fsContext the {@link FileSystemContext} linked to the {@link FileSystem} client
    * @param uri the uri of the file to persist
    */
-  public static void persistFile(final FileSystem fs, final AlluxioURI uri)
+  public static void persistFile(final FileSystem fs, final FileSystemContext fsContext,
+      final AlluxioURI uri)
       throws IOException, TimeoutException, InterruptedException {
-    FileSystemContext context = FileSystemContext.get();
-    FileSystemMasterClient client = context.acquireMasterClient();
+    FileSystemMasterClient client = fsContext.acquireMasterClient();
     try {
       client.scheduleAsyncPersist(uri);
     } finally {
-      context.releaseMasterClient(client);
+      fsContext.releaseMasterClient(client);
     }
     CommonUtils.waitFor(String.format("%s to be persisted", uri) , () -> {
       try {
@@ -156,18 +157,18 @@ public final class FileSystemUtils {
    * Checks the consistency of Alluxio metadata against the under storage for all files and
    * directories in a given subtree.
    *
+   * @param fsContext the {@link FileSystemContext} linked to the {@link FileSystem} client
    * @param path the root of the subtree to check
    * @param options method options
    * @return a list of inconsistent files and directories
    */
-  public static List<AlluxioURI> checkConsistency(AlluxioURI path,
+  public static List<AlluxioURI> checkConsistency(FileSystemContext fsContext, AlluxioURI path,
       CheckConsistencyPOptions options) throws IOException {
-    FileSystemContext context = FileSystemContext.get();
-    FileSystemMasterClient client = context.acquireMasterClient();
+    FileSystemMasterClient client = fsContext.acquireMasterClient();
     try {
       return client.checkConsistency(path, options);
     } finally {
-      context.releaseMasterClient(client);
+      fsContext.releaseMasterClient(client);
     }
   }
 }

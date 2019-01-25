@@ -21,7 +21,7 @@ import alluxio.grpc.GetCapacityBytesPOptions;
 import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.ServiceType;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
@@ -49,7 +49,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    *
    * @param conf master client configuration
    */
-  public RetryHandlingBlockMasterClient(MasterClientConfig conf) {
+  public RetryHandlingBlockMasterClient(MasterClientContext conf) {
     super(conf);
   }
 

@@ -11,9 +11,9 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.util.ThreadFactoryUtils;
 
 import java.util.concurrent.ExecutorService;
@@ -34,13 +34,13 @@ final class GrpcExecutors {
 
   public static final ExecutorService ASYNC_CACHE_MANAGER_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
+          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(512),
           ThreadFactoryUtils.build("AsyncCacheManagerExecutor-%d", true));
 
   public static final ExecutorService BLOCK_READER_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
+          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true));
 

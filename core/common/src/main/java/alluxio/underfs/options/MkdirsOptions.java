@@ -12,6 +12,8 @@
 package alluxio.underfs.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
 
@@ -34,22 +36,23 @@ public final class MkdirsOptions {
   private Mode mMode;
 
   /**
+   * @param conf Alluxio configuration
    * @return the default {@link MkdirsOptions}
    */
-  public static MkdirsOptions defaults() {
-    return new MkdirsOptions();
+  public static MkdirsOptions defaults(AlluxioConfiguration conf) {
+    return new MkdirsOptions(conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
   }
 
   /**
    * Constructs a default {@link MkdirsOptions}.
    */
-  private MkdirsOptions() {
+  private MkdirsOptions(String authUmask) {
     // By default create parent is true.
     mCreateParent = true;
     // default owner and group are null (unset)
     mOwner = null;
     mGroup = null;
-    mMode = ModeUtils.applyDirectoryUMask(Mode.defaults());
+    mMode = ModeUtils.applyDirectoryUMask(Mode.defaults(), authUmask);
   }
 
   /**

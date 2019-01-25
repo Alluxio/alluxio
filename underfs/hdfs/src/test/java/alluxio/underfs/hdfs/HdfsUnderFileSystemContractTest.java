@@ -35,7 +35,7 @@ public final class HdfsUnderFileSystemContractTest extends AbstractUnderFileSyst
   @Override
   public UnderFileSystem createUfs(String path, UnderFileSystemConfiguration conf)
       throws Exception {
-    return new HdfsUnderFileSystemFactory().create(path, conf);
+    return new HdfsUnderFileSystemFactory().create(path, conf, mConfiguration);
   }
 
   @Override

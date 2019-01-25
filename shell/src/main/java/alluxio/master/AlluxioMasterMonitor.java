@@ -13,6 +13,9 @@ package alluxio.master;
 
 import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +38,8 @@ public final class AlluxioMasterMonitor {
       LOG.warn("ignoring arguments");
     }
 
-    HealthCheckClient client = new MasterHealthCheckClient.Builder().build();
+    AlluxioConfiguration alluxioConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    HealthCheckClient client = new MasterHealthCheckClient.Builder(alluxioConf).build();
     if (!client.isServing()) {
       System.exit(1);
     }

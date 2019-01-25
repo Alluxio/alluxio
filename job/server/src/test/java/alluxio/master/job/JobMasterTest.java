@@ -11,9 +11,8 @@
 
 package alluxio.master.job;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
@@ -55,7 +54,7 @@ public final class JobMasterTest {
   @Before
   public void before() throws Exception {
     // Can't use ConfigurationRule due to conflicts with PowerMock.
-    Configuration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, TEST_JOB_MASTER_JOB_CAPACITY);
+    ServerConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, TEST_JOB_MASTER_JOB_CAPACITY);
     mJobMaster =
         new JobMaster(new MasterContext(new NoopJournalSystem()), Mockito.mock(UfsManager.class));
     mJobMaster.start(true);
@@ -64,7 +63,7 @@ public final class JobMasterTest {
   @After
   public void after() throws Exception {
     mJobMaster.stop();
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   @Test
@@ -110,7 +109,8 @@ public final class JobMasterTest {
       Assert.fail("should not be able to run more jobs than job master capacity");
     } catch (ResourceExhaustedException e) {
       Assert.assertEquals(ExceptionMessage.JOB_MASTER_FULL_CAPACITY
-          .getMessage(Configuration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY)), e.getMessage());
+          .getMessage(ServerConfiguration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY)),
+          e.getMessage());
     }
   }
 

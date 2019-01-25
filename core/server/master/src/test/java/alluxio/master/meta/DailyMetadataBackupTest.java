@@ -18,7 +18,8 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.BackupManager;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -74,7 +75,7 @@ public class DailyMetadataBackupTest {
             PropertyKey.MASTER_BACKUP_DIRECTORY, mBackupDir,
             PropertyKey.MASTER_DAILY_BACKUP_ENABLED, "true",
             PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED,
-            String.valueOf(fileToRetain))).toResource()) {
+            String.valueOf(fileToRetain)), ServerConfiguration.global()).toResource()) {
       DailyMetadataBackup dailyBackup = new DailyMetadataBackup(mMetaMaster, mScheduler, mUfs);
       dailyBackup.start();
 

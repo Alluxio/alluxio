@@ -14,7 +14,7 @@ package alluxio.client.job;
 import alluxio.Client;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
-import alluxio.worker.job.JobMasterClientConfig;
+import alluxio.worker.job.JobMasterClientContext;
 
 import java.io.IOException;
 import java.util.List;
@@ -37,7 +37,7 @@ public interface JobMasterClient extends Client {
      * @param conf job master client configuration
      * @return a new {@link JobMasterClient} instance
      */
-    public static JobMasterClient create(JobMasterClientConfig conf) {
+    public static JobMasterClient create(JobMasterClientContext conf) {
       return new RetryHandlingJobMasterClient(conf);
     }
   }

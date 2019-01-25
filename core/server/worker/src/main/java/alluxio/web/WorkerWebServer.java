@@ -11,17 +11,26 @@
 
 package alluxio.web;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ErrorPageErrorHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.resource.Resource;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
@@ -31,6 +40,7 @@ import javax.servlet.ServletException;
  */
 @NotThreadSafe
 public final class WorkerWebServer extends WebServer {
+  private static final Logger LOG = LoggerFactory.getLogger(WorkerWebServer.class);
 
   public static final String ALLUXIO_WORKER_SERVLET_RESOURCE_KEY = "Alluxio Worker";
 
@@ -47,23 +57,9 @@ public final class WorkerWebServer extends WebServer {
       BlockWorker blockWorker, String connectHost, long startTimeMs) {
     super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
-
-    InetSocketAddress workerAddress = new InetSocketAddress(connectHost, getLocalPort());
-
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerGeneralServlet(
-        blockWorker, workerAddress, startTimeMs)), "/home");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerBlockInfoServlet(
-        blockWorker)), "/blockInfo");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadLocalServlet()),
-        "/downloadLocal");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(false)),
-        "/browseLogs");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet()), "/header");
-    mWebAppContext
-        .addServlet(new ServletHolder(new WebInterfaceWorkerMetricsServlet()), "/metricsui");
-
     // REST configuration
-    ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block");
+    ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block")
+        .register(JacksonProtobufObjectMapperProvider.class);
     // Override the init method to inject a reference to AlluxioWorker into the servlet context.
     // ServletContext may not be modified until after super.init() is called.
     ServletContainer servlet = new ServletContainer(config) {
@@ -77,6 +73,24 @@ public final class WorkerWebServer extends WebServer {
     };
 
     ServletHolder servletHolder = new ServletHolder("Alluxio Worker Web Service", servlet);
-    mWebAppContext.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+    mServletContextHandler
+        .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+
+    // STATIC assets
+    try {
+      String resourceDirPathString =
+          ServerConfiguration.get(PropertyKey.WEB_RESOURCES) + "/worker/build/";
+      File resourceDir = new File(resourceDirPathString);
+      mServletContextHandler.setBaseResource(Resource.newResource(resourceDir.getAbsolutePath()));
+      mServletContextHandler.setWelcomeFiles(new String[] {"index.html"});
+      mServletContextHandler.setResourceBase(resourceDir.getAbsolutePath());
+      mServletContextHandler.addServlet(DefaultServlet.class, "/");
+      ErrorPageErrorHandler errorHandler = new ErrorPageErrorHandler();
+      // TODO(william): consider a rewrite rule instead of an error handler
+      errorHandler.addErrorPage(404, "/");
+      mServletContextHandler.setErrorHandler(errorHandler);
+    } catch (MalformedURLException e) {
+      LOG.error("ERROR: resource path is malformed", e);
+    }
   }
 }

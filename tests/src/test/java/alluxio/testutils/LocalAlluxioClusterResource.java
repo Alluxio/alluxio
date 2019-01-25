@@ -11,8 +11,8 @@
 
 package alluxio.testutils;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.LoginUserTestUtils;
@@ -34,10 +34,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * A JUnit Rule resource for automatically managing a local alluxio cluster for testing. To use it,
  * create an instance of the class under a {@literal @}Rule annotation, with the required
- * configuration parameters, and any necessary explicit {@link Configuration} settings. The Alluxio
- * cluster will be set up from scratch at the end of every method (or at the start of every suite if
- * {@literal @}ClassRule is used), and destroyed at the end. Below is an example of declaring and
- * using it.
+ * configuration parameters, and any necessary explicit {@link ServerConfiguration} settings. The
+ * Alluxio cluster will be set up from scratch at the end of every method (or at the start of
+ * every suite if {@literal @}ClassRule is used), and destroyed at the end. Below is an example
+ * of declaring and using it.
  *
  * <pre>
  *   public class SomethingTest {
@@ -71,6 +71,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioClusterResource implements TestRule {
+
   /** Number of Alluxio workers in the cluster. */
   private final int mNumWorkers;
 
@@ -80,7 +81,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   private final boolean mStartCluster;
 
-  /** Configuration values for the cluster. */
+  /** ServerConfiguration values for the cluster. */
   private final Map<PropertyKey, String> mConfiguration = new HashMap<>();
 
   /** The Alluxio cluster being managed. */
@@ -136,9 +137,9 @@ public final class LocalAlluxioClusterResource implements TestRule {
     mLocalAlluxioCluster.initConfiguration();
     // Overwrite the test configuration with test specific parameters
     for (Entry<PropertyKey, String> entry : mConfiguration.entrySet()) {
-      Configuration.set(entry.getKey(), entry.getValue());
+      ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
-    Configuration.validate();
+    ServerConfiguration.global().validate();
     // Start the cluster
     mLocalAlluxioCluster.start();
   }

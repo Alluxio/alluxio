@@ -11,11 +11,13 @@
 
 package alluxio.server.web;
 
+import alluxio.ClientContext;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.master.SingleMasterInquireClient;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -65,7 +67,9 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
    */
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
-    mBlockMasterClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
+    mBlockMasterClient =
+        BlockMasterClient.Factory.create(MasterClientContext
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
@@ -77,10 +81,10 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
 
     // connect Master Web service
     InetSocketAddress masterWebAddr =
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, ServerConfiguration.global());
     mMasterWebService = (HttpURLConnection) new URL(
         "http://" + masterWebAddr.getAddress().getHostAddress() + ":" + masterWebAddr.getPort()
-            + "/css/custom.min.css").openConnection();
+            + "/index.html").openConnection();
     mMasterWebService.connect();
 
     // connect Worker Web service
@@ -88,7 +92,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
         new InetSocketAddress(workerAddress.getHost(), workerAddress.getWebPort());
     mWorkerWebService = (HttpURLConnection) new URL(
         "http://" + workerWebAddr.getAddress().getHostAddress() + ":" + workerWebAddr.getPort()
-            + "/css/custom.min.css").openConnection();
+            + "/index.html").openConnection();
     mWorkerWebService.connect();
   }
 
@@ -160,8 +164,10 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRpcAddr = new InetSocketAddress("127.0.0.1",
         mLocalAlluxioCluster.getLocalAlluxioMaster().getRpcLocalPort());
-    mBlockMasterClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults()
-        .withMasterInquireClient(new SingleMasterInquireClient(masterRpcAddr)));
+    mBlockMasterClient = BlockMasterClient.Factory.create(MasterClientContext
+        .newBuilder(ClientContext.create(ServerConfiguration.global()))
+        .setMasterInquireClient(new SingleMasterInquireClient(masterRpcAddr))
+        .build());
     try {
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to master RPC service.");

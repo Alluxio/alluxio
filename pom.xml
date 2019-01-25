@@ -172,11 +172,11 @@
   </properties>
 
   <modules>
+    <module>alluxio-ui</module>
     <module>assembly</module>
     <module>core</module>
     <module>examples</module>
     <module>integration</module>
-    <module>keyvalue</module>
     <module>logserver</module>
     <module>minicluster</module>
     <module>job</module>
@@ -1177,14 +1177,13 @@
             <exclude>**/src/main/java/alluxio/proto/**</exclude>
             <exclude>**/src/main/java/alluxio/grpc/**</exclude>
             <exclude>**/src/main/resources/*</exclude>
-            <exclude>**/src/main/webapp/css/*</exclude>
-            <exclude>**/src/main/webapp/js/*</exclude>
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
             <exclude>**/dev/scripts/vendor/**</exclude>
             <exclude>**/dev/scripts/src/vendor/**</exclude>
             <exclude>**/vagrant/**/*</exclude>
+            <exclude>**/\?/.java/**/*</exclude>
 
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
@@ -1198,6 +1197,13 @@
             <exclude>**/.checkstyle</exclude>
             <exclude>**/src/main/assembly/*</exclude>
             <exclude>**/.idea/**</exclude>
+            <exclude>alluxio-ui/**/.nvmrc</exclude>
+            <exclude>alluxio-ui/**/*.svg</exclude>
+            <exclude>alluxio-ui/**/.env*</exclude>
+            <exclude>alluxio-ui/**/node/**</exclude>
+            <exclude>alluxio-ui/**/node_modules/**</exclude>
+            <exclude>alluxio-ui/**/src/**/*.css</exclude>
+            <exclude>alluxio-ui/**/build/**</exclude>
 
             <!-- Documentation Exclusions -->
             <exclude>docs/**/*</exclude>
@@ -1213,6 +1219,8 @@
             <alluxio>SCRIPT_STYLE</alluxio>
             <go>SLASHSTAR_STYLE</go>
             <java>SLASHSTAR_STYLE</java>
+            <tsx>SLASHSTAR_STYLE</tsx>
+            <scss>SLASHSTAR_STYLE</scss>
             <properties.template>SCRIPT_STYLE</properties.template>
             <sh.template>SCRIPT_STYLE</sh.template>
             <workers>SCRIPT_STYLE</workers>
@@ -1327,32 +1335,6 @@
       </properties>
     </profile>
 
-    <!-- profile that compiles jsp files -->
-    <profile>
-      <id>compileJsp</id>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.apache.sling</groupId>
-              <artifactId>maven-jspc-plugin</artifactId>
-              <executions>
-                <execution>
-                  <phase>prepare-package</phase>
-                  <id>compile-jsp</id>
-                  <goals>
-                    <goal>jspc</goal>
-                  </goals>
-                  <configuration>
-                    <sourceDirectory>src/main/webapp</sourceDirectory>
-                  </configuration>
-                </execution>
-              </executions>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
     <profile>
       <id>generateDocs</id>
       <build>

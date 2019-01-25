@@ -12,8 +12,8 @@
 package alluxio.master.meta;
 
 import alluxio.RpcUtils;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPResponse;
@@ -115,9 +115,9 @@ public final class MetaMasterClientServiceHandler
                 .map(Address::toProto).collect(Collectors.toList()));
             break;
           case ZOOKEEPER_ADDRESSES:
-            if (Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
+            if (ServerConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
               masterInfo.addAllZookeeperAddresses(
-                  Arrays.asList(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
+                  Arrays.asList(ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
             }
             break;
           default:

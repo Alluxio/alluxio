@@ -16,6 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -44,7 +45,8 @@ import java.util.Map;
 public final class MountTableTest {
   private MountTable mMountTable;
   private final UnderFileSystem mTestUfs =
-      new LocalUnderFileSystemFactory().create("/", UnderFileSystemConfiguration.defaults());
+      new LocalUnderFileSystemFactory().create("/", UnderFileSystemConfiguration.defaults(),
+          ServerConfiguration.global());
   private static final String ROOT_UFS = "s3a://bucket/";
 
   @Before

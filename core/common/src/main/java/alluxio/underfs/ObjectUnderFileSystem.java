@@ -12,11 +12,9 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.retry.ExponentialBackoffRetry;
-import alluxio.retry.RetryPolicy;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -78,10 +76,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param uri the {@link AlluxioURI} used to create this ufs
    * @param ufsConf UFS configuration
    */
-  protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
-    super(uri, ufsConf);
-
-    int numThreads = Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
+  protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
+      AlluxioConfiguration alluxioConf) {
+    super(uri, ufsConf, alluxioConf);
+    int numThreads = mAlluxioConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
     mExecutorService = ExecutorServiceFactories.fixedThreadPool(
         "alluxio-underfs-object-service-worker", numThreads).create();
   }
@@ -324,7 +322,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      */
     public void add(String path) throws IOException {
       // Delete batch size is same as listing length
-      if (mCurrentBatchBuffer.size() == getListingChunkLength()) {
+      if (mCurrentBatchBuffer.size() == getListingChunkLength(mAlluxioConf)) {
         // Batch is full
         submitBatch();
       }
@@ -407,7 +405,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return mAlluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -542,21 +540,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    IOException thrownException = null;
-    RetryPolicy retryPolicy = new ExponentialBackoffRetry(
-        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS),
-        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS),
-        Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM));
-    while (retryPolicy.attempt()) {
-      try {
-        return openObject(stripPrefixIfPresent(path), options);
-      } catch (IOException e) {
-        LOG.warn("{} attempt to open {} failed with exception : {}", retryPolicy.getAttemptCount(),
-            path, e.getMessage());
-        thrownException = e;
-      }
-    }
-    throw thrownException;
+    return openObject(stripPrefixIfPresent(path), options);
   }
 
   @Override
@@ -703,9 +687,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    *
    * @return length of each list request
    */
-  protected int getListingChunkLength() {
-    return Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > getListingChunkLengthMax()
-        ? getListingChunkLengthMax() : Configuration.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
+  protected int getListingChunkLength(AlluxioConfiguration conf) {
+    return conf.getInt(PropertyKey.UNDERFS_LISTING_LENGTH) > getListingChunkLengthMax()
+        ? getListingChunkLengthMax() : conf.getInt(PropertyKey.UNDERFS_LISTING_LENGTH);
   }
 
   /**

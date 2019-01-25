@@ -11,8 +11,8 @@
 
 package alluxio.master.file;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
@@ -48,10 +48,10 @@ public final class FileSystemMasterOptions{
    */
   private static FileSystemMasterCommonPOptions commonDefaults() {
     return FileSystemMasterCommonPOptions.newBuilder()
-        .setTtl(Configuration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
+        .setTtl(ServerConfiguration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
         .setTtlAction(
-            Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class))
-        .setSyncIntervalMs(Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
+            ServerConfiguration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class))
+        .setSyncIntervalMs(ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
         .build();
   }
 
@@ -71,9 +71,10 @@ public final class FileSystemMasterOptions{
   public static CreateDirectoryPOptions createDirectoryDefaults() {
     return CreateDirectoryPOptions.newBuilder()
         .setCommonOptions(commonDefaults())
-        .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults()).toProto())
+        .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults(),
+            ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
         .setRecursive(false)
-        .setWriteType(Configuration
+        .setWriteType(ServerConfiguration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())
         .setAllowExists(false).build();
   }
@@ -85,15 +86,19 @@ public final class FileSystemMasterOptions{
     return CreateFilePOptions.newBuilder()
         .setCommonOptions(commonDefaults())
         .setRecursive(false)
-        .setBlockSizeBytes(Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
-        .setFileWriteLocationPolicy(Configuration.get(PropertyKey.USER_FILE_WRITE_LOCATION_POLICY))
-        .setWriteTier(Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT))
-        .setWriteType(Configuration
+        .setBlockSizeBytes(ServerConfiguration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
+        .setFileWriteLocationPolicy(
+            ServerConfiguration.get(PropertyKey.USER_FILE_WRITE_LOCATION_POLICY))
+        .setWriteTier(ServerConfiguration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT))
+        .setWriteType(ServerConfiguration
             .getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).toProto())
-        .setMode(ModeUtils.applyFileUMask(Mode.defaults()).toProto())
-        .setReplicationDurable(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
-        .setReplicationMin(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
-        .setReplicationMax(Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX)).build();
+        .setMode(ModeUtils.applyFileUMask(Mode.defaults(),
+            ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
+        .setReplicationDurable(ServerConfiguration
+            .getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
+        .setReplicationMin(ServerConfiguration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
+        .setReplicationMax(ServerConfiguration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX))
+               .build();
   }
 
   /**
@@ -104,7 +109,8 @@ public final class FileSystemMasterOptions{
         .setCommonOptions(commonDefaults())
         .setRecursive(false)
         .setAlluxioOnly(false)
-        .setUnchecked(Configuration.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED)).build();
+        .setUnchecked(ServerConfiguration.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED))
+        .build();
   }
 
   /**
@@ -124,7 +130,7 @@ public final class FileSystemMasterOptions{
   public static GetStatusPOptions getStatusDefaults() {
     return GetStatusPOptions.newBuilder()
         .setCommonOptions(commonDefaults())
-        .setLoadMetadataType(GrpcUtils.toProto(Configuration
+        .setLoadMetadataType(GrpcUtils.toProto(ServerConfiguration
             .getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class)))
         .build();
   }
@@ -135,7 +141,7 @@ public final class FileSystemMasterOptions{
   public static ListStatusPOptions listStatusDefaults() {
     return ListStatusPOptions.newBuilder()
         .setCommonOptions(commonDefaults())
-        .setLoadMetadataType(GrpcUtils.toProto(Configuration
+        .setLoadMetadataType(GrpcUtils.toProto(ServerConfiguration
             .getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class)))
         .build();
   }

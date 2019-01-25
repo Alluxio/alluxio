@@ -20,7 +20,8 @@ import static org.mockito.Mockito.mock;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -104,7 +105,7 @@ public final class InodeTreeTest {
       new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
           .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
           .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup")
-          .build());
+          .build(), ServerConfiguration.global());
 
   /**
    * Sets up all dependencies before a test runs.
@@ -543,7 +544,8 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to get an Inode by a non-existing, nested path.
+   * Tests that an exception is thrown when trying to get an Inode by a non-existing, nested
+   * path.
    */
   @Test
   public void getInodeByNonexistingNestedPath() throws Exception {

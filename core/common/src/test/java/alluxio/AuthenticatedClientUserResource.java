@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
@@ -25,8 +26,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class AuthenticatedClientUserResource implements Closeable {
   User mOriginal;
 
-  public AuthenticatedClientUserResource(String user) throws Exception {
-    mOriginal = AuthenticatedClientUser.get();
+  public AuthenticatedClientUserResource(String user, AlluxioConfiguration conf) throws Exception {
+    mOriginal = AuthenticatedClientUser.get(conf);
     AuthenticatedClientUser.set(user);
   }
 

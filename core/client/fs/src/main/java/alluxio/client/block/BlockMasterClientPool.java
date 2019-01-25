@@ -11,9 +11,9 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.master.MasterClientConfig;
+import alluxio.ClientContext;
+import alluxio.conf.PropertyKey;
+import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.ResourcePool;
 
@@ -24,7 +24,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * Class for managing block master clients. After obtaining a client with
@@ -33,21 +32,20 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
-  private final MasterInquireClient mMasterInquireClient;
+  private final MasterClientContext mMasterContext;
   private final Queue<BlockMasterClient> mClientList;
-  private final Subject mSubject;
 
   /**
    * Creates a new block master client pool.
    *
-   * @param subject the parent subject
+   * @param context the information required for connecting to Alluxio
    * @param masterInquireClient a client for determining the master address
    */
-  public BlockMasterClientPool(Subject subject, MasterInquireClient masterInquireClient) {
-    super(Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
-    mSubject = subject;
-    mMasterInquireClient = masterInquireClient;
+  public BlockMasterClientPool(ClientContext context, MasterInquireClient masterInquireClient) {
+    super(context.getConf().getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
     mClientList = new ConcurrentLinkedQueue<>();
+    mMasterContext =
+        MasterClientContext.newBuilder(context).setMasterInquireClient(masterInquireClient).build();
   }
 
   @Override
@@ -62,8 +60,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
 
   @Override
   protected BlockMasterClient createNewResource() {
-    BlockMasterClient client = BlockMasterClient.Factory.create(MasterClientConfig.defaults()
-        .withSubject(mSubject).withMasterInquireClient(mMasterInquireClient));
+    BlockMasterClient client = BlockMasterClient.Factory.create(mMasterContext);
     mClientList.add(client);
     return client;
   }

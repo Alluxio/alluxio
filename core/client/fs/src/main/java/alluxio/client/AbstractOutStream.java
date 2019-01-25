@@ -31,7 +31,7 @@ public abstract class AbstractOutStream extends OutputStream implements Cancelab
    * @return the number of bytes written to this stream
    * @deprecated this method will not work if more than MAX_INT bytes are written; to get a count of
    *             bytes written, wrap this stream in a counting output stream such as
-   *             org.apache.commons.io.output.CountingOutputStream
+   *             {@link org.apache.commons.io.output.CountingOutputStream}
    */
   @Deprecated
   public int getBytesWritten() {

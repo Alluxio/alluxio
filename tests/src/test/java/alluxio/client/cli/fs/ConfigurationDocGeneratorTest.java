@@ -14,8 +14,8 @@ package alluxio.client.cli.fs;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.ConfigurationDocGenerator;
 import alluxio.collections.Pair;
 import alluxio.util.io.PathUtils;
@@ -72,8 +72,6 @@ public class ConfigurationDocGeneratorTest {
             "worker-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
             "security-configuration.csv")},
-        {TYPE.CSV, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
-            "key-value-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
             "cluster-management-configuration.csv")},
         {TYPE.YML, new Pair<>(PropertyKey.HOME,
@@ -86,8 +84,6 @@ public class ConfigurationDocGeneratorTest {
             "worker-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
             "security-configuration.yml")},
-        {TYPE.YML, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
-            "key-value-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
             "cluster-management-configuration.yml")}
     });
@@ -131,7 +127,7 @@ public class ConfigurationDocGeneratorTest {
 
     //assert file contents
     List<String> userFile = Files.readAllLines(p, StandardCharsets.UTF_8);
-    String defaultValue = Configuration.get(pKey);
+    String defaultValue = ServerConfiguration.get(pKey);
     checkFileContents(String.format("%s,\"%s\"", pKey, defaultValue), userFile, mFileType);
   }
 

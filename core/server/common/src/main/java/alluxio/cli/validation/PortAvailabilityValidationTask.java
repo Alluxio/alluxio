@@ -11,6 +11,7 @@
 
 package alluxio.cli.validation;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -42,7 +43,7 @@ public final class PortAvailabilityValidationTask extends AbstractValidationTask
       System.out.format("%s is already running. Skip validation.%n", mOwner);
       return TaskResult.SKIPPED;
     }
-    int port = NetworkAddressUtils.getPort(mServiceType);
+    int port = NetworkAddressUtils.getPort(mServiceType, ServerConfiguration.global());
     if (!isLocalPortAvailable(port)) {
       System.err.format("%s port %d is not available.%n", mServiceType.getServiceName(), port);
       return TaskResult.FAILED;

@@ -21,7 +21,7 @@ import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.RegisterMasterPRequest;
 import alluxio.grpc.ServiceType;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.wire.Address;
 
 import java.io.IOException;
@@ -42,7 +42,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    *
    * @param conf master client configuration
    */
-  public RetryHandlingMetaMasterMasterClient(MasterClientConfig conf) {
+  public RetryHandlingMetaMasterMasterClient(MasterClientContext conf) {
     super(conf);
   }
 

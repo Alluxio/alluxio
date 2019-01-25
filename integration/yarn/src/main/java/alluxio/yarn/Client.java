@@ -11,11 +11,13 @@
 
 package alluxio.yarn;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.yarn.YarnUtils.YarnContainerType;
 
@@ -122,10 +124,15 @@ public final class Client {
   /** Command line options. */
   private Options mOptions;
 
+  private final AlluxioConfiguration mAlluxioConf;
+
   /**
    * Constructs a new client for launching an Alluxio application master.
+   *
+   * @param alluxioConf Alluxio configuration
    */
-  public Client() {
+  public Client(AlluxioConfiguration alluxioConf) {
+    mAlluxioConf = alluxioConf;
     mOptions = new Options();
     mOptions.addOption("appname", true, "Application Name. Default 'Alluxio'");
     mOptions.addOption("priority", true, "Application Priority. Default 0");
@@ -149,10 +156,11 @@ public final class Client {
    * parses command line options.
    *
    * @param args Command line arguments
+   * @param alluxioConf Alluxio configuration
    * @throws ParseException if an error occurs when parsing the argument
    */
-  public Client(String[] args) throws ParseException {
-    this();
+  public Client(String[] args, AlluxioConfiguration alluxioConf) throws ParseException {
+    this(alluxioConf);
     parseArgs(args);
   }
 
@@ -161,7 +169,9 @@ public final class Client {
    */
   public static void main(String[] args) {
     try {
-      Client client = new Client();
+
+      AlluxioConfiguration alluxioConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      Client client = new Client(alluxioConf);
       System.out.println("Initializing Client");
       if (!client.parseArgs(args)) {
         System.out.println("Cannot parse commandline: " + Arrays.toString(args));
@@ -219,7 +229,7 @@ public final class Client {
     mAmVCores = Integer.parseInt(cliParser.getOptionValue("am_vcores", "1"));
     mNumWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
     mMaxWorkersPerHost =
-        Configuration.getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
+        mAlluxioConf.getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
 
     Preconditions.checkArgument(mAmMemoryInMB > 0,
         "Invalid memory specified for application master, " + "exiting. Specified memory="
@@ -286,22 +296,22 @@ public final class Client {
           .getMessage("ApplicationMaster", "virtual cores", mAmVCores, maxVCores));
     }
 
-    int masterMemInMB = (int) (Configuration.getBytes(
+    int masterMemInMB = (int) (mAlluxioConf.getBytes(
         PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
     if (masterMemInMB > maxMem) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
           .getMessage("Alluxio Master", "memory", masterMemInMB, maxMem));
     }
 
-    int masterVCores = Configuration.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
+    int masterVCores = mAlluxioConf.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
     if (masterVCores > maxVCores) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
           .getMessage("Alluxio Master", "virtual cores", masterVCores, maxVCores));
     }
 
-    int workerMemInMB = (int) (Configuration.getBytes(
+    int workerMemInMB = (int) (mAlluxioConf.getBytes(
         PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
-    int ramdiskMemInMB = (int) (Configuration.getBytes(
+    int ramdiskMemInMB = (int) (mAlluxioConf.getBytes(
         PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
 
     if ((workerMemInMB + ramdiskMemInMB) > maxMem) {
@@ -309,7 +319,7 @@ public final class Client {
           .getMessage("Alluxio Worker", "memory", (workerMemInMB + ramdiskMemInMB), maxMem));
     }
 
-    int workerVCore = Configuration.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
+    int workerVCore = mAlluxioConf.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
     if (workerVCore > maxVCores) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
           .getMessage("Alluxio Worker", "virtual cores", workerVCore, maxVCores));

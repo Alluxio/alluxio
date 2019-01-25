@@ -13,10 +13,9 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -59,7 +58,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 
   @Rule
-  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test",
+      ServerConfiguration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -74,7 +74,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    mFileSystem = FileSystem.Factory.get();
+    mFileSystem = FileSystem.Factory.get(ServerConfiguration.global());
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI("sleep://" + mLocalUfsPath));
 
     new File(mLocalUfsPath + "/dir1/dirA/").mkdirs();
@@ -85,7 +85,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @After
   public void after() throws Exception {
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   @Test
@@ -174,7 +174,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadAlwaysConfiguration() throws Exception {
-    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Always.toString());
+    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+        LoadMetadataType.Always.toString());
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
@@ -182,7 +183,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadOnceConfiguration() throws Exception {
-    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Once.toString());
+    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+        LoadMetadataType.Once.toString());
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
@@ -190,7 +192,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadNeverConfiguration() throws Exception {
-    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Never.toString());
+    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+        LoadMetadataType.Never.toString());
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
@@ -198,7 +201,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadRecursive() throws Exception {
-    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.Once.toString());
+    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
+        LoadMetadataType.Once.toString());
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {

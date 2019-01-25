@@ -13,7 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -22,7 +22,6 @@ import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -31,10 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class GetFaclCommand extends AbstractFileSystemCommand {
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public GetFaclCommand(FileSystem fs) {
-    super(fs);
+  public GetFaclCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

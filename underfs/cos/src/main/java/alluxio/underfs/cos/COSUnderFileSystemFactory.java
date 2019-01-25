@@ -13,7 +13,8 @@ package alluxio.underfs.cos;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -37,12 +38,13 @@ public class COSUnderFileSystemFactory implements UnderFileSystemFactory {
   public COSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf) {
     Preconditions.checkNotNull(path, "path");
 
     if (checkCOSCredentials(conf)) {
       try {
-        return COSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
+        return COSUnderFileSystem.createInstance(new AlluxioURI(path), conf, alluxioConf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

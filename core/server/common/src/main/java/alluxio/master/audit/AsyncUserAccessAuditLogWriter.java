@@ -11,8 +11,8 @@
 
 package alluxio.master.audit;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +49,7 @@ public final class AsyncUserAccessAuditLogWriter {
    * Constructs an {@link AsyncUserAccessAuditLogWriter} instance.
    */
   public AsyncUserAccessAuditLogWriter() {
-    int queueCapacity = Configuration.getInt(PropertyKey.MASTER_AUDIT_LOGGING_QUEUE_CAPACITY);
+    int queueCapacity = ServerConfiguration.getInt(PropertyKey.MASTER_AUDIT_LOGGING_QUEUE_CAPACITY);
     mAuditLogEntries = new LinkedBlockingQueue<>(queueCapacity);
     LOG.info("Audit logging queue capacity is {}.", queueCapacity);
     mStopped = true;

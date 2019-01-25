@@ -11,6 +11,10 @@
 
 package alluxio;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
@@ -26,13 +30,11 @@ import java.util.Map;
 public final class ConfigurationTestUtils {
 
   /**
-   * Resets the configuration to its initial state.
-   *
-   * This method should only be used as a cleanup mechanism between tests. It should not be used
-   * while any object may be using the {@link Configuration}.
+   * Return an instanced configuration with default value from the site properties file.
+   * @return the default configuration
    */
-  public static void resetConfiguration() {
-    Configuration.reset();
+  public static InstancedConfiguration defaults() {
+    return new InstancedConfiguration(ConfigurationUtils.defaults());
   }
 
   /**
@@ -45,8 +47,8 @@ public final class ConfigurationTestUtils {
    * @param workDirectory the work directory in which to configure the journal and tiered storage
    * @return the configuration
    */
-  public static Map<PropertyKey, String> testConfigurationDefaults(String hostname,
-      String workDirectory) {
+  public static Map<PropertyKey, String> testConfigurationDefaults(AlluxioConfiguration alluxioConf,
+      String hostname, String workDirectory) {
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.MASTER_HOSTNAME, hostname);
     conf.put(PropertyKey.WORKER_BIND_HOST, hostname);
@@ -60,11 +62,11 @@ public final class ConfigurationTestUtils {
     String ramdiskPath = PathUtils.concatPath(workDirectory, "ramdisk");
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), ramdiskPath);
 
-    int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+    int numLevel = alluxioConf.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
+      String[] dirPaths = alluxioConf.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<>();
       for (String dirPath : dirPaths) {
         String newPath = workDirectory + dirPath;
@@ -108,8 +110,8 @@ public final class ConfigurationTestUtils {
     //conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
     conf.put(PropertyKey.WEB_THREADS, "1");
-    conf.put(PropertyKey.WEB_RESOURCES, PathUtils
-        .concatPath(System.getProperty("user.dir"), "../core/server/common/src/main/webapp"));
+    conf.put(PropertyKey.WEB_RESOURCES,
+        PathUtils.concatPath(System.getProperty("user.dir"), "../alluxio-ui"));
     conf.put(PropertyKey.WORKER_MEMORY_SIZE, "100MB");
     conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
     conf.put(PropertyKey.WORKER_BLOCK_THREADS_MIN, "1");

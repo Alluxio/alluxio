@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataManagerView;
@@ -51,7 +51,7 @@ public interface Evictor {
      */
     public static Evictor create(BlockMetadataManagerView view, Allocator allocator) {
       return CommonUtils.createNewClassInstance(
-          Configuration.<Evictor>getClass(PropertyKey.WORKER_EVICTOR_CLASS),
+          ServerConfiguration.<Evictor>getClass(PropertyKey.WORKER_EVICTOR_CLASS),
           new Class[] {BlockMetadataManagerView.class, Allocator.class},
           new Object[] {view, allocator});
     }
@@ -63,8 +63,8 @@ public interface Evictor {
    * @param availableBytes the amount of free space in bytes to be ensured after eviction
    * @param location the location in block store
    * @param view generated and passed by block store
-   * @return an {@link EvictionPlan} (possibly with empty fields) to get the free space, or null if
-   *         no plan is feasible
+   * @return an {@link EvictionPlan} (possibly with empty fields) to get the free space, or null
+   *         if no plan is feasible
    */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
       BlockMetadataManagerView view);
@@ -93,8 +93,8 @@ public interface Evictor {
    * @param location the location in block store
    * @param view generated and passed by block store
    * @param mode the eviction mode
-   * @return an {@link EvictionPlan} (possibly with empty fields) to get the free space, or null if
-   *         no plan is feasible
+   * @return an {@link EvictionPlan} (possibly with empty fields) to get the free space, or null
+   *         if no plan is feasible
    */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
       BlockMetadataManagerView view, Mode mode);

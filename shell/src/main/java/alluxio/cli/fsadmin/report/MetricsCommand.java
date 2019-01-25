@@ -153,7 +153,7 @@ public class MetricsCommand {
   /**
    * Prints the metrics information.
    *
-   * @param metricName the metric name to get metric value
+   * @param metricName the metric name to get a metric value
    * @param nickName the metric name to print
    * @param valueIsBytes whether the metric value is bytes
    */

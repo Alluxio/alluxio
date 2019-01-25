@@ -12,12 +12,13 @@
 package alluxio.client.hadoop;
 
 import alluxio.AlluxioURI;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.grpc.WritePType;
@@ -67,7 +68,7 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
       mUfsInputStream.close();
       mFileSystem.delete(new AlluxioURI(UFS_ONLY_FILE));
     }
-    HadoopClientTestUtils.resetClient();
+    HadoopClientTestUtils.disableMetrics(ServerConfiguration.global());
   }
 
   @Before
@@ -75,18 +76,17 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
     mFileSystem = sLocalAlluxioClusterResource.get().getClient();
     FileSystemTestUtils
         .createByteFile(mFileSystem, IN_MEMORY_FILE, WritePType.CACHE_THROUGH, FILE_LEN);
-    mInMemInputStream = new HdfsFileInputStream(FileSystemContext.get(),
+    mInMemInputStream = new HdfsFileInputStream(mFileSystem,
         new AlluxioURI(IN_MEMORY_FILE), null);
   }
 
   private void createUfsInStream(ReadType readType) throws Exception {
-    String defaultReadType = alluxio.Configuration.get(PropertyKey.USER_FILE_READ_TYPE_DEFAULT);
-    alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
-    FileSystemTestUtils.createByteFile(mFileSystem, UFS_ONLY_FILE, WritePType.THROUGH,
+    InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.copyProperties());
+    conf.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
+    FileSystem fs = FileSystem.Factory.get(conf);
+    FileSystemTestUtils.createByteFile(fs, UFS_ONLY_FILE, WritePType.THROUGH,
         FILE_LEN);
-    mUfsInputStream = new HdfsFileInputStream(FileSystemContext.get(),
-        new AlluxioURI(UFS_ONLY_FILE), null);
-    alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
+    mUfsInputStream = new HdfsFileInputStream(fs, new AlluxioURI(UFS_ONLY_FILE), null);
   }
 
   /**
@@ -401,7 +401,7 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
   public void positionedReadNoCache() throws Exception {
     createUfsInStream(ReadType.NO_CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
-    URIStatus statusUfsOnlyFIle = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
-    Assert.assertEquals(0, statusUfsOnlyFIle.getInAlluxioPercentage());
+    URIStatus statusUfsOnlyFile = mFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
+    Assert.assertEquals(0, statusUfsOnlyFile.getInAlluxioPercentage());
   }
 }

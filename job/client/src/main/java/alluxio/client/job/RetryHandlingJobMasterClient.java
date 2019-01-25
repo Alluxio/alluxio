@@ -22,7 +22,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobInfo;
-import alluxio.worker.job.JobMasterClientConfig;
+import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
@@ -46,7 +46,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
    *
    * @param conf master client configuration
    */
-  public RetryHandlingJobMasterClient(JobMasterClientConfig conf) {
+  public RetryHandlingJobMasterClient(JobMasterClientContext conf) {
     super(conf);
   }
 
@@ -66,7 +66,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected void beforeConnect() throws IOException {
+  protected void beforeConnect()
+      throws IOException {
     // Job master client does not load cluster-default configuration because only the master
     // will use this client
   }

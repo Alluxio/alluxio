@@ -11,6 +11,8 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.util.ThreadFactoryUtils;
 
@@ -39,7 +41,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(WORKER_CLIENT_POOL_GC_THREADPOOL_SIZE,
           ThreadFactoryUtils.build("BlockWorkerClientPoolGcThreads-%d", true));
-  private final long mGcThresholdMs;
+  private final AlluxioConfiguration mConf;
 
   /**
    * Creates a new block master client pool.
@@ -47,15 +49,15 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
    * @param subject the parent subject
    * @param address address of the worker
    * @param maxCapacity the maximum capacity of the pool
-   * @param gcThresholdMs when a client is older than this threshold and the pool's capacity
+   * @param alluxioConf Alluxio configuration
    *        is above the minimum capacity(1), it is closed and removed from the pool.
    */
   public BlockWorkerClientPool(Subject subject, SocketAddress address, int maxCapacity,
-      long gcThresholdMs) {
+      AlluxioConfiguration alluxioConf) {
     super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
     mSubject = subject;
     mAddress = address;
-    mGcThresholdMs = gcThresholdMs;
+    mConf = alluxioConf;
   }
 
   @Override
@@ -66,7 +68,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
 
   @Override
   protected BlockWorkerClient createNewResource() throws IOException {
-    return BlockWorkerClient.Factory.create(mSubject, mAddress);
+    return BlockWorkerClient.Factory.create(mSubject, mAddress, mConf);
   }
 
   /**
@@ -77,12 +79,12 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
    */
   @Override
   protected boolean isHealthy(BlockWorkerClient client) {
-    return !client.isShutdown();
+    return client.isHealthy();
   }
 
   @Override
   protected boolean shouldGc(ResourceInternal<BlockWorkerClient> clientResourceInternal) {
-    return System.currentTimeMillis() - clientResourceInternal
-        .getLastAccessTimeMs() > mGcThresholdMs;
+    return System.currentTimeMillis() - clientResourceInternal.getLastAccessTimeMs()
+        > mConf.getMs(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS);
   }
 }

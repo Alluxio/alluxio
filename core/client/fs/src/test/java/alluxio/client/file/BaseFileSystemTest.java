@@ -25,9 +25,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.TestLoggerRule;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -66,16 +67,19 @@ public final class BaseFileSystemTest {
   private static final String SHOULD_HAVE_PROPAGATED_MESSAGE =
       "Exception should have been propagated";
 
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+
   @Rule
   private TestLoggerRule mTestLogger = new TestLoggerRule();
 
   private FileSystem mFileSystem;
   private FileSystemContext mFileContext;
+  private ClientContext mClientContext;
   private FileSystemMasterClient mFileSystemMasterClient;
 
   private class DummyAlluxioFileSystem extends BaseFileSystem {
-    public DummyAlluxioFileSystem(FileSystemContext context) {
-      super(context);
+    public DummyAlluxioFileSystem(FileSystemContext fsContext) {
+      super(fsContext);
     }
   }
 
@@ -84,15 +88,18 @@ public final class BaseFileSystemTest {
    */
   @Before
   public void before() {
+    mClientContext = ClientContext.create(mConf);
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     mFileSystem = new DummyAlluxioFileSystem(mFileContext);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
+    when(mFileContext.getClientContext()).thenReturn(mClientContext);
+    when(mFileContext.getConf()).thenReturn(mConf);
   }
 
   @After
   public void after() {
-    ConfigurationTestUtils.resetConfiguration();
+    mConf = ConfigurationTestUtils.defaults();
   }
 
   /**
@@ -499,8 +506,8 @@ public final class BaseFileSystemTest {
    */
   @Test
   public void uriCheckBadAuthority() throws Exception {
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    mConf.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    mConf.set(PropertyKey.MASTER_RPC_PORT, "19998");
 
     assertBadAuthority("localhost:1234", "Should fail on bad host and port");
     assertBadAuthority("zk@localhost:19998", "Should fail on zk authority");
@@ -514,8 +521,8 @@ public final class BaseFileSystemTest {
    */
   @Test
   public void uriCheckBadScheme() throws Exception {
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    mConf.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    mConf.set(PropertyKey.MASTER_RPC_PORT, "19998");
 
     AlluxioURI uri = new AlluxioURI("hdfs://localhost:19998/root");
     try {
@@ -531,8 +538,9 @@ public final class BaseFileSystemTest {
    */
   @Test
   public void uriCheckGoodSchemeAndAuthority() throws Exception {
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    mConf.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    mConf.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    before(); // Resets the filesystem and contexts to use proper configuration.
 
     useUriWithAuthority("localhost:19998");
 
@@ -546,8 +554,8 @@ public final class BaseFileSystemTest {
    */
   @Test
   public void uriCheckNoSchemeAuthority() throws Exception {
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, "19998");
+    mConf.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    mConf.set(PropertyKey.MASTER_RPC_PORT, "19998");
 
     AlluxioURI uri = new AlluxioURI("/root");
     mFileSystem.createDirectory(uri);
@@ -594,7 +602,8 @@ public final class BaseFileSystemTest {
   }
 
   private void configureZk(String addrs) {
-    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
-    Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, addrs);
+    mConf.set(PropertyKey.ZOOKEEPER_ENABLED, true);
+    mConf.set(PropertyKey.ZOOKEEPER_ADDRESS, addrs);
+    before(); // Resets the filesystem and contexts to use proper configuration
   }
 }

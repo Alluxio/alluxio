@@ -13,7 +13,8 @@ package alluxio.underfs.gcs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -81,11 +82,13 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
+   * @param alluxioConf Alluxio configuration
    * @return the created {@link GCSUnderFileSystem} instance
    * @throws ServiceException when a connection to GCS could not be created
    */
   public static GCSUnderFileSystem createInstance(
-      AlluxioURI uri, UnderFileSystemConfiguration conf) throws ServiceException {
+      AlluxioURI uri, UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf)
+      throws ServiceException {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(conf.isSet(PropertyKey.GCS_ACCESS_KEY),
             "Property " + PropertyKey.GCS_ACCESS_KEY + " is required to connect to GCS");
@@ -122,7 +125,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     short bucketMode = GCSUtils.translateBucketAcl(acl, accountOwnerId);
 
     return new GCSUnderFileSystem(uri, googleStorageService, bucketName, bucketMode, accountOwner,
-        conf);
+        conf, alluxioConf);
   }
 
   /**
@@ -134,10 +137,12 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
    * @param conf configuration for this UFS
+   * @param alluxioConf Alluxio configuration
    */
   protected GCSUnderFileSystem(AlluxioURI uri, GoogleStorageService googleStorageService,
-      String bucketName, short bucketMode, String accountOwner, UnderFileSystemConfiguration conf) {
-    super(uri, conf);
+      String bucketName, short bucketMode, String accountOwner, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf) {
+    super(uri, conf, alluxioConf);
     mClient = googleStorageService;
     mBucketName = bucketName;
     mBucketMode = bucketMode;
@@ -196,7 +201,8 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    return new GCSOutputStream(mBucketName, key, mClient);
+    return new GCSOutputStream(mBucketName, key, mClient,
+        mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
   }
 
   @Override
@@ -235,7 +241,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     StorageObjectsChunk res;
     try {
       res = mClient.listObjectsChunked(mBucketName, key, delimiter,
-          getListingChunkLength(), priorLastKey);
+          getListingChunkLength(mAlluxioConf), priorLastKey);
     } catch (ServiceException e) {
       LOG.error("Failed to list path {}", key, e);
       res = null;

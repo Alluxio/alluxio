@@ -13,6 +13,7 @@ package alluxio.server.web;
 
 import alluxio.client.rest.TestCase;
 import alluxio.client.rest.TestCaseOptions;
+import alluxio.conf.ServerConfiguration;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.network.NetworkAddressUtils;
@@ -46,11 +47,8 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
 
   // Web pages that will be verified.
   private static final Multimap<ServiceType, String> PAGES =
-      new ImmutableListMultimap.Builder<ServiceType, String>()
-          .putAll(ServiceType.MASTER_WEB, "/home", "/browse", "/configuration", "/workers",
-              "/memory", "/browseLogs", "/metricsui")
-          .putAll(ServiceType.WORKER_WEB, "/home", "/blockInfo", "/browseLogs", "/metricsui")
-          .build();
+      new ImmutableListMultimap.Builder<ServiceType, String>().putAll(ServiceType.MASTER_WEB, "/")
+          .putAll(ServiceType.WORKER_WEB, "/").build();
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -72,8 +70,8 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
     String result = new TestCase(address.getHostName(), address.getPort(), "metrics/json", params,
         HttpMethod.GET, null, TestCaseOptions.defaults(), "").call();
 
-    TypeReference<HashMap<String, Object>> typeRef =
-        new TypeReference<HashMap<String, Object>>() {};
+    TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
+    };
     HashMap<String, Object> metrics = new ObjectMapper().readValue(result, typeRef);
     Assert.assertTrue(metrics.containsKey("version"));
     Assert.assertTrue(metrics.containsKey("counters"));
@@ -97,13 +95,12 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
     Files.isDirectory(Paths.get(mLocalAlluxioClusterResource.get().getAlluxioHome(), "web"));
   }
 
-  private void verifyWebService(ServiceType serviceType, String path)
-      throws IOException {
+  private void verifyWebService(ServiceType serviceType, String path) throws IOException {
     InetSocketAddress webAddr = getInetSocketAddresss(serviceType);
 
     HttpURLConnection webService = (HttpURLConnection) new URL(
-        "http://" + webAddr.getAddress().getHostAddress() + ":"
-        + webAddr.getPort() + path).openConnection();
+        "http://" + webAddr.getAddress().getHostAddress() + ":" + webAddr.getPort() + path)
+        .openConnection();
     webService.connect();
 
     Assert.assertEquals(200, webService.getResponseCode());
@@ -116,7 +113,8 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
 
       while (pageScanner.hasNextLine()) {
         String line = pageScanner.nextLine();
-        if (line.equals("<title>Alluxio</title>") || line.equals("<title>Workers</title>")) {
+        if (line.contains("<title>Alluxio Master</title>") || line
+            .contains("<title>Alluxio Worker</title>")) {
           verified = true;
           break;
         }
@@ -128,8 +126,9 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
       webService.disconnect();
     }
 
-    Assert.assertTrue(String.format("%s was started but not successfully verified.",
-        serviceType.getServiceName()), verified);
+    Assert.assertTrue(String
+            .format("%s was started but not successfully verified.", serviceType.getServiceName()),
+        verified);
   }
 
   private InetSocketAddress getInetSocketAddresss(ServiceType serviceType) {
@@ -141,7 +140,8 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
       port = mLocalAlluxioClusterResource.get().getWorkerProcess().getWebLocalPort();
     }
     InetSocketAddress webAddr =
-        new InetSocketAddress(NetworkAddressUtils.getConnectHost(serviceType), port);
+        new InetSocketAddress(NetworkAddressUtils.getConnectHost(serviceType,
+            ServerConfiguration.global()), port);
     return webAddr;
   }
 }

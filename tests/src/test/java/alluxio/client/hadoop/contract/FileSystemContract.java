@@ -35,6 +35,7 @@ public class FileSystemContract extends AbstractFSContract {
   public static final String DEFAULT_TEST_BUILD_DATA_DIR = "test/build/data";
   private final LocalAlluxioCluster mLocalAlluxioCluster;
   private org.apache.hadoop.fs.FileSystem mFS;
+  private Configuration mHadoopConf;
 
   /**
    * Creates a new {@link FileSystemContract}.
@@ -44,6 +45,7 @@ public class FileSystemContract extends AbstractFSContract {
    */
   public FileSystemContract(Configuration conf, LocalAlluxioCluster cluster) {
     super(conf);
+    mHadoopConf = conf;
     mLocalAlluxioCluster = cluster;
     //insert the base features
     addConfResource(getContractXml());
@@ -61,12 +63,11 @@ public class FileSystemContract extends AbstractFSContract {
   @Override
   public void init() throws IOException {
     super.init();
-    Configuration conf = new Configuration();
-    conf.set("fs.alluxio.impl", FileSystem.class.getName());
+    mHadoopConf.set("fs.alluxio.impl", FileSystem.class.getName());
 
     URI uri = URI.create(mLocalAlluxioCluster.getMasterURI());
 
-    mFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    mFS = org.apache.hadoop.fs.FileSystem.get(uri, mHadoopConf);
   }
 
   @Override

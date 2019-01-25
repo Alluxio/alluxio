@@ -17,6 +17,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -47,22 +48,26 @@ public class BasicOperations implements Callable<Boolean> {
   private final AlluxioURI mFilePath;
   private final OpenFilePOptions mReadOptions;
   private final CreateFilePOptions mWriteOptions;
+  private final FileSystemContext mFsContext;
 
   /**
    * @param filePath the path for the files
    * @param readType the {@link ReadPType}
    * @param writeType the {@link WritePType}
+   * @param fsContext the {@link FileSystemContext } to use for client operations
    */
-  public BasicOperations(AlluxioURI filePath, ReadType readType, WriteType writeType) {
+  public BasicOperations(AlluxioURI filePath, ReadType readType, WriteType writeType,
+      FileSystemContext fsContext) {
     mFilePath = filePath;
     mReadOptions = OpenFilePOptions.newBuilder().setReadType(readType.toProto()).build();
     mWriteOptions = CreateFilePOptions.newBuilder().setWriteType(writeType.toProto())
         .setRecursive(true).build();
+    mFsContext = fsContext;
   }
 
   @Override
   public Boolean call() throws Exception {
-    FileSystem fs = FileSystem.Factory.get();
+    FileSystem fs = FileSystem.Factory.get(mFsContext);
     writeFile(fs);
     return readFile(fs);
   }

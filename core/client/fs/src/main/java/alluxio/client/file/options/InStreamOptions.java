@@ -11,12 +11,12 @@
 
 package alluxio.client.file.options;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.block.BlockId;
 import alluxio.proto.dataserver.Protocol;
@@ -45,28 +45,32 @@ public final class InStreamOptions {
 
   /**
    * Creates with the default {@link OpenFilePOptions}.
+   *
    * @param status the file to create the options for
+   * @param alluxioConf Alluxio configuration
    */
-  public InStreamOptions(URIStatus status) {
-    this(status, OpenFilePOptions.getDefaultInstance());
+  public InStreamOptions(URIStatus status, AlluxioConfiguration alluxioConf) {
+    this(status, OpenFilePOptions.getDefaultInstance(), alluxioConf);
   }
 
   /**
    * Creates with given {@link OpenFilePOptions} instance.
    * @param status URI status
    * @param options OpenFile options
+   * @param alluxioConf Alluxio configuration
    */
-  public InStreamOptions(URIStatus status, OpenFilePOptions options) {
+  public InStreamOptions(URIStatus status, OpenFilePOptions options,
+      AlluxioConfiguration alluxioConf) {
     // Create OpenOptions builder with default options.
     OpenFilePOptions.Builder openOptionsBuilder = OpenFilePOptions.newBuilder()
-        .setReadType(Configuration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
+        .setReadType(alluxioConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
             .toProto())
         .setFileReadLocationPolicy(
-            Configuration.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
-        .setHashingNumberOfShards(Configuration
+            alluxioConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
+        .setHashingNumberOfShards(alluxioConf
             .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS))
-        .setMaxUfsReadConcurrency(
-            Configuration.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX));
+        .setMaxUfsReadConcurrency(alluxioConf
+            .getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX));
     // Merge default options with given options.
     OpenFilePOptions openOptions = openOptionsBuilder.mergeFrom(options).build();
 
@@ -75,7 +79,8 @@ public final class InStreamOptions {
     CreateOptions blockLocationPolicyCreateOptions =
         CreateOptions.defaults().setLocationPolicyClassName(openOptions.getFileReadLocationPolicy())
             .setDeterministicHashPolicyNumShards(openOptions.getHashingNumberOfShards());
-    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
+    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions,
+        alluxioConf);
   }
 
   /**

@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.CommandUtils;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.BackupResponse;
 
@@ -36,8 +37,9 @@ public class BackupCommand extends AbstractFsAdminCommand {
           .build();
   /**
    * @param context fsadmin command context
+   * @param alluxioConf Alluxio configuration
    */
-  public BackupCommand(Context context) {
+  public BackupCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
   }
 

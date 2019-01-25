@@ -16,6 +16,7 @@ import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.RemoveBlockRequest;
@@ -49,9 +50,10 @@ public interface BlockWorkerClient extends Closeable {
      * @param address the address of the worker
      * @return a new {@link BlockWorkerClient}
      */
-    public static BlockWorkerClient create(@Nullable Subject subject, SocketAddress address)
+    public static BlockWorkerClient create(@Nullable Subject subject, SocketAddress address,
+        AlluxioConfiguration alluxioConf)
         throws IOException {
-      return new DefaultBlockWorkerClient(subject, address);
+      return new DefaultBlockWorkerClient(subject, address, alluxioConf);
     }
   }
 
@@ -59,6 +61,11 @@ public interface BlockWorkerClient extends Closeable {
    * @return whether the client is shutdown
    */
   boolean isShutdown();
+
+  /**
+   * @return whether the client is healthy
+   */
+  boolean isHealthy();
 
   /**
    * Writes a block to the worker asynchronously. The caller should pass in a response observer

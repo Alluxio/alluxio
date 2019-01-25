@@ -13,7 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.exception.AlluxioException;
@@ -24,10 +24,9 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Loads a file or directory in Alluxio space, makes it resident in memory.
@@ -39,10 +38,10 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public DistributedLoadCommand(FileSystem fs) {
-    super(fs);
+  public DistributedLoadCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -86,7 +85,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    *
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @throws AlluxioException when Alluxio exception occurs
-   * @throws IOException when non-Alluxio exception occurs
+   * @throws IOException      when non-Alluxio exception occurs
    */
   private void load(AlluxioURI filePath, int replication)
       throws AlluxioException, IOException, InterruptedException {
@@ -101,7 +100,8 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
       Thread thread = JobGrpcClientUtils.createProgressThread(System.out);
       thread.start();
       try {
-        JobGrpcClientUtils.run(new LoadConfig(filePath.getPath(), replication), 3);
+        JobGrpcClientUtils.run(new LoadConfig(filePath.getPath(), replication), 3,
+            mFsContext.getConf());
       } finally {
         thread.interrupt();
       }
