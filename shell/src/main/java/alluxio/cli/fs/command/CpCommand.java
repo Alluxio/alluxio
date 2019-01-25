@@ -493,7 +493,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         try {
           copyFromLocalFile(srcPath, dstPath);
           pool.println(String.format("Copied %s to %s.", srcPath, dstPath));
-        } catch (IOException | AlluxioException e) {
+        } catch (Exception e) {
           pool.println(e.getMessage());
         }
         return null;
