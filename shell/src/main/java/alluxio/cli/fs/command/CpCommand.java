@@ -35,6 +35,7 @@ import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 
@@ -42,12 +43,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -75,62 +78,97 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .type(Integer.class)
           .desc("Number of threads used to copy files in parallel")
           .build();
-  private static final String COPY_PROGRESS_DONE = "#";
-
-  private ThreadPoolExecutor mCopyExecutor;
-  private BlockingQueue<String> mCopyProgress;
-  private Thread mCopyProgressDisplayThread;
 
   /**
-   * Initializes necessary resources for async copy.
+   * A thread pool for asynchronous copy.
+   *
+   * Copy tasks can send messages to an output stream in a thread safe way.
    */
-  private void initAsyncCopy() {
-    final int numThreads = mFsContext.getConf().getInt(PropertyKey.USER_COPY_FROM_LOCAL_THREADS);
-    mCopyExecutor = new ThreadPoolExecutor(numThreads, numThreads,
-      1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(numThreads * 2),
-      new ThreadPoolExecutor.CallerRunsPolicy());
-    mCopyProgress = new LinkedBlockingQueue<>();
-    mCopyProgressDisplayThread = new Thread(() -> {
-      while (true) {
-        try {
-          String message = mCopyProgress.take();
-          if (message.equals(COPY_PROGRESS_DONE)) {
+  @ThreadSafe
+  private final class CopyThreadPool {
+    private static final String MESSAGE_DONE = "#";
+
+    private ThreadPoolExecutor mPool;
+    private BlockingQueue<String> mMessages;
+    private PrintStream mOutput;
+    private Thread mPrinter;
+    private AlluxioURI mPath;
+
+    /**
+     * Creates a new thread pool with the specified number of threads,
+     * specify the output stream for tasks to send messages to, and
+     * starts the background thread for printing messages.
+     *
+     * NOTE: needs to call {@link #shutdown()} to release resources.
+     *
+     * @param threads number of threads
+     * @param out the output stream for tasks to send messages to
+     * @param path the path to delete on shutdown when it's empty, otherwise can be {@code null}
+     */
+    public CopyThreadPool(int threads, PrintStream out, AlluxioURI path) {
+      mPool = new ThreadPoolExecutor(threads, threads,
+          1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threads * 2),
+          new ThreadPoolExecutor.CallerRunsPolicy());
+      mMessages = new LinkedBlockingQueue<>();
+      mOutput = out;
+      mPrinter = new Thread(() -> {
+        while (!Thread.currentThread().isInterrupted()) {
+          try {
+            String message = mMessages.take();
+            if (message.equals(MESSAGE_DONE)) {
+              break;
+            }
+            mOutput.println(message);
+          } catch (InterruptedException e) {
             break;
           }
-          System.out.println(message);
-        } catch (InterruptedException e) {
-          break;
         }
-      }
-    });
-    mCopyProgressDisplayThread.start();
-  }
+      });
+      mPrinter.start();
+      mPath = path;
+    }
 
-  /**
-   * Waits until all asynchronous copy tasks succeed or fail, then shuts down the copy executor and
-   * joins the progress display thread.
-   * If deleteEmptyDir is true, then the destination will be deleted if all copy tasks fail.
-   *
-   * @param dstPath the destination in {@link #asyncCopyLocalPath(AlluxioURI, AlluxioURI)}
-   * @param deleteEmptyDir whether delete the destination if it is an empty directory
-   * @throws IOException when some async copy tasks fail, or all copy tasks fail and the destination
-   *         fails to be deleted
-   */
-  private void waitAsyncCopy(AlluxioURI dstPath, boolean deleteEmptyDir)
-      throws IOException {
-    try {
-      mCopyExecutor.shutdown();
-      mCopyExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-      mCopyProgress.put(COPY_PROGRESS_DONE);
-      mCopyProgressDisplayThread.join();
-      if (deleteEmptyDir
-              && mFileSystem.exists(dstPath)
-              && mFileSystem.getStatus(dstPath).isFolder()
-              && mFileSystem.listStatus(dstPath).isEmpty()) {
-        mFileSystem.delete(dstPath);
+    /**
+     * Submits a copy task, returns immediately without waiting for completion.
+     *
+     * @param task the copy task
+     */
+    public <T> void submit(Callable<T> task) {
+      mPool.submit(task);
+    }
+
+    /**
+     * Prints out the message into the specified output stream in a new line, waiting if necessary
+     * for the internal message queue to have available space.
+     *
+     * @param message the message, must not be "#"
+     * @throws InterruptedException if interrupted while waiting
+     */
+    public void println(String message) throws InterruptedException {
+      mMessages.put(message);
+    }
+
+    /**
+     * Waits until all asynchronous copy tasks succeed or fail, then shuts down the thread pool,
+     * joins the printer thread, and deletes the copy destination in case of error.
+     *
+     * @throws IOException when threads are interrupted or the path fails to be deleted
+     */
+    public void shutdown() throws IOException {
+      try {
+        mPool.shutdown();
+        mPool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        mMessages.put(MESSAGE_DONE);
+        mPrinter.join();
+        if (mPath != null
+            && mFileSystem.exists(mPath)
+            && mFileSystem.getStatus(mPath).isFolder()
+            && mFileSystem.listStatus(mPath).isEmpty()) {
+          mFileSystem.delete(mPath);
+        }
+      } catch (Exception e) {
+        throw new IOException(e);
       }
-    } catch (Exception e) {
-      throw new IOException(e);
     }
   }
 
@@ -191,7 +229,20 @@ public final class CpCommand extends AbstractFileSystemCommand {
       if (srcPaths.size() == 1) {
         copyFromLocalFile(srcPaths.get(0), dstPath);
       } else {
-        copyFromLocalFileList(srcPaths, dstPath);
+        int numThreads;
+        if (cl.hasOption("t")) {
+          try {
+            numThreads = (int) cl.getParsedOptionValue("t");
+          } catch (ParseException e) {
+            throw new IOException("Failed to parse option -t into an integer", e);
+          }
+        } else {
+          numThreads = Runtime.getRuntime().availableProcessors() * 2;
+        }
+        CopyThreadPool pool = new CopyThreadPool(numThreads, System.out,
+            mFileSystem.exists(dstPath) ? null : dstPath);
+        copyFromLocalFileList(pool, srcPaths, dstPath);
+        pool.shutdown();
       }
       System.out.println("Copied " + srcPath + " to " + dstPath);
     } else if ((srcPath.getScheme() == null || isAlluxio(srcPath.getScheme()))
@@ -356,21 +407,16 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * dstPath in the Alluxio filesystem space. This method is used when the input path contains
    * wildcards.
    *
+   * @param pool the thread pool for copying
    * @param srcPaths a list of files or directories in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
    */
-  private void copyFromLocalFileList(List<AlluxioURI> srcPaths, AlluxioURI dstPath)
-      throws AlluxioException, IOException {
-    boolean dstExists = mFileSystem.exists(dstPath);
+  private void copyFromLocalFileList(CopyThreadPool pool,
+      List<AlluxioURI> srcPaths, AlluxioURI dstPath) throws AlluxioException, IOException {
     createDstDir(dstPath);
-    initAsyncCopy();
-    try {
-      for (AlluxioURI srcPath : srcPaths) {
-        AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcPath.getName()));
-        asyncCopyLocalPath(srcPath, newURI);
-      }
-    } finally {
-      waitAsyncCopy(dstPath, !dstExists);
+    for (AlluxioURI srcPath : srcPaths) {
+      AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcPath.getName()));
+      asyncCopyLocalPath(pool, srcPath, newURI);
     }
   }
 
@@ -435,22 +481,20 @@ public final class CpCommand extends AbstractFileSystemCommand {
   /**
    * Asynchronously copies a file or directory specified by srcPath from the local filesystem to
    * dstPath in the Alluxio filesystem space, assuming dstPath does not exist.
-   * When this method returns, the files are might still being copied,
-   * call {@link #waitAsyncCopy(AlluxioURI, boolean)} to wait for the copies to finish.
    *
    * @param srcPath the {@link AlluxioURI} of the source file in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
    */
-  private void asyncCopyLocalPath(AlluxioURI srcPath, AlluxioURI dstPath)
+  private void asyncCopyLocalPath(CopyThreadPool pool, AlluxioURI srcPath, AlluxioURI dstPath)
           throws AlluxioException, IOException {
     File src = new File(srcPath.getPath());
     if (!src.isDirectory()) {
-      mCopyExecutor.submit(() -> {
+      pool.submit(() -> {
         try {
           copyFromLocalFile(srcPath, dstPath);
-          mCopyProgress.put(String.format("Copied %s to %s.", srcPath, dstPath));
+          pool.println(String.format("Copied %s to %s.", srcPath, dstPath));
         } catch (IOException | AlluxioException e) {
-          mCopyProgress.put(e.getMessage());
+          pool.println(e.getMessage());
         }
         return null;
       });
@@ -462,7 +506,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       }
       for (File srcFile : fileList) {
         AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
-        asyncCopyLocalPath(
+        asyncCopyLocalPath(pool,
               new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()),
               newURI);
       }
