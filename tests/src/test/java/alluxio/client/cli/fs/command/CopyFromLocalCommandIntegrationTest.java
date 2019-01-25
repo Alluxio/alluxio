@@ -316,7 +316,7 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     }
   }
 
-  @Test
+  @Test(timeout = 30000)
   public void copyFromLargeLocalDirectory() throws Exception {
     final String testDir = FileSystemShellUtilsTest.TEST_DIR;
     final String filePathFormat = "file_%d";
