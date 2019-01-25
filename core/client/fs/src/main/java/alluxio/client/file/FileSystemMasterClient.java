@@ -117,6 +117,12 @@ public interface FileSystemMasterClient extends Client {
   void free(AlluxioURI path, FreePOptions options) throws AlluxioStatusException;
 
   /**
+   * @param fileId a file id
+   * @return the file path for the given file id
+   */
+  String getFilePath(long fileId) throws AlluxioStatusException;
+
+  /**
    * @param path the file path
    * @param options the getStatus options
    * @return the file info for the given file id
