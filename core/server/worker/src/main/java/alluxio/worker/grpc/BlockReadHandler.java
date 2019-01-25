@@ -25,7 +25,7 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataNettyBuffer;
+import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
@@ -106,7 +106,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       try {
         while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
         }
-        return new DataNettyBuffer(buf);
+        return new NettyDataBuffer(buf);
       } catch (Throwable e) {
         buf.release();
         throw e;

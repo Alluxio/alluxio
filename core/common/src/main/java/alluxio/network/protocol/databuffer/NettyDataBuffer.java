@@ -19,15 +19,15 @@ import java.nio.ByteBuffer;
 /**
  * A DataBuffer with the underlying data being a {@link ByteBuf}.
  */
-public final class DataNettyBuffer implements DataBuffer {
+public final class NettyDataBuffer implements DataBuffer {
   private final ByteBuf mNettyBuf;
 
   /**
-   * Constructor for creating a DataNettyBuffer, by passing a Netty ByteBuf.
+   * Constructor for creating a NettyDataBuffer, by passing a Netty ByteBuf.
    *
    * @param bytebuf The ByteBuf having the data
    */
-  public DataNettyBuffer(ByteBuf bytebuf) {
+  public NettyDataBuffer(ByteBuf bytebuf) {
     Preconditions.checkNotNull(bytebuf, "bytebuf");
     mNettyBuf = bytebuf;
   }

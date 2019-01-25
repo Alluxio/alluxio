@@ -17,7 +17,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataByteBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -101,7 +101,7 @@ public final class GrpcDataReader implements DataReader {
     buf = response.getChunk().getData();
     mPosToRead += buf.size();
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
-    return new DataByteBuffer(buf.asReadOnlyByteBuffer(), buf.size());
+    return new NioDataBuffer(buf.asReadOnlyByteBuffer(), buf.size());
   }
 
   @Override

@@ -24,9 +24,9 @@ import org.junit.Test;
 import java.nio.ByteBuffer;
 
 /**
- * Tests for the {@link DataByteBuffer} class.
+ * Tests for the {@link NioDataBuffer} class.
  */
-public class DataByteBufferTest {
+public class NioDataBufferTest {
   private static final int LENGTH = 5;
 
   private ByteBuffer mBuffer = null;
@@ -40,30 +40,30 @@ public class DataByteBufferTest {
   }
 
   /**
-   * Tests the {@link DataByteBuffer#getNettyOutput()} method.
+   * Tests the {@link NioDataBuffer#getNettyOutput()} method.
    */
   @Test
   public void nettyOutput() {
-    DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
+    NioDataBuffer data = new NioDataBuffer(mBuffer, LENGTH);
     Object output = data.getNettyOutput();
     assertTrue(output instanceof ByteBuf || output instanceof FileRegion);
   }
 
   /**
-   * Tests the {@link DataByteBuffer#getLength()} method.
+   * Tests the {@link NioDataBuffer#getLength()} method.
    */
   @Test
   public void length() {
-    DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
+    NioDataBuffer data = new NioDataBuffer(mBuffer, LENGTH);
     assertEquals(LENGTH, data.getLength());
   }
 
   /**
-   * Tests the {@link DataByteBuffer#getReadOnlyByteBuffer()} method.
+   * Tests the {@link NioDataBuffer#getReadOnlyByteBuffer()} method.
    */
   @Test
   public void readOnlyByteBuffer() {
-    DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
+    NioDataBuffer data = new NioDataBuffer(mBuffer, LENGTH);
     ByteBuffer readOnlyBuffer = data.getReadOnlyByteBuffer();
     assertTrue(readOnlyBuffer.isReadOnly());
     assertEquals(mBuffer, readOnlyBuffer);
