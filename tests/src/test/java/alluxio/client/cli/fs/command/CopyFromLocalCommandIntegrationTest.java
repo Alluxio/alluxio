@@ -206,9 +206,8 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
         BufferUtils.getIncreasingByteArray(10, 20));
 
     mFsShell.run("copyFromLocal", testFile.getParent(), "/testDir");
-    Assert.assertEquals(
-        getCommandOutput(new String[]{"copyFromLocal", testFile.getParent(), "/testDir"}),
-        mOutput.toString());
+    Assert.assertTrue(mOutput.toString().contains(
+        getCommandOutput(new String[]{"copyFromLocal", testFile.getParent(), "/testDir"})));
     AlluxioURI uri1 = new AlluxioURI("/testDir/testFile");
     AlluxioURI uri2 = new AlluxioURI("/testDir/testDirInner/testFile2");
     URIStatus status1 = mFileSystem.getStatus(uri1);

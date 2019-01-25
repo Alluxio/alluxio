@@ -333,7 +333,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
         BufferUtils.getIncreasingByteArray(10, 20));
     String[] cmd = new String[]{"cp", "file://" + testFile.getParent(), "/testDir"};
     mFsShell.run(cmd);
-    Assert.assertEquals(getCommandOutput(cmd), mOutput.toString());
+    Assert.assertTrue(mOutput.toString().contains(getCommandOutput(cmd)));
     AlluxioURI uri1 = new AlluxioURI("/testDir/testFile");
     AlluxioURI uri2 = new AlluxioURI("/testDir/testDirInner/testFile2");
     URIStatus status1 = mFileSystem.getStatus(uri1);
