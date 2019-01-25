@@ -15,6 +15,8 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.metastore.heap.HeapBlockStore;
+import alluxio.master.metastore.heap.HeapInodeStore;
 
 /**
  * Util methods to help with master testing.
@@ -37,6 +39,8 @@ public final class MasterTestUtils {
         .setJournalSystem(journalSystem)
         .setSafeModeManager(new TestSafeModeManager())
         .setBackupManager(mock(BackupManager.class))
+        .setBlockStoreFactory(args -> new HeapBlockStore(args))
+        .setInodeStoreFactory(args -> new HeapInodeStore(args))
         .setStartTimeMs(-1)
         .setPort(-1)
         .build();

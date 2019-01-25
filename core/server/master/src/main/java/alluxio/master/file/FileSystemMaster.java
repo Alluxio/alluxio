@@ -25,10 +25,8 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.SetAclAction;
 import alluxio.master.Master;
-import alluxio.wire.SyncPointInfo;
-import alluxio.master.file.meta.FileSystemMasterView;
-import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -43,14 +41,16 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
+import alluxio.master.file.meta.FileSystemMasterView;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authorization.AclEntry;
-import alluxio.wire.FileSystemCommand;
-import alluxio.grpc.SetAclAction;
-import alluxio.wire.UfsInfo;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.FileSystemCommand;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.SyncPointInfo;
+import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
@@ -229,9 +229,9 @@ public interface FileSystemMaster extends Master {
   MountPointInfo getMountPointInfo(AlluxioURI path) throws InvalidPathException;
 
   /**
-   * @return the number of files and directories
+   * @return an estimate of the number of files and directories
    */
-  int getNumberOfPaths();
+  long estimateNumberOfPaths();
 
   /**
    * @return the number of pinned files and directories

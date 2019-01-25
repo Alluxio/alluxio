@@ -42,7 +42,7 @@ public final class MasterMetrics {
   public static final String SET_ATTRIBUTE_OPS = "SetAttributeOps";
   public static final String UNMOUNT_OPS = "UnmountOps";
   public static final String FILES_PINNED = "FilesPinned";
-  public static final String PATHS_TOTAL = "PathsTotal";
+  public static final String TOTAL_PATHS_ESTIMATE = "TotalPathsEstimate";
   public static final String UFS_CAPACITY_TOTAL = "UfsCapacityTotal";
   public static final String UFS_CAPACITY_USED = "UfsCapacityUsed";
   public static final String UFS_CAPACITY_FREE = "UfsCapacityFree";

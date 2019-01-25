@@ -1203,6 +1203,58 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE =
+      new Builder(Name.MASTER_METASTORE)
+          .setDefaultValue("HEAP")
+          .setDescription("The type of metastore to use, either HEAP or ROCKS")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_DIR =
+      new Builder(Name.MASTER_METASTORE_DIR)
+          .setDefaultValue(String.format("${%s}/metastore", Name.WORK_DIR))
+          .setDescription("The metastore work directory. Only some metastores need disk.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
+      new Builder(Name.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE)
+          // TODO(andrew): benchmark different batch sizes to improve the default and provide a
+          // tuning guideline
+          .setDefaultValue("1000")
+          .setDescription("The batch size for evicting entries from the inode cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO =
+      new Builder(Name.MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO)
+          .setDefaultValue("0.85")
+          .setDescription("The high water mark for the inode cache, as a ratio from high water "
+              + "mark to total cache size. If this is 0.85 and the max size is 10 million, the "
+              + "high water mark value is 8.5 million. When the cache reaches the high "
+              + "water mark, the eviction process will evict down to the low water mark.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO =
+      new Builder(Name.MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO)
+          .setDefaultValue("0.7")
+          .setDescription("The low water mark for the inode cache, as a ratio from low water mark "
+              + "to total cache size. If this is 0.7 and the max size is 10 million, the low "
+              + "water mark value is 7 million. When the cache reaches the high "
+              + "water mark, the eviction process will evict down to the low water mark.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
+      new Builder(Name.MASTER_METASTORE_INODE_CACHE_MAX_SIZE)
+          .setDefaultValue("10000000")
+          .setDescription("The number of inodes to cache on-heap. "
+              + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
+              + "the on-heap inode cache")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_WORKER_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_WORKER_HEARTBEAT_INTERVAL)
           .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms",
@@ -3579,6 +3631,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
         "alluxio.master.embedded.journal.storage.level";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
+    public static final String MASTER_METASTORE = "alluxio.master.metastore";
+    public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
+    public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
+        "alluxio.master.metastore.inode.cache.evict.batch.size";
+    public static final String MASTER_METASTORE_INODE_CACHE_HIGH_WATER_MARK_RATIO =
+        "alluxio.master.metastore.inode.cache.high.water.mark.ratio";
+    public static final String MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO =
+        "alluxio.master.metastore.inode.cache.low.water.mark.ratio";
+    public static final String MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
+        "alluxio.master.metastore.inode.cache.max.size";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval.ms";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =

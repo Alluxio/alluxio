@@ -13,7 +13,6 @@ package alluxio.master.file.contexts;
 
 import alluxio.client.WriteType;
 import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.TtlAction;

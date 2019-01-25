@@ -12,6 +12,8 @@
 package alluxio.master;
 
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.metastore.BlockStore;
+import alluxio.master.metastore.InodeStore;
 
 import com.google.common.base.Preconditions;
 
@@ -21,6 +23,8 @@ import com.google.common.base.Preconditions;
 public class CoreMasterContext extends MasterContext {
   private final SafeModeManager mSafeModeManager;
   private final BackupManager mBackupManager;
+  private final BlockStore.Factory mBlockStoreFactory;
+  private final InodeStore.Factory mInodeStoreFactory;
   private final long mStartTimeMs;
   private final int mPort;
 
@@ -29,6 +33,10 @@ public class CoreMasterContext extends MasterContext {
 
     mSafeModeManager = Preconditions.checkNotNull(builder.mSafeModeManager, "safeModeManager");
     mBackupManager = Preconditions.checkNotNull(builder.mBackupManager, "backupManager");
+    mBlockStoreFactory =
+        Preconditions.checkNotNull(builder.mBlockStoreFactory, "blockStoreFactory");
+    mInodeStoreFactory =
+        Preconditions.checkNotNull(builder.mInodeStoreFactory, "inodeStoreFactory");
     mStartTimeMs = builder.mStartTimeMs;
     mPort = builder.mPort;
   }
@@ -45,6 +53,20 @@ public class CoreMasterContext extends MasterContext {
    */
   public BackupManager getBackupManager() {
     return mBackupManager;
+  }
+
+  /**
+   * @return the block store factory
+   */
+  public BlockStore.Factory getBlockStoreFactory() {
+    return mBlockStoreFactory;
+  }
+
+  /**
+   * @return the inode store factory
+   */
+  public InodeStore.Factory getInodeStoreFactory() {
+    return mInodeStoreFactory;
   }
 
   /**
@@ -75,6 +97,8 @@ public class CoreMasterContext extends MasterContext {
     private JournalSystem mJournalSystem;
     private SafeModeManager mSafeModeManager;
     private BackupManager mBackupManager;
+    private BlockStore.Factory mBlockStoreFactory;
+    private InodeStore.Factory mInodeStoreFactory;
     private long mStartTimeMs;
     private int mPort;
 
@@ -102,6 +126,24 @@ public class CoreMasterContext extends MasterContext {
      */
     public Builder setBackupManager(BackupManager backupManager) {
       mBackupManager = backupManager;
+      return this;
+    }
+
+    /**
+     * @param blockStoreFactory factory for creating a block store
+     * @return the builder
+     */
+    public Builder setBlockStoreFactory(BlockStore.Factory blockStoreFactory) {
+      mBlockStoreFactory = blockStoreFactory;
+      return this;
+    }
+
+    /**
+     * @param inodeStoreFactory factory for creating an inode store
+     * @return the builder
+     */
+    public Builder setInodeStoreFactory(InodeStore.Factory inodeStoreFactory) {
+      mInodeStoreFactory = inodeStoreFactory;
       return this;
     }
 

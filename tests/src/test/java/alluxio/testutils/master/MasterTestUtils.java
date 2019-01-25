@@ -27,6 +27,8 @@ import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.file.StartupConsistencyCheck.Status;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.metastore.heap.HeapBlockStore;
+import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -74,6 +76,8 @@ public class MasterTestUtils {
         .setJournalSystem(journalSystem)
         .setSafeModeManager(safeModeManager)
         .setBackupManager(mock(BackupManager.class))
+        .setBlockStoreFactory(args -> new HeapBlockStore(args))
+        .setInodeStoreFactory(args -> new HeapInodeStore(args))
         .setStartTimeMs(startTimeMs)
         .setPort(port)
         .build();
