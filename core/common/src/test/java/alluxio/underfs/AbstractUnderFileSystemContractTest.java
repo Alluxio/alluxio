@@ -59,7 +59,7 @@ public abstract class AbstractUnderFileSystemContractTest {
 
   private String mUnderfsAddress;
   private UnderFileSystem mUfs;
-  protected InstancedConfiguration mConfiguration;
+  protected InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
@@ -86,7 +86,6 @@ public abstract class AbstractUnderFileSystemContractTest {
 
   @Before
   public final void before() throws Exception {
-    mConfiguration = ConfigurationTestUtils.defaults();
     mUnderfsAddress = PathUtils.concatPath(getUfsBaseDir(), UUID.randomUUID());
     mUfs = createUfs(mUnderfsAddress, UnderFileSystemConfiguration.defaults());
     mUfs.mkdirs(mUnderfsAddress, MkdirsOptions.defaults(mConfiguration).setCreateParent(true));
@@ -94,6 +93,7 @@ public abstract class AbstractUnderFileSystemContractTest {
 
   @After
   public final void after() throws Exception {
+    mConfiguration = ConfigurationTestUtils.defaults();
     mUfs.deleteDirectory(mUnderfsAddress, DeleteOptions.defaults().setRecursive(true));
     mUfs.close();
   }
