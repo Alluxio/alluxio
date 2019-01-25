@@ -80,12 +80,12 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .build();
 
   /**
-   * A thread pool for asynchronous copy.
+   * A thread pool executor for asynchronous copy.
    *
    * Copy tasks can send messages to an output stream in a thread safe way.
    */
   @ThreadSafe
-  private final class CopyThreadPool {
+  private final class CopyThreadPoolExecutor {
     private static final String MESSAGE_DONE = "#";
 
     private ThreadPoolExecutor mPool;
@@ -105,7 +105,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
      * @param out the output stream for tasks to send messages to
      * @param path the path to delete on shutdown when it's empty, otherwise can be {@code null}
      */
-    public CopyThreadPool(int threads, PrintStream out, AlluxioURI path) {
+    public CopyThreadPoolExecutor(int threads, PrintStream out, AlluxioURI path) {
       mPool = new ThreadPoolExecutor(threads, threads,
           1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threads * 2),
           new ThreadPoolExecutor.CallerRunsPolicy());
@@ -239,7 +239,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         } else {
           numThreads = Runtime.getRuntime().availableProcessors() * 2;
         }
-        CopyThreadPool pool = new CopyThreadPool(numThreads, System.out,
+        CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(numThreads, System.out,
             mFileSystem.exists(dstPath) ? null : dstPath);
         copyFromLocalFileList(pool, srcPaths, dstPath);
         pool.shutdown();
@@ -411,7 +411,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * @param srcPaths a list of files or directories in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
    */
-  private void copyFromLocalFileList(CopyThreadPool pool,
+  private void copyFromLocalFileList(CopyThreadPoolExecutor pool,
       List<AlluxioURI> srcPaths, AlluxioURI dstPath) throws AlluxioException, IOException {
     createDstDir(dstPath);
     for (AlluxioURI srcPath : srcPaths) {
@@ -485,8 +485,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * @param srcPath the {@link AlluxioURI} of the source file in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
    */
-  private void asyncCopyLocalPath(CopyThreadPool pool, AlluxioURI srcPath, AlluxioURI dstPath)
-          throws AlluxioException, IOException {
+  private void asyncCopyLocalPath(CopyThreadPoolExecutor pool, AlluxioURI srcPath,
+      AlluxioURI dstPath) throws AlluxioException, IOException {
     File src = new File(srcPath.getPath());
     if (!src.isDirectory()) {
       pool.submit(() -> {
