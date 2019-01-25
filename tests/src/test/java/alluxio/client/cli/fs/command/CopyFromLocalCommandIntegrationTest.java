@@ -22,11 +22,13 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -38,6 +40,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for copyFromLocal command.
@@ -207,9 +212,8 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
         BufferUtils.getIncreasingByteArray(10, 20));
 
     mFsShell.run("copyFromLocal", testFile.getParent(), "/testDir");
-    Assert.assertEquals(
-        getCommandOutput(new String[]{"copyFromLocal", testFile.getParent(), "/testDir"}),
-        mOutput.toString());
+    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString(
+        getCommandOutput(new String[]{"copyFromLocal", testFile.getParent(), "/testDir"})));
     AlluxioURI uri1 = new AlluxioURI("/testDir/testFile");
     AlluxioURI uri2 = new AlluxioURI("/testDir/testDirInner/testFile2");
     URIStatus status1 = mFileSystem.getStatus(uri1);
@@ -309,6 +313,45 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
       int ret = mFsShell.run("copyFromLocal", "testDir/testFile", "/testFile");
       Assert.assertEquals(0, ret);
       Assert.assertTrue(fileExists(new AlluxioURI(("/testFile"))));
+    }
+  }
+
+  @Test(timeout = 30000)
+  public void copyFromLargeLocalDirectory() throws Exception {
+    final String testDir = FileSystemShellUtilsTest.TEST_DIR;
+    final String filePathFormat = "file_%d";
+    final File src = new File(mLocalAlluxioCluster.getAlluxioHome() + testDir);
+    FileUtils.deleteDirectory(src);
+    src.mkdir();
+    ExecutorService executor = Executors.newFixedThreadPool(
+        Runtime.getRuntime().availableProcessors() * 2);
+    final int numFiles = 2_000;
+    for (int i = 0; i < numFiles; i++) {
+      final int fileId = i;
+      executor.submit(() -> {
+        try {
+          new File(src, String.format(filePathFormat, fileId)).createNewFile();
+        } catch (IOException e) {
+          // Ignore errors here, if the file cannot be created, asserts below will fail.
+        }
+      });
+    }
+    executor.shutdown();
+    executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+    File[] files = src.listFiles();
+    Assert.assertNotNull(files);
+    Assert.assertEquals(numFiles, files.length);
+
+    AlluxioURI dst = new AlluxioURI(testDir);
+    if (mFileSystem.exists(dst)) {
+      mFileSystem.delete(dst, DeletePOptions.newBuilder().setRecursive(true).build());
+    }
+    mFileSystem.createDirectory(dst);
+
+    int ret = mFsShell.run("copyFromLocal", src.getAbsolutePath(), testDir);
+    Assert.assertEquals(0, ret);
+    for (int i = 0; i < numFiles; i++) {
+      Assert.assertTrue(fileExists(dst.join(String.format(filePathFormat, i))));
     }
   }
 }
