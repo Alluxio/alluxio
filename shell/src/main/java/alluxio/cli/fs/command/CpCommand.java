@@ -71,7 +71,6 @@ public final class CpCommand extends AbstractFileSystemCommand {
   private static final String COPY_PROGRESS_DONE = "#";
 
   private ThreadPoolExecutor mCopyExecutor;
-  private Phaser mCopyDoneSignal;
   private BlockingQueue<String> mCopyProgress;
   private Thread mCopyProgressDisplayThread;
 
@@ -82,7 +81,6 @@ public final class CpCommand extends AbstractFileSystemCommand {
     mCopyExecutor = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS,
       1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(NUM_THREADS * 2),
       new ThreadPoolExecutor.CallerRunsPolicy());
-    mCopyDoneSignal = new Phaser(1);
     mCopyProgress = new LinkedBlockingQueue<>();
     mCopyProgressDisplayThread = new Thread(() -> {
       while (true) {
@@ -113,8 +111,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
   private void waitAsyncCopy(AlluxioURI dstPath, boolean deleteEmptyDir)
       throws IOException {
     try {
-      mCopyDoneSignal.arriveAndAwaitAdvance();
-      mCopyExecutor.shutdownNow();
+      mCopyExecutor.shutdown();
+      mCopyExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
       mCopyProgress.put(COPY_PROGRESS_DONE);
       mCopyProgressDisplayThread.join();
       if (deleteEmptyDir
@@ -439,14 +437,11 @@ public final class CpCommand extends AbstractFileSystemCommand {
     File src = new File(srcPath.getPath());
     if (!src.isDirectory()) {
       mCopyExecutor.submit(() -> {
-        mCopyDoneSignal.register();
         try {
           copyFromLocalFile(srcPath, dstPath);
           mCopyProgress.put(String.format("Copied %s to %s.", srcPath, dstPath));
         } catch (IOException | AlluxioException e) {
           mCopyProgress.put(e.getMessage());
-        } finally {
-          mCopyDoneSignal.arrive();
         }
         return null;
       });
