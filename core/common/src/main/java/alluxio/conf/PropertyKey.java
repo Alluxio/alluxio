@@ -2966,6 +2966,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_COPY_FROM_LOCAL_THREADS =
+      new Builder(Name.USER_COPY_FROM_LOCAL_THREADS)
+          .setDefaultValue(Runtime.getRuntime().availableProcessors() * 2)
+          .setDescription("Number of threads used in copyFromLocal command.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
 
   //
   // FUSE integration related properties
@@ -3909,6 +3916,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
+    public static final String USER_COPY_FROM_LOCAL_THREADS = "alluxio.user.copy.from.local.threads";
 
     //
     // FUSE integration related properties

@@ -66,7 +66,6 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .hasArg(false)
           .desc("copy files in subdirectories recursively")
           .build();
-  private static final int NUM_THREADS = Runtime.getRuntime().availableProcessors() * 2;
   private static final String COPY_PROGRESS_DONE = "#";
 
   private ThreadPoolExecutor mCopyExecutor;
@@ -77,8 +76,9 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * Initializes necessary resources for async copy.
    */
   private void initAsyncCopy() {
-    mCopyExecutor = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS,
-      1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(NUM_THREADS * 2),
+    final int numThreads = mFsContext.getConf().getInt(PropertyKey.USER_COPY_FROM_LOCAL_THREADS);
+    mCopyExecutor = new ThreadPoolExecutor(numThreads, numThreads,
+      1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(numThreads * 2),
       new ThreadPoolExecutor.CallerRunsPolicy());
     mCopyProgress = new LinkedBlockingQueue<>();
     mCopyProgressDisplayThread = new Thread(() -> {
