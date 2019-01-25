@@ -11,9 +11,7 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.uri.Authority;
 import alluxio.uri.ZookeeperAuthority;
@@ -53,7 +51,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
   private final ZkMasterConnectDetails mConnectDetails;
   private final String mElectionPath;
   private final CuratorFramework mClient;
-  private final int mMaxTry;
+  private final int mInquireRetryCount;
 
   /**
    * Gets the client.
@@ -61,14 +59,16 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
    * @param zookeeperAddress the address for Zookeeper
    * @param electionPath the path of the master election
    * @param leaderPath the path of the leader
+   * @param inquireRetryCount the number of times to retry connections
    * @return the client
    */
   public static synchronized ZkMasterInquireClient getClient(String zookeeperAddress,
-      String electionPath, String leaderPath) {
+      String electionPath, String leaderPath, int inquireRetryCount) {
     ZkMasterConnectDetails connectDetails =
         new ZkMasterConnectDetails(zookeeperAddress, leaderPath);
     if (!sCreatedClients.containsKey(connectDetails)) {
-      sCreatedClients.put(connectDetails, new ZkMasterInquireClient(connectDetails, electionPath));
+      sCreatedClients.put(connectDetails, new ZkMasterInquireClient(connectDetails, electionPath,
+          inquireRetryCount));
     }
     return sCreatedClients.get(connectDetails);
   }
@@ -79,7 +79,8 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
    * @param connectDetails connect details
    * @param electionPath the path of the master election
    */
-  private ZkMasterInquireClient(ZkMasterConnectDetails connectDetails, String electionPath) {
+  private ZkMasterInquireClient(ZkMasterConnectDetails connectDetails, String electionPath,
+      int inquireRetryCount) {
     mConnectDetails = connectDetails;
     mElectionPath = electionPath;
 
@@ -88,7 +89,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
     mClient = CuratorFrameworkFactory.newClient(connectDetails.getZkAddress(),
         new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
 
-    mMaxTry = Configuration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
+    mInquireRetryCount = inquireRetryCount;
   }
 
   @Override
@@ -109,7 +110,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
       }
       curatorClient.blockUntilConnectedOrTimedOut();
       String leaderPath = mConnectDetails.getLeaderPath();
-      while (tried < mMaxTry) {
+      while (tried < mInquireRetryCount) {
         ZooKeeper zookeeper = curatorClient.getZooKeeper();
         if (zookeeper.exists(leaderPath, false) != null) {
           List<String> masters = zookeeper.getChildren(leaderPath, null);
@@ -153,7 +154,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
     ensureStarted();
     int tried = 0;
     try {
-      while (tried < mMaxTry) {
+      while (tried < mInquireRetryCount) {
         if (mClient.checkExists().forPath(mElectionPath) != null) {
           List<String> children = mClient.getChildren().forPath(mElectionPath);
           List<InetSocketAddress> ret = new ArrayList<>();

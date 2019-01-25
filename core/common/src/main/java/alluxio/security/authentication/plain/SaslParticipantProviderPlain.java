@@ -11,9 +11,9 @@
 
 package alluxio.security.authentication.plain;
 
-import alluxio.Configuration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
@@ -41,7 +41,8 @@ public class SaslParticipantProviderPlain implements SaslParticipantProvider {
   }
 
   @Override
-  public SaslClient createSaslClient(Subject subject) throws UnauthenticatedException {
+  public SaslClient createSaslClient(Subject subject, AlluxioConfiguration conf)
+      throws UnauthenticatedException {
     String username = null;
     String password = "noPassword";
 
@@ -52,21 +53,21 @@ public class SaslParticipantProviderPlain implements SaslParticipantProvider {
       }
     }
     if (username == null || username.isEmpty()) {
-      username = LoginUser.get().getName();
+      username = LoginUser.get(conf).getName();
     }
 
     // Determine the impersonation user
-    String impersonationUser = SaslParticipantProviderUtils.getImpersonationUser(subject);
+    String impersonationUser = SaslParticipantProviderUtils.getImpersonationUser(subject, conf);
 
     if (impersonationUser != null
-        && Configuration.isSet(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)
+        && conf.isSet(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME)
         && Constants.IMPERSONATION_HDFS_USER
-            .equals(Configuration.get(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME))) {
+            .equals(conf.get(PropertyKey.SECURITY_LOGIN_IMPERSONATION_USERNAME))) {
       // If impersonation is configured to use the HDFS user, the connection user should
       // be not be the HDFS user, but the LoginUser.
       // If the HDFS user is really supposed to be the connection user, that can be achieved by
       // not enabling impersonation for the client.
-      username = LoginUser.get().getName();
+      username = LoginUser.get(conf).getName();
     }
     return createSaslClient(username, password, impersonationUser);
   }
@@ -84,19 +85,22 @@ public class SaslParticipantProviderPlain implements SaslParticipantProvider {
   }
 
   @Override
-  public SaslServer createSaslServer(String serverName) throws SaslException {
+  public SaslServer createSaslServer(String serverName, AlluxioConfiguration conf)
+      throws SaslException {
     return createSaslServer(new Runnable() {
       @Override
       public void run() {}
-    }, serverName);
+    }, serverName, conf);
   }
 
   @Override
-  public SaslServer createSaslServer(Runnable runnable, String serverName) throws SaslException {
+  public SaslServer createSaslServer(Runnable runnable, String serverName,
+      AlluxioConfiguration conf) throws SaslException {
     AuthType authType =
-        Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-    AuthenticationProvider provider = AuthenticationProvider.Factory.create(authType);
+        conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    AuthenticationProvider provider = AuthenticationProvider.Factory.create(authType, conf);
     return Sasl.createSaslServer(PlainSaslServerProvider.MECHANISM, null, serverName,
-        new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider, runnable));
+        new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider, runnable,
+            conf));
   }
 }

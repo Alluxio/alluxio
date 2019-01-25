@@ -11,6 +11,8 @@
 
 package alluxio.underfs.wasb;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
@@ -23,17 +25,19 @@ import org.junit.Test;
 public class WasbUnderFileSystemFactoryTest {
 
   /**
-   * Tests the {@link UnderFileSystemFactoryRegistry#find(String)} method.
+   * Tests the
+   * {@link UnderFileSystemFactoryRegistry#find(String, alluxio.conf.AlluxioConfiguration)} method.
    */
   @Test
   public void factory() {
+    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
     UnderFileSystemFactory factory =
-        UnderFileSystemFactoryRegistry.find("wasb://localhost/test/path");
+        UnderFileSystemFactoryRegistry.find("wasb://localhost/test/path", conf);
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for wasb paths when using this module",
         factory);
 
-    factory = UnderFileSystemFactoryRegistry.find("alluxio://localhost/test/path");
+    factory = UnderFileSystemFactoryRegistry.find("alluxio://localhost/test/path", conf);
     Assert.assertNull("A UnderFileSystemFactory should not exist for unsupported paths when using"
         + " this module.", factory);
   }

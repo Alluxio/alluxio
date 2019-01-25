@@ -11,8 +11,8 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.collections.ConcurrentHashSet;
 
 import com.google.common.base.Objects;
@@ -34,7 +34,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * This field is intentionally not final so that tests can change the value.
    */
   private static long sTtlIntervalMs =
-      Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS);
+      ServerConfiguration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS);
   /**
    * Each bucket has a time to live interval, this value is the start of the interval, interval
    * value is the same as the configuration of {@link PropertyKey#MASTER_TTL_CHECKER_INTERVAL_MS}.

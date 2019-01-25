@@ -18,12 +18,11 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
@@ -118,14 +117,15 @@ public final class PermissionCheckTest {
           .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP)
           .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
               .createTemporaryDirectory("PermissionCheckTest").getAbsolutePath())
-          .build());
+          .build(), ServerConfiguration.global());
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser =
-      new AuthenticatedUserRule(TEST_USER_ADMIN.getUser());
+      new AuthenticatedUserRule(TEST_USER_ADMIN.getUser(), ServerConfiguration.global());
 
   @Rule
-  public LoginUserRule mLoginUserRule = new LoginUserRule(TEST_USER_ADMIN.getUser());
+  public LoginUserRule mLoginUserRule = new LoginUserRule(TEST_USER_ADMIN.getUser(),
+      ServerConfiguration.global());
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -179,7 +179,7 @@ public final class PermissionCheckTest {
 
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mTestFolder.newFolder());
+    ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mTestFolder.newFolder());
     GroupMappingServiceTestUtils.resetCache();
     mRegistry = new MasterRegistry();
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
@@ -196,7 +196,7 @@ public final class PermissionCheckTest {
   public void after() throws Exception {
     mRegistry.stop();
     GroupMappingServiceTestUtils.resetCache();
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   /**
@@ -208,14 +208,16 @@ public final class PermissionCheckTest {
    */
   private void createDirAndFileForTest() throws Exception {
     // create "/testDir" for user1
-    try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser(),
+        ServerConfiguration.global()).toResource()) {
       mFileSystemMaster.createDirectory(new AlluxioURI("/testDir"), CreateDirectoryContext
           .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()))
           .setOwner(TEST_USER_1.getUser()).setGroup(TEST_USER_1.getGroup()));
     }
 
     // create "/testDir/file" for user1
-    try (Closeable r = new AuthenticatedUserRule(TEST_USER_1.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(TEST_USER_1.getUser(),
+        ServerConfiguration.global()).toResource()) {
       mFileSystemMaster.createFile(new AlluxioURI("/testDir/file"),
           CreateFileContext
               .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
@@ -224,7 +226,8 @@ public final class PermissionCheckTest {
     }
 
     // create "/testFile" for user2
-    try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser(),
+        ServerConfiguration.global()).toResource()) {
       mFileSystemMaster.createFile(new AlluxioURI("/testFile"),
           CreateFileContext
               .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
@@ -282,12 +285,13 @@ public final class PermissionCheckTest {
   }
 
   private void verifyCreateFile(TestUser user, String path, boolean recursive) throws Exception {
-    try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(user.getUser(),
+        ServerConfiguration.global()).toResource()) {
       CreateFileContext context = CreateFileContext
           .defaults(
               CreateFilePOptions.newBuilder().setRecursive(recursive))
-          .setOwner(SecurityUtils.getOwnerFromGrpcClient())
-          .setGroup(SecurityUtils.getGroupFromGrpcClient())
+          .setOwner(SecurityUtils.getOwnerFromGrpcClient(ServerConfiguration.global()))
+          .setGroup(SecurityUtils.getGroupFromGrpcClient(ServerConfiguration.global()))
           .setPersisted(true);
 
       long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), context);
@@ -340,11 +344,12 @@ public final class PermissionCheckTest {
 
   private void verifyCreateDirectory(TestUser user, String path, boolean recursive)
       throws Exception {
-    try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(user.getUser(),
+        ServerConfiguration.global()).toResource()) {
       CreateDirectoryContext context = CreateDirectoryContext
           .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(recursive))
-          .setOwner(SecurityUtils.getOwnerFromGrpcClient())
-          .setGroup(SecurityUtils.getGroupFromGrpcClient());
+          .setOwner(SecurityUtils.getOwnerFromGrpcClient(ServerConfiguration.global()))
+          .setGroup(SecurityUtils.getGroupFromGrpcClient(ServerConfiguration.global()));
       mFileSystemMaster.createDirectory(new AlluxioURI(path), context);
 
       FileInfo fileInfo =
@@ -415,8 +420,10 @@ public final class PermissionCheckTest {
     verifyRename(TEST_USER_1, TEST_DIR_FILE_URI, "/fileRenamed");
   }
 
-  private void verifyRename(TestUser user, String srcPath, String dstPath) throws Exception {
-    try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
+  private void verifyRename(TestUser user, String srcPath, String dstPath)
+      throws Exception {
+    try (Closeable r = new AuthenticatedUserRule(user.getUser(),
+        ServerConfiguration.global()).toResource()) {
       String fileOwner =
           mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(srcPath)))
               .getOwner();
@@ -496,7 +503,8 @@ public final class PermissionCheckTest {
   }
 
   private void verifyDelete(TestUser user, String path, boolean recursive) throws Exception {
-    try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(user.getUser(),
+        ServerConfiguration.global()).toResource()) {
       mFileSystemMaster.delete(new AlluxioURI(path),
           DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(recursive)));
       assertEquals(-1, mFileSystemMaster.getFileId(new AlluxioURI(path)));
@@ -549,7 +557,8 @@ public final class PermissionCheckTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.READ, dir, "onlyReadByUser1")));
-    try (Closeable r = new AuthenticatedUserRule(TEST_USER_2.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(TEST_USER_2.getUser(),
+        ServerConfiguration.global()).toResource()) {
       verifyGetFileInfoOrList(TEST_USER_2, dir, false);
     }
   }
@@ -558,7 +567,8 @@ public final class PermissionCheckTest {
   public void readNotExecuteDir() throws Exception {
     // set unmask
     try (Closeable c = new ConfigurationRule(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "033").toResource()) {
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "033",
+        ServerConfiguration.global()).toResource()) {
       String dir = PathUtils.concatPath(TEST_DIR_URI, "/notExecuteDir");
       // create dir "/testDir/notExecuteDir" [user1, group1, drwxr--r--]
       verifyCreateDirectory(TEST_USER_1, dir, false);
@@ -574,7 +584,8 @@ public final class PermissionCheckTest {
   private String createUnreadableFileOrDir(boolean isFile) throws Exception {
     // set unmask
     try (Closeable c = new ConfigurationRule(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066").toResource()) {
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066",
+        ServerConfiguration.global()).toResource()) {
       String fileOrDir = PathUtils.concatPath(TEST_DIR_URI, "/onlyReadByUser1");
       if (isFile) {
         // create file "/testDir/onlyReadByUser1" [user1, group1, -rw-------]
@@ -597,7 +608,8 @@ public final class PermissionCheckTest {
    * @throws Exception if it fails to verify
    */
   private void verifyRead(TestUser user, String path, boolean isFile) throws Exception {
-    try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(user.getUser(),
+        ServerConfiguration.global()).toResource()) {
       verifyGetFileId(user, path);
       verifyGetFileInfoOrList(user, path, isFile);
     }
@@ -610,7 +622,8 @@ public final class PermissionCheckTest {
    * @throws Exception if it fails to verify
    */
   private void verifyGetFileId(TestUser user, String path) throws Exception {
-    try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(user.getUser(),
+        ServerConfiguration.global()).toResource()) {
       long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
       assertNotEquals(-1, fileId);
     }
@@ -618,7 +631,8 @@ public final class PermissionCheckTest {
 
   private void verifyGetFileInfoOrList(TestUser user, String path, boolean isFile)
       throws Exception {
-    try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(user.getUser(),
+        ServerConfiguration.global()).toResource()) {
       if (isFile) {
         assertEquals(path, mFileSystemMaster
             .getFileInfo(new AlluxioURI(path), GetStatusContext.defaults()).getPath());
@@ -640,7 +654,8 @@ public final class PermissionCheckTest {
   public void setStateSuccess() throws Exception {
     // set unmask
     try (Closeable c = new ConfigurationRule(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000").toResource()) {
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000",
+        ServerConfiguration.global()).toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
       verifyCreateFile(TEST_USER_1, file, false);
       SetAttributePOptions expect = getNonDefaultSetState();
@@ -656,7 +671,8 @@ public final class PermissionCheckTest {
   public void setStateFail() throws Exception {
     // set unmask
     try (Closeable c = new ConfigurationRule(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066").toResource()) {
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066",
+        ServerConfiguration.global()).toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
       verifyCreateFile(TEST_USER_1, file, false);
       SetAttributePOptions expect = getNonDefaultSetState();
@@ -675,7 +691,8 @@ public final class PermissionCheckTest {
 
   private SetAttributePOptions verifySetState(TestUser user, String path,
       SetAttributePOptions options) throws Exception {
-    try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(user.getUser(),
+        ServerConfiguration.global()).toResource()) {
       mFileSystemMaster.setAttribute(new AlluxioURI(path),
           SetAttributeContext.defaults(options.toBuilder()));
 
@@ -691,7 +708,8 @@ public final class PermissionCheckTest {
   public void completeFileSuccess() throws Exception {
     // set unmask
     try (Closeable c = new ConfigurationRule(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "044").toResource()) {
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "044",
+        ServerConfiguration.global()).toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "/testState1");
       verifyCreateFile(TEST_USER_1, file, false);
       CompleteFileContext expect = getNonDefaultCompleteFileContext();
@@ -703,7 +721,8 @@ public final class PermissionCheckTest {
   public void completeFileFail() throws Exception {
     // set unmask
     try (Closeable c = new ConfigurationRule(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066").toResource()) {
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066",
+        ServerConfiguration.global()).toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "/testComplete1");
       verifyCreateFile(TEST_USER_1, file, false);
       CompleteFileContext expect = getNonDefaultCompleteFileContext();
@@ -725,7 +744,8 @@ public final class PermissionCheckTest {
 
   private void verifyCompleteFile(TestUser user, String path, CompleteFileContext context)
       throws Exception {
-    try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(user.getUser(),
+        ServerConfiguration.global()).toResource()) {
       mFileSystemMaster.completeFile(new AlluxioURI(path), context);
     }
   }
@@ -750,7 +770,8 @@ public final class PermissionCheckTest {
   public void freeFileFail() throws Exception {
     // set unmask
     try (Closeable c = new ConfigurationRule(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066").toResource()) {
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066",
+        ServerConfiguration.global()).toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI, "testComplete1");
       verifyCreateFile(TEST_USER_1, file, false);
 
@@ -765,7 +786,8 @@ public final class PermissionCheckTest {
   public void freeNonNullDirectoryFail() throws Exception {
     // set unmask
     try (Closeable c = new ConfigurationRule(
-        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066").toResource()) {
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066",
+        ServerConfiguration.global()).toResource()) {
       String file = PathUtils.concatPath(TEST_DIR_URI + "/testComplete1");
       verifyCreateFile(TEST_USER_1, file, false);
 
@@ -777,7 +799,8 @@ public final class PermissionCheckTest {
   }
 
   private void verifyFree(TestUser user, String path, boolean recursive) throws Exception {
-    try (Closeable r = new AuthenticatedUserRule(user.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(user.getUser(),
+        ServerConfiguration.global()).toResource()) {
       mFileSystemMaster.free(new AlluxioURI(path),
           FreeContext.defaults(FreePOptions.newBuilder().setRecursive(recursive)));
     }
@@ -882,7 +905,8 @@ public final class PermissionCheckTest {
 
   private void verifySetAcl(TestUser runUser, String path, String owner, String group,
       short mode, boolean recursive) throws Exception {
-    try (Closeable r = new AuthenticatedUserRule(runUser.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(runUser.getUser(),
+        ServerConfiguration.global()).toResource()) {
       SetAttributeContext context = SetAttributeContext.defaults(SetAttributePOptions.newBuilder()
           .setMode(new Mode(mode).toProto()).setRecursive(recursive));
       if (owner != null) {
@@ -893,7 +917,8 @@ public final class PermissionCheckTest {
       }
       mFileSystemMaster.setAttribute(new AlluxioURI(path), context);
     }
-    try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser()).toResource()) {
+    try (Closeable r = new AuthenticatedUserRule(TEST_USER_ADMIN.getUser(),
+        ServerConfiguration.global()).toResource()) {
       FileInfo fileInfo =
           mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(path)));
       if (owner != null) {

@@ -11,9 +11,10 @@
 
 package alluxio.worker.block;
 
-import alluxio.Configuration;
+import alluxio.ClientContext;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
@@ -28,7 +29,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
@@ -128,7 +129,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param ufsManager ufs manager
    */
   DefaultBlockWorker(UfsManager ufsManager) {
-    this(new BlockMasterClientPool(), new FileSystemMasterClient(MasterClientConfig.defaults()),
+    this(new BlockMasterClientPool(),
+        new FileSystemMasterClient(MasterClientContext
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build()),
         new Sessions(), new TieredBlockStore(), ufsManager);
   }
 
@@ -196,10 +199,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void start(WorkerNetAddress address) throws IOException {
     mAddress = address;
     try {
-      RetryUtils.retry("get worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
-          RetryUtils.defaultWorkerMasterClientRetry());
+      RetryUtils.retry("create worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
+          RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration
+              .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (Exception e) {
-      throw new RuntimeException("Failed to get a worker id from block master: " + e.getMessage());
+      throw new RuntimeException("Failed to create a worker id from block master: "
+          + e.getMessage());
     }
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
@@ -215,28 +220,32 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mSessionCleaner = new SessionCleaner(mSessions, mBlockStore, mUnderFileSystemBlockStore);
 
     // Setup space reserver
-    if (Configuration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
+    if (ServerConfiguration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
       mSpaceReserver = new SpaceReserver(this);
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, mSpaceReserver,
-              (int) Configuration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)));
+              (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS),
+              ServerConfiguration.global()));
     }
 
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
-            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+            (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            ServerConfiguration.global()));
 
     // Start the pinlist syncer to perform the periodical fetching
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
-            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+            (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            ServerConfiguration.global()));
 
     // Setup storage checker
-    if (Configuration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
+    if (ServerConfiguration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
       mStorageChecker = new StorageChecker();
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, mStorageChecker,
-              (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+              (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+                  ServerConfiguration.global()));
     }
 
     // Start the session cleanup checker to perform the periodical checking

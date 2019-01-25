@@ -13,6 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
+import alluxio.conf.ServerConfiguration;
 import alluxio.concurrent.LockMode;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -1122,7 +1123,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     String ufsUri = resolution.getUri().toString();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
-      MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
+      MkdirsOptions mkdirsOptions =
+          MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
           .setOwner(dir.getOwner()).setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
       if (!ufs.mkdirs(ufsUri, mkdirsOptions)) {
         // Directory might already exist. Try loading the status from ufs.

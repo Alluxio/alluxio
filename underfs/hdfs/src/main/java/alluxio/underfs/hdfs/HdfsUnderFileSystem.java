@@ -13,8 +13,9 @@ package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.SyncInfo;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
@@ -99,12 +100,13 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Hadoop
+   * @param alluxioConf Alluxio configuration
    * @return a new HDFS {@link UnderFileSystem} instance
    */
-  public static HdfsUnderFileSystem createInstance(
-      AlluxioURI ufsUri, UnderFileSystemConfiguration conf) {
+  public static HdfsUnderFileSystem createInstance(AlluxioURI ufsUri,
+      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
     Configuration hdfsConf = createConfiguration(conf);
-    return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf);
+    return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf, alluxioConf);
   }
 
   /**
@@ -113,10 +115,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
    * @param hdfsConf the configuration for HDFS
+   * @param alluxioConf Alluxio configuration
    */
   public HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
-      Configuration hdfsConf) {
-    super(ufsUri, conf);
+      Configuration hdfsConf, AlluxioConfiguration alluxioConf) {
+    super(ufsUri, conf, alluxioConf);
 
     // Create the supported HdfsAclProvider if possible.
     HdfsAclProvider hdfsAclProvider = new NoopHdfsAclProvider();
@@ -164,8 +167,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
     try {
       Constructor c = Class.forName(HDFS_ACTIVESYNC_PROVIDER_CLASS)
-          .getConstructor(URI.class, Configuration.class);
-      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf);
+          .getConstructor(URI.class, Configuration.class, AlluxioConfiguration.class);
+      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf, alluxioConf);
       if (o instanceof HdfsActiveSyncProvider) {
         hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;
         LOG.info("Successfully instantiated SupportedHdfsActiveSyncProvider");

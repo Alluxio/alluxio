@@ -16,12 +16,13 @@ import static org.junit.Assert.fail;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioFuseFileSystem;
 import alluxio.fuse.AlluxioFuseOptions;
 import alluxio.fuse.AlluxioFuseUtils;
@@ -88,7 +89,8 @@ public class FuseFileSystemIntegrationTest {
 
     AlluxioFuseOptions options = new AlluxioFuseOptions(sMountPoint,
         sAlluxioRoot, false, new ArrayList<>());
-    sFuseFileSystem = new AlluxioFuseFileSystem(sFileSystem, options);
+    sFuseFileSystem = new AlluxioFuseFileSystem(sFileSystem, options,
+        ServerConfiguration.global());
     sFuseThread = new Thread(() -> sFuseFileSystem.mount(Paths.get(sMountPoint),
         true, false, new String[]{"-odirect_io"}));
     sFuseThread.start();

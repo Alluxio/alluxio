@@ -13,13 +13,15 @@ package alluxio.security.authentication;
 
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.plain.PlainSaslServerCallbackHandler;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.junit.rules.ExpectedException;
 
 import javax.security.auth.callback.Callback;
@@ -41,10 +43,12 @@ public final class PlainSaslServerCallbackHandlerTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
-          NameMatchAuthenticationProvider.class.getName());
+          NameMatchAuthenticationProvider.class.getName(), mConfiguration);
 
   /**
    * Sets up the configuration and callback handler before running a test.
@@ -52,16 +56,15 @@ public final class PlainSaslServerCallbackHandlerTest {
   @Before
   public void before() throws Exception {
     mPlainServerCBHandler = new PlainSaslServerCallbackHandler(
-        AuthenticationProvider.Factory.create(AuthType.CUSTOM), new Runnable() {
+        AuthenticationProvider.Factory.create(AuthType.CUSTOM, mConfiguration), new Runnable() {
           @Override
           public void run() {}
-        });
+        }, mConfiguration);
   }
 
   @After
   public void after() {
     AuthenticatedClientUser.remove();
-    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

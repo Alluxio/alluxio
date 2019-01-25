@@ -12,11 +12,11 @@
 package alluxio.master.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.ConfigurationValueOptions;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.ConfigurationValueOptions;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
-import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
@@ -171,6 +171,7 @@ public final class AlluxioMasterRestServiceHandler {
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
   private final MetaMaster mMetaMaster;
+  private final FileSystem mFsClient;
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.
@@ -184,6 +185,7 @@ public final class AlluxioMasterRestServiceHandler {
     mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
+    mFsClient = FileSystem.Factory.get(ServerConfiguration.global());
   }
 
   /**
@@ -213,7 +215,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setTierCapacity(getTierCapacityInternal()).setUfsCapacity(getUfsCapacityInternal())
           .setUptimeMs(mMasterProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION)
           .setWorkers(mBlockMaster.getWorkerInfoList());
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -228,15 +230,15 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIInit response = new MasterWebUIInit();
 
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
-          .setWebFileInfoEnabled(Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG))
+          .setWebFileInfoEnabled(ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
           .setSecurityAuthorizationPermissionEnabled(
-              Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
-          .setWorkerPort(Configuration.getInt(PropertyKey.WORKER_WEB_PORT))
-          .setRefreshInterval(Configuration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
+              ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
+          .setWorkerPort(ServerConfiguration.getInt(PropertyKey.WORKER_WEB_PORT))
+          .setRefreshInterval(ServerConfiguration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -251,10 +253,11 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIOverview response = new MasterWebUIOverview();
 
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG))
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setUptime(CommonUtils
           .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()))
-          .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs()))
+          .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs(),
+              ServerConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN)))
           .setVersion(RuntimeConstants.VERSION)
           .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
           .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
@@ -333,7 +336,7 @@ public final class AlluxioMasterRestServiceHandler {
       }
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -355,14 +358,15 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIBrowse response = new MasterWebUIBrowse();
 
-      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
-      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
-        AuthenticatedClientUser.set(LoginUser.get().getName());
+      if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
+          && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
+        AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
       }
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setShowPermissions(
-          Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG)).setShowPermissions(
+          ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setInvalidPathError("");
       List<FileInfo> filesInfo;
       String path = requestPath;
@@ -405,7 +409,7 @@ public final class AlluxioMasterRestServiceHandler {
           }
           try {
             AlluxioURI absolutePath = new AlluxioURI(currentFileInfo.getAbsolutePath());
-            FileSystem fs = FileSystem.Factory.get();
+            FileSystem fs = mFsClient;
             String fileData;
             URIStatus status = fs.getStatus(absolutePath);
             if (status.isCompleted()) {
@@ -541,7 +545,7 @@ public final class AlluxioMasterRestServiceHandler {
       }
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -559,16 +563,17 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIData response = new MasterWebUIData();
 
-      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
 
-      if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
-        AuthenticatedClientUser.set(LoginUser.get().getName());
+      if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
+          && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
+        AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
       }
       response.setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setFatalError("")
-          .setShowPermissions(
-              Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
+          .setShowPermissions(ServerConfiguration
+              .getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
       List<AlluxioURI> inAlluxioFiles = mFileSystemMaster.getInAlluxioFiles();
       Collections.sort(inAlluxioFiles);
@@ -612,7 +617,7 @@ public final class AlluxioMasterRestServiceHandler {
       }
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -635,16 +640,16 @@ public final class AlluxioMasterRestServiceHandler {
       FilenameFilter filenameFilter = (dir, name) -> name.toLowerCase().endsWith(".log");
       MasterWebUILogs response = new MasterWebUILogs();
 
-      if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
+      if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
           .setViewingOffset(0).setCurrentPath("");
       //response.setDownloadLogFile(1);
       //response.setBaseUrl("./browseLogs");
       //response.setShowPermissions(false);
 
-      String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
+      String logsPath = ServerConfiguration.get(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
       String requestFile = requestPath;
 
@@ -749,11 +754,11 @@ public final class AlluxioMasterRestServiceHandler {
       }
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
-   * Gets Web UI configuration page data.
+   * Gets Web UI ServerConfiguration page data.
    *
    * @return the response object
    */
@@ -781,7 +786,7 @@ public final class AlluxioMasterRestServiceHandler {
       response.setConfiguration(sortedProperties);
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -796,7 +801,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIWorkers response = new MasterWebUIWorkers();
 
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
+      response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG));
 
       List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
       NodeInfo[] normalNodeInfos = WebUtils.generateOrderedNodeInfos(workerInfos);
@@ -807,7 +812,7 @@ public final class AlluxioMasterRestServiceHandler {
       response.setFailedNodeInfos(failedNodeInfos);
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -978,7 +983,7 @@ public final class AlluxioMasterRestServiceHandler {
       response.setOperationMetrics(operations).setRpcInvocationMetrics(rpcInvocationsUpdated);
 
       return response;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -992,7 +997,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   @Deprecated
   public Response getConfiguration() {
-    return RestUtils.call(() -> getConfigurationInternal(true));
+    return RestUtils.call(() -> getConfigurationInternal(true), ServerConfiguration.global());
   }
 
   /**
@@ -1006,7 +1011,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getMetrics() {
-    return RestUtils.call(this::getMetricsInternal);
+    return RestUtils.call(this::getMetricsInternal, ServerConfiguration.global());
   }
 
   /**
@@ -1020,11 +1025,12 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(() -> mMasterProcess.getRpcAddress().toString());
+    return RestUtils.call(() -> mMasterProcess.getRpcAddress().toString(),
+        ServerConfiguration.global());
   }
 
   /**
-   * @summary get the start time of the master
+   * @summary get the start time of the master in milliseconds
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -1034,11 +1040,11 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getStartTimeMs() {
-    return RestUtils.call(() -> mMasterProcess.getStartTimeMs());
+    return RestUtils.call(() -> mMasterProcess.getStartTimeMs(), ServerConfiguration.global());
   }
 
   /**
-   * @summary get the uptime of the master
+   * @summary get the uptime of the master in milliseconds
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -1048,7 +1054,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
-    return RestUtils.call(() -> mMasterProcess.getUptimeMs());
+    return RestUtils.call(() -> mMasterProcess.getUptimeMs(), ServerConfiguration.global());
   }
 
   /**
@@ -1062,7 +1068,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getVersion() {
-    return RestUtils.call(() -> RuntimeConstants.VERSION);
+    return RestUtils.call(() -> RuntimeConstants.VERSION, ServerConfiguration.global());
   }
 
   /**
@@ -1076,7 +1082,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getCapacityBytes() {
-    return RestUtils.call(() -> mBlockMaster.getCapacityBytes());
+    return RestUtils.call(() -> mBlockMaster.getCapacityBytes(), ServerConfiguration.global());
   }
 
   /**
@@ -1090,7 +1096,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUsedBytes() {
-    return RestUtils.call(() -> mBlockMaster.getUsedBytes());
+    return RestUtils.call(() -> mBlockMaster.getUsedBytes(), ServerConfiguration.global());
   }
 
   /**
@@ -1104,11 +1110,13 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getFreeBytes() {
-    return RestUtils.call(() -> mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes());
+    return RestUtils.call(() -> mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes(),
+        ServerConfiguration.global());
   }
 
   /**
-   * @summary get the total ufs capacity in bytes, a negative value means the capacity is unknown.
+   * @summary get the total ufs capacity in bytes, a negative value means the capacity is
+   * unknown.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -1118,7 +1126,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsCapacityBytes() {
-    return RestUtils.call(() -> getUfsCapacityInternal().getTotal());
+    return RestUtils.call(() -> getUfsCapacityInternal().getTotal(), ServerConfiguration.global());
   }
 
   /**
@@ -1132,7 +1140,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsUsedBytes() {
-    return RestUtils.call(() -> getUfsCapacityInternal().getUsed());
+    return RestUtils.call(() -> getUfsCapacityInternal().getUsed(), ServerConfiguration.global());
   }
 
   /**
@@ -1153,7 +1161,7 @@ public final class AlluxioMasterRestServiceHandler {
         return capacity.getTotal() - capacity.getUsed();
       }
       return -1;
-    });
+    }, ServerConfiguration.global());
   }
 
   private Comparator<String> getTierAliasComparator() {
@@ -1187,12 +1195,12 @@ public final class AlluxioMasterRestServiceHandler {
         capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
       }
       return capacityBytesOnTiers;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
-   * @summary get the mapping from tier alias to the used bytes of the tier, keys are in the order
-   *    from tier alias with smaller ordinal to those with larger ones.
+   * @summary get the mapping from tier alias to the used bytes of the tier, keys are in the
+   *          order from tier alias with smaller ordinal to those with larger ones.
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
    * @see #getInfo(Boolean)
@@ -1208,7 +1216,7 @@ public final class AlluxioMasterRestServiceHandler {
         usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
       }
       return usedBytesOnTiers;
-    });
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -1222,7 +1230,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Integer")
   @Deprecated
   public Response getWorkerCount() {
-    return RestUtils.call(() -> mBlockMaster.getWorkerCount());
+    return RestUtils.call(()->mBlockMaster.getWorkerCount(), ServerConfiguration.global());
   }
 
   /**
@@ -1236,7 +1244,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.List<alluxio.wire.WorkerInfo>")
   @Deprecated
   public Response getWorkerInfoList() {
-    return RestUtils.call(() -> mBlockMaster.getWorkerInfoList());
+    return RestUtils.call(()-> mBlockMaster.getWorkerInfoList(), ServerConfiguration.global());
   }
 
   private Capacity getCapacityInternal() {
@@ -1245,7 +1253,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    return new TreeMap<>(Configuration
+    return new TreeMap<>(ServerConfiguration
         .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 
@@ -1320,6 +1328,6 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("alluxio.wire.LogInfo")
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
       @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
-    return RestUtils.call(() -> LogUtils.setLogLevel(logName, level));
+    return RestUtils.call(() -> LogUtils.setLogLevel(logName, level), ServerConfiguration.global());
   }
 }

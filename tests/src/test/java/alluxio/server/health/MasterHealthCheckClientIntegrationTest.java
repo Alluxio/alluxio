@@ -12,6 +12,7 @@
 package alluxio.server.health;
 
 import alluxio.HealthCheckClient;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterHealthCheckClient;
 import alluxio.testutils.BaseIntegrationTest;
@@ -34,7 +35,7 @@ public class MasterHealthCheckClientIntegrationTest extends BaseIntegrationTest 
   @Before
   public final void before() {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
-    mHealthCheckClient = new MasterHealthCheckClient.Builder()
+    mHealthCheckClient = new MasterHealthCheckClient.Builder(ServerConfiguration.global())
             .withProcessCheck(false).build();
   }
 

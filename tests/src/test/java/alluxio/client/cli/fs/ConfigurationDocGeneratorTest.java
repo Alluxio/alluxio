@@ -14,8 +14,8 @@ package alluxio.client.cli.fs;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.ConfigurationDocGenerator;
 import alluxio.collections.Pair;
 import alluxio.util.io.PathUtils;
@@ -127,7 +127,7 @@ public class ConfigurationDocGeneratorTest {
 
     //assert file contents
     List<String> userFile = Files.readAllLines(p, StandardCharsets.UTF_8);
-    String defaultValue = Configuration.get(pKey);
+    String defaultValue = ServerConfiguration.get(pKey);
     checkFileContents(String.format("%s,\"%s\"", pKey, defaultValue), userFile, mFileType);
   }
 

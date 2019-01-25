@@ -11,9 +11,11 @@
 
 package alluxio.fuse;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -28,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -44,7 +45,7 @@ public final class AlluxioFuse {
 
   /**
    * Running this class will mount the file system according to
-   * the options passed to this function {@link #parseOptions(String[])}.
+   * the options passed to this function {@link #parseOptions(String[], AlluxioConfiguration)}.
    * The user-space fuse application will stay on the foreground and keep
    * the file system mounted. The user can unmount the file system by
    * gracefully killing (SIGINT) the process.
@@ -52,13 +53,14 @@ public final class AlluxioFuse {
    * @param args arguments to run the command line
    */
   public static void main(String[] args) {
-    final AlluxioFuseOptions opts = parseOptions(args);
+    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    final AlluxioFuseOptions opts = parseOptions(args, conf);
     if (opts == null) {
       System.exit(1);
     }
 
-    final FileSystem tfs = FileSystem.Factory.get();
-    final AlluxioFuseFileSystem fs = new AlluxioFuseFileSystem(tfs, opts);
+    final FileSystem tfs = FileSystem.Factory.get(conf);
+    final AlluxioFuseFileSystem fs = new AlluxioFuseFileSystem(tfs, opts, conf);
     final List<String> fuseOpts = opts.getFuseOpts();
     // Force direct_io in FUSE: writes and reads bypass the kernel page
     // cache and go directly to alluxio. This avoids extra memory copies
@@ -79,7 +81,7 @@ public final class AlluxioFuse {
    * @param args CLI args
    * @return Alluxio-FUSE configuration options
    */
-  private static AlluxioFuseOptions parseOptions(String[] args) {
+  private static AlluxioFuseOptions parseOptions(String[] args, AlluxioConfiguration alluxioConf) {
     final Options opts = new Options();
     final Option mntPoint = Option.builder("m")
         .hasArg()
@@ -141,11 +143,11 @@ public final class AlluxioFuse {
       // check if the user has specified his own max_write, otherwise get it
       // from conf
       if (noUserMaxWrite) {
-        final long maxWrite = Configuration.getBytes(PropertyKey.FUSE_MAXWRITE_BYTES);
+        final long maxWrite = alluxioConf.getBytes(PropertyKey.FUSE_MAXWRITE_BYTES);
         fuseOpts.add(String.format("-omax_write=%d", maxWrite));
       }
 
-      final boolean fuseDebug = Configuration.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
+      final boolean fuseDebug = alluxioConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
 
       return new AlluxioFuseOptions(mntPointValue, alluxioRootValue, fuseDebug, fuseOpts);
     } catch (ParseException e) {

@@ -12,7 +12,7 @@
 package alluxio.master.journal.raft;
 
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;

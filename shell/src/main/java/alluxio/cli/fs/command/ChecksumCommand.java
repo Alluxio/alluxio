@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -27,7 +27,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -37,10 +36,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ChecksumCommand extends AbstractFileSystemCommand {
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public ChecksumCommand(FileSystem fs) {
-    super(fs);
+  public ChecksumCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

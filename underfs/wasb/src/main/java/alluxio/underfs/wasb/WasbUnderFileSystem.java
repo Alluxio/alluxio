@@ -12,7 +12,8 @@
 package alluxio.underfs.wasb;
 
 import alluxio.AlluxioURI;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
@@ -63,12 +64,13 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
+   * @param alluxioConf Alluxio configuration
    * @return a new Wasb {@link UnderFileSystem} instance
    */
   public static WasbUnderFileSystem createInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration conf) {
+      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
     Configuration wasbConf = createConfiguration(conf);
-    return new WasbUnderFileSystem(uri, conf, wasbConf);
+    return new WasbUnderFileSystem(uri, conf, wasbConf, alluxioConf);
   }
 
   /**
@@ -77,10 +79,11 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
    * @param wasbConf the configuration for this Wasb UFS
+   * @param alluxioConf Alluxio configuration
    */
   public WasbUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
-      final Configuration wasbConf) {
-    super(ufsUri, conf, wasbConf);
+      final Configuration wasbConf, AlluxioConfiguration alluxioConf) {
+    super(ufsUri, conf, wasbConf, alluxioConf);
   }
 
   @Override
@@ -91,7 +94,7 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
   @Override
   public long getBlockSizeByte(String path) throws IOException {
     // wasb is an object store, so use the default block size, like other object stores.
-    return alluxio.Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return mAlluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported

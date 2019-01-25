@@ -15,7 +15,9 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
@@ -27,6 +29,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.WritePType;
@@ -60,6 +63,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   public static class FindFirstFileWriteLocationPolicy implements FileWriteLocationPolicy {
     // Set this prior to sending the create request to FSM.
     private static WorkerNetAddress sWorkerAddress;
+
+    public FindFirstFileWriteLocationPolicy(AlluxioConfiguration alluxioConf){ }
 
     @Override
     public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
@@ -179,7 +184,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   private void replicateFileBlocks(AlluxioURI filePath) throws Exception {
-    AlluxioBlockStore store = AlluxioBlockStore.create();
+    AlluxioBlockStore store =
+        AlluxioBlockStore.create(FileSystemContext.create(ServerConfiguration.global()));
     URIStatus status =  mResource.get().getClient().getStatus(filePath);
     List<FileBlockInfo> blocks = status.getFileBlockInfos();
     List<BlockWorkerInfo> workers = store.getAllWorkers();
@@ -193,10 +199,10 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
           .get()
           .getNetAddress();
       try (OutputStream outStream = store.getOutStream(blockInfo.getBlockId(),
-          blockInfo.getLength(), dest, OutStreamOptions.defaults()
+          blockInfo.getLength(), dest, OutStreamOptions.defaults(ServerConfiguration.global())
               .setBlockSizeBytes(8 * Constants.MB).setWriteType(WriteType.MUST_CACHE))) {
         try (InputStream inStream = store.getInStream(blockInfo.getBlockId(),
-            new InStreamOptions(status))) {
+            new InStreamOptions(status, ServerConfiguration.global()))) {
           ByteStreams.copy(inStream, outStream);
         }
       }

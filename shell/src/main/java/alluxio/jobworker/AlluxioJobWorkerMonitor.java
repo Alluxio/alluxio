@@ -13,7 +13,10 @@ package alluxio.jobworker;
 
 import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
@@ -36,10 +39,11 @@ public final class AlluxioJobWorkerMonitor {
               AlluxioJobWorkerMonitor.class.getCanonicalName());
       LOG.warn("ignoring arguments");
     }
+    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
 
     HealthCheckClient client = new JobWorkerHealthCheckClient(
-        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.JOB_WORKER_RPC),
-        () -> new ExponentialBackoffRetry(50, 100, 2));
+        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.JOB_WORKER_RPC, conf),
+        () -> new ExponentialBackoffRetry(50, 100, 2), conf);
     if (!client.isServing()) {
       System.exit(1);
     }

@@ -11,11 +11,8 @@
 
 package alluxio.client.rest;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.rest.RestApiTest;
-import alluxio.client.rest.TestCase;
-import alluxio.client.rest.TestCaseOptions;
+import alluxio.conf.ServerConfiguration;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.SleepJobConfig;
@@ -65,7 +62,7 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
   public void after() throws Exception {
     mJobCluster.stop();
     LoginUserTestUtils.resetLoginUser();
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   @Test

@@ -11,9 +11,9 @@
 
 package alluxio.master.metrics;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.clock.SystemClock;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
@@ -86,7 +86,8 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster {
     mClusterMetricsUpdater =
         new HeartbeatThread(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER,
             new ClusterMetricsUpdater(),
-            Configuration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL));
+            ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
+            ServerConfiguration.global());
   }
 
   @VisibleForTesting

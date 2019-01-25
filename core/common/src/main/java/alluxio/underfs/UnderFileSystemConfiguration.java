@@ -11,10 +11,12 @@
 
 package alluxio.underfs;
 
-import alluxio.Configuration;
 import alluxio.annotation.PublicApi;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
+import alluxio.util.ConfigurationUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,14 +48,22 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
    * @return default UFS configuration
    */
   public static UnderFileSystemConfiguration defaults() {
-    return new UnderFileSystemConfiguration();
+    return new UnderFileSystemConfiguration(ConfigurationUtils.defaults());
   }
 
   /**
-   * Constructs a new instance of {@link UnderFileSystemConfiguration} with defaults.
+   * @param alluxioConf Alluxio configuration
+   * @return ufs configuration from a given alluxio configuration
    */
-  private UnderFileSystemConfiguration() {
-    super(Configuration.copyProperties());
+  public static UnderFileSystemConfiguration defaults(AlluxioConfiguration alluxioConf) {
+    return new UnderFileSystemConfiguration(alluxioConf.copyProperties());
+  }
+
+  /**
+   * Constructs a new instance of {@link UnderFileSystemConfiguration} with the given properties.
+   */
+  private UnderFileSystemConfiguration(AlluxioProperties props) {
+    super(props);
     mReadOnly = false;
     mShared = false;
   }
@@ -104,12 +114,15 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   }
 
   /**
+   * Creates a new instance from the current configuration and adds in new properties.
    * @param mountConf the mount specific configuration map
    * @return the updated configuration object
    */
-  public UnderFileSystemConfiguration setMountSpecificConf(Map<String, String> mountConf) {
-    mProperties = Configuration.copyProperties();
-    merge(mountConf, Source.MOUNT_OPTION);
-    return this;
+  public UnderFileSystemConfiguration createMountSpecificConf(Map<String, String> mountConf) {
+    UnderFileSystemConfiguration ufsConf = new UnderFileSystemConfiguration(mProperties.copy());
+    ufsConf.mProperties.merge(mountConf, Source.MOUNT_OPTION);
+    ufsConf.mReadOnly = mReadOnly;
+    ufsConf.mShared = mShared;
+    return ufsConf;
   }
 }

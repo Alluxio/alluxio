@@ -11,8 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -53,7 +53,7 @@ public final class BlockLockManager {
 
  /** A pool of read write locks. */
   private final ResourcePool<ClientRWLock> mLockPool = new ResourcePool<ClientRWLock>(
-      Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
+      ServerConfiguration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
     @Override
     public void close() {}
 

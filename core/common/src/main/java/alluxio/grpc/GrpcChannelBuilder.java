@@ -11,8 +11,8 @@
 
 package alluxio.grpc;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.security.authentication.AuthType;
@@ -45,30 +45,31 @@ public final class GrpcChannelBuilder {
 
   /** Whether to authenticate the channel with the server. */
   protected boolean mAuthenticateChannel;
-  /** Authentication type to use. */
-  protected AuthType mAuthType;
 
-  private GrpcChannelBuilder(SocketAddress address) {
+  protected AlluxioConfiguration mConfiguration;
+
+  private GrpcChannelBuilder(SocketAddress address, AlluxioConfiguration conf) {
     mChannelKey = GrpcManagedChannelPool.ChannelKey.create();
     mChannelKey.setAddress(address).usePlaintext();
     mUseSubject = true;
     mAuthenticateChannel = true;
-    mAuthType = Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    mConfiguration = conf;
   }
 
   /**
-   * Create a channel builder for given address.
+   * Create a channel builder for given address using the given configuration.
    *
    * @param address the host address
+   * @param conf Alluxio configuration
    * @return a new instance of {@link GrpcChannelBuilder}
    */
-  public static GrpcChannelBuilder forAddress(SocketAddress address) {
-    return new GrpcChannelBuilder(address);
+  public static GrpcChannelBuilder newBuilder(SocketAddress address, AlluxioConfiguration conf) {
+    return new GrpcChannelBuilder(address, conf);
   }
 
   /**
    * Sets {@link Subject} for authentication.
-   * 
+   *
    * @param subject the subject
    * @return the updated {@link GrpcChannelBuilder} instance
    */
@@ -80,7 +81,7 @@ public final class GrpcChannelBuilder {
 
   /**
    * Sets authentication content. Calling this will reset the subject set by {@link #setSubject}.
-   * 
+   *
    * @param userName the username
    * @param password the password
    * @param impersonationUser the impersonation user
@@ -97,7 +98,7 @@ public final class GrpcChannelBuilder {
 
   /**
    * Disables authentication with the server.
-   * 
+   *
    * @return the updated {@link GrpcChannelBuilder} instance
    */
   public GrpcChannelBuilder disableAuthentication() {
@@ -186,7 +187,7 @@ public final class GrpcChannelBuilder {
 
   /**
    * Creates an authenticated channel of type {@link GrpcChannel}.
-   * 
+   *
    * @return the built {@link GrpcChannel}
    */
   public GrpcChannel build() throws UnauthenticatedException, UnavailableException {
@@ -199,13 +200,14 @@ public final class GrpcChannelBuilder {
         // Create channel authenticator based on provided content.
         ChannelAuthenticator channelAuthenticator;
         if (mUseSubject) {
-          channelAuthenticator = new ChannelAuthenticator(mParentSubject, mAuthType);
+          channelAuthenticator = new ChannelAuthenticator(mParentSubject, mConfiguration);
         } else {
           channelAuthenticator =
-              new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser, mAuthType);
+              new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser,
+                  mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
         }
         // Get an authenticated wrapper channel over given managed channel.
-        clientChannel = channelAuthenticator.authenticate(underlyingChannel);
+        clientChannel = channelAuthenticator.authenticate(underlyingChannel, mConfiguration);
       }
       // Create the channel after authentication with the target.
       return new GrpcChannel(mChannelKey, clientChannel);

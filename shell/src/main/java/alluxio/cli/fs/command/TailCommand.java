@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -44,10 +44,10 @@ public final class TailCommand extends AbstractFileSystemCommand {
       .build();
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public TailCommand(FileSystem fs) {
-    super(fs);
+  public TailCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

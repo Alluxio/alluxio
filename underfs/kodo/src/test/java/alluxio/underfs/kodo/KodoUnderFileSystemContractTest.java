@@ -11,6 +11,7 @@
 
 package alluxio.underfs.kodo;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.underfs.AbstractUnderFileSystemContractTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -39,7 +40,7 @@ public class KodoUnderFileSystemContractTest extends AbstractUnderFileSystemCont
   @Override
   public UnderFileSystem createUfs(String path, UnderFileSystemConfiguration conf)
       throws Exception {
-    return new KodoUnderFileSystemFactory().create(path, conf);
+    return new KodoUnderFileSystemFactory().create(path, conf, ConfigurationTestUtils.defaults());
   }
 
   /**

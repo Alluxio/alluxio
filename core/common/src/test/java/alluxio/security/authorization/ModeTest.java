@@ -15,14 +15,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.ModeUtils;
 
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -38,9 +38,11 @@ public final class ModeTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @After
-  public void after() {
-    ConfigurationTestUtils.resetConfiguration();
+  private InstancedConfiguration mConfiguration;
+
+  @Before
+  public void before() {
+    mConfiguration = new InstancedConfiguration(ConfigurationUtils.defaults());
   }
 
   @Test
@@ -139,9 +141,7 @@ public final class ModeTest {
   @Test
   public void umask() {
     String umask = "0022";
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
-    // after umask 0022, 0777 should change to 0755
-    Mode mode = ModeUtils.applyDirectoryUMask(Mode.defaults());
+    Mode mode = ModeUtils.applyDirectoryUMask(Mode.defaults(), umask);
     assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
     assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
     assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
@@ -154,11 +154,12 @@ public final class ModeTest {
   @Test
   public void umaskExceedLength() {
     String umask = "00022";
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
+    mConfiguration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
-    ModeUtils.applyDirectoryUMask(Mode.defaults());
+    ModeUtils.applyDirectoryUMask(Mode.defaults(), mConfiguration
+        .get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
   }
 
   /**
@@ -167,11 +168,10 @@ public final class ModeTest {
   @Test
   public void umaskNotInteger() {
     String umask = "NotInteger";
-    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
-    ModeUtils.applyDirectoryUMask(Mode.defaults());
+    ModeUtils.applyDirectoryUMask(Mode.defaults(), umask);
   }
 
   @Test

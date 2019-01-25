@@ -11,9 +11,9 @@
 
 package alluxio.worker;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
@@ -117,14 +117,18 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
       // Setup web server
       mWebServer =
-          new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB), this,
+          new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
+              ServerConfiguration.global()), this,
               mRegistry.get(BlockWorker.class),
-              NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC), mStartTimeMs);
+              NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
+                  ServerConfiguration.global()),
+              mStartTimeMs);
 
       // Random port binding.
       int bindPort;
       InetSocketAddress configuredBindAddress =
-              NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC);
+              NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
+                  ServerConfiguration.global());
       if (configuredBindAddress.getPort() == 0) {
         mBindSocket = new ServerSocket(0);
         bindPort = mBindSocket.getLocalPort();
@@ -143,8 +147,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
         String domainSocketPath =
-            Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
-        if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
+            ServerConfiguration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+        if (ServerConfiguration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
           domainSocketPath =
               PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
         }
@@ -217,7 +221,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     // NOTE: the order to start different services is sensitive. If you change it, do it cautiously.
 
     // Start serving metrics system, this will not block
-    MetricsSystem.startSinks();
+    MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
 
     // Start each worker. This must be done before starting the web or RPC servers.
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
@@ -231,8 +235,12 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     mWebServer.start();
 
     // Start monitor jvm
-    if (Configuration.getBoolean(PropertyKey.WORKER_JVM_MONITOR_ENABLED)) {
-      mJvmPauseMonitor = new JvmPauseMonitor();
+    if (ServerConfiguration.getBoolean(PropertyKey.WORKER_JVM_MONITOR_ENABLED)) {
+      mJvmPauseMonitor =
+          new JvmPauseMonitor(
+              ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS),
+              ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS));
       mJvmPauseMonitor.start();
     }
 
@@ -240,10 +248,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     LOG.info("Alluxio worker version {} started. "
             + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         RuntimeConstants.VERSION,
-        NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC),
-        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC),
-        NetworkAddressUtils.getPort(ServiceType.WORKER_RPC),
-        NetworkAddressUtils.getPort(ServiceType.WORKER_WEB));
+        NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
+        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
+        NetworkAddressUtils.getPort(ServiceType.WORKER_RPC, ServerConfiguration.global()),
+        NetworkAddressUtils.getPort(ServiceType.WORKER_WEB, ServerConfiguration.global()));
 
     mDataServer.awaitTermination();
 
@@ -292,8 +300,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    * @return true if domain socket is enabled
    */
   private boolean isDomainSocketEnabled() {
-    return NettyUtils.WORKER_CHANNEL_TYPE == ChannelType.EPOLL
-        && Configuration.containsKey(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+    return NettyUtils.getWorkerChannel(ServerConfiguration.global()) == ChannelType.EPOLL
+        && ServerConfiguration.isSet(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
   }
 
   @Override
@@ -315,7 +323,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   @Override
   public WorkerNetAddress getAddress() {
     return new WorkerNetAddress()
-        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
+        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
+            ServerConfiguration.global()))
         .setRpcPort(mRpcAddress.getPort())
         .setDataPort(getDataLocalPort())
         .setDomainSocketPath(getDataDomainSocketPath())

@@ -22,7 +22,7 @@ import alluxio.grpc.GetPinnedFileIdsPRequest;
 import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsInfo;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
 import alluxio.wire.FileInfo;
 
@@ -46,7 +46,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    *
    * @param conf master client configuration
    */
-  public FileSystemMasterClient(MasterClientConfig conf) {
+  public FileSystemMasterClient(MasterClientContext conf) {
     super(conf);
   }
 

@@ -12,8 +12,8 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.server.Connector;
@@ -61,7 +61,7 @@ public abstract class WebServer {
     mServiceName = serviceName;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
+    int webThreadCount = ServerConfiguration.getInt(PropertyKey.WEB_THREADS);
 
     // Jetty needs at least (1 + selectors + acceptors) threads.
     threadPool.setMinThreads(webThreadCount * 2 + 1);

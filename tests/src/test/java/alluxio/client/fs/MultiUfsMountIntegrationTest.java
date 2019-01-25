@@ -12,9 +12,10 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.WritePType;
@@ -81,7 +82,7 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
     mUfsUri1 = "ufs1://" + mFolder.newFolder().getAbsoluteFile();
     mUfsUri2 = "ufs2://" + mFolder.newFolder().getAbsoluteFile();
     mLocalUfs = new LocalUnderFileSystemFactory().create(mFolder.getRoot().getAbsolutePath(),
-        UnderFileSystemConfiguration.defaults());
+        UnderFileSystemConfiguration.defaults(), ServerConfiguration.global());
     mLocalAlluxioClusterResource.start();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();

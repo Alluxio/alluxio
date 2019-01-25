@@ -17,6 +17,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
 
+import alluxio.ConfigurationTestUtils;
+
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.cli.CommandLine;
 import org.junit.Rule;
@@ -39,7 +41,7 @@ public final class AbstractShellTest {
 
     public TestShell() {
       super(ImmutableMap.<String, String[]>builder().put("cmdAlias", new String[] {"cmd", "-O"})
-          .build());
+          .build(), ConfigurationTestUtils.defaults());
     }
 
     @Override

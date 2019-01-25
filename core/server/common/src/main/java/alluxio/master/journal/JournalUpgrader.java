@@ -12,8 +12,10 @@
 package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.MasterFactory;
 import alluxio.master.NoopMaster;
@@ -21,6 +23,7 @@ import alluxio.master.ServiceUtils;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.URIUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -83,15 +86,18 @@ public final class JournalUpgrader {
     private final URI mCheckpointsV1;
     private final URI mLogsV1;
 
-    private Upgrader(String master) {
+    private final AlluxioConfiguration mAlluxioConf;
+
+    private Upgrader(String master, AlluxioConfiguration alluxioConf) {
       mMaster = master;
+      mAlluxioConf = alluxioConf;
       mJournalV0 = (new alluxio.master.journalv0.MutableJournal.Factory(
           getJournalLocation(sJournalDirectoryV0))).create(master);
       mJournalV1 =
-          new UfsJournal(getJournalLocation(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER)),
-              new NoopMaster(master), 0);
+          new UfsJournal(getJournalLocation(ServerConfiguration
+              .get(PropertyKey.MASTER_JOURNAL_FOLDER)), new NoopMaster(master), 0);
 
-      mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0);
+      mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0, alluxioConf);
 
       mCheckpointV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "checkpoint.data");
       mCompletedLogsV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "completed");
@@ -164,10 +170,11 @@ public final class JournalUpgrader {
       }
 
       if (!mUfs.exists(mCheckpointsV1.toString())) {
-        mUfs.mkdirs(mCheckpointsV1.toString(), MkdirsOptions.defaults().setCreateParent(true));
+        mUfs.mkdirs(mCheckpointsV1.toString(), MkdirsOptions.defaults(mAlluxioConf)
+            .setCreateParent(true));
       }
       if (!mUfs.exists(mLogsV1.toString())) {
-        mUfs.mkdirs(mLogsV1.toString(), MkdirsOptions.defaults().setCreateParent(true));
+        mUfs.mkdirs(mLogsV1.toString(), MkdirsOptions.defaults(mAlluxioConf).setCreateParent(true));
       }
     }
 
@@ -235,7 +242,8 @@ public final class JournalUpgrader {
     }
 
     for (String master : masters) {
-      Upgrader upgrader = new Upgrader(master);
+      Upgrader upgrader = new Upgrader(master,
+          new InstancedConfiguration(ConfigurationUtils.defaults()));
       try {
         upgrader.upgrade();
       } catch (IOException e) {
@@ -263,7 +271,7 @@ public final class JournalUpgrader {
     }
     sHelp = cmd.hasOption("help");
     sJournalDirectoryV0 = cmd.getOptionValue("journalDirectoryV0",
-        Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
+        ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER));
     return true;
   }
 

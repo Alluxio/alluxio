@@ -11,9 +11,14 @@
 
 package alluxio.cli;
 
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.HttpUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -95,13 +100,15 @@ public final class LogLevel {
    * Implements log level setting and getting.
    *
    * @param args list of arguments contains target, logName and level
+   * @param alluxioConf Alluxio configuration
    * @exception ParseException if there is an error in parsing
    */
-  public static void logLevel(String[] args) throws ParseException, IOException {
+  public static void logLevel(String[] args, AlluxioConfiguration alluxioConf)
+      throws ParseException, IOException {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
 
-    List<TargetInfo> targets = parseOptTarget(cmd);
+    List<TargetInfo> targets = parseOptTarget(cmd, alluxioConf);
     String logName = parseOptLogName(cmd);
     String level = parseOptLevel(cmd);
 
@@ -110,7 +117,8 @@ public final class LogLevel {
     }
   }
 
-  private static List<TargetInfo> parseOptTarget(CommandLine cmd) throws IOException {
+  private static List<TargetInfo> parseOptTarget(CommandLine cmd, AlluxioConfiguration conf)
+      throws IOException {
     String[] targets;
     if (cmd.hasOption(TARGET_OPTION_NAME)) {
       String argTarget = cmd.getOptionValue(TARGET_OPTION_NAME);
@@ -124,18 +132,20 @@ public final class LogLevel {
     } else {
       targets = new String[]{ROLE_MASTER, ROLE_WORKERS};
     }
-    return getTargetInfos(targets);
+    return getTargetInfos(targets, conf);
   }
 
-  private static List<TargetInfo> getTargetInfos(String[] targets) throws IOException {
+  private static List<TargetInfo> getTargetInfos(String[] targets, AlluxioConfiguration conf)
+      throws IOException {
     List<TargetInfo> targetInfoList = new ArrayList<>();
     for (String target : targets) {
       if (target.equals(ROLE_MASTER)) {
-        String masterHost = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_WEB);
-        int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB);
+        String masterHost = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_WEB, conf);
+        int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, conf);
         targetInfoList.add(new TargetInfo(masterHost, masterPort, ROLE_MASTER));
       } else if (target.equals(ROLE_WORKERS)) {
-        AlluxioBlockStore alluxioBlockStore = AlluxioBlockStore.create();
+        AlluxioBlockStore alluxioBlockStore =
+            AlluxioBlockStore.create(FileSystemContext.create(ClientContext.create(conf)));
         List<BlockWorkerInfo> workerInfoList = alluxioBlockStore.getAllWorkers();
         for (BlockWorkerInfo workerInfo : workerInfoList) {
           WorkerNetAddress netAddress = workerInfo.getNetAddress();
@@ -200,7 +210,7 @@ public final class LogLevel {
   public static void main(String[] args) {
     int exitCode = 1;
     try {
-      logLevel(args);
+      logLevel(args, new InstancedConfiguration(ConfigurationUtils.defaults()));
       exitCode = 0;
     } catch (ParseException e) {
       printHelp("Unable to parse input args: " + e.getMessage());

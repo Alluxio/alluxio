@@ -11,9 +11,9 @@
 
 package alluxio.client.file.options;
 
-import alluxio.Configuration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
@@ -56,20 +56,22 @@ public final class OutStreamOptions {
   private long mMountId;
 
   /**
+   * @param alluxioConf Alluxio configuration
    * @return the default {@link OutStreamOptions}
    */
-  public static OutStreamOptions defaults() {
-    return new OutStreamOptions();
+  public static OutStreamOptions defaults(AlluxioConfiguration alluxioConf) {
+    return new OutStreamOptions(alluxioConf);
   }
 
   /**
    * Creates an {@link OutStreamOptions} instance from given options.
    *
    * @param options CreateFile options
+   * @param alluxioConf Alluxio configuration
    * @throws Exception if FileWriteLocationPolicy can't be loaded
    */
-  public OutStreamOptions(CreateFilePOptions options) {
-    this();
+  public OutStreamOptions(CreateFilePOptions options, AlluxioConfiguration alluxioConf) {
+    this(alluxioConf);
     if (options.hasBlockSizeBytes()) {
       mBlockSizeBytes = options.getBlockSizeBytes();
     }
@@ -94,30 +96,34 @@ public final class OutStreamOptions {
     if (options.hasFileWriteLocationPolicy()) {
       try {
         mLocationPolicy = (FileWriteLocationPolicy) CommonUtils.createNewClassInstance(
-            Class.forName(options.getFileWriteLocationPolicy()), new Class[] {}, new Object[] {});
+            Class.forName(options.getFileWriteLocationPolicy()),
+            new Class[] {AlluxioConfiguration.class},
+            new Object[] {alluxioConf});
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }
   }
 
-  private OutStreamOptions() {
-    mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+  private OutStreamOptions(AlluxioConfiguration alluxioConf) {
+    mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
 
     mLocationPolicy =
-        CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
-            PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
-    mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
-    mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-    mOwner = SecurityUtils.getOwnerFromLoginModule();
-    mGroup = SecurityUtils.getGroupFromLoginModule();
-    mMode = ModeUtils.applyFileUMask(Mode.defaults());
+        CommonUtils.createNewClassInstance(alluxioConf.<FileWriteLocationPolicy>getClass(
+            PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {AlluxioConfiguration.class},
+            new Object[] {alluxioConf});
+    mWriteTier = alluxioConf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
+    mWriteType = alluxioConf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    mOwner = SecurityUtils.getOwnerFromLoginModule(alluxioConf);
+    mGroup = SecurityUtils.getGroupFromLoginModule(alluxioConf);
+    mMode = ModeUtils.applyFileUMask(Mode.defaults(), alluxioConf
+        .get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     mMountId = IdUtils.INVALID_MOUNT_ID;
-    mReplicationDurable = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
-    mReplicationMax = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
-    mReplicationMin = Configuration.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
+    mReplicationDurable = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
+    mReplicationMax = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
+    mReplicationMin = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
   }
 
   /**

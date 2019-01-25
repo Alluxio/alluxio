@@ -18,6 +18,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.JobMasterContext;
@@ -54,20 +55,24 @@ public final class LoadDefinition
   private static final int MAX_BUFFER_SIZE = 500 * Constants.MB;
 
   private final FileSystem mFileSystem;
+  private final FileSystemContext mFsContext;
 
   /**
    * Constructs a new {@link LoadDefinition}.
    */
   public LoadDefinition() {
-    mFileSystem = BaseFileSystem.get(FileSystemContext.get());
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
+    mFileSystem = BaseFileSystem.create(mFsContext);
   }
 
   /**
    * Constructs a new {@link LoadDefinition} with FileSystem context and instance.
    *
-   * @param fileSystem file system client
+   * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
+   * @param fileSystem the {@link FileSystem} client
    */
-  public LoadDefinition(FileSystem fileSystem) {
+  public LoadDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
+    mFsContext = fsContext;
     mFileSystem = fileSystem;
   }
 
@@ -79,7 +84,8 @@ public final class LoadDefinition
     // Filter out workers which have no local job worker available.
     List<String> missingJobWorkerHosts = new ArrayList<>();
     List<BlockWorkerInfo> workers = new ArrayList<>();
-    for (BlockWorkerInfo worker : AlluxioBlockStore.create().getAllWorkers()) {
+    for (BlockWorkerInfo worker :
+        AlluxioBlockStore.create(mFsContext).getAllWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
         workers.add(worker);
       } else {
@@ -135,7 +141,7 @@ public final class LoadDefinition
       JobWorkerContext jobWorkerContext) throws Exception {
     for (LoadTask task : tasks) {
       JobUtils
-          .loadBlock(mFileSystem, FileSystemContext.get(), config.getFilePath(), task.getBlockId());
+          .loadBlock(mFileSystem, mFsContext, config.getFilePath(), task.getBlockId());
       LOG.info("Loaded block " + task.getBlockId());
     }
     return null;

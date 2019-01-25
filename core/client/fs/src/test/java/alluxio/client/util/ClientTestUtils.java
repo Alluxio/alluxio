@@ -11,9 +11,8 @@
 
 package alluxio.client.util;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.client.file.FileSystemContext;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 
 import java.io.IOException;
 
@@ -25,9 +24,9 @@ public final class ClientTestUtils {
   /**
    * Sets small buffer sizes so that Alluxio does not run out of heap space.
    */
-  public static void setSmallBufferSizes() {
-    Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
-    Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES, "4KB");
+  public static void setSmallBufferSizes(InstancedConfiguration conf) {
+    conf.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
+    conf.set(PropertyKey.USER_FILE_BUFFER_BYTES, "4KB");
   }
 
   /**
@@ -35,16 +34,15 @@ public final class ClientTestUtils {
    *
    * This method should only be used as a cleanup mechanism between tests.
    */
-  public static void resetClient() {
+  public static void resetClient(InstancedConfiguration conf) {
     try {
-      resetContexts();
+      resetContexts(conf);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  private static void resetContexts() throws IOException {
-    Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
-    FileSystemContext.get().reset(Configuration.global());
+  private static void resetContexts(InstancedConfiguration conf) throws IOException {
+    conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
   }
 }

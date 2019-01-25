@@ -13,7 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.fsadmin.report.UfsCommand;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.MountPOptions;
@@ -62,10 +62,10 @@ public final class MountCommand extends AbstractFileSystemCommand {
           .build();
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public MountCommand(FileSystem fs) {
-    super(fs);
+  public MountCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

@@ -11,8 +11,8 @@
 
 package alluxio.worker;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.Sessions;
 import alluxio.util.CommonUtils;
 
@@ -52,7 +52,8 @@ public final class SessionCleaner implements Runnable {
     for (SessionCleanable sc : sessionCleanable) {
       mSessionCleanables.add(sc);
     }
-    mCheckIntervalMs = (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
+    mCheckIntervalMs = (int) ServerConfiguration
+        .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
 
     mRunning = true;
   }

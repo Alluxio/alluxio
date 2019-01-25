@@ -9,8 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.conf;
 
+import alluxio.Constants;
+import alluxio.DefaultSupplier;
+import alluxio.ProjectConstants;
+import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.Scope;
 import alluxio.util.OSUtils;
@@ -3232,7 +3236,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JOB_MASTER_WORKER_TIMEOUT_MS =
       new Builder(Name.JOB_MASTER_WORKER_TIMEOUT_MS).setDefaultValue(60000).build();
   public static final PropertyKey JOB_MASTER_BIND_HOST =
-      new Builder(Name.JOB_MASTER_BIND_HOST).setDefaultValue("0.0.0.0").build();
+      new Builder(Name.JOB_MASTER_BIND_HOST)
+          .setDefaultValue("0.0.0.0")
+          .build();
   public static final PropertyKey JOB_MASTER_HOSTNAME =
       new Builder(Name.JOB_MASTER_HOSTNAME).setDefaultValue("${alluxio.master.hostname}").build();
   public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL_MS =
@@ -3251,6 +3257,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JOB_WORKER_BIND_HOST).setDefaultValue("0.0.0.0").build();
   public static final PropertyKey JOB_WORKER_DATA_PORT =
       new Builder(Name.JOB_WORKER_DATA_PORT).setDefaultValue(30002).build();
+  public static final PropertyKey JOB_WORKER_HOSTNAME = new Builder(Name.JOB_WORKER_HOSTNAME)
+      .setDescription("The hostname of Alluxio job worker.")
+      .setScope(Scope.WORKER)
+      .build();
   public static final PropertyKey JOB_WORKER_RPC_PORT =
       new Builder(Name.JOB_WORKER_RPC_PORT).setDefaultValue(30001).build();
   public static final PropertyKey JOB_WORKER_WEB_BIND_HOST =
@@ -3963,6 +3973,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String JOB_WORKER_BIND_HOST = "alluxio.job.worker.bind.host";
     public static final String JOB_WORKER_DATA_PORT = "alluxio.job.worker.data.port";
+    public static final String JOB_WORKER_HOSTNAME = "alluxio.job.worker.hostname";
     public static final String JOB_WORKER_RPC_PORT = "alluxio.job.worker.rpc.port";
     public static final String JOB_WORKER_WEB_BIND_HOST = "alluxio.job.worker.web.bind.host";
     public static final String JOB_WORKER_WEB_PORT = "alluxio.job.worker.web.port";

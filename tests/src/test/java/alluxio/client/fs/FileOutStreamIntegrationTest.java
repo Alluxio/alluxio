@@ -12,8 +12,8 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.policy.LocalFirstPolicy;
@@ -150,7 +150,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
       os.write((byte) 0);
-      Thread.sleep((int) Configuration.getMs(PropertyKey.USER_HEARTBEAT_INTERVAL_MS) * 2);
+      Thread.sleep((int) ServerConfiguration.getMs(PropertyKey.USER_HEARTBEAT_INTERVAL_MS) * 2);
       os.write((byte) 1);
     }
     if (mWriteType.getAlluxioStorageType().isStore()) {
@@ -198,7 +198,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       os.write(BufferUtils.getIncreasingByteArray(0, BLOCK_SIZE_BYTES * 3 + 1));
       os.cancel();
     }
-    long gracePeriod = Configuration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL) * 2;
+    long gracePeriod = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL) * 2;
     CommonUtils.sleepMs(gracePeriod);
     List<WorkerInfo> workers =
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()

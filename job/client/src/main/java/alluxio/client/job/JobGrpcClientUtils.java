@@ -11,14 +11,16 @@
 
 package alluxio.client.job;
 
+import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.retry.CountingRetry;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.worker.job.JobMasterClientConfig;
+import alluxio.worker.job.JobMasterClientContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,20 +46,22 @@ public final class JobGrpcClientUtils {
    *
    * @param config configuration for the job to run
    * @param attempts number of times to try running the job before giving up
+   * @param alluxioConf Alluxio configuration
    */
-  public static void run(JobConfig config, int attempts) throws InterruptedException {
+  public static void run(JobConfig config, int attempts, AlluxioConfiguration alluxioConf)
+      throws InterruptedException {
     CountingRetry retryPolicy = new CountingRetry(attempts);
     while (retryPolicy.attempt()) {
       long jobId;
-      try (JobMasterClient client =
-          JobMasterClient.Factory.create(JobMasterClientConfig.defaults())) {
+      try (JobMasterClient client = JobMasterClient.Factory.create(
+          JobMasterClientContext.newBuilder(ClientContext.create(alluxioConf)).build())) {
         jobId = client.run(config);
       } catch (Exception e) {
         // job could not be started, retry
         LOG.warn("Exception encountered when starting a job.", e);
         continue;
       }
-      JobInfo jobInfo = waitFor(jobId);
+      JobInfo jobInfo = waitFor(jobId, alluxioConf);
       if (jobInfo == null) {
         // job status could not be fetched, give up
         break;
@@ -111,10 +115,12 @@ public final class JobGrpcClientUtils {
    * @param jobId the ID of the job to wait for
    * @return the job info for the job once it finishes or null if the job status cannot be fetched
    */
-  private static JobInfo waitFor(final long jobId) throws InterruptedException {
+  private static JobInfo waitFor(final long jobId, AlluxioConfiguration alluxioConf)
+      throws InterruptedException {
     final AtomicReference<JobInfo> finishedJobInfo = new AtomicReference<>();
     try (final JobMasterClient client =
-        JobMasterClient.Factory.create(JobMasterClientConfig.defaults())) {
+        JobMasterClient.Factory.create(JobMasterClientContext
+            .newBuilder(ClientContext.create(alluxioConf)).build())) {
       CommonUtils.waitFor("Job to finish", ()-> {
         JobInfo jobInfo;
         try {

@@ -11,10 +11,10 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.ProcessUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
 import alluxio.util.CommonUtils;
@@ -42,7 +42,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       LoggerFactory.getLogger(FaultTolerantAlluxioMasterProcess.class);
 
   private final long mServingThreadTimeoutMs =
-      Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
+      ServerConfiguration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
 
   private PrimarySelector mLeaderSelector;
   private Thread mServingThread;

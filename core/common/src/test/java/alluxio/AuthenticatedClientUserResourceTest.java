@@ -13,6 +13,7 @@ package alluxio;
 
 import static org.junit.Assert.assertSame;
 
+import alluxio.conf.InstancedConfiguration;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
@@ -33,9 +34,10 @@ public final class AuthenticatedClientUserResourceTest {
 
   @Test
   public void userRestored() throws Exception {
+    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
     AuthenticatedClientUser.set(ORIGINAL_USER);
-    User original = AuthenticatedClientUser.get();
-    new AuthenticatedClientUserResource(TESTCASE_USER).close();
-    assertSame(original, AuthenticatedClientUser.get());
+    User original = AuthenticatedClientUser.get(conf);
+    new AuthenticatedClientUserResource(TESTCASE_USER, conf).close();
+    assertSame(original, AuthenticatedClientUser.get(conf));
   }
 }

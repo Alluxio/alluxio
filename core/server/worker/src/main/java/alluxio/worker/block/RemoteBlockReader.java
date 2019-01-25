@@ -34,6 +34,7 @@ public class RemoteBlockReader implements BlockReader {
   private final long mBlockSize;
   private final InetSocketAddress mDataSource;
   private final Protocol.OpenUfsBlockOptions mUfsOptions;
+  private final FileSystemContext mFsContext;
 
   private BlockInStream mInputStream;
   private ReadableByteChannel mChannel;
@@ -42,18 +43,21 @@ public class RemoteBlockReader implements BlockReader {
   /**
    * Constructs a remote block reader. It will read from a remote worker based on the data source.
    *
+   * @param fsContext the filesystem context to use to create {@link BlockInStream}
    * @param blockId the block to cache
    * @param blockSize the size of the block
    * @param dataSource the data source to cache from
    * @param ufsOptions the options to read the block from ufs if necessary
    */
-  public RemoteBlockReader(long blockId, long blockSize, InetSocketAddress dataSource,
+  public RemoteBlockReader(FileSystemContext fsContext, long blockId, long blockSize,
+      InetSocketAddress dataSource,
       Protocol.OpenUfsBlockOptions ufsOptions) {
     mBlockId = blockId;
     mBlockSize = blockSize;
     mDataSource = dataSource;
     mUfsOptions = ufsOptions;
     mClosed = false;
+    mFsContext = fsContext;
   }
 
   @Override
@@ -107,7 +111,8 @@ public class RemoteBlockReader implements BlockReader {
     }
     WorkerNetAddress address = new WorkerNetAddress().setHost(mDataSource.getHostName())
         .setDataPort(mDataSource.getPort());
-    mInputStream = BlockInStream.createRemoteBlockInStream(FileSystemContext.get(), mBlockId,
+    mInputStream = BlockInStream.createRemoteBlockInStream(mFsContext,
+        mBlockId,
         address, BlockInStream.BlockInStreamSource.REMOTE, mBlockSize, mUfsOptions);
     mChannel = Channels.newChannel(mInputStream);
   }

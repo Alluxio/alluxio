@@ -15,7 +15,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;

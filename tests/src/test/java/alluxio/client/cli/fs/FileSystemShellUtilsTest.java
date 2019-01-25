@@ -12,12 +12,15 @@
 package alluxio.client.cli.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
@@ -68,7 +71,7 @@ public final class FileSystemShellUtilsTest {
             Constants.HEADER_FT + "localhost:19998/dir", "/dir", "dir"};
     String expected = "/dir";
     for (String path : paths) {
-      String result = FileSystemShellUtils.getFilePath(path);
+      String result = FileSystemShellUtils.getFilePath(path, ConfigurationTestUtils.defaults());
       Assert.assertEquals(expected, result);
     }
   }
@@ -267,7 +270,8 @@ public final class FileSystemShellUtilsTest {
 
   @Test
   public void loadCommands() {
-    Map<String, Command> map = FileSystemShellUtils.loadCommands(mFileSystem);
+    Map<String, Command> map =
+        FileSystemShellUtils.loadCommands(FileSystemContext.create(ServerConfiguration.global()));
 
     String pkgName = Command.class.getPackage().getName();
     Reflections reflections = new Reflections(pkgName);

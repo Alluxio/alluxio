@@ -11,9 +11,9 @@
 
 package alluxio.cli.extensions.command;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.extensions.ExtensionsShellUtils;
@@ -62,7 +62,7 @@ public final class InstallCommand implements Command {
   @Override
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
-    String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
+    String extensionsDir = ServerConfiguration.get(PropertyKey.EXTENSIONS_DIR);
     File dir = new File(extensionsDir);
     if (!dir.exists() && !dir.mkdirs()) {
       System.err.println("Failed to create extensions directory " + extensionsDir);

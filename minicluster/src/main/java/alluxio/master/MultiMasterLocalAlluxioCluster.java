@@ -12,9 +12,9 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.underfs.UnderFileSystem;
@@ -182,10 +182,10 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
   @Override
   protected void startMasters() throws IOException {
-    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
-    Configuration.set(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
-    Configuration.set(PropertyKey.ZOOKEEPER_ELECTION_PATH, "/election");
-    Configuration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/leader");
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ELECTION_PATH, "/election");
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/leader");
 
     for (int k = 0; k < mNumOfMasters; k++) {
       final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory);
@@ -194,13 +194,13 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
           master.getAddress());
       mMasters.add(master);
       // Each master should generate a new port for binding
-      Configuration.set(PropertyKey.MASTER_RPC_PORT, "0");
+      ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, "0");
     }
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
     // sets UNDERFS_ADDRESS.
-    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot();
-    String path = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
+    String path = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     if (ufs.isDirectory(path)) {
       ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
     }
@@ -222,13 +222,13 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     // Use first master port
-    Configuration.set(PropertyKey.MASTER_RPC_PORT,
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT,
         String.valueOf(getLocalAlluxioMaster().getRpcLocalPort()));
   }
 
   @Override
   public void startWorkers() throws Exception {
-    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
+    ServerConfiguration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
     super.startWorkers();
   }
 

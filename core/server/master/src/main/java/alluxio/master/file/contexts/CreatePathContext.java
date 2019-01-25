@@ -12,6 +12,8 @@
 package alluxio.master.file.contexts;
 
 import alluxio.client.WriteType;
+import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.TtlAction;
@@ -71,9 +73,9 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
     mMetadataLoad = false;
     mGroup = "";
     mOwner = "";
-    if (SecurityUtils.isAuthenticationEnabled()) {
-      mOwner = SecurityUtils.getOwnerFromGrpcClient();
-      mGroup = SecurityUtils.getGroupFromGrpcClient();
+    if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
+      mOwner = SecurityUtils.getOwnerFromGrpcClient(ServerConfiguration.global());
+      mGroup = SecurityUtils.getGroupFromGrpcClient(ServerConfiguration.global());
     }
     // Initialize mPersisted based on proto write type.
     WritePType writeType = WritePType.NONE;

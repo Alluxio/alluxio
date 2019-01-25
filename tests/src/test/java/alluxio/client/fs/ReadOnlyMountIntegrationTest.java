@@ -12,8 +12,8 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AccessControlException;
@@ -60,8 +60,9 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     // Create another directory on the local filesystem, alongside the existing Ufs, to be used as
     // a second Ufs.
     AlluxioURI parentURI =
-        new AlluxioURI(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).getParent();
-    mUfs = UnderFileSystem.Factory.createForRoot();
+        new AlluxioURI(ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
+            .getParent();
+    mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     mAlternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     String ufsMountDir = PathUtils.concatPath(mAlternateUfsRoot, MOUNT_PATH);
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, mAlternateUfsRoot);

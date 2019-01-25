@@ -11,8 +11,8 @@
 
 package alluxio.worker;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
@@ -84,11 +84,14 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
 
       // Setup web server
       mWebServer = new JobWorkerWebServer(ServiceType.JOB_WORKER_WEB.getServiceName(),
-          NetworkAddressUtils.getBindAddress(ServiceType.JOB_WORKER_WEB), this);
+          NetworkAddressUtils.getBindAddress(ServiceType.JOB_WORKER_WEB,
+              ServerConfiguration.global()),
+          this);
 
       // Random port binding.
       InetSocketAddress configuredBindAddress =
-              NetworkAddressUtils.getBindAddress(ServiceType.JOB_WORKER_RPC);
+              NetworkAddressUtils.getBindAddress(ServiceType.JOB_WORKER_RPC,
+                  ServerConfiguration.global());
       if (configuredBindAddress.getPort() == 0) {
         mBindSocket = new ServerSocket(0);
         mRPCPort = mBindSocket.getLocalPort();
@@ -96,9 +99,10 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
         mRPCPort = configuredBindAddress.getPort();
       }
       // Reset worker RPC port based on assigned port number
-      Configuration.set(PropertyKey.JOB_WORKER_RPC_PORT, Integer.toString(mRPCPort));
+      ServerConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, Integer.toString(mRPCPort));
       mRpcAddress =
-          NetworkAddressUtils.getConnectAddress(ServiceType.JOB_WORKER_RPC);
+          NetworkAddressUtils.getConnectAddress(ServiceType.JOB_WORKER_RPC,
+              ServerConfiguration.global());
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -163,10 +167,12 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
     LOG.info("Alluxio job worker version {} started. "
             + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         RuntimeConstants.VERSION,
-        NetworkAddressUtils.getBindAddress(ServiceType.JOB_WORKER_RPC),
-        NetworkAddressUtils.getConnectAddress(ServiceType.JOB_WORKER_RPC),
-        NetworkAddressUtils.getPort(ServiceType.JOB_WORKER_RPC),
-        NetworkAddressUtils.getPort(ServiceType.JOB_WORKER_WEB));
+        NetworkAddressUtils.getBindAddress(ServiceType.JOB_WORKER_RPC,
+            ServerConfiguration.global()),
+        NetworkAddressUtils.getConnectAddress(ServiceType.JOB_WORKER_RPC,
+            ServerConfiguration.global()),
+        NetworkAddressUtils.getPort(ServiceType.JOB_WORKER_RPC, ServerConfiguration.global()),
+        NetworkAddressUtils.getPort(ServiceType.JOB_WORKER_WEB, ServerConfiguration.global()));
 
     startServingRPCServer();
     LOG.info("Alluxio job worker ended");
@@ -181,7 +187,8 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
       }
 
       LOG.info("Starting gRPC server on address {}", mRpcAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcAddress);
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcAddress,
+          ServerConfiguration.global());
 
       for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> serviceEntry : mJobWorker.getServices()
           .entrySet()) {
@@ -215,10 +222,11 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
   @Override
   public WorkerNetAddress getAddress() {
     return new WorkerNetAddress()
-        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.JOB_WORKER_RPC))
-        .setRpcPort(Configuration.getInt(PropertyKey.JOB_WORKER_RPC_PORT))
-        .setDataPort(Configuration.getInt(PropertyKey.JOB_WORKER_DATA_PORT))
-        .setWebPort(Configuration.getInt(PropertyKey.JOB_WORKER_WEB_PORT));
+        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.JOB_WORKER_RPC,
+            ServerConfiguration.global()))
+        .setRpcPort(ServerConfiguration.getInt(PropertyKey.JOB_WORKER_RPC_PORT))
+        .setDataPort(ServerConfiguration.getInt(PropertyKey.JOB_WORKER_DATA_PORT))
+        .setWebPort(ServerConfiguration.getInt(PropertyKey.JOB_WORKER_WEB_PORT));
   }
 
   private void startWorkers() throws Exception {

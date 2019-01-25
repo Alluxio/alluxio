@@ -11,9 +11,9 @@
 
 package alluxio.worker.block;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.ProcessUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ConnectionFailedException;
@@ -88,7 +88,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mWorkerId = workerId;
     mWorkerAddress = workerAddress;
     mMasterClient = masterClient;
-    mHeartbeatTimeoutMs = (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+    mHeartbeatTimeoutMs = (int) ServerConfiguration
+        .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
 
     registerWithMaster();
@@ -102,7 +103,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
-    List<ConfigProperty> configList = ConfigurationUtils.getConfiguration(Scope.WORKER);
+    List<ConfigProperty> configList =
+        ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
         storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList(), configList);
@@ -140,7 +142,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       mMasterClient.disconnect();
       if (mHeartbeatTimeoutMs > 0) {
         if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs >= mHeartbeatTimeoutMs) {
-          if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+          if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
             throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
           }
           // TODO(andrew): Propagate the exception to the main thread and exit there.

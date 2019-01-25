@@ -43,9 +43,10 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
    * @param account JOSS account with authentication credentials
    * @param container the name of container where the object resides
    * @param object path of the object in the container
+   * @param blockSize the block size to use on this stream
    */
-  public SwiftInputStream(Account account, String container, String object) {
-    this(account, container, object, 0L);
+  public SwiftInputStream(Account account, String container, String object, long blockSize) {
+    this(account, container, object, 0L, blockSize);
   }
 
   /**
@@ -55,8 +56,11 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
    * @param container the name of container where the object resides
    * @param object path of the object in the container
    * @param position the position to begin reading from
+   * @param blockSize the block size to use on this stream
    */
-  public SwiftInputStream(Account account, String container, String object, long position) {
+  public SwiftInputStream(Account account, String container, String object, long position,
+      long blockSize) {
+    mBlockSize = blockSize;
     mAccount = account;
     mContainerName = container;
     mObjectPath = object;
@@ -64,7 +68,8 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
   }
 
   @Override
-  protected InputStream createStream(long startPos, long endPos) throws IOException {
+  protected InputStream createStream(long startPos, long endPos)
+      throws IOException {
     StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
     DownloadInstructions downloadInstructions  = new DownloadInstructions();
     downloadInstructions.setRange(new MidPartLongRange(startPos, endPos - 1));

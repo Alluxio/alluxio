@@ -20,6 +20,7 @@ import static org.mockito.Mockito.anyString;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
@@ -170,8 +171,8 @@ public final class UnderFileSystemUtilsTest {
   }
 
   private MkdirsOptions createMkdirsOptions(String owner) {
-    return MkdirsOptions.defaults().setCreateParent(false).setOwner(owner).setGroup(mGroup)
-        .setMode(mMode);
+    return MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
+        .setOwner(owner).setGroup(mGroup).setMode(mMode);
   }
 
   private URIStatus createStatus(String owner, String group, Mode mode, boolean isMountPoint) {

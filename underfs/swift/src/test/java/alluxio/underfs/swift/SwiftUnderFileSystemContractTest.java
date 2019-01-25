@@ -11,6 +11,7 @@
 
 package alluxio.underfs.swift;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.underfs.AbstractUnderFileSystemContractTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -35,7 +36,7 @@ public final class SwiftUnderFileSystemContractTest extends AbstractUnderFileSys
   @Override
   public UnderFileSystem createUfs(String path, UnderFileSystemConfiguration conf)
       throws Exception {
-    return new SwiftUnderFileSystemFactory().create(path, conf);
+    return new SwiftUnderFileSystemFactory().create(path, conf, ConfigurationTestUtils.defaults());
   }
 
   @Override

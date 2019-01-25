@@ -13,11 +13,12 @@ package alluxio.multi.process;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.ClientContext;
+import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.Format;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
@@ -26,10 +27,11 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.conf.Source;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.MasterInfo;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.PollingMasterInquireClient;
 import alluxio.master.SingleMasterInquireClient;
@@ -114,6 +116,7 @@ public final class MultiProcessCluster {
   private List<MasterNetAddress> mMasterAddresses;
   private State mState;
   private RestartableTestingServer mCuratorServer;
+  private FileSystemContext mFilesystemContext;
   /**
    * Tracks whether the test has succeeded. If mSuccess is never updated before {@link #destroy()},
    * the state of the cluster will be saved as a tarball in the artifacts directory.
@@ -191,8 +194,11 @@ public final class MultiProcessCluster {
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
     }
 
-    for (Entry<PropertyKey, String> entry : ConfigurationTestUtils.testConfigurationDefaults(
-        NetworkAddressUtils.getLocalHostName(), mWorkDir.getAbsolutePath()).entrySet()) {
+    for (Entry<PropertyKey, String> entry :
+        ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
+        NetworkAddressUtils.getLocalHostName(
+            (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+        mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
       if (mProperties.containsKey(entry.getKey())) {
         continue;
@@ -210,6 +216,7 @@ public final class MultiProcessCluster {
       formatJournal();
     }
     writeConf();
+    ServerConfiguration.merge(mProperties, Source.RUNTIME);
 
     // Start servers
     LOG.info("Starting alluxio cluster {} with base directory {}", mClusterName,
@@ -305,13 +312,25 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * @return the {@link FileSystemContext} which can be used to access the cluster
+   */
+  public synchronized FileSystemContext getFilesystemContext() {
+    if (mFilesystemContext == null) {
+      mFilesystemContext = FileSystemContext.create(null, getMasterInquireClient(),
+          ServerConfiguration.global());
+      mCloser.register(mFilesystemContext);
+    }
+    return mFilesystemContext;
+  }
+
+  /**
    * @return a client for interacting with the cluster
    */
   public synchronized FileSystem getFileSystemClient() {
     Preconditions.checkState(mState == State.STARTED,
-        "must be in the started state to get an fs client, but state was %s", mState);
-    MasterInquireClient inquireClient = getMasterInquireClient();
-    return Factory.get(mCloser.register(FileSystemContext.create(null, inquireClient)));
+        "must be in the started state to create an fs client, but state was %s", mState);
+
+    return Factory.get(getFilesystemContext());
   }
 
   /**
@@ -319,9 +338,11 @@ public final class MultiProcessCluster {
    */
   public synchronized MetaMasterClient getMetaMasterClient() {
     Preconditions.checkState(mState == State.STARTED,
-        "must be in the started state to get a meta master client, but state was %s", mState);
-    return new RetryHandlingMetaMasterClient(new MasterClientConfig()
-        .withMasterInquireClient(getMasterInquireClient()));
+        "must be in the started state to create a meta master client, but state was %s", mState);
+    return new RetryHandlingMetaMasterClient(MasterClientContext
+        .newBuilder(ClientContext.create(ServerConfiguration.global()))
+        .setMasterInquireClient(getMasterInquireClient())
+        .build());
   }
 
   /**
@@ -329,9 +350,10 @@ public final class MultiProcessCluster {
    */
   public synchronized Clients getClients() {
     Preconditions.checkState(mState == State.STARTED,
-        "must be in the started state to get a meta master client, but state was %s", mState);
-    MasterClientConfig config = MasterClientConfig.defaults()
-        .withMasterInquireClient(getMasterInquireClient());
+        "must be in the started state to create a meta master client, but state was %s", mState);
+    MasterClientContext config = MasterClientContext
+        .newBuilder(ClientContext.create(ServerConfiguration.global()))
+        .setMasterInquireClient(getMasterInquireClient()).build();
     return new Clients(getFileSystemClient(),
         new RetryHandlingFileSystemMasterClient(config),
         new RetryHandlingMetaMasterClient(config),
@@ -578,8 +600,9 @@ public final class MultiProcessCluster {
       return;
     }
     try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER,
-        mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER)).toResource()) {
-      Format.format(Format.Mode.MASTER);
+        mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER), ServerConfiguration.global())
+        .toResource()) {
+      Format.format(Format.Mode.MASTER, ServerConfiguration.global());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -600,11 +623,12 @@ public final class MultiProcessCluster {
         for (MasterNetAddress address : mMasterAddresses) {
           addresses.add(new InetSocketAddress(address.getHostname(), address.getRpcPort()));
         }
-        return new PollingMasterInquireClient(addresses);
+        return new PollingMasterInquireClient(addresses, ServerConfiguration.global());
       case ZOOKEEPER_HA:
         return ZkMasterInquireClient.getClient(mCuratorServer.getConnectString(),
-            Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
-            Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
+            ServerConfiguration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
+            ServerConfiguration.get(PropertyKey.ZOOKEEPER_LEADER_PATH),
+            ServerConfiguration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT));
       default:
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
     }
@@ -661,7 +685,9 @@ public final class MultiProcessCluster {
   private List<MasterNetAddress> generateMasterAddresses(int numMasters) throws IOException {
     List<MasterNetAddress> addrs = new ArrayList<>();
     for (int i = 0; i < numMasters; i++) {
-      addrs.add(new MasterNetAddress(NetworkAddressUtils.getLocalHostName(),
+      addrs.add(new MasterNetAddress(NetworkAddressUtils
+          .getLocalHostName((int) ServerConfiguration
+              .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
           getNewPort(), getNewPort(), getNewPort()));
     }
     return addrs;

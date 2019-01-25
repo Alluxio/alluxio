@@ -12,6 +12,8 @@
 package alluxio.underfs.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
@@ -40,23 +42,24 @@ public final class CreateOptions {
   private AccessControlList mAcl;
 
   /**
+   * @param conf Alluxio configuration
    * @return the default {@link CreateOptions}
    */
-  public static CreateOptions defaults() {
-    return new CreateOptions();
+  public static CreateOptions defaults(AlluxioConfiguration conf) {
+    return new CreateOptions(conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
   }
 
   /**
    * Constructs a default {@link CreateOptions}.
    */
-  private CreateOptions() {
+  private CreateOptions(String authUmask) {
     mAcl = null;
     mCreateParent = false;
     mEnsureAtomic = false;
     // default owner and group are null (unset)
     mOwner = null;
     mGroup = null;
-    mMode = ModeUtils.applyFileUMask(Mode.defaults());
+    mMode = ModeUtils.applyFileUMask(Mode.defaults(), authUmask);
   }
 
   /**

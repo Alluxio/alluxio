@@ -11,8 +11,8 @@
 
 package alluxio.cli.validation;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.FormatUtils;
 
 import org.apache.commons.io.FileUtils;
@@ -39,21 +39,21 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
 
   @Override
   public TaskResult validate(Map<String, String> optionsMap) {
-    int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+    int numLevel = ServerConfiguration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     boolean success = true;
 
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierAliasConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(level);
-      String alias = Configuration.get(tierAliasConf);
+      String alias = ServerConfiguration.get(tierAliasConf);
 
       PropertyKey tierDirPathConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = Configuration.get(tierDirPathConf).split(",");
+      String[] dirPaths = ServerConfiguration.get(tierDirPathConf).split(",");
 
       PropertyKey tierDirCapacityConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(level);
-      String rawDirQuota = Configuration.get(tierDirCapacityConf);
+      String rawDirQuota = ServerConfiguration.get(tierDirCapacityConf);
       if (rawDirQuota.isEmpty()) {
         System.err.format("Tier %d: Quota cannot be empty.%n", level);
         return TaskResult.FAILED;
