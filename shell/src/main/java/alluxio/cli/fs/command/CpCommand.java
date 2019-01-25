@@ -38,6 +38,7 @@ import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 
@@ -45,10 +46,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -64,6 +72,108 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .hasArg(false)
           .desc("copy files in subdirectories recursively")
           .build();
+  private static final Option THREAD_OPTION =
+      Option.builder("t")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("threads")
+          .type(Integer.class)
+          .desc("Number of threads used to copy files in parallel")
+          .build();
+
+  /**
+   * A thread pool executor for asynchronous copy.
+   *
+   * Copy tasks can send messages to an output stream in a thread safe way.
+   */
+  @ThreadSafe
+  private final class CopyThreadPoolExecutor {
+    private static final String MESSAGE_DONE = "#";
+
+    private ThreadPoolExecutor mPool;
+    private BlockingQueue<String> mMessages;
+    private PrintStream mOutput;
+    private Thread mPrinter;
+    private AlluxioURI mPath;
+
+    /**
+     * Creates a new thread pool with the specified number of threads,
+     * specify the output stream for tasks to send messages to, and
+     * starts the background thread for printing messages.
+     *
+     * NOTE: needs to call {@link #shutdown()} to release resources.
+     *
+     * @param threads number of threads
+     * @param out the output stream for tasks to send messages to
+     * @param path the path to delete on shutdown when it's empty, otherwise can be {@code null}
+     */
+    public CopyThreadPoolExecutor(int threads, PrintStream out, AlluxioURI path) {
+      mPool = new ThreadPoolExecutor(threads, threads,
+          1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threads * 2),
+          new ThreadPoolExecutor.CallerRunsPolicy());
+      mMessages = new LinkedBlockingQueue<>();
+      mOutput = out;
+      mPrinter = new Thread(() -> {
+        while (!Thread.currentThread().isInterrupted()) {
+          try {
+            String message = mMessages.take();
+            if (message.equals(MESSAGE_DONE)) {
+              break;
+            }
+            mOutput.println(message);
+          } catch (InterruptedException e) {
+            break;
+          }
+        }
+      });
+      mPrinter.start();
+      mPath = path;
+    }
+
+    /**
+     * Submits a copy task, returns immediately without waiting for completion.
+     *
+     * @param task the copy task
+     */
+    public <T> void submit(Callable<T> task) {
+      mPool.submit(task);
+    }
+
+    /**
+     * Prints out the message into the specified output stream in a new line, waiting if necessary
+     * for the internal message queue to have available space.
+     *
+     * @param message the message, must not be "#"
+     * @throws InterruptedException if interrupted while waiting
+     */
+    public void println(String message) throws InterruptedException {
+      mMessages.put(message);
+    }
+
+    /**
+     * Waits until all asynchronous copy tasks succeed or fail, then shuts down the thread pool,
+     * joins the printer thread, and deletes the copy destination in case of error.
+     *
+     * @throws IOException when threads are interrupted or the path fails to be deleted
+     */
+    public void shutdown() throws IOException {
+      try {
+        mPool.shutdown();
+        mPool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        mMessages.put(MESSAGE_DONE);
+        mPrinter.join();
+        if (mPath != null
+            && mFileSystem.exists(mPath)
+            && mFileSystem.getStatus(mPath).isFolder()
+            && mFileSystem.listStatus(mPath).isEmpty()) {
+          mFileSystem.delete(mPath);
+        }
+      } catch (Exception e) {
+        throw new IOException(e);
+      }
+    }
+  }
 
   /**
    * @param fs the filesystem of Alluxio
@@ -84,7 +194,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(RECURSIVE_OPTION);
+    return new Options().addOption(RECURSIVE_OPTION)
+        .addOption(THREAD_OPTION);
   }
 
   @Override
@@ -94,20 +205,49 @@ public final class CpCommand extends AbstractFileSystemCommand {
     AlluxioURI dstPath = new AlluxioURI(args[1]);
     if ((dstPath.getScheme() == null || isAlluxio(dstPath.getScheme()))
         && isFile(srcPath.getScheme())) {
-      List<File> srcFiles = FileSystemShellUtils.getFiles(srcPath.getPath());
-      if (srcFiles.size() == 0) {
-        throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
-      }
+      List<AlluxioURI> srcPaths = new ArrayList<>();
       if (srcPath.containsWildcard()) {
-        List<AlluxioURI> srcPaths = new ArrayList<>();
+        List<File> srcFiles = FileSystemShellUtils.getFiles(srcPath.getPath());
+        if (srcFiles.size() == 0) {
+          throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
+        }
         for (File srcFile : srcFiles) {
           srcPaths.add(
               new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()));
         }
-        copyFromLocalWildcard(srcPaths, dstPath);
       } else {
-        copyFromLocal(srcPath, dstPath);
+        File src = new File(srcPath.getPath());
+        if (src.isDirectory()) {
+          File[] files = src.listFiles();
+          if (files == null) {
+            throw new IOException(String.format("Failed to list files for directory %s", src));
+          }
+          for (File f : files) {
+            srcPaths.add(new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), f.getPath()));
+          }
+        } else {
+          srcPaths.add(srcPath);
+        }
       }
+      if (srcPaths.size() == 1) {
+        copyFromLocalFile(srcPaths.get(0), dstPath);
+      } else {
+        int numThreads;
+        if (cl.hasOption("t")) {
+          try {
+            numThreads = (int) cl.getParsedOptionValue("t");
+          } catch (ParseException e) {
+            throw new IOException("Failed to parse option -t into an integer", e);
+          }
+        } else {
+          numThreads = Runtime.getRuntime().availableProcessors() * 2;
+        }
+        CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(numThreads, System.out,
+            mFileSystem.exists(dstPath) ? null : dstPath);
+        copyFromLocalFileList(pool, srcPaths, dstPath);
+        pool.shutdown();
+      }
+      System.out.println("Copied " + srcPath + " to " + dstPath);
     } else if ((srcPath.getScheme() == null || isAlluxio(srcPath.getScheme()))
         && isFile(dstPath.getScheme())) {
       List<AlluxioURI> srcPaths = FileSystemShellUtils.getAlluxioURIs(mFileSystem, srcPath);
@@ -267,83 +407,20 @@ public final class CpCommand extends AbstractFileSystemCommand {
   }
 
   /**
-   * Copies a directory from local to Alluxio filesystem. The destination directory structure
-   * maintained as local directory. This method is used when input path is a directory.
-   *
-   * @param srcPath the {@link AlluxioURI} of the source directory in the local filesystem
-   * @param dstPath the {@link AlluxioURI} of the destination
-   */
-  private void copyFromLocalDir(AlluxioURI srcPath, AlluxioURI dstPath)
-      throws AlluxioException, IOException {
-    File srcDir = new File(srcPath.getPath());
-    boolean dstExistedBefore = mFileSystem.exists(dstPath);
-    createDstDir(dstPath);
-    List<String> errorMessages = new ArrayList<>();
-    File[] fileList = srcDir.listFiles();
-    if (fileList == null) {
-      String errMsg = String.format("Failed to list files for directory %s", srcDir);
-      errorMessages.add(errMsg);
-      fileList = new File[0];
-    }
-    int misFiles = 0;
-    for (File srcFile : fileList) {
-      AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
-      try {
-        copyPath(
-            new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()),
-            newURI);
-      } catch (AlluxioException | IOException e) {
-        errorMessages.add(e.getMessage());
-        if (!mFileSystem.exists(newURI)) {
-          misFiles++;
-        }
-      }
-    }
-    if (errorMessages.size() != 0) {
-      if (misFiles == fileList.length) {
-        // If the directory doesn't exist and no files were created, then delete the directory
-        if (!dstExistedBefore && mFileSystem.exists(dstPath)) {
-          mFileSystem.delete(dstPath);
-        }
-      }
-      throw new IOException(Joiner.on('\n').join(errorMessages));
-    }
-  }
-
-  /**
    * Copies a list of files or directories specified by srcPaths from the local filesystem to
    * dstPath in the Alluxio filesystem space. This method is used when the input path contains
    * wildcards.
    *
+   * @param pool the thread pool for copying
    * @param srcPaths a list of files or directories in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
    */
-  private void copyFromLocalWildcard(List<AlluxioURI> srcPaths, AlluxioURI dstPath)
-      throws AlluxioException, IOException {
-    boolean dstExistedBefore = mFileSystem.exists(dstPath);
+  private void copyFromLocalFileList(CopyThreadPoolExecutor pool,
+      List<AlluxioURI> srcPaths, AlluxioURI dstPath) throws AlluxioException, IOException {
     createDstDir(dstPath);
-    List<String> errorMessages = new ArrayList<>();
-    int misFiles = 0;
     for (AlluxioURI srcPath : srcPaths) {
       AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcPath.getName()));
-      try {
-        copyPath(srcPath, newURI);
-        System.out.println("Copied " + srcPath + " to " + dstPath);
-      } catch (AlluxioException | IOException e) {
-        errorMessages.add(e.getMessage());
-        if (!mFileSystem.exists(newURI)) {
-          misFiles++;
-        }
-      }
-    }
-    if (errorMessages.size() != 0) {
-      if (misFiles == srcPaths.size()) {
-        // If the directory doesn't exist and no files were created, then delete the directory
-        if (!dstExistedBefore && mFileSystem.exists(dstPath)) {
-          mFileSystem.delete(dstPath);
-        }
-      }
-      throw new IOException(Joiner.on('\n').join(errorMessages));
+      asyncCopyLocalPath(pool, srcPath, newURI);
     }
   }
 
@@ -366,99 +443,78 @@ public final class CpCommand extends AbstractFileSystemCommand {
     }
   }
 
-  /**
-   * Copies a file or directory specified by srcPath from the local filesystem to dstPath in the
-   * Alluxio filesystem space.
-   *
-   * @param srcPath the {@link AlluxioURI} of the source in the local filesystem
-   * @param dstPath the {@link AlluxioURI} of the destination
-   */
-  private void copyFromLocal(AlluxioURI srcPath, AlluxioURI dstPath)
+  private void copyFromLocalFile(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
-    File srcFile = new File(srcPath.getPath());
-    if (srcFile.isDirectory()) {
-      copyFromLocalDir(srcPath, dstPath);
-    } else {
-      copyPath(srcPath, dstPath);
+    File src = new File(srcPath.getPath());
+    if (src.isDirectory()) {
+      throw new IOException("Source " + src.getAbsolutePath() + " is not a file.");
     }
-    System.out.println("Copied " + srcPath + " to " + dstPath);
+    // If the dstPath is a directory, then it should be updated to be the path of the file where
+    // src will be copied to.
+    if (mFileSystem.exists(dstPath) && mFileSystem.getStatus(dstPath).isFolder()) {
+      dstPath = dstPath.join(src.getName());
+    }
+
+    FileOutStream os = null;
+    try (Closer closer = Closer.create()) {
+      FileWriteLocationPolicy locationPolicy;
+      locationPolicy = CommonUtils.createNewClassInstance(
+          Configuration.<FileWriteLocationPolicy>getClass(
+              PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY),
+          new Class[] {}, new Object[] {});
+      os = closer.register(mFileSystem.createFile(dstPath,
+          CreateFileOptions.defaults().setLocationPolicy(locationPolicy)));
+      FileInputStream in = closer.register(new FileInputStream(src));
+      FileChannel channel = closer.register(in.getChannel());
+      ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);
+      while (channel.read(buf) != -1) {
+        buf.flip();
+        os.write(buf.array(), 0, buf.limit());
+      }
+    } catch (Exception e) {
+      // Close the out stream and delete the file, so we don't have an incomplete file lying
+      // around.
+      if (os != null) {
+        os.cancel();
+        if (mFileSystem.exists(dstPath)) {
+          mFileSystem.delete(dstPath);
+        }
+      }
+      throw e;
+    }
   }
 
   /**
-   * Copies a file or directory specified by srcPath from the local filesystem to dstPath in the
-   * Alluxio filesystem space.
+   * Asynchronously copies a file or directory specified by srcPath from the local filesystem to
+   * dstPath in the Alluxio filesystem space, assuming dstPath does not exist.
    *
    * @param srcPath the {@link AlluxioURI} of the source file in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
    */
-  private void copyPath(AlluxioURI srcPath, AlluxioURI dstPath) throws AlluxioException,
-      IOException {
+  private void asyncCopyLocalPath(CopyThreadPoolExecutor pool, AlluxioURI srcPath,
+      AlluxioURI dstPath) throws AlluxioException, IOException {
     File src = new File(srcPath.getPath());
     if (!src.isDirectory()) {
-      // If the dstPath is a directory, then it should be updated to be the path of the file where
-      // src will be copied to.
-      if (mFileSystem.exists(dstPath) && mFileSystem.getStatus(dstPath).isFolder()) {
-        dstPath = dstPath.join(src.getName());
-      }
-
-      FileOutStream os = null;
-      try (Closer closer = Closer.create()) {
-        FileWriteLocationPolicy locationPolicy;
-        locationPolicy = CommonUtils.createNewClassInstance(
-            Configuration.<FileWriteLocationPolicy>getClass(
-                PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY),
-            new Class[] {}, new Object[] {});
-        os = closer.register(mFileSystem.createFile(dstPath,
-            CreateFileOptions.defaults().setLocationPolicy(locationPolicy)));
-        FileInputStream in = closer.register(new FileInputStream(src));
-        FileChannel channel = closer.register(in.getChannel());
-        ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);
-        while (channel.read(buf) != -1) {
-          buf.flip();
-          os.write(buf.array(), 0, buf.limit());
+      pool.submit(() -> {
+        try {
+          copyFromLocalFile(srcPath, dstPath);
+          pool.println(String.format("Copied %s to %s.", srcPath, dstPath));
+        } catch (Exception e) {
+          pool.println(e.getMessage());
         }
-      } catch (Exception e) {
-        // Close the out stream and delete the file, so we don't have an incomplete file lying
-        // around.
-        if (os != null) {
-          os.cancel();
-          if (mFileSystem.exists(dstPath)) {
-            mFileSystem.delete(dstPath);
-          }
-        }
-        throw e;
-      }
+        return null;
+      });
     } else {
       mFileSystem.createDirectory(dstPath);
-      List<String> errorMessages = new ArrayList<>();
       File[] fileList = src.listFiles();
       if (fileList == null) {
-        String errMsg = String.format("Failed to list files for directory %s", src);
-        errorMessages.add(errMsg);
-        fileList = new File[0];
+        throw new IOException(String.format("Failed to list files for directory %s", src));
       }
-      int misFiles = 0;
       for (File srcFile : fileList) {
         AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
-        try {
-          copyPath(
+        asyncCopyLocalPath(pool,
               new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), srcFile.getPath()),
               newURI);
-        } catch (IOException e) {
-          errorMessages.add(e.getMessage());
-          if (!mFileSystem.exists(newURI)) {
-            misFiles++;
-          }
-        }
-      }
-      if (errorMessages.size() != 0) {
-        if (misFiles == fileList.length) {
-          // If the directory doesn't exist and no files were created, then delete the directory
-          if (mFileSystem.exists(dstPath)) {
-            mFileSystem.delete(dstPath);
-          }
-        }
-        throw new IOException(Joiner.on('\n').join(errorMessages));
       }
     }
   }
