@@ -157,9 +157,17 @@ public final class CpCommand extends AbstractFileSystemCommand {
     public void shutdown() throws IOException {
       try {
         mPool.shutdown();
-        mPool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-        mMessages.put(MESSAGE_DONE);
-        mPrinter.join();
+        try {
+          mPool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+          mPool.shutdownNow();
+        }
+        try {
+          mMessages.put(MESSAGE_DONE);
+          mPrinter.join();
+        } catch (InterruptedException e) {
+          mPrinter.interrupt();
+        }
         if (mPath != null
             && mFileSystem.exists(mPath)
             && mFileSystem.getStatus(mPath).isFolder()
