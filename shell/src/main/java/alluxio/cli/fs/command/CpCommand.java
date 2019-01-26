@@ -241,8 +241,11 @@ public final class CpCommand extends AbstractFileSystemCommand {
         }
         CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(numThreads, System.out,
             mFileSystem.exists(dstPath) ? null : dstPath);
-        copyFromLocalFileList(pool, srcPaths, dstPath);
-        pool.shutdown();
+        try {
+          copyFromLocalFileList(pool, srcPaths, dstPath);
+        } finally {
+          pool.shutdown();
+        }
       }
       System.out.println("Copied " + srcPath + " to " + dstPath);
     } else if ((srcPath.getScheme() == null || isAlluxio(srcPath.getScheme()))
