@@ -76,7 +76,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .numberOfArgs(1)
           .argName("threads")
           .type(Integer.class)
-          .desc("Number of threads used to copy files in parallel")
+          .desc("Number of threads used to copy files in parallel, default value is 2 times CPU cores")
           .build();
 
   /**
