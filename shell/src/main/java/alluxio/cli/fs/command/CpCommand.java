@@ -69,13 +69,13 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .hasArg(false)
           .desc("copy files in subdirectories recursively")
           .build();
-  private static final Option THREAD_OPTION =
+  public static final Option THREAD_OPTION =
       Option.builder("t")
           .required(false)
           .hasArg(true)
           .numberOfArgs(1)
           .argName("threads")
-          .type(Integer.class)
+          .type(Number.class)
           .desc("Number of threads used to copy files in parallel, default value is CPU cores * 2")
           .build();
 
@@ -240,7 +240,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         int numThreads;
         if (cl.hasOption("t")) {
           try {
-            numThreads = (int) cl.getParsedOptionValue("t");
+            numThreads = ((Number) cl.getParsedOptionValue("t")).intValue();
           } catch (ParseException e) {
             throw new IOException("Failed to parse option -t into an integer", e);
           }
