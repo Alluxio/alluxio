@@ -12,12 +12,16 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.master.block.BlockId;
 import alluxio.wire.BlockInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,15 +33,27 @@ import java.util.stream.Collectors;
  */
 public class GetBlockInfoCommand extends AbstractFsAdminCommand {
   private static final String HEADER_PATTERN = "Showing information of block %s:%n";
+  private static final String HELP_OPTION_NAME = "h";
   @VisibleForTesting
   public static final String INVALID_BLOCK_ID_INFO = "%s is not a valid block id%n%n";
   private static final String FILE_INFO_PATTERN = "This block belongs to file {id=%s, path=%s}%n%n";
 
+  private static final Option HELP_OPTION =
+      Option.builder(HELP_OPTION_NAME)
+          .required(false)
+          .hasArg(false)
+          .desc("print help information.")
+          .build();
+
+  private final AlluxioConfiguration mConf;
+
   /**
    * @param context fsadmin command context
+   * @param alluxioConf Alluxio configuration
    */
-  public GetBlockInfoCommand(Context context) {
+  public GetBlockInfoCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
+    mConf = alluxioConf;
   }
 
   @Override
@@ -47,6 +63,14 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
+    if (cl.hasOption(HELP_OPTION_NAME)) {
+      System.out.println(getUsage());
+      System.out.println(getDescription());
+      return 0;
+    }
+
+    FileSystemAdminShellUtils.checkMasterClientService(mConf);
+
     List<Long> blockIds = getBlockIds(cl.getArgs()[0]);
     for (Long id : blockIds) {
       getAndPrintBlockInfo(id);
@@ -61,7 +85,13 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getDescription() {
-    return "get the block information and file path of a block id.";
+    return "get block information and file paths of block ids separated by comma.";
+  }
+
+  @Override
+  public Options getOptions() {
+    return new Options()
+        .addOption(HELP_OPTION);
   }
 
   @Override
