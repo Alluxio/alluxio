@@ -25,6 +25,7 @@ import org.junit.runners.model.Statement;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -87,6 +88,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
 
+  /** Sockets for the Alluxio master. */
+  private ServerSocket mRpcBindSocket;
+  private ServerSocket mWebBindSocket;
+
   /**
    * Creates a new instance.
    *
@@ -95,11 +100,14 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @param configuration configuration for configuring the cluster
    */
   private LocalAlluxioClusterResource(boolean startCluster, int numWorkers,
-      Map<PropertyKey, String> configuration) {
+      Map<PropertyKey, String> configuration, ServerSocket rpcBindSocket,
+      ServerSocket webBindSocket) {
     mStartCluster = startCluster;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
     MetricsSystem.resetAllCounters();
+    mRpcBindSocket = rpcBindSocket;
+    mWebBindSocket = webBindSocket;
   }
 
   /**
@@ -132,7 +140,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     AuthenticatedClientUser.remove();
     LoginUserTestUtils.resetLoginUser();
     // Create a new cluster.
-    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers);
+    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers, mRpcBindSocket, mWebBindSocket);
     // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration();
     // Overwrite the test configuration with test specific parameters
@@ -184,6 +192,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
     private boolean mStartCluster;
     private int mNumWorkers;
     private Map<PropertyKey, String> mConfiguration;
+    private ServerSocket mRpcBindSocket;
+    private ServerSocket mWebBindSocket;
 
     /**
      * Constructs the builder with default values.
@@ -219,11 +229,18 @@ public final class LocalAlluxioClusterResource implements TestRule {
       return this;
     }
 
+    public Builder setSockets(ServerSocket rpcBindSocket, ServerSocket webBindSocket) {
+      mRpcBindSocket = rpcBindSocket;
+      mWebBindSocket = webBindSocket;
+      return this;
+    }
+
     /**
      * @return a {@link LocalAlluxioClusterResource} for the current builder values
      */
     public LocalAlluxioClusterResource build() {
-      return new LocalAlluxioClusterResource(mStartCluster, mNumWorkers, mConfiguration);
+      return new LocalAlluxioClusterResource(mStartCluster, mNumWorkers, mConfiguration,
+          mRpcBindSocket, mWebBindSocket);
     }
   }
 

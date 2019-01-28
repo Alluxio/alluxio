@@ -1,38 +1,26 @@
-/*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
- *
- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied, as more fully set forth in the License.
- *
- * See the NOTICE file distributed with this work for information regarding copyright ownership.
- */
-
 package alluxio.master;
 
+import static alluxio.util.network.NetworkAddressUtils.ServiceType;
+
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.grpc.GrpcService;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.GrpcServerBuilder;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.URIUtils;
-import alluxio.util.WaitForOptions;
-import alluxio.grpc.GrpcServer;
-import alluxio.grpc.GrpcServerBuilder;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
-import alluxio.web.WebServer;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -42,40 +30,69 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.util.Map;
-import java.util.concurrent.TimeoutException;
+import java.net.SocketAddress;
+import java.net.URI;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class encapsulates the different master services that are configured to run.
+ * An Alluxio Master which runs a web and rpc server to handle FileSystem operations.
  */
 @NotThreadSafe
-public class AlluxioMasterProcess implements MasterProcess {
+public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
-  /** Maximum number of threads to serve the rpc server. */
-  private final int mMaxWorkerThreads;
+  /**
+   * Factory for creating {@link MasterProcess}.
+   */
+  @ThreadSafe
+  public static final class Factory {
+    /**
+     * @return a new instance of {@link MasterProcess}
+     */
+    public static AlluxioMasterProcess create() {
+      return create(MasterProcess.setupBindSocket(ServiceType.MASTER_RPC),
+          MasterProcess.setupBindSocket(ServiceType.MASTER_WEB));
+    }
 
-  /** Minimum number of threads to serve the rpc server. */
-  private final int mMinWorkerThreads;
+    /**
+     * Creates a new {@link AlluxioMasterProcess}.
+     *
+     * @param rpcBindSocket the socket whose address the rpc server will eventually bind to
+     * @param webBindSocket the socket whose address the web server will eventually bind to
+     * @return a new instance of {@link MasterProcess} using the given sockets for the master
+     */
+    @VisibleForTesting
+    public static AlluxioMasterProcess create(ServerSocket rpcBindSocket,
+        ServerSocket webBindSocket) {
+      URI journalLocation = JournalUtils.getJournalLocation();
+      JournalSystem journalSystem =
+          new JournalSystem.Builder().setLocation(journalLocation).build();
+      if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+        Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
+            "Raft journal cannot be used with Zookeeper enabled");
+        PrimarySelector primarySelector = PrimarySelector.Factory.createZkPrimarySelector();
+        return new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector,
+            rpcBindSocket, webBindSocket);
+      } else if (journalSystem instanceof RaftJournalSystem) {
+        PrimarySelector primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
+        return new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector,
+            rpcBindSocket, webBindSocket);
+      }
+      return new AlluxioMasterProcess(journalSystem, rpcBindSocket, webBindSocket);
+    }
 
-  /** The port for the RPC server. */
-  private final int mPort;
+    private Factory() {} // prevent instantiation
+  }
 
   /**
    * Lock for pausing modifications to master state. Holding the this lock allows a thread to
    * guarantee that no other threads will modify master state.
    */
   private final Lock mPauseStateLock;
-
-  /** The bind address for the rpc server. */
-  private final InetSocketAddress mRpcBindAddress;
-
-  /** The connect address for the rpc server. */
-  private final InetSocketAddress mRpcConnectAddress;
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
   private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
@@ -84,23 +101,11 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The master registry. */
   private final MasterRegistry mRegistry;
 
-  /** The web ui server. */
-  private WebServer mWebServer;
-
-  /** The RPC server. */
-  private GrpcServer mGrpcServer;
-
-  /** Used for auto binding. **/
-  private ServerSocket mBindSocket;
-
-  /** The start time for when the master started. */
-  private final long mStartTimeMs = System.currentTimeMillis();
-
-  /** The journal system for writing journal entries and restoring master state. */
-  protected final JournalSystem mJournalSystem;
-
   /** The JVMMonitor Progress. */
   private JvmPauseMonitor mJvmPauseMonitor;
+
+  /** The connect address for the rpc server. */
+  final InetSocketAddress mRpcConnectAddress;
 
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager;
@@ -111,50 +116,12 @@ public class AlluxioMasterProcess implements MasterProcess {
   /**
    * Creates a new {@link AlluxioMasterProcess}.
    */
-  AlluxioMasterProcess(JournalSystem journalSystem) {
-    mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
-    mMinWorkerThreads = ServerConfiguration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
-    mMaxWorkerThreads = ServerConfiguration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
-    int connectionTimeout = (int) ServerConfiguration
-        .getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
-
-    Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
-        PropertyKey.MASTER_WORKER_THREADS_MAX + " can not be less than "
-            + PropertyKey.MASTER_WORKER_THREADS_MIN);
-
-    if (connectionTimeout > 0) {
-      LOG.debug("{} connection timeout[{}] is {}", this, PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
-          connectionTimeout);
-    }
+  AlluxioMasterProcess(JournalSystem journalSystem, ServerSocket rpcBindSocket,
+      ServerSocket webBindSocket) {
+    super(journalSystem, rpcBindSocket, webBindSocket);
+    mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
+        ServerConfiguration.global());
     try {
-      // Extract the port from the generated socket.
-      // When running tests, it is fine to use port '0' so the system will figure out what port to
-      // use (any random free port).
-      // In a production or any real deployment setup, port '0' should not be used as it will make
-      // deployment more complicated.
-      if (!ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-        Preconditions.checkState(ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT) > 0,
-            this + " rpc port is only allowed to be zero in test mode.");
-        Preconditions.checkState(ServerConfiguration.getInt(PropertyKey.MASTER_WEB_PORT) > 0,
-            this + " web port is only allowed to be zero in test mode.");
-      }
-
-      // Random port binding.
-      InetSocketAddress configuredBindAddress =
-          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, ServerConfiguration.global());
-      if (configuredBindAddress.getPort() == 0) {
-        mBindSocket = new ServerSocket(0);
-        mPort = mBindSocket.getLocalPort();
-        ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
-      } else {
-        mPort = configuredBindAddress.getPort();
-      }
-
-      mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC,
-          ServerConfiguration.global());
-      mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-          ServerConfiguration.global());
-
       if (!mJournalSystem.isFormatted()) {
         throw new RuntimeException(
             String.format("Journal %s has not been formatted!", mJournalSystem));
@@ -168,7 +135,7 @@ public class AlluxioMasterProcess implements MasterProcess {
           .setSafeModeManager(mSafeModeManager)
           .setBackupManager(mBackupManager)
           .setStartTimeMs(mStartTimeMs)
-          .setPort(mPort)
+          .setPort(getRpcPort(ServiceType.MASTER_RPC))
           .build();
       mPauseStateLock = context.pauseStateLock();
       MasterUtils.createMasters(mRegistry, context);
@@ -177,24 +144,22 @@ public class AlluxioMasterProcess implements MasterProcess {
     }
   }
 
-  @Override
+  /**
+   * Gets the registered class from the master registry.
+   *
+   * @param clazz the class of the master to get
+   * @param <T> the type of the master to get
+   * @return the given master
+   */
   public <T extends Master> T getMaster(Class<T> clazz) {
     return mRegistry.get(clazz);
   }
 
-  @Override
-  public InetSocketAddress getRpcAddress() {
-    return mRpcConnectAddress;
-  }
-
-  @Override
-  public long getStartTimeMs() {
-    return mStartTimeMs;
-  }
-
-  @Override
-  public long getUptimeMs() {
-    return System.currentTimeMillis() - mStartTimeMs;
+  /**
+   * @return true if Alluxio is running in safe mode, false otherwise
+   */
+  public boolean isInSafeMode() {
+    return mSafeModeManager.isInSafeMode();
   }
 
   @Override
@@ -207,29 +172,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public boolean isInSafeMode() {
-    return mSafeModeManager.isInSafeMode();
-  }
-
-  @Override
-  public boolean isServing() {
-    return mGrpcServer != null && mGrpcServer.isServing();
-  }
-
-  @Override
-  public boolean waitForReady(int timeoutMs) {
-    try {
-      CommonUtils.waitFor(this + " to start",
-          () -> isServing() && mWebServer != null
-              && mWebServer.getServer().isRunning(),
-          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-      return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException e) {
-      return false;
-    }
+  public InetSocketAddress getRpcAddress() {
+    return mRpcConnectAddress;
   }
 
   @Override
@@ -246,6 +190,20 @@ public class AlluxioMasterProcess implements MasterProcess {
       stopServing();
       stopMasters();
       mJournalSystem.stop();
+    }
+  }
+
+  private void initFromBackup(AlluxioURI backup) throws IOException {
+    UnderFileSystem ufs;
+    if (URIUtils.isLocalFilesystem(backup.toString())) {
+      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
+    } else {
+      ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
+    }
+    try (UnderFileSystem closeUfs = ufs;
+        InputStream ufsIn = ufs.open(backup.getPath())) {
+      LOG.info("Initializing metadata from backup {}", backup);
+      mBackupManager.initFromBackup(ufsIn);
     }
   }
 
@@ -276,20 +234,6 @@ public class AlluxioMasterProcess implements MasterProcess {
     }
   }
 
-  private void initFromBackup(AlluxioURI backup) throws IOException {
-    UnderFileSystem ufs;
-    if (URIUtils.isLocalFilesystem(backup.toString())) {
-      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
-    } else {
-      ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
-    }
-    try (UnderFileSystem closeUfs = ufs;
-         InputStream ufsIn = ufs.open(backup.getPath())) {
-      LOG.info("Initializing metadata from backup {}", backup);
-      mBackupManager.initFromBackup(ufsIn);
-    }
-  }
-
   /**
    * Stops all masters, including block master, fileSystem master and additional masters.
    */
@@ -301,8 +245,40 @@ public class AlluxioMasterProcess implements MasterProcess {
     }
   }
 
-  private void startServing() {
-    startServing("", "");
+  /**
+   * Starts serving web ui server, resetting master web port, adding the metrics servlet to the web
+   * server and starting web ui.
+   */
+  protected void startServingWebServer() {
+    try {
+      mWebServer =
+          new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(),
+              getWebAddressFromBindSocket(), this);
+      // reset master web port
+      ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT,
+          Integer.toString(mWebServer.getLocalPort()));
+      // Add the metrics servlet to the web server.
+      mWebServer.addHandler(mMetricsServlet.getHandler());
+      // Add the prometheus metrics servlet to the web server.
+      mWebServer.addHandler(mPMetricsServlet.getHandler());
+      // start web ui
+      mWebServer.start();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Starts jvm monitor process, to monitor jvm.
+   */
+  protected void startJvmMonitorProcess() {
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
+      mJvmPauseMonitor = new JvmPauseMonitor(
+          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS),
+          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS));
+      mJvmPauseMonitor.start();
+    }
   }
 
   /**
@@ -329,46 +305,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Starts serving web ui server, resetting master web port, adding the metrics servlet to the web
-   * server and starting web ui.
-   */
-  protected void startServingWebServer() {
-    mWebServer = new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(),
-        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB, ServerConfiguration.global()),
-        this);
-    // reset master web port
-    ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT,
-        Integer.toString(mWebServer.getLocalPort()));
-    // Add the metrics servlet to the web server.
-    mWebServer.addHandler(mMetricsServlet.getHandler());
-    // Add the prometheus metrics servlet to the web server.
-    mWebServer.addHandler(mPMetricsServlet.getHandler());
-    // start web ui
-    mWebServer.start();
-  }
-
-  /**
-   * Starts jvm monitor process, to monitor jvm.
-   */
-  protected void startJvmMonitorProcess() {
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
-      mJvmPauseMonitor = new JvmPauseMonitor(
-          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS),
-          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS),
-          ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS));
-      mJvmPauseMonitor.start();
-    }
-  }
-
-  private void registerServices(GrpcServerBuilder serverBuilder,
-      Map<alluxio.grpc.ServiceType, GrpcService> services) {
-    for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> serviceEntry : services.entrySet()) {
-      serverBuilder.addService(serviceEntry.getKey(), serviceEntry.getValue());
-      LOG.info("registered service {}", serviceEntry.getKey().name());
-    }
-  }
-
-  /**
    * Starts the gRPC server. The AlluxioMaster registers the Services of registered
    * {@link Master}s and meta services.
    */
@@ -376,14 +312,9 @@ public class AlluxioMasterProcess implements MasterProcess {
     // TODO(ggezer) Executor threads not reused until thread capacity is hit.
     // ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
-      if (mBindSocket != null) {
-        // Server socket opened for auto bind.
-        // Close it.
-        mBindSocket.close();
-      }
-
-      LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress,
+      SocketAddress bindAddress = getRpcAddressFromBindSocket();
+      LOG.info("Starting gRPC server on address {}", bindAddress);
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(bindAddress,
           ServerConfiguration.global());
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
@@ -391,7 +322,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
-      LOG.info("Started gRPC server on address {}", mRpcBindAddress);
+      LOG.info("Started gRPC server on address {}", bindAddress);
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();

@@ -11,8 +11,11 @@
 
 package alluxio.master;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
@@ -20,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -43,18 +48,29 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   private LocalAlluxioMaster mMaster;
 
+  private ServerSocket mRpcBindSocket;
+  private ServerSocket mWebBindSocket;
+
   /**
    * Runs a test Alluxio cluster with a single Alluxio worker.
+   *
+   * @param rpcBindSocket the socket whose address the master's RPC server will bind to
+   * @param webBindSocket the socket whose address the master's web server will bind to
    */
-  public LocalAlluxioCluster() {
-    super(1);
+  public LocalAlluxioCluster(ServerSocket rpcBindSocket, ServerSocket webBindSocket) {
+    this(1, rpcBindSocket, webBindSocket);
   }
 
   /**
    * @param numWorkers the number of workers to run
+   * @param rpcBindSocket the socket whose address the master's RPC server will bind to
+   * @param webBindSocket the socket whose address the master's web server will bind to
    */
-  public LocalAlluxioCluster(int numWorkers) {
+  public LocalAlluxioCluster(int numWorkers, ServerSocket rpcBindSocket,
+      ServerSocket webBindSocket) {
     super(numWorkers);
+    mRpcBindSocket = rpcBindSocket;
+    mWebBindSocket = webBindSocket;
   }
 
   @Override
@@ -115,8 +131,29 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
+  public void initConfiguration() throws IOException {
+    setAlluxioWorkDirectory();
+    setHostname();
+    for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
+        .testConfigurationDefaults(ServerConfiguration.global(), mHostname, mWorkDirectory)
+        .entrySet()) {
+      ServerConfiguration.set(entry.getKey(), entry.getValue());
+    }
+    ServerConfiguration.set(PropertyKey.TEST_MODE, true);
+    if (mRpcBindSocket == null) {
+      ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, 0);
+    }
+    if (mWebBindSocket == null) {
+      ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, 0);
+    }
+    ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
+    ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
+    ServerConfiguration.set(PropertyKey.WORKER_WEB_PORT, 0);
+  }
+
+  @Override
   public void startMasters() throws Exception {
-    mMaster = LocalAlluxioMaster.create(mWorkDirectory);
+    mMaster = LocalAlluxioMaster.create(mWorkDirectory, mRpcBindSocket, mWebBindSocket);
     mMaster.start();
   }
 

@@ -21,14 +21,16 @@ import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
-import alluxio.network.PortUtils;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 
+import java.net.ServerSocket;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -44,16 +46,15 @@ public abstract class JobIntegrationTest extends BaseIntegrationTest {
   protected FileSystem mFileSystem = null;
   protected FileSystemContext mFsContext;
   protected LocalAlluxioJobCluster mLocalAlluxioJobCluster;
-  protected Map<PropertyKey, Integer> mPortMapping;
+  protected Map<NetworkAddressUtils.ServiceType, ServerSocket> mServiceMapping;
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource = buildLocalAlluxioCluster();
 
   protected void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
-    mPortMapping = PortUtils.createPortMapping();
-    mPortMapping.forEach((PropertyKey pk, Integer val) -> {
-      resource.setProperty(pk, val);
-    });
+    mServiceMapping = IntegrationTestUtils.createMasterServiceMapping();
+    resource.setSockets(mServiceMapping.get(NetworkAddressUtils.ServiceType.MASTER_RPC),
+        mServiceMapping.get(NetworkAddressUtils.ServiceType.MASTER_WEB));
   }
 
   private LocalAlluxioClusterResource buildLocalAlluxioCluster() {
@@ -69,10 +70,9 @@ public abstract class JobIntegrationTest extends BaseIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
-    mPortMapping.forEach((PropertyKey pk, Integer val) -> {
-      mLocalAlluxioJobCluster.setProperty(pk, val.toString());
-    });
+    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster(
+        mServiceMapping.get(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC),
+        mServiceMapping.get(NetworkAddressUtils.ServiceType.JOB_MASTER_WEB));
     mLocalAlluxioJobCluster.start();
     mJobMaster = mLocalAlluxioJobCluster.getMaster().getJobMaster();
     mFsContext = FileSystemContext.create(ServerConfiguration.global());

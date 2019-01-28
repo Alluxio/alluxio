@@ -11,16 +11,20 @@
 
 package alluxio.testutils;
 
+import static alluxio.util.network.NetworkAddressUtils.ServiceType;
+
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterClientContext;
+import alluxio.master.MasterProcess;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
@@ -30,14 +34,18 @@ import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
  * Util methods for writing integration tests.
  */
 public final class IntegrationTestUtils {
+
   /**
    * Convenience method for calling
    * {@link #waitForPersist(LocalAlluxioClusterResource, AlluxioURI, int)} with a default timeout.
@@ -120,6 +128,30 @@ public final class IntegrationTestUtils {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
+  }
+
+  public static final List<ServiceType> MASTER_PORT_SERVICE_LIST = Arrays.asList(
+      ServiceType.JOB_MASTER_RPC,
+      ServiceType.JOB_MASTER_WEB,
+      ServiceType.MASTER_RPC,
+      ServiceType.MASTER_WEB,
+      ServiceType.PROXY_WEB);
+
+  /**
+   * Creates a map of property keys to ports using list of ports in MASTER_PROCESS_PORT_LIST.
+   * When each entry is created, it will create the bind socket for each service and set the
+   * {@link ServerConfiguration} port property associated with the service.
+   *
+   * @return a map {@link ServiceType} to {@link ServerSocket}
+   */
+  public static Map<ServiceType, ServerSocket> createMasterServiceMapping() {
+    Map<ServiceType, ServerSocket> serviceMapping = new HashMap<>();
+    MASTER_PORT_SERVICE_LIST.forEach((ServiceType st) -> {
+      PropertyKey pk = MasterProcess.MASTER_PROCESS_SERVICE_PORT_MAP.get(st);
+      ServerConfiguration.set(pk, 0);
+      serviceMapping.put(st, MasterProcess.setupBindSocket(st));
+    });
+    return serviceMapping;
   }
 
   private IntegrationTestUtils() {} // This is a utils class not intended for instantiation

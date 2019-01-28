@@ -247,7 +247,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   private LocalAlluxioCluster setupSingleMasterCluster() throws Exception {
     // Setup and start the local alluxio cluster.
-    LocalAlluxioCluster cluster = new LocalAlluxioCluster();
+    LocalAlluxioCluster cluster = new LocalAlluxioCluster(null, null);
     cluster.initConfiguration();
     ServerConfiguration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE);
     cluster.start();

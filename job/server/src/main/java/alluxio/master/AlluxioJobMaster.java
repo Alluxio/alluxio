@@ -35,14 +35,14 @@ public final class AlluxioJobMaster {
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
-          AlluxioJobMaster.class.getCanonicalName());
+          AlluxioJobMasterProcess.class.getCanonicalName());
       System.exit(-1);
     }
 
     CommonUtils.PROCESS_TYPE.set(alluxio.util.CommonUtils.ProcessType.JOB_MASTER);
-    JobMasterProcess process;
+    AlluxioJobMasterProcess process;
     try {
-      process = JobMasterProcess.Factory.create();
+      process = AlluxioJobMasterProcess.Factory.create();
     } catch (Throwable t) {
       LOG.error("Failed to create job master process", t);
       // Exit to stop any non-daemon threads.
