@@ -11,8 +11,8 @@
 
 package alluxio.util;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
@@ -33,50 +33,55 @@ public final class SecurityUtils {
   /**
    * Checks if security is enabled.
    *
+   * @param conf Alluxio configuration
    * @return true if security is enabled, false otherwise
    */
-  public static boolean isSecurityEnabled() {
-    return isAuthenticationEnabled() && isAuthorizationEnabled();
+  public static boolean isSecurityEnabled(AlluxioConfiguration conf) {
+    return isAuthenticationEnabled(conf) && isAuthorizationEnabled(conf);
   }
 
   /**
    * Checks if authentication is enabled.
    *
+   * @param conf Alluxio configuration
    * @return true if authentication is enabled, false otherwise
    */
-  public static boolean isAuthenticationEnabled() {
-    return !Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class)
+  public static boolean isAuthenticationEnabled(AlluxioConfiguration conf) {
+    return !conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class)
         .equals(AuthType.NOSASL);
   }
 
   /**
    * Checks if authorization is enabled.
    *
+   * @param conf Alluxio configuration
    * @return true if authorization is enabled, false otherwise
    */
-  public static boolean isAuthorizationEnabled() {
-    return Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
+  public static boolean isAuthorizationEnabled(AlluxioConfiguration conf) {
+    return conf.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
   }
 
   /**
+   * @param conf Alluxio configuration
    * @return the owner fetched from the login module, or empty string if the fetch fails or
    *         authentication is disabled
    */
-  public static String getOwnerFromLoginModule() {
+  public static String getOwnerFromLoginModule(AlluxioConfiguration conf) {
     try {
-      return LoginUser.get().getName();
+      return LoginUser.get(conf).getName();
     } catch (UnauthenticatedException | UnsupportedOperationException e) {
       return "";
     }
   }
 
   /**
+   * @param conf Alluxio configuration
    * @return the owner fetched from the gRPC client, or empty string if the fetch fails or
    *         authentication is disabled
    */
-  public static String getOwnerFromGrpcClient() {
+  public static String getOwnerFromGrpcClient(AlluxioConfiguration conf) {
     try {
-      User user = AuthenticatedClientUser.get();
+      User user = AuthenticatedClientUser.get(conf);
       if (user == null) {
         return "";
       }
@@ -87,28 +92,30 @@ public final class SecurityUtils {
   }
 
   /**
+   * @param conf Alluxio configuration
    * @return the group fetched from the login module, or empty string if the fetch fails or
    *         authentication is disabled
    */
-  public static String getGroupFromLoginModule() {
+  public static String getGroupFromLoginModule(AlluxioConfiguration conf) {
     try {
-      return CommonUtils.getPrimaryGroupName(LoginUser.get().getName());
+      return CommonUtils.getPrimaryGroupName(LoginUser.get(conf).getName(), conf);
     } catch (IOException | UnsupportedOperationException e) {
       return "";
     }
   }
 
   /**
+   * @param conf Alluxio configuration
    * @return the group fetched from the gRPC client, or empty string if the fetch fails or
    *         authentication is disabled
    */
-  public static String getGroupFromGrpcClient() {
+  public static String getGroupFromGrpcClient(AlluxioConfiguration conf) {
     try {
-      User user = AuthenticatedClientUser.get();
+      User user = AuthenticatedClientUser.get(conf);
       if (user == null) {
         return "";
       }
-      return CommonUtils.getPrimaryGroupName(user.getName());
+      return CommonUtils.getPrimaryGroupName(user.getName(), conf);
     } catch (IOException e) {
       return "";
     }

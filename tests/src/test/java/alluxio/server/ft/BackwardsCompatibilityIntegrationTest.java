@@ -13,7 +13,8 @@ package alluxio.server.ft;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.backcompat.BackwardsCompatibilityJournalGenerator;
 import alluxio.master.backcompat.Journal;
 import alluxio.master.backcompat.TestOp;
@@ -87,7 +88,8 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
   @Test
   public void readOldJournals() throws Exception {
     Assume.assumeTrue("Journals must be replayed by the same user that generated them, so this "
-        + "test must be run as root", LoginUser.get().getName().equals("root"));
+        + "test must be run as root", LoginUser.get(ServerConfiguration.global()).getName()
+        .equals("root"));
     // Starts a cluster from each old journal, and checks that all operation checks pass.
     List<Journal> journals = Arrays
         .asList(new File(BackwardsCompatibilityJournalGenerator.OLD_JOURNALS_RESOURCE).listFiles())

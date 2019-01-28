@@ -13,10 +13,12 @@ package alluxio.client.fs;
 
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.ServerConfiguration;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.wire.WorkerNetAddress;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,21 +30,28 @@ public final class BlockWorkerClientCloseIntegrationTest extends BaseIntegration
       new LocalAlluxioClusterResource.Builder().build();
 
   private WorkerNetAddress mWorkerNetAddress;
+  private FileSystemContext mFsContext;
 
   @Before
   public void before() throws Exception {
     mWorkerNetAddress = mClusterResource.get().getWorkerAddress();
+    mFsContext = FileSystemContext.create(ServerConfiguration.global());
+  }
+
+  @After
+  public void after() throws Exception {
+    mFsContext.close();
   }
 
   @Test
   public void close() throws Exception {
     for (int i = 0; i < 1000; i++) {
-      BlockWorkerClient client = FileSystemContext.get()
+      BlockWorkerClient client = mFsContext
           .acquireBlockWorkerClient(mWorkerNetAddress);
       Assert.assertFalse(client.isShutdown());
       client.close();
       Assert.assertTrue(client.isShutdown());
-      FileSystemContext.get().releaseBlockWorkerClient(mWorkerNetAddress, client);
+      mFsContext.releaseBlockWorkerClient(mWorkerNetAddress, client);
     }
   }
 }

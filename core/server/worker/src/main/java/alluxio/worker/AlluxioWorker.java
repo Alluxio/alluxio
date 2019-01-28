@@ -11,10 +11,10 @@
 
 package alluxio.worker;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.ProcessUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryUtils;
@@ -48,7 +48,7 @@ public final class AlluxioWorker {
       System.exit(-1);
     }
 
-    if (!ConfigurationUtils.masterHostConfigured()) {
+    if (!ConfigurationUtils.masterHostConfigured(ServerConfiguration.global())) {
       ProcessUtils.fatalError(LOG,
           "Cannot run alluxio worker; master hostname is not "
               + "configured. Please modify %s to either set %s or configure zookeeper with "
@@ -58,12 +58,14 @@ public final class AlluxioWorker {
     }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.WORKER);
-    MasterInquireClient masterInquireClient = MasterInquireClient.Factory.create();
+    MasterInquireClient masterInquireClient =
+        MasterInquireClient.Factory.create(ServerConfiguration.global());
     try {
       RetryUtils.retry("load cluster default configuration with master", () -> {
         InetSocketAddress masterAddress = masterInquireClient.getPrimaryRpcAddress();
-        Configuration.loadClusterDefault(masterAddress);
-      }, RetryUtils.defaultWorkerMasterClientRetry());
+        ServerConfiguration.loadClusterDefaults(masterAddress);
+      }, RetryUtils.defaultWorkerMasterClientRetry(
+          ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (IOException e) {
       ProcessUtils.fatalError(LOG,
           "Failed to load cluster default configuration for worker: %s", e.getMessage());

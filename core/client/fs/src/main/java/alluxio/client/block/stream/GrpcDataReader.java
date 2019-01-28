@@ -11,13 +11,13 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataByteBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -45,10 +45,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class GrpcDataReader implements DataReader {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataReader.class);
 
-  private static final int READ_BUFFER_SIZE =
-      Configuration.getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
-  private static final long READ_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
+  private final int mReaderBufferSizeMessages;
+  private final long mDataTimeoutMs;
   private final FileSystemContext mContext;
   private final BlockWorkerClient mClient;
   private final ReadRequest mReadRequest;
@@ -72,11 +70,16 @@ public final class GrpcDataReader implements DataReader {
     mAddress = address;
     mPosToRead = readRequest.getOffset();
     mReadRequest = readRequest;
+    AlluxioConfiguration alluxioConf = context.getConf();
+    mReaderBufferSizeMessages = alluxioConf
+        .getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
+    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
 
     mClient = mContext.acquireBlockWorkerClient(address);
     try {
-      mStream = new GrpcBlockingStream<>(mClient::readBlock, READ_BUFFER_SIZE, address.toString());
-      mStream.send(mReadRequest, READ_TIMEOUT_MS);
+      mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
+          address.toString());
+      mStream.send(mReadRequest, mDataTimeoutMs);
     } catch (Exception e) {
       mContext.releaseBlockWorkerClient(address, mClient);
       throw e;
@@ -93,7 +96,7 @@ public final class GrpcDataReader implements DataReader {
     Preconditions.checkState(!mClient.isShutdown(),
         "Data reader is closed while reading data chunks.");
     ByteString buf;
-    ReadResponse response = mStream.receive(READ_TIMEOUT_MS);
+    ReadResponse response = mStream.receive(mDataTimeoutMs);
     if (response == null) {
       return null;
     }
@@ -101,7 +104,7 @@ public final class GrpcDataReader implements DataReader {
     buf = response.getChunk().getData();
     mPosToRead += buf.size();
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
-    return new DataByteBuffer(buf.asReadOnlyByteBuffer(), buf.size());
+    return new NioDataBuffer(buf.asReadOnlyByteBuffer(), buf.size());
   }
 
   @Override
@@ -111,7 +114,7 @@ public final class GrpcDataReader implements DataReader {
         return;
       }
       mStream.close();
-      mStream.waitForComplete(READ_TIMEOUT_MS);
+      mStream.waitForComplete(mDataTimeoutMs);
     } finally {
       mContext.releaseBlockWorkerClient(mAddress, mClient);
     }

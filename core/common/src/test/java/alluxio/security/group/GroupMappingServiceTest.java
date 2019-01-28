@@ -15,8 +15,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
+import alluxio.util.ConfigurationUtils;
 
 import org.junit.Test;
 
@@ -33,11 +35,12 @@ public final class GroupMappingServiceTest {
   @Test
   public void group() throws Throwable {
     String userName = "alluxio-user1";
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
 
     try (Closeable mConfigurationRule =
         new ConfigurationRule(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
-            IdentityUserGroupsMapping.class.getName()).toResource()) {
-      GroupMappingService groups = GroupMappingService.Factory.get();
+            IdentityUserGroupsMapping.class.getName(), conf).toResource()) {
+      GroupMappingService groups = GroupMappingService.Factory.get(conf);
 
       assertNotNull(groups);
       assertNotNull(groups.getGroups(userName));

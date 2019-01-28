@@ -11,8 +11,8 @@
 
 package alluxio.client.file;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
 import alluxio.client.BoundedStream;
@@ -66,13 +66,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class FileInStream extends InputStream implements BoundedStream, PositionedReadable,
     Seekable {
   private static final Logger LOG = LoggerFactory.getLogger(FileInStream.class);
-  private static final int MAX_WORKERS_TO_RETRY =
-      Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
 
+  private final int mBlockWorkerClientReadRetry;
   private final URIStatus mStatus;
   private final InStreamOptions mOptions;
   private final AlluxioBlockStore mBlockStore;
   private final FileSystemContext mContext;
+  private final boolean mPassiveCachingEnabled;
 
   /* Convenience values derived from mStatus, use these instead of querying mStatus. */
   /** Length of the file in bytes. */
@@ -96,6 +96,9 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
 
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
+    AlluxioConfiguration conf = context.getConf();
+    mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
+    mBlockWorkerClientReadRetry = conf.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
     mStatus = status;
     mOptions = options;
     mBlockStore = AlluxioBlockStore.create(context);
@@ -116,7 +119,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     if (mPosition == mLength) { // at end of file
       return -1;
     }
-    CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
+    CountingRetry retry = new CountingRetry(mBlockWorkerClientReadRetry);
     IOException lastException = null;
     while (retry.attempt()) {
       try {
@@ -156,7 +159,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
     int bytesLeft = len;
     int currentOffset = off;
-    CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
+    CountingRetry retry = new CountingRetry(mBlockWorkerClientReadRetry);
     IOException lastException = null;
     while (bytesLeft > 0 && mPosition != mLength && retry.attempt()) {
       try {
@@ -218,7 +221,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     }
 
     int lenCopy = len;
-    CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
+    CountingRetry retry = new CountingRetry(mBlockWorkerClientReadRetry);
     IOException lastException = null;
     while (len > 0 && retry.attempt()) {
       if (pos >= mLength) {
@@ -332,14 +335,12 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         && mStatus.getFileBlockInfos().get((int) (getPos() / mBlockSize))
         .getBlockInfo().getLocations().size() >= mStatus.getReplicationMax();
     cache = cache && !overReplicated;
-    boolean passiveCache = Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
-    long channelTimeout = Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
     // Get relevant information from the stream.
     WorkerNetAddress dataSource = stream.getAddress();
     long blockId = stream.getId();
     if (cache && (mLastBlockIdCached != blockId)) {
       WorkerNetAddress worker;
-      if (passiveCache && mContext.hasLocalWorker()) { // send request to local worker
+      if (mPassiveCachingEnabled && mContext.hasLocalWorker()) { // send request to local worker
         worker = mContext.getLocalWorker();
       } else { // send request to data source
         worker = dataSource;

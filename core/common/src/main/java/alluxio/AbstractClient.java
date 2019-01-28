@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
@@ -42,7 +43,6 @@ import java.net.InetSocketAddress;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * The base class for clients.
@@ -75,29 +75,32 @@ public abstract class AbstractClient implements Client {
    */
   protected long mServiceVersion;
 
-  private final Subject mParentSubject;
+  protected ClientContext mContext;
 
   /**
    * Creates a new client base.
    *
-   * @param subject the parent subject, set to null if not present
+   * @param context information required to connect to Alluxio
    * @param address the address
    */
-  public AbstractClient(Subject subject, InetSocketAddress address) {
-    this(subject, address, RetryUtils::defaultClientRetry);
+  public AbstractClient(ClientContext context, InetSocketAddress address) {
+    this(context, address, () -> RetryUtils.defaultClientRetry(
+        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
+        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
+        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
   }
 
   /**
    * Creates a new client base.
    *
-   * @param subject the parent subject, set to null if not present
+   * @param context information required to connect to Alluxio
    * @param address the address
    * @param retryPolicySupplier factory for retry policies to be used when performing RPCs
    */
-  public AbstractClient(Subject subject, InetSocketAddress address,
+  public AbstractClient(ClientContext context, InetSocketAddress address,
       Supplier<RetryPolicy> retryPolicySupplier) {
     mAddress = address;
-    mParentSubject = subject;
+    mContext = Preconditions.checkNotNull(context);
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
   }
@@ -153,11 +156,15 @@ public abstract class AbstractClient implements Client {
   /**
    * This method is called before the connection is connected. Implementations should add any
    * additional operations before the connection is connected.
+   * loading the cluster defaults
    */
-  protected void beforeConnect() throws IOException {
+  protected void beforeConnect()
+      throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
-      Configuration.loadClusterDefault(mAddress);
+      if (!mContext.getConf().clusterDefaultsLoaded()) {
+        mContext.updateWithClusterDefaults(mAddress);
+      }
     }
   }
 
@@ -206,7 +213,10 @@ public abstract class AbstractClient implements Client {
         beforeConnect();
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
-        mChannel = GrpcChannelBuilder.forAddress(mAddress).setSubject(mParentSubject).build();
+        mChannel = GrpcChannelBuilder
+            .newBuilder(mAddress, mContext.getConf())
+            .setSubject(mContext.getSubject())
+            .build();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
         mConnected = true;
@@ -358,9 +368,10 @@ public abstract class AbstractClient implements Client {
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
-      if (SecurityUtils.isAuthenticationEnabled() && LoginUser.get() != null) {
-        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER, LoginUser.get()
-            .getName());
+      if (SecurityUtils.isAuthenticationEnabled(mContext.getConf())
+          && LoginUser.get(mContext.getConf()) != null) {
+        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
+            LoginUser.get(mContext.getConf()).getName());
       } else {
         return metricName;
       }

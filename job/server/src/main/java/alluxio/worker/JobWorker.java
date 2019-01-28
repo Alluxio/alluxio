@@ -11,9 +11,10 @@
 
 package alluxio.worker;
 
-import alluxio.Configuration;
+import alluxio.ClientContext;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.Server;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.GrpcService;
@@ -25,7 +26,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClient;
-import alluxio.worker.job.JobMasterClientConfig;
+import alluxio.worker.job.JobMasterClientContext;
 import alluxio.worker.job.command.CommandHandlingExecutor;
 import alluxio.worker.job.task.TaskExecutorManager;
 
@@ -68,7 +69,8 @@ public final class JobWorker extends AbstractWorker {
     super(
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("job-worker-heartbeat-%d", true)));
     mUfsManager = ufsManager;
-    mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientConfig.defaults());
+    mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext
+        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     mTaskExecutorManager = new TaskExecutorManager();
   }
 
@@ -90,7 +92,7 @@ public final class JobWorker extends AbstractWorker {
   @Override
   public void start(WorkerNetAddress address) throws IOException {
     // Start serving metrics system, this will not block
-    MetricsSystem.startSinks();
+    MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
 
     try {
       JobWorkerIdRegistry.registerWorker(mJobMasterClient, address);
@@ -103,7 +105,8 @@ public final class JobWorker extends AbstractWorker {
         new HeartbeatThread(HeartbeatContext.JOB_WORKER_COMMAND_HANDLING,
             new CommandHandlingExecutor(mTaskExecutorManager, mUfsManager, mJobMasterClient,
                 address),
-            Configuration.getInt(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS)));
+            ServerConfiguration.getInt(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS),
+            ServerConfiguration.global()));
   }
 
   @Override

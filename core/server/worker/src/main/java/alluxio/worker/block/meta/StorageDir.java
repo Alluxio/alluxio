@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -104,7 +106,8 @@ public final class StorageDir {
   private void initializeMeta() throws BlockAlreadyExistsException, IOException,
       WorkerOutOfSpaceException {
     // Create the storage directory path
-    boolean isDirectoryNewlyCreated = FileUtils.createStorageDirPath(mDirPath);
+    boolean isDirectoryNewlyCreated = FileUtils.createStorageDirPath(mDirPath,
+        ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
 
     if (isDirectoryNewlyCreated) {
       LOG.info("Folder {} was created!", mDirPath);

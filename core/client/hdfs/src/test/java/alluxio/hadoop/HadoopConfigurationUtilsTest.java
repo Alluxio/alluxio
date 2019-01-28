@@ -11,9 +11,9 @@
 
 package alluxio.hadoop;
 
-import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 
 import org.junit.After;
@@ -28,10 +28,11 @@ public final class HadoopConfigurationUtilsTest {
   private static final String TEST_S3_SECRET_KEY = "TEST SECRET KEY";
   private static final String TEST_ALLUXIO_PROPERTY = "alluxio.unsupported.parameter";
   private static final String TEST_ALLUXIO_VALUE = "alluxio.unsupported.value";
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
 
   @After
   public void after() {
-    ConfigurationTestUtils.resetConfiguration();
+    mConf = ConfigurationTestUtils.defaults();
   }
 
   /**
@@ -41,11 +42,11 @@ public final class HadoopConfigurationUtilsTest {
   @Test
   public void mergeEmptyHadoopConfiguration() {
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
-    long beforeSize = Configuration.toMap().size();
-    HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, Configuration.global());
-    long afterSize = Configuration.toMap().size();
+    long beforeSize = mConf.toMap().size();
+    mConf = HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, mConf.copyProperties());
+    long afterSize = mConf.toMap().size();
     Assert.assertEquals(beforeSize, afterSize);
-    Assert.assertFalse(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    Assert.assertFalse(mConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
   }
 
   /**
@@ -63,13 +64,13 @@ public final class HadoopConfigurationUtilsTest {
 
     // This hadoop config will not be loaded into Alluxio configuration.
     hadoopConfig.set("hadoop.config.parameter", "hadoop config value");
-    HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, Configuration.global());
-    Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(PropertyKey.S3A_ACCESS_KEY));
-    Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(PropertyKey.S3A_SECRET_KEY));
-    Assert.assertEquals(Source.RUNTIME, Configuration.getSource(PropertyKey.S3A_ACCESS_KEY));
-    Assert.assertEquals(Source.RUNTIME, Configuration.getSource(PropertyKey.S3A_SECRET_KEY));
-    Assert.assertTrue(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+    mConf = HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig, mConf.copyProperties());
+    Assert.assertEquals(TEST_S3_ACCCES_KEY, mConf.get(PropertyKey.S3A_ACCESS_KEY));
+    Assert.assertEquals(TEST_S3_SECRET_KEY, mConf.get(PropertyKey.S3A_SECRET_KEY));
+    Assert.assertEquals(Source.RUNTIME, mConf.getSource(PropertyKey.S3A_ACCESS_KEY));
+    Assert.assertEquals(Source.RUNTIME, mConf.getSource(PropertyKey.S3A_SECRET_KEY));
+    Assert.assertTrue(mConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     Assert.assertEquals("host1:port1,host2:port2;host3:port3",
-        Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
+        mConf.get(PropertyKey.ZOOKEEPER_ADDRESS));
   }
 }

@@ -37,6 +37,7 @@ import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
@@ -76,8 +77,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, AlluxioBlockStore.class,
     UnderFileSystemFileOutStream.class})
 public class FileOutStreamTest {
+
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+
   @Rule
-  public LoginUserRule mLoginUser = new LoginUserRule("Test");
+  public LoginUserRule mLoginUser = new LoginUserRule("Test", sConf);
 
   @Rule
   public ExpectedException mException = ExpectedException.none();
@@ -101,7 +105,7 @@ public class FileOutStreamTest {
   @Before
   public void before() throws Exception {
     GroupMappingServiceTestUtils.resetCache();
-    ClientTestUtils.setSmallBufferSizes();
+    ClientTestUtils.setSmallBufferSizes(sConf);
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
@@ -144,7 +148,7 @@ public class FileOutStreamTest {
         });
     BlockWorkerInfo workerInfo =
         new BlockWorkerInfo(new WorkerNetAddress().setHost("localhost")
-            .setTieredIdentity(TieredIdentityFactory.fromString("node=localhost"))
+            .setTieredIdentity(TieredIdentityFactory.fromString("node=localhost", sConf))
             .setRpcPort(1).setDataPort(2).setWebPort(3), Constants.GB, 0);
     when(mBlockStore.getEligibleWorkers()).thenReturn(Lists.newArrayList(workerInfo));
     mAlluxioOutStreamMap = outStreamMap;
@@ -167,15 +171,14 @@ public class FileOutStreamTest {
             any(WorkerNetAddress.class), any(OutStreamOptions.class))).thenReturn(
         mUnderStorageOutputStream);
 
-    OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+    OutStreamOptions options = OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
         .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
   @After
   public void after() {
-    ConfigurationTestUtils.resetConfiguration();
-    ClientTestUtils.resetClient();
+    ClientTestUtils.resetClient(sConf);
   }
 
   /**
@@ -276,7 +279,7 @@ public class FileOutStreamTest {
   @Test
   public void cacheWriteExceptionNonSyncPersist() throws IOException {
     OutStreamOptions options =
-        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
     BlockOutStream stream = mock(BlockOutStream.class);
     when(mBlockStore.getOutStream(anyInt(), anyLong(), any(OutStreamOptions.class)))
@@ -372,7 +375,7 @@ public class FileOutStreamTest {
   @Test
   public void asyncWrite() throws Exception {
     OutStreamOptions options =
-        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.ASYNC_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
 
@@ -390,7 +393,7 @@ public class FileOutStreamTest {
   public void getBytesWrittenWithDifferentUnderStorageType() throws IOException {
     for (WriteType type : WriteType.values()) {
       OutStreamOptions options =
-          OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type)
+          OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type)
               .setUfsPath(FILE_NAME.getPath());
       mTestStream = createTestStream(FILE_NAME, options);
       mTestStream.write(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH));
@@ -402,7 +405,7 @@ public class FileOutStreamTest {
   @Test
   public void createWithNoWorker() throws Exception {
     OutStreamOptions options =
-        OutStreamOptions.defaults().setLocationPolicy(new FileWriteLocationPolicy() {
+        OutStreamOptions.defaults(sConf).setLocationPolicy(new FileWriteLocationPolicy() {
           @Override
           public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
               long blockSizeBytes) {

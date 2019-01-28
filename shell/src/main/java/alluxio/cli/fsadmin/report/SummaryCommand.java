@@ -42,19 +42,22 @@ public class SummaryCommand {
   private MetaMasterClient mMetaMasterClient;
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
+  private final String mDateFormatPattern;
 
   /**
    * Creates a new instance of {@link SummaryCommand}.
    *
    * @param metaMasterClient client to connect to meta master
    * @param blockMasterClient client to connect to block master
+   * @param dateFormatPattern the pattern to follow when printing the date
    * @param printStream stream to print summary information to
    */
   public SummaryCommand(MetaMasterClient metaMasterClient,
-      BlockMasterClient blockMasterClient, PrintStream printStream) {
+      BlockMasterClient blockMasterClient, String dateFormatPattern, PrintStream printStream) {
     mMetaMasterClient = metaMasterClient;
     mBlockMasterClient = blockMasterClient;
     mPrintStream = printStream;
+    mDateFormatPattern = dateFormatPattern;
   }
 
   /**
@@ -84,7 +87,8 @@ public class SummaryCommand {
     print("Master Address: " + masterInfo.getLeaderMasterAddress());
     print("Web Port: " + masterInfo.getWebPort());
     print("Rpc Port: " + masterInfo.getRpcPort());
-    print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs()));
+    print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs(),
+        mDateFormatPattern));
     print("Uptime: " + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
     print("Version: " + masterInfo.getVersion());
     print("Safe Mode: " + masterInfo.getSafeMode());

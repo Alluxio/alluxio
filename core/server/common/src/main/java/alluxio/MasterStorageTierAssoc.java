@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import alluxio.conf.PropertyKey;
+
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;

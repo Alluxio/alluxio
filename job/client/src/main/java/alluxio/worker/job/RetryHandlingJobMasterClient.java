@@ -41,7 +41,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
    *
    * @param conf job master client configuration
    */
-  public RetryHandlingJobMasterClient(JobMasterClientConfig conf) {
+  public RetryHandlingJobMasterClient(JobMasterClientContext conf) {
     super(conf);
   }
 
@@ -61,7 +61,8 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected void beforeConnect() throws IOException {
+  protected void beforeConnect()
+      throws IOException {
     // Job master client does not load cluster-default because job worker has loaded it on start
   }
 

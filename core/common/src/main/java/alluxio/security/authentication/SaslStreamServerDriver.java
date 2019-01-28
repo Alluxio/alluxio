@@ -11,6 +11,7 @@
 
 package alluxio.security.authentication;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.SaslMessage;
@@ -35,14 +36,18 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
   private UUID mChannelId;
   /** Sasl server that will be used for authentication. */
   private SaslServer mSaslServer = null;
+  private final AlluxioConfiguration mConfiguration;
 
   /**
    * Creates {@link SaslStreamServerDriver} for given {@link AuthenticationServer}.
    *
    * @param authenticationServer authentication server
+   * @param conf Alluxio configuration
    */
-  public SaslStreamServerDriver(AuthenticationServer authenticationServer) {
+  public SaslStreamServerDriver(AuthenticationServer authenticationServer,
+      AlluxioConfiguration conf) {
     mAuthenticationServer = authenticationServer;
+    mConfiguration = conf;
   }
 
   /**
@@ -65,7 +70,8 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
         AuthType authType = AuthType.valueOf(saslMessage.getAuthenticationName());
         // TODO(ggezer) wire server name?
         mSaslServer =
-            SaslParticipantProvider.Factory.create(authType).createSaslServer("localhost");
+            SaslParticipantProvider.Factory.create(authType).createSaslServer("localhost",
+                mConfiguration);
         mSaslHandshakeServerHandler =
             SaslHandshakeServerHandler.Factory.create(authType, mSaslServer);
         // Unregister from registry if in case it was authenticated before.

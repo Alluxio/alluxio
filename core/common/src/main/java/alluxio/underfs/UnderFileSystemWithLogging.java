@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.metrics.CommonMetrics;
@@ -56,6 +57,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
 
   private final UnderFileSystem mUnderFileSystem;
   private final String mPath;
+  private final AlluxioConfiguration mConfiguration;
 
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
@@ -63,12 +65,15 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    *
    * @param path the UFS path
    * @param ufs the implementation which will handle all the calls
+   * @param conf Alluxio configuration
+   *
    */
   // TODO(adit): Remove this method. ALLUXIO-2643.
-  UnderFileSystemWithLogging(String path, UnderFileSystem ufs) {
+  UnderFileSystemWithLogging(String path, UnderFileSystem ufs, AlluxioConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
     mPath = path;
     mUnderFileSystem = ufs;
+    mConfiguration = conf;
   }
 
   @Override
@@ -760,9 +765,10 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
-      if (SecurityUtils.isAuthenticationEnabled() && AuthenticatedClientUser.get() != null) {
+      if (SecurityUtils.isAuthenticationEnabled(mConfiguration)
+          && AuthenticatedClientUser.get(mConfiguration) != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-            AuthenticatedClientUser.get().getName(), WorkerMetrics.TAG_UFS,
+            AuthenticatedClientUser.get(mConfiguration).getName(), WorkerMetrics.TAG_UFS,
             MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
             mUnderFileSystem.getUnderFSType());
       }

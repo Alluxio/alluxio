@@ -11,6 +11,7 @@
 
 package alluxio.underfs.hdfs;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
@@ -28,19 +29,23 @@ public class HdfsUnderFileSystemFactoryTest {
   @Test
   public void factory() {
     UnderFileSystemFactory factory =
-        UnderFileSystemFactoryRegistry.find("hdfs://localhost/test/path");
+        UnderFileSystemFactoryRegistry.find("hdfs://localhost/test/path",
+            ConfigurationTestUtils.defaults());
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for HDFS paths when using this module", factory);
 
-    factory = UnderFileSystemFactoryRegistry.find("s3://localhost/test/path");
+    factory = UnderFileSystemFactoryRegistry.find("s3://localhost/test/path",
+        ConfigurationTestUtils.defaults());
     Assert.assertNull(
         "A UnderFileSystemFactory should not exist for S3 paths when using this module", factory);
 
-    factory = UnderFileSystemFactoryRegistry.find("s3n://localhost/test/path");
+    factory = UnderFileSystemFactoryRegistry.find("s3n://localhost/test/path",
+        ConfigurationTestUtils.defaults());
     Assert.assertNull(
         "A UnderFileSystemFactory should not exist for S3 paths when using this module", factory);
 
-    factory = UnderFileSystemFactoryRegistry.find("alluxio://localhost:19999/test");
+    factory = UnderFileSystemFactoryRegistry.find("alluxio://localhost:19999/test",
+        ConfigurationTestUtils.defaults());
     Assert.assertNull("A UnderFileSystemFactory should not exist for non supported paths when "
         + "using this module", factory);
   }

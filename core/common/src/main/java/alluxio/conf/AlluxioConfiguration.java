@@ -9,9 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
-
-import alluxio.conf.Source;
+package alluxio.conf;
 
 import java.time.Duration;
 import java.util.List;
@@ -23,6 +21,7 @@ import java.util.Set;
  * Alluxio configuration.
  */
 public interface AlluxioConfiguration {
+
   /**
    * Gets the value for the given key in the {@link Properties}; if this key is not found, a
    * RuntimeException is thrown.
@@ -178,20 +177,17 @@ public interface AlluxioConfiguration {
   Map<String, String> getNestedProperties(PropertyKey prefixKey);
 
   /**
+   * Gets a copy of the {@link AlluxioProperties} which back the {@link AlluxioConfiguration}.
+   *
+   * @return A copy of AlluxioProperties representing the configuration
+   */
+  AlluxioProperties copyProperties();
+
+  /**
    * @param key the property key
    * @return the source for the given key
    */
   Source getSource(PropertyKey key);
-
-  /**
-   * Merges the current configuration properties with new properties. If a property exists
-   * both in the new and current configuration, the one from the new configuration wins if
-   * its priority is higher or equal than the existing one.
-   *
-   * @param properties the source {@link Properties} to be merged
-   * @param source the source of the the properties (e.g., system property, default and etc)
-   */
-  void merge(Map<?, ?> properties, Source source);
 
   /**
    * @return a map from all configuration property names to their values; values may potentially be
@@ -214,4 +210,9 @@ public interface AlluxioConfiguration {
    * @throws IllegalStateException if invalid configuration is encountered
    */
   void validate();
+
+  /**
+   * @return whether or not the configuration has been merged with cluster defaults
+   */
+  boolean clusterDefaultsLoaded();
 }

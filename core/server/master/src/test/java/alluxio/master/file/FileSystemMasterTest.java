@@ -26,11 +26,11 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedClientUserResource;
 import alluxio.AuthenticatedUserRule;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -175,10 +175,11 @@ public final class FileSystemMasterTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @Rule
-  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,
+      ServerConfiguration.global());
 
   @Rule
-  public LoginUserRule mLoginUser = new LoginUserRule(TEST_USER);
+  public LoginUserRule mLoginUser = new LoginUserRule(TEST_USER, ServerConfiguration.global());
 
   @Rule
   public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
@@ -189,7 +190,7 @@ public final class FileSystemMasterTest {
       put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
           .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
     }
-  });
+  }, ServerConfiguration.global());
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
@@ -208,7 +209,7 @@ public final class FileSystemMasterTest {
     MetricsSystem.clearAllMetrics();
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
-    mUnderFS = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    mUnderFS = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     mNestedFileContext = CreateFileContext.defaults(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true));
     mJournalFolder = mTestFolder.newFolder().getAbsolutePath();
@@ -389,7 +390,8 @@ public final class FileSystemMasterTest {
         .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
         .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        ServerConfiguration.global())) {
       mFileSystemMaster.delete(NESTED_URI,
           DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
     }
@@ -408,7 +410,8 @@ public final class FileSystemMasterTest {
         .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
     mFileSystemMaster.setAttribute(NESTED_FILE2_URI, SetAttributeContext
         .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
-    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        ServerConfiguration.global())) {
       mFileSystemMaster.delete(NESTED_URI,
           DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory w/ insufficient permission on child should fail");
@@ -1075,7 +1078,8 @@ public final class FileSystemMasterTest {
     // Test with permissions
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.defaults(SetAttributePOptions
         .newBuilder().setMode(new Mode((short) 0400).toProto()).setRecursive(true)));
-    try (Closeable r = new AuthenticatedUserRule("test_user1").toResource()) {
+    try (Closeable r = new AuthenticatedUserRule("test_user1", ServerConfiguration.global())
+        .toResource()) {
       // Test recursive listStatus
       infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
           .newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(true)));
@@ -1458,7 +1462,8 @@ public final class FileSystemMasterTest {
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
     assertEquals(3, entries.size());
 
-    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        ServerConfiguration.global())) {
       Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
       mThrown.expect(AccessControlException.class);
       mFileSystemMaster.setAcl(NESTED_FILE_URI, SetAclAction.REPLACE,
@@ -1477,7 +1482,8 @@ public final class FileSystemMasterTest {
     assertEquals(3, entries.size());
     // recursive setAcl should fail if one of the child is not owned by the user
     mThrown.expect(AccessControlException.class);
-    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA")) {
+    try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
+        ServerConfiguration.global())) {
       Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
       mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
           newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()),
@@ -1725,8 +1731,8 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to get information about a file after it has been
-   * deleted because of a TTL of 0.
+   * Tests that an exception is thrown when trying to get information about a file after it
+   * has been deleted because of a TTL of 0.
    */
   @Test
   public void setTtlForFileWithNoTtl() throws Exception {
@@ -1775,8 +1781,8 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests that an exception is thrown when trying to get information about a file after it has been
-   * deleted after the TTL has been set to 0.
+   * Tests that an exception is thrown when trying to get information about a file after it
+   * has been deleted after the TTL has been set to 0.
    */
   @Test
   public void setSmallerTtlForFileWithTtl() throws Exception {

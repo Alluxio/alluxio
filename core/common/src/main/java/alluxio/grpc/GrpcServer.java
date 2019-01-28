@@ -11,8 +11,6 @@
 
 package alluxio.grpc;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
 import io.grpc.Server;
@@ -29,14 +27,16 @@ public final class GrpcServer {
 
   /** Set to TRUE when the server has been successfully started. **/
   private boolean mStarted = false;
+  private final long mServerShutdownTimeoutMs;
 
   /**
    * Create a new instance of {@link GrpcServer}.
    *
    * @param server the wrapped server
    */
-  public GrpcServer(Server server) {
+  public GrpcServer(Server server, long serverShutdownTimeoutMs) {
     mServer = server;
+    mServerShutdownTimeoutMs = serverShutdownTimeoutMs;
   }
 
   /**
@@ -68,9 +68,7 @@ public final class GrpcServer {
   public boolean shutdown() {
     mServer.shutdown();
     try {
-      return mServer.awaitTermination(
-          Configuration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT),
-          TimeUnit.MILLISECONDS);
+      return mServer.awaitTermination(mServerShutdownTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
       return false;

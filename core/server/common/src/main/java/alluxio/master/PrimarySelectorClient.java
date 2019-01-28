@@ -12,9 +12,9 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -175,8 +175,8 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
    */
   private CuratorFramework getNewCuratorClient() {
     CuratorFramework client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
-        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT),
-        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT),
+        (int) ServerConfiguration.getMs(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT),
+        (int) ServerConfiguration.getMs(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT),
         new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     client.start();
 
@@ -185,8 +185,8 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     // state, explicitly close the "old" client and recreate a new one.
     client.close();
     client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
-        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT),
-        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT),
+        (int) ServerConfiguration.getMs(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT),
+        (int) ServerConfiguration.getMs(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT),
         new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     client.start();
     return client;

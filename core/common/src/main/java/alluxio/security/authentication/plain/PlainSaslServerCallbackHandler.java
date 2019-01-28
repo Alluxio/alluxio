@@ -11,6 +11,7 @@
 
 package alluxio.security.authentication.plain;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.security.authentication.ImpersonationAuthenticator;
@@ -41,13 +42,14 @@ public final class PlainSaslServerCallbackHandler implements CallbackHandler {
    *
    * @param authenticationProvider the authentication provider used
    * @param callback the callback runs when the authentication is established
+   * @param conf Alluxio configuration
    */
   public PlainSaslServerCallbackHandler(AuthenticationProvider authenticationProvider,
-      Runnable callback) {
+      Runnable callback, AlluxioConfiguration conf) {
     mAuthenticationProvider = Preconditions.checkNotNull(authenticationProvider,
         "authenticationProvider");
     mCallback = callback;
-    mImpersonationAuthenticator = new ImpersonationAuthenticator();
+    mImpersonationAuthenticator = new ImpersonationAuthenticator(conf);
   }
 
   @Override

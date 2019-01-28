@@ -12,8 +12,8 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
@@ -65,8 +65,8 @@ public interface UnderFileSystem extends Closeable {
      * @param path the file path storing over the ufs
      * @return instance of the under layer file system
      */
-    public static UnderFileSystem create(String path) {
-      return create(path, UnderFileSystemConfiguration.defaults());
+    public static UnderFileSystem create(String path, AlluxioConfiguration conf) {
+      return create(path, UnderFileSystemConfiguration.defaults(conf), conf);
     }
 
     /**
@@ -76,8 +76,8 @@ public interface UnderFileSystem extends Closeable {
      * @param path journal path in ufs
      * @return the instance of under file system for Alluxio journal directory
      */
-    public static UnderFileSystem create(URI path) {
-      return create(path.toString());
+    public static UnderFileSystem create(URI path, AlluxioConfiguration conf) {
+      return create(path.toString(), conf);
     }
 
     /**
@@ -87,12 +87,14 @@ public interface UnderFileSystem extends Closeable {
      *
      * @param path path
      * @param ufsConf optional configuration object for the UFS, may be null
+     * @param alluxioConf Alluxio configuration
      * @return client for the under file system
      */
-    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
+    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf,
+        AlluxioConfiguration alluxioConf) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories =
-          UnderFileSystemFactoryRegistry.findAll(path, ufsConf);
+          UnderFileSystemFactoryRegistry.findAll(path, ufsConf, alluxioConf);
       if (factories.isEmpty()) {
         throw new IllegalArgumentException("No Under File System Factory found for: " + path);
       }
@@ -106,7 +108,8 @@ public interface UnderFileSystem extends Closeable {
           // when creation is done.
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf));
+          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf, alluxioConf),
+              alluxioConf);
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
@@ -131,14 +134,14 @@ public interface UnderFileSystem extends Closeable {
     /**
      * @return the instance of under file system for Alluxio root directory
      */
-    public static UnderFileSystem createForRoot() {
-      String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      boolean readOnly = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
-      boolean shared = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
+    public static UnderFileSystem createForRoot(AlluxioConfiguration conf) {
+      String ufsRoot = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      boolean readOnly = conf.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
+      boolean shared = conf.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
       Map<String, String> ufsConf =
-          Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return create(ufsRoot, UnderFileSystemConfiguration.defaults().setReadOnly(readOnly)
-          .setShared(shared).setMountSpecificConf(ufsConf));
+          conf.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+      return create(ufsRoot, UnderFileSystemConfiguration.defaults(conf).setReadOnly(readOnly)
+          .setShared(shared).createMountSpecificConf(ufsConf));
     }
   }
 

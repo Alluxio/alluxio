@@ -12,12 +12,11 @@
 package alluxio.job.replicate;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.TestLoggerRule;
 import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
@@ -78,8 +77,8 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
     // run the replicate job for mBlockId1
     waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId1, 1)));
 
-    BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, FileSystemContext.get());
-    BlockInfo blockInfo2 = AdjustJobTestUtils.getBlock(mBlockId2, FileSystemContext.get());
+    BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, mFsContext);
+    BlockInfo blockInfo2 = AdjustJobTestUtils.getBlock(mBlockId2, mFsContext);
     Assert.assertEquals(1, blockInfo1.getLocations().size());
     Assert.assertEquals(0, blockInfo2.getLocations().size());
     Assert.assertEquals(TEST_BLOCK_SIZE, blockInfo1.getLength());
@@ -91,8 +90,8 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
     // run the replicate job for mBlockId2
     waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId2, 1)));
 
-    BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, FileSystemContext.get());
-    BlockInfo blockInfo2 = AdjustJobTestUtils.getBlock(mBlockId2, FileSystemContext.get());
+    BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, mFsContext);
+    BlockInfo blockInfo2 = AdjustJobTestUtils.getBlock(mBlockId2, mFsContext);
     Assert.assertEquals(0, blockInfo1.getLocations().size());
     Assert.assertEquals(1, blockInfo2.getLocations().size());
     Assert.assertEquals(TEST_BLOCK_SIZE, blockInfo1.getLength());
@@ -110,7 +109,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
       createFileOutsideOfAlluxio(uri);
     }
     String exceptionMsg = ExceptionMessage.JOB_MASTER_FULL_CAPACITY
-        .getMessage(Configuration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY));
+        .getMessage(ServerConfiguration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY));
     String replicationCheckerMsg = "The job service is busy, will retry later."
         + " alluxio.exception.status.ResourceExhaustedException: " + exceptionMsg;
     String rpcUtilsMsg = "Error=alluxio.exception.status.ResourceExhaustedException: "

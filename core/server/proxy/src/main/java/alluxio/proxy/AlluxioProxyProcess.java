@@ -11,9 +11,9 @@
 
 package alluxio.proxy;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
@@ -77,9 +77,11 @@ public final class AlluxioProxyProcess implements ProxyProcess {
   @Override
   public void start() throws Exception {
     mWebServer = new ProxyWebServer(ServiceType.PROXY_WEB.getServiceName(),
-        NetworkAddressUtils.getBindAddress(ServiceType.PROXY_WEB), this);
+        NetworkAddressUtils.getBindAddress(ServiceType.PROXY_WEB, ServerConfiguration.global()),
+        this);
     // reset proxy web port
-    Configuration.set(PropertyKey.PROXY_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
+    ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT,
+        Integer.toString(mWebServer.getLocalPort()));
     mWebServer.start();
     mLatch.await();
   }

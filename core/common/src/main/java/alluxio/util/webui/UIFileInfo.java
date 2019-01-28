@@ -217,22 +217,24 @@ public final class UIFileInfo {
   /**
    * Gets creation time.
    *
+   * @param dateFormatPattern the pattern to use when formatting the timestamp
    * @return the creation time (in milliseconds)
    */
-  public String getCreationTime() {
+  public String getCreationTime(String dateFormatPattern) {
     if (mCreationTimeMs == UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME) {
       return "";
     }
-    return CommonUtils.convertMsToDate(mCreationTimeMs);
+    return CommonUtils.convertMsToDate(mCreationTimeMs, dateFormatPattern);
   }
 
   /**
    * Gets modification time.
    *
+   * @param dateFormatPattern the pattern to use when formatting the timestamp
    * @return the modification time (in milliseconds)
    */
-  public String getModificationTime() {
-    return CommonUtils.convertMsToDate(mLastModificationTimeMs);
+  public String getModificationTime(String dateFormatPattern) {
+    return CommonUtils.convertMsToDate(mLastModificationTimeMs, dateFormatPattern);
   }
 
   /**

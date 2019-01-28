@@ -11,8 +11,8 @@
 
 package alluxio.proxy;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationValueOptions;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.ConfigurationValueOptions;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.web.ProxyWebServer;
@@ -88,11 +88,11 @@ public final class AlluxioProxyRestServiceHandler {
                 .setVersion(RuntimeConstants.VERSION);
         return result;
       }
-    });
+    }, ServerConfiguration.global());
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    return new TreeMap<>(Configuration
+    return new TreeMap<>(ServerConfiguration
         .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 }

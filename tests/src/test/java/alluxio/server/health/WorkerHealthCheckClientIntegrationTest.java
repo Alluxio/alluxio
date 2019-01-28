@@ -12,7 +12,8 @@
 package alluxio.server.health;
 
 import alluxio.HealthCheckClient;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.retry.CountingRetry;
 import alluxio.testutils.BaseIntegrationTest;
@@ -42,7 +43,8 @@ public class WorkerHealthCheckClientIntegrationTest extends BaseIntegrationTest 
     InetSocketAddress address =
         new InetSocketAddress(mLocalAlluxioCluster.getWorkerAddress().getHost(),
             mLocalAlluxioCluster.getWorkerAddress().getRpcPort());
-    mHealthCheckClient = new WorkerHealthCheckClient(address, () -> new CountingRetry(1));
+    mHealthCheckClient = new WorkerHealthCheckClient(address, () -> new CountingRetry(1),
+        ServerConfiguration.global());
   }
 
   @Test

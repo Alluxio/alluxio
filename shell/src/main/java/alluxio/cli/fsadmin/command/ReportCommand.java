@@ -17,6 +17,8 @@ import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.cli.fsadmin.report.MetricsCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.cli.fsadmin.report.UfsCommand;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -70,11 +72,15 @@ public final class ReportCommand extends AbstractFsAdminCommand {
     UFS // Report under filesystem information
   }
 
+  private AlluxioConfiguration mConf;
+
   /**
    * @param context fsadmin command context
+   * @param alluxioConf Alluxio configuration
    */
-  public ReportCommand(Context context) {
+  public ReportCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
+    mConf = alluxioConf;
   }
 
   @Override
@@ -94,7 +100,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
       return 0;
     }
 
-    FileSystemAdminShellUtils.checkMasterClientService();
+    FileSystemAdminShellUtils.checkMasterClientService(mConf);
 
     // Get the report category
     Command command = Command.SUMMARY;
@@ -141,7 +147,8 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         break;
       case SUMMARY:
         SummaryCommand summaryCommand = new SummaryCommand(
-            mMetaClient, mBlockClient, mPrintStream);
+            mMetaClient, mBlockClient, mConf.get(PropertyKey.USER_DATE_FORMAT_PATTERN),
+            mPrintStream);
         summaryCommand.run();
         break;
       case UFS:

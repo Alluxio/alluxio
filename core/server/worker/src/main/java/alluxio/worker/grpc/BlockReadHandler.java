@@ -12,9 +12,9 @@
 package alluxio.worker.grpc;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
@@ -25,7 +25,7 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataByteBuffer;
+import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
@@ -36,10 +36,11 @@ import alluxio.worker.block.io.BlockReader;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 
@@ -55,7 +56,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockReadHandler.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
+      ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
 
   /** The Block Worker. */
   private final BlockWorker mWorker;
@@ -101,8 +102,15 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       openBlock(context, response);
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);
-      ByteBuffer buf = blockReader.read(offset, len);
-      return new DataByteBuffer(buf, len);
+      ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
+      try {
+        while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+        }
+        return new NettyDataBuffer(buf);
+      } catch (Throwable e) {
+        buf.release();
+        throw e;
+      }
     }
 
     /**

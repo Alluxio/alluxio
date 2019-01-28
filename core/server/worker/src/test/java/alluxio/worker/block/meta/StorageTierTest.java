@@ -11,9 +11,8 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.exception.ExceptionMessage;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
@@ -143,21 +142,10 @@ public class StorageTierTest {
   }
 
   @Test
-  public void blankStorageTier() throws Exception {
-    PropertyKey tierDirCapacityConf =
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0);
-    Configuration.unset(tierDirCapacityConf);
-    mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(
-        PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA.getName()));
-    mTier = StorageTier.newStorageTier("MEM");
-  }
-
-  @Test
   public void tolerantFailureInStorageDir() throws Exception {
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0);
-    Configuration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
+    ServerConfiguration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
     mTier = StorageTier.newStorageTier("MEM");
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(1, dirs.size());

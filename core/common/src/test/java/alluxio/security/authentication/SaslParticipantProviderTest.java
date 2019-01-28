@@ -11,6 +11,8 @@
 
 package alluxio.security.authentication;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.authentication.plain.PlainSaslServerProvider;
 import alluxio.security.authentication.plain.SaslParticipantProviderPlain;
@@ -35,6 +37,8 @@ public class SaslParticipantProviderTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  private AlluxioConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+
   @Test
   public void testCreateUnsupportedProvider() throws UnauthenticatedException {
     mThrown.expect(UnauthenticatedException.class);
@@ -54,7 +58,7 @@ public class SaslParticipantProviderTest {
         SaslParticipantProvider.Factory.create(AuthType.SIMPLE);
     Assert.assertNotNull(simpleProvider);
     // Test allow null subject
-    SaslClient client = simpleProvider.createSaslClient(null);
+    SaslClient client = simpleProvider.createSaslClient(null, mConfiguration);
     Assert.assertNotNull(client);
     Assert.assertEquals(PlainSaslServerProvider.MECHANISM, client.getMechanismName());
   }
@@ -108,7 +112,7 @@ public class SaslParticipantProviderTest {
     SaslParticipantProvider simpleProvider =
         SaslParticipantProvider.Factory.create(AuthType.SIMPLE);
     Assert.assertNotNull(simpleProvider);
-    SaslServer server = simpleProvider.createSaslServer("test");
+    SaslServer server = simpleProvider.createSaslServer("test", mConfiguration);
     Assert.assertNotNull(server);
     Assert.assertEquals(PlainSaslServerProvider.MECHANISM, server.getMechanismName());
   }

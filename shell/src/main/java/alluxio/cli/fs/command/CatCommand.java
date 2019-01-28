@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -35,10 +35,10 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class CatCommand extends AbstractFileSystemCommand {
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public CatCommand(FileSystem fs) {
-    super(fs);
+  public CatCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override

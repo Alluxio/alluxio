@@ -11,18 +11,16 @@
 
 package alluxio.client.file;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-
-import alluxio.Configuration;
+import alluxio.ClientContext;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
-import javax.security.auth.Subject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +28,14 @@ import java.util.List;
  * Tests {@link FileSystemContext}.
  */
 public final class FileSystemContextTest {
+
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+
+  @Before
+  public void before() {
+    mConf = ConfigurationTestUtils.defaults();
+  }
+
   /**
    * This test ensures acquiring all the available FileSystem master clients blocks further
    * requests for clients. It also ensures clients are available for reuse after they are released
@@ -41,10 +47,12 @@ public final class FileSystemContextTest {
     final List<FileSystemMasterClient> clients = new ArrayList<>();
 
     // Acquire all the clients
-    for (int i = 0; i < Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS); i++) {
-      clients.add(FileSystemContext.get().acquireMasterClient());
+    FileSystemContext fsContext = FileSystemContext.create(
+        ClientContext.create(mConf));
+    for (int i = 0; i < mConf.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS); i++) {
+      clients.add(fsContext.acquireMasterClient());
     }
-    Thread acquireThread = new Thread(new AcquireClient());
+    Thread acquireThread = new Thread(new AcquireClient(fsContext));
     acquireThread.start();
 
     // Wait for the spawned thread to complete. If it is able to acquire a master client before
@@ -58,7 +66,7 @@ public final class FileSystemContextTest {
 
     // Release all the clients
     for (FileSystemMasterClient client : clients) {
-      FileSystemContext.get().releaseMasterClient(client);
+      fsContext.releaseMasterClient(client);
     }
 
     // Wait for the spawned thread to complete. If it is unable to acquire a master client before
@@ -71,42 +79,18 @@ public final class FileSystemContextTest {
     }
   }
 
-  @Test
-  public void getCache() throws Exception {
-    FileSystemContext ctx1 = FileSystemContext.get();
-    FileSystemContext ctx2 = FileSystemContext.get();
-    assertEquals(ctx1, ctx2);
-  }
-
-  @Test
-  public void getDifferentSubjects() throws Exception {
-    Subject sub = new Subject();
-    FileSystemContext ctx1 = FileSystemContext.get();
-    FileSystemContext ctx2 = FileSystemContext.get(sub);
-    FileSystemContext ctx3 = FileSystemContext.get(sub);
-    assertNotSame(ctx1, ctx2);
-    assertSame(ctx2, ctx3);
-  }
-
-  @Test
-  public void refCount() throws Exception {
-    FileSystemContext ctx1 = FileSystemContext.get();
-    FileSystemContext ctx2 = FileSystemContext.get();
-    ctx1.close();
-    FileSystemContext ctx3 = FileSystemContext.get();
-    assertSame(ctx1, ctx3); // Same context
-    assertSame(ctx2, ctx3); // Same context
-    ctx2.close();
-    ctx3.close(); // All references closed, so context should be destroyed
-    FileSystemContext ctx4 = FileSystemContext.get();
-    assertNotSame(ctx1, ctx4); // Different context
-  }
-
   class AcquireClient implements Runnable {
+
+    private final FileSystemContext mFsCtx;
+
+    public AcquireClient(FileSystemContext fsContext) {
+      mFsCtx = fsContext;
+    }
+
     @Override
     public void run() {
-      FileSystemMasterClient client = FileSystemContext.get().acquireMasterClient();
-      FileSystemContext.get().releaseMasterClient(client);
+      FileSystemMasterClient client = mFsCtx.acquireMasterClient();
+      mFsCtx.releaseMasterClient(client);
     }
   }
 }

@@ -11,9 +11,9 @@
 
 package alluxio.util;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.Status;
 import alluxio.proto.dataserver.Protocol;
@@ -65,9 +65,6 @@ public final class CommonUtils {
 
   private static final String ALPHANUM =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  private static final String DATE_FORMAT_PATTERN =
-      Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
-  private static final List<String> TMP_DIRS = Configuration.getList(PropertyKey.TMP_DIRS, ",");
   private static final Random RANDOM = new Random();
 
   /**
@@ -78,27 +75,29 @@ public final class CommonUtils {
   }
 
   /**
+   * @param tmpDirs the list of possible temporary directories to pick from
    * @return a path to a temporary directory based on the user configuration
    */
-  public static String getTmpDir() {
-    Preconditions.checkState(!TMP_DIRS.isEmpty(), "No temporary directories configured");
-    if (TMP_DIRS.size() == 1) {
-      return TMP_DIRS.get(0);
+  public static String getTmpDir(List<String> tmpDirs) {
+    Preconditions.checkState(!tmpDirs.isEmpty(), "No temporary directories available");
+    if (tmpDirs.size() == 1) {
+      return tmpDirs.get(0);
     }
     // Use existing random instead of ThreadLocal because contention is not expected to be high.
-    return TMP_DIRS.get(RANDOM.nextInt(TMP_DIRS.size()));
+    return tmpDirs.get(RANDOM.nextInt(tmpDirs.size()));
   }
 
   /**
    * @param storageDir the root of a storage directory in tiered storage
+   * @param conf Alluxio's current configuration
    *
    * @return the worker data folder path after each storage directory, the final path will be like
    * "/mnt/ramdisk/alluxioworker" for storage dir "/mnt/ramdisk" by appending
    * {@link PropertyKey#WORKER_DATA_FOLDER).
    */
-  public static String getWorkerDataDirectory(String storageDir) {
+  public static String getWorkerDataDirectory(String storageDir, AlluxioConfiguration conf) {
     return PathUtils.concatPath(
-        storageDir.trim(), Configuration.get(PropertyKey.WORKER_DATA_FOLDER));
+        storageDir.trim(), conf.get(PropertyKey.WORKER_DATA_FOLDER));
   }
 
   /**
@@ -315,10 +314,12 @@ public final class CommonUtils {
    * Gets the primary group name of a user.
    *
    * @param userName Alluxio user name
+   * @param conf Alluxio configuration
    * @return primary group name
    */
-  public static String getPrimaryGroupName(String userName) throws IOException {
-    List<String> groups = getGroups(userName);
+  public static String getPrimaryGroupName(String userName, AlluxioConfiguration conf)
+      throws IOException {
+    List<String> groups = getGroups(userName, conf);
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
   }
 
@@ -326,10 +327,12 @@ public final class CommonUtils {
    * Using {@link CachedGroupMapping} to get the group list of a user.
    *
    * @param userName Alluxio user name
+   * @param conf Alluxio configuration
    * @return the group list of the user
    */
-  public static List<String> getGroups(String userName) throws IOException {
-    GroupMappingService groupMappingService = GroupMappingService.Factory.get();
+  public static List<String> getGroups(String userName, AlluxioConfiguration conf)
+      throws IOException {
+    GroupMappingService groupMappingService = GroupMappingService.Factory.get(conf);
     return groupMappingService.getGroups(userName);
   }
 
@@ -584,20 +587,22 @@ public final class CommonUtils {
 
   /**
    * @param address the Alluxio worker network address
+   * @param conf Alluxio configuration
    * @return true if the worker is local
    */
-  public static boolean isLocalHost(WorkerNetAddress address) {
-    return address.getHost().equals(NetworkAddressUtils.getClientHostName());
+  public static boolean isLocalHost(WorkerNetAddress address, AlluxioConfiguration conf) {
+    return address.getHost().equals(NetworkAddressUtils.getClientHostName(conf));
   }
 
   /**
    * Converts a millisecond number to a formatted date String.
    *
    * @param millis a long millisecond number
+   * @param dateFormatPattern the date format to follow when converting. i.e. mm-dd-yyyy
    * @return formatted date String
    */
-  public static String convertMsToDate(long millis) {
-    DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
+  public static String convertMsToDate(long millis, String dateFormatPattern) {
+    DateFormat dateFormat = new SimpleDateFormat(dateFormatPattern);
     return dateFormat.format(new Date(millis));
   }
 

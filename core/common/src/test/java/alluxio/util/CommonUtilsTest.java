@@ -18,9 +18,9 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 
@@ -32,7 +32,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -96,20 +95,18 @@ public class CommonUtilsTest {
 
   @Test
   public void getTmpDir() {
+
     // Test single tmp dir
     String singleDir = "/tmp";
-    Whitebox.setInternalState(CommonUtils.class, "TMP_DIRS", Collections.singletonList(singleDir));
-    assertEquals(singleDir, CommonUtils.getTmpDir());
+    List<String> singleDirList = Arrays.asList("/tmp");
+    assertEquals(singleDir, CommonUtils.getTmpDir(singleDirList));
     // Test multiple tmp dir
     List<String> multiDirs = Arrays.asList("/tmp1", "/tmp2", "/tmp3");
-    Whitebox.setInternalState(CommonUtils.class, "TMP_DIRS", multiDirs);
     Set<String> results = new HashSet<>();
     for (int i = 0; i < 100 || results.size() != multiDirs.size(); i++) {
-      results.add(CommonUtils.getTmpDir());
+      results.add(CommonUtils.getTmpDir(multiDirs));
     }
     assertEquals(new HashSet<>(multiDirs), results);
-    Whitebox.setInternalState(CommonUtils.class, "TMP_DIRS",
-        Configuration.getList(PropertyKey.TMP_DIRS, ","));
   }
 
   /**
@@ -270,6 +267,8 @@ public class CommonUtilsTest {
    */
   @Test
   public void getGroups() throws Throwable {
+    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";
     String userGroup2 = "alluxio-user1-group2";
@@ -280,12 +279,12 @@ public class CommonUtilsTest {
     PowerMockito.when(cachedGroupService.getGroups(Mockito.anyString())).thenReturn(
         Lists.newArrayList(userGroup1, userGroup2));
     PowerMockito.mockStatic(GroupMappingService.Factory.class);
-    Mockito.when(GroupMappingService.Factory.get()).thenReturn(cachedGroupService);
+    Mockito.when(GroupMappingService.Factory.get(conf)).thenReturn(cachedGroupService);
 
-    List<String> groups = CommonUtils.getGroups(userName);
+    List<String> groups = CommonUtils.getGroups(userName, conf);
     assertEquals(Arrays.asList(userGroup1, userGroup2), groups);
 
-    String primaryGroup = CommonUtils.getPrimaryGroupName(userName);
+    String primaryGroup = CommonUtils.getPrimaryGroupName(userName, conf);
     assertNotNull(primaryGroup);
     assertEquals(userGroup1, primaryGroup);
   }

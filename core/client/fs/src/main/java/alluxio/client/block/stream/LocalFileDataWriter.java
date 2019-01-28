@@ -11,11 +11,11 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.util.CommonUtils;
@@ -39,12 +39,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LocalFileDataWriter implements DataWriter {
   private static final Logger LOG = LoggerFactory.getLogger(LocalFileDataWriter.class);
-  private static final long FILE_BUFFER_BYTES =
-      Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
-  private static final int WRITE_BUFFER_SIZE =
-      Configuration.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
-  private static final long WRITE_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
+
+  private final long mFileBufferBytes;
+  private final long mDataTimeoutMs;
   private final BlockWorkerClient mBlockWorker;
   private final LocalFileBlockWriter mWriter;
   private final long mChunkSize;
@@ -70,35 +67,43 @@ public final class LocalFileDataWriter implements DataWriter {
   public static LocalFileDataWriter create(final FileSystemContext context,
       final WorkerNetAddress address,
       long blockId, OutStreamOptions options) throws IOException {
-    long chunkSize = Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
+    AlluxioConfiguration conf = context.getConf();
+    long chunkSize = conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
 
+    final BlockWorkerClient blockWorker = context.acquireBlockWorkerClient(address);
     Closer closer = Closer.create();
     try {
-      final BlockWorkerClient blockWorker = context.acquireBlockWorkerClient(address);
       closer.register(new Closeable() {
         @Override
         public void close() throws IOException {
           context.releaseBlockWorkerClient(address, blockWorker);
         }
       });
+      int writerBufferSizeMessages =
+          conf.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
+      long fileBufferByes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
+      long dataTimeout = conf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
+
       CreateLocalBlockRequest.Builder builder =
           CreateLocalBlockRequest.newBuilder().setBlockId(blockId)
-              .setTier(options.getWriteTier()).setSpaceToReserve(FILE_BUFFER_BYTES);
+              .setTier(options.getWriteTier()).setSpaceToReserve(fileBufferByes);
       if (options.getWriteType() == WriteType.ASYNC_THROUGH
-          && Configuration.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
+          && conf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
         builder.setCleanupOnFailure(false);
       }
       CreateLocalBlockRequest createRequest = builder.build();
+
       GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> stream =
-          new GrpcBlockingStream<>(blockWorker::createLocalBlock, WRITE_BUFFER_SIZE,
+          new GrpcBlockingStream<>(blockWorker::createLocalBlock, writerBufferSizeMessages,
               address.toString());
-      stream.send(createRequest, WRITE_TIMEOUT_MS);
-      CreateLocalBlockResponse response = stream.receive(WRITE_TIMEOUT_MS);
+      stream.send(createRequest, dataTimeout);
+      CreateLocalBlockResponse response = stream.receive(dataTimeout);
       Preconditions.checkState(response != null && response.hasPath());
       LocalFileBlockWriter writer =
           closer.register(new LocalFileBlockWriter(response.getPath()));
       return new LocalFileDataWriter(chunkSize, blockWorker,
-          writer, createRequest, stream, closer);
+          writer, createRequest, stream, closer, fileBufferByes,
+          dataTimeout);
     } catch (Exception e) {
       throw CommonUtils.closeAndRethrow(closer, e);
     }
@@ -154,7 +159,7 @@ public final class LocalFileDataWriter implements DataWriter {
       @Override
       public void close() throws IOException {
         mStream.close();
-        mStream.waitForComplete(WRITE_TIMEOUT_MS);
+        mStream.waitForComplete(mDataTimeoutMs);
       }
     });
     mCloser.close();
@@ -174,13 +179,15 @@ public final class LocalFileDataWriter implements DataWriter {
       BlockWorkerClient blockWorker, LocalFileBlockWriter writer,
       CreateLocalBlockRequest createRequest,
       GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> stream,
-      Closer closer) {
+      Closer closer, long fileBufferBytes, long dataTimeoutMs) {
+    mFileBufferBytes = fileBufferBytes;
+    mDataTimeoutMs = dataTimeoutMs;
     mBlockWorker = blockWorker;
     mCloser = closer;
     mWriter = writer;
     mCreateRequest = createRequest;
     mStream = stream;
-    mPosReserved += FILE_BUFFER_BYTES;
+    mPosReserved += mFileBufferBytes;
     mChunkSize = packetSize;
   }
 
@@ -193,11 +200,11 @@ public final class LocalFileDataWriter implements DataWriter {
     if (pos <= mPosReserved) {
       return;
     }
-    long toReserve = Math.max(pos - mPosReserved, FILE_BUFFER_BYTES);
+    long toReserve = Math.max(pos - mPosReserved, mFileBufferBytes);
     CreateLocalBlockRequest request = mCreateRequest.toBuilder().setSpaceToReserve(toReserve)
         .setOnlyReserveSpace(true).build();
-    mStream.send(request, WRITE_TIMEOUT_MS);
-    CreateLocalBlockResponse response = mStream.receive(WRITE_TIMEOUT_MS);
+    mStream.send(request, mDataTimeoutMs);
+    CreateLocalBlockResponse response = mStream.receive(mDataTimeoutMs);
     Preconditions.checkState(response != null,
         String.format("Stream closed while waiting for reserve request %s", request.toString()));
     Preconditions.checkState(!response.hasPath(),

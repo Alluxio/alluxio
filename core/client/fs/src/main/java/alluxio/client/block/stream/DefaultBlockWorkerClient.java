@@ -11,12 +11,13 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
@@ -32,6 +33,7 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NettyUtils;
 
 import com.google.common.io.Closer;
@@ -55,24 +57,19 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private static final Logger LOG =
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
 
-  private static final long DATA_TIMEOUT =
-      Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
-  private static final long KEEPALIVE_TIME_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIME_MS);
-  private static final long KEEPALIVE_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS);
-  private static final long GRPC_FLOWCONTROL_WINDOW =
-      Configuration.getBytes(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW);
-  private static final long MAX_INBOUND_MESSAGE_SIZE =
-      Configuration.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE);
+  // TODO(zac): Make this a non-singleton
   private static final EventLoopGroup WORKER_GROUP = NettyUtils
-      .createEventLoop(NettyUtils.USER_CHANNEL_TYPE,
-          Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
+      .createEventLoop(
+          NettyUtils.getUserChannel(new InstancedConfiguration(ConfigurationUtils.defaults())),
+          new InstancedConfiguration(ConfigurationUtils.defaults())
+              .getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
           "netty-client-worker-%d", true);
 
   private GrpcChannel mStreamingChannel;
   private GrpcChannel mRpcChannel;
   private SocketAddress mAddress;
+  private final long mDataTimeoutMs;
+
   private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
   private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
   private BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
@@ -82,16 +79,18 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    *
    * @param subject the user subject, can be null if the user is not available
    * @param address the address of the worker
+   * @param alluxioConf Alluxio configuration
    */
-  public DefaultBlockWorkerClient(Subject subject, SocketAddress address) throws IOException {
+  public DefaultBlockWorkerClient(Subject subject, SocketAddress address,
+      AlluxioConfiguration alluxioConf) throws IOException {
     try {
       // Disables channel pooling for data streaming to achieve better throughput.
       // Channel is still reused due to client pooling.
       mStreamingChannel = buildChannel(subject, address,
-          GrpcManagedChannelPool.PoolingStrategy.DISABLED);
+          GrpcManagedChannelPool.PoolingStrategy.DISABLED, alluxioConf);
       // Uses default pooling strategy for RPC calls for better scalability.
       mRpcChannel = buildChannel(subject, address,
-          GrpcManagedChannelPool.PoolingStrategy.DEFAULT);
+          GrpcManagedChannelPool.PoolingStrategy.DEFAULT, alluxioConf);
     } catch (StatusRuntimeException e) {
       throw GrpcExceptionUtils.fromGrpcStatusException(e);
     }
@@ -99,11 +98,17 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);
     mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
     mAddress = address;
+    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
   }
 
   @Override
   public boolean isShutdown() {
     return mStreamingChannel.isShutdown() || mRpcChannel.isShutdown();
+  }
+
+  @Override
+  public boolean isHealthy() {
+    return !isShutdown() && mStreamingChannel.isHealthy() && mRpcChannel.isHealthy();
   }
 
   @Override
@@ -138,13 +143,13 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public RemoveBlockResponse removeBlock(final RemoveBlockRequest request) {
-    return mRpcBlockingStub.withDeadlineAfter(DATA_TIMEOUT, TimeUnit.MILLISECONDS)
+    return mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
         .removeBlock(request);
   }
 
   @Override
   public void asyncCache(final AsyncCacheRequest request) {
-    mRpcAsyncStub.withDeadlineAfter(DATA_TIMEOUT, TimeUnit.MILLISECONDS)
+    mRpcAsyncStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
         .asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
           @Override
           public void onNext(AsyncCacheResponse value) {
@@ -164,15 +169,19 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   private GrpcChannel buildChannel(Subject subject, SocketAddress address,
-      GrpcManagedChannelPool.PoolingStrategy poolingStrategy)
+      GrpcManagedChannelPool.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf)
       throws UnauthenticatedException, UnavailableException {
-    return GrpcChannelBuilder.forAddress(address).setSubject(subject)
-        .setChannelType(NettyUtils.getClientChannelClass(!(address instanceof InetSocketAddress)))
+    return GrpcChannelBuilder.newBuilder(address, alluxioConf).setSubject(subject)
+        .setChannelType(NettyUtils
+            .getClientChannelClass(!(address instanceof InetSocketAddress), alluxioConf))
         .setPoolingStrategy(poolingStrategy)
         .setEventLoopGroup(WORKER_GROUP)
-        .setKeepAliveTime(KEEPALIVE_TIME_MS, TimeUnit.MILLISECONDS)
-        .setKeepAliveTimeout(KEEPALIVE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-        .setMaxInboundMessageSize((int) MAX_INBOUND_MESSAGE_SIZE)
-        .setFlowControlWindow((int) GRPC_FLOWCONTROL_WINDOW).build();
+        .setKeepAliveTimeout(alluxioConf.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS),
+            TimeUnit.MILLISECONDS)
+        .setMaxInboundMessageSize(
+            (int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE))
+        .setFlowControlWindow(
+            (int) alluxioConf.getBytes(PropertyKey.USER_NETWORK_FLOWCONTROL_WINDOW))
+        .build();
   }
 }

@@ -11,10 +11,10 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.RequestType;
@@ -55,15 +55,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class GrpcDataWriter implements DataWriter {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataWriter.class);
 
-  private static final int WRITE_BUFFER_SIZE =
-      Configuration.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
-  private static final long WRITE_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
-  private static final long CLOSE_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS);
+  private final int mWriterBufferSizeMessages;
+  private final long mDataTimeoutMs;
+  private final long mWriterCloseTimeoutMs;
   /** Uses a long flush timeout since flush in S3 streaming upload may take a long time. */
-  private static final long FLUSH_TIMEOUT_MS =
-      Configuration.getMs(PropertyKey.USER_NETWORK_WRITER_FLUSH_TIMEOUT);
+  private final long mWriterFlushTimeoutMs;
 
   private final FileSystemContext mContext;
   private final BlockWorkerClient mClient;
@@ -90,7 +86,8 @@ public final class GrpcDataWriter implements DataWriter {
   public static GrpcDataWriter create(FileSystemContext context, WorkerNetAddress address,
       long id, long length, RequestType type, OutStreamOptions options)
       throws IOException {
-    long chunkSize = Configuration.getBytes(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES);
+    AlluxioConfiguration conf = context.getConf();
+    long chunkSize = conf.getBytes(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES);
     BlockWorkerClient grpcClient = context.acquireBlockWorkerClient(address);
     try {
       return new GrpcDataWriter(context, address, id, length, chunkSize, type, options,
@@ -119,6 +116,12 @@ public final class GrpcDataWriter implements DataWriter {
     mContext = context;
     mAddress = address;
     mLength = length;
+    AlluxioConfiguration conf = context.getConf();
+    mDataTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
+    mWriterBufferSizeMessages = conf.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
+    mWriterCloseTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS);
+    mWriterFlushTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_WRITER_FLUSH_TIMEOUT);
+
     WriteRequestCommand.Builder builder =
         WriteRequestCommand.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type);
     if (type == RequestType.UFS_FILE) {
@@ -136,7 +139,7 @@ public final class GrpcDataWriter implements DataWriter {
     // (2) the write type is async when UFS tier is enabled.
     boolean possibleToFallback = type == RequestType.ALLUXIO_BLOCK
         && options.getWriteType() == alluxio.client.WriteType.ASYNC_THROUGH
-        && Configuration.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
+        && conf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
     if (alreadyFallback || possibleToFallback) {
       // Overwrite to use the fallback-enabled endpoint in case (2)
       builder.setType(RequestType.UFS_FALLBACK_BLOCK);
@@ -148,9 +151,10 @@ public final class GrpcDataWriter implements DataWriter {
     mPartialRequest = builder.buildPartial();
     mChunkSize = chunkSize;
     mClient = client;
-    mStream = new GrpcBlockingStream<>(mClient::writeBlock, WRITE_BUFFER_SIZE, address.toString());
+    mStream = new GrpcBlockingStream<>(mClient::writeBlock, mWriterBufferSizeMessages,
+        address.toString());
     mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest.toBuilder()).build(),
-        WRITE_TIMEOUT_MS);
+        mDataTimeoutMs);
   }
 
   @Override
@@ -166,7 +170,7 @@ public final class GrpcDataWriter implements DataWriter {
           Chunk.newBuilder()
               .setData(UnsafeByteOperations.unsafeWrap(buf.nioBuffer()))
               .build()).build(),
-          WRITE_TIMEOUT_MS);
+          mDataTimeoutMs);
     } finally {
       buf.release();
     }
@@ -186,7 +190,7 @@ public final class GrpcDataWriter implements DataWriter {
         mPartialRequest.toBuilder().setOffset(0).setCreateUfsBlockOptions(ufsBlockOptions))
         .build();
     mPosToQueue = pos;
-    mStream.send(writeRequest, WRITE_TIMEOUT_MS);
+    mStream.send(writeRequest, mDataTimeoutMs);
   }
 
   @Override
@@ -205,10 +209,10 @@ public final class GrpcDataWriter implements DataWriter {
     WriteRequest writeRequest = WriteRequest.newBuilder()
         .setCommand(mPartialRequest.toBuilder().setOffset(mPosToQueue).setFlush(true))
         .build();
-    mStream.send(writeRequest, WRITE_TIMEOUT_MS);
+    mStream.send(writeRequest, mDataTimeoutMs);
     long posWritten;
     do {
-      WriteResponse response = mStream.receive(FLUSH_TIMEOUT_MS);
+      WriteResponse response = mStream.receive(mWriterFlushTimeoutMs);
       if (response == null) {
         throw new UnavailableException(String.format(
             "Flush request %s to worker %s is not acked before complete.", writeRequest, mAddress));
@@ -224,7 +228,7 @@ public final class GrpcDataWriter implements DataWriter {
         return;
       }
       mStream.close();
-      mStream.waitForComplete(CLOSE_TIMEOUT_MS);
+      mStream.waitForComplete(mWriterCloseTimeoutMs);
     } finally {
       mContext.releaseBlockWorkerClient(mAddress, mClient);
     }

@@ -11,8 +11,8 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -30,7 +30,7 @@ public final class UfsSyncPathCache {
 
   /** Number of paths to cache. */
   private static final int MAX_PATHS =
-      Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
+      ServerConfiguration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
 
   /** Cache of paths which have been synced. */
   private final Cache<String, Long> mCache;

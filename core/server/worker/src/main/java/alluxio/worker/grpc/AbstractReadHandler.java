@@ -11,8 +11,8 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
@@ -65,7 +65,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     implements StreamObserver<alluxio.grpc.ReadRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractReadHandler.class);
   private static final long MAX_CHUNK_SIZE =
-      Configuration.getBytes(PropertyKey.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES);
+      ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES);
 
   /** The executor to run {@link DataReader}. */
   private final ExecutorService mDataReaderExecutor;

@@ -11,6 +11,7 @@
 
 package alluxio.underfs.kodo;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
@@ -27,7 +28,8 @@ public class KodoUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("kodo://test-bucket/path");
+    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find("kodo://test-bucket/path",
+        ConfigurationTestUtils.defaults());
 
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for oss paths when using this module", factory);

@@ -11,8 +11,8 @@
 
 package alluxio.security.authentication;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.util.CommonUtils;
 
@@ -45,14 +45,20 @@ public final class ImpersonationAuthenticator {
   // Maps users configured for impersonation to the set of users which they can impersonate.
   private final Map<String, Set<String>> mImpersonationUsers;
 
+  private AlluxioConfiguration mConfiguration;
+
   /**
    * Constructs a new {@link ImpersonationAuthenticator}.
+   *
+   * @param conf conf Alluxio configuration
    */
-  public ImpersonationAuthenticator() {
+  public ImpersonationAuthenticator(AlluxioConfiguration conf) {
     mImpersonationGroups = new HashMap<>();
     mImpersonationUsers = new HashMap<>();
-    for (PropertyKey key : Configuration.keySet()) {
-      String value = Configuration.getOrDefault(key, null);
+    mConfiguration = conf;
+
+    for (PropertyKey key : conf.keySet()) {
+      String value = conf.getOrDefault(key, null);
       // Process impersonation groups
       Matcher matcher =
           PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION.match(key.getName());
@@ -110,7 +116,7 @@ public final class ImpersonationAuthenticator {
         return;
       }
       try {
-        for (String impersonationGroup : CommonUtils.getGroups(impersonationUser)) {
+        for (String impersonationGroup : CommonUtils.getGroups(impersonationUser, mConfiguration)) {
           if (allowedGroups.contains(impersonationGroup)) {
             // Impersonation is allowed for this group
             return;

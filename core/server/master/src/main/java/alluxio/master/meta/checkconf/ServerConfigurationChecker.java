@@ -11,8 +11,8 @@
 
 package alluxio.master.meta.checkconf;
 
-import alluxio.PropertyKey;
-import alluxio.PropertyKey.ConsistencyCheckLevel;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.PropertyKey.ConsistencyCheckLevel;
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
 import alluxio.wire.Address;

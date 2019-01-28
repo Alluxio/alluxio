@@ -11,8 +11,8 @@
 
 package alluxio.security.authentication;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.plain.CustomAuthenticationProvider;
 import alluxio.security.authentication.plain.PlainSaslServer;
 import alluxio.security.authentication.plain.PlainSaslServerCallbackHandler;
@@ -39,14 +39,14 @@ public interface AuthenticationProvider {
      * @return the generated {@link AuthenticationProvider}
      * @throws AuthenticationException when unsupported authentication type is used
      */
-    public static AuthenticationProvider create(AuthType authType)
+    public static AuthenticationProvider create(AuthType authType, AlluxioConfiguration conf)
         throws AuthenticationException {
       switch (authType) {
         case SIMPLE:
           return new SimpleAuthenticationProvider();
         case CUSTOM:
           String customProviderName =
-              Configuration.get(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS);
+              conf.get(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS);
           return new CustomAuthenticationProvider(customProviderName);
         default:
           throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());

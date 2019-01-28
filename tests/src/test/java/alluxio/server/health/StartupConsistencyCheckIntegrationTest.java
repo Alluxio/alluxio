@@ -12,8 +12,8 @@
 package alluxio.server.health;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -97,7 +97,8 @@ public final class StartupConsistencyCheckIntegrationTest extends BaseIntegratio
     String topLevelFileUfsPath = mFileSystem.getStatus(TOP_LEVEL_FILE).getUfsPath();
     String secondLevelDirUfsPath = mFileSystem.getStatus(SECOND_LEVEL_DIR).getUfsPath();
     mCluster.stopFS();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(topLevelFileUfsPath);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(topLevelFileUfsPath,
+        ServerConfiguration.global());
     ufs.deleteFile(topLevelFileUfsPath);
     ufs.deleteDirectory(secondLevelDirUfsPath, DeleteOptions.defaults().setRecursive(true));
     MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
@@ -116,7 +117,7 @@ public final class StartupConsistencyCheckIntegrationTest extends BaseIntegratio
   @Test
   public void disabled() throws Exception {
     mCluster.stopFS();
-    Configuration.set(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, false);
+    ServerConfiguration.set(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, false);
     MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     FileSystemMaster master = registry.get(FileSystemMaster.class);
     MasterTestUtils.waitForStartupConsistencyCheck(master);

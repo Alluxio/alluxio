@@ -11,9 +11,8 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -28,7 +27,7 @@ public class UfsAbsentPathCacheTest {
    */
   @After
   public void after() throws Exception {
-    ConfigurationTestUtils.resetConfiguration();
+    ServerConfiguration.reset();
   }
 
   @Test
@@ -39,14 +38,14 @@ public class UfsAbsentPathCacheTest {
 
   @Test
   public void noAsyncPathThreads() throws Exception {
-    Configuration.set(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS, 0);
+    ServerConfiguration.set(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS, 0);
     UfsAbsentPathCache cache = UfsAbsentPathCache.Factory.create(null);
     Assert.assertTrue(cache instanceof NoopUfsAbsentPathCache);
   }
 
   @Test
   public void negativeAsyncPathThreads() throws Exception {
-    Configuration.set(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS, -1);
+    ServerConfiguration.set(PropertyKey.MASTER_UFS_PATH_CACHE_THREADS, -1);
     UfsAbsentPathCache cache = UfsAbsentPathCache.Factory.create(null);
     Assert.assertTrue(cache instanceof NoopUfsAbsentPathCache);
   }
