@@ -52,7 +52,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -778,21 +777,14 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    * @return whether the file is completed or not
    */
   private boolean waitForFileCompleted(AlluxioURI uri) {
-    try {
-      CommonUtils.waitFor("file completed", () -> {
-        try {
-          return mFileSystem.getStatus(uri).isCompleted();
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      }, WaitForOptions.defaults().setTimeoutMs(MAX_OPEN_WAITTIME_MS));
-      return true;
-    } catch (InterruptedException ie) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException te) {
-      return false;
-    }
+    CommonUtils.waitFor("file completed", (input) -> {
+      try {
+        return mFileSystem.getStatus(uri).isCompleted();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(MAX_OPEN_WAITTIME_MS));
+    return true;
   }
 
   /**
