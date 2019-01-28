@@ -35,7 +35,7 @@ public final class AlluxioJobMaster {
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
-          AlluxioJobMasterProcess.class.getCanonicalName());
+          AlluxioJobMaster.class.getCanonicalName());
       System.exit(-1);
     }
 

@@ -52,7 +52,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterProcess.class);
 
   /**
-   * Factory for creating {@link JobMasterProcess}.
+   * Factory for creating {@link AlluxioJobMasterProcess}.
    */
   @ThreadSafe
   static final class Factory {
@@ -63,7 +63,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     }
 
     /**
-     * @return a new instance of {@link JobMasterProcess}
+     * @return a new instance of {@link AlluxioJobMasterProcess}
      */
     public static AlluxioJobMasterProcess create(ServerSocket rpcBindSocket,
         ServerSocket webBindSocket) {

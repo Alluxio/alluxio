@@ -17,7 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.wire.JobInfo;
-import alluxio.master.JobMasterProcess;
+import alluxio.master.AlluxioJobMasterProcess;
 import alluxio.web.JobMasterWebServer;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -51,7 +51,7 @@ public final class JobMasterClientRestServiceHandler {
    */
   public JobMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mJobMaster = ((JobMasterProcess) context
+    mJobMaster = ((AlluxioJobMasterProcess) context
         .getAttribute(JobMasterWebServer.ALLUXIO_JOB_MASTER_SERVLET_RESOURCE_KEY)).getJobMaster();
   }
 
