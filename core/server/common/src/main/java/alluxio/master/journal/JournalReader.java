@@ -39,4 +39,6 @@ public interface JournalReader extends Closeable {
    * @return the next sequence number
    */
   long getNextSequenceNumber();
+
+  boolean isReadingNewCheckpoint();
 }

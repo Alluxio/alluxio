@@ -60,6 +60,9 @@ public final class UfsJournalReader implements JournalReader {
   /** Whether the reader is closed. */
   private boolean mClosed;
 
+  /** Whether a new checkpoint file is being read. */
+  private boolean mNewCheckpoint;
+
   /**
    * A simple wrapper that wraps the journal file and the input stream.
    */
@@ -130,6 +133,11 @@ public final class UfsJournalReader implements JournalReader {
   }
 
   @Override
+  public boolean isReadingNewCheckpoint() {
+    return mNewCheckpoint;
+  }
+
+  @Override
   public Journal.JournalEntry read() throws IOException, InvalidJournalEntryException {
     while (true) {
       Journal.JournalEntry entry;
@@ -144,6 +152,7 @@ public final class UfsJournalReader implements JournalReader {
         return null;
       }
       if (mInputStream.mFile.isCheckpoint()) {
+        // why does it not check the sequence number
         return entry;
       } else if (entry.getSequenceNumber() == mNextSequenceNumber) {
         mNextSequenceNumber++;
@@ -199,6 +208,7 @@ public final class UfsJournalReader implements JournalReader {
    * opening a new one.
    */
   private void updateInputStream() throws IOException {
+    mNewCheckpoint = false;
     if (mInputStream != null && (mInputStream.mFile.isIncompleteLog() || !mInputStream.isDone())) {
       return;
     }
@@ -224,6 +234,7 @@ public final class UfsJournalReader implements JournalReader {
           // 2. A new checkpoint is written to SN3 (> SN2).
           // 3. Resume reading from SN2.
           mNextSequenceNumber = 0;
+          mNewCheckpoint = true;
         }
         for (; index < snapshot.getLogs().size(); index++) {
           UfsJournalFile file = snapshot.getLogs().get(index);
