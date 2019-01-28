@@ -18,26 +18,17 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.master.block.BlockId;
 import alluxio.wire.BlockInfo;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * Command for getting block information from block id.
+ * Command for getting information from a block id.
  */
 public class GetBlockInfoCommand extends AbstractFsAdminCommand {
-  private static final String HEADER_PATTERN = "Showing information of block %s:%n";
   private static final String HELP_OPTION_NAME = "h";
-  @VisibleForTesting
-  public static final String INVALID_BLOCK_ID_INFO = "%s is not a valid block id%n%n";
-  private static final String FILE_INFO_PATTERN = "This block belongs to file {id=%s, path=%s}%n%n";
-
   private static final Option HELP_OPTION =
       Option.builder(HELP_OPTION_NAME)
           .required(false)
@@ -71,10 +62,19 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
 
     FileSystemAdminShellUtils.checkMasterClientService(mConf);
 
-    List<Long> blockIds = getBlockIds(cl.getArgs()[0]);
-    for (Long id : blockIds) {
-      getAndPrintBlockInfo(id);
+    long blockId;
+    String arg = cl.getArgs()[0];
+    try {
+      blockId = Long.parseLong(arg);
+    } catch (NumberFormatException e) {
+      throw new InvalidArgumentException(arg + " is not a valid block id.");
     }
+
+    BlockInfo info = mBlockClient.getBlockInfo(blockId);
+    long fileId = BlockId.getFileId(blockId);
+    String path = mFsClient.getFilePath(fileId);
+    System.out.println(info);
+    System.out.printf("This block belongs to file {id=%s, path=%s}%n", fileId, path);
     return 0;
   }
 
@@ -85,7 +85,7 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getDescription() {
-    return "get block information and file paths of block ids separated by comma.";
+    return "get the block information and file path of a specified block id.";
   }
 
   @Override
@@ -96,45 +96,6 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsNoMoreThan(this, cl, 1);
-  }
-
-  /**
-   * Gets block ids from input string.
-   *
-   * @param input an input string
-   * @return the block ids
-   */
-  private List<Long> getBlockIds(String input) {
-    return Arrays.stream(input.split(",")).map(a -> {
-      try {
-        return Long.parseLong(a);
-      } catch (NumberFormatException e) {
-        System.out.printf(INVALID_BLOCK_ID_INFO, a);
-        return -1L;
-      }
-    }).filter(a -> a != -1L).collect(Collectors.toList());
-  }
-
-  /**
-   * Gets and prints the information of a block id.
-   *
-   * @param blockId a block id
-   */
-  private void getAndPrintBlockInfo(long blockId) throws IOException {
-    BlockInfo info;
-    try {
-      info = mBlockClient.getBlockInfo(blockId);
-    } catch (Exception e) {
-      // Don't error out when one block id is invalid
-      System.out.println(e.getMessage());
-      return;
-    }
-    System.out.printf(HEADER_PATTERN, blockId);
-    long fileId = BlockId.createBlockId(BlockId.getContainerId(blockId),
-        BlockId.getMaxSequenceNumber());
-    String path = mFsClient.getFilePath(fileId);
-    System.out.println(info);
-    System.out.printf(FILE_INFO_PATTERN, fileId, path);
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 }

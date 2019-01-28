@@ -12,13 +12,13 @@
 package alluxio.client.cli.fsadmin.command;
 
 import alluxio.AlluxioURI;
-import alluxio.cli.fsadmin.command.GetBlockInfoCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.WritePType;
+import alluxio.master.block.BlockId;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
@@ -33,18 +33,16 @@ public final class GetBlockInfoCommandIntegrationTest extends AbstractFsAdminShe
   @Test
   public void invalidId() {
     String invalidId = "invalidId";
-    int ret = mFsAdminShell.run("getBlockInfo", "invalidId");
-    Assert.assertEquals(0, ret);
-    String output = mOutput.toString();
-    Assert.assertEquals(String.format(GetBlockInfoCommand.INVALID_BLOCK_ID_INFO,
-        invalidId), output);
+    int ret = mFsAdminShell.run("getBlockInfo", invalidId);
+    Assert.assertEquals(-1, ret);
+    Assert.assertEquals(invalidId + " is not a valid block id.\n", mOutput.toString());
   }
 
   @Test
   public void blockMetaNotFound() {
     long invalidId = 1421312312L;
     int ret = mFsAdminShell.run("getBlockInfo", String.valueOf(invalidId));
-    Assert.assertEquals(0, ret);
+    Assert.assertEquals(-1, ret);
     Assert.assertEquals(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(invalidId) + "\n",
         mOutput.toString());
   }
@@ -54,22 +52,15 @@ public final class GetBlockInfoCommandIntegrationTest extends AbstractFsAdminShe
     FileSystem fileSystem = mLocalAlluxioCluster.getClient();
     fileSystem.createDirectory(new AlluxioURI("/foo"));
     FileSystemTestUtils.createByteFile(fileSystem, "/foo/foobar1", WritePType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(fileSystem, "/foo/foobar2", WritePType.MUST_CACHE, 20);
-    long blockId1 = fileSystem.listStatus(new AlluxioURI("/foo/foobar1"))
+    long blockId = fileSystem.listStatus(new AlluxioURI("/foo/foobar1"))
         .get(0).getBlockIds().get(0);
-    long blockId2 = fileSystem.listStatus(new AlluxioURI("/foo/foobar2"))
-        .get(0).getBlockIds().get(0);
-    int ret = mFsAdminShell.run("getBlockInfo", blockId1 + "," + blockId2);
+    int ret = mFsAdminShell.run("getBlockInfo", String.valueOf(blockId));
     Assert.assertEquals(0, ret);
     String output = mOutput.toString();
 
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Showing information of block " + blockId1));
+        "BlockInfo{id=" + blockId + ", length=10, locations=[BlockLocation{workerId="));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Showing information of block " + blockId2));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "BlockInfo{id="));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "This block belongs to file {id="));
+        "This block belongs to file {id=" + BlockId.getFileId(blockId) + ", path=/foo/foobar1}"));
   }
 }

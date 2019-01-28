@@ -55,15 +55,11 @@ $ ./bin/alluxio fsadmin doctor configuration
 
 ### getBlockInfo
 
-The `getBlockInfo` command provides the information of input block ids.
-Block ids should be separated by commas.
-
+The `getBlockInfo` command provides the block information and file path of a block id.
 It is primarily intended to assist power users in debugging their system.
-For example, `getBlockInfo` can be used to get the file path of a block id.
-This is useful when trying to debug block related exceptions.
 
 ```bash
-$ ./bin/alluxio fsadmin getBlockInfo <block_id1>,<block_id2>,<block_id3>
+$ ./bin/alluxio fsadmin getBlockInfo <block_id>
 ```
 
 ### report
