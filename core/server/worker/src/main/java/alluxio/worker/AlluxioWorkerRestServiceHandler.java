@@ -313,9 +313,7 @@ public final class AlluxioWorkerRestServiceHandler {
       BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
       for (List<Long> blockIds : storeMeta.getBlockList().values()) {
         for (long blockId : blockIds) {
-          long fileId = BlockId
-              .createBlockId(BlockId.getContainerId(blockId), BlockId.getMaxSequenceNumber());
-          unsortedFileIds.add(fileId);
+          unsortedFileIds.add(BlockId.getFileId(blockId));
         }
       }
       List<Long> fileIds = new ArrayList<>(unsortedFileIds);
