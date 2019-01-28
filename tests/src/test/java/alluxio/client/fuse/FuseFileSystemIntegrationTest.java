@@ -49,7 +49,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Integration tests for {@link AlluxioFuseFileSystem}.
@@ -323,21 +322,14 @@ public class FuseFileSystemIntegrationTest {
    */
   private static boolean waitForFuseMounted() throws IOException {
     if (OSUtils.isLinux() || OSUtils.isMacOS()) {
-      try {
-        CommonUtils.waitFor("Alluxio-Fuse mounted on local filesystem", () -> {
-          try {
-            return fuseMounted();
-          } catch (IOException e) {
-            return false;
-          }
-        }, WaitForOptions.defaults().setTimeoutMs(WAIT_TIMEOUT_MS));
-        return true;
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        return false;
-      } catch (TimeoutException te) {
-        return false;
-      }
+      CommonUtils.waitFor("Alluxio-Fuse mounted on local filesystem", (input) -> {
+        try {
+          return fuseMounted();
+        } catch (IOException e) {
+          return false;
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(WAIT_TIMEOUT_MS));
+      return true;
     }
     return false;
   }
