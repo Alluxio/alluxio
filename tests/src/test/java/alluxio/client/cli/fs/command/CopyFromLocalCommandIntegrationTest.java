@@ -137,13 +137,13 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     mFileSystem.createDirectory(new AlluxioURI("/dstDir1/innerDir"));
     int ret1 = mFsShell.run("copyFromLocal", srcOuterDir.getPath(), "/dstDir1");
     Assert.assertEquals(-1, ret1);
-    // copyFromLocal fails fast, if /dstDir/innerDir fails to be copied, then any remaining
-    // files or directories in the result of listFiles("/dstDir") won't be copied.
-    // The order of files or directories in the result of listFiles("/dstDir") cannot be determined
-    // in advance, so we can just make sure /dstDir1/innerDir/srcFile2 does not exist, other files
-    // and directories might or might not exist, depends on the order of list files.
+    dstURI1 = new AlluxioURI("/dstDir1/srcFile1");
     dstURI2 = new AlluxioURI("/dstDir1/innerDir/srcFile2");
+    dstURI3 = new AlluxioURI("/dstDir1/emptyDir");
+    Assert.assertNotNull(mFileSystem.getStatus(dstURI1));
+    // The directory already exists. But the sub directory shouldn't be copied.
     Assert.assertFalse(mFileSystem.exists(dstURI2));
+    Assert.assertNotNull(mFileSystem.getStatus(dstURI3));
   }
 
   @Test
