@@ -26,6 +26,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.WebServer;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,13 +34,14 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
- * A master process in the Alluxio system.
+ * Defines a set of methods which any {@link MasterProcess} should implement.
+ *
+ * Each master should have an RPC server, web server, and journaling system which can serve client
+ * requests.
  */
 public abstract class MasterProcess implements Process {
   private static final Logger LOG = LoggerFactory.getLogger(MasterProcess.class);
@@ -153,7 +155,8 @@ public abstract class MasterProcess implements Process {
     }
   }
 
-  public static final List<ServiceType> MASTER_PROCESS_PORT_SERVICE_LIST = Arrays.asList(
+  public static final ImmutableList<ServiceType> MASTER_PROCESS_PORT_SERVICE_LIST =
+      ImmutableList.of(
           ServiceType.MASTER_RPC,
           ServiceType.MASTER_WEB,
           ServiceType.JOB_MASTER_RPC,
@@ -193,10 +196,9 @@ public abstract class MasterProcess implements Process {
         .getBindAddress(service, ServerConfiguration.global());
     try {
       ServerSocket rpcBindSocket =
-          new ServerSocket(ServerConfiguration.getInt(portKey));
+          new ServerSocket(ServerConfiguration.getInt(portKey), 50, bindAddress.getAddress());
       if (bindAddress.getPort() == 0) {
-        ServerConfiguration.set(portKey,
-            Integer.toString(rpcBindSocket.getLocalPort()));
+        ServerConfiguration.set(portKey, Integer.toString(rpcBindSocket.getLocalPort()));
       }
       return rpcBindSocket;
     } catch (IOException e) {
