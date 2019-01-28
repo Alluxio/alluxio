@@ -87,4 +87,17 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
 
 #### Shrinkwrapping dependencies
 
+It is sometimes necessary to bump package dependency versions for various reasons:
+
+- Fix vulnerabilities found after an audit.
+- Leverage functionality added to a dependency at a later version than the current import.
+- Restructure architecture after a paradigm shift.
+- Other reasons.
+
+NOTE: Any dependencies that are shared across packages should use identical versions, otherwise lerna will complain about a dependency hoisting error. Please keep shared imported dependency versions synchronized.
+
+Once a dependency changes, it is important to verify any functionality that could be affected by the change. This can be done via unit testing, system testing, and/or old fashioned QA testing.
+
 Once changes are tested and things work as planned, please run `npm shrinkwrap && lerna exec npm shrinkwrap` to lock package dependency versions.
+
+NOTE: We currently ignore the `package-lock.json` file so production dependencies will utilize definitions within the `npm-shrinkwrap.json` file.
