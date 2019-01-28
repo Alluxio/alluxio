@@ -130,13 +130,6 @@ public final class IntegrationTestUtils {
     }
   }
 
-  public static final List<ServiceType> MASTER_PORT_SERVICE_LIST = Arrays.asList(
-      ServiceType.JOB_MASTER_RPC,
-      ServiceType.JOB_MASTER_WEB,
-      ServiceType.MASTER_RPC,
-      ServiceType.MASTER_WEB,
-      ServiceType.PROXY_WEB);
-
   /**
    * Creates a map of property keys to ports using list of ports in MASTER_PROCESS_PORT_LIST.
    * When each entry is created, it will create the bind socket for each service and set the
@@ -146,8 +139,8 @@ public final class IntegrationTestUtils {
    */
   public static Map<ServiceType, ServerSocket> createMasterServiceMapping() {
     Map<ServiceType, ServerSocket> serviceMapping = new HashMap<>();
-    MASTER_PORT_SERVICE_LIST.forEach((ServiceType st) -> {
-      PropertyKey pk = MasterProcess.MASTER_PROCESS_SERVICE_PORT_MAP.get(st);
+    MasterProcess.MASTER_PROCESS_PORT_SERVICE_LIST.forEach((ServiceType st) -> {
+      PropertyKey pk = st.getPortKey();
       ServerConfiguration.set(pk, 0);
       serviceMapping.put(st, MasterProcess.setupBindSocket(st));
     });

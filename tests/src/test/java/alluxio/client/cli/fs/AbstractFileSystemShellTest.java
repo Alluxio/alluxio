@@ -61,21 +61,21 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
   protected JobMaster mJobMaster;
   protected LocalAlluxioJobCluster mLocalAlluxioJobCluster = null;
   protected JobShell mJobShell = null;
-  protected Map<NetworkAddressUtils.ServiceType, ServerSocket> mPortMapping;
+  protected Map<NetworkAddressUtils.ServiceType, ServerSocket> mServiceMapping;
 
   @Override
   protected void customizeLocalAlluxioCluster(LocalAlluxioClusterResource.Builder resource) {
-    mPortMapping = IntegrationTestUtils.createMasterServiceMapping();
-    resource.setSockets(mPortMapping.get(NetworkAddressUtils.ServiceType.MASTER_RPC),
-        mPortMapping.get(NetworkAddressUtils.ServiceType.MASTER_WEB));
+    mServiceMapping = IntegrationTestUtils.createMasterServiceMapping();
+    resource.setSockets(mServiceMapping.get(NetworkAddressUtils.ServiceType.MASTER_RPC),
+        mServiceMapping.get(NetworkAddressUtils.ServiceType.MASTER_WEB));
   }
 
   @Before
   public final void before() throws Exception {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mLocalAlluxioJobCluster = new LocalAlluxioJobCluster(
-        mPortMapping.get(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC),
-        mPortMapping.get(NetworkAddressUtils.ServiceType.JOB_MASTER_WEB));
+        mServiceMapping.get(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC),
+        mServiceMapping.get(NetworkAddressUtils.ServiceType.JOB_MASTER_WEB));
     mLocalAlluxioJobCluster.start();
     mFileSystem = mLocalAlluxioCluster.getClient();
     mJobMaster = mLocalAlluxioJobCluster.getMaster().getJobMaster();

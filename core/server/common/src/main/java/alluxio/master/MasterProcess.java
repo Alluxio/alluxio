@@ -26,7 +26,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.WebServer;
 
 import com.google.common.base.Preconditions;
-import org.apache.curator.shaded.com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +33,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -152,13 +153,12 @@ public abstract class MasterProcess implements Process {
     }
   }
 
-  public static final Map<ServiceType, PropertyKey> MASTER_PROCESS_SERVICE_PORT_MAP =
-      ImmutableMap.of(
-          ServiceType.MASTER_RPC, PropertyKey.MASTER_RPC_PORT,
-          ServiceType.MASTER_WEB, PropertyKey.MASTER_WEB_PORT,
-          ServiceType.JOB_MASTER_RPC, PropertyKey.JOB_MASTER_RPC_PORT,
-          ServiceType.JOB_MASTER_WEB, PropertyKey.JOB_MASTER_WEB_PORT,
-          ServiceType.PROXY_WEB, PropertyKey.PROXY_WEB_PORT);
+  public static final List<ServiceType> MASTER_PROCESS_PORT_SERVICE_LIST = Arrays.asList(
+          ServiceType.MASTER_RPC,
+          ServiceType.MASTER_WEB,
+          ServiceType.JOB_MASTER_RPC,
+          ServiceType.JOB_MASTER_WEB,
+          ServiceType.PROXY_WEB);
 
   /**
    * Creates a socket bound to a specific port to "reserve" the port until the master process is
@@ -172,12 +172,12 @@ public abstract class MasterProcess implements Process {
    * @return ServerSocket for a given service updating the configuration if necessary
    */
   public static ServerSocket setupBindSocket(ServiceType service) {
-    if (!MASTER_PROCESS_SERVICE_PORT_MAP.containsKey(service)) {
+    if (!MASTER_PROCESS_PORT_SERVICE_LIST.contains(service)) {
       throw new IllegalArgumentException(String.format(
           "Cannot set up BindSocket for service \"%s\"", service.getServiceName()));
     }
 
-    PropertyKey portKey = MASTER_PROCESS_SERVICE_PORT_MAP.get(service);
+    PropertyKey portKey = service.getPortKey();
 
     // Extract the port from the generated socket.
     // When running tests, it is fine to use port '0' so the system will figure out what port to
