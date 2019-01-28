@@ -17,6 +17,7 @@ import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
@@ -42,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -54,6 +56,7 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -87,14 +90,24 @@ public final class CpCommand extends AbstractFileSystemCommand {
    * Copy tasks can send messages to an output stream in a thread safe way.
    */
   @ThreadSafe
-  private final class CopyThreadPoolExecutor {
-    private static final String MESSAGE_DONE = "#";
+  private static final class CopyThreadPoolExecutor {
+    private static final Object MESSAGE_DONE = new Object();
 
-    private ThreadPoolExecutor mPool;
-    private BlockingQueue<String> mMessages;
-    private PrintStream mOutput;
-    private Thread mPrinter;
-    private AlluxioURI mPath;
+    private final ThreadPoolExecutor mPool;
+    /**
+     * Message queue used by mPrinter.
+     * Only supports objects of type String and Exception.
+     * String messages will be printed to stdout;
+     * Exception messages will be printed to stderr and collected into mExceptions.
+     * Other types of messages will be ignored.
+     */
+    private final BlockingQueue<Object> mMessages;
+    private final ConcurrentLinkedQueue<Exception> mExceptions;
+    private final PrintStream mStdout;
+    private final PrintStream mStderr;
+    private final Thread mPrinter;
+    private final FileSystem mFileSystem;
+    private final AlluxioURI mPath;
 
     /**
      * Creates a new thread pool with the specified number of threads,
@@ -104,29 +117,42 @@ public final class CpCommand extends AbstractFileSystemCommand {
      * NOTE: needs to call {@link #shutdown()} to release resources.
      *
      * @param threads number of threads
-     * @param out the output stream for tasks to send messages to
+     * @param stdout the stdout stream for tasks to send messages to
+     * @param stderr the stderr stream for tasks to send error messages to
+     * @param fileSystem the Alluxio filesystem used to delete path
      * @param path the path to delete on shutdown when it's empty, otherwise can be {@code null}
      */
-    public CopyThreadPoolExecutor(int threads, PrintStream out, AlluxioURI path) {
+    public CopyThreadPoolExecutor(int threads, PrintStream stdout, PrintStream stderr,
+        FileSystem fileSystem, AlluxioURI path) {
       mPool = new ThreadPoolExecutor(threads, threads,
           1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threads * 2),
           new ThreadPoolExecutor.CallerRunsPolicy());
       mMessages = new LinkedBlockingQueue<>();
-      mOutput = out;
+      mExceptions = new ConcurrentLinkedQueue<>();
+      mStdout = stdout;
+      mStderr = stderr;
       mPrinter = new Thread(() -> {
         while (!Thread.currentThread().isInterrupted()) {
           try {
-            String message = mMessages.take();
-            if (message.equals(MESSAGE_DONE)) {
+            Object message = mMessages.take();
+            if (message == MESSAGE_DONE) {
               break;
             }
-            mOutput.println(message);
+            if (message instanceof String) {
+              mStdout.println(message);
+            } else if (message instanceof Exception) {
+              mStderr.println(((Exception) message).getMessage());
+            } else {
+              LOG.error("Unsupported message type " + message.getClass() +
+                  " in message queue of copy thread pool");
+            }
           } catch (InterruptedException e) {
             break;
           }
         }
       });
       mPrinter.start();
+      mFileSystem = fileSystem;
       mPath = path;
     }
 
@@ -140,13 +166,18 @@ public final class CpCommand extends AbstractFileSystemCommand {
     }
 
     /**
-     * Prints out the message into the specified output stream in a new line, waiting if necessary
-     * for the internal message queue to have available space.
+     * Sends a message to the thread pool, if the message is of type String, then it will be
+     * displayed in stdout, if the message is of type Exception, then it will be displayed in
+     * stderr and collected into a list of exceptions, other types of messages will be ignored,
+     * this method will wait if necessary for the internal message queue to have available space.
      *
-     * @param message the message, must not be "#"
-     * @throws InterruptedException if interrupted while waiting
+     * @param message the message, either {@link String} or {@link Exception}
+     * @throws InterruptedException if interrupted while waiting to be sent
      */
-    public void println(String message) throws InterruptedException {
+    public void sendMessage(Object message) throws InterruptedException {
+      if (message instanceof Exception) {
+        mExceptions.add((Exception) message);
+      }
       mMessages.put(message);
     }
 
@@ -154,7 +185,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
      * Waits until all asynchronous copy tasks succeed or fail, then shuts down the thread pool,
      * joins the printer thread, and deletes the copy destination in case of error.
      *
-     * @throws IOException when threads are interrupted or the path fails to be deleted
+     * @throws IOException summarizing all exceptions thrown in the submitted tasks and in shutdown
      */
     public void shutdown() throws IOException {
       try {
@@ -165,6 +196,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
           LOG.warn("Copy thread pool is interrupted in shutdown.", e);
           mPool.shutdownNow();
         }
+
         try {
           mMessages.put(MESSAGE_DONE);
           mPrinter.join();
@@ -172,6 +204,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
           LOG.warn("Message queue or printer in copy thread pool is interrupted in shutdown.", e);
           mPrinter.interrupt();
         }
+
         if (mPath != null
             && mFileSystem.exists(mPath)
             && mFileSystem.getStatus(mPath).isFolder()
@@ -179,7 +212,20 @@ public final class CpCommand extends AbstractFileSystemCommand {
           mFileSystem.delete(mPath);
         }
       } catch (Exception e) {
-        throw new IOException(e);
+        mExceptions.add(new IOException("Failed to delete path " + mPath.toString(), e));
+      }
+
+      if (!mExceptions.isEmpty()) {
+        List<String> stackTraces = new ArrayList<>();
+        for (Exception e : mExceptions) {
+          ByteArrayOutputStream os = new ByteArrayOutputStream();
+          PrintStream ps = new PrintStream(os, true);
+          e.printStackTrace(ps);
+          ps.close();
+
+          stackTraces.add(new String(os.toByteArray()));
+        }
+        throw new IOException(Joiner.on("\n").join("ERRORS:", stackTraces));
       }
     }
   }
@@ -251,10 +297,16 @@ public final class CpCommand extends AbstractFileSystemCommand {
         } else {
           numThreads = Runtime.getRuntime().availableProcessors() * 2;
         }
-        CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(numThreads, System.out,
-            mFileSystem.exists(dstPath) ? null : dstPath);
+        CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(numThreads, System.out, System.err,
+            mFileSystem, mFileSystem.exists(dstPath) ? null : dstPath);
         try {
-          copyFromLocalFileList(pool, srcPaths, dstPath);
+          createDstDir(dstPath);
+          for (AlluxioURI src : srcPaths) {
+            AlluxioURI dst = new AlluxioURI(dstPath, new AlluxioURI(src.getName()));
+            asyncCopyLocalPath(pool, src, dst);
+          }
+        } catch (InterruptedException e) {
+          throw new IOException(e);
         } finally {
           pool.shutdown();
         }
@@ -418,24 +470,6 @@ public final class CpCommand extends AbstractFileSystemCommand {
   }
 
   /**
-   * Copies a list of files or directories specified by srcPaths from the local filesystem to
-   * dstPath in the Alluxio filesystem space. This method is used when the input path contains
-   * wildcards.
-   *
-   * @param pool the thread pool for copying
-   * @param srcPaths a list of files or directories in the local filesystem
-   * @param dstPath the {@link AlluxioURI} of the destination
-   */
-  private void copyFromLocalFileList(CopyThreadPoolExecutor pool,
-      List<AlluxioURI> srcPaths, AlluxioURI dstPath) throws AlluxioException, IOException {
-    createDstDir(dstPath);
-    for (AlluxioURI srcPath : srcPaths) {
-      AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcPath.getName()));
-      asyncCopyLocalPath(pool, srcPath, newURI);
-    }
-  }
-
-  /**
    * Creates a directory in the Alluxio filesystem space. It will not throw any exception if the
    * destination directory already exists.
    *
@@ -499,25 +533,33 @@ public final class CpCommand extends AbstractFileSystemCommand {
    *
    * @param srcPath the {@link AlluxioURI} of the source file in the local filesystem
    * @param dstPath the {@link AlluxioURI} of the destination
+   * @throws InterruptedException when failed to send messages to the pool
    */
   private void asyncCopyLocalPath(CopyThreadPoolExecutor pool, AlluxioURI srcPath,
-      AlluxioURI dstPath) throws AlluxioException, IOException {
+      AlluxioURI dstPath) throws InterruptedException {
     File src = new File(srcPath.getPath());
     if (!src.isDirectory()) {
       pool.submit(() -> {
         try {
           copyFromLocalFile(srcPath, dstPath);
-          pool.println(String.format("Copied %s to %s.", srcPath, dstPath));
-        } catch (Exception e) {
-          pool.println(e.getMessage());
+          pool.sendMessage(String.format("Copied %s to %s.", srcPath, dstPath));
+        } catch (AlluxioException | IOException e) {
+          pool.sendMessage(new IOException(String.format("Failed to copy %s to %s.", srcPath,
+              dstPath), e));
         }
         return null;
       });
     } else {
-      mFileSystem.createDirectory(dstPath);
+      try {
+        mFileSystem.createDirectory(dstPath);
+      } catch (AlluxioException | IOException e) {
+        pool.sendMessage(new IOException("Failed to create directory " + dstPath.toString(), e));
+        return;
+      }
       File[] fileList = src.listFiles();
       if (fileList == null) {
-        throw new IOException(String.format("Failed to list files for directory %s", src));
+        pool.sendMessage(new IOException(String.format("Failed to list directory %s", src)));
+        return;
       }
       for (File srcFile : fileList) {
         AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
