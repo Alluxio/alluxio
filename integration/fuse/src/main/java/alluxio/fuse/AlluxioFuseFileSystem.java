@@ -81,18 +81,18 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
 
   // Open file managements
-  private static final IndexDefinition<OpenFileEntry, Long> ID_INDEX =
-      new IndexDefinition<OpenFileEntry, Long>(true) {
+  private static final IndexDefinition<OpenFileEntry> ID_INDEX =
+      new IndexDefinition<OpenFileEntry>(true) {
         @Override
-        public Long getFieldValue(OpenFileEntry o) {
+        public Object getFieldValue(OpenFileEntry o) {
           return o.getId();
         }
       };
 
-  private static final IndexDefinition<OpenFileEntry, String> PATH_INDEX =
-      new IndexDefinition<OpenFileEntry, String>(true) {
+  private static final IndexDefinition<OpenFileEntry> PATH_INDEX =
+      new IndexDefinition<OpenFileEntry>(true) {
         @Override
-        public String getFieldValue(OpenFileEntry o) {
+        public Object getFieldValue(OpenFileEntry o) {
           return o.getPath();
         }
       };
@@ -860,21 +860,14 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @return whether the file is completed or not
    */
   private boolean waitForFileCompleted(AlluxioURI uri) {
-    try {
-      CommonUtils.waitFor("file completed", () -> {
-        try {
-          return mFileSystem.getStatus(uri).isCompleted();
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      }, WaitForOptions.defaults().setTimeoutMs(MAX_OPEN_WAITTIME_MS));
-      return true;
-    } catch (InterruptedException ie) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException te) {
-      return false;
-    }
+    CommonUtils.waitFor("file completed", (input) -> {
+      try {
+        return mFileSystem.getStatus(uri).isCompleted();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(MAX_OPEN_WAITTIME_MS));
+    return true;
   }
 
   /**
