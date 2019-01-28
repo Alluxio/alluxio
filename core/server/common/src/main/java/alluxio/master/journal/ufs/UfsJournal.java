@@ -383,7 +383,7 @@ public class UfsJournal implements Journal {
       if (entry == null) {
         return journalReader.getNextSequenceNumber();
       }
-      if (journalReader.isReadingNewCheckpoint()) {
+      if (journalReader.getNextSequenceNumber() == 0) {
         mMaster.resetState();
       }
       try {

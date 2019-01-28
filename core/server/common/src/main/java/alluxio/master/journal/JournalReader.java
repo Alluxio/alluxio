@@ -39,11 +39,4 @@ public interface JournalReader extends Closeable {
    * @return the next sequence number
    */
   long getNextSequenceNumber();
-
-  /**
-   * Checks if we are reading a new checkpoint file. Return true if that is the case.
-   *
-   * @return true if we just started reading a new checkpoint
-   */
-  boolean isReadingNewCheckpoint();
 }

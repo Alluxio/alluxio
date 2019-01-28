@@ -38,10 +38,5 @@ public class NoopJournalReader implements JournalReader {
   }
 
   @Override
-  public boolean isReadingNewCheckpoint() {
-    return false;
-  }
-
-  @Override
   public void close() throws IOException {}
 }
