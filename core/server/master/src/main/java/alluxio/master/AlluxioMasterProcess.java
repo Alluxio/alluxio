@@ -57,12 +57,12 @@ public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
   /**
-   * Factory for creating {@link MasterProcess}.
+   * Factory for creating {@link AlluxioMasterProcess}.
    */
   @ThreadSafe
   public static final class Factory {
     /**
-     * @return a new instance of {@link MasterProcess}
+     * @return a new instance of {@link AlluxioMasterProcess}
      */
     public static AlluxioMasterProcess create() {
       return create(MasterProcess.setupBindSocket(ServiceType.MASTER_RPC),
@@ -207,7 +207,8 @@ public class AlluxioMasterProcess extends MasterProcess {
   private void initFromBackup(AlluxioURI backup) throws IOException {
     UnderFileSystem ufs;
     if (URIUtils.isLocalFilesystem(backup.toString())) {
-      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
+      ufs = UnderFileSystem.Factory.create("/",
+          UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     } else {
       ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     }
