@@ -14,18 +14,21 @@ package alluxio.util.logging;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A logger which limits log message frequency to prevent spamming the logs.
  *
  * After the logger logs a message, it enters a configurable cooldown period where it will ignore
- * logging requests.
+ * repeated logging requests with the same message. Messages are compared by message template, not
+ * message arguments.
  */
 public class SamplingLogger implements Logger {
   private final Logger mDelegate;
   private final long mCooldownMs;
-  private final AtomicLong mNextAllowedLog = new AtomicLong(0);
+  private final Map<String, AtomicLong> mCooldowns = new ConcurrentHashMap<>();
 
   /**
    * @param delegate the logger to log to
@@ -36,358 +39,359 @@ public class SamplingLogger implements Logger {
     mCooldownMs = cooldownMs;
   }
 
-  private boolean acquireLogPermission() {
-    long allowed = mNextAllowedLog.get();
+  private boolean acquireLogPermission(String msg) {
+    AtomicLong cooldown = mCooldowns.computeIfAbsent(msg, m -> new AtomicLong(0));
+    long allowed = cooldown.get();
     long now = System.currentTimeMillis();
-    return now >= allowed && mNextAllowedLog.compareAndSet(allowed, now + mCooldownMs);
+    return now >= allowed && cooldown.compareAndSet(allowed, now + mCooldownMs);
   }
 
   @Override
   public void trace(String msg) {
-    if (acquireLogPermission()) {
+    if (isTraceEnabled() && acquireLogPermission(msg)) {
       mDelegate.trace(msg);
     }
   }
 
   @Override
   public void trace(String format, Object arg) {
-    if (acquireLogPermission()) {
+    if (isTraceEnabled() && acquireLogPermission(format)) {
       mDelegate.trace(format, arg);
     }
   }
 
   @Override
   public void trace(String format, Object arg1, Object arg2) {
-    if (acquireLogPermission()) {
+    if (isTraceEnabled() && acquireLogPermission(format)) {
       mDelegate.trace(format, arg1, arg2);
     }
   }
 
   @Override
   public void trace(String format, Object... arguments) {
-    if (acquireLogPermission()) {
+    if (isTraceEnabled() && acquireLogPermission(format)) {
       mDelegate.trace(format, arguments);
     }
   }
 
   @Override
   public void trace(String msg, Throwable t) {
-    if (acquireLogPermission()) {
+    if (isTraceEnabled() && acquireLogPermission(msg)) {
       mDelegate.trace(msg, t);
     }
   }
 
   @Override
   public void trace(Marker marker, String msg) {
-    if (acquireLogPermission()) {
+    if (isTraceEnabled() && acquireLogPermission(msg)) {
       mDelegate.trace(marker, msg);
     }
   }
 
   @Override
   public void trace(Marker marker, String format, Object arg) {
-    if (acquireLogPermission()) {
+    if (isTraceEnabled() && acquireLogPermission(format)) {
       mDelegate.trace(marker, format, arg);
     }
   }
 
   @Override
   public void trace(Marker marker, String format, Object arg1, Object arg2) {
-    if (acquireLogPermission()) {
+    if (isTraceEnabled() && acquireLogPermission(format)) {
       mDelegate.trace(marker, format, arg1, arg2);
     }
   }
 
   @Override
   public void trace(Marker marker, String format, Object... argArray) {
-    if (acquireLogPermission()) {
+    if (isTraceEnabled() && acquireLogPermission(format)) {
       mDelegate.trace(marker, format, argArray);
     }
   }
 
   @Override
   public void trace(Marker marker, String msg, Throwable t) {
-    if (acquireLogPermission()) {
+    if (isTraceEnabled() && acquireLogPermission(msg)) {
       mDelegate.trace(marker, msg, t);
     }
   }
 
   @Override
   public void debug(String msg) {
-    if (acquireLogPermission()) {
+    if (isDebugEnabled() && acquireLogPermission(msg)) {
       mDelegate.debug(msg);
     }
   }
 
   @Override
   public void debug(String format, Object arg) {
-    if (acquireLogPermission()) {
+    if (isDebugEnabled() && acquireLogPermission(format)) {
       mDelegate.debug(format, arg);
     }
   }
 
   @Override
   public void debug(String format, Object arg1, Object arg2) {
-    if (acquireLogPermission()) {
+    if (isDebugEnabled() && acquireLogPermission(format)) {
       mDelegate.debug(format, arg1, arg2);
     }
   }
 
   @Override
   public void debug(String format, Object... arguments) {
-    if (acquireLogPermission()) {
+    if (isDebugEnabled() && acquireLogPermission(format)) {
       mDelegate.debug(format, arguments);
     }
   }
 
   @Override
   public void debug(String msg, Throwable t) {
-    if (acquireLogPermission()) {
+    if (isDebugEnabled() && acquireLogPermission(msg)) {
       mDelegate.debug(msg, t);
     }
   }
 
   @Override
   public void debug(Marker marker, String msg) {
-    if (acquireLogPermission()) {
+    if (isDebugEnabled() && acquireLogPermission(msg)) {
       mDelegate.debug(marker, msg);
     }
   }
 
   @Override
   public void debug(Marker marker, String format, Object arg) {
-    if (acquireLogPermission()) {
+    if (isDebugEnabled() && acquireLogPermission(format)) {
       mDelegate.debug(marker, format, arg);
     }
   }
 
   @Override
   public void debug(Marker marker, String format, Object arg1, Object arg2) {
-    if (acquireLogPermission()) {
+    if (isDebugEnabled() && acquireLogPermission(format)) {
       mDelegate.debug(marker, format, arg1, arg2);
     }
   }
 
   @Override
   public void debug(Marker marker, String format, Object... arguments) {
-    if (acquireLogPermission()) {
+    if (isDebugEnabled() && acquireLogPermission(format)) {
       mDelegate.debug(marker, format, arguments);
     }
   }
 
   @Override
   public void debug(Marker marker, String msg, Throwable t) {
-    if (acquireLogPermission()) {
+    if (isDebugEnabled() && acquireLogPermission(msg)) {
       mDelegate.debug(marker, msg, t);
     }
   }
 
   @Override
   public void info(String msg) {
-    if (acquireLogPermission()) {
+    if (isInfoEnabled() && acquireLogPermission(msg)) {
       mDelegate.info(msg);
     }
   }
 
   @Override
   public void info(String format, Object arg) {
-    if (acquireLogPermission()) {
+    if (isInfoEnabled() && acquireLogPermission(format)) {
       mDelegate.info(format, arg);
     }
   }
 
   @Override
   public void info(String format, Object arg1, Object arg2) {
-    if (acquireLogPermission()) {
+    if (isInfoEnabled() && acquireLogPermission(format)) {
       mDelegate.info(format, arg1, arg2);
     }
   }
 
   @Override
   public void info(String format, Object... arguments) {
-    if (acquireLogPermission()) {
+    if (isInfoEnabled() && acquireLogPermission(format)) {
       mDelegate.info(format, arguments);
     }
   }
 
   @Override
   public void info(String msg, Throwable t) {
-    if (acquireLogPermission()) {
+    if (isInfoEnabled() && acquireLogPermission(msg)) {
       mDelegate.info(msg, t);
     }
   }
 
   @Override
   public void info(Marker marker, String msg) {
-    if (acquireLogPermission()) {
+    if (isInfoEnabled() && acquireLogPermission(msg)) {
       mDelegate.info(marker, msg);
     }
   }
 
   @Override
   public void info(Marker marker, String format, Object arg) {
-    if (acquireLogPermission()) {
+    if (isInfoEnabled() && acquireLogPermission(format)) {
       mDelegate.info(marker, format, arg);
     }
   }
 
   @Override
   public void info(Marker marker, String format, Object arg1, Object arg2) {
-    if (acquireLogPermission()) {
+    if (isInfoEnabled() && acquireLogPermission(format)) {
       mDelegate.info(marker, format, arg1, arg2);
     }
   }
 
   @Override
   public void info(Marker marker, String format, Object... arguments) {
-    if (acquireLogPermission()) {
+    if (isInfoEnabled() && acquireLogPermission(format)) {
       mDelegate.info(marker, format, arguments);
     }
   }
 
   @Override
   public void info(Marker marker, String msg, Throwable t) {
-    if (acquireLogPermission()) {
+    if (isInfoEnabled() && acquireLogPermission(msg)) {
       mDelegate.info(marker, msg, t);
     }
   }
 
   @Override
   public void warn(String msg) {
-    if (acquireLogPermission()) {
+    if (isWarnEnabled() && acquireLogPermission(msg)) {
       mDelegate.warn(msg);
     }
   }
 
   @Override
   public void warn(String format, Object arg) {
-    if (acquireLogPermission()) {
+    if (isWarnEnabled() && acquireLogPermission(format)) {
       mDelegate.warn(format, arg);
     }
   }
 
   @Override
   public void warn(String format, Object... arguments) {
-    if (acquireLogPermission()) {
+    if (isWarnEnabled() && acquireLogPermission(format)) {
       mDelegate.warn(format, arguments);
     }
   }
 
   @Override
   public void warn(String format, Object arg1, Object arg2) {
-    if (acquireLogPermission()) {
+    if (isWarnEnabled() && acquireLogPermission(format)) {
       mDelegate.warn(format, arg1, arg2);
     }
   }
 
   @Override
   public void warn(String msg, Throwable t) {
-    if (acquireLogPermission()) {
+    if (isWarnEnabled() && acquireLogPermission(msg)) {
       mDelegate.warn(msg, t);
     }
   }
 
   @Override
   public void warn(Marker marker, String msg) {
-    if (acquireLogPermission()) {
+    if (isWarnEnabled() && acquireLogPermission(msg)) {
       mDelegate.warn(marker, msg);
     }
   }
 
   @Override
   public void warn(Marker marker, String format, Object arg) {
-    if (acquireLogPermission()) {
+    if (isWarnEnabled() && acquireLogPermission(format)) {
       mDelegate.warn(marker, format, arg);
     }
   }
 
   @Override
   public void warn(Marker marker, String format, Object arg1, Object arg2) {
-    if (acquireLogPermission()) {
+    if (isWarnEnabled() && acquireLogPermission(format)) {
       mDelegate.warn(marker, format, arg1, arg2);
     }
   }
 
   @Override
   public void warn(Marker marker, String format, Object... arguments) {
-    if (acquireLogPermission()) {
+    if (isWarnEnabled() && acquireLogPermission(format)) {
       mDelegate.warn(marker, format, arguments);
     }
   }
 
   @Override
   public void warn(Marker marker, String msg, Throwable t) {
-    if (acquireLogPermission()) {
+    if (isWarnEnabled() && acquireLogPermission(msg)) {
       mDelegate.warn(marker, msg, t);
     }
   }
 
   @Override
   public void error(String msg) {
-    if (acquireLogPermission()) {
+    if (isErrorEnabled() && acquireLogPermission(msg)) {
       mDelegate.error(msg);
     }
   }
 
   @Override
   public void error(String format, Object arg) {
-    if (acquireLogPermission()) {
+    if (isErrorEnabled() && acquireLogPermission(format)) {
       mDelegate.error(format, arg);
     }
   }
 
   @Override
   public void error(String format, Object arg1, Object arg2) {
-    if (acquireLogPermission()) {
+    if (isErrorEnabled() && acquireLogPermission(format)) {
       mDelegate.error(format, arg1, arg2);
     }
   }
 
   @Override
   public void error(String format, Object... arguments) {
-    if (acquireLogPermission()) {
+    if (isErrorEnabled() && acquireLogPermission(format)) {
       mDelegate.error(format, arguments);
     }
   }
 
   @Override
   public void error(String msg, Throwable t) {
-    if (acquireLogPermission()) {
+    if (isErrorEnabled() && acquireLogPermission(msg)) {
       mDelegate.error(msg, t);
     }
   }
 
   @Override
   public void error(Marker marker, String msg) {
-    if (acquireLogPermission()) {
+    if (isErrorEnabled() && acquireLogPermission(msg)) {
       mDelegate.error(marker, msg);
     }
   }
 
   @Override
   public void error(Marker marker, String format, Object arg) {
-    if (acquireLogPermission()) {
+    if (isErrorEnabled() && acquireLogPermission(format)) {
       mDelegate.error(marker, format, arg);
     }
   }
 
   @Override
   public void error(Marker marker, String format, Object arg1, Object arg2) {
-    if (acquireLogPermission()) {
+    if (isErrorEnabled() && acquireLogPermission(format)) {
       mDelegate.error(marker, format, arg1, arg2);
     }
   }
 
   @Override
   public void error(Marker marker, String format, Object... arguments) {
-    if (acquireLogPermission()) {
+    if (isErrorEnabled() && acquireLogPermission(format)) {
       mDelegate.error(marker, format, arguments);
     }
   }
 
   @Override
   public void error(Marker marker, String msg, Throwable t) {
-    if (acquireLogPermission()) {
+    if (isErrorEnabled() && acquireLogPermission(msg)) {
       mDelegate.error(marker, msg, t);
     }
   }
