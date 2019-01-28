@@ -12,7 +12,7 @@
 package alluxio.client.block.stream;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataByteBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
 
 import java.nio.ByteBuffer;
 
@@ -41,7 +41,7 @@ public class TestDataReader implements DataReader {
     }
     int bytesToRead = (int) (Math.min(Math.min(mChunkSize, mEnd - mPos), mData.length - mPos));
     ByteBuffer buffer = ByteBuffer.wrap(mData, (int) mPos, bytesToRead);
-    DataBuffer dataBuffer = new DataByteBuffer(buffer, buffer.remaining());
+    DataBuffer dataBuffer = new NioDataBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
     return dataBuffer;
   }

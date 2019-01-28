@@ -19,7 +19,7 @@ import java.nio.ByteBuffer;
 /**
  * A DataBuffer backed by a byte[].
  */
-public final class DataByteArrayChannel implements DataBuffer {
+public final class ByteArrayDataBuffer implements DataBuffer {
   private final byte[] mByteArray;
   private final long mOffset;
   private final long mLength;
@@ -29,7 +29,7 @@ public final class DataByteArrayChannel implements DataBuffer {
    * @param offset the offset into the byteArray
    * @param length the length of the data
    */
-  public DataByteArrayChannel(byte[] byteArray, long offset, long length) {
+  public ByteArrayDataBuffer(byte[] byteArray, long offset, long length) {
     mByteArray = Preconditions.checkNotNull(byteArray, "byteArray");
     mOffset = offset;
     mLength = length;
@@ -52,13 +52,13 @@ public final class DataByteArrayChannel implements DataBuffer {
 
   @Override
   public void readBytes(byte[] dst, int dstIndex, int length) {
-    throw new UnsupportedOperationException("DataByteArrayChannel#readBytes is not implemented.");
+    throw new UnsupportedOperationException("ByteArrayDataBuffer#readBytes is not implemented.");
   }
 
   @Override
   public int readableBytes() {
     throw new UnsupportedOperationException(
-        "DataByteArrayChannel#readableBytes is not implemented.");
+        "ByteArrayDataBuffer#readableBytes is not implemented.");
   }
 
   @Override

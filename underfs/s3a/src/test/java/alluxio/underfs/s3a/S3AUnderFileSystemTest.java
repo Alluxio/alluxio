@@ -73,7 +73,7 @@ public class S3AUnderFileSystemTest {
     mExecutor = Mockito.mock(ListeningExecutorService.class);
     mManager = Mockito.mock(TransferManager.class);
     mS3UnderFileSystem = new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient,
-        BUCKET_NAME, mExecutor, mManager, UnderFileSystemConfiguration.defaults(),
+        BUCKET_NAME, mExecutor, mManager, UnderFileSystemConfiguration.defaults(sConf),
         sConf, false);
   }
 
@@ -147,7 +147,7 @@ public class S3AUnderFileSystemTest {
     conf.put(PropertyKey.S3A_ACCESS_KEY, null);
     conf.put(PropertyKey.S3A_SECRET_KEY, null);
     try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
-      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults();
+      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(sConf);
       AWSCredentialsProvider credentialsProvider =
           S3AUnderFileSystem.createAwsCredentialsProvider(ufsConf);
       Assert.assertTrue(credentialsProvider instanceof DefaultAWSCredentialsProviderChain);
