@@ -27,7 +27,7 @@ import alluxio.grpc.Chunk;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataByteBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -181,7 +181,7 @@ public final class GrpcDataReaderTest {
         break;
       }
       try {
-        assertTrue(chunk instanceof DataByteBuffer);
+        assertTrue(chunk instanceof NioDataBuffer);
         ByteBuf buf = (ByteBuf) chunk.getNettyOutput();
         byte[] bytes = new byte[buf.readableBytes()];
         buf.readBytes(bytes);

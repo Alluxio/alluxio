@@ -21,7 +21,7 @@ import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataByteArrayChannel;
+import alluxio.network.protocol.databuffer.ByteArrayDataBuffer;
 import alluxio.util.io.BufferUtils;
 
 import com.google.protobuf.ByteString;
@@ -220,7 +220,7 @@ public abstract class AbstractWriteHandlerTest {
       byte value = (byte) (RANDOM.nextInt() % Byte.MAX_VALUE);
       buf[i] = value;
     }
-    return new DataByteArrayChannel(buf, 0, len);
+    return new ByteArrayDataBuffer(buf, 0, len);
   }
 
   /**
