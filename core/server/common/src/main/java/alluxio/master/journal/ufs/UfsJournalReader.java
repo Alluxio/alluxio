@@ -144,7 +144,6 @@ public final class UfsJournalReader implements JournalReader {
         return null;
       }
       if (mInputStream.mFile.isCheckpoint()) {
-        // why does it not check the sequence number
         return entry;
       } else if (entry.getSequenceNumber() == mNextSequenceNumber) {
         mNextSequenceNumber++;
