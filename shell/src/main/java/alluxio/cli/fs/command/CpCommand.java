@@ -38,7 +38,10 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -55,13 +58,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
  * Copies a file or a directory in the Alluxio filesystem.
  */
 @ThreadSafe
 public final class CpCommand extends AbstractFileSystemCommand {
+  private static final Logger LOG = LoggerFactory.getLogger(CpCommand.class);
 
   private static final Option RECURSIVE_OPTION =
       Option.builder("R")
@@ -160,12 +162,14 @@ public final class CpCommand extends AbstractFileSystemCommand {
         try {
           mPool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
+          LOG.warn("Copy thread pool is interrupted in shutdown.", e);
           mPool.shutdownNow();
         }
         try {
           mMessages.put(MESSAGE_DONE);
           mPrinter.join();
         } catch (InterruptedException e) {
+          LOG.warn("Message queue or printer in copy thread pool is interrupted in shutdown.", e);
           mPrinter.interrupt();
         }
         if (mPath != null
