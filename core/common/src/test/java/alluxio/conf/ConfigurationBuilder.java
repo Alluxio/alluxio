@@ -12,8 +12,8 @@
 package alluxio.conf;
 
 /**
- * Class for building an Alluxio configuration. The built configuration does not load properties
- * from alluxio-site.properties.
+ * Class for building an Alluxio configuration during tests. The built configuration does not load
+ * properties from alluxio-site.properties.
  */
 public class ConfigurationBuilder {
   private final AlluxioProperties mProperties = new AlluxioProperties();

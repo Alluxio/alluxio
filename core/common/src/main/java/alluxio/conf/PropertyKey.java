@@ -1206,7 +1206,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_METASTORE =
       new Builder(Name.MASTER_METASTORE)
           .setDefaultValue("HEAP")
-          .setDescription("The type of metastore to use, either HEAP or ROCKS")
+          .setDescription("The type of metastore to use, either HEAP or ROCKS. The heap metastore "
+              + "keeps all metadata on-heap, while the rocks metastore stores some metadata on "
+              + "heap and some metadata on disk. The rocks metastore has the advantage of being "
+              + "able to support a large namespace (1 billion plus files) without needing a "
+              + "massive heap size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
