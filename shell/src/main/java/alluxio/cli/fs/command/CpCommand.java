@@ -143,8 +143,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
             } else if (message instanceof Exception) {
               mStderr.println(((Exception) message).getMessage());
             } else {
-              LOG.error("Unsupported message type " + message.getClass() +
-                  " in message queue of copy thread pool");
+              LOG.error("Unsupported message type " + message.getClass()
+                  + " in message queue of copy thread pool");
             }
           } catch (InterruptedException e) {
             break;
