@@ -339,11 +339,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         mode |= FileStat.S_IFREG;
       }
       stat.st_mode.set(mode);
-<<<<<<< HEAD
-
-=======
       stat.st_nlink.set(1);
->>>>>>> 0cfc866765... [SMALLFIX] fix fuse du command (#8155)
     } catch (InvalidPathException e) {
       LOG.debug("Invalid path {}", path, e);
       return -ErrorCodes.ENOENT();
