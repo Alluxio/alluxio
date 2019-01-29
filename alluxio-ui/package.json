@@ -1,8 +1,8 @@
 {
   "name": "root",
   "private": true,
-  "devDependencies": {
-    "lerna": "~3.10.7"
+  "dependencies": {
+    "lerna": "3.10.7"
   },
   "engines": {
     "node": "10.11.0",
