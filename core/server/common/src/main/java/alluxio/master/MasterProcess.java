@@ -195,12 +195,12 @@ public abstract class MasterProcess implements Process {
     InetSocketAddress bindAddress = NetworkAddressUtils
         .getBindAddress(service, ServerConfiguration.global());
     try {
-      ServerSocket rpcBindSocket =
+      ServerSocket bindSocket =
           new ServerSocket(ServerConfiguration.getInt(portKey), 50, bindAddress.getAddress());
       if (bindAddress.getPort() == 0) {
-        ServerConfiguration.set(portKey, Integer.toString(rpcBindSocket.getLocalPort()));
+        ServerConfiguration.set(portKey, Integer.toString(bindSocket.getLocalPort()));
       }
-      return rpcBindSocket;
+      return bindSocket;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -213,30 +213,18 @@ public abstract class MasterProcess implements Process {
 
   /** This method will close the socket upon first initialization. */
   InetSocketAddress getWebAddressFromBindSocket() throws IOException {
-    try {
-      Preconditions.checkNotNull(mWebBindSocket, "mWebBindSocket");
-      InetSocketAddress socketAddr = new InetSocketAddress(mWebBindSocket.getInetAddress(),
-          mWebBindSocket.getLocalPort());
-      mWebBindSocket.close();
-      return socketAddr;
-    } catch (IOException e) {
-      throw new IOException("Unable to close socket");
-    } catch (NullPointerException e) {
-      throw new IOException(e);
-    }
+    Preconditions.checkNotNull(mWebBindSocket, "mWebBindSocket");
+    InetSocketAddress socketAddr = new InetSocketAddress(mWebBindSocket.getInetAddress(),
+        mWebBindSocket.getLocalPort());
+    mWebBindSocket.close();
+    return socketAddr;
   }
 
   /** This method will close the socket upon first initialization. */
   SocketAddress getRpcAddressFromBindSocket() throws IOException {
-    try {
-      Preconditions.checkNotNull(mRpcBindSocket, "mRpcBindSocket");
-      SocketAddress addr = mRpcBindSocket.getLocalSocketAddress();
-      mRpcBindSocket.close();
-      return addr;
-    } catch (IOException e) {
-      throw new IOException("Unable to close socket");
-    } catch (NullPointerException e) {
-      throw new IOException(e);
-    }
+    Preconditions.checkNotNull(mRpcBindSocket, "mRpcBindSocket");
+    SocketAddress addr = mRpcBindSocket.getLocalSocketAddress();
+    mRpcBindSocket.close();
+    return addr;
   }
 }
