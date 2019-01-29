@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -38,7 +37,7 @@ public class HeapInodeStore implements InodeStore {
   private final Map<Long, MutableInode<?>> mInodes = new ConcurrentHashMap<>();
   // Map from inode id to ids of children of that inode. The inner maps are ordered by child name.
   private final TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>> mEdges =
-      new TwoKeyConcurrentMap<>(() -> new ConcurrentSkipListMap<>());
+      new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>());
 
   /**
    * @param args inode store arguments

@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Read-only view of an inode.
  */
-public interface InodeView extends JournalEntryRepresentable {
+public interface InodeView extends JournalEntryRepresentable, Comparable<InodeView> {
 
   /**
    * @return the create time, in milliseconds
@@ -157,4 +157,9 @@ public interface InodeView extends JournalEntryRepresentable {
    * @return the protocol buffer representation of the inode
    */
   InodeMeta.Inode toProto();
+
+  @Override
+  default int compareTo(InodeView o) {
+    return getName().compareTo(o.getName());
+  }
 }
