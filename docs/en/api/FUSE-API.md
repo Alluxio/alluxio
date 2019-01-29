@@ -120,6 +120,7 @@ characteristics, please be aware that:
   in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the
   user and group of the user who started the alluxio-fuse process. The translation service
   does not change the actual file permission when running `ll`. 
+
 ## Performance considerations
 
 Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to
