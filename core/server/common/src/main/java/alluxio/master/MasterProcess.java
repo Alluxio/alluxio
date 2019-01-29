@@ -40,8 +40,10 @@ import java.util.concurrent.TimeoutException;
 /**
  * Defines a set of methods which any {@link MasterProcess} should implement.
  *
- * Each master should have an RPC server, web server, and journaling system which can serve client
- * requests.
+ * This class serves as a common implementation for functions that both the
+ * {@link alluxio.master.AlluxioMasterProcess} and {@link alluxio.master.AlluxioJobMasterProcess}
+ * use. Each master should have an RPC server, web server, and journaling system which can serve
+ * client requests.
  */
 public abstract class MasterProcess implements Process {
   private static final Logger LOG = LoggerFactory.getLogger(MasterProcess.class);
@@ -71,7 +73,8 @@ public abstract class MasterProcess implements Process {
   WebServer mWebServer;
 
   /**
-   * Prepares a {@link MasterProcess} journal, rpc and web server.
+   * Prepares a {@link MasterProcess} journal, rpc and web server using the given sockets.
+   *
    * @param journalSystem The journaling system
    * @param rpcBindSocket a socket bound to an address that the master's rpc server can use
    * @param webBindSocket a socket bound to an address that the master's web server can use
@@ -107,7 +110,7 @@ public abstract class MasterProcess implements Process {
     return mStartTimeMs;
   }
 
-  void startServing() {
+  protected void startServing() {
     startServing("", "");
   }
 
