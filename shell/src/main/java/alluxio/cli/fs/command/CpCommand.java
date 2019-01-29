@@ -248,7 +248,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
     }
 
     private String messageAndCause(Exception e) {
-      return e.getMessage() + ": " + e.getCause().toString();
+      return e.getMessage() + ": " + e.getCause().getMessage();
     }
 
     private String stacktrace(Exception e) {
