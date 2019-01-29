@@ -350,4 +350,11 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
       Assert.assertTrue(fileExists(dst.join(String.format(filePathFormat, i))));
     }
   }
+
+  @Test
+  public void parseThreadOption() throws Exception {
+    String testDir = FileSystemShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
+    int ret = mFsShell.run("copyFromLocal", "-t", "1", testDir + "/*/foo*", "/testDir");
+    Assert.assertEquals(0, ret);
+  }
 }
