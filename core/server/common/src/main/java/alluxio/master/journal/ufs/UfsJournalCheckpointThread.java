@@ -139,6 +139,9 @@ public final class UfsJournalCheckpointThread extends Thread {
     while (true) {
       try {
         entry = mJournalReader.read();
+        if (mJournalReader.getNextSequenceNumber() == 0) {
+          mMaster.resetState();
+        }
         if (entry != null) {
           mMaster.processJournalEntry(entry);
           if (quietPeriodWaited) {
