@@ -43,10 +43,11 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
    * @param account JOSS account with authentication credentials
    * @param container the name of container where the object resides
    * @param object path of the object in the container
-   * @param blockSize the block size to use on this stream
+   * @param multiRangeChunkSize the chunk size to use on this stream
    */
-  public SwiftInputStream(Account account, String container, String object, long blockSize) {
-    this(account, container, object, 0L, blockSize);
+  public SwiftInputStream(Account account, String container, String object,
+      long multiRangeChunkSize) {
+    this(account, container, object, 0L, multiRangeChunkSize);
   }
 
   /**
@@ -56,11 +57,11 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
    * @param container the name of container where the object resides
    * @param object path of the object in the container
    * @param position the position to begin reading from
-   * @param blockSize the block size to use on this stream
+   * @param multiRangeChunkSize the block size to use on this stream
    */
   public SwiftInputStream(Account account, String container, String object, long position,
-      long blockSize) {
-    mBlockSize = blockSize;
+      long multiRangeChunkSize) {
+    super(multiRangeChunkSize);
     mAccount = account;
     mContainerName = container;
     mObjectPath = object;

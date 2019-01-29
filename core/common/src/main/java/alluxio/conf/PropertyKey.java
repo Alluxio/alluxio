@@ -2794,6 +2794,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_MULTI_RANGE_CHUNK_SIZE_BYTES =
+      new Builder(Name.USER_MULTI_RANGE_CHUNK_SIZE_BYTES)
+          .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
+          .setDescription("Default chunk size for ranged reads from Alluxio files.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_APP_ID =
       new Builder(Name.USER_APP_ID)
           .setScope(Scope.CLIENT)
@@ -3934,6 +3941,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.metrics.collection.enabled";
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
         "alluxio.user.metrics.heartbeat.interval";
+    public static final String USER_MULTI_RANGE_CHUNK_SIZE_BYTES =
+        "alluxio.user.multi.range.chunk.size.bytes";
     public static final String USER_APP_ID = "alluxio.user.app.id";
     public static final String USER_NETWORK_DATA_TIMEOUT_MS =
         "alluxio.user.network.data.timeout";

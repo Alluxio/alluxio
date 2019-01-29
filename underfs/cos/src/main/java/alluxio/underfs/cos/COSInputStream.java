@@ -49,9 +49,9 @@ public class COSInputStream extends MultiRangeObjectInputStream {
    * @param key the key of the file
    * @param client the client for COS
    */
-  COSInputStream(String bucketName, String key, COSClient client, long blockSize)
+  COSInputStream(String bucketName, String key, COSClient client, long multiRangeChunkSize)
       throws IOException {
-    this(bucketName, key, client, 0L, blockSize);
+    this(bucketName, key, client, 0L, multiRangeChunkSize);
   }
 
   /**
@@ -62,9 +62,9 @@ public class COSInputStream extends MultiRangeObjectInputStream {
    * @param client the client for COS
    * @param position the position to begin reading from
    */
-  COSInputStream(String bucketName, String key, COSClient client, long position, long blockSize)
-      throws IOException {
-    mBlockSize = blockSize;
+  COSInputStream(String bucketName, String key, COSClient client, long position,
+      long multiRangeChunkSize) throws IOException {
+    super(multiRangeChunkSize);
     mBucketName = bucketName;
     mKey = key;
     mCosClient = client;
