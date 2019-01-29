@@ -85,3 +85,19 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
 
     This will also generate a coverage report within each package: `common/coverage/lcov-report/index.html`, `master/coverage/lcov-report/index.html`, `worker/coverage/lcov-report/index.html`. You may also run `coverage-ci` instead of `coverage` in this step if you would like this to execute only once.
 
+#### Shrinkwrapping dependencies
+
+It is sometimes necessary to bump package dependency versions for various reasons:
+
+- Fix vulnerabilities found after an audit.
+- Leverage functionality added to a dependency at a later version than the current import.
+- Restructure architecture after a paradigm shift.
+- Other reasons.
+
+NOTE: Any dependencies that are shared across packages should use identical versions, otherwise lerna will complain about a dependency hoisting error. Please keep shared imported dependency versions synchronized.
+
+Once a dependency changes, it is important to verify any functionality that could be affected by the change. This can be done via unit testing, system testing, and/or old fashioned QA testing.
+
+In order to keep the UI consistent for production builds we shrinkwrap our dependecies using npm-shrinkwrap so that our package versions stay consistent across builds. Shrinkwrapping locks dependency versions so that updates to underlying UI libraries don't affect our build.
+
+Once changes are tested and things work as planned, please run `npm shrinkwrap && lerna exec npm shrinkwrap` to lock package dependency versions.
