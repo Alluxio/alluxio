@@ -18,7 +18,8 @@ We'll also discuss more advanced topics and how to troubleshoot.
 
 ## Prerequisites
 
-- A Linux machine with Docker installed.
+- A Linux machine with Docker installed. To run Docker on Amazon Linux, check out the documentation [Docker Basics for Amazon ECS
+](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html#install_docker).
 - Ports 19998, 19999, 29998, 29999, and 30000 are available
 
 If you don't have access to a Linux machine with Docker installed, you can
@@ -53,7 +54,7 @@ $ docker run -d --net=host \
     --shm-size=1G -e ALLUXIO_WORKER_MEMORY_SIZE=1G \
     -v /mnt/data:/opt/alluxio/underFSStorage \
     -e ALLUXIO_MASTER_HOSTNAME=localhost \
-    alluxio/alluxio worker \
+    alluxio/alluxio worker
 ```
 
 ## Verify the Cluster
