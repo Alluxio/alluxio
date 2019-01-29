@@ -101,5 +101,3 @@ Once a dependency changes, it is important to verify any functionality that coul
 In order to keep the UI consistent for production builds we shrinkwrap our dependecies using npm-shrinkwrap so that our package versions stay consistent across builds. Shrinkwrapping locks dependency versions so that updates to underlying UI libraries don't affect our build.
 
 Once changes are tested and things work as planned, please run `npm shrinkwrap && lerna exec npm shrinkwrap` to lock package dependency versions.
-
-NOTE: We currently ignore the `package-lock.json` file so production dependencies will utilize definitions within the `npm-shrinkwrap.json` file.
