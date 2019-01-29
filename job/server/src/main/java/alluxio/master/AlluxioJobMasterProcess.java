@@ -104,8 +104,8 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     super(journalSystem, rpcBindSocket, webBindSocket);
     mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC,
         ServerConfiguration.global());
-    if (!ServerConfiguration.isSet(PropertyKey.MASTER_HOSTNAME)) {
-      ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME,
+    if (!ServerConfiguration.isSet(PropertyKey.JOB_MASTER_HOSTNAME)) {
+      ServerConfiguration.set(PropertyKey.JOB_MASTER_HOSTNAME,
           NetworkAddressUtils.getLocalHostName(
               (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
     }
