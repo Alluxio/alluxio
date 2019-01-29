@@ -116,18 +116,10 @@ characteristics, please be aware that:
 * Alluxio does not have hard-link and soft-link concepts, so the commands like `ln` are not supported,
   neither the hardlinks number is displayed in `ll` output.
 * The user and group are mapped to the Unix user and group only when Alluxio Fuse is configured to use
-<<<<<<< HEAD:docs/en/api/FUSE-API.md
-  shell user group translation service, by setting `alluxio.fuse.user.group.translation.enabled` to `true`
-  in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the
-  user and group of the user who started the alluxio-fuse process. The translation service
-  does not change the actual file permission when running `ll`.
-=======
   shell user group translation service, by setting `alluxio.fuse.user.group.translation.enabled` to `true` 
   in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the
   user and group of the user who started the alluxio-fuse process. The translation service
   does not change the actual file permission when running `ll`. 
->>>>>>> e9d242659d... [ALLUXIO-3344] Fuse user group translation (#7986):docs/en/Mounting-Alluxio-FS-with-FUSE.md
-
 ## Performance considerations
 
 Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to
