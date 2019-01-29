@@ -792,14 +792,13 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    * @return whether the file is completed or not
    */
   private boolean waitForFileCompleted(AlluxioURI uri) {
-    CommonUtils.waitFor("file completed", (input) -> {
+    return CommonUtils.waitFor("file completed", (input) -> {
       try {
         return mFileSystem.getStatus(uri).isCompleted();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }, WaitForOptions.defaults().setTimeoutMs(MAX_OPEN_WAITTIME_MS));
-    return true;
   }
 
   /**
