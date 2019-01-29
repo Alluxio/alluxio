@@ -86,6 +86,7 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
     conf.put(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, "false");
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
+    conf.put(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT, "2sec");
     conf.put(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT, "3sec");
     conf.put(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "3sec");
 

@@ -1457,6 +1457,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_GRPC_CHANNEL_AUTH_TIMEOUT =
+      new Builder(Name.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT)
+          .setDefaultValue("30sec")
+          .setDescription("Maximum time to wait for gRPC channel to attempt to receive an "
+              + "authentication response.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
       new Builder(Name.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT)
           .setDefaultValue("60sec")
@@ -3608,6 +3616,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
         "alluxio.master.startup.consistency.check.enabled";
+    public static final String MASTER_GRPC_CHANNEL_AUTH_TIMEOUT =
+        "alluxio.master.grpc.channel.auth.timeout";
     public static final String MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
             "alluxio.master.grpc.channel.shutdown.timeout";
     public static final String MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT =

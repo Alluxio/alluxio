@@ -36,14 +36,18 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
   /** Used to wait until authentication is completed. */
   private SettableFuture<Boolean> mAuthenticated;
 
+  private final long mGrpcAuthTimeoutMs;
+
   /**
    * Creates client driver with given handshake handler.
    *
    * @param handshakeClient client handshake handler
    */
-  public SaslStreamClientDriver(SaslHandshakeClientHandler handshakeClient) {
+  public SaslStreamClientDriver(SaslHandshakeClientHandler handshakeClient,
+      long grpcAuthTimeoutMs) {
     mSaslHandshakeClientHandler = handshakeClient;
     mAuthenticated = SettableFuture.create();
+    mGrpcAuthTimeoutMs = grpcAuthTimeoutMs;
   }
 
   /**
@@ -91,7 +95,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
       // Send the server initial message.
       mRequestObserver.onNext(mSaslHandshakeClientHandler.getInitialMessage(channelId));
       // Wait until authentication status changes.
-      mAuthenticated.get(2 , TimeUnit.SECONDS);
+      mAuthenticated.get(mGrpcAuthTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (SaslException se) {
       throw new UnauthenticatedException(se.getMessage(), se);
     } catch (InterruptedException ie) {
