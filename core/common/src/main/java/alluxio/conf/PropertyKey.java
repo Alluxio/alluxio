@@ -1553,6 +1553,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_THREAD_POOL_SIZE =
+      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_THREAD_POOL_SIZE)
+          .setDefaultValue("3")
+          .setDescription("Max number of threads used to perform active sync")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_ACTIVE_UFS_POLL_TIMEOUT =
       new Builder(Name.MASTER_ACTIVE_UFS_SYNC_POLL_TIMEOUT)
           .setDefaultValue("10sec")
@@ -3630,6 +3637,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.activesync.interval";
     public static final String MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY =
         "alluxio.master.activesync.maxactivity";
+    public static final String MASTER_ACTIVE_UFS_SYNC_THREAD_POOL_SIZE =
+        "alluxio.master.activesync.threadpoolsize";
     public static final String MASTER_ACTIVE_UFS_SYNC_POLL_TIMEOUT =
         "alluxio.master.activesync.polltimeout";
     public static final String MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL =
