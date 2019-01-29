@@ -42,6 +42,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
    * Creates client driver with given handshake handler.
    *
    * @param handshakeClient client handshake handler
+   * @param grpcAuthTimeoutMs authentication timeout in milliseconds
    */
   public SaslStreamClientDriver(SaslHandshakeClientHandler handshakeClient,
       long grpcAuthTimeoutMs) {

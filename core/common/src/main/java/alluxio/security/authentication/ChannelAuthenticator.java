@@ -82,6 +82,7 @@ public class ChannelAuthenticator {
    * @param password user password
    * @param impersonationUser impersonation user
    * @param authType authentication type
+   * @param grpcAuthTimeoutMs authentication timeout in milliseconds
    */
   public ChannelAuthenticator(String userName, String password, String impersonationUser,
       AuthType authType, long grpcAuthTimeoutMs) {
@@ -124,7 +125,8 @@ public class ChannelAuthenticator {
     SaslHandshakeClientHandler handshakeClient =
         SaslHandshakeClientHandler.Factory.create(mAuthType, saslClient);
     // Create driver for driving sasl traffic from client side.
-    SaslStreamClientDriver clientDriver = new SaslStreamClientDriver(handshakeClient, mGrpcAuthTimeoutMs);
+    SaslStreamClientDriver clientDriver =
+        new SaslStreamClientDriver(handshakeClient, mGrpcAuthTimeoutMs);
     // Start authentication call with the service and update the client driver.
     StreamObserver<SaslMessage> requestObserver =
         SaslAuthenticationServiceGrpc.newStub(managedChannel).authenticate(clientDriver);
