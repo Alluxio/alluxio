@@ -214,6 +214,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       mMasters.add(master);
       // Each master should generate a new port for binding
       ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, "0");
+      ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, "0");
     }
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
