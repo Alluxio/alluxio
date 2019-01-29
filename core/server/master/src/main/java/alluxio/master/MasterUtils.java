@@ -12,6 +12,17 @@
 package alluxio.master;
 
 import alluxio.Constants;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.master.metastore.BlockStore;
+import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.MetastoreType;
+import alluxio.master.metastore.caching.CachingInodeStore;
+import alluxio.master.metastore.heap.HeapBlockStore;
+import alluxio.master.metastore.heap.HeapInodeStore;
+import alluxio.master.metastore.rocks.RocksBlockStore;
+import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.util.CommonUtils;
 
 import java.util.ArrayList;
@@ -47,6 +58,43 @@ final class MasterUtils {
       CommonUtils.invokeAll(callables, 10 * Constants.SECOND_MS);
     } catch (Exception e) {
       throw new RuntimeException("Failed to start masters", e);
+    }
+  }
+
+  /**
+   * @return a block store factory of the configured type
+   */
+  public static BlockStore.Factory getBlockStoreFactory() {
+    MetastoreType type =
+        ServerConfiguration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
+    switch (type) {
+      case HEAP:
+        return args -> new HeapBlockStore(args);
+      case ROCKS:
+        return args -> new RocksBlockStore(args);
+      default:
+        throw new IllegalStateException("Unknown metastore type: " + type);
+    }
+  }
+
+  /**
+   * @return an inode store factory of the configured type
+   */
+  public static InodeStore.Factory getInodeStoreFactory() {
+    MetastoreType type =
+        ServerConfiguration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
+    switch (type) {
+      case HEAP:
+        return args -> new HeapInodeStore(args);
+      case ROCKS:
+        InstancedConfiguration conf = ServerConfiguration.global();
+        if (conf.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE) == 0) {
+          return args -> new RocksInodeStore(args);
+        } else {
+          return args -> new CachingInodeStore(new RocksInodeStore(args), args);
+        }
+      default:
+        throw new IllegalStateException("Unknown metastore type: " + type);
     }
   }
 }

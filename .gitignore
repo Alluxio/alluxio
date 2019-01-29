@@ -43,6 +43,7 @@
 /lib/
 /logs/*.log*
 /logs/*.out*
+/metastore
 /underfs/hdfs/src/main/java/alluxio/UfsConstants.java
 /underFSStorage/
 /web/

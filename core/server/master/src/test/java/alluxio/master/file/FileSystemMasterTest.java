@@ -26,11 +26,11 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedClientUserResource;
 import alluxio.AuthenticatedUserRule;
-import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -54,6 +54,7 @@ import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.heartbeat.HeartbeatContext;
@@ -64,8 +65,6 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
-import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -79,8 +78,11 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
+import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
@@ -95,7 +97,6 @@ import alluxio.util.io.FileUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileSystemCommand;
-import alluxio.grpc.SetAclAction;
 import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -159,7 +160,8 @@ public final class FileSystemMasterTest {
   private JournalSystem mJournalSystem;
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
-  private FileSystemMaster mFileSystemMaster;
+  private DefaultFileSystemMaster mFileSystemMaster;
+  private ReadOnlyInodeStore mInodeStore;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
   private long mWorkerId1;
@@ -187,6 +189,8 @@ public final class FileSystemMasterTest {
       put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
       put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "20");
       put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0");
+      put(PropertyKey.WORK_DIR,
+          AlluxioTestDirectory.createTemporaryDirectory("workdir").getAbsolutePath());
       put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
           .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
     }
@@ -380,6 +384,16 @@ public final class FileSystemMasterTest {
     Files.delete(Paths.get(ufsMount.join("dir1").getPath()));
     assertEquals(IdUtils.INVALID_FILE_ID,
         mFileSystemMaster.getFileId(new AlluxioURI("/mnt/local/dir1")));
+  }
+
+  @Test
+  public void deleteRecursiveClearsInnerInodesAndEdges() throws Exception {
+    createFileWithSingleBlock(new AlluxioURI("/a/b/c/d/e"));
+    createFileWithSingleBlock(new AlluxioURI("/a/b/x/y/z"));
+    mFileSystemMaster.delete(new AlluxioURI("/a/b"),
+        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
+    assertEquals(1, mInodeStore.allEdges().size());
+    assertEquals(2, mInodeStore.allInodes().size());
   }
 
   @Test
@@ -777,7 +791,7 @@ public final class FileSystemMasterTest {
         MountContext.defaults());
 
     // 3 directories exist.
-    assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(3, countPaths());
 
     // getFileInfo should load metadata automatically.
     AlluxioURI uri = new AlluxioURI("/mnt/local/file");
@@ -785,7 +799,7 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT).getPath());
 
     // getFileInfo should have loaded another file, so now 4 paths exist.
-    assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(4, countPaths());
   }
 
   @Test
@@ -799,14 +813,21 @@ public final class FileSystemMasterTest {
         MountContext.defaults());
 
     // 3 directories exist.
-    assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(3, countPaths());
 
     // getFileId should load metadata automatically.
     AlluxioURI uri = new AlluxioURI("/mnt/local/file");
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(uri));
 
     // getFileId should have loaded another file, so now 4 paths exist.
-    assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(4, countPaths());
+  }
+
+  private int countPaths() throws Exception {
+    return 1 + mFileSystemMaster
+            .listStatus(new AlluxioURI("/"),
+                ListStatusContext.defaults(ListStatusPOptions.newBuilder().setRecursive(true)))
+            .size();
   }
 
   @Test
@@ -822,7 +843,7 @@ public final class FileSystemMasterTest {
         MountContext.defaults());
 
     // 3 directories exist.
-    assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(3, countPaths());
 
     // getFileId should load metadata automatically.
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
@@ -834,7 +855,7 @@ public final class FileSystemMasterTest {
       // Expected case.
     }
 
-    assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(3, countPaths());
   }
 
   @Test
@@ -850,7 +871,7 @@ public final class FileSystemMasterTest {
         MountContext.defaults());
 
     // 3 directories exist.
-    assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(3, countPaths());
 
     // getFileId should load metadata automatically.
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
@@ -865,7 +886,7 @@ public final class FileSystemMasterTest {
     assertTrue(paths.contains("/mnt/local/dir1/file2"));
     // listStatus should have loaded another 3 files (dir1, dir1/file1, dir1/file2), so now 6
     // paths exist.
-    assertEquals(6, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(6, countPaths());
   }
 
   @Test
@@ -879,7 +900,7 @@ public final class FileSystemMasterTest {
         MountContext.defaults());
 
     // 3 directories exist.
-    assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(3, countPaths());
 
     // getFileId should load metadata automatically.
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
@@ -887,7 +908,7 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.listStatus(uri, ListStatusContext.defaults());
     assertEquals(0, fileInfoList.size());
     // listStatus should have loaded another files (dir1), so now 4 paths exist.
-    assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(4, countPaths());
 
     // Add two files.
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
@@ -897,7 +918,7 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.listStatus(uri, ListStatusContext.defaults());
     assertEquals(0, fileInfoList.size());
     // No file is loaded since dir1 has been loaded once.
-    assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(4, countPaths());
 
     fileInfoList = mFileSystemMaster.listStatus(uri, ListStatusContext
         .defaults(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
@@ -910,7 +931,7 @@ public final class FileSystemMasterTest {
     assertTrue(paths.contains("/mnt/local/dir1/file2"));
     // listStatus should have loaded another 2 files (dir1/file1, dir1/file2), so now 6
     // paths exist.
-    assertEquals(6, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(6, countPaths());
   }
 
   /**
@@ -926,7 +947,7 @@ public final class FileSystemMasterTest {
         MountContext.defaults());
 
     // 3 directories exist.
-    assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(3, countPaths());
 
     // Create a drectory in alluxio which is not persisted.
     AlluxioURI folder = new AlluxioURI("/mnt/local/folder");
@@ -951,7 +972,7 @@ public final class FileSystemMasterTest {
     assertEquals(2, fileInfoList.size());
     // listStatus should have loaded files (folder, folder/file1, folder/file2), so now 6 paths
     // exist.
-    assertEquals(6, mFileSystemMaster.getNumberOfPaths());
+    assertEquals(6, countPaths());
 
     Set<String> paths = new HashSet<>();
     for (FileInfo f : fileInfoList) {
@@ -1093,7 +1114,6 @@ public final class FileSystemMasterTest {
   public void listStatusRecursiveLoadMetadata() throws Exception {
     final int files = 10;
     List<FileInfo> infos;
-    List<String> filenames;
 
     // Test files in root directory.
     for (int i = 0; i < files; i++) {
@@ -1111,7 +1131,6 @@ public final class FileSystemMasterTest {
     infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
         .newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setRecursive(false)));
     assertEquals(files + 1  , infos.size());
-    long newFileId = 1;
 
     infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
         .newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(false)));
@@ -1451,6 +1470,38 @@ public final class FileSystemMasterTest {
     for (FileInfo info : infos) {
       assertEquals(newEntries, Sets.newHashSet(info.convertAclToStringEntries()));
     }
+  }
+
+  @Test
+  public void inheritExtendedDefaultAcl() throws Exception {
+    AlluxioURI dir = new AlluxioURI("/dir");
+    mFileSystemMaster.createDirectory(dir, CreateDirectoryContext.defaults());
+    String aclString = "default:user:foo:-w-";
+    mFileSystemMaster.setAcl(dir, SetAclAction.MODIFY,
+        Arrays.asList(AclEntry.fromCliString(aclString)), SetAclContext.defaults());
+    AlluxioURI inner = new AlluxioURI("/dir/inner");
+    mFileSystemMaster.createDirectory(inner, CreateDirectoryContext.defaults());
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(inner, GetStatusContext.defaults());
+    List<String> accessEntries = fileInfo.getAcl().toStringEntries();
+    assertTrue(accessEntries.toString(), accessEntries.contains("user:foo:-w-"));
+    List<String> defaultEntries = fileInfo.getDefaultAcl().toStringEntries();
+    assertTrue(defaultEntries.toString(), defaultEntries.contains(aclString));
+  }
+
+  @Test
+  public void inheritNonExtendedDefaultAcl() throws Exception {
+    AlluxioURI dir = new AlluxioURI("/dir");
+    mFileSystemMaster.createDirectory(dir, CreateDirectoryContext.defaults());
+    String aclString = "default:user::-w-";
+    mFileSystemMaster.setAcl(dir, SetAclAction.MODIFY,
+        Arrays.asList(AclEntry.fromCliString(aclString)), SetAclContext.defaults());
+    AlluxioURI inner = new AlluxioURI("/dir/inner");
+    mFileSystemMaster.createDirectory(inner, CreateDirectoryContext.defaults());
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(inner, GetStatusContext.defaults());
+    List<String> accessEntries = fileInfo.getAcl().toStringEntries();
+    assertTrue(accessEntries.toString(), accessEntries.contains("user::-w-"));
+    List<String> defaultEntries = fileInfo.getDefaultAcl().toStringEntries();
+    assertTrue(defaultEntries.toString(), defaultEntries.contains(aclString));
   }
 
   @Test
@@ -2719,6 +2770,7 @@ public final class FileSystemMasterTest {
         ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+    mInodeStore = mFileSystemMaster.getInodeStore();
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();

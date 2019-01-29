@@ -11,8 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.proto.journal.File.PTtlAction;
 import alluxio.grpc.TtlAction;
+import alluxio.proto.journal.File.PTtlAction;
 
 import javax.annotation.concurrent.ThreadSafe;
 

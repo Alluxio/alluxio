@@ -17,10 +17,10 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
-import alluxio.master.file.meta.InodeDirectory;
-import alluxio.master.file.meta.InodeView;
+import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
 
@@ -46,31 +46,32 @@ public final class SafeUfsDeleter implements UfsDeleter {
    * Creates a new instance of {@link SafeUfsDeleter}.
    *
    * @param mountTable the mount table
+   * @param inodeStore the inode store
    * @param inodes sub-tree being deleted (any node should appear before descendants)
    * @param deleteOptions delete options
    */
-  public SafeUfsDeleter(MountTable mountTable, List<Pair<AlluxioURI, LockedInodePath>> inodes,
-      DeletePOptions deleteOptions)
+  public SafeUfsDeleter(MountTable mountTable, ReadOnlyInodeStore inodeStore,
+      List<Pair<AlluxioURI, LockedInodePath>> inodes, DeletePOptions deleteOptions)
       throws IOException, FileDoesNotExistException, InvalidPathException {
     mMountTable = mountTable;
     // Root of sub-tree occurs before any of its descendants
     mRootPath = inodes.get(0).getFirst();
     if (!deleteOptions.getUnchecked() && !deleteOptions.getAlluxioOnly()) {
-      mUfsSyncChecker = new UfsSyncChecker(mMountTable);
+      mUfsSyncChecker = new UfsSyncChecker(mMountTable, inodeStore);
       for (Pair<AlluxioURI, LockedInodePath> inodePair : inodes) {
         AlluxioURI alluxioUri = inodePair.getFirst();
-        InodeView inode = inodePair.getSecond().getInodeOrNull();
+        Inode inode = inodePair.getSecond().getInodeOrNull();
         // Mount points are not deleted recursively as we need to preserve the directory itself
         if (inode != null && inode.isPersisted() && inode.isDirectory()
             && !mMountTable.isMountPoint(alluxioUri)) {
-          mUfsSyncChecker.checkDirectory((InodeDirectory) inode, alluxioUri);
+          mUfsSyncChecker.checkDirectory(inode.asDirectory(), alluxioUri);
         }
       }
     }
   }
 
   @Override
-  public void delete(AlluxioURI alluxioUri, InodeView inode)
+  public void delete(AlluxioURI alluxioUri, Inode inode)
       throws IOException, InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     String ufsUri = resolution.getUri().toString();

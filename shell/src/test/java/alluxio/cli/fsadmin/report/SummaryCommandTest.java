@@ -139,7 +139,6 @@ public class SummaryCommandTest {
         "        Tier: RAM  Size: 6.10KB",
         "    Free Capacity: 1248.94KB");
     List<String> testOutput = Arrays.asList(output.split("\n"));
-    Assert.assertThat(testOutput,
-        IsIterableContainingInOrder.contains(expectedOutput.toArray()));
+    Assert.assertThat(testOutput, IsIterableContainingInOrder.contains(expectedOutput.toArray()));
   }
 }

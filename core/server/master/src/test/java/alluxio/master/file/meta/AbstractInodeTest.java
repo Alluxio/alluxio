@@ -43,10 +43,10 @@ public abstract class AbstractInodeTest {
   }
 
   /**
-   * @return the {@link InodeDirectory} representation
+   * @return the inode directory representation
    */
-  protected static InodeDirectory createInodeDirectory() {
-    return InodeDirectory.create(1, 0, "test1",
+  protected static MutableInodeDirectory createInodeDirectory() {
+    return MutableInodeDirectory.create(1, 0, "test1",
         CreateDirectoryContext
             .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP));
@@ -54,10 +54,10 @@ public abstract class AbstractInodeTest {
 
   /**
    * @param id block container id of this inode
-   * @return the {@link InodeFile} representation
+   * @return the inode file representation
    */
-  protected InodeFile createInodeFile(long id) {
-    return InodeFile.create(id, 1, "testFile" + id, 0,
+  protected MutableInodeFile createInodeFile(long id) {
+    return MutableInodeFile.create(id, 1, "testFile" + id, 0,
         CreateFileContext
             .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
                 .setMode(TEST_FILE_MODE.toProto()))

@@ -40,7 +40,6 @@ import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -55,6 +54,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Manager for the Active UFS sync process.

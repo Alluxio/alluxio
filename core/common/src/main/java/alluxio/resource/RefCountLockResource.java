@@ -25,16 +25,16 @@ public class RefCountLockResource extends LockResource {
   private final AtomicInteger mRefCount;
 
   /**
-   * Creates a new instance of {@link LockResource} using the given lock and reference counter.
-   * The reference counter should have been initialized and incremented outside of this class.
+   * Creates a new instance of {@link LockResource} using the given lock and reference counter. The
+   * reference counter should have been initialized and incremented outside of this class.
    *
    * @param lock the lock to acquire
+   * @param acquireLock whether to lock the lock
    * @param refCount ref count for the lock
    */
-  public RefCountLockResource(Lock lock, AtomicInteger refCount) {
-    super(lock);
-    Preconditions.checkNotNull(refCount, "Reference Counter can not be null");
-    mRefCount = refCount;
+  public RefCountLockResource(Lock lock, boolean acquireLock, AtomicInteger refCount) {
+    super(lock, acquireLock);
+    mRefCount = Preconditions.checkNotNull(refCount, "Reference Counter can not be null");
   }
 
   /**

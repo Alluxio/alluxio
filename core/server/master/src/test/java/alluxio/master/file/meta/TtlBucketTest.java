@@ -11,12 +11,6 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.master.file.contexts.CreateDirectoryContext;
-import alluxio.master.file.contexts.CreateFileContext;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,17 +67,13 @@ public class TtlBucketTest {
   }
 
   /**
-   * Tests the {@link TtlBucket#addInode(Inode)} and {@link TtlBucket#removeInode(Inode)}
-   * methods.
+   * Tests the {@link TtlBucket#addInode(Inode)} and
+   * {@link TtlBucket#removeInode(InodeView)} methods.
    */
   @Test
   public void addAndRemoveInodeFile() {
-    InodeFile mFileTtl1 = InodeFile.create(0, 0, "test1", 0,
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder()
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(1))));
-    InodeFile mFileTtl2 = InodeFile.create(1, 0, "test1", 0,
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder()
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(2))));
+    Inode mFileTtl1 = TtlTestUtils.createFileWithIdAndTtl(0, 1);
+    Inode mFileTtl2 = TtlTestUtils.createFileWithIdAndTtl(1, 2);
     Assert.assertTrue(mBucket.getInodes().isEmpty());
 
     mBucket.addInode(mFileTtl1);
@@ -106,17 +96,13 @@ public class TtlBucketTest {
   }
 
   /**
-   * Tests the {@link TtlBucket#addInode(Inode)} and {@link TtlBucket#removeInode(Inode)}
-   * methods.
+   * Tests the {@link TtlBucket#addInode(Inode)} and
+   * {@link TtlBucket#removeInode(InodeView)} methods.
    */
   @Test
   public void addAndRemoveInodeDirectory() {
-    InodeDirectory mDirectoryTtl1 =
-        InodeDirectory.create(0, 0, "test1", CreateDirectoryContext.defaults(CreateDirectoryPOptions
-            .newBuilder().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(1))));
-    InodeDirectory mDirectoryTtl2 =
-        InodeDirectory.create(1, 0, "test1", CreateDirectoryContext.defaults(CreateDirectoryPOptions
-            .newBuilder().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(2))));
+    Inode mDirectoryTtl1 = TtlTestUtils.createDirectoryWithIdAndTtl(0, 1);
+    Inode mDirectoryTtl2 = TtlTestUtils.createDirectoryWithIdAndTtl(1, 2);
     Assert.assertTrue(mBucket.getInodes().isEmpty());
 
     mBucket.addInode(mDirectoryTtl1);
