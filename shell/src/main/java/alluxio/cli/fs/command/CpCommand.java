@@ -86,7 +86,6 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .desc("Number of threads used to copy files in parallel, default value is CPU cores * 2")
           .build();
 
-
   /**
    * A thread pool executor for asynchronous copy.
    *
