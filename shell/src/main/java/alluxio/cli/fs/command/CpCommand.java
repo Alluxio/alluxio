@@ -150,7 +150,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
               mStdout.println(message);
             } else if (message instanceof CopyException) {
               CopyException e = (CopyException) message;
-              mStderr.println(e.getMessage() + ": " + e.getCause().toString());
+              mStderr.println(messageAndCause(e));
             } else {
               LOG.error("Unsupported message type " + message.getClass()
                   + " in message queue of copy thread pool");
@@ -238,17 +238,25 @@ public final class CpCommand extends AbstractFileSystemCommand {
       }
 
       if (!mExceptions.isEmpty()) {
-        List<String> stackTraces = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
         for (Exception e : mExceptions) {
-          ByteArrayOutputStream os = new ByteArrayOutputStream();
-          PrintStream ps = new PrintStream(os, true);
-          e.printStackTrace(ps);
-          ps.close();
-
-          stackTraces.add(new String(os.toByteArray()));
+          LOG.error(stacktrace(e));
+          errors.add(messageAndCause(e));
         }
-        throw new IOException(Joiner.on("\n").join("ERRORS:", stackTraces));
+        throw new IOException("ERRORS:\n" + Joiner.on("\n").join(errors));
       }
+    }
+
+    private String messageAndCause(Exception e) {
+      return e.getMessage() + ": " + e.getCause().toString();
+    }
+
+    private String stacktrace(Exception e) {
+      ByteArrayOutputStream os = new ByteArrayOutputStream();
+      PrintStream ps = new PrintStream(os, true);
+      e.printStackTrace(ps);
+      ps.close();
+      return os.toString();
     }
   }
 
