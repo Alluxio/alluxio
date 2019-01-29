@@ -92,7 +92,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
     mExecutorService = Executors
-        .newFixedThreadPool(3,
+        .newFixedThreadPool(alluxioConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_THREAD_POOL_SIZE),
             ThreadFactoryUtils.build("SupportedHdfsActiveSyncProvider-%d", true));
     mPollingThread = null;
     mUfsUriList = new CopyOnWriteArrayList<>();
