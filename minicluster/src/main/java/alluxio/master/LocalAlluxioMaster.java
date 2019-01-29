@@ -59,7 +59,10 @@ public final class LocalAlluxioMaster {
   private AlluxioSecondaryMaster mSecondaryMaster;
   private Thread mSecondaryMasterThread;
 
+  @Nullable
   private ServerSocket mRpcBindSocket;
+
+  @Nullable
   private ServerSocket mWebBindSocket;
 
   private LocalAlluxioMaster(ServerSocket rpcBindSocket, ServerSocket webBindSocket) {
@@ -90,13 +93,25 @@ public final class LocalAlluxioMaster {
    * @param webBindSocket the socket whose address the master's web server will bind to
    * @return the created Alluxio master
    */
-  public static LocalAlluxioMaster create(final String workDirectory,
-      @Nullable ServerSocket rpcBindSocket,
-      @Nullable ServerSocket webBindSocket) throws IOException {
+  public static LocalAlluxioMaster create(final String workDirectory, ServerSocket rpcBindSocket,
+      ServerSocket webBindSocket) throws IOException {
     if (!Files.isDirectory(Paths.get(workDirectory))) {
       Files.createDirectory(Paths.get(workDirectory));
     }
     return new LocalAlluxioMaster(rpcBindSocket, webBindSocket);
+  }
+
+  /**
+   * Creates a new local Alluxio master with a isolated port.
+   *
+   * @param workDirectory Alluxio work directory, this method will create it if it doesn't exist yet
+   * @return the created Alluxio master
+   */
+  public static LocalAlluxioMaster create(final String workDirectory) throws IOException {
+    if (!Files.isDirectory(Paths.get(workDirectory))) {
+      Files.createDirectory(Paths.get(workDirectory));
+    }
+    return new LocalAlluxioMaster(null, null);
   }
 
   /**
