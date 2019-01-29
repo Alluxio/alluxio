@@ -14,9 +14,9 @@ package alluxio.master.file.replication;
 import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.job.replicate.ReplicationHandler;
@@ -26,18 +26,22 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.RpcContext;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.CreatePathContext;
+import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
-import alluxio.master.file.meta.InodeFile;
+import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.NoopJournalContext;
+import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
 import alluxio.security.authorization.Mode;
@@ -55,12 +59,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Unit tests for {@link ReplicationChecker}.
@@ -105,6 +110,7 @@ public final class ReplicationCheckerTest {
     }
   }
 
+  private InodeStore mInodeStore;
   private InodeTree mInodeTree;
   private BlockMaster mBlockMaster;
   private ReplicationChecker mReplicationChecker;
@@ -128,7 +134,11 @@ public final class ReplicationCheckerTest {
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager manager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(manager, mock(MountInfo.class));
-    mInodeTree = new InodeTree(mBlockMaster, directoryIdGenerator, mountTable);
+    InodeLockManager lockManager = new InodeLockManager();
+    mInodeStore = context.getInodeStoreFactory()
+        .apply(new InodeStoreArgs(lockManager, ServerConfiguration.global()));
+    mInodeTree =
+        new InodeTree(mInodeStore, mBlockMaster, directoryIdGenerator, mountTable, lockManager);
 
     journalSystem.start();
     journalSystem.gainPrimacy();
@@ -159,13 +169,14 @@ public final class ReplicationCheckerTest {
   private long createBlockHelper(AlluxioURI path, CreatePathContext<?, ?> context)
       throws Exception {
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.WRITE_EDGE)) {
-      InodeTree.CreatePathResult result =
-          mInodeTree.createPath(RpcContext.NOOP, inodePath, context);
-      InodeFile inodeFile = (InodeFile) result.getCreated().get(0);
+      List<Inode> created = mInodeTree.createPath(RpcContext.NOOP, inodePath, context);
+
+      MutableInodeFile inodeFile = mInodeStore.getMutable(created.get(0).getId()).get().asFile();
       inodeFile.setBlockSizeBytes(1);
       inodeFile.setBlockIds(Arrays.asList(inodeFile.getNewBlockId()));
       inodeFile.setCompleted(true);
-      return ((InodeFile) result.getCreated().get(0)).getBlockIdByIndex(0);
+      mInodeStore.writeInode(inodeFile);
+      return inodeFile.getBlockIdByIndex(0);
     }
   }
 

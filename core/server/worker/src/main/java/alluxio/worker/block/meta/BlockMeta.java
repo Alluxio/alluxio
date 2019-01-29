@@ -11,8 +11,9 @@
 
 package alluxio.worker.block.meta;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Represents the metadata of a block in Alluxio managed storage.

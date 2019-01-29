@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -112,26 +113,51 @@ public class LockCache<K> {
   }
 
   /**
-   * If the key has an associated lock in the cache, return a LockResource for that key and
-   * the associated lock using the specified lockmode.  If the key has no entry in the cache,
-   * create a lock and return a LockResource for that lock.
+   * Locks the specified key in the specified mode.
    *
-   * @param key the key to look up the cache
-   * @param mode lockMode to acquire
-   * @return the value contained in the cache, if it is already in cache,
-   *         otherwise generate an entry based on the loader
+   * @param key the key to lock
+   * @param mode the mode to lock in
+   * @return a lock resource which must be closed to unlock the key
+   *
    */
   public LockResource get(K key, LockMode mode) {
     ValNode valNode = getValNode(key);
     ReentrantReadWriteLock lock = valNode.mValue;
     switch (mode) {
       case READ:
-        return new RefCountLockResource(lock.readLock(), valNode.mRefCount);
+        return new RefCountLockResource(lock.readLock(), true, valNode.mRefCount);
       case WRITE:
-        return new RefCountLockResource(lock.writeLock(), valNode.mRefCount);
+        return new RefCountLockResource(lock.writeLock(), true, valNode.mRefCount);
       default:
         throw new IllegalStateException("Unknown lock mode: " + mode);
     }
+  }
+
+  /**
+   * Attempts to take a lock on the given key.
+   *
+   * @param key the key to lock
+   * @param mode lockMode to acquire
+   * @return either empty or a lock resource which must be closed to unlock the key
+   */
+  public Optional<LockResource> tryGet(K key, LockMode mode) {
+    ValNode valNode = getValNode(key);
+    ReentrantReadWriteLock lock = valNode.mValue;
+    Lock innerLock;
+    switch (mode) {
+      case READ:
+        innerLock = lock.readLock();
+        break;
+      case WRITE:
+        innerLock = lock.writeLock();
+        break;
+      default:
+        throw new IllegalStateException("Unknown lock mode: " + mode);
+    }
+    if (!innerLock.tryLock()) {
+      return Optional.empty();
+    }
+    return Optional.of(new RefCountLockResource(innerLock, false, valNode.mRefCount));
   }
 
   /**

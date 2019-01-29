@@ -22,9 +22,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.Striped;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -46,7 +48,6 @@ public class InodeLockManager {
    * We use weak values so that when nothing holds a reference to
    * a lock, the garbage collector can remove the lock's entry from the cache.
    */
-
   public final LockCache<Long> mInodeLocks =
       new LockCache<>((key)-> new ReentrantReadWriteLock(),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_INITSIZE),
@@ -55,12 +56,23 @@ public class InodeLockManager {
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
-
   public final LockCache<Edge> mEdgeLocks =
       new LockCache<>((key)-> new ReentrantReadWriteLock(),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_INITSIZE),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_MAXSIZE),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_CONCURRENCY_LEVEL));
+
+  /**
+   * Locks for guarding changes to last modified time and size on read-locked parent inodes.
+   *
+   * When renaming, creating, or deleting, we update the last modified time and size of the parent
+   * inode while holding only a read lock. In the presence of concurrent operations, this could
+   * cause the last modified time to decrease, or lead to incorrect directory sizes. To avoid this,
+   * we guard the parent inode read-modify-write with this lock. To avoid deadlock, a thread should
+   * never acquire more than one of these locks at the same time, and no other locks should be taken
+   * while holding one of these locks.
+   */
+  private final Striped<Lock> mParentUpdateLocks = Striped.lock(1_000);
 
   /**
    * Cache for supplying inode persistence locks. Before a thread can persist an inode, it must
@@ -111,6 +123,17 @@ public class InodeLockManager {
   }
 
   /**
+   * Attempts to acquire an inode lock.
+   *
+   * @param inodeId the inode id to try locking
+   * @param mode the mode to lock in
+   * @return either an empty optional, or a lock resource which must be closed to release the lock
+   */
+  public Optional<LockResource> tryLockInode(Long inodeId, LockMode mode) {
+    return mInodeLocks.tryGet(inodeId, mode);
+  }
+
+  /**
    * Acquires an edge lock.
    *
    * @param edge the edge to lock
@@ -119,6 +142,17 @@ public class InodeLockManager {
    */
   public LockResource lockEdge(Edge edge, LockMode mode) {
     return mEdgeLocks.get(edge, mode);
+  }
+
+  /**
+   * Attempts to acquire an edge lock.
+   *
+   * @param edge the edge to try locking
+   * @param mode the mode to lock in
+   * @return either an empty optional, or a lock resource which must be closed to release the lock
+   */
+  public Optional<LockResource> tryLockEdge(Edge edge, LockMode mode) {
+    return mEdgeLocks.tryGet(edge, mode);
   }
 
   /**
@@ -134,5 +168,16 @@ public class InodeLockManager {
       return Optional.of(() -> lock.set(false));
     }
     return Optional.empty();
+  }
+
+  /**
+   * Acquires the lock for modifying an inode's last modified time or size. As a pre-requisite, the
+   * current thread should already hold a read lock on the inode.
+   *
+   * @param inodeId the id of the inode to lock
+   * @return a lock resource which must be closed to release the lock
+   */
+  public LockResource lockUpdate(long inodeId) {
+    return new LockResource(mParentUpdateLocks.get(inodeId));
   }
 }

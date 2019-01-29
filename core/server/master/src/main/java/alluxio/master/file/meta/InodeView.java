@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.master.journal.JournalEntryRepresentable;
+import alluxio.proto.meta.InodeMeta;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
@@ -153,17 +154,7 @@ public interface InodeView extends JournalEntryRepresentable {
   AclActions getPermission(String user, List<String> groups);
 
   /**
-   * Casts the inode as an {@link InodeDirectoryView} if it is one, otherwise throws an exception.
-   *
-   * This gives convenience in method chaining, e.g.
-   *
-   * inode.asDirectory().getChildren()
-   *
-   * instead of
-   *
-   * ((InodeDirectoryView) inode).getChildren()
-   *
-   * @return the inode as an inode directory
+   * @return the protocol buffer representation of the inode
    */
-  InodeDirectoryView asDirectory();
+  InodeMeta.Inode toProto();
 }

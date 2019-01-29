@@ -35,6 +35,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -221,6 +222,23 @@ public final class ConfigurationUtils {
         && conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
     return conf.isSet(PropertyKey.JOB_MASTER_HOSTNAME) || usingZk
         || getJobMasterRpcAddresses(conf).size() > 1;
+  }
+
+  /**
+   * Checks that the given property key is a ratio from 0.0 and 1.0, throwing an exception if it is
+   * not.
+   *
+   * @param conf the configuration for looking up the property key
+   * @param key the property key
+   * @return the property value
+   */
+  public static float checkRatio(AlluxioConfiguration conf, PropertyKey key) {
+    float value = conf.getFloat(key);
+    Preconditions.checkState(value <= 1.0, "Property %s must not exceed 1, but it is set to %s",
+        key.getName(), value);
+    Preconditions.checkState(value >= 0.0, "Property %s must be non-negative, but it is set to %s",
+        key.getName(), value);
+    return value;
   }
 
   /**
