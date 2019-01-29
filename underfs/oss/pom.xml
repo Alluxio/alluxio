@@ -46,13 +46,6 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- External test dependencies -->
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-
     <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>

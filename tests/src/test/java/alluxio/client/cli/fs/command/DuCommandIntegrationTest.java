@@ -44,10 +44,10 @@ public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest 
     // du a folder
     mFsShell.run("du", "/testRoot/");
     expected += "File Size     In Alluxio       Path\n"
-        + "0             0 (0%)           /testRoot/testFileA\n"
-        + "21243         21243 (100%)     /testRoot/testFileB\n"
+        + "532982        0 (0%)           /testRoot/testDir/testDir/testFileD\n"
         + "9712654       0 (0%)           /testRoot/testDir/testFileC\n"
-        + "532982        0 (0%)           /testRoot/testDir/testDir/testFileD\n";
+        + "0             0 (0%)           /testRoot/testFileA\n"
+        + "21243         21243 (100%)     /testRoot/testFileB\n";
 
     // du a folder with options
     mFsShell.run("du", "-h", "-s", "/testRoot/testDir");

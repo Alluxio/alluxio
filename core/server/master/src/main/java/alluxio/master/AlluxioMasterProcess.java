@@ -167,6 +167,8 @@ public class AlluxioMasterProcess implements MasterProcess {
           .setJournalSystem(mJournalSystem)
           .setSafeModeManager(mSafeModeManager)
           .setBackupManager(mBackupManager)
+          .setBlockStoreFactory(MasterUtils.getBlockStoreFactory())
+          .setInodeStoreFactory(MasterUtils.getInodeStoreFactory())
           .setStartTimeMs(mStartTimeMs)
           .setPort(mPort)
           .build();
