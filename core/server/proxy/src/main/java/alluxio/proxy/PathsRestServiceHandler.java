@@ -170,6 +170,11 @@ public final class PathsRestServiceHandler {
     }, ServerConfiguration.global());
   }
 
+  /**
+   * @summary Download a file.
+   * @param path the path
+   * @return the response
+   */
   @GET
   @Path(PATH_PARAM + DOWNLOAD_FILE)
   @ReturnType("java.io.InputStream")
