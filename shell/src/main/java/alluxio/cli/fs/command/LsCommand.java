@@ -246,8 +246,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
     timer.schedule(new TimerTask() {
       @Override
       public void run() {
-        System.out.println("Getting file information from Alluxio master, "
-            + "this may take a while....");
+        System.out.println("Getting directory status may take a while "
+            + "if it has millions of files or sub-directories.");
       }
     }, 10000);
     List<URIStatus> statuses = mFileSystem.listStatus(path, optionsBuilder.build());
