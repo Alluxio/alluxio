@@ -33,8 +33,19 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
   /** Position the current stream was open till (exclusive). */
   protected long mEndPos;
 
-  /** The block size to read with. */
-  protected long mBlockSize = -1L;
+  /** The chunk size to perform reads with. */
+  private final long mMultiRangeChunkSize;
+
+  /**
+   * Creates the input stream that will perform reads with a specified chunk size. Reading in
+   * chunks allows us to read in smaller portions so that we don't need to read all the way to
+   * the end of a block.
+   *
+   * @param multiRangeChunkSize the chunk size in bytes to read with
+   */
+  protected MultiRangeObjectInputStream(long multiRangeChunkSize) {
+    mMultiRangeChunkSize = multiRangeChunkSize;
+  }
 
   @Override
   public void close() throws IOException {
@@ -118,29 +129,20 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
       throws IOException;
 
   /**
-   * Block size for reading an object in chunks.
-   *
-   * @return block size in bytes
-   */
-  private long getBlockSize() {
-    return mBlockSize;
-  }
-
-  /**
    * Opens a new stream at mPos if the wrapped stream mStream is null.
    */
   private void openStream() throws IOException {
     if (mClosed) {
       throw new IOException("Stream closed");
     }
-    if (mBlockSize <= 0) {
-      throw new IOException(ExceptionMessage.BLOCK_SIZE_INVALID.getMessage(mBlockSize));
+    if (mMultiRangeChunkSize <= 0) {
+      throw new IOException(ExceptionMessage.BLOCK_SIZE_INVALID.getMessage(mMultiRangeChunkSize));
     }
 
     if (mStream != null) { // stream is already open
       return;
     }
-    final long endPos = mPos + mBlockSize - (mPos % mBlockSize);
+    final long endPos = mPos + mMultiRangeChunkSize - (mPos % mMultiRangeChunkSize);
     mEndPos = endPos;
     mStream = createStream(mPos, endPos);
   }

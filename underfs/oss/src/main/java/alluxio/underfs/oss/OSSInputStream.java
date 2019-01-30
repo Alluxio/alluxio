@@ -49,10 +49,11 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for OSS
+   * @param multiRangeChunkSize the chunk size to use on this stream
    */
-  OSSInputStream(String bucketName, String key, OSSClient client, long blockSize)
+  OSSInputStream(String bucketName, String key, OSSClient client, long multiRangeChunkSize)
       throws IOException {
-    this(bucketName, key, client, 0L, blockSize);
+    this(bucketName, key, client, 0L, multiRangeChunkSize);
   }
 
   /**
@@ -62,10 +63,11 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
    * @param key the key of the file
    * @param client the client for OSS
    * @param position the position to begin reading from
+   * @param multiRangeChunkSize the chunk size to use on this stream
    */
-  OSSInputStream(String bucketName, String key, OSSClient client, long position, long blockSize)
-      throws IOException {
-    mBlockSize = blockSize;
+  OSSInputStream(String bucketName, String key, OSSClient client, long position,
+      long multiRangeChunkSize) throws IOException {
+    super(multiRangeChunkSize);
     mBucketName = bucketName;
     mKey = key;
     mOssClient = client;
