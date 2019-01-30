@@ -206,7 +206,8 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected InputStream openObject(String key, OpenOptions options) {
     try {
-      return new KodoInputStream(key, mKodoClinet, options.getOffset());
+      return new KodoInputStream(key, mKodoClinet, options.getOffset(),
+          mAlluxioConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (QiniuException e) {
       LOG.error("Failed to open Object {}, Msg: {}", key, e);
     }

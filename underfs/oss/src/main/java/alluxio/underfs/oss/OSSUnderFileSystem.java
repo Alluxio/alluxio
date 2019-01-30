@@ -281,7 +281,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   protected InputStream openObject(String key, OpenOptions options) throws IOException {
     try {
       return new OSSInputStream(mBucketName, key, mClient, options.getOffset(),
-          mAlluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+          mAlluxioConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (ServiceException e) {
       throw new IOException(e.getMessage());
     }

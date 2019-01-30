@@ -39,7 +39,9 @@ public class KodoInputStream extends MultiRangeObjectInputStream {
    */
   private final long mContentLength;
 
-  KodoInputStream(String key, KodoClient kodoClient, long position) throws QiniuException {
+  KodoInputStream(String key, KodoClient kodoClient, long position,
+      long multiRangeChunkSize) throws QiniuException {
+    super(multiRangeChunkSize);
     mKey = key;
     mKodoclent = kodoClient;
     mPos = position;
