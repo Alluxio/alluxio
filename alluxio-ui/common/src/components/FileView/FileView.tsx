@@ -104,9 +104,9 @@ export class FileView extends React.PureComponent<IFileViewProps> {
 
     if (allowDownload && proxyDownloadApiUrl && path) {
       return (
-        <FormGroup className="col-4">
+        <FormGroup className="col-4 mt-1">
           <a href={`${proxyDownloadApiUrl.prefix}${encodeURIComponent(path)}${proxyDownloadApiUrl.suffix}`}>
-            Download
+            Download via Alluxio Proxy
           </a>
         </FormGroup>
       );
