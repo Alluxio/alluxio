@@ -25,7 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.ws.rs.core.Response;
 
 /**
@@ -37,13 +39,14 @@ public final class RestUtils {
   /**
    * Calls the given {@link RestUtils.RestCallable} and handles any exceptions thrown.
    *
-   * @param <T> the return type of the callable
+   * @param <T>  the return type of the callable
    * @param callable the callable to call
    * @param alluxioConf Alluxio configuration
+   * @param headers the headers
    * @return the response object
    */
   public static <T> Response call(RestUtils.RestCallable<T> callable,
-      AlluxioConfiguration alluxioConf) {
+      AlluxioConfiguration alluxioConf, @Nullable Map<String, Object> headers) {
     try {
       // TODO(cc): reconsider how to enable authentication
       if (SecurityUtils.isSecurityEnabled(alluxioConf)
@@ -52,28 +55,41 @@ public final class RestUtils {
       }
     } catch (IOException e) {
       LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());
-      return createErrorResponse(e, alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED));
+      return createErrorResponse(e, alluxioConf);
     }
 
     try {
-      return createResponse(callable.call(),
-          alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED));
+      return createResponse(callable.call(), alluxioConf, headers);
     } catch (Exception e) {
       LOG.warn("Unexpected error invoking rest endpoint: {}", e.getMessage());
-      return createErrorResponse(e, alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED));
+      return createErrorResponse(e, alluxioConf);
     }
+  }
+
+  /**
+   * Call response.
+   *
+   * @param <T>  the type parameter
+   * @param callable the callable
+   * @param alluxioConf the alluxio conf
+   * @return the response
+   */
+  public static <T> Response call(RestUtils.RestCallable<T> callable,
+      AlluxioConfiguration alluxioConf) {
+    return call(callable, alluxioConf, null);
   }
 
   /**
    * An interface representing a callable.
    *
-   * @param <T> the return type of the callable
+   * @param <T>  the return type of the callable
    */
   public interface RestCallable<T> {
     /**
      * The REST endpoint implementation.
      *
      * @return the return value from the callable
+     * @throws Exception the exception
      */
     T call() throws Exception;
   }
@@ -84,7 +100,8 @@ public final class RestUtils {
    * @param object the object to respond with
    * @return the response
    */
-  private static Response createResponse(Object object, boolean corsEnabled) {
+  private static Response createResponse(Object object, AlluxioConfiguration alluxioConf,
+      @Nullable Map<String, Object> headers) {
     if (object instanceof Void) {
       return Response.ok().build();
     }
@@ -94,13 +111,16 @@ public final class RestUtils {
       try {
         return Response.ok(mapper.writeValueAsString(object)).build();
       } catch (JsonProcessingException e) {
-        return createErrorResponse(e, corsEnabled);
+        return createErrorResponse(e, alluxioConf);
       }
     }
 
     Response.ResponseBuilder rb = Response.ok(object);
+    if (headers != null) {
+      headers.forEach(rb::header);
+    }
 
-    if (corsEnabled) {
+    if (alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED)) {
       return makeCORS(rb).build();
     }
 
@@ -151,12 +171,12 @@ public final class RestUtils {
    * @param e the exception to be converted into {@link ErrorResponse} and encoded into json
    * @return the response
    */
-  private static Response createErrorResponse(Exception e, boolean corsEnabled) {
+  private static Response createErrorResponse(Exception e, AlluxioConfiguration alluxioConf) {
     AlluxioStatusException se = AlluxioStatusException.fromThrowable(e);
     ErrorResponse response = new ErrorResponse(se.getStatus(), se.getMessage());
 
     Response.ResponseBuilder rb = Response.serverError().entity(response);
-    if (corsEnabled) {
+    if (alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED)) {
       return makeCORS(rb).build();
     }
 

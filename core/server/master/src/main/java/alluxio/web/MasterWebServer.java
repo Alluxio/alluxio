@@ -55,10 +55,6 @@ public final class MasterWebServer extends WebServer {
       final MasterProcess masterProcess) {
     super(serviceName, address);
     Preconditions.checkNotNull(masterProcess, "Alluxio master cannot be null");
-    mServletContextHandler
-        .addServlet(new ServletHolder(// TODO(william): migrate this into a REST api endpoint
-                new WebInterfaceDownloadServlet(masterProcess.getMaster(FileSystemMaster.class))),
-            "/download");
     // REST configuration
     ResourceConfig config = new ResourceConfig()
         .packages("alluxio.master", "alluxio.master.block", "alluxio.master.file")
