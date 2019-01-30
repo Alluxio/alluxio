@@ -19,6 +19,7 @@ import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.metastore.InodeStore;
 import alluxio.proto.meta.InodeMeta;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
@@ -36,14 +37,12 @@ import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -327,10 +326,7 @@ public class RocksInodeStore implements InodeStore {
     Path path = Paths.get(mDbPath);
     try {
       if (Files.exists(path)) {
-        Files.walk(path)
-            .sorted(Comparator.reverseOrder())
-            .map(Path::toFile)
-            .forEach(File::delete);
+        FileUtils.deletePathRecursively(mDbPath);
       }
     } catch (IOException e) {
       throw new RuntimeException(
