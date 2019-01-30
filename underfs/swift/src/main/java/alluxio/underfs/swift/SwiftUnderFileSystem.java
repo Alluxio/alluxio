@@ -370,6 +370,6 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected InputStream openObject(String key, OpenOptions options) throws IOException {
     return new SwiftInputStream(mAccount, mContainerName, key, options.getOffset(),
-        mAlluxioConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE_BYTES));
+        mAlluxioConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
   }
 }
