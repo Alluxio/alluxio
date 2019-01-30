@@ -14,11 +14,15 @@ import {AxiosResponse} from 'axios';
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
 
 export interface IInit {
-  "debug": boolean;
-  "refreshInterval": number;
-  "securityAuthorizationPermissionEnabled": boolean;
-  "webFileInfoEnabled": boolean;
-  "workerPort": number;
+  'debug': boolean;
+  'proxyDownloadFileApiUrl': {
+    'prefix': string;
+    'suffix': string;
+  };
+  'refreshInterval': number;
+  'securityAuthorizationPermissionEnabled': boolean;
+  'webFileInfoEnabled': boolean;
+  'workerPort': number;
 }
 
 export enum InitActionTypes {
