@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -226,8 +228,25 @@ public final class LsCommand extends AbstractFileSystemCommand {
     if (forceLoadMetadata) {
       options.setLoadMetadataType(LoadMetadataType.Always);
     }
+<<<<<<< HEAD
     options.setRecursive(recursive);
     List<URIStatus> statuses = mFileSystem.listStatus(path, options);
+=======
+    optionsBuilder.setRecursive(recursive);
+
+    // If list status takes too long, print the message
+    Timer timer = new Timer();
+    timer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        System.out.println("Getting directory status may take a while "
+            + "if it has millions of files or sub-directories.");
+      }
+    }, 10000);
+    List<URIStatus> statuses = mFileSystem.listStatus(path, optionsBuilder.build());
+    timer.cancel();
+
+>>>>>>> 981e8a2236... [SMALLFIX] add timer to print helpful message if fs ls takes too long (#8326)
     List<URIStatus> sorted = sortByFieldAndOrder(statuses, sortField, reverse);
     for (URIStatus status : sorted) {
       if (!pinnedOnly || status.isPinned()) {
