@@ -40,7 +40,7 @@ public class JobWorkerHealthCheckClientIntegrationTest extends BaseIntegrationTe
 
   @Before
   public final void before() throws Exception {
-    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
+    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster(null, null);
     mLocalAlluxioJobCluster.start();
     InetSocketAddress address = mLocalAlluxioJobCluster.getWorker().getRpcAddress();
     mHealthCheckClient = new JobWorkerHealthCheckClient(address, () -> new CountingRetry(1),

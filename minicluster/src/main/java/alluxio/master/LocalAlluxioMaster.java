@@ -27,10 +27,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -51,16 +53,24 @@ public final class LocalAlluxioMaster {
 
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
-  private MasterProcess mMasterProcess;
+  private AlluxioMasterProcess mMasterProcess;
   private Thread mMasterThread;
 
   private AlluxioSecondaryMaster mSecondaryMaster;
   private Thread mSecondaryMasterThread;
 
-  private LocalAlluxioMaster() throws IOException {
+  @Nullable
+  private ServerSocket mRpcBindSocket;
+
+  @Nullable
+  private ServerSocket mWebBindSocket;
+
+  private LocalAlluxioMaster(ServerSocket rpcBindSocket, ServerSocket webBindSocket) {
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC,
         ServerConfiguration.global());
     mJournalFolder = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    mRpcBindSocket = rpcBindSocket;
+    mWebBindSocket = webBindSocket;
   }
 
   /**
@@ -72,7 +82,23 @@ public final class LocalAlluxioMaster {
     String workDirectory = uniquePath();
     FileUtils.deletePathRecursively(workDirectory);
     ServerConfiguration.set(PropertyKey.WORK_DIR, workDirectory);
-    return create(workDirectory);
+    return create(workDirectory, null, null);
+  }
+
+  /**
+   * Creates a new local Alluxio master with a isolated port.
+   *
+   * @param workDirectory Alluxio work directory, this method will create it if it doesn't exist yet
+   * @param rpcBindSocket the socket whose address the master's RPC server will bind to
+   * @param webBindSocket the socket whose address the master's web server will bind to
+   * @return the created Alluxio master
+   */
+  public static LocalAlluxioMaster create(final String workDirectory, ServerSocket rpcBindSocket,
+      ServerSocket webBindSocket) throws IOException {
+    if (!Files.isDirectory(Paths.get(workDirectory))) {
+      Files.createDirectory(Paths.get(workDirectory));
+    }
+    return new LocalAlluxioMaster(rpcBindSocket, webBindSocket);
   }
 
   /**
@@ -85,14 +111,18 @@ public final class LocalAlluxioMaster {
     if (!Files.isDirectory(Paths.get(workDirectory))) {
       Files.createDirectory(Paths.get(workDirectory));
     }
-    return new LocalAlluxioMaster();
+    return new LocalAlluxioMaster(null, null);
   }
 
   /**
    * Starts the master.
    */
   public void start() {
-    mMasterProcess = MasterProcess.Factory.create();
+    if (mWebBindSocket != null && mRpcBindSocket != null) {
+      mMasterProcess = AlluxioMasterProcess.Factory.create(mRpcBindSocket, mWebBindSocket);
+    } else {
+      mMasterProcess = AlluxioMasterProcess.Factory.create();
+    }
     Runnable runMaster = new Runnable() {
       @Override
       public void run() {
@@ -191,7 +221,7 @@ public final class LocalAlluxioMaster {
   /**
    * @return the internal {@link MasterProcess}
    */
-  public MasterProcess getMasterProcess() {
+  public AlluxioMasterProcess getMasterProcess() {
     return mMasterProcess;
   }
 

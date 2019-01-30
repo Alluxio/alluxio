@@ -28,8 +28,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.CoreMasterContext;
-import alluxio.master.MasterProcess;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
@@ -95,7 +95,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private static final Map<String, Long> WORKER2_USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 100L,
       "SSD", 200L);
 
-  private MasterProcess mMasterProcess;
+  private AlluxioMasterProcess mMasterProcess;
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
   private MasterRegistry mRegistry;
@@ -114,7 +114,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   @Before
   public void before() throws Exception {
-    mMasterProcess = mock(MasterProcess.class);
+    mMasterProcess = mock(AlluxioMasterProcess.class);
     ServletContext context = mock(ServletContext.class);
     mRegistry = new MasterRegistry();
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
