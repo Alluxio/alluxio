@@ -2799,7 +2799,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
           .setDescription("Default chunk size for ranged reads from Alluxio files.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey USER_APP_ID =
       new Builder(Name.USER_APP_ID)
