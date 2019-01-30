@@ -36,11 +36,15 @@ import alluxio.web.ProxyWebServer;
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
 
+import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -65,6 +69,7 @@ public final class PathsRestServiceHandler {
   public static final String CREATE_DIRECTORY = "create-directory";
   public static final String CREATE_FILE = "create-file";
   public static final String DELETE = "delete";
+  public static final String DOWNLOAD_FILE = "download-file";
   public static final String EXISTS = "exists";
   public static final String FREE = "free";
   public static final String GET_STATUS = "get-status";
@@ -106,8 +111,8 @@ public final class PathsRestServiceHandler {
       @Override
       public Void call() throws Exception {
         if (options == null) {
-          mFileSystem.createDirectory(new AlluxioURI(path),
-              CreateDirectoryPOptions.getDefaultInstance());
+          mFileSystem
+              .createDirectory(new AlluxioURI(path), CreateDirectoryPOptions.getDefaultInstance());
         } else {
           mFileSystem.createDirectory(new AlluxioURI(path), options);
         }
@@ -163,6 +168,32 @@ public final class PathsRestServiceHandler {
         return null;
       }
     }, ServerConfiguration.global());
+  }
+
+  /**
+   * @summary Download a file.
+   * @param path the path
+   * @return the response
+   */
+  @GET
+  @Path(PATH_PARAM + DOWNLOAD_FILE)
+  @ReturnType("java.io.InputStream")
+  @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  public Response downloadFile(@PathParam("path") final String path) {
+    AlluxioURI uri = new AlluxioURI(path);
+    Map<String, Object> headers = new HashMap<>();
+    headers.put("Content-Disposition", "attachment; filename=" + uri.getName());
+    return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
+      @Override
+      public InputStream call() throws Exception {
+        FileInStream is =
+            mFileSystem.openFile(uri, OpenFilePOptions.getDefaultInstance());
+        if (is != null) {
+          return is;
+        }
+        throw new IllegalArgumentException("stream does not exist");
+      }
+    }, ServerConfiguration.global(), headers);
   }
 
   /**
@@ -247,8 +278,8 @@ public final class PathsRestServiceHandler {
       @Override
       public List<URIStatus> call() throws Exception {
         if (options == null) {
-          return mFileSystem.listStatus(new AlluxioURI(path),
-              ListStatusPOptions.getDefaultInstance());
+          return mFileSystem
+              .listStatus(new AlluxioURI(path), ListStatusPOptions.getDefaultInstance());
         } else {
           return mFileSystem.listStatus(new AlluxioURI(path), options);
         }
@@ -273,8 +304,8 @@ public final class PathsRestServiceHandler {
       public Void call() throws Exception {
         Preconditions.checkNotNull(src, "required 'src' parameter is missing");
         if (options == null) {
-          mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(src),
-              MountPOptions.getDefaultInstance());
+          mFileSystem
+              .mount(new AlluxioURI(path), new AlluxioURI(src), MountPOptions.getDefaultInstance());
         } else {
           mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(src), options);
         }

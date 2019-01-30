@@ -53,6 +53,7 @@ import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.webui.NodeInfo;
 import alluxio.util.webui.StorageTierInfo;
 import alluxio.util.webui.UIFileBlockInfo;
@@ -97,6 +98,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -230,12 +232,21 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIInit response = new MasterWebUIInit();
 
+      String proxyHostname = NetworkAddressUtils
+          .getConnectHost(NetworkAddressUtils.ServiceType.PROXY_WEB, ServerConfiguration.global());
+      int proxyPort = ServerConfiguration.getInt(PropertyKey.PROXY_WEB_PORT);
+      Map<String, String> proxyDowloadFileApiUrl = new HashMap<>();
+      proxyDowloadFileApiUrl
+          .put("prefix", "http://" + proxyHostname + ":" + proxyPort + "/api/v1/paths/");
+      proxyDowloadFileApiUrl.put("suffix", "/download-file/");
+
       response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG))
           .setWebFileInfoEnabled(ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
           .setSecurityAuthorizationPermissionEnabled(
               ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
           .setWorkerPort(ServerConfiguration.getInt(PropertyKey.WORKER_WEB_PORT))
-          .setRefreshInterval(ServerConfiguration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
+          .setRefreshInterval(ServerConfiguration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS))
+          .setProxyDownloadFileApiUrl(proxyDowloadFileApiUrl);
 
       return response;
     }, ServerConfiguration.global());
@@ -1025,8 +1036,8 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(() -> mMasterProcess.getRpcAddress().toString(),
-        ServerConfiguration.global());
+    return RestUtils
+        .call(() -> mMasterProcess.getRpcAddress().toString(), ServerConfiguration.global());
   }
 
   /**
@@ -1230,7 +1241,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Integer")
   @Deprecated
   public Response getWorkerCount() {
-    return RestUtils.call(()->mBlockMaster.getWorkerCount(), ServerConfiguration.global());
+    return RestUtils.call(() -> mBlockMaster.getWorkerCount(), ServerConfiguration.global());
   }
 
   /**
@@ -1244,7 +1255,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.List<alluxio.wire.WorkerInfo>")
   @Deprecated
   public Response getWorkerInfoList() {
-    return RestUtils.call(()-> mBlockMaster.getWorkerInfoList(), ServerConfiguration.global());
+    return RestUtils.call(() -> mBlockMaster.getWorkerInfoList(), ServerConfiguration.global());
   }
 
   private Capacity getCapacityInternal() {
