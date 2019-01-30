@@ -14,7 +14,7 @@ package alluxio.web;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.master.MasterProcess;
+import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.util.io.PathUtils;
 
@@ -52,7 +52,7 @@ public final class MasterWebServer extends WebServer {
    * @param masterProcess the Alluxio master process
    */
   public MasterWebServer(String serviceName, InetSocketAddress address,
-      final MasterProcess masterProcess) {
+      final AlluxioMasterProcess masterProcess) {
     super(serviceName, address);
     Preconditions.checkNotNull(masterProcess, "Alluxio master cannot be null");
     // REST configuration

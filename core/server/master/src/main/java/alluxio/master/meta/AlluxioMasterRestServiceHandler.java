@@ -34,7 +34,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
-import alluxio.master.MasterProcess;
+import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -169,7 +169,7 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String GET_WORKER_COUNT = "worker_count";
   public static final String GET_WORKER_INFO_LIST = "worker_info_list";
 
-  private final MasterProcess mMasterProcess;
+  private final AlluxioMasterProcess mMasterProcess;
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
   private final MetaMaster mMetaMaster;
@@ -182,8 +182,8 @@ public final class AlluxioMasterRestServiceHandler {
    */
   public AlluxioMasterRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mMasterProcess =
-        (MasterProcess) context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mMasterProcess = (AlluxioMasterProcess) context
+        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);

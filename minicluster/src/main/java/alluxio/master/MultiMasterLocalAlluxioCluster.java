@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.ConfigurationTestUtils;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -70,6 +72,23 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
+  }
+
+  @Override
+  public void initConfiguration() throws IOException {
+    setAlluxioWorkDirectory();
+    setHostname();
+    for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
+        .testConfigurationDefaults(ServerConfiguration.global(), mHostname, mWorkDirectory)
+        .entrySet()) {
+      ServerConfiguration.set(entry.getKey(), entry.getValue());
+    }
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, 0);
+    ServerConfiguration.set(PropertyKey.TEST_MODE, true);
+    ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, 0);
+    ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
+    ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
+    ServerConfiguration.set(PropertyKey.WORKER_WEB_PORT, 0);
   }
 
   @Override
@@ -195,6 +214,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       mMasters.add(master);
       // Each master should generate a new port for binding
       ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, "0");
+      ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, "0");
     }
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster

@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -40,8 +41,8 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
    * Creates a {@link FaultTolerantAlluxioJobMasterProcess}.
    */
   protected FaultTolerantAlluxioJobMasterProcess(JournalSystem journalSystem,
-      PrimarySelector leaderSelector) {
-    super(journalSystem);
+      PrimarySelector leaderSelector, ServerSocket rpcBindSocket, ServerSocket webBindSocket) {
+    super(journalSystem, rpcBindSocket, webBindSocket);
     try {
       stopServing();
     } catch (Exception e) {

@@ -52,6 +52,9 @@ public class ChannelAuthenticator {
   /** Authentication type to use with the target host. */
   protected AuthType mAuthType;
 
+  /** gRPC Authentication timeout in milliseconds. */
+  protected final long mGrpcAuthTimeoutMs;
+
   /** Internal ID used to identify the channel that is being authenticated. */
   protected UUID mChannelId;
 
@@ -69,6 +72,7 @@ public class ChannelAuthenticator {
     mParentSubject = subject;
     mAuthType = conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     mSecurityEnabled = SecurityUtils.isSecurityEnabled(conf);
+    mGrpcAuthTimeoutMs = conf.getMs(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT);
   }
 
   /**
@@ -78,15 +82,17 @@ public class ChannelAuthenticator {
    * @param password user password
    * @param impersonationUser impersonation user
    * @param authType authentication type
+   * @param grpcAuthTimeoutMs authentication timeout in milliseconds
    */
   public ChannelAuthenticator(String userName, String password, String impersonationUser,
-      AuthType authType) {
+      AuthType authType, long grpcAuthTimeoutMs) {
     mUseSubject = false;
     mChannelId = UUID.randomUUID();
     mUserName = userName;
     mPassword = password;
     mImpersonationUser = impersonationUser;
     mAuthType = authType;
+    mGrpcAuthTimeoutMs = grpcAuthTimeoutMs;
   }
 
   /**
@@ -119,7 +125,8 @@ public class ChannelAuthenticator {
     SaslHandshakeClientHandler handshakeClient =
         SaslHandshakeClientHandler.Factory.create(mAuthType, saslClient);
     // Create driver for driving sasl traffic from client side.
-    SaslStreamClientDriver clientDriver = new SaslStreamClientDriver(handshakeClient);
+    SaslStreamClientDriver clientDriver =
+        new SaslStreamClientDriver(handshakeClient, mGrpcAuthTimeoutMs);
     // Start authentication call with the service and update the client driver.
     StreamObserver<SaslMessage> requestObserver =
         SaslAuthenticationServiceGrpc.newStub(managedChannel).authenticate(clientDriver);

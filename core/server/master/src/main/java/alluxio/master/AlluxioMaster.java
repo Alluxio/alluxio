@@ -42,7 +42,7 @@ public final class AlluxioMaster {
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.MASTER);
     MasterProcess process;
     try {
-      process = MasterProcess.Factory.create();
+      process = AlluxioMasterProcess.Factory.create();
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to create master process");
       // fatalError will exit, so we shouldn't reach here.

@@ -11,18 +11,23 @@
 
 package alluxio.testutils;
 
+import static alluxio.util.network.NetworkAddressUtils.ServiceType;
+
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterClientContext;
+import alluxio.master.MasterProcess;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.BlockHeartbeatReporter;
 import alluxio.worker.block.BlockWorker;
 
@@ -30,14 +35,19 @@ import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
  * Util methods for writing integration tests.
  */
 public final class IntegrationTestUtils {
+
   /**
    * Convenience method for calling
    * {@link #waitForPersist(LocalAlluxioClusterResource, AlluxioURI, int)} with a default timeout.
@@ -120,6 +130,33 @@ public final class IntegrationTestUtils {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Creates a map of {@link ServiceType} to sockets. When each entry is created, it will create
+   * a {@link ServerSocket} for each service respecting the current state of the
+   * {@link ServerConfiguration}. Essentially this "reserves" the port on each socket so that
+   * no other thread or process can use the port. Each socket can then be passed to an
+   * {@link MasterProcess} which will close the original socket then use the original addressto
+   * bind and listen on a server for the service.
+   *
+   * @return a map {@link ServiceType} to {@link ServerSocket}
+   */
+  public static Map<ServiceType, ServerSocket> createMasterServiceMapping() {
+    Map<ServiceType, ServerSocket> serviceMapping = new HashMap<>();
+    MasterProcess.MASTER_PROCESS_PORT_SERVICE_LIST.forEach((ServiceType st) -> {
+      PropertyKey pk = st.getPortKey();
+      InetSocketAddress bindAddr = NetworkAddressUtils.getBindAddress(st,
+          ServerConfiguration.global());
+      try {
+        ServerSocket bindSocket = new ServerSocket(0, 50, bindAddr.getAddress());
+        ServerConfiguration.set(pk, bindSocket.getLocalPort());
+        serviceMapping.put(st, bindSocket);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+    return serviceMapping;
   }
 
   private IntegrationTestUtils() {} // This is a utils class not intended for instantiation

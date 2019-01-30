@@ -9,6 +9,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Verify;
 import io.grpc.ConnectivityState;
@@ -51,6 +52,17 @@ public class GrpcManagedChannelPool {
             .getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS),
         new InstancedConfiguration(ConfigurationUtils.defaults())
             .getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
+  }
+
+  /**
+   * Creates a new channel pool with the given health check timeout and channel shutdown timeout
+   *
+   * @param networkHealthCheckTimeoutMs timeout in ms for channel health check
+   * @param channelShutdownTimeoutMs timeout in ms for channel shutdown.
+   */
+  @VisibleForTesting
+  public static void renewChannelPool(long networkHealthCheckTimeoutMs, long channelShutdownTimeoutMs) {
+    sInstance = new GrpcManagedChannelPool(networkHealthCheckTimeoutMs, channelShutdownTimeoutMs);
   }
 
   /**
