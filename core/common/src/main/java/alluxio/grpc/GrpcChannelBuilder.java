@@ -204,7 +204,8 @@ public final class GrpcChannelBuilder {
         } else {
           channelAuthenticator =
               new ChannelAuthenticator(mUserName, mPassword, mImpersonationUser,
-                  mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
+                  mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class),
+                  mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT));
         }
         // Get an authenticated wrapper channel over given managed channel.
         clientChannel = channelAuthenticator.authenticate(underlyingChannel, mConfiguration);
