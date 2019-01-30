@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.AlluxioMasterProcess;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -55,10 +54,6 @@ public final class MasterWebServer extends WebServer {
       final AlluxioMasterProcess masterProcess) {
     super(serviceName, address);
     Preconditions.checkNotNull(masterProcess, "Alluxio master cannot be null");
-    mServletContextHandler
-        .addServlet(new ServletHolder(// TODO(william): migrate this into a REST api endpoint
-                new WebInterfaceDownloadServlet(masterProcess.getMaster(FileSystemMaster.class))),
-            "/download");
     // REST configuration
     ResourceConfig config = new ResourceConfig()
         .packages("alluxio.master", "alluxio.master.block", "alluxio.master.file")

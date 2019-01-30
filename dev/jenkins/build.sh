@@ -26,4 +26,4 @@ then
 fi
 
 git clean -fdx
-mvn -Duser.home=/home/jenkins -T 4C clean install -PcompileJsp -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} $@
+mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} $@

@@ -37,6 +37,10 @@ exports[`App Connected component Matches snapshot 1`] = `
     init={
       Object {
         "debug": false,
+        "proxyDownloadFileApiUrl": Object {
+          "prefix": "http://192.168.1.6:39999/api/v1/paths/",
+          "suffix": "/download-file/",
+        },
         "refreshInterval": 15000,
         "securityAuthorizationPermissionEnabled": false,
         "webFileInfoEnabled": false,
@@ -72,6 +76,10 @@ exports[`App Connected component Matches snapshot 1`] = `
       init={
         Object {
           "debug": false,
+          "proxyDownloadFileApiUrl": Object {
+            "prefix": "http://192.168.1.6:39999/api/v1/paths/",
+            "suffix": "/download-file/",
+          },
           "refreshInterval": 15000,
           "securityAuthorizationPermissionEnabled": false,
           "webFileInfoEnabled": false,
@@ -695,6 +703,7 @@ exports[`App Connected component Matches snapshot 1`] = `
                                                     className="svg-inline--fa fa-square fa-w-14 "
                                                     data-icon="square"
                                                     data-prefix="far"
+                                                    focusable="false"
                                                     role="img"
                                                     style={Object {}}
                                                     viewBox="0 0 448 512"
