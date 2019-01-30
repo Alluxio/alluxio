@@ -84,7 +84,7 @@ public class OSSInputStreamTest {
       when(mOssObject[i].getObjectContent()).thenReturn(mInputStreamSpy[i]);
     }
     mOssInputStream = new OSSInputStream(BUCKET_NAME, OBJECT_KEY, mOssClient,
-        sConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+        sConf.getBytes(PropertyKey.USER_MULTI_RANGE_CHUNK_SIZE_BYTES));
   }
 
   @Test

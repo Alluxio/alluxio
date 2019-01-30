@@ -37,7 +37,7 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
   private final long mMultiRangeChunkSize;
 
   /**
-   * creates the input stream that will perform reads with a specified chunk size. Reading in
+   * Creates the input stream that will perform reads with a specified chunk size. Reading in
    * chunks allows us to read in smaller portions so that we don't need to read all the way to
    * the end of a block.
    *

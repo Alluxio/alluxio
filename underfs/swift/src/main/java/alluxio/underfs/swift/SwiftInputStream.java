@@ -57,7 +57,7 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
    * @param container the name of container where the object resides
    * @param object path of the object in the container
    * @param position the position to begin reading from
-   * @param multiRangeChunkSize the block size to use on this stream
+   * @param multiRangeChunkSize the chunk size to use on this stream
    */
   public SwiftInputStream(Account account, String container, String object, long position,
       long multiRangeChunkSize) {
