@@ -27,6 +27,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterProcess;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.BlockHeartbeatReporter;
 import alluxio.worker.block.BlockWorker;
 
@@ -34,6 +35,7 @@ import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -131,9 +133,12 @@ public final class IntegrationTestUtils {
   }
 
   /**
-   * Creates a map of property keys to ports using list of ports in MASTER_PROCESS_PORT_LIST.
-   * When each entry is created, it will create the bind socket for each service and set the
-   * {@link ServerConfiguration} port property associated with the service.
+   * Creates a map of {@link ServiceType} to sockets. When each entry is created, it will create
+   * a {@link ServerSocket} for each service respecting the current state of the
+   * {@link ServerConfiguration}. Essentially this "reserves" the port on each socket so that
+   * no other thread or process can use the port. Each socket can then be passed to an
+   * {@link MasterProcess} which will close the original socket then use the original addressto
+   * bind and listen on a server for the service.
    *
    * @return a map {@link ServiceType} to {@link ServerSocket}
    */
@@ -141,8 +146,15 @@ public final class IntegrationTestUtils {
     Map<ServiceType, ServerSocket> serviceMapping = new HashMap<>();
     MasterProcess.MASTER_PROCESS_PORT_SERVICE_LIST.forEach((ServiceType st) -> {
       PropertyKey pk = st.getPortKey();
-      ServerConfiguration.set(pk, 0);
-      serviceMapping.put(st, MasterProcess.setupBindSocket(st));
+      InetSocketAddress bindAddr = NetworkAddressUtils.getBindAddress(st,
+          ServerConfiguration.global());
+      try {
+        ServerSocket bindSocket = new ServerSocket(0, 50, bindAddr.getAddress());
+        ServerConfiguration.set(pk, bindSocket.getLocalPort());
+        serviceMapping.put(st, bindSocket);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     });
     return serviceMapping;
   }

@@ -31,7 +31,6 @@ import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,49 +53,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe
 public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
-
-  /**
-   * Factory for creating {@link AlluxioMasterProcess}.
-   */
-  @ThreadSafe
-  public static final class Factory {
-    /**
-     * @return a new instance of {@link AlluxioMasterProcess}
-     */
-    public static AlluxioMasterProcess create() {
-      return create(MasterProcess.setupBindSocket(ServiceType.MASTER_RPC),
-          MasterProcess.setupBindSocket(ServiceType.MASTER_WEB));
-    }
-
-    /**
-     * Creates a new {@link AlluxioMasterProcess}.
-     *
-     * @param rpcBindSocket the socket whose address the rpc server will eventually bind to
-     * @param webBindSocket the socket whose address the web server will eventually bind to
-     * @return a new instance of {@link MasterProcess} using the given sockets for the master
-     */
-    @VisibleForTesting
-    public static AlluxioMasterProcess create(ServerSocket rpcBindSocket,
-        ServerSocket webBindSocket) {
-      URI journalLocation = JournalUtils.getJournalLocation();
-      JournalSystem journalSystem =
-          new JournalSystem.Builder().setLocation(journalLocation).build();
-      if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
-            "Raft journal cannot be used with Zookeeper enabled");
-        PrimarySelector primarySelector = PrimarySelector.Factory.createZkPrimarySelector();
-        return new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector,
-            rpcBindSocket, webBindSocket);
-      } else if (journalSystem instanceof RaftJournalSystem) {
-        PrimarySelector primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
-        return new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector,
-            rpcBindSocket, webBindSocket);
-      }
-      return new AlluxioMasterProcess(journalSystem, rpcBindSocket, webBindSocket);
-    }
-
-    private Factory() {} // prevent instantiation
-  }
 
   /**
    * Lock for pausing modifications to master state. Holding the this lock allows a thread to
@@ -145,7 +101,8 @@ public class AlluxioMasterProcess extends MasterProcess {
           .setSafeModeManager(mSafeModeManager)
           .setBackupManager(mBackupManager)
           .setStartTimeMs(mStartTimeMs)
-          .setPort(getRpcPort(ServiceType.MASTER_RPC))
+          .setPort(NetworkAddressUtils
+              .getPort(ServiceType.MASTER_RPC, ServerConfiguration.global()))
           .build();
       mPauseStateLock = context.pauseStateLock();
       MasterUtils.createMasters(mRegistry, context);
@@ -266,8 +223,6 @@ public class AlluxioMasterProcess extends MasterProcess {
           new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(),
               getWebAddressFromBindSocket(), this);
       // reset master web port
-      ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT,
-          Integer.toString(mWebServer.getLocalPort()));
       // Add the metrics servlet to the web server.
       mWebServer.addHandler(mMetricsServlet.getHandler());
       // Add the prometheus metrics servlet to the web server.
@@ -365,5 +320,47 @@ public class AlluxioMasterProcess extends MasterProcess {
   @Override
   public String toString() {
     return "Alluxio master @" + mRpcConnectAddress;
+  }
+
+  /**
+   * Factory for creating {@link AlluxioMasterProcess}.
+   */
+  @ThreadSafe
+  public static final class Factory {
+    /**
+     * @return a new instance of {@link AlluxioMasterProcess}
+     */
+    public static AlluxioMasterProcess create() {
+      return create(MasterProcess.setupBindSocket(ServiceType.MASTER_RPC),
+          MasterProcess.setupBindSocket(ServiceType.MASTER_WEB));
+    }
+
+    /**
+     * Creates a new {@link AlluxioMasterProcess}.
+     *
+     * @param rpcBindSocket the socket whose address the rpc server will eventually bind to
+     * @param webBindSocket the socket whose address the web server will eventually bind to
+     * @return a new instance of {@link MasterProcess} using the given sockets for the master
+     */
+    public static AlluxioMasterProcess create(ServerSocket rpcBindSocket,
+        ServerSocket webBindSocket) {
+      URI journalLocation = JournalUtils.getJournalLocation();
+      JournalSystem journalSystem =
+          new JournalSystem.Builder().setLocation(journalLocation).build();
+      if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+        Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
+            "Raft journal cannot be used with Zookeeper enabled");
+        PrimarySelector primarySelector = PrimarySelector.Factory.createZkPrimarySelector();
+        return new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector,
+            rpcBindSocket, webBindSocket);
+      } else if (journalSystem instanceof RaftJournalSystem) {
+        PrimarySelector primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
+        return new FaultTolerantAlluxioMasterProcess(journalSystem, primarySelector,
+            rpcBindSocket, webBindSocket);
+      }
+      return new AlluxioMasterProcess(journalSystem, rpcBindSocket, webBindSocket);
+    }
+
+    private Factory() {} // prevent instantiation
   }
 }

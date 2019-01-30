@@ -53,6 +53,13 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   /**
    * Runs a test Alluxio cluster with a single Alluxio worker.
+   */
+  public LocalAlluxioCluster() {
+    this(1, null, null);
+  }
+
+  /**
+   * Runs a test Alluxio cluster with a single Alluxio worker.
    *
    * @param rpcBindSocket the socket whose address the master's RPC server will bind to
    * @param webBindSocket the socket whose address the master's web server will bind to

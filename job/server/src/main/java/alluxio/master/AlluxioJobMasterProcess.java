@@ -51,43 +51,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AlluxioJobMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterProcess.class);
 
-  /**
-   * Factory for creating {@link AlluxioJobMasterProcess}.
-   */
-  @ThreadSafe
-  static final class Factory {
-
-    public static AlluxioJobMasterProcess create() {
-      return create(MasterProcess.setupBindSocket(ServiceType.JOB_MASTER_RPC),
-          MasterProcess.setupBindSocket(ServiceType.JOB_MASTER_WEB));
-    }
-
-    /**
-     * @return a new instance of {@link AlluxioJobMasterProcess}
-     */
-    public static AlluxioJobMasterProcess create(ServerSocket rpcBindSocket,
-        ServerSocket webBindSocket) {
-      URI journalLocation = JournalUtils.getJournalLocation();
-      JournalSystem journalSystem = new JournalSystem.Builder()
-          .setLocation(URIUtils.appendPathOrDie(journalLocation, Constants.JOB_JOURNAL_NAME))
-          .build();
-      if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
-            "Raft journal cannot be used with Zookeeper enabled");
-        PrimarySelector primarySelector = PrimarySelector.Factory.createZkJobPrimarySelector();
-        return new FaultTolerantAlluxioJobMasterProcess(journalSystem, primarySelector,
-            rpcBindSocket, webBindSocket);
-      } else if (journalSystem instanceof RaftJournalSystem) {
-        PrimarySelector primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
-        return new FaultTolerantAlluxioJobMasterProcess(journalSystem, primarySelector,
-            rpcBindSocket, webBindSocket);
-      }
-      return new AlluxioJobMasterProcess(journalSystem, rpcBindSocket, webBindSocket);
-    }
-
-    private Factory() {} // prevent instantiation
-  }
-
   /** The master managing all job related metadata. */
   protected JobMaster mJobMaster;
 
@@ -208,9 +171,6 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     try {
       mWebServer = new JobMasterWebServer(ServiceType.JOB_MASTER_WEB.getServiceName(),
           getWebAddressFromBindSocket(), this);
-      // reset master web port
-      ServerConfiguration.set(PropertyKey.JOB_MASTER_WEB_PORT,
-          Integer.toString(mWebServer.getLocalPort()));
       mWebServer.addHandler(mMetricsServlet.getHandler());
       mWebServer.start();
     } catch (IOException e) {
@@ -258,5 +218,42 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   @Override
   public String toString() {
     return "Alluxio job master @ " + mRpcConnectAddress;
+  }
+
+  /**
+   * Factory for creating {@link AlluxioJobMasterProcess}.
+   */
+  @ThreadSafe
+  static final class Factory {
+
+    public static AlluxioJobMasterProcess create() {
+      return create(MasterProcess.setupBindSocket(ServiceType.JOB_MASTER_RPC),
+          MasterProcess.setupBindSocket(ServiceType.JOB_MASTER_WEB));
+    }
+
+    /**
+     * @return a new instance of {@link AlluxioJobMasterProcess}
+     */
+    public static AlluxioJobMasterProcess create(ServerSocket rpcBindSocket,
+        ServerSocket webBindSocket) {
+      URI journalLocation = JournalUtils.getJournalLocation();
+      JournalSystem journalSystem = new JournalSystem.Builder()
+          .setLocation(URIUtils.appendPathOrDie(journalLocation, Constants.JOB_JOURNAL_NAME))
+          .build();
+      if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+        Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
+            "Raft journal cannot be used with Zookeeper enabled");
+        PrimarySelector primarySelector = PrimarySelector.Factory.createZkJobPrimarySelector();
+        return new FaultTolerantAlluxioJobMasterProcess(journalSystem, primarySelector,
+            rpcBindSocket, webBindSocket);
+      } else if (journalSystem instanceof RaftJournalSystem) {
+        PrimarySelector primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
+        return new FaultTolerantAlluxioJobMasterProcess(journalSystem, primarySelector,
+            rpcBindSocket, webBindSocket);
+      }
+      return new AlluxioJobMasterProcess(journalSystem, rpcBindSocket, webBindSocket);
+    }
+
+    private Factory() {} // prevent instantiation
   }
 }

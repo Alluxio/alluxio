@@ -76,8 +76,8 @@ public abstract class MasterProcess implements Process {
    * Prepares a {@link MasterProcess} journal, rpc and web server using the given sockets.
    *
    * @param journalSystem The journaling system
-   * @param rpcBindSocket a socket bound to an address that the master's rpc server can use
-   * @param webBindSocket a socket bound to an address that the master's web server can use
+   * @param rpcBindSocket a socket bound to an address that the master's rpc server will use
+   * @param webBindSocket a socket bound to an address that the master's web server will use
    */
   public MasterProcess(JournalSystem journalSystem, ServerSocket rpcBindSocket,
       ServerSocket webBindSocket) {
@@ -89,13 +89,6 @@ public abstract class MasterProcess implements Process {
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
         PropertyKey.MASTER_WORKER_THREADS_MAX + " can not be less than "
             + PropertyKey.MASTER_WORKER_THREADS_MIN);
-
-    int connectionTimeout = (int) ServerConfiguration
-        .getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
-    if (connectionTimeout > 0) {
-      LOG.debug("{} connection timeout[{}] is {}", this, PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
-          connectionTimeout);
-    }
   }
 
   /**
@@ -169,15 +162,13 @@ public abstract class MasterProcess implements Process {
   /**
    * Creates a socket bound to a specific port to "reserve" the port until the master process is
    * ready to start. Only a select number of corresponding {@link ServiceType} are valid for this
-   * operation. The returned socket should then be passed to the master process for creation.
-   *
-   * If the port 0 is passed then the {@link ServerConfiguration} will be set to whichever port
-   * is chosen by the system.
+   * operation. The returned socket should then be passed to the master process for creation. The
+   * socket created respects the current {@link ServerConfiguration}
    *
    * @param service The service corresponding to the port that a socket should be created for
    * @return ServerSocket for a given service updating the configuration if necessary
    */
-  public static ServerSocket setupBindSocket(ServiceType service) {
+  protected static ServerSocket setupBindSocket(ServiceType service) {
     if (!MASTER_PROCESS_PORT_SERVICE_LIST.contains(service)) {
       throw new IllegalArgumentException(String.format(
           "Cannot set up BindSocket for service \"%s\"", service.getServiceName()));
@@ -201,7 +192,7 @@ public abstract class MasterProcess implements Process {
       ServerSocket bindSocket =
           new ServerSocket(ServerConfiguration.getInt(portKey), 50, bindAddress.getAddress());
       if (bindAddress.getPort() == 0) {
-        ServerConfiguration.set(portKey, Integer.toString(bindSocket.getLocalPort()));
+        ServerConfiguration.set(portKey, bindSocket.getLocalPort());
       }
       return bindSocket;
     } catch (IOException e) {
@@ -209,13 +200,8 @@ public abstract class MasterProcess implements Process {
     }
   }
 
-  int getRpcPort(ServiceType serviceType) {
-    return mRpcBindSocket != null ? mRpcBindSocket.getLocalPort() :
-        NetworkAddressUtils.getPort(serviceType, ServerConfiguration.global());
-  }
-
   /** This method will close the socket upon first initialization. */
-  InetSocketAddress getWebAddressFromBindSocket() throws IOException {
+  protected InetSocketAddress getWebAddressFromBindSocket() throws IOException {
     Preconditions.checkNotNull(mWebBindSocket, "mWebBindSocket");
     InetSocketAddress socketAddr = new InetSocketAddress(mWebBindSocket.getInetAddress(),
         mWebBindSocket.getLocalPort());
@@ -224,7 +210,7 @@ public abstract class MasterProcess implements Process {
   }
 
   /** This method will close the socket upon first initialization. */
-  SocketAddress getRpcAddressFromBindSocket() throws IOException {
+  protected SocketAddress getRpcAddressFromBindSocket() throws IOException {
     Preconditions.checkNotNull(mRpcBindSocket, "mRpcBindSocket");
     SocketAddress addr = mRpcBindSocket.getLocalSocketAddress();
     mRpcBindSocket.close();
