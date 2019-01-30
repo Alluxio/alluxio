@@ -627,7 +627,6 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     public void addEdge(Edge edge, Long childId) {
       evictIfNecessary();
       mMap.computeIfPresent(edge.getId(), (key, entry) -> {
-        mWeight.incrementAndGet();
         entry.mModified = true;
         entry.addChild(edge.getName(), childId);
         return entry;
@@ -641,7 +640,6 @@ public final class CachingInodeStore implements InodeStore, Closeable {
      */
     public void removeEdge(Edge edge) {
       mMap.computeIfPresent(edge.getId(), (key, entry) -> {
-        mWeight.incrementAndGet();
         entry.mModified = true;
         entry.removeChild(edge.getName());
         return entry;
@@ -689,9 +687,6 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       if (entry == null || !createdNewEntry.get()) {
         // Skip caching if the cache is full or someone else is already caching.
         return mEdgeCache.getChildIds(inodeId).values();
-      }
-      if (entry.mChildren != null) {
-        return entry.mChildren.values();
       }
       return loadChildren(inodeId, entry).values();
     }
