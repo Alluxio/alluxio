@@ -129,15 +129,6 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
       throws IOException;
 
   /**
-   * Block size for reading an object in chunks.
-   *
-   * @return chunk size in bytes
-   */
-  private long getChunkSize() {
-    return mMultiRangeChunkSize;
-  }
-
-  /**
    * Opens a new stream at mPos if the wrapped stream mStream is null.
    */
   private void openStream() throws IOException {
