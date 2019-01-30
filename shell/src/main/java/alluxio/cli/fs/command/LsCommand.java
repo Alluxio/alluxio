@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -238,7 +240,19 @@ public final class LsCommand extends AbstractFileSystemCommand {
       optionsBuilder.setLoadMetadataType(LoadMetadataPType.ALWAYS);
     }
     optionsBuilder.setRecursive(recursive);
+
+    // If list status takes too long, print the message
+    Timer timer = new Timer();
+    timer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        System.out.println("Getting file information from Alluxio master, "
+            + "this may take a while....");
+      }
+    }, 10000);
     List<URIStatus> statuses = mFileSystem.listStatus(path, optionsBuilder.build());
+    timer.cancel();
+
     List<URIStatus> sorted = sortByFieldAndOrder(statuses, sortField, reverse);
     for (URIStatus status : sorted) {
       if (!pinnedOnly || status.isPinned()) {
