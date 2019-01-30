@@ -19,7 +19,7 @@ import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.metastore.InodeStore;
 import alluxio.proto.meta.InodeMeta;
-import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
 import org.rocksdb.ColumnFamilyDescriptor;
@@ -38,8 +38,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -63,9 +67,8 @@ public class RocksInodeStore implements InodeStore {
   private final ReadOptions mReadPrefixSameAsStart;
 
   private final AlluxioConfiguration mConf;
-  private final String mBaseDir;
+  private final String mDbPath;
 
-  private String mDbPath;
   private RocksDB mDb;
   private ColumnFamilyHandle mDefaultColumn;
   private ColumnFamilyHandle mInodesColumn;
@@ -78,7 +81,7 @@ public class RocksInodeStore implements InodeStore {
    */
   public RocksInodeStore(InodeStoreArgs args) {
     mConf = args.getConf();
-    mBaseDir = mConf.get(PropertyKey.MASTER_METASTORE_DIR);
+    mDbPath = PathUtils.concatPath(mConf.get(PropertyKey.MASTER_METASTORE_DIR), INODES_DB_NAME);
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
@@ -319,14 +322,26 @@ public class RocksInodeStore implements InodeStore {
       } catch (Throwable t) {
         LOG.error("Failed to close previous rocks database at {}", mDbPath, t);
       }
-      try {
-        FileUtils.deletePathRecursively(mDbPath);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
     }
 
-    new File(mBaseDir).mkdirs();
+    Path path = Paths.get(mDbPath);
+    try {
+      if (Files.exists(path)) {
+        Files.walk(path)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(
+          String.format("Failed to clear metastore directory (%s): %s", mDbPath, e.toString(), e));
+    }
+    try {
+      Files.createDirectory(path);
+    } catch (IOException e) {
+      throw new RuntimeException(
+          String.format("Failed to create metastore directory (%s): %s", mDbPath, e.toString()), e);
+    }
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
         .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION)
@@ -347,13 +362,17 @@ public class RocksInodeStore implements InodeStore {
 
     // a list which will hold the handles for the column families once the db is opened
     List<ColumnFamilyHandle> columns = new ArrayList<>();
-    mDbPath = RocksUtils.generateDbPath(mBaseDir, INODES_DB_NAME);
     mDb = RocksDB.open(options, mDbPath, cfDescriptors, columns);
     mDefaultColumn = columns.get(0);
     mInodesColumn = columns.get(1);
     mEdgesColumn = columns.get(2);
 
     LOG.info("Created new rocks database under path {}", mDbPath);
+  }
+
+  @Override
+  public void close() {
+    mDb.close();
   }
 
   /**

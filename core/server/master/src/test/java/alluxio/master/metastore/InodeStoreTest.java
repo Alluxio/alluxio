@@ -33,6 +33,7 @@ import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
 
 import com.google.common.collect.Iterables;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -68,6 +69,11 @@ public class InodeStoreTest {
 
   public InodeStoreTest(Supplier<InodeStore> store) {
     mStore = store.get();
+  }
+
+  @After
+  public void after() {
+    mStore.close();
   }
 
   @Test

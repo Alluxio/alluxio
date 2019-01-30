@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -221,9 +222,15 @@ public final class CachingInodeStore implements InodeStore, Closeable {
 
   @Override
   public void close() {
-    Closer c = Closer.create();
-    c.register(mInodeCache);
-    c.register(mEdgeCache);
+    Closer closer = Closer.create();
+    closer.register(mInodeCache);
+    closer.register(mEdgeCache);
+    closer.register(mBackingStore);
+    try {
+      closer.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -445,7 +452,8 @@ public final class CachingInodeStore implements InodeStore, Closeable {
           continue;
         }
         try (LockResource lr = lockOpt.get()) {
-          if (entry.mValue == null) {
+          Long value = entry.mValue;
+          if (value == null) {
             if (useBatch) {
               batch.removeChild(edge.getId(), edge.getName());
             } else {
@@ -453,9 +461,9 @@ public final class CachingInodeStore implements InodeStore, Closeable {
             }
           } else {
             if (useBatch) {
-              batch.addChild(edge.getId(), edge.getName(), entry.mValue);
+              batch.addChild(edge.getId(), edge.getName(), value);
             } else {
-              mBackingStore.addChild(edge.getId(), edge.getName(), entry.mValue);
+              mBackingStore.addChild(edge.getId(), edge.getName(), value);
             }
           }
           entry.mDirty = false;
@@ -671,6 +679,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
      * @return the ids of all children of the directory
      */
     public Collection<Long> getChildIds(Long inodeId) {
+      evictIfNecessary();
       AtomicBoolean createdNewEntry = new AtomicBoolean(false);
       ListingCacheEntry entry = mMap.compute(inodeId, (key, value) -> {
         if (value == null) {
