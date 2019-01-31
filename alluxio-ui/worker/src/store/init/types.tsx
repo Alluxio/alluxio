@@ -14,12 +14,12 @@ import {AxiosResponse} from 'axios';
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
 
 export interface IInit {
-  "debug": boolean;
-  "masterPort": number;
-  "masterHostname": string;
-  "refreshInterval": number;
-  "securityAuthorizationPermissionEnabled": boolean;
-  "webFileInfoEnabled": boolean;
+  'debug': boolean;
+  'masterPort': number;
+  'masterHostname': string;
+  'refreshInterval': number;
+  'securityAuthorizationPermissionEnabled': boolean;
+  'webFileInfoEnabled': boolean;
 }
 
 export enum InitActionTypes {

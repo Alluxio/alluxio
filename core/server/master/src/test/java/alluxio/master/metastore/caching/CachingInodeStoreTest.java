@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import alluxio.conf.ConfigurationBuilder;
@@ -206,6 +207,32 @@ public class CachingInodeStoreTest {
     assertFalse(mStore.mListingCache.getCachedChildIds(TEST_INODE_ID).isPresent());
   }
 
+  @Test(timeout = 10000)
+  public void listingCacheAddRemoveEdges() throws Exception {
+    // Perform operations including adding and removing many files within a directory. This test has
+    // rooted out some bugs related to cache weight tracking.
+    MutableInodeDirectory bigDir = createInodeDir(1, 0);
+    mStore.writeNewInode(bigDir);
+    for (int i = 1000; i < 1000 + CACHE_SIZE; i++) {
+      MutableInodeDirectory subDir = createInodeDir(i, bigDir.getId());
+      mStore.addChild(bigDir.getId(), subDir);
+      mStore.removeChild(bigDir.getId(), subDir.getName());
+    }
+
+    List<MutableInodeDirectory> inodes = new ArrayList<>();
+    for (int i = 10; i < 10 + (CACHE_SIZE / 2); i++) {
+      MutableInodeDirectory otherDir = createInodeDir(i, 0);
+      inodes.add(otherDir);
+      mStore.writeNewInode(otherDir);
+    }
+    for (MutableInodeDirectory inode : inodes) {
+      for (int i = 0; i < 10; i++) {
+        assertEquals(0, Iterables.size(mStore.getChildIds(inode.getId())));
+      }
+      verify(mBackingStore, times(0)).getChildIds(inode.getId());
+    }
+  }
+
   private MutableInodeDirectory createInodeDir(long id, long parentId) {
     MutableInodeDirectory dir = MutableInodeDirectory.create(id, parentId, Long.toString(id),
         CreateDirectoryContext.defaults());
@@ -214,11 +241,11 @@ public class CachingInodeStoreTest {
   }
 
   private void verifyNoBackingStoreReads() {
-    verify(mBackingStore, Mockito.times(0)).getChild(anyLong(), anyString());
-    verify(mBackingStore, Mockito.times(0)).getChildId(anyLong(), anyString());
-    verify(mBackingStore, Mockito.times(0)).getChildren(anyLong());
-    verify(mBackingStore, Mockito.times(0)).getChildIds(anyLong());
-    verify(mBackingStore, Mockito.times(0)).get(anyLong());
-    verify(mBackingStore, Mockito.times(0)).getMutable(anyLong());
+    verify(mBackingStore, times(0)).getChild(anyLong(), anyString());
+    verify(mBackingStore, times(0)).getChildId(anyLong(), anyString());
+    verify(mBackingStore, times(0)).getChildren(anyLong());
+    verify(mBackingStore, times(0)).getChildIds(anyLong());
+    verify(mBackingStore, times(0)).get(anyLong());
+    verify(mBackingStore, times(0)).getMutable(anyLong());
   }
 }

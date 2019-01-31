@@ -22,6 +22,8 @@ import io.grpc.stub.StreamObserver;
 
 import javax.security.sasl.SaslException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Responsible for driving sasl traffic from client-side. Acts as a client's Sasl stream.
@@ -34,14 +36,19 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
   /** Used to wait until authentication is completed. */
   private SettableFuture<Boolean> mAuthenticated;
 
+  private final long mGrpcAuthTimeoutMs;
+
   /**
    * Creates client driver with given handshake handler.
    *
    * @param handshakeClient client handshake handler
+   * @param grpcAuthTimeoutMs authentication timeout in milliseconds
    */
-  public SaslStreamClientDriver(SaslHandshakeClientHandler handshakeClient) {
+  public SaslStreamClientDriver(SaslHandshakeClientHandler handshakeClient,
+      long grpcAuthTimeoutMs) {
     mSaslHandshakeClientHandler = handshakeClient;
     mAuthenticated = SettableFuture.create();
+    mGrpcAuthTimeoutMs = grpcAuthTimeoutMs;
   }
 
   /**
@@ -89,7 +96,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
       // Send the server initial message.
       mRequestObserver.onNext(mSaslHandshakeClientHandler.getInitialMessage(channelId));
       // Wait until authentication status changes.
-      mAuthenticated.get();
+      mAuthenticated.get(mGrpcAuthTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (SaslException se) {
       throw new UnauthenticatedException(se.getMessage(), se);
     } catch (InterruptedException ie) {
@@ -103,6 +110,8 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
         }
       }
       throw new UnauthenticatedException(cause.getMessage(), cause);
+    } catch (TimeoutException e) {
+      throw new UnavailableException(e);
     }
   }
 }

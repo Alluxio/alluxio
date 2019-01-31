@@ -618,6 +618,7 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                                                     className="svg-inline--fa fa-square fa-w-14 "
                                                     data-icon="square"
                                                     data-prefix="far"
+                                                    focusable="false"
                                                     role="img"
                                                     style={Object {}}
                                                     viewBox="0 0 448 512"

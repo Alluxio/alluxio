@@ -12,7 +12,7 @@
 package alluxio.web;
 
 import alluxio.Constants;
-import alluxio.master.JobMasterProcess;
+import alluxio.master.AlluxioJobMasterProcess;
 import alluxio.util.io.PathUtils;
 
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -40,7 +40,7 @@ public final class JobMasterWebServer extends WebServer {
    * @param jobMaster the job master
    */
   public JobMasterWebServer(String serviceName, InetSocketAddress address,
-      final JobMasterProcess jobMaster) {
+      final AlluxioJobMasterProcess jobMaster) {
     super(serviceName, address);
 
     // REST configuration

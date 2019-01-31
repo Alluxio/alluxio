@@ -20,8 +20,8 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.BlockInfoException;
 import alluxio.grpc.WritePType;
+import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.wire.WorkerNetAddress;
@@ -57,7 +57,7 @@ public class BlockMasterJournalIntegrationTest {
     assertNotNull(blockMaster.getBlockInfo(blockId));
     mCluster.stopMasters();
     mCluster.startMasters();
-    MasterProcess masterProcess = mCluster.getLocalAlluxioMaster().getMasterProcess();
+    AlluxioMasterProcess masterProcess = mCluster.getLocalAlluxioMaster().getMasterProcess();
     assertNotNull(masterProcess.getMaster(BlockMaster.class).getBlockInfo(blockId));
   }
 
@@ -81,7 +81,7 @@ public class BlockMasterJournalIntegrationTest {
     }
     mCluster.stopMasters();
     mCluster.startMasters();
-    MasterProcess masterProcess = mCluster.getLocalAlluxioMaster().getMasterProcess();
+    AlluxioMasterProcess masterProcess = mCluster.getLocalAlluxioMaster().getMasterProcess();
     try {
       masterProcess.getMaster(BlockMaster.class).getBlockInfo(blockId);
       fail("Expected the block to be deleted after restart");

@@ -14,7 +14,7 @@ package alluxio.master.block;
 import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.conf.ServerConfiguration;
-import alluxio.master.MasterProcess;
+import alluxio.master.AlluxioMasterProcess;
 import alluxio.web.MasterWebServer;
 
 import com.google.common.base.Preconditions;
@@ -54,7 +54,7 @@ public final class BlockMasterClientRestServiceHandler {
    */
   public BlockMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mBlockMaster = ((MasterProcess) context
+    mBlockMaster = ((AlluxioMasterProcess) context
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
         .getMaster(BlockMaster.class);
   }

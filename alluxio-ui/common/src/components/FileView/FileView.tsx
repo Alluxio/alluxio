@@ -11,6 +11,7 @@
 
 import {faCheckSquare, faSquare} from '@fortawesome/free-regular-svg-icons'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import axios, {AxiosRequestConfig} from 'axios';
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {Button, ButtonGroup, Form, FormGroup, Input, Label} from 'reactstrap';
@@ -45,29 +46,17 @@ export interface IFileViewProps {
     'invalidPathError': string;
     'ntotalFile': number;
     'viewingOffset': number;
+  },
+  proxyDownloadApiUrl?: {
+    'prefix': string,
+    'suffix': string
   }
 }
 
 export class FileView extends React.PureComponent<IFileViewProps> {
-  constructor(props: IFileViewProps) {
-    super(props);
-  }
-
   public render(): JSX.Element {
-    const {
-      allowDownload,
-      beginInputHandler,
-      end,
-      endInputHandler,
-      lastFetched,
-      offset,
-      offsetInputHandler,
-      path,
-      queryStringPrefix,
-      queryStringSuffix,
-      textAreaHeight,
-      viewData
-    } = this.props;
+    const {beginInputHandler, end, endInputHandler, lastFetched, offset, offsetInputHandler, path, queryStringPrefix,
+      queryStringSuffix, textAreaHeight, viewData} = this.props;
 
     return (
       <React.Fragment>
@@ -104,13 +93,25 @@ export class FileView extends React.PureComponent<IFileViewProps> {
             <Button tag={Link} to={`${queryStringPrefix}?path=${path}${queryStringSuffix}`} color="primary"
                     disabled={offset === lastFetched.offset && end === lastFetched.end}>Go</Button>
           </FormGroup>
-          {allowDownload && <FormGroup className="col-4">
-            <a href={`${process.env.REACT_APP_API_DOWNLOAD}?path=${encodeURIComponent(path || '')}`}>
-              Download
-            </a>
-          </FormGroup>}
+          {this.renderDownloadLink()}
         </Form>
       </React.Fragment>
     );
+  }
+
+  private renderDownloadLink() {
+    const {allowDownload, path, proxyDownloadApiUrl} = this.props;
+
+    if (allowDownload && proxyDownloadApiUrl && path) {
+      return (
+        <FormGroup className="col-4 mt-1">
+          <a href={`${proxyDownloadApiUrl.prefix}${encodeURIComponent(path)}${proxyDownloadApiUrl.suffix}`}>
+            Download via Alluxio Proxy
+          </a>
+        </FormGroup>
+      );
+    }
+
+    return null;
   }
 }

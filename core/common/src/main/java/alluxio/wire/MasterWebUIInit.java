@@ -14,6 +14,7 @@ package alluxio.wire;
 import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -29,6 +30,7 @@ public final class MasterWebUIInit implements Serializable {
   private boolean mSecurityAuthorizationPermissionEnabled;
   private int mWorkerPort;
   private int mRefreshInterval;
+  private Map<String, String> mProxyDownloadFileApiUrl;
 
   /**
    * Creates a new instance of {@link MasterWebUIInit}.
@@ -79,6 +81,15 @@ public final class MasterWebUIInit implements Serializable {
    */
   public int getRefreshInterval() {
     return mRefreshInterval;
+  }
+
+  /**
+   * Gets proxy download file api url.
+   *
+   * @return the proxy download file api url
+   */
+  public Map<String, String> getProxyDownloadFileApiUrl() {
+    return mProxyDownloadFileApiUrl;
   }
 
   /**
@@ -133,6 +144,17 @@ public final class MasterWebUIInit implements Serializable {
    */
   public MasterWebUIInit setRefreshInterval(int interval) {
     mRefreshInterval = interval;
+    return this;
+  }
+
+  /**
+   * Sets proxy download file api url.
+   *
+   * @param apiUrl the api url
+   * @return the proxy download file api url
+   */
+  public MasterWebUIInit setProxyDownloadFileApiUrl(Map<String, String> apiUrl) {
+    mProxyDownloadFileApiUrl = apiUrl;
     return this;
   }
 

@@ -34,7 +34,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
-import alluxio.master.MasterProcess;
+import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -53,6 +53,7 @@ import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.webui.NodeInfo;
 import alluxio.util.webui.StorageTierInfo;
 import alluxio.util.webui.UIFileBlockInfo;
@@ -97,6 +98,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -167,7 +169,7 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String GET_WORKER_COUNT = "worker_count";
   public static final String GET_WORKER_INFO_LIST = "worker_info_list";
 
-  private final MasterProcess mMasterProcess;
+  private final AlluxioMasterProcess mMasterProcess;
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
   private final MetaMaster mMetaMaster;
@@ -180,8 +182,8 @@ public final class AlluxioMasterRestServiceHandler {
    */
   public AlluxioMasterRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mMasterProcess =
-        (MasterProcess) context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mMasterProcess = (AlluxioMasterProcess) context
+        .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
@@ -230,12 +232,21 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       MasterWebUIInit response = new MasterWebUIInit();
 
+      String proxyHostname = NetworkAddressUtils
+          .getConnectHost(NetworkAddressUtils.ServiceType.PROXY_WEB, ServerConfiguration.global());
+      int proxyPort = ServerConfiguration.getInt(PropertyKey.PROXY_WEB_PORT);
+      Map<String, String> proxyDowloadFileApiUrl = new HashMap<>();
+      proxyDowloadFileApiUrl
+          .put("prefix", "http://" + proxyHostname + ":" + proxyPort + "/api/v1/paths/");
+      proxyDowloadFileApiUrl.put("suffix", "/download-file/");
+
       response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG))
           .setWebFileInfoEnabled(ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED))
           .setSecurityAuthorizationPermissionEnabled(
               ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
           .setWorkerPort(ServerConfiguration.getInt(PropertyKey.WORKER_WEB_PORT))
-          .setRefreshInterval(ServerConfiguration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS));
+          .setRefreshInterval(ServerConfiguration.getInt(PropertyKey.WEBUI_REFRESH_INTERVAL_MS))
+          .setProxyDownloadFileApiUrl(proxyDowloadFileApiUrl);
 
       return response;
     }, ServerConfiguration.global());
@@ -1025,8 +1036,8 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(() -> mMasterProcess.getRpcAddress().toString(),
-        ServerConfiguration.global());
+    return RestUtils
+        .call(() -> mMasterProcess.getRpcAddress().toString(), ServerConfiguration.global());
   }
 
   /**
@@ -1230,7 +1241,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Integer")
   @Deprecated
   public Response getWorkerCount() {
-    return RestUtils.call(()->mBlockMaster.getWorkerCount(), ServerConfiguration.global());
+    return RestUtils.call(() -> mBlockMaster.getWorkerCount(), ServerConfiguration.global());
   }
 
   /**
@@ -1244,7 +1255,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.List<alluxio.wire.WorkerInfo>")
   @Deprecated
   public Response getWorkerInfoList() {
-    return RestUtils.call(()-> mBlockMaster.getWorkerInfoList(), ServerConfiguration.global());
+    return RestUtils.call(() -> mBlockMaster.getWorkerInfoList(), ServerConfiguration.global());
   }
 
   private Capacity getCapacityInternal() {

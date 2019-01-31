@@ -73,7 +73,7 @@ $ cp conf/alluxio.properties.template conf/alluxio.properties
 
 创建一个ConfigMap。
 ```bash
-$ kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxio.properties
+$ kubectl create configmap alluxio-config --from-env-file=ALLUXIO_CONFIG=conf/alluxio.properties
 ```
 
 ## 部署

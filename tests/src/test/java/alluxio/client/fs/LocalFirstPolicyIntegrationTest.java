@@ -23,7 +23,6 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WritePType;
 import alluxio.master.AlluxioMasterProcess;
-import alluxio.master.MasterProcess;
 import alluxio.master.TestUtils;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.testutils.BaseIntegrationTest;
@@ -77,7 +76,7 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void test() throws Exception {
-    MasterProcess master = AlluxioMasterProcess.Factory.create();
+    AlluxioMasterProcess master = AlluxioMasterProcess.Factory.create();
     WorkerProcess worker1 = AlluxioWorkerProcess.Factory
         .create(TieredIdentityFactory.fromString("node=node1,rack=rack1",
             ServerConfiguration.global()));

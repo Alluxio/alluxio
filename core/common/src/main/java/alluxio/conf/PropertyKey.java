@@ -589,6 +589,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
+      new Builder(Name.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE)
+          .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
+          .setDescription("Default chunk size for ranged reads from multi-range object input "
+              + "streams.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_SERVICE_THREADS =
       new Builder(Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS)
           .setDefaultValue(20)
@@ -1510,6 +1518,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether the system should be checked for consistency with the "
               + "underlying storage on startup. During the time the check is running, Alluxio "
               + "will be in read only mode. Enabled by default.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_GRPC_CHANNEL_AUTH_TIMEOUT =
+      new Builder(Name.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT)
+          .setDefaultValue("30sec")
+          .setDescription("Maximum time to wait for gRPC channel to attempt to receive an "
+              + "authentication response.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3487,6 +3503,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
         "alluxio.underfs.object.store.mount.shared.publicly";
+    public static final String UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
+        "alluxio.underfs.object.store.multi.range.chunk.size";
     public static final String UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
         "alluxio.underfs.object.store.read.retry.base.sleep";
     public static final String UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
@@ -3681,6 +3699,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
         "alluxio.master.startup.consistency.check.enabled";
+    public static final String MASTER_GRPC_CHANNEL_AUTH_TIMEOUT =
+        "alluxio.master.grpc.channel.auth.timeout";
     public static final String MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
             "alluxio.master.grpc.channel.shutdown.timeout";
     public static final String MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT =

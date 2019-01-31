@@ -100,7 +100,7 @@ $ cp conf/alluxio.properties.template conf/alluxio.properties
 
 Create a ConfigMap.
 ```bash
-$ kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxio.properties
+$ kubectl create configmap alluxio-config --from-env-file=ALLUXIO_CONFIG=conf/alluxio.properties
 ```
 
 ### Deploy
