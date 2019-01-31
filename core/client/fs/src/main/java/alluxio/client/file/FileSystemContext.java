@@ -156,7 +156,6 @@ public final class FileSystemContext implements Closeable {
    * @return the {@link alluxio.client.file.FileSystemContext}
    */
   public static FileSystemContext create(ClientContext clientContext) {
-    Preconditions.checkNotNull(clientContext);
     FileSystemContext ctx = new FileSystemContext(clientContext);
     ctx.init(MasterInquireClient.Factory.create(clientContext.getConf()));
     return ctx;
@@ -196,6 +195,7 @@ public final class FileSystemContext implements Closeable {
    * @param ctx the parent subject, set to null if not present
    */
   private FileSystemContext(ClientContext ctx) {
+    Preconditions.checkNotNull(ctx);
     mClientContext = ctx;
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
