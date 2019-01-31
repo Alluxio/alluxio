@@ -43,7 +43,8 @@ public final class MasterWebServer extends WebServer {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWebServer.class);
 
   public static final String ALLUXIO_MASTER_SERVLET_RESOURCE_KEY = "Alluxio Master";
-  public static final String ALLUXIO_MASTER_CLIENT_SERVLET_RESOURCE_KEY = "Alluxio Master client";
+  public static final String ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY =
+      "Alluxio Master FileSystem client";
 
   /**
    * Creates a new instance of {@link MasterWebServer}.
@@ -69,7 +70,7 @@ public final class MasterWebServer extends WebServer {
       public void init() throws ServletException {
         super.init();
         getServletContext().setAttribute(ALLUXIO_MASTER_SERVLET_RESOURCE_KEY, masterProcess);
-        getServletContext().setAttribute(ALLUXIO_MASTER_CLIENT_SERVLET_RESOURCE_KEY,
+        getServletContext().setAttribute(ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY,
             FileSystem.Factory.get(ServerConfiguration.global()));
       }
     };

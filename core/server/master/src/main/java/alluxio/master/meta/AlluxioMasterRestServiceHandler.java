@@ -188,7 +188,7 @@ public final class AlluxioMasterRestServiceHandler {
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
     mFsClient = (FileSystem) context
-        .getAttribute(MasterWebServer.ALLUXIO_MASTER_CLIENT_SERVLET_RESOURCE_KEY);
+        .getAttribute(MasterWebServer.ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY);
   }
 
   /**

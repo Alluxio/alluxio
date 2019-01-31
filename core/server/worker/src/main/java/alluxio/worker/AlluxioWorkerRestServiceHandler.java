@@ -144,7 +144,7 @@ public final class AlluxioWorkerRestServiceHandler {
     mBlockWorker = mWorkerProcess.getWorker(BlockWorker.class);
     mStoreMeta = mWorkerProcess.getWorker(BlockWorker.class).getStoreMeta();
     mFsClient = (FileSystem) context
-            .getAttribute(WorkerWebServer.ALLUXIO_WORKER_FILESYSTEM_CLIENT_RESOURCE_KEY);
+            .getAttribute(WorkerWebServer.ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY);
   }
 
   /**

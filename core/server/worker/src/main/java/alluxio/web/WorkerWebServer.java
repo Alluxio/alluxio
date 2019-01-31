@@ -44,7 +44,7 @@ public final class WorkerWebServer extends WebServer {
   private static final Logger LOG = LoggerFactory.getLogger(WorkerWebServer.class);
 
   public static final String ALLUXIO_WORKER_SERVLET_RESOURCE_KEY = "Alluxio Worker";
-  public static final String ALLUXIO_WORKER_FILESYSTEM_CLIENT_RESOURCE_KEY =
+  public static final String ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY =
       "Alluxio Worker FileSystem Client";
 
   /**
@@ -72,7 +72,7 @@ public final class WorkerWebServer extends WebServer {
       public void init() throws ServletException {
         super.init();
         getServletContext().setAttribute(ALLUXIO_WORKER_SERVLET_RESOURCE_KEY, workerProcess);
-        getServletContext().setAttribute(ALLUXIO_WORKER_FILESYSTEM_CLIENT_RESOURCE_KEY,
+        getServletContext().setAttribute(ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY,
             FileSystem.Factory.get(ServerConfiguration.global()));
       }
     };
