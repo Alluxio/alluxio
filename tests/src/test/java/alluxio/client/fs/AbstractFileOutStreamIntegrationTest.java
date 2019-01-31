@@ -60,7 +60,9 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
 
   @After
   public void after() throws Exception {
-    mLocalAlluxioJobCluster.stop();
+    if (mLocalAlluxioJobCluster != null) {
+      mLocalAlluxioJobCluster.stop();
+    }
   }
 
   /**
