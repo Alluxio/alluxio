@@ -12,7 +12,6 @@
 package alluxio.server.health;
 
 import alluxio.HealthCheckClient;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.jobmaster.JobMasterHealthCheckClient;
 import alluxio.master.LocalAlluxioJobCluster;
@@ -32,8 +31,7 @@ public class JobMasterHealthCheckClientIntegrationTest extends BaseIntegrationTe
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.JOB_MASTER_RPC_PORT, 0)
-          .build();
+      new LocalAlluxioClusterResource.Builder().build();
 
   private LocalAlluxioJobCluster mLocalAlluxioJobCluster = null;
   private HealthCheckClient mHealthCheckClient;

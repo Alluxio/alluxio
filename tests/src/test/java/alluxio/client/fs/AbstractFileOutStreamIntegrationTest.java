@@ -11,25 +11,21 @@
 
 package alluxio.client.fs;
 
-import static org.junit.Assert.fail;
-
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.testutils.BaseIntegrationTest;
-import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
-import alluxio.util.network.NetworkAddressUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -37,8 +33,6 @@ import org.junit.Before;
 import org.junit.Rule;
 
 import java.io.InputStream;
-import java.net.ServerSocket;
-import java.util.Map;
 
 /**
  * Abstract classes for all integration tests of {@link FileOutStream}.
@@ -51,8 +45,6 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected LocalAlluxioJobCluster mLocalAlluxioJobCluster;
   protected static final int BLOCK_SIZE_BYTES = 1000;
 
-  private Map<NetworkAddressUtils.ServiceType, ServerSocket> mServiceMapping;
-
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       buildLocalAlluxioClusterResource();
@@ -61,13 +53,7 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
 
   @Before
   public void before() throws Exception {
-    if (mServiceMapping == null) {
-      fail("You must initialize a the service socket mapping for this test in order for the "
-          + "cluster to start properly");
-    }
-    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster(mServiceMapping.get(
-        NetworkAddressUtils.ServiceType.JOB_MASTER_RPC), mServiceMapping.get(
-        NetworkAddressUtils.ServiceType.JOB_MASTER_WEB));
+    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
     mLocalAlluxioJobCluster.start();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
@@ -88,12 +74,8 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   }
 
   private LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
-    mServiceMapping = IntegrationTestUtils.createMasterServiceMapping();
-
     LocalAlluxioClusterResource.Builder resource = new LocalAlluxioClusterResource.Builder();
     customizeClusterResource(resource);
-    resource.setSockets(mServiceMapping.get(NetworkAddressUtils.ServiceType.MASTER_RPC),
-        mServiceMapping.get(NetworkAddressUtils.ServiceType.MASTER_WEB));
     return resource.build();
   }
 

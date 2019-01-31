@@ -254,6 +254,14 @@ public final class ConfigurationUtils {
   }
 
   /**
+   * @param conf the configuration use
+   * @return whether the configuration specifies to run in ha mode
+   */
+  public static boolean isHaMode(AlluxioConfiguration conf) {
+    return conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED) || getMasterRpcAddresses(conf).size() > 1;
+  }
+
+  /**
    * Gets all configuration properties filtered by the specified scope.
    *
    * @param conf the configuration to use

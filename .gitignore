@@ -14,6 +14,7 @@
 .fbExcludeFilterFile
 .idea/
 .metadata/
+.port_coordination/
 .project
 .settings/
 /client/

@@ -126,6 +126,7 @@ public final class ConfigurationTestUtils {
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
     conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+    conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
     return conf;
   }
 

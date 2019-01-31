@@ -22,11 +22,8 @@ import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
 import alluxio.master.job.JobMasterClientRestServiceHandler;
 import alluxio.security.LoginUserTestUtils;
-import alluxio.testutils.IntegrationTestUtils;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.network.NetworkAddressUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
@@ -37,7 +34,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.net.ServerSocket;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -51,20 +47,10 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
   private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
   private LocalAlluxioJobCluster mJobCluster;
   private JobMaster mJobMaster;
-  private Map<NetworkAddressUtils.ServiceType, ServerSocket> mMasterServiceMapping;
-
-  @Override
-  public void customizeAlluxioCluster(LocalAlluxioClusterResource.Builder resource) {
-    mMasterServiceMapping = IntegrationTestUtils.createMasterServiceMapping();
-    resource.setSockets(mMasterServiceMapping.get(NetworkAddressUtils.ServiceType.MASTER_RPC),
-        mMasterServiceMapping.get(NetworkAddressUtils.ServiceType.MASTER_WEB));
-  }
 
   @Before
   public void before() throws Exception {
-    mJobCluster = new LocalAlluxioJobCluster(mMasterServiceMapping.get(
-        NetworkAddressUtils.ServiceType.JOB_MASTER_RPC),
-        mMasterServiceMapping.get(NetworkAddressUtils.ServiceType.JOB_MASTER_WEB));
+    mJobCluster = new LocalAlluxioJobCluster();
     mJobCluster.start();
     mJobMaster = mJobCluster.getMaster().getJobMaster();
     mHostname = mJobCluster.getHostname();
