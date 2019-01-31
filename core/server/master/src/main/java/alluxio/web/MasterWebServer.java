@@ -12,6 +12,7 @@
 package alluxio.web;
 
 import alluxio.Constants;
+import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.AlluxioMasterProcess;
@@ -42,6 +43,7 @@ public final class MasterWebServer extends WebServer {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWebServer.class);
 
   public static final String ALLUXIO_MASTER_SERVLET_RESOURCE_KEY = "Alluxio Master";
+  public static final String ALLUXIO_MASTER_CLIENT_SERVLET_RESOURCE_KEY = "Alluxio Master client";
 
   /**
    * Creates a new instance of {@link MasterWebServer}.
@@ -67,6 +69,8 @@ public final class MasterWebServer extends WebServer {
       public void init() throws ServletException {
         super.init();
         getServletContext().setAttribute(ALLUXIO_MASTER_SERVLET_RESOURCE_KEY, masterProcess);
+        getServletContext().setAttribute(ALLUXIO_MASTER_CLIENT_SERVLET_RESOURCE_KEY,
+            FileSystem.Factory.get(ServerConfiguration.global()));
       }
     };
 

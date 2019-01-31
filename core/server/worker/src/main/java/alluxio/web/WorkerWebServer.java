@@ -11,6 +11,7 @@
 
 package alluxio.web;
 
+import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -43,6 +44,8 @@ public final class WorkerWebServer extends WebServer {
   private static final Logger LOG = LoggerFactory.getLogger(WorkerWebServer.class);
 
   public static final String ALLUXIO_WORKER_SERVLET_RESOURCE_KEY = "Alluxio Worker";
+  public static final String ALLUXIO_WORKER_FILESYSTEM_CLIENT_RESOURCE_KEY =
+      "Alluxio Worker FileSystem Client";
 
   /**
    * Creates a new instance of {@link WorkerWebServer}.
@@ -69,6 +72,8 @@ public final class WorkerWebServer extends WebServer {
       public void init() throws ServletException {
         super.init();
         getServletContext().setAttribute(ALLUXIO_WORKER_SERVLET_RESOURCE_KEY, workerProcess);
+        getServletContext().setAttribute(ALLUXIO_WORKER_FILESYSTEM_CLIENT_RESOURCE_KEY,
+            FileSystem.Factory.get(ServerConfiguration.global()));
       }
     };
 
