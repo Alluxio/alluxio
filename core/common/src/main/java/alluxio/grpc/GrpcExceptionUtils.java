@@ -11,6 +11,7 @@
 
 package alluxio.grpc;
 
+import alluxio.collections.Pair;
 import alluxio.exception.status.AlluxioStatusException;
 
 import io.grpc.Metadata;
@@ -100,21 +101,7 @@ public final class GrpcExceptionUtils {
         alluxioStatus = alluxio.exception.status.Status.UNKNOWN;
     }
 
-    /**
-     * Try to find a source cause for this exception for extracting the message.
-     * An embedded cause in exception trailers will always take precedence, over the exception itself.
-     * gRPC exception will mostly contain the status code only, unless we had embedded the cause in
-     * {@code toGrpcStatusException()) helper.
-     */
-    Throwable cause = (e.getCause() != null) ? e.getCause() : e;
-    if (e.getTrailers() != null && e.getTrailers().containsKey(sInnerCauseKey)) {
-      try {
-        cause = (Throwable) SerializationUtils.deserialize(e.getTrailers().get(sInnerCauseKey));
-      } catch (Exception exc) {
-        LOG.warn("Failed to deserialize the cause: {}", exc);
-      }
-    }
-    return AlluxioStatusException.from(alluxioStatus, cause.getMessage());
+    return AlluxioStatusException.from(alluxioStatus, e.getStatus().getDescription());
   }
 
   /**
@@ -180,19 +167,9 @@ public final class GrpcExceptionUtils {
       default:
         code = Status.Code.UNKNOWN;
     }
-    /**
-     * gRPC does not persist root causes that are persisted with Status.withCause().
-     * It's our job to transfer inner exception using metadata trailers.
-     */
-    Metadata trailers = new Metadata();
-    // Embed the exception itself if it doesn't have a cause.
     Throwable cause = (e.getCause() != null) ? e.getCause() : e;
-    try {
-      trailers.put(sInnerCauseKey, SerializationUtils.serialize(cause));
-    } catch (Exception exc) {
-      LOG.warn("Could not serialize the cause: {}. Failed with: {}", cause, exc);
-    }
-    return Status.fromCode(code).asException(trailers);
+
+    return Status.fromCode(code).withDescription(cause.getMessage()).asException();
   }
 
   /**
