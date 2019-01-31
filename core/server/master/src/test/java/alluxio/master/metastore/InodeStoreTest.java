@@ -266,7 +266,7 @@ public class InodeStoreTest {
 
   private void removeParentEdge(InodeView child) {
     try (LockResource lr =
-             mLockManager.lockEdge(new Edge(child.getParentId(), child.getName()), LockMode.WRITE)) {
+        mLockManager.lockEdge(new Edge(child.getParentId(), child.getName()), LockMode.WRITE)) {
       mStore.removeChild(child.getParentId(), child.getName());
     }
   }

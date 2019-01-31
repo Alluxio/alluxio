@@ -30,10 +30,19 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * Writes to the inode store happen atomically, so it is safe to concurrently read and write the
  * same key. It is undefined whether the read will see the old value or the new value.
+ *
+ * The inode store needs a way to temporarily prevent modification to individual inodes or edges. It
+ * does this by acquiring inode lock manager write locks. This requires that the user acquires inode
+ * manager locks when making any modifications to the inode store.
  */
 @ThreadSafe
 public interface InodeStore extends ReadOnlyInodeStore {
   /**
+   * Gets a mutable representation of the specified inode.
+   *
+   * Mutating the returned inode requires holding an inode lock manager read or write lock on the
+   * inode.
+   *
    * @param id an inode id
    * @return the inode with the given id, if it exists
    */
@@ -47,12 +56,16 @@ public interface InodeStore extends ReadOnlyInodeStore {
   /**
    * Removes an inode from the inode store. This does *not* remove the edge leading to the inode.
    *
+   * This method requires an inode lock manager read or write lock on the removed inode.
+   *
    * @param inodeId an inode to remove
    */
   void remove(Long inodeId);
 
   /**
    * Removes an inode from the inode store. This does *not* remove the edge leading to the inode.
+   *
+   * This method requires an inode lock manager read or write lock on the removed inode.
    *
    * @param inode an inode to remove
    */
@@ -62,6 +75,8 @@ public interface InodeStore extends ReadOnlyInodeStore {
 
   /**
    * Removes an inode and the edge leading to it from the inode store.
+   *
+   * This method requires an inode lock manager read or write locks on the removed inode and edge.
    *
    * @param inode an inode to remove
    */
@@ -75,6 +90,8 @@ public interface InodeStore extends ReadOnlyInodeStore {
    *
    * If it is known that the inode is new, prefer {@link #writeNewInode(MutableInode)}.
    *
+   * This method requires an inode lock manager read or write lock on the written inode.
+   *
    * @param inode the inode to write
    */
   void writeInode(MutableInode<?> inode);
@@ -84,6 +101,8 @@ public interface InodeStore extends ReadOnlyInodeStore {
    *
    * This method is similar to {@link #writeInode(MutableInode)}, but with an added information that
    * the inode is new. This allows some inode stores to perform extra optimizations.
+   *
+   * This method requires an inode lock manager read or write lock on the written inode.
    *
    * @param inode the inode to write
    */
@@ -117,6 +136,8 @@ public interface InodeStore extends ReadOnlyInodeStore {
   /**
    * Makes an inode the child of the specified parent.
    *
+   * This method requires an inode lock manager read or write locks on the added edge.
+   *
    * @param parentId the parent id
    * @param childName the child name
    * @param childId the child inode id
@@ -125,6 +146,8 @@ public interface InodeStore extends ReadOnlyInodeStore {
 
   /**
    * Makes an inode the child of the specified parent.
+   *
+   * This method requires an inode lock manager read or write locks on the added edge.
    *
    * @param parentId the parent id
    * @param child the child inode
@@ -135,6 +158,8 @@ public interface InodeStore extends ReadOnlyInodeStore {
 
   /**
    * Removes a child from a parent inode.
+   *
+   * This method requires an inode lock manager read or write locks on the removed edge.
    *
    * @param parentId the parent inode id
    * @param name the child name
