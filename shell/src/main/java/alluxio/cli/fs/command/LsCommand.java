@@ -228,11 +228,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
     if (forceLoadMetadata) {
       options.setLoadMetadataType(LoadMetadataType.Always);
     }
-<<<<<<< HEAD
     options.setRecursive(recursive);
-    List<URIStatus> statuses = mFileSystem.listStatus(path, options);
-=======
-    optionsBuilder.setRecursive(recursive);
 
     // If list status takes too long, print the message
     Timer timer = new Timer();
@@ -243,10 +239,9 @@ public final class LsCommand extends AbstractFileSystemCommand {
             + "if it has millions of files or sub-directories.");
       }
     }, 10000);
-    List<URIStatus> statuses = mFileSystem.listStatus(path, optionsBuilder.build());
+    List<URIStatus> statuses = mFileSystem.listStatus(path, options);
     timer.cancel();
 
->>>>>>> 981e8a2236... [SMALLFIX] add timer to print helpful message if fs ls takes too long (#8326)
     List<URIStatus> sorted = sortByFieldAndOrder(statuses, sortField, reverse);
     for (URIStatus status : sorted) {
       if (!pinnedOnly || status.isPinned()) {
