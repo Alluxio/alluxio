@@ -330,7 +330,7 @@ public final class MultiProcessCluster {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create an fs client, but state was %s", mState);
 
-    return Factory.get(getFilesystemContext());
+    return Factory.create(getFilesystemContext());
   }
 
   /**

@@ -103,7 +103,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
     public void run() {
       try {
         LOG.debug("Checking master is serving requests");
-        FileSystem fs = FileSystem.Factory.get(mConf);
+        FileSystem fs = FileSystem.Factory.create(mConf);
         fs.exists(new AlluxioURI("/"));
         LOG.debug("Master is serving requests");
       } catch (Throwable e) {

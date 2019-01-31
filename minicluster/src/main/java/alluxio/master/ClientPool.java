@@ -42,7 +42,7 @@ public final class ClientPool implements Closeable {
    * @return a {@link FileSystem} client
    */
   public FileSystem getClient() throws IOException {
-    final FileSystem fs = FileSystem.Factory.get(ServerConfiguration.global());
+    final FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global());
     mClients.add(fs);
     return fs;
   }
@@ -55,7 +55,7 @@ public final class ClientPool implements Closeable {
    * @return a {@link FileSystem} client
    */
   public FileSystem getClient(FileSystemContext context) throws IOException {
-    final FileSystem fs = FileSystem.Factory.get(context);
+    final FileSystem fs = FileSystem.Factory.create(context);
     mClients.add(fs);
     return fs;
   }

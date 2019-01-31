@@ -58,7 +58,7 @@ public final class MultiMount {
     AlluxioURI hdfsMount = new AlluxioURI("/mnt/hdfs");
     AlluxioURI outputPath = new AlluxioURI("/mnt/hdfs/hello.txt");
     AlluxioURI hdfsPath = new AlluxioURI(args[0]);
-    FileSystem fileSystem = FileSystem.Factory.get(alluxioConf);
+    FileSystem fileSystem = FileSystem.Factory.create(alluxioConf);
 
     try {
       // Make sure mount directory exists.

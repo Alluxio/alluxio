@@ -83,7 +83,7 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
   private void createUfsInStream(ReadType readType) throws Exception {
     InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.copyProperties());
     conf.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
-    FileSystem fs = FileSystem.Factory.get(conf);
+    FileSystem fs = FileSystem.Factory.create(conf);
     FileSystemTestUtils.createByteFile(fs, UFS_ONLY_FILE, WritePType.THROUGH,
         FILE_LEN);
     mUfsInputStream = new HdfsFileInputStream(fs, new AlluxioURI(UFS_ONLY_FILE), null);

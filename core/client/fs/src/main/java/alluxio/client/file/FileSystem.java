@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.conf.Source;
@@ -37,10 +38,16 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.Authority;
+import alluxio.uri.MultiMasterAuthority;
+import alluxio.util.ConfigurationUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +57,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.annotation.concurrent.GuardedBy;
+import javax.security.auth.Subject;
 
 /**
  * Basic file system interface supporting metadata operations and data operations. Developers
@@ -68,13 +80,35 @@ public interface FileSystem {
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
     private static final AtomicBoolean CONF_LOGGED = new AtomicBoolean(false);
 
+    private static final Object CLIENT_CACHE_LOCK = new Object();
+
+    @GuardedBy("CLIENT_CACHE_LOCK")
+    private static ConcurrentHashMap<FileSystemClientKey, FileSystem> CLIENT_CACHE =
+        new ConcurrentHashMap<>();
+
     private Factory() {} // prevent instantiation
 
-    public static FileSystem get(AlluxioConfiguration alluxioConf) {
-      return get(FileSystemContext.create(alluxioConf));
+    public static FileSystem get() {
+      return get(new Subject()); // Use empty subject
     }
 
-    public static FileSystem get(FileSystemContext context) {
+    public static FileSystem get(Subject subject) {
+      Preconditions.checkNotNull(subject, "subject");
+      AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      Authority auth = MasterInquireClient.Factory.getConnectDetails(conf).toAuthority();
+
+      FileSystemClientKey key = new FileSystemClientKey(subject, auth);
+      synchronized (CLIENT_CACHE_LOCK) {
+        return CLIENT_CACHE.computeIfAbsent(key,
+            (clientKey) -> create(ClientContext.create(subject, conf)));
+      }
+    }
+
+    public static FileSystem create(AlluxioConfiguration alluxioConf) {
+      return create(FileSystemContext.create(alluxioConf));
+    }
+
+    public static FileSystem create(FileSystemContext context) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
         AlluxioConfiguration conf = context.getConf();
@@ -89,9 +123,35 @@ public interface FileSystem {
       return BaseFileSystem.create(context);
     }
 
-    public static FileSystem get(ClientContext ctx) {
-      return get(FileSystemContext.create(ctx));
+    public static FileSystem create(ClientContext ctx) {
+      return create(FileSystemContext.create(ctx));
     }
+  }
+
+  class FileSystemClientKey {
+    final Subject mSubject;
+    final Authority mAuth;
+
+    public FileSystemClientKey(Subject subject, Authority auth) {
+      mSubject = subject;
+      mAuth = auth;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(mSubject, mAuth);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (!(o instanceof FileSystemClientKey)) {
+        return false;
+      }
+      FileSystemClientKey otherKey = (FileSystemClientKey) o;
+      return Objects.equals(mSubject, otherKey.mSubject)
+          && Objects.equals(mAuth, otherKey.mAuth);
+    }
+
   }
 
   /**

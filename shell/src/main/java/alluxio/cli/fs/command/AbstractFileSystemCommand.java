@@ -48,7 +48,7 @@ public abstract class AbstractFileSystemCommand implements Command {
           FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
     }
     mFsContext = fsContext;
-    mFileSystem = FileSystem.Factory.get(fsContext);
+    mFileSystem = FileSystem.Factory.create(fsContext);
   }
 
   /**
