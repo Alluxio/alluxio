@@ -67,7 +67,7 @@ public class BasicOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    FileSystem fs = FileSystem.Factory.get(mFsContext);
+    FileSystem fs = FileSystem.Factory.create(mFsContext);
     writeFile(fs);
     return readFile(fs);
   }

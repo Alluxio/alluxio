@@ -615,12 +615,12 @@ public final class Performance {
     if (testCase == 1) {
       sResultPrefix = "AlluxioFilesWriteTest " + sResultPrefix;
       LOG.info(sResultPrefix);
-      AlluxioTest(true /* write */, FileSystem.Factory.get(fsContext));
+      AlluxioTest(true /* write */, FileSystem.Factory.create(fsContext));
     } else if (testCase == 2 || testCase == 9) {
       sResultPrefix = "AlluxioFilesReadTest " + sResultPrefix;
       LOG.info(sResultPrefix);
       sAlluxioStreamingRead = (9 == testCase);
-      AlluxioTest(false /* read */, FileSystem.Factory.get(fsContext));
+      AlluxioTest(false /* read */, FileSystem.Factory.create(fsContext));
     } else if (testCase == 3) {
       sResultPrefix = "RamFile Write " + sResultPrefix;
       LOG.info(sResultPrefix);

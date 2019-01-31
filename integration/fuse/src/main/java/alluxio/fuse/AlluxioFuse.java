@@ -59,7 +59,7 @@ public final class AlluxioFuse {
       System.exit(1);
     }
 
-    final FileSystem tfs = FileSystem.Factory.get(conf);
+    final FileSystem tfs = FileSystem.Factory.create(conf);
     final AlluxioFuseFileSystem fs = new AlluxioFuseFileSystem(tfs, opts, conf);
     final List<String> fuseOpts = opts.getFuseOpts();
     // Force direct_io in FUSE: writes and reads bypass the kernel page

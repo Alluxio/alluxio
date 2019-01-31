@@ -511,7 +511,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     //
     // Must happen inside the lock so that the filesystem context isn't changed by a
     // concurrent call to initialize.
-    mFileSystem = FileSystem.Factory.get(mFsContext);
+    mFileSystem = FileSystem.Factory.create(mFsContext);
   }
 
   /**
