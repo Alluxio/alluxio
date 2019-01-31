@@ -18,6 +18,7 @@ import alluxio.master.file.meta.MutableInode;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import java.io.Closeable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -26,7 +27,7 @@ import java.util.Set;
 /**
  * Read-only access to the inode store.
  */
-public interface ReadOnlyInodeStore {
+public interface ReadOnlyInodeStore extends Closeable {
   /**
    * @return an estimate for the number of inodes in the inode store
    */
@@ -160,4 +161,9 @@ public interface ReadOnlyInodeStore {
    */
   @VisibleForTesting
   Set<MutableInode<?>> allInodes();
+
+  @Override
+  default void close() {
+    // Do nothing by default.
+  }
 }

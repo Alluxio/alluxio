@@ -11,7 +11,6 @@
 
 package alluxio.master.metastore.rocks;
 
-import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
@@ -24,16 +23,14 @@ public final class RocksUtils {
   private RocksUtils() {} // Utils class.
 
   /**
-   * Generates a path to use for a RocksDB database. This method incorporates randomness to avoid
-   * creating multiple databases at the same path.
+   * Generates a path to use for a RocksDB database.
    *
    * @param baseDir the base directory path
    * @param dbName a name for the database
    * @return the generated database path
    */
   public static String generateDbPath(String baseDir, String dbName) {
-    return PathUtils.concatPath(baseDir, String.format("%s-%s-%s", dbName,
-        System.currentTimeMillis(), CommonUtils.randomAlphaNumString(3)));
+    return PathUtils.concatPath(baseDir, dbName);
   }
 
   /**

@@ -140,7 +140,7 @@ public class CachingInodeStoreTest {
     for (int id = 100; id < 100 + CACHE_SIZE * 2; id++) {
       MutableInodeFile child =
           MutableInodeFile.create(id, TEST_INODE_ID, "child" + id, 0, CreateFileContext.defaults());
-      mStore.writeInode(child);
+      mStore.writeNewInode(child);
       mStore.addChild(TEST_INODE_ID, child);
     }
     for (int id = 100; id < 100 + CACHE_SIZE * 2; id++) {
@@ -156,9 +156,8 @@ public class CachingInodeStoreTest {
     ThreadLocalRandom random = ThreadLocalRandom.current();
     List<MutableInodeDirectory> dirs = new ArrayList<>();
     for (int i = 1; i < 5; i++) {
-      MutableInodeDirectory dir = inodeDir(i, 0);
+      MutableInodeDirectory dir = createInodeDir(i, 0);
       dirs.add(dir);
-      mStore.writeInode(dir);
       mStore.addChild(TEST_INODE_ID, dir);
     }
 
@@ -169,8 +168,8 @@ public class CachingInodeStoreTest {
       while (operations.get() < 10_000 || System.currentTimeMillis() < endTimeMs) {
         // Sometimes add, sometimes delete.
         if (random.nextBoolean()) {
-          MutableInodeDirectory dir = inodeDir(random.nextLong(10, 15), random.nextLong(1, 5));
-          mStore.writeInode(dir);
+          MutableInodeDirectory dir =
+              createInodeDir(random.nextLong(10, 15), random.nextLong(1, 5));
           mStore.addChild(dir.getParentId(), dir);
         } else {
           mStore.removeChild(dirs.get(random.nextInt(dirs.size())).getId(),
@@ -189,23 +188,22 @@ public class CachingInodeStoreTest {
   @Test
   public void listingCacheManyDirsEviction() throws Exception {
     for (int i = 1; i < CACHE_SIZE * 3; i++) {
-      mStore.writeNewInode(inodeDir(i, TEST_INODE_ID));
+      createInodeDir(i, TEST_INODE_ID);
     }
     assertFalse(mStore.mListingCache.getCachedChildIds(TEST_INODE_ID).isPresent());
   }
 
   @Test
   public void listingCacheBigDirEviction() throws Exception {
-    MutableInodeDirectory bigDir = inodeDir(1, 0);
-    mStore.writeNewInode(bigDir);
+    MutableInodeDirectory bigDir = createInodeDir(1, 0);
     long dirSize = CACHE_SIZE;
     for (int i = 10; i < 10 + dirSize; i++) {
-      mStore.addChild(bigDir.getId(), inodeDir(i, bigDir.getId()));
+      mStore.addChild(bigDir.getId(), createInodeDir(i, bigDir.getId()));
     }
     // Cache the large directory
     assertEquals(dirSize, Iterables.size(mStore.getChildIds(bigDir.getId())));
     // Perform another operation to trigger eviction
-    mStore.addChild(bigDir.getId(), inodeDir(10000, bigDir.getId()));
+    mStore.addChild(bigDir.getId(), createInodeDir(10000, bigDir.getId()));
     assertFalse(mStore.mListingCache.getCachedChildIds(TEST_INODE_ID).isPresent());
   }
 
@@ -213,17 +211,17 @@ public class CachingInodeStoreTest {
   public void listingCacheAddRemoveEdges() throws Exception {
     // Perform operations including adding and removing many files within a directory. This test has
     // rooted out some bugs related to cache weight tracking.
-    MutableInodeDirectory bigDir = inodeDir(1, 0);
+    MutableInodeDirectory bigDir = createInodeDir(1, 0);
     mStore.writeNewInode(bigDir);
     for (int i = 1000; i < 1000 + CACHE_SIZE; i++) {
-      MutableInodeDirectory subDir = inodeDir(i, bigDir.getId());
+      MutableInodeDirectory subDir = createInodeDir(i, bigDir.getId());
       mStore.addChild(bigDir.getId(), subDir);
       mStore.removeChild(bigDir.getId(), subDir.getName());
     }
 
     List<MutableInodeDirectory> inodes = new ArrayList<>();
     for (int i = 10; i < 10 + (CACHE_SIZE / 2); i++) {
-      MutableInodeDirectory otherDir = inodeDir(i, 0);
+      MutableInodeDirectory otherDir = createInodeDir(i, 0);
       inodes.add(otherDir);
       mStore.writeNewInode(otherDir);
     }
@@ -235,9 +233,11 @@ public class CachingInodeStoreTest {
     }
   }
 
-  private static MutableInodeDirectory inodeDir(long id, long parentId) {
-    return MutableInodeDirectory.create(id, parentId, Long.toString(id),
+  private MutableInodeDirectory createInodeDir(long id, long parentId) {
+    MutableInodeDirectory dir = MutableInodeDirectory.create(id, parentId, Long.toString(id),
         CreateDirectoryContext.defaults());
+    mStore.writeNewInode(dir);
+    return dir;
   }
 
   private void verifyNoBackingStoreReads() {
