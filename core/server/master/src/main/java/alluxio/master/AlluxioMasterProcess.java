@@ -152,8 +152,8 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void stop() throws Exception {
+    stopRejectingServers();
     if (isServing()) {
-      stopServing();
       stopMasters();
       mJournalSystem.stop();
     }
@@ -295,7 +295,6 @@ public class AlluxioMasterProcess extends MasterProcess {
    * all the sinks.
    */
   protected void stopServing() throws Exception {
-    stopRejectingServers();
     if (isServing()) {
       if (!mGrpcServer.shutdown()) {
         LOG.warn("RPC Server shutdown timed out.");

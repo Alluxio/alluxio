@@ -120,6 +120,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
    */
   @Override
   public void stop() throws Exception {
+    stopRejectingServers();
     if (isServing()) {
       stopServing();
       stopMaster();
@@ -192,7 +193,6 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   }
 
   protected void stopServing() throws Exception {
-    stopRejectingServers();
     if (isServing()) {
       LOG.info("Stopping RPC server on {} @ {}", this, mRpcBindAddress);
       if (!mGrpcServer.shutdown()) {
