@@ -330,7 +330,7 @@ public class RocksInodeStore implements InodeStore {
       }
     } catch (IOException e) {
       throw new RuntimeException(
-          String.format("Failed to clear metastore directory (%s): %s", mDbPath, e.toString(), e));
+          String.format("Failed to clear metastore directory (%s): %s", mDbPath, e.toString()), e);
     }
     try {
       Files.createDirectory(path);
