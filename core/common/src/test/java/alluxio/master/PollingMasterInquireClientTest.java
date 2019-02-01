@@ -23,7 +23,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import org.junit.Test;
 
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,26 +35,6 @@ public class PollingMasterInquireClientTest {
     int port = PortRegistry.INSTANCE.reservePort();
     RejectingServer s = new RejectingServer(port);
     s.start();
-    List<InetSocketAddress> addrs = Arrays.asList(
-        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(Constants.SECOND_MS), port));
-    PollingMasterInquireClient client = new PollingMasterInquireClient(addrs,
-        () -> new CountingRetry(0), new ConfigurationBuilder().build());
-    try {
-      client.getPrimaryRpcAddress();
-      fail("Expected polling to fail");
-    } catch (UnavailableException e) {
-      // Expected
-    }
-  }
-
-  /**
-   * Example of how polling a regular server socket will hang.
-   */
-//  @Test
-  public void plainSocketHangs() throws Exception {
-    ServerSocket s = new ServerSocket(0);
-    s.setReuseAddress(true);
-    int port = s.getLocalPort();
     List<InetSocketAddress> addrs = Arrays.asList(
         new InetSocketAddress(NetworkAddressUtils.getLocalHostName(Constants.SECOND_MS), port));
     PollingMasterInquireClient client = new PollingMasterInquireClient(addrs,
