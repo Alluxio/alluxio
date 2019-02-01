@@ -286,7 +286,8 @@ public class AlluxioMasterProcess extends MasterProcess {
           ServerConfiguration.global());
 
       ExecutorService executorService =
-          new ForkJoinPool(ServerConfiguration.getInt(PropertyKey.MASTER_RPC_FORKJOIN_POOL_PARALLELISM));
+          new ForkJoinPool(ServerConfiguration.getInt(
+              PropertyKey.MASTER_RPC_FORKJOIN_POOL_PARALLELISM));
       serverBuilder.executor(executorService);
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
