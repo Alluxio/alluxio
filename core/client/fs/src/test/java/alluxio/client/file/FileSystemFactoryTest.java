@@ -11,10 +11,9 @@
 
 package alluxio.client.file;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -113,15 +112,15 @@ public class FileSystemFactoryTest {
     resetFileSystemCache();
     FileSystem fs1 = FileSystem.Factory.get();
     FileSystem fs2 = FileSystem.Factory.get();
-    assertEquals("Second client should have been retrieved from cache.", fs1, fs2);
+    assertSame("Second client should have been retrieved from cache.", fs1, fs2);
     fs2 = FileSystem.Factory.get(new Subject());
-    assertEquals("Passing empty subject should have given the same cached client", fs1, fs2);
+    assertSame("Passing empty subject should have given the same cached client", fs1, fs2);
     fs2 = FileSystem.Factory.get(createTestSubject("alluxio-test"));
-    assertNotEquals("Passing filled subject should have given a new client", fs1, fs2);
+    assertNotSame("Passing filled subject should have given a new client", fs1, fs2);
     fs1 = FileSystem.Factory.get(createTestSubject("alluxio-test"));
-    assertEquals("Second subject with same credentials should return cached client", fs1, fs2);
+    assertSame("Second subject with same credentials should return cached client", fs1, fs2);
     fs2 = FileSystem.Factory.get(createTestSubject("alluxio-test-2"));
-    assertNotEquals("Passing filled subject should have given a new client", fs1, fs2);
+    assertNotSame("Passing filled subject should have given a new client", fs1, fs2);
   }
 
   private Subject createTestSubject(String username) {
