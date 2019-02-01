@@ -307,18 +307,18 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.THROUGH).setBlockSizeBytes(4).build(), 100);
     Map<FileBlockInfo, List<WorkerNetAddress>> locations = mFileSystem.getBlockLocations(testFile);
-    assertEquals("Should only have one worker", 25, locations.size());
-    locations.forEach(
-        (FileBlockInfo info, List<WorkerNetAddress> workers) -> assertEquals(1, workers.size()));
+    assertEquals("should have 25 blocks", 25, locations.size());
+    locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) ->
+            assertEquals("block " + info + " should have single worker", 1, workers.size()));
 
     // Test in alluxio
     testFile = new AlluxioURI("/test2");
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, CreateFilePOptions.newBuilder()
             .setWriteType(WritePType.CACHE_THROUGH).setBlockSizeBytes(100).build(), 500);
     locations = mFileSystem.getBlockLocations(testFile);
-    assertEquals("Should only have one worker", 5, locations.size());
-    locations.forEach(
-        (FileBlockInfo info, List<WorkerNetAddress> workers) -> assertEquals(1, workers.size()));
+    assertEquals("Should have 5 blocks", 5, locations.size());
+    locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) ->
+        assertEquals("block " + info + " should have single worker", 1, workers.size()));
   }
 
 // Test exception cases for all FileSystem RPCs
