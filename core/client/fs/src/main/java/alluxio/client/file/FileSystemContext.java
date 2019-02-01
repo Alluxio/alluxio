@@ -256,6 +256,13 @@ public final class FileSystemContext implements Closeable {
    */
   public synchronized void close() throws IOException {
     if (!mClosed.get()) {
+      // Setting closed should be the first thing we do because if any of the close operations
+      // fail we'll only have a half-closed object and performing any more operations or closing
+      // again on a half-closed object can possibly result in more errors (i.e. NPE). Setting
+      // closed first is also recommended by the JDK that in implementations of #close() that
+      // developers should first mark their resources as closed prior to any exceptions being
+      // thrown.
+      mClosed.set(true);
       mFileSystemMasterClientPool.close();
       mFileSystemMasterClientPool = null;
       mBlockMasterClientPool.close();
@@ -271,7 +278,6 @@ public final class FileSystemContext implements Closeable {
       }
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
-      mClosed.set(true);
     } else {
       LOG.warn("Attempted to close FileSystemContext with app ID {} which has already been closed"
           + " or not initialized.", mAppId);

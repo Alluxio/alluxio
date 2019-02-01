@@ -11,11 +11,18 @@
 
 package alluxio.client.file;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
+import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -48,16 +55,26 @@ import alluxio.grpc.UnmountPOptions;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
+import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -67,10 +84,16 @@ import javax.annotation.concurrent.ThreadSafe;
 */
 @PublicApi
 @ThreadSafe
-public class BaseFileSystem implements FileSystem {
+public class BaseFileSystem implements FileSystem, Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
 
   protected final FileSystemContext mFsContext;
+  protected final AlluxioBlockStore mBlockStore;
+
+  private final Object mCloseLock = new Object();
+
+  @GuardedBy("mCLoseLock")
+  private AtomicBoolean mClosed = new AtomicBoolean(false);
 
   /**
    * @param context the {@link FileSystemContext} to use in this client
@@ -87,6 +110,34 @@ public class BaseFileSystem implements FileSystem {
    */
   protected BaseFileSystem(FileSystemContext fsContext) {
     mFsContext = fsContext;
+    mBlockStore = AlluxioBlockStore.create(fsContext);
+  }
+
+  /**
+   * Shuts down the client. Close all thread pools and resources used to perform operations. If
+   * any client operations are called after closing the context the behavior is undefined.
+   *
+   * @throws IOException
+   */
+  @Override
+  public void close() throws IOException {
+    if (!mClosed.get()) {
+      synchronized (mCloseLock) {
+        // TODO(zac) Determine the behavior when closing the context during operations.
+        if (!mClosed.get()) {
+          mClosed.set(true);
+          Factory.CLIENT_CACHE.remove(new ClientKey(mFsContext.getClientContext()));
+          mFsContext.close();
+        }
+      }
+    }
+  }
+
+  @Override
+  public boolean isClosed() {
+    synchronized (mCloseLock) {
+      return mClosed.get();
+    }
   }
 
   @Override
@@ -241,6 +292,47 @@ public class BaseFileSystem implements FileSystem {
     } finally {
       mFsContext.releaseMasterClient(masterClient);
     }
+  }
+
+  @Override
+  public Map<FileBlockInfo, List<WorkerNetAddress>> getBlockLocations(AlluxioURI path)
+      throws IOException, AlluxioException {
+    List<FileBlockInfo> blocks = getStatus(path).getFileBlockInfos();
+    Map<FileBlockInfo, List<WorkerNetAddress>> blockLocations = new HashMap<>();
+    for (FileBlockInfo fileBlockInfo : blocks) {
+      // add the existing in-Alluxio block locations
+      List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
+          .stream().map(BlockLocation::getWorkerAddress).collect(toList());
+      if (locations.isEmpty()) { // No in-Alluxio location
+        if (!fileBlockInfo.getUfsLocations().isEmpty()) {
+          // Case 1: Fallback to use under file system locations with co-located workers.
+          // This maps UFS locations to a worker which is co-located.
+          Map<String, WorkerNetAddress> finalWorkerHosts = getHostWorkerMap();
+          locations = fileBlockInfo.getUfsLocations().stream()
+              .map(finalWorkerHosts::get).filter(Objects::nonNull).collect(toList());
+        }
+        if (locations.isEmpty() && mFsContext.getConf()
+            .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
+          // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
+          locations.addAll(getHostWorkerMap().values());
+          Collections.shuffle(locations);
+        }
+      }
+      blockLocations.put(fileBlockInfo, locations);
+    }
+    return blockLocations;
+  }
+
+  private Map<String, WorkerNetAddress> getHostWorkerMap() throws IOException {
+    List<BlockWorkerInfo> workers = mBlockStore.getEligibleWorkers();
+    return workers.stream().collect(
+        toMap(worker -> worker.getNetAddress().getHost(), BlockWorkerInfo::getNetAddress,
+            (worker1, worker2) -> worker1));
+  }
+
+  @Override
+  public AlluxioConfiguration getConf() {
+    return mFsContext.getConf();
   }
 
   @Override
@@ -550,6 +642,7 @@ public class BaseFileSystem implements FileSystem {
    * exception if necessary.
    */
   private void checkUri(AlluxioURI uri) {
+    Preconditions.checkNotNull(uri, "uri");
     if (uri.hasScheme()) {
       String warnMsg = "The URI scheme \"{}\" is ignored and not required in URIs passed to"
           + " the Alluxio Filesystem client.";
