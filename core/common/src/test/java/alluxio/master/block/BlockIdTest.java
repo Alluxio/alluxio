@@ -57,6 +57,14 @@ public final class BlockIdTest {
     Assert.assertEquals(123456L, BlockId.getSequenceNumber(2071248101952L));
   }
 
+  @Test
+  public void getFileId() {
+    Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getFileId(1L));
+    Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getFileId(20000L));
+    Assert.assertEquals(MAX_SEQUENCE_NUMBER * 2 + 1, BlockId.getFileId(2 * MAX_SEQUENCE_NUMBER));
+    Assert.assertEquals(2071264755711L, BlockId.getFileId(2071248101952L));
+  }
+
   /**
    * Tests the {@link BlockId#getMaxSequenceNumber()} method.
    */
