@@ -72,7 +72,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -93,7 +92,7 @@ public class BaseFileSystem implements FileSystem, Closeable {
   private final Object mCloseLock = new Object();
 
   @GuardedBy("mCLoseLock")
-  private AtomicBoolean mClosed = new AtomicBoolean(false);
+  private boolean mClosed = false;
 
   /**
    * @param context the {@link FileSystemContext} to use for client operations
