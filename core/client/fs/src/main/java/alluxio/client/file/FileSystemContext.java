@@ -195,7 +195,7 @@ public final class FileSystemContext implements Closeable {
    * @param ctx the parent subject, set to null if not present
    */
   private FileSystemContext(ClientContext ctx) {
-    Preconditions.checkNotNull(ctx);
+    Preconditions.checkNotNull(ctx, "ctx");
     mClientContext = ctx;
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
