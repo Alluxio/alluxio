@@ -175,8 +175,8 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   protected void startServingRPCServer() {
     // TODO(ggezer) Executor threads not reused until thread capacity is hit.
     //ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
-    stopRejectingRpcServer();
     try {
+      stopRejectingRpcServer();
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress,
           ServerConfiguration.global());
