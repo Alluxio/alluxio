@@ -16,15 +16,15 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CreateFilePOptions;
@@ -33,6 +33,7 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
+import alluxio.master.PollingMasterInquireClient;
 import alluxio.master.block.BlockMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.CommonUtils;
@@ -48,6 +49,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -247,15 +249,23 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     }
   }
 
+  @Test(timeout = 30000)
+  public void queryStandby() throws Exception {
+    List<InetSocketAddress> addresses = mMultiMasterLocalAlluxioCluster.getMasterAddresses();
+    Collections.shuffle(addresses);
+    PollingMasterInquireClient inquireClient =
+        new PollingMasterInquireClient(addresses, ServerConfiguration.global());
+    assertEquals(mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster().getAddress(),
+        inquireClient.getPrimaryRpcAddress());
+  }
+
   @Test
   public void workerReRegister() throws Exception {
-    AlluxioBlockStore store =
-        AlluxioBlockStore.create(FileSystemContext.create(ServerConfiguration.global()));
-    assertEquals(WORKER_CAPACITY_BYTES, store.getCapacityBytes());
-
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
+      AlluxioBlockStore store =
+          AlluxioBlockStore.create(FileSystemContext.create(ServerConfiguration.global()));
       waitForWorkerRegistration(store, 1, 1 * Constants.MINUTE_MS);
       // If worker is successfully re-registered, the capacity bytes should not change.
       long capacityFound = store.getCapacityBytes();

@@ -12,9 +12,9 @@
 package alluxio.worker;
 
 import alluxio.exception.ConnectionFailedException;
-import alluxio.worker.job.JobMasterClient;
 import alluxio.master.job.JobMaster;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.job.JobMasterClient;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;

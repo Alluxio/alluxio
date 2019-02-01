@@ -55,6 +55,7 @@ function main {
   run_args+=" -e MAVEN_CONFIG=${home}/.m2"
 
   run_args+=" -e ALLUXIO_USE_FIXED_TEST_PORTS=true"
+  run_args+=" -e ALLUXIO_PORT_COORDINATION_DIR=${home}"
 
   # Use this as an entrypoint instead of image argument so that it can be interrupted by Ctrl-C
   run_args+=" --entrypoint=dev/jenkins/build.sh"
