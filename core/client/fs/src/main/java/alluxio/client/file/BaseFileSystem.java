@@ -65,7 +65,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -83,7 +82,7 @@ import javax.annotation.concurrent.ThreadSafe;
 */
 @PublicApi
 @ThreadSafe
-public class BaseFileSystem implements FileSystem, Closeable {
+public class BaseFileSystem implements FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
 
   protected final FileSystemContext mFsContext;
