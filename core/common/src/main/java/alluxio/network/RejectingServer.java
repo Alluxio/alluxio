@@ -47,6 +47,7 @@ public final class RejectingServer extends Thread {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+    LOG.info("Started rejecting server on port {}", mPort);
     while (!Thread.interrupted()) {
       try {
         Socket s = mServerSocket.accept();
@@ -79,5 +80,6 @@ public final class RejectingServer extends Thread {
     if (isAlive()) {
       LOG.warn("Failed to stop rejecting server thread");
     }
+    LOG.info("Stopped rejecting server on port {}", mPort);
   }
 }
