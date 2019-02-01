@@ -63,12 +63,12 @@ public class FileSystemFactoryTest {
   }
 
   @Test
-  public void singleMasterClientCacheTest()  {
-    clientCacheTest();
+  public void singleMasterFileSystemCacheTest()  {
+    fileSystemCacheTest();
   }
 
   @Test
-  public void multiMasterClientCacheTest()  {
+  public void multiMasterFileSystemCacheTest()  {
     try (Closeable p = new SystemPropertyRule(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
         "192.168.0.1:1234,192.168.0.2:1445,192.168.0.3:9943").toResource()) {
       ConfigurationUtils.reloadProperties();
@@ -77,14 +77,14 @@ public class FileSystemFactoryTest {
           MasterInquireClient.Factory.getConnectDetails(conf);
       // Make sure we have a MultiMaster authority
       assertTrue(connectDetails.toAuthority() instanceof MultiMasterAuthority);
-      clientCacheTest();
+      fileSystemCacheTest();
     } catch (IOException e) {
       fail("Unable to set system properties");
     }
   }
 
   @Test
-  public void zkClientCacheTest()  {
+  public void zkFileSystemCacheTest()  {
     Map<String, String> sysProps = new HashMap<>();
     sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), Boolean.toString(true));
     sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zk@192.168.0.5");
@@ -97,7 +97,7 @@ public class FileSystemFactoryTest {
           MasterInquireClient.Factory.getConnectDetails(conf);
       // Make sure we have a Zookeeper authority
       assertTrue(connectDetails.toAuthority() instanceof ZookeeperAuthority);
-      clientCacheTest();
+      fileSystemCacheTest();
     } catch (IOException e) {
       fail("Unable to set system properties");
     }
@@ -109,8 +109,8 @@ public class FileSystemFactoryTest {
     FileSystem.Factory.get(null);
   }
 
-  public void clientCacheTest()  {
-    resetClientCache();
+  public void fileSystemCacheTest()  {
+    resetFileSystemCache();
     FileSystem fs1 = FileSystem.Factory.get();
     FileSystem fs2 = FileSystem.Factory.get();
     assertEquals("Second client should have been retrieved from cache.", fs1, fs2);
@@ -131,7 +131,7 @@ public class FileSystemFactoryTest {
     return new Subject(false, principals, new HashSet<>(), new HashSet<>());
   }
 
-  public void resetClientCache() {
-    FileSystem.Factory.CLIENT_CACHE.purge();
+  public void resetFileSystemCache() {
+    FileSystem.Factory.FILESYSTEM_CACHE.purge();
   }
 }

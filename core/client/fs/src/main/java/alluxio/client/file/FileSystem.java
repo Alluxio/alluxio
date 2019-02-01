@@ -82,7 +82,7 @@ public interface FileSystem extends Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
     private static final AtomicBoolean CONF_LOGGED = new AtomicBoolean(false);
 
-    protected static final FileSystem.Cache CLIENT_CACHE = new FileSystem.Cache();
+    protected static final FileSystem.Cache FILESYSTEM_CACHE = new FileSystem.Cache();
 
     private Factory() {} // prevent instantiation
 
@@ -93,8 +93,8 @@ public interface FileSystem extends Closeable {
     public static FileSystem get(Subject subject) {
       Preconditions.checkNotNull(subject, "subject");
       AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-      ClientKey key = new ClientKey(subject, conf);
-      return CLIENT_CACHE.get(key);
+      FileSystemKey key = new FileSystemKey(subject, conf);
+      return FILESYSTEM_CACHE.get(key);
     }
 
     public static FileSystem create(AlluxioConfiguration alluxioConf) {
@@ -126,24 +126,24 @@ public interface FileSystem extends Closeable {
    */
   class Cache {
 
-    private final Object mClientCacheLock = new Object();
+    private final Object mFileSystemCacheLock = new Object();
 
-    @GuardedBy("mClientCacheLock")
-    final ConcurrentHashMap<ClientKey, FileSystem> mCacheMap = new ConcurrentHashMap<>();
+    @GuardedBy("mFileSystemCacheLock")
+    final ConcurrentHashMap<FileSystemKey, FileSystem> mCacheMap = new ConcurrentHashMap<>();
 
     public Cache() { }
 
     /**
-     * Gets a client object from the cache. If there is no client object one is created, inserted
-     * into the cache, and returned back to the user.
+     * Gets a {@link FileSystem} from the cache. If there is none, one is created, inserted into
+     * the cache, and returned back to the user.
      *
-     * @param key the key to retrieve a Client
-     * @return
+     * @param key the key to retrieve a {@link FileSystem}
+     * @return the {@link FileSystem} associated with the key
      */
-    public FileSystem get(ClientKey key) {
-      synchronized (mClientCacheLock) {
+    public FileSystem get(FileSystemKey key) {
+      synchronized (mFileSystemCacheLock) {
         return mCacheMap.computeIfAbsent(key,
-            (clientKey) -> Factory.create(ClientContext.create(key.mSubject, key.mConf)));
+            (fileSystemKey) -> Factory.create(ClientContext.create(key.mSubject, key.mConf)));
       }
     }
 
@@ -153,8 +153,8 @@ public interface FileSystem extends Closeable {
      * @param key the client key to remove
      * @return The removed context or null if there is no client associated with the key
      */
-    public FileSystem remove(ClientKey key) {
-      synchronized (mClientCacheLock) {
+    public FileSystem remove(FileSystemKey key) {
+      synchronized (mFileSystemCacheLock) {
         return mCacheMap.remove(key);
       }
     }
@@ -164,8 +164,8 @@ public interface FileSystem extends Closeable {
      */
     @VisibleForTesting
     public void purge() {
-      synchronized (mClientCacheLock) {
-        mCacheMap.forEach(((clientKey, fileSystem) -> {
+      synchronized (mFileSystemCacheLock) {
+        mCacheMap.forEach(((fileSystemKey, fileSystem) -> {
           try {
             fileSystem.close();
           } catch (IOException e) {
@@ -178,22 +178,25 @@ public interface FileSystem extends Closeable {
   }
 
   /**
-   * A key which can be used to look up a client instance in the {@link Cache}.
+   * A key which can be used to look up a {@link FileSystem} instance in the {@link Cache}.
    */
-  class ClientKey {
+  class FileSystemKey {
     final Subject mSubject;
     final Authority mAuth;
 
-    /** Only used to store the configuration. Allows us to compute client directly from a key. */
+    /**
+     * Only used to store the configuration. Allows us to compute a {@link FileSystem} directly
+     * from a key.
+     */
     final AlluxioConfiguration mConf;
 
-    public ClientKey(Subject subject, AlluxioConfiguration conf) {
+    public FileSystemKey(Subject subject, AlluxioConfiguration conf) {
       mConf = conf;
       mSubject = subject;
       mAuth = MasterInquireClient.Factory.getConnectDetails(conf).toAuthority();
     }
 
-    public ClientKey(ClientContext ctx) {
+    public FileSystemKey(ClientContext ctx) {
       this(ctx.getSubject(), ctx.getConf());
     }
 
@@ -204,10 +207,10 @@ public interface FileSystem extends Closeable {
 
     @Override
     public boolean equals(Object o) {
-      if (!(o instanceof ClientKey)) {
+      if (!(o instanceof FileSystemKey)) {
         return false;
       }
-      ClientKey otherKey = (ClientKey) o;
+      FileSystemKey otherKey = (FileSystemKey) o;
       return Objects.equals(mSubject, otherKey.mSubject)
           && Objects.equals(mAuth, otherKey.mAuth);
     }
@@ -215,10 +218,10 @@ public interface FileSystem extends Closeable {
 
   /**
    * If there are operations currently running and close is called concurrently the behavior is
-   * undefined. After closing a client, any operations that are performed result in undefined
+   * undefined. After closing a FileSystem, any operations that are performed result in undefined
    * behavior.
    *
-   * @return whether or not this client has been closed
+   * @return whether or not this FileSystem has been closed
    */
   boolean isClosed();
 
@@ -349,7 +352,7 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * @return the configuration which the client is using to connect to Alluxio
+   * @return the configuration which the FileSystem is using to connect to Alluxio
    */
   AlluxioConfiguration getConf();
 

@@ -96,7 +96,7 @@ public class BaseFileSystem implements FileSystem, Closeable {
   private AtomicBoolean mClosed = new AtomicBoolean(false);
 
   /**
-   * @param context the {@link FileSystemContext} to use in this client
+   * @param context the {@link FileSystemContext} to use for client operations
    * @return a {@link BaseFileSystem}
    */
   public static BaseFileSystem create(FileSystemContext context) {
@@ -114,8 +114,8 @@ public class BaseFileSystem implements FileSystem, Closeable {
   }
 
   /**
-   * Shuts down the client. Close all thread pools and resources used to perform operations. If
-   * any client operations are called after closing the context the behavior is undefined.
+   * Shuts down the FileSystem. Closes all thread pools and resources used to perform operations. If
+   * any operations are called after closing the context the behavior is undefined.
    *
    * @throws IOException
    */
@@ -126,7 +126,7 @@ public class BaseFileSystem implements FileSystem, Closeable {
         // TODO(zac) Determine the behavior when closing the context during operations.
         if (!mClosed.get()) {
           mClosed.set(true);
-          Factory.CLIENT_CACHE.remove(new ClientKey(mFsContext.getClientContext()));
+          Factory.FILESYSTEM_CACHE.remove(new FileSystemKey(mFsContext.getClientContext()));
           mFsContext.close();
         }
       }
