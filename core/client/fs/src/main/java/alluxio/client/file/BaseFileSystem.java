@@ -119,11 +119,11 @@ public class BaseFileSystem implements FileSystem {
    */
   @Override
   public void close() throws IOException {
-    if (!mClosed.get()) {
+    if (!mClosed) {
       synchronized (mCloseLock) {
         // TODO(zac) Determine the behavior when closing the context during operations.
-        if (!mClosed.get()) {
-          mClosed.set(true);
+        if (!mClosed) {
+          mClosed = true;
           Factory.FILESYSTEM_CACHE.remove(new FileSystemKey(mFsContext.getClientContext()));
           mFsContext.close();
         }
@@ -134,7 +134,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public boolean isClosed() {
     synchronized (mCloseLock) {
-      return mClosed.get();
+      return mClosed;
     }
   }
 
