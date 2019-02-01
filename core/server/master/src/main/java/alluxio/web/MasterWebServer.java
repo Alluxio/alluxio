@@ -13,7 +13,6 @@ package alluxio.web;
 
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.AlluxioMasterProcess;
