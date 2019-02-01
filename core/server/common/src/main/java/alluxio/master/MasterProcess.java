@@ -14,36 +14,36 @@ package alluxio.master;
 import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.Process;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
+import alluxio.network.RejectingServer;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.WebServer;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.net.SocketAddress;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
  * Defines a set of methods which any {@link MasterProcess} should implement.
  *
- * This class serves as a common implementation for functions that both the
- * {@link alluxio.master.AlluxioMasterProcess} and {@link alluxio.master.AlluxioJobMasterProcess}
- * use. Each master should have an RPC server, web server, and journaling system which can serve
- * client requests.
+ * This class serves as a common implementation for functions that both the AlluxioMasterProcess and
+ * AlluxioJobMasterProcess use. Each master should have an RPC server, web server, and journaling
+ * system which can serve client requests.
  */
 public abstract class MasterProcess implements Process {
   private static final Logger LOG = LoggerFactory.getLogger(MasterProcess.class);
@@ -57,38 +57,64 @@ public abstract class MasterProcess implements Process {
   /** Minimum number of threads to serve the rpc server. */
   final int mMinWorkerThreads;
 
-  /** Used for auto binding. **/
-  final ServerSocket mRpcBindSocket;
+  /** Rpc server bind address. **/
+  final InetSocketAddress mRpcBindAddress;
 
-  /** Used for auto binding web server. **/
-  final ServerSocket mWebBindSocket;
+  /** Web server bind address. **/
+  final InetSocketAddress mWebBindAddress;
 
   /** The start time for when the master started. */
   final long mStartTimeMs = System.currentTimeMillis();
 
+  /**
+   * Rejecting servers for used by backup masters to reserve ports but reject connection requests.
+   */
+  private RejectingServer mRejectingRpcServer;
+  private RejectingServer mRejectingWebServer;
+
   /** The RPC server. */
-  GrpcServer mGrpcServer;
+  protected GrpcServer mGrpcServer;
 
   /** The web ui server. */
-  WebServer mWebServer;
+  protected WebServer mWebServer;
 
   /**
    * Prepares a {@link MasterProcess} journal, rpc and web server using the given sockets.
    *
-   * @param journalSystem The journaling system
-   * @param rpcBindSocket a socket bound to an address that the master's rpc server will use
-   * @param webBindSocket a socket bound to an address that the master's web server will use
+   * @param journalSystem the journaling system
+   * @param rpcService the rpc service type
+   * @param webService the web service type
    */
-  public MasterProcess(JournalSystem journalSystem, ServerSocket rpcBindSocket,
-      ServerSocket webBindSocket) {
+  public MasterProcess(JournalSystem journalSystem, ServiceType rpcService,
+      ServiceType webService) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mMinWorkerThreads = ServerConfiguration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
     mMaxWorkerThreads = ServerConfiguration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
-    mRpcBindSocket = rpcBindSocket;
-    mWebBindSocket = webBindSocket;
+    mRpcBindAddress = configureAddress(rpcService);
+    mWebBindAddress = configureAddress(webService);
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
         PropertyKey.MASTER_WORKER_THREADS_MAX + " can not be less than "
             + PropertyKey.MASTER_WORKER_THREADS_MIN);
+  }
+
+  private static InetSocketAddress configureAddress(ServiceType service) {
+    InstancedConfiguration conf = ServerConfiguration.global();
+    int port = NetworkAddressUtils.getPort(service, conf);
+    if (!ConfigurationUtils.isHaMode(conf) && port == 0) {
+      throw new RuntimeException(
+          String.format("%s port must be nonzero in single-master mode", service));
+    }
+    if (port == 0) {
+      try {
+        ServerSocket s = new ServerSocket(0);
+        s.setReuseAddress(true);
+        conf.set(service.getPortKey(), s.getLocalPort());
+        s.close();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return NetworkAddressUtils.getBindAddress(service, conf);
   }
 
   /**
@@ -151,69 +177,29 @@ public abstract class MasterProcess implements Process {
     }
   }
 
-  public static final ImmutableList<ServiceType> MASTER_PROCESS_PORT_SERVICE_LIST =
-      ImmutableList.of(
-          ServiceType.MASTER_RPC,
-          ServiceType.MASTER_WEB,
-          ServiceType.JOB_MASTER_RPC,
-          ServiceType.JOB_MASTER_WEB,
-          ServiceType.PROXY_WEB);
+  protected void startRejectingServers() {
+    mRejectingRpcServer = new RejectingServer(mRpcBindAddress.getPort());
+    mRejectingRpcServer.start();
+    mRejectingWebServer = new RejectingServer(mWebBindAddress.getPort());
+    mRejectingWebServer.start();
+  }
 
-  /**
-   * Creates a socket bound to a specific port to "reserve" the port until the master process is
-   * ready to start. Only a select number of corresponding {@link ServiceType} are valid for this
-   * operation. The returned socket should then be passed to the master process for creation. The
-   * socket created respects the current {@link ServerConfiguration}
-   *
-   * @param service The service corresponding to the port that a socket should be created for
-   * @return ServerSocket for a given service updating the configuration if necessary
-   */
-  protected static ServerSocket setupBindSocket(ServiceType service) {
-    if (!MASTER_PROCESS_PORT_SERVICE_LIST.contains(service)) {
-      throw new IllegalArgumentException(String.format(
-          "Cannot set up BindSocket for service \"%s\"", service.getServiceName()));
-    }
-
-    PropertyKey portKey = service.getPortKey();
-
-    // Extract the port from the generated socket.
-    // When running tests, it is fine to use port '0' so the system will figure out what port to
-    // use (any random free port).
-    // In a production or any real deployment setup, port '0' should not be used as it will make
-    // deployment more complicated.
-    if (!ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-      Preconditions.checkState(ServerConfiguration.getInt(portKey) > 0,
-          String.format("MasterProcess %s is only allowed to be zero in test mode.",
-              portKey.getName()));
-    }
-    InetSocketAddress bindAddress = NetworkAddressUtils
-        .getBindAddress(service, ServerConfiguration.global());
-    try {
-      ServerSocket bindSocket =
-          new ServerSocket(ServerConfiguration.getInt(portKey), 50, bindAddress.getAddress());
-      if (bindAddress.getPort() == 0) {
-        ServerConfiguration.set(portKey, bindSocket.getLocalPort());
-      }
-      return bindSocket;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+  protected void stopRejectingRpcServer() {
+    if (mRejectingRpcServer != null) {
+      mRejectingRpcServer.stopAndJoin();
+      mRejectingRpcServer = null;
     }
   }
 
-  /** This method will close the socket upon first initialization. */
-  protected InetSocketAddress getWebAddressFromBindSocket() throws IOException {
-    Preconditions.checkNotNull(mWebBindSocket, "mWebBindSocket");
-    InetSocketAddress socketAddr = new InetSocketAddress(mWebBindSocket.getInetAddress(),
-        mWebBindSocket.getLocalPort());
-    mWebBindSocket.close();
-    return socketAddr;
+  protected void stopRejectingWebServer() {
+    if (mRejectingWebServer != null) {
+      mRejectingWebServer.stopAndJoin();
+      mRejectingWebServer = null;
+    }
   }
 
-  /** This method will close the socket upon first initialization. */
-  protected SocketAddress getRpcAddressFromBindSocket() throws IOException {
-    Preconditions.checkNotNull(mRpcBindSocket, "mRpcBindSocket");
-    SocketAddress addr = mRpcBindSocket.getLocalSocketAddress();
-    mRpcBindSocket.close();
-    return addr;
+  protected void stopRejectingServers() {
+    stopRejectingRpcServer();
+    stopRejectingWebServer();
   }
 }
