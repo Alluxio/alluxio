@@ -88,10 +88,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
 
-  /** Sockets for the Alluxio master. */
-  private ServerSocket mRpcBindSocket;
-  private ServerSocket mWebBindSocket;
-
   /**
    * Creates a new instance.
    *
@@ -100,14 +96,12 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @param configuration configuration for configuring the cluster
    */
   private LocalAlluxioClusterResource(boolean startCluster, int numWorkers,
-      Map<PropertyKey, String> configuration, ServerSocket rpcBindSocket,
-      ServerSocket webBindSocket) {
+      Map<PropertyKey, String> configuration) {
+    IntegrationTestUtils.reserveMasterPorts();
     mStartCluster = startCluster;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
     MetricsSystem.resetAllCounters();
-    mRpcBindSocket = rpcBindSocket;
-    mWebBindSocket = webBindSocket;
   }
 
   /**
@@ -140,7 +134,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     AuthenticatedClientUser.remove();
     LoginUserTestUtils.resetLoginUser();
     // Create a new cluster.
-    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers, mRpcBindSocket, mWebBindSocket);
+    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers);
     // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration();
     // Overwrite the test configuration with test specific parameters
@@ -180,6 +174,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
           statement.evaluate();
         } finally {
           mLocalAlluxioCluster.stop();
+          IntegrationTestUtils.releaseMasterPorts();
         }
       }
     };
@@ -229,18 +224,11 @@ public final class LocalAlluxioClusterResource implements TestRule {
       return this;
     }
 
-    public Builder setSockets(ServerSocket rpcBindSocket, ServerSocket webBindSocket) {
-      mRpcBindSocket = rpcBindSocket;
-      mWebBindSocket = webBindSocket;
-      return this;
-    }
-
     /**
      * @return a {@link LocalAlluxioClusterResource} for the current builder values
      */
     public LocalAlluxioClusterResource build() {
-      return new LocalAlluxioClusterResource(mStartCluster, mNumWorkers, mConfiguration,
-          mRpcBindSocket, mWebBindSocket);
+      return new LocalAlluxioClusterResource(mStartCluster, mNumWorkers, mConfiguration);
     }
   }
 

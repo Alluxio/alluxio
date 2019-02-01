@@ -17,9 +17,9 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Process;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WritePType;
 import alluxio.master.AlluxioMasterProcess;
@@ -56,8 +56,6 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
         AlluxioTestDirectory.createTemporaryDirectory("tiered_identity_test").getAbsolutePath());
-    map.put(PropertyKey.MASTER_RPC_PORT, "0");
-    map.put(PropertyKey.MASTER_WEB_PORT, "0");
     map.put(PropertyKey.WORKER_RPC_PORT, "0");
     map.put(PropertyKey.WORKER_WEB_PORT, "0");
 

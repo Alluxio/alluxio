@@ -13,11 +13,11 @@ package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationTestUtils;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -129,6 +130,17 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     return -1;
+  }
+
+  /**
+   * @return the master addresses
+   */
+  public List<InetSocketAddress> getMasterAddresses() {
+    List<InetSocketAddress> addrs = new ArrayList<>();
+    for (int i = 0; i < mNumOfMasters; i++) {
+      addrs.add(mMasters.get(i).getAddress());
+    }
+    return addrs;
   }
 
   /**
