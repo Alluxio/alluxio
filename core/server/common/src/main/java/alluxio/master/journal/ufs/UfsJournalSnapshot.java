@@ -83,6 +83,7 @@ public final class UfsJournalSnapshot {
   /**
    * Creates a snapshot of the journal.
    *
+   * @param journal the journal
    * @return the journal snapshot
    */
   public static UfsJournalSnapshot getSnapshot(UfsJournal journal) throws IOException {
