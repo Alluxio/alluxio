@@ -54,6 +54,14 @@ public final class BlockId {
   }
 
   /**
+   * @param blockId the block ID to get the file ID for
+   * @return the file ID of a specified block ID
+   */
+  public static long getFileId(long blockId) {
+    return createBlockId(getContainerId(blockId), getMaxSequenceNumber());
+  }
+
+  /**
    * @param blockId the block ID to get the sequence number for
    * @return the sequence number of the specified block ID
    */

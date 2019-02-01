@@ -215,6 +215,16 @@ public final class FileSystemMasterProto {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_file_FileInfo_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_file_GetFilePathPResponse_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_file_GetFilePathPResponse_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_file_GetFilePathPRequest_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_file_GetFilePathPRequest_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_file_MountPResponse_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -599,193 +609,198 @@ public final class FileSystemMasterProto {
       "\026\n\016ufsFingerprint\030\032 \001(\t\022$\n\003acl\030\033 \001(\0132\027.a" +
       "lluxio.grpc.file.PAcl\022+\n\ndefaultAcl\030\034 \001(" +
       "\0132\027.alluxio.grpc.file.PAcl\022\026\n\016replicatio" +
-      "nMax\030\035 \001(\005\022\026\n\016replicationMin\030\036 \001(\005\"\020\n\016Mo" +
-      "untPResponse\"\364\001\n\rMountPOptions\022\020\n\010readOn" +
-      "ly\030\001 \001(\010\022D\n\nproperties\030\002 \003(\01320.alluxio.g" +
-      "rpc.file.MountPOptions.PropertiesEntry\022\016" +
-      "\n\006shared\030\003 \001(\010\022H\n\rcommonOptions\030\004 \001(\01321." +
-      "alluxio.grpc.file.FileSystemMasterCommon" +
-      "POptions\0321\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t" +
-      "\022\r\n\005value\030\002 \001(\t:\0028\001\"h\n\rMountPRequest\022\023\n\013" +
-      "alluxioPath\030\001 \001(\t\022\017\n\007ufsPath\030\002 \001(\t\0221\n\007op" +
-      "tions\030\003 \001(\0132 .alluxio.grpc.file.MountPOp" +
-      "tions\"\300\001\n\026GetMountTablePResponse\022O\n\013moun" +
-      "tPoints\030\001 \003(\0132:.alluxio.grpc.file.GetMou" +
-      "ntTablePResponse.MountPointsEntry\032U\n\020Mou" +
-      "ntPointsEntry\022\013\n\003key\030\001 \001(\t\0220\n\005value\030\002 \001(" +
-      "\0132!.alluxio.grpc.file.MountPointInfo:\0028\001" +
-      "\"\027\n\025GetMountTablePRequest\"\205\002\n\016MountPoint" +
-      "Info\022\016\n\006ufsUri\030\001 \001(\t\022\017\n\007ufsType\030\002 \001(\t\022\034\n" +
-      "\020ufsCapacityBytes\030\003 \001(\003:\002-1\022\030\n\014ufsUsedBy" +
-      "tes\030\004 \001(\003:\002-1\022\020\n\010readOnly\030\005 \001(\010\022E\n\nprope" +
-      "rties\030\006 \003(\01321.alluxio.grpc.file.MountPoi" +
-      "ntInfo.PropertiesEntry\022\016\n\006shared\030\007 \001(\010\0321" +
-      "\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
-      "\002 \001(\t:\0028\001\"\\\n\030FileSystemCommandOptions\022@\n" +
-      "\016persistOptions\030\001 \001(\0132(.alluxio.grpc.fil" +
-      "e.PersistCommandOptions\"M\n\025PersistComman" +
-      "dOptions\0224\n\014persistFiles\030\001 \003(\0132\036.alluxio" +
-      ".grpc.file.PersistFile\"/\n\013PersistFile\022\016\n" +
-      "\006fileId\030\001 \001(\003\022\020\n\010blockIds\030\002 \003(\003\"\210\001\n\021File" +
-      "SystemCommand\022.\n\013commandType\030\001 \001(\0162\031.all" +
-      "uxio.grpc.CommandType\022C\n\016commandOptions\030" +
-      "\002 \001(\0132+.alluxio.grpc.file.FileSystemComm" +
-      "andOptions\"\021\n\017RenamePResponse\"Z\n\016RenameP" +
-      "Options\022H\n\rcommonOptions\030\001 \001(\01321.alluxio" +
-      ".grpc.file.FileSystemMasterCommonPOption" +
-      "s\"c\n\016RenamePRequest\022\014\n\004path\030\001 \001(\t\022\017\n\007dst" +
-      "Path\030\002 \001(\t\0222\n\007options\030\003 \001(\0132!.alluxio.gr" +
-      "pc.file.RenamePOptions\"\027\n\025SetAttributePR" +
-      "esponse\"\300\002\n\024SetAttributePOptions\022\016\n\006pinn" +
-      "ed\030\001 \001(\010\022\013\n\003ttl\030\002 \001(\003\022*\n\tttlAction\030\003 \001(\016" +
-      "2\027.alluxio.grpc.TtlAction\022\021\n\tpersisted\030\004" +
-      " \001(\010\022\r\n\005owner\030\005 \001(\t\022\r\n\005group\030\006 \001(\t\022!\n\004mo" +
-      "de\030\007 \001(\0132\023.alluxio.grpc.PMode\022\021\n\trecursi" +
-      "ve\030\010 \001(\010\022\026\n\016replicationMax\030\t \001(\005\022\026\n\016repl" +
-      "icationMin\030\n \001(\005\022H\n\rcommonOptions\030\013 \001(\0132" +
-      "1.alluxio.grpc.file.FileSystemMasterComm" +
-      "onPOptions\"^\n\024SetAttributePRequest\022\014\n\004pa" +
-      "th\030\001 \001(\t\0228\n\007options\030\002 \001(\0132\'.alluxio.grpc" +
-      ".file.SetAttributePOptions\"\021\n\017SetAclPRes" +
-      "ponse\"m\n\016SetAclPOptions\022H\n\rcommonOptions" +
-      "\030\001 \001(\01321.alluxio.grpc.file.FileSystemMas" +
-      "terCommonPOptions\022\021\n\trecursive\030\002 \001(\010\"\262\001\n" +
-      "\016SetAclPRequest\022\014\n\004path\030\001 \001(\t\022/\n\006action\030" +
-      "\002 \001(\0162\037.alluxio.grpc.file.SetAclAction\022-" +
-      "\n\007entries\030\003 \003(\0132\034.alluxio.grpc.file.PAcl" +
-      "Entry\0222\n\007options\030\004 \001(\0132!.alluxio.grpc.fi" +
-      "le.SetAclPOptions\"#\n!ScheduleAsyncPersis" +
-      "tencePResponse\"l\n ScheduleAsyncPersisten" +
-      "cePOptions\022H\n\rcommonOptions\030\001 \001(\01321.allu" +
-      "xio.grpc.file.FileSystemMasterCommonPOpt" +
-      "ions\"v\n ScheduleAsyncPersistencePRequest" +
-      "\022\014\n\004path\030\001 \001(\t\022D\n\007options\030\002 \001(\01323.alluxi" +
-      "o.grpc.file.ScheduleAsyncPersistencePOpt" +
-      "ions\"\024\n\022StartSyncPResponse\"]\n\021StartSyncP" +
-      "Options\022H\n\rcommonOptions\030\001 \001(\01321.alluxio" +
-      ".grpc.file.FileSystemMasterCommonPOption" +
-      "s\"X\n\021StartSyncPRequest\022\014\n\004path\030\001 \001(\t\0225\n\007" +
-      "options\030\002 \001(\0132$.alluxio.grpc.file.StartS" +
-      "yncPOptions\"\023\n\021StopSyncPResponse\"\\\n\020Stop" +
-      "SyncPOptions\022H\n\rcommonOptions\030\001 \001(\01321.al" +
-      "luxio.grpc.file.FileSystemMasterCommonPO" +
-      "ptions\"V\n\020StopSyncPRequest\022\014\n\004path\030\001 \001(\t" +
-      "\0224\n\007options\030\002 \001(\0132#.alluxio.grpc.file.St" +
-      "opSyncPOptions\"\022\n\020UnmountPResponse\"[\n\017Un" +
-      "mountPOptions\022H\n\rcommonOptions\030\001 \001(\01321.a" +
+      "nMax\030\035 \001(\005\022\026\n\016replicationMin\030\036 \001(\005\"$\n\024Ge" +
+      "tFilePathPResponse\022\014\n\004path\030\001 \001(\t\"%\n\023GetF" +
+      "ilePathPRequest\022\016\n\006fileId\030\001 \001(\003\"\020\n\016Mount" +
+      "PResponse\"\364\001\n\rMountPOptions\022\020\n\010readOnly\030" +
+      "\001 \001(\010\022D\n\nproperties\030\002 \003(\01320.alluxio.grpc" +
+      ".file.MountPOptions.PropertiesEntry\022\016\n\006s" +
+      "hared\030\003 \001(\010\022H\n\rcommonOptions\030\004 \001(\01321.all" +
+      "uxio.grpc.file.FileSystemMasterCommonPOp" +
+      "tions\0321\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t\022\r\n" +
+      "\005value\030\002 \001(\t:\0028\001\"h\n\rMountPRequest\022\023\n\013all" +
+      "uxioPath\030\001 \001(\t\022\017\n\007ufsPath\030\002 \001(\t\0221\n\007optio" +
+      "ns\030\003 \001(\0132 .alluxio.grpc.file.MountPOptio" +
+      "ns\"\300\001\n\026GetMountTablePResponse\022O\n\013mountPo" +
+      "ints\030\001 \003(\0132:.alluxio.grpc.file.GetMountT" +
+      "ablePResponse.MountPointsEntry\032U\n\020MountP" +
+      "ointsEntry\022\013\n\003key\030\001 \001(\t\0220\n\005value\030\002 \001(\0132!" +
+      ".alluxio.grpc.file.MountPointInfo:\0028\001\"\027\n" +
+      "\025GetMountTablePRequest\"\205\002\n\016MountPointInf" +
+      "o\022\016\n\006ufsUri\030\001 \001(\t\022\017\n\007ufsType\030\002 \001(\t\022\034\n\020uf" +
+      "sCapacityBytes\030\003 \001(\003:\002-1\022\030\n\014ufsUsedBytes" +
+      "\030\004 \001(\003:\002-1\022\020\n\010readOnly\030\005 \001(\010\022E\n\nproperti" +
+      "es\030\006 \003(\01321.alluxio.grpc.file.MountPointI" +
+      "nfo.PropertiesEntry\022\016\n\006shared\030\007 \001(\010\0321\n\017P" +
+      "ropertiesEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001" +
+      "(\t:\0028\001\"\\\n\030FileSystemCommandOptions\022@\n\016pe" +
+      "rsistOptions\030\001 \001(\0132(.alluxio.grpc.file.P" +
+      "ersistCommandOptions\"M\n\025PersistCommandOp" +
+      "tions\0224\n\014persistFiles\030\001 \003(\0132\036.alluxio.gr" +
+      "pc.file.PersistFile\"/\n\013PersistFile\022\016\n\006fi" +
+      "leId\030\001 \001(\003\022\020\n\010blockIds\030\002 \003(\003\"\210\001\n\021FileSys" +
+      "temCommand\022.\n\013commandType\030\001 \001(\0162\031.alluxi" +
+      "o.grpc.CommandType\022C\n\016commandOptions\030\002 \001" +
+      "(\0132+.alluxio.grpc.file.FileSystemCommand" +
+      "Options\"\021\n\017RenamePResponse\"Z\n\016RenamePOpt" +
+      "ions\022H\n\rcommonOptions\030\001 \001(\01321.alluxio.gr" +
+      "pc.file.FileSystemMasterCommonPOptions\"c" +
+      "\n\016RenamePRequest\022\014\n\004path\030\001 \001(\t\022\017\n\007dstPat" +
+      "h\030\002 \001(\t\0222\n\007options\030\003 \001(\0132!.alluxio.grpc." +
+      "file.RenamePOptions\"\027\n\025SetAttributePResp" +
+      "onse\"\300\002\n\024SetAttributePOptions\022\016\n\006pinned\030" +
+      "\001 \001(\010\022\013\n\003ttl\030\002 \001(\003\022*\n\tttlAction\030\003 \001(\0162\027." +
+      "alluxio.grpc.TtlAction\022\021\n\tpersisted\030\004 \001(" +
+      "\010\022\r\n\005owner\030\005 \001(\t\022\r\n\005group\030\006 \001(\t\022!\n\004mode\030" +
+      "\007 \001(\0132\023.alluxio.grpc.PMode\022\021\n\trecursive\030" +
+      "\010 \001(\010\022\026\n\016replicationMax\030\t \001(\005\022\026\n\016replica" +
+      "tionMin\030\n \001(\005\022H\n\rcommonOptions\030\013 \001(\01321.a" +
       "lluxio.grpc.file.FileSystemMasterCommonP" +
-      "Options\"[\n\017UnmountPRequest\022\023\n\013alluxioPat" +
-      "h\030\001 \001(\t\0223\n\007options\030\002 \001(\0132\".alluxio.grpc." +
-      "file.UnmountPOptions\"L\n\007UfsInfo\022\013\n\003uri\030\001" +
-      " \001(\t\0224\n\nproperties\030\002 \001(\0132 .alluxio.grpc." +
-      "file.MountPOptions\"\030\n\026UpdateUfsModePResp" +
-      "onse\"E\n\025UpdateUfsModePOptions\022,\n\007ufsMode" +
-      "\030\001 \001(\0162\033.alluxio.grpc.file.UfsPMode\"c\n\025U" +
-      "pdateUfsModePRequest\022\017\n\007ufsPath\030\001 \001(\t\0229\n" +
-      "\007options\030\002 \001(\0132(.alluxio.grpc.file.Updat" +
-      "eUfsModePOptions\"U\n\034FileSystemHeartbeatP" +
-      "Response\0225\n\007command\030\001 \001(\0132$.alluxio.grpc" +
-      ".file.FileSystemCommand\"@\n\033FileSystemHea" +
-      "rtbeatPOptions\022!\n\031persistedFileFingerpri" +
-      "nts\030\001 \003(\t\"\210\001\n\033FileSystemHeartbeatPReques" +
-      "t\022\020\n\010workerId\030\001 \001(\003\022\026\n\016persistedFiles\030\002 " +
-      "\003(\003\022?\n\007options\030\003 \001(\0132..alluxio.grpc.file" +
-      ".FileSystemHeartbeatPOptions\"E\n\024GetFileI" +
-      "nfoPResponse\022-\n\010fileInfo\030\001 \001(\0132\033.alluxio" +
-      ".grpc.file.FileInfo\"\025\n\023GetFileInfoPOptio" +
-      "ns\"^\n\023GetFileInfoPRequest\022\016\n\006fileId\030\001 \001(" +
-      "\003\0227\n\007options\030\002 \001(\0132&.alluxio.grpc.file.G" +
-      "etFileInfoPOptions\"2\n\031GetPinnedFileIdsPR" +
-      "esponse\022\025\n\rpinnedFileIds\030\001 \003(\003\"\032\n\030GetPin" +
-      "nedFileIdsPOptions\"X\n\030GetPinnedFileIdsPR" +
-      "equest\022<\n\007options\030\001 \001(\0132+.alluxio.grpc.f" +
-      "ile.GetPinnedFileIdsPOptions\"B\n\023GetUfsIn" +
-      "foPResponse\022+\n\007ufsInfo\030\001 \001(\0132\032.alluxio.g" +
-      "rpc.file.UfsInfo\"\024\n\022GetUfsInfoPOptions\"]" +
-      "\n\022GetUfsInfoPRequest\022\017\n\007mountId\030\001 \001(\003\0226\n" +
-      "\007options\030\002 \001(\0132%.alluxio.grpc.file.GetUf" +
-      "sInfoPOptions*h\n\nWritePType\022\016\n\nMUST_CACH" +
-      "E\020\001\022\r\n\tTRY_CACHE\020\002\022\021\n\rCACHE_THROUGH\020\003\022\013\n" +
-      "\007THROUGH\020\004\022\021\n\rASYNC_THROUGH\020\005\022\010\n\004NONE\020\006*" +
-      "7\n\tReadPType\022\014\n\010NO_CACHE\020\001\022\t\n\005CACHE\020\002\022\021\n" +
-      "\rCACHE_PROMOTE\020\003*4\n\021LoadMetadataPType\022\t\n" +
-      "\005NEVER\020\000\022\010\n\004ONCE\020\001\022\n\n\006ALWAYS\020\002*N\n\017SyncPo" +
-      "intStatus\022\030\n\024Not_Initially_Synced\020\000\022\013\n\007S" +
-      "yncing\020\001\022\024\n\020Initially_Synced\020\002*_\n\rPAclEn" +
-      "tryType\022\t\n\005Owner\020\000\022\r\n\tNamedUser\020\001\022\017\n\013Own" +
-      "ingGroup\020\002\022\016\n\nNamedGroup\020\003\022\010\n\004Mask\020\004\022\t\n\005" +
-      "Other\020\005*.\n\nPAclAction\022\010\n\004Read\020\000\022\t\n\005Write" +
-      "\020\001\022\013\n\007Execute\020\002*W\n\014SetAclAction\022\013\n\007REPLA" +
-      "CE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002\022\016\n\nREMOVE_A" +
-      "LL\020\003\022\022\n\016REMOVE_DEFAULT\020\004*8\n\010UfsPMode\022\r\n\t" +
-      "NO_ACCESS\020\001\022\r\n\tREAD_ONLY\020\002\022\016\n\nREAD_WRITE" +
-      "\020\0032\240\017\n\035FileSystemMasterClientService\022m\n\020" +
-      "CheckConsistency\022+.alluxio.grpc.file.Che" +
-      "ckConsistencyPRequest\032,.alluxio.grpc.fil" +
-      "e.CheckConsistencyPResponse\022a\n\014CompleteF" +
-      "ile\022\'.alluxio.grpc.file.CompleteFilePReq" +
-      "uest\032(.alluxio.grpc.file.CompleteFilePRe" +
-      "sponse\022j\n\017CreateDirectory\022*.alluxio.grpc" +
-      ".file.CreateDirectoryPRequest\032+.alluxio." +
-      "grpc.file.CreateDirectoryPResponse\022[\n\nCr" +
-      "eateFile\022%.alluxio.grpc.file.CreateFileP" +
-      "Request\032&.alluxio.grpc.file.CreateFilePR" +
-      "esponse\022I\n\004Free\022\037.alluxio.grpc.file.Free" +
-      "PRequest\032 .alluxio.grpc.file.FreePRespon" +
-      "se\022d\n\rGetMountTable\022(.alluxio.grpc.file." +
-      "GetMountTablePRequest\032).alluxio.grpc.fil" +
-      "e.GetMountTablePResponse\022j\n\017GetSyncPathL" +
-      "ist\022*.alluxio.grpc.file.GetSyncPathListP" +
-      "Request\032+.alluxio.grpc.file.GetSyncPathL" +
-      "istPResponse\022y\n\024GetNewBlockIdForFile\022/.a" +
-      "lluxio.grpc.file.GetNewBlockIdForFilePRe" +
-      "quest\0320.alluxio.grpc.file.GetNewBlockIdF" +
-      "orFilePResponse\022X\n\tGetStatus\022$.alluxio.g" +
-      "rpc.file.GetStatusPRequest\032%.alluxio.grp" +
-      "c.file.GetStatusPResponse\022[\n\nListStatus\022" +
-      "%.alluxio.grpc.file.ListStatusPRequest\032&" +
-      ".alluxio.grpc.file.ListStatusPResponse\022L" +
-      "\n\005Mount\022 .alluxio.grpc.file.MountPReques" +
-      "t\032!.alluxio.grpc.file.MountPResponse\022O\n\006" +
-      "Remove\022!.alluxio.grpc.file.DeletePReques" +
-      "t\032\".alluxio.grpc.file.DeletePResponse\022O\n" +
-      "\006Rename\022!.alluxio.grpc.file.RenamePReque" +
-      "st\032\".alluxio.grpc.file.RenamePResponse\022\205" +
-      "\001\n\030ScheduleAsyncPersistence\0223.alluxio.gr" +
-      "pc.file.ScheduleAsyncPersistencePRequest" +
-      "\0324.alluxio.grpc.file.ScheduleAsyncPersis" +
-      "tencePResponse\022O\n\006SetAcl\022!.alluxio.grpc." +
-      "file.SetAclPRequest\032\".alluxio.grpc.file." +
-      "SetAclPResponse\022a\n\014SetAttribute\022\'.alluxi" +
-      "o.grpc.file.SetAttributePRequest\032(.allux" +
-      "io.grpc.file.SetAttributePResponse\022X\n\tSt" +
-      "artSync\022$.alluxio.grpc.file.StartSyncPRe" +
-      "quest\032%.alluxio.grpc.file.StartSyncPResp" +
-      "onse\022U\n\010StopSync\022#.alluxio.grpc.file.Sto" +
-      "pSyncPRequest\032$.alluxio.grpc.file.StopSy" +
-      "ncPResponse\022R\n\007Unmount\022\".alluxio.grpc.fi" +
-      "le.UnmountPRequest\032#.alluxio.grpc.file.U" +
-      "nmountPResponse\022d\n\rUpdateUfsMode\022(.allux" +
-      "io.grpc.file.UpdateUfsModePRequest\032).all" +
-      "uxio.grpc.file.UpdateUfsModePResponse2\303\003" +
-      "\n\035FileSystemMasterWorkerService\022v\n\023FileS" +
-      "ystemHeartbeat\022..alluxio.grpc.file.FileS" +
-      "ystemHeartbeatPRequest\032/.alluxio.grpc.fi" +
-      "le.FileSystemHeartbeatPResponse\022^\n\013GetFi" +
-      "leInfo\022&.alluxio.grpc.file.GetFileInfoPR" +
-      "equest\032\'.alluxio.grpc.file.GetFileInfoPR" +
-      "esponse\022m\n\020GetPinnedFileIds\022+.alluxio.gr" +
-      "pc.file.GetPinnedFileIdsPRequest\032,.allux" +
-      "io.grpc.file.GetPinnedFileIdsPResponse\022[" +
-      "\n\nGetUfsInfo\022%.alluxio.grpc.file.GetUfsI" +
-      "nfoPRequest\032&.alluxio.grpc.file.GetUfsIn" +
-      "foPResponse2\331\001\n\032FileSystemMasterJobServi" +
-      "ce\022^\n\013GetFileInfo\022&.alluxio.grpc.file.Ge" +
-      "tFileInfoPRequest\032\'.alluxio.grpc.file.Ge" +
-      "tFileInfoPResponse\022[\n\nGetUfsInfo\022%.allux" +
-      "io.grpc.file.GetUfsInfoPRequest\032&.alluxi" +
-      "o.grpc.file.GetUfsInfoPResponseB\'\n\014allux" +
-      "io.grpcB\025FileSystemMasterProtoP\001"
+      "Options\"^\n\024SetAttributePRequest\022\014\n\004path\030" +
+      "\001 \001(\t\0228\n\007options\030\002 \001(\0132\'.alluxio.grpc.fi" +
+      "le.SetAttributePOptions\"\021\n\017SetAclPRespon" +
+      "se\"m\n\016SetAclPOptions\022H\n\rcommonOptions\030\001 " +
+      "\001(\01321.alluxio.grpc.file.FileSystemMaster" +
+      "CommonPOptions\022\021\n\trecursive\030\002 \001(\010\"\262\001\n\016Se" +
+      "tAclPRequest\022\014\n\004path\030\001 \001(\t\022/\n\006action\030\002 \001" +
+      "(\0162\037.alluxio.grpc.file.SetAclAction\022-\n\007e" +
+      "ntries\030\003 \003(\0132\034.alluxio.grpc.file.PAclEnt" +
+      "ry\0222\n\007options\030\004 \001(\0132!.alluxio.grpc.file." +
+      "SetAclPOptions\"#\n!ScheduleAsyncPersisten" +
+      "cePResponse\"l\n ScheduleAsyncPersistenceP" +
+      "Options\022H\n\rcommonOptions\030\001 \001(\01321.alluxio" +
+      ".grpc.file.FileSystemMasterCommonPOption" +
+      "s\"v\n ScheduleAsyncPersistencePRequest\022\014\n" +
+      "\004path\030\001 \001(\t\022D\n\007options\030\002 \001(\01323.alluxio.g" +
+      "rpc.file.ScheduleAsyncPersistencePOption" +
+      "s\"\024\n\022StartSyncPResponse\"]\n\021StartSyncPOpt" +
+      "ions\022H\n\rcommonOptions\030\001 \001(\01321.alluxio.gr" +
+      "pc.file.FileSystemMasterCommonPOptions\"X" +
+      "\n\021StartSyncPRequest\022\014\n\004path\030\001 \001(\t\0225\n\007opt" +
+      "ions\030\002 \001(\0132$.alluxio.grpc.file.StartSync" +
+      "POptions\"\023\n\021StopSyncPResponse\"\\\n\020StopSyn" +
+      "cPOptions\022H\n\rcommonOptions\030\001 \001(\01321.allux" +
+      "io.grpc.file.FileSystemMasterCommonPOpti" +
+      "ons\"V\n\020StopSyncPRequest\022\014\n\004path\030\001 \001(\t\0224\n" +
+      "\007options\030\002 \001(\0132#.alluxio.grpc.file.StopS" +
+      "yncPOptions\"\022\n\020UnmountPResponse\"[\n\017Unmou" +
+      "ntPOptions\022H\n\rcommonOptions\030\001 \001(\01321.allu" +
+      "xio.grpc.file.FileSystemMasterCommonPOpt" +
+      "ions\"[\n\017UnmountPRequest\022\023\n\013alluxioPath\030\001" +
+      " \001(\t\0223\n\007options\030\002 \001(\0132\".alluxio.grpc.fil" +
+      "e.UnmountPOptions\"L\n\007UfsInfo\022\013\n\003uri\030\001 \001(" +
+      "\t\0224\n\nproperties\030\002 \001(\0132 .alluxio.grpc.fil" +
+      "e.MountPOptions\"\030\n\026UpdateUfsModePRespons" +
+      "e\"E\n\025UpdateUfsModePOptions\022,\n\007ufsMode\030\001 " +
+      "\001(\0162\033.alluxio.grpc.file.UfsPMode\"c\n\025Upda" +
+      "teUfsModePRequest\022\017\n\007ufsPath\030\001 \001(\t\0229\n\007op" +
+      "tions\030\002 \001(\0132(.alluxio.grpc.file.UpdateUf" +
+      "sModePOptions\"U\n\034FileSystemHeartbeatPRes" +
+      "ponse\0225\n\007command\030\001 \001(\0132$.alluxio.grpc.fi" +
+      "le.FileSystemCommand\"@\n\033FileSystemHeartb" +
+      "eatPOptions\022!\n\031persistedFileFingerprints" +
+      "\030\001 \003(\t\"\210\001\n\033FileSystemHeartbeatPRequest\022\020" +
+      "\n\010workerId\030\001 \001(\003\022\026\n\016persistedFiles\030\002 \003(\003" +
+      "\022?\n\007options\030\003 \001(\0132..alluxio.grpc.file.Fi" +
+      "leSystemHeartbeatPOptions\"E\n\024GetFileInfo" +
+      "PResponse\022-\n\010fileInfo\030\001 \001(\0132\033.alluxio.gr" +
+      "pc.file.FileInfo\"\025\n\023GetFileInfoPOptions\"" +
+      "^\n\023GetFileInfoPRequest\022\016\n\006fileId\030\001 \001(\003\0227" +
+      "\n\007options\030\002 \001(\0132&.alluxio.grpc.file.GetF" +
+      "ileInfoPOptions\"2\n\031GetPinnedFileIdsPResp" +
+      "onse\022\025\n\rpinnedFileIds\030\001 \003(\003\"\032\n\030GetPinned" +
+      "FileIdsPOptions\"X\n\030GetPinnedFileIdsPRequ" +
+      "est\022<\n\007options\030\001 \001(\0132+.alluxio.grpc.file" +
+      ".GetPinnedFileIdsPOptions\"B\n\023GetUfsInfoP" +
+      "Response\022+\n\007ufsInfo\030\001 \001(\0132\032.alluxio.grpc" +
+      ".file.UfsInfo\"\024\n\022GetUfsInfoPOptions\"]\n\022G" +
+      "etUfsInfoPRequest\022\017\n\007mountId\030\001 \001(\003\0226\n\007op" +
+      "tions\030\002 \001(\0132%.alluxio.grpc.file.GetUfsIn" +
+      "foPOptions*h\n\nWritePType\022\016\n\nMUST_CACHE\020\001" +
+      "\022\r\n\tTRY_CACHE\020\002\022\021\n\rCACHE_THROUGH\020\003\022\013\n\007TH" +
+      "ROUGH\020\004\022\021\n\rASYNC_THROUGH\020\005\022\010\n\004NONE\020\006*7\n\t" +
+      "ReadPType\022\014\n\010NO_CACHE\020\001\022\t\n\005CACHE\020\002\022\021\n\rCA" +
+      "CHE_PROMOTE\020\003*4\n\021LoadMetadataPType\022\t\n\005NE" +
+      "VER\020\000\022\010\n\004ONCE\020\001\022\n\n\006ALWAYS\020\002*N\n\017SyncPoint" +
+      "Status\022\030\n\024Not_Initially_Synced\020\000\022\013\n\007Sync" +
+      "ing\020\001\022\024\n\020Initially_Synced\020\002*_\n\rPAclEntry" +
+      "Type\022\t\n\005Owner\020\000\022\r\n\tNamedUser\020\001\022\017\n\013Owning" +
+      "Group\020\002\022\016\n\nNamedGroup\020\003\022\010\n\004Mask\020\004\022\t\n\005Oth" +
+      "er\020\005*.\n\nPAclAction\022\010\n\004Read\020\000\022\t\n\005Write\020\001\022" +
+      "\013\n\007Execute\020\002*W\n\014SetAclAction\022\013\n\007REPLACE\020" +
+      "\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002\022\016\n\nREMOVE_ALL\020" +
+      "\003\022\022\n\016REMOVE_DEFAULT\020\004*8\n\010UfsPMode\022\r\n\tNO_" +
+      "ACCESS\020\001\022\r\n\tREAD_ONLY\020\002\022\016\n\nREAD_WRITE\020\0032" +
+      "\200\020\n\035FileSystemMasterClientService\022m\n\020Che" +
+      "ckConsistency\022+.alluxio.grpc.file.CheckC" +
+      "onsistencyPRequest\032,.alluxio.grpc.file.C" +
+      "heckConsistencyPResponse\022a\n\014CompleteFile" +
+      "\022\'.alluxio.grpc.file.CompleteFilePReques" +
+      "t\032(.alluxio.grpc.file.CompleteFilePRespo" +
+      "nse\022j\n\017CreateDirectory\022*.alluxio.grpc.fi" +
+      "le.CreateDirectoryPRequest\032+.alluxio.grp" +
+      "c.file.CreateDirectoryPResponse\022[\n\nCreat" +
+      "eFile\022%.alluxio.grpc.file.CreateFilePReq" +
+      "uest\032&.alluxio.grpc.file.CreateFilePResp" +
+      "onse\022I\n\004Free\022\037.alluxio.grpc.file.FreePRe" +
+      "quest\032 .alluxio.grpc.file.FreePResponse\022" +
+      "^\n\013GetFilePath\022&.alluxio.grpc.file.GetFi" +
+      "lePathPRequest\032\'.alluxio.grpc.file.GetFi" +
+      "lePathPResponse\022d\n\rGetMountTable\022(.allux" +
+      "io.grpc.file.GetMountTablePRequest\032).all" +
+      "uxio.grpc.file.GetMountTablePResponse\022j\n" +
+      "\017GetSyncPathList\022*.alluxio.grpc.file.Get" +
+      "SyncPathListPRequest\032+.alluxio.grpc.file" +
+      ".GetSyncPathListPResponse\022y\n\024GetNewBlock" +
+      "IdForFile\022/.alluxio.grpc.file.GetNewBloc" +
+      "kIdForFilePRequest\0320.alluxio.grpc.file.G" +
+      "etNewBlockIdForFilePResponse\022X\n\tGetStatu" +
+      "s\022$.alluxio.grpc.file.GetStatusPRequest\032" +
+      "%.alluxio.grpc.file.GetStatusPResponse\022[" +
+      "\n\nListStatus\022%.alluxio.grpc.file.ListSta" +
+      "tusPRequest\032&.alluxio.grpc.file.ListStat" +
+      "usPResponse\022L\n\005Mount\022 .alluxio.grpc.file" +
+      ".MountPRequest\032!.alluxio.grpc.file.Mount" +
+      "PResponse\022O\n\006Remove\022!.alluxio.grpc.file." +
+      "DeletePRequest\032\".alluxio.grpc.file.Delet" +
+      "ePResponse\022O\n\006Rename\022!.alluxio.grpc.file" +
+      ".RenamePRequest\032\".alluxio.grpc.file.Rena" +
+      "mePResponse\022\205\001\n\030ScheduleAsyncPersistence" +
+      "\0223.alluxio.grpc.file.ScheduleAsyncPersis" +
+      "tencePRequest\0324.alluxio.grpc.file.Schedu" +
+      "leAsyncPersistencePResponse\022O\n\006SetAcl\022!." +
+      "alluxio.grpc.file.SetAclPRequest\032\".allux" +
+      "io.grpc.file.SetAclPResponse\022a\n\014SetAttri" +
+      "bute\022\'.alluxio.grpc.file.SetAttributePRe" +
+      "quest\032(.alluxio.grpc.file.SetAttributePR" +
+      "esponse\022X\n\tStartSync\022$.alluxio.grpc.file" +
+      ".StartSyncPRequest\032%.alluxio.grpc.file.S" +
+      "tartSyncPResponse\022U\n\010StopSync\022#.alluxio." +
+      "grpc.file.StopSyncPRequest\032$.alluxio.grp" +
+      "c.file.StopSyncPResponse\022R\n\007Unmount\022\".al" +
+      "luxio.grpc.file.UnmountPRequest\032#.alluxi" +
+      "o.grpc.file.UnmountPResponse\022d\n\rUpdateUf" +
+      "sMode\022(.alluxio.grpc.file.UpdateUfsModeP" +
+      "Request\032).alluxio.grpc.file.UpdateUfsMod" +
+      "ePResponse2\303\003\n\035FileSystemMasterWorkerSer" +
+      "vice\022v\n\023FileSystemHeartbeat\022..alluxio.gr" +
+      "pc.file.FileSystemHeartbeatPRequest\032/.al" +
+      "luxio.grpc.file.FileSystemHeartbeatPResp" +
+      "onse\022^\n\013GetFileInfo\022&.alluxio.grpc.file." +
+      "GetFileInfoPRequest\032\'.alluxio.grpc.file." +
+      "GetFileInfoPResponse\022m\n\020GetPinnedFileIds" +
+      "\022+.alluxio.grpc.file.GetPinnedFileIdsPRe" +
+      "quest\032,.alluxio.grpc.file.GetPinnedFileI" +
+      "dsPResponse\022[\n\nGetUfsInfo\022%.alluxio.grpc" +
+      ".file.GetUfsInfoPRequest\032&.alluxio.grpc." +
+      "file.GetUfsInfoPResponse2\331\001\n\032FileSystemM" +
+      "asterJobService\022^\n\013GetFileInfo\022&.alluxio" +
+      ".grpc.file.GetFileInfoPRequest\032\'.alluxio" +
+      ".grpc.file.GetFileInfoPResponse\022[\n\nGetUf" +
+      "sInfo\022%.alluxio.grpc.file.GetUfsInfoPReq" +
+      "uest\032&.alluxio.grpc.file.GetUfsInfoPResp" +
+      "onseB\'\n\014alluxio.grpcB\025FileSystemMasterPr" +
+      "otoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1041,14 +1056,26 @@ public final class FileSystemMasterProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_FileInfo_descriptor,
         new java.lang.String[] { "FileId", "Name", "Path", "UfsPath", "Length", "BlockSizeBytes", "CreationTimeMs", "Completed", "Folder", "Pinned", "Cacheable", "Persisted", "BlockIds", "LastModificationTimeMs", "Ttl", "Owner", "Group", "Mode", "PersistenceState", "MountPoint", "FileBlockInfos", "TtlAction", "MountId", "InAlluxioPercentage", "InMemoryPercentage", "UfsFingerprint", "Acl", "DefaultAcl", "ReplicationMax", "ReplicationMin", });
-    internal_static_alluxio_grpc_file_MountPResponse_descriptor =
+    internal_static_alluxio_grpc_file_GetFilePathPResponse_descriptor =
       getDescriptor().getMessageTypes().get(40);
+    internal_static_alluxio_grpc_file_GetFilePathPResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_file_GetFilePathPResponse_descriptor,
+        new java.lang.String[] { "Path", });
+    internal_static_alluxio_grpc_file_GetFilePathPRequest_descriptor =
+      getDescriptor().getMessageTypes().get(41);
+    internal_static_alluxio_grpc_file_GetFilePathPRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_file_GetFilePathPRequest_descriptor,
+        new java.lang.String[] { "FileId", });
+    internal_static_alluxio_grpc_file_MountPResponse_descriptor =
+      getDescriptor().getMessageTypes().get(42);
     internal_static_alluxio_grpc_file_MountPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_MountPResponse_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_MountPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(41);
+      getDescriptor().getMessageTypes().get(43);
     internal_static_alluxio_grpc_file_MountPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_MountPOptions_descriptor,
@@ -1060,13 +1087,13 @@ public final class FileSystemMasterProto {
         internal_static_alluxio_grpc_file_MountPOptions_PropertiesEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_file_MountPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(42);
+      getDescriptor().getMessageTypes().get(44);
     internal_static_alluxio_grpc_file_MountPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_MountPRequest_descriptor,
         new java.lang.String[] { "AlluxioPath", "UfsPath", "Options", });
     internal_static_alluxio_grpc_file_GetMountTablePResponse_descriptor =
-      getDescriptor().getMessageTypes().get(43);
+      getDescriptor().getMessageTypes().get(45);
     internal_static_alluxio_grpc_file_GetMountTablePResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_GetMountTablePResponse_descriptor,
@@ -1078,13 +1105,13 @@ public final class FileSystemMasterProto {
         internal_static_alluxio_grpc_file_GetMountTablePResponse_MountPointsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_file_GetMountTablePRequest_descriptor =
-      getDescriptor().getMessageTypes().get(44);
+      getDescriptor().getMessageTypes().get(46);
     internal_static_alluxio_grpc_file_GetMountTablePRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_GetMountTablePRequest_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_MountPointInfo_descriptor =
-      getDescriptor().getMessageTypes().get(45);
+      getDescriptor().getMessageTypes().get(47);
     internal_static_alluxio_grpc_file_MountPointInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_MountPointInfo_descriptor,
@@ -1096,247 +1123,247 @@ public final class FileSystemMasterProto {
         internal_static_alluxio_grpc_file_MountPointInfo_PropertiesEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_file_FileSystemCommandOptions_descriptor =
-      getDescriptor().getMessageTypes().get(46);
+      getDescriptor().getMessageTypes().get(48);
     internal_static_alluxio_grpc_file_FileSystemCommandOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_FileSystemCommandOptions_descriptor,
         new java.lang.String[] { "PersistOptions", });
     internal_static_alluxio_grpc_file_PersistCommandOptions_descriptor =
-      getDescriptor().getMessageTypes().get(47);
+      getDescriptor().getMessageTypes().get(49);
     internal_static_alluxio_grpc_file_PersistCommandOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_PersistCommandOptions_descriptor,
         new java.lang.String[] { "PersistFiles", });
     internal_static_alluxio_grpc_file_PersistFile_descriptor =
-      getDescriptor().getMessageTypes().get(48);
+      getDescriptor().getMessageTypes().get(50);
     internal_static_alluxio_grpc_file_PersistFile_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_PersistFile_descriptor,
         new java.lang.String[] { "FileId", "BlockIds", });
     internal_static_alluxio_grpc_file_FileSystemCommand_descriptor =
-      getDescriptor().getMessageTypes().get(49);
+      getDescriptor().getMessageTypes().get(51);
     internal_static_alluxio_grpc_file_FileSystemCommand_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_FileSystemCommand_descriptor,
         new java.lang.String[] { "CommandType", "CommandOptions", });
     internal_static_alluxio_grpc_file_RenamePResponse_descriptor =
-      getDescriptor().getMessageTypes().get(50);
+      getDescriptor().getMessageTypes().get(52);
     internal_static_alluxio_grpc_file_RenamePResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_RenamePResponse_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_RenamePOptions_descriptor =
-      getDescriptor().getMessageTypes().get(51);
+      getDescriptor().getMessageTypes().get(53);
     internal_static_alluxio_grpc_file_RenamePOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_RenamePOptions_descriptor,
         new java.lang.String[] { "CommonOptions", });
     internal_static_alluxio_grpc_file_RenamePRequest_descriptor =
-      getDescriptor().getMessageTypes().get(52);
+      getDescriptor().getMessageTypes().get(54);
     internal_static_alluxio_grpc_file_RenamePRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_RenamePRequest_descriptor,
         new java.lang.String[] { "Path", "DstPath", "Options", });
     internal_static_alluxio_grpc_file_SetAttributePResponse_descriptor =
-      getDescriptor().getMessageTypes().get(53);
+      getDescriptor().getMessageTypes().get(55);
     internal_static_alluxio_grpc_file_SetAttributePResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_SetAttributePResponse_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_SetAttributePOptions_descriptor =
-      getDescriptor().getMessageTypes().get(54);
+      getDescriptor().getMessageTypes().get(56);
     internal_static_alluxio_grpc_file_SetAttributePOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_SetAttributePOptions_descriptor,
         new java.lang.String[] { "Pinned", "Ttl", "TtlAction", "Persisted", "Owner", "Group", "Mode", "Recursive", "ReplicationMax", "ReplicationMin", "CommonOptions", });
     internal_static_alluxio_grpc_file_SetAttributePRequest_descriptor =
-      getDescriptor().getMessageTypes().get(55);
+      getDescriptor().getMessageTypes().get(57);
     internal_static_alluxio_grpc_file_SetAttributePRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_SetAttributePRequest_descriptor,
         new java.lang.String[] { "Path", "Options", });
     internal_static_alluxio_grpc_file_SetAclPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(56);
+      getDescriptor().getMessageTypes().get(58);
     internal_static_alluxio_grpc_file_SetAclPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_SetAclPResponse_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_SetAclPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(57);
+      getDescriptor().getMessageTypes().get(59);
     internal_static_alluxio_grpc_file_SetAclPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_SetAclPOptions_descriptor,
         new java.lang.String[] { "CommonOptions", "Recursive", });
     internal_static_alluxio_grpc_file_SetAclPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(58);
+      getDescriptor().getMessageTypes().get(60);
     internal_static_alluxio_grpc_file_SetAclPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_SetAclPRequest_descriptor,
         new java.lang.String[] { "Path", "Action", "Entries", "Options", });
     internal_static_alluxio_grpc_file_ScheduleAsyncPersistencePResponse_descriptor =
-      getDescriptor().getMessageTypes().get(59);
+      getDescriptor().getMessageTypes().get(61);
     internal_static_alluxio_grpc_file_ScheduleAsyncPersistencePResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_ScheduleAsyncPersistencePResponse_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_ScheduleAsyncPersistencePOptions_descriptor =
-      getDescriptor().getMessageTypes().get(60);
+      getDescriptor().getMessageTypes().get(62);
     internal_static_alluxio_grpc_file_ScheduleAsyncPersistencePOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_ScheduleAsyncPersistencePOptions_descriptor,
         new java.lang.String[] { "CommonOptions", });
     internal_static_alluxio_grpc_file_ScheduleAsyncPersistencePRequest_descriptor =
-      getDescriptor().getMessageTypes().get(61);
+      getDescriptor().getMessageTypes().get(63);
     internal_static_alluxio_grpc_file_ScheduleAsyncPersistencePRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_ScheduleAsyncPersistencePRequest_descriptor,
         new java.lang.String[] { "Path", "Options", });
     internal_static_alluxio_grpc_file_StartSyncPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(62);
+      getDescriptor().getMessageTypes().get(64);
     internal_static_alluxio_grpc_file_StartSyncPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_StartSyncPResponse_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_StartSyncPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(63);
+      getDescriptor().getMessageTypes().get(65);
     internal_static_alluxio_grpc_file_StartSyncPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_StartSyncPOptions_descriptor,
         new java.lang.String[] { "CommonOptions", });
     internal_static_alluxio_grpc_file_StartSyncPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(64);
+      getDescriptor().getMessageTypes().get(66);
     internal_static_alluxio_grpc_file_StartSyncPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_StartSyncPRequest_descriptor,
         new java.lang.String[] { "Path", "Options", });
     internal_static_alluxio_grpc_file_StopSyncPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(65);
+      getDescriptor().getMessageTypes().get(67);
     internal_static_alluxio_grpc_file_StopSyncPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_StopSyncPResponse_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_StopSyncPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(66);
+      getDescriptor().getMessageTypes().get(68);
     internal_static_alluxio_grpc_file_StopSyncPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_StopSyncPOptions_descriptor,
         new java.lang.String[] { "CommonOptions", });
     internal_static_alluxio_grpc_file_StopSyncPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(67);
+      getDescriptor().getMessageTypes().get(69);
     internal_static_alluxio_grpc_file_StopSyncPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_StopSyncPRequest_descriptor,
         new java.lang.String[] { "Path", "Options", });
     internal_static_alluxio_grpc_file_UnmountPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(68);
+      getDescriptor().getMessageTypes().get(70);
     internal_static_alluxio_grpc_file_UnmountPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_UnmountPResponse_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_UnmountPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(69);
+      getDescriptor().getMessageTypes().get(71);
     internal_static_alluxio_grpc_file_UnmountPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_UnmountPOptions_descriptor,
         new java.lang.String[] { "CommonOptions", });
     internal_static_alluxio_grpc_file_UnmountPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(70);
+      getDescriptor().getMessageTypes().get(72);
     internal_static_alluxio_grpc_file_UnmountPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_UnmountPRequest_descriptor,
         new java.lang.String[] { "AlluxioPath", "Options", });
     internal_static_alluxio_grpc_file_UfsInfo_descriptor =
-      getDescriptor().getMessageTypes().get(71);
+      getDescriptor().getMessageTypes().get(73);
     internal_static_alluxio_grpc_file_UfsInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_UfsInfo_descriptor,
         new java.lang.String[] { "Uri", "Properties", });
     internal_static_alluxio_grpc_file_UpdateUfsModePResponse_descriptor =
-      getDescriptor().getMessageTypes().get(72);
+      getDescriptor().getMessageTypes().get(74);
     internal_static_alluxio_grpc_file_UpdateUfsModePResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_UpdateUfsModePResponse_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_UpdateUfsModePOptions_descriptor =
-      getDescriptor().getMessageTypes().get(73);
+      getDescriptor().getMessageTypes().get(75);
     internal_static_alluxio_grpc_file_UpdateUfsModePOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_UpdateUfsModePOptions_descriptor,
         new java.lang.String[] { "UfsMode", });
     internal_static_alluxio_grpc_file_UpdateUfsModePRequest_descriptor =
-      getDescriptor().getMessageTypes().get(74);
+      getDescriptor().getMessageTypes().get(76);
     internal_static_alluxio_grpc_file_UpdateUfsModePRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_UpdateUfsModePRequest_descriptor,
         new java.lang.String[] { "UfsPath", "Options", });
     internal_static_alluxio_grpc_file_FileSystemHeartbeatPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(75);
+      getDescriptor().getMessageTypes().get(77);
     internal_static_alluxio_grpc_file_FileSystemHeartbeatPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_FileSystemHeartbeatPResponse_descriptor,
         new java.lang.String[] { "Command", });
     internal_static_alluxio_grpc_file_FileSystemHeartbeatPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(76);
+      getDescriptor().getMessageTypes().get(78);
     internal_static_alluxio_grpc_file_FileSystemHeartbeatPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_FileSystemHeartbeatPOptions_descriptor,
         new java.lang.String[] { "PersistedFileFingerprints", });
     internal_static_alluxio_grpc_file_FileSystemHeartbeatPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(77);
+      getDescriptor().getMessageTypes().get(79);
     internal_static_alluxio_grpc_file_FileSystemHeartbeatPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_FileSystemHeartbeatPRequest_descriptor,
         new java.lang.String[] { "WorkerId", "PersistedFiles", "Options", });
     internal_static_alluxio_grpc_file_GetFileInfoPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(78);
+      getDescriptor().getMessageTypes().get(80);
     internal_static_alluxio_grpc_file_GetFileInfoPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_GetFileInfoPResponse_descriptor,
         new java.lang.String[] { "FileInfo", });
     internal_static_alluxio_grpc_file_GetFileInfoPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(79);
+      getDescriptor().getMessageTypes().get(81);
     internal_static_alluxio_grpc_file_GetFileInfoPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_GetFileInfoPOptions_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_GetFileInfoPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(80);
+      getDescriptor().getMessageTypes().get(82);
     internal_static_alluxio_grpc_file_GetFileInfoPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_GetFileInfoPRequest_descriptor,
         new java.lang.String[] { "FileId", "Options", });
     internal_static_alluxio_grpc_file_GetPinnedFileIdsPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(81);
+      getDescriptor().getMessageTypes().get(83);
     internal_static_alluxio_grpc_file_GetPinnedFileIdsPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_GetPinnedFileIdsPResponse_descriptor,
         new java.lang.String[] { "PinnedFileIds", });
     internal_static_alluxio_grpc_file_GetPinnedFileIdsPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(82);
+      getDescriptor().getMessageTypes().get(84);
     internal_static_alluxio_grpc_file_GetPinnedFileIdsPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_GetPinnedFileIdsPOptions_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_GetPinnedFileIdsPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(83);
+      getDescriptor().getMessageTypes().get(85);
     internal_static_alluxio_grpc_file_GetPinnedFileIdsPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_GetPinnedFileIdsPRequest_descriptor,
         new java.lang.String[] { "Options", });
     internal_static_alluxio_grpc_file_GetUfsInfoPResponse_descriptor =
-      getDescriptor().getMessageTypes().get(84);
+      getDescriptor().getMessageTypes().get(86);
     internal_static_alluxio_grpc_file_GetUfsInfoPResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_GetUfsInfoPResponse_descriptor,
         new java.lang.String[] { "UfsInfo", });
     internal_static_alluxio_grpc_file_GetUfsInfoPOptions_descriptor =
-      getDescriptor().getMessageTypes().get(85);
+      getDescriptor().getMessageTypes().get(87);
     internal_static_alluxio_grpc_file_GetUfsInfoPOptions_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_GetUfsInfoPOptions_descriptor,
         new java.lang.String[] { });
     internal_static_alluxio_grpc_file_GetUfsInfoPRequest_descriptor =
-      getDescriptor().getMessageTypes().get(86);
+      getDescriptor().getMessageTypes().get(88);
     internal_static_alluxio_grpc_file_GetUfsInfoPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_file_GetUfsInfoPRequest_descriptor,
