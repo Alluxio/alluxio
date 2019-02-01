@@ -12,7 +12,9 @@
 package alluxio.client.file;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -29,7 +31,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.powermock.reflect.Whitebox;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -38,11 +39,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.security.auth.Subject;
 
-public class FileSystemTest {
+public class FileSystemFactoryTest {
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -53,17 +53,28 @@ public class FileSystemTest {
   }
 
   @Test
-  public void singleMasterClientCacheTest() {
+  public void testCloseRemovesFromCache() throws Exception {
+    FileSystem fs1 = FileSystem.Factory.get();
+    fs1.close();
+    assertTrue("FileSystem should be marked as closed", fs1.isClosed());
+    FileSystem fs2 = FileSystem.Factory.get();
+    assertFalse("FileSystem shouldn't be closed", fs2.isClosed());
+    assertNotSame("Should have different references", fs1, fs2);
+  }
+
+  @Test
+  public void singleMasterClientCacheTest()  {
     clientCacheTest();
   }
 
   @Test
-  public void multiMasterClientCacheTest() {
+  public void multiMasterClientCacheTest()  {
     try (Closeable p = new SystemPropertyRule(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
         "192.168.0.1:1234,192.168.0.2:1445,192.168.0.3:9943").toResource()) {
       ConfigurationUtils.reloadProperties();
       InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-      MasterInquireClient.ConnectDetails connectDetails = MasterInquireClient.Factory.getConnectDetails(conf);
+      MasterInquireClient.ConnectDetails connectDetails =
+          MasterInquireClient.Factory.getConnectDetails(conf);
       // Make sure we have a MultiMaster authority
       assertTrue(connectDetails.toAuthority() instanceof MultiMasterAuthority);
       clientCacheTest();
@@ -73,7 +84,7 @@ public class FileSystemTest {
   }
 
   @Test
-  public void zkClientCacheTest() {
+  public void zkClientCacheTest()  {
     Map<String, String> sysProps = new HashMap<>();
     sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), Boolean.toString(true));
     sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zk@192.168.0.5");
@@ -93,12 +104,12 @@ public class FileSystemTest {
   }
 
   @Test
-  public void nullSubjectTest() throws Exception {
+  public void nullSubjectTest()  {
     mThrown.expect(NullPointerException.class);
     FileSystem.Factory.get(null);
   }
 
-  public void clientCacheTest() {
+  public void clientCacheTest()  {
     resetClientCache();
     FileSystem fs1 = FileSystem.Factory.get();
     FileSystem fs2 = FileSystem.Factory.get();
@@ -120,8 +131,7 @@ public class FileSystemTest {
     return new Subject(false, principals, new HashSet<>(), new HashSet<>());
   }
 
-
   public void resetClientCache() {
-    Whitebox.setInternalState(FileSystem.Factory.class, "CLIENT_CACHE", new ConcurrentHashMap<>());
+    FileSystem.Factory.CLIENT_CACHE.purge();
   }
 }

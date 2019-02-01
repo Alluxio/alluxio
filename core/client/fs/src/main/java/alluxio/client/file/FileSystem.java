@@ -47,10 +47,12 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,11 +82,7 @@ public interface FileSystem {
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
     private static final AtomicBoolean CONF_LOGGED = new AtomicBoolean(false);
 
-    private static final Object CLIENT_CACHE_LOCK = new Object();
-
-    @GuardedBy("CLIENT_CACHE_LOCK")
-    private static ConcurrentHashMap<FileSystemClientKey, FileSystem> CLIENT_CACHE =
-        new ConcurrentHashMap<>();
+    protected static final FileSystem.Cache CLIENT_CACHE = new FileSystem.Cache();
 
     private Factory() {} // prevent instantiation
 
@@ -95,13 +93,8 @@ public interface FileSystem {
     public static FileSystem get(Subject subject) {
       Preconditions.checkNotNull(subject, "subject");
       AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-      Authority auth = MasterInquireClient.Factory.getConnectDetails(conf).toAuthority();
-
-      FileSystemClientKey key = new FileSystemClientKey(subject, auth);
-      synchronized (CLIENT_CACHE_LOCK) {
-        return CLIENT_CACHE.computeIfAbsent(key,
-            (clientKey) -> create(ClientContext.create(subject, conf)));
-      }
+      ClientKey key = new ClientKey(subject, conf);
+      return CLIENT_CACHE.get(key);
     }
 
     public static FileSystem create(AlluxioConfiguration alluxioConf) {
@@ -128,13 +121,80 @@ public interface FileSystem {
     }
   }
 
-  class FileSystemClientKey {
+  /**
+   * A cache for storing {@link FileSystem} clients. This should only be used by the Factory class.
+   */
+  class Cache {
+
+    private final Object mClientCacheLock = new Object();
+
+    @GuardedBy("mClientCacheLock")
+    final ConcurrentHashMap<ClientKey, FileSystem> mCacheMap = new ConcurrentHashMap<>();
+
+    public Cache() { }
+
+    /**
+     * Gets a client object from the cache. If there is no client object one is created, inserted
+     * into the cache, and returned back to the user.
+     *
+     * @param key the key to retrieve a Client
+     * @return
+     */
+    public FileSystem get(ClientKey key) {
+      synchronized (mClientCacheLock) {
+        return mCacheMap.computeIfAbsent(key,
+            (clientKey) -> Factory.create(ClientContext.create(key.mSubject, key.mConf)));
+      }
+    }
+
+    /**
+     * Removes the client with the given key from the cache. Returns the client back to the user.
+     *
+     * @param key the client key to remove
+     * @return The removed context or null if there is no client associated with the key
+     */
+    public FileSystem remove(ClientKey key) {
+      synchronized (mClientCacheLock) {
+        return mCacheMap.remove(key);
+      }
+    }
+
+    /**
+     * Closes and removes all {@link FileSystem} from the cache.
+     */
+    @VisibleForTesting
+    public void purge() {
+      synchronized (mClientCacheLock) {
+        mCacheMap.forEach(((clientKey, fileSystem) -> {
+          try {
+            fileSystem.close();
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }));
+        mCacheMap.clear();
+      }
+    }
+  }
+
+  /**
+   * A key which can be used to look up a client instance in the {@link Cache}.
+   */
+  class ClientKey {
     final Subject mSubject;
     final Authority mAuth;
 
-    public FileSystemClientKey(Subject subject, Authority auth) {
+    /** Only used to store the configuration. Allows us to compute client directly from a key. */
+    final AlluxioConfiguration mConf;
+
+    public ClientKey(Subject subject, AlluxioConfiguration conf) {
+      mConf = conf;
       mSubject = subject;
-      mAuth = auth;
+      mAuth = MasterInquireClient.Factory.getConnectDetails(conf).toAuthority();
+    }
+
+    public ClientKey(ClientContext ctx) {
+      this(ctx.getSubject(), ctx.getConf());
     }
 
     @Override
@@ -144,14 +204,13 @@ public interface FileSystem {
 
     @Override
     public boolean equals(Object o) {
-      if (!(o instanceof FileSystemClientKey)) {
+      if (!(o instanceof ClientKey)) {
         return false;
       }
-      FileSystemClientKey otherKey = (FileSystemClientKey) o;
+      ClientKey otherKey = (ClientKey) o;
       return Objects.equals(mSubject, otherKey.mSubject)
           && Objects.equals(mAuth, otherKey.mAuth);
     }
-
   }
 
   /**
