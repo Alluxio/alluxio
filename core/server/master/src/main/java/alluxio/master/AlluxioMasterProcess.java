@@ -155,6 +155,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     stopRejectingServers();
     if (isServing()) {
       stopMasters();
+      stopServing();
       mJournalSystem.stop();
     }
   }
