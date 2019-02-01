@@ -25,6 +25,8 @@ import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
 import io.grpc.Context;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,6 +130,11 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
 
   @Override
   public void onError(Throwable t) {
+    if (t instanceof StatusRuntimeException
+        && ((StatusRuntimeException) t).getStatus().getCode() == Status.Code.CANCELLED) {
+      // Cancellation is already handled.
+      return;
+    }
     // The RPC handlers do not throw exceptions. All the exception seen here is either
     // network exception or some runtime exception (e.g. NullPointerException).
     LOG.error("Failed to handle RPCs.", t);
