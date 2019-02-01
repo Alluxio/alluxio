@@ -85,7 +85,7 @@ public final class PortRegistry {
         channel.close();
         return false;
       }
-      mReserved.put(port, new Reservation(portFile, channel, lock));
+      mReserved.put(port, new Reservation(portFile, lock));
       return true;
     } catch (IOException | OverlappingFileLockException e) {
       return false;
@@ -98,10 +98,12 @@ public final class PortRegistry {
   public void release(int port) {
     Reservation r = mReserved.remove(port);
     if (r != null) {
+      // If delete fails, we may leave a file behind. However, the file will be unlocked, so another
+      // process can still take the port.
       r.mFile.delete();
       try {
         r.mLock.release();
-        r.mChannel.close();
+        r.mLock.channel().close();
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -115,7 +117,8 @@ public final class PortRegistry {
     new HashSet<>(mReserved.keySet()).forEach(this::release);
   }
 
-  private File portFile(int port) {
+  @VisibleForTesting
+  File portFile(int port) {
     return new File(mCoordinationDir, Integer.toString(port));
   }
 
@@ -141,12 +144,10 @@ public final class PortRegistry {
    */
   private static class Reservation {
     private final File mFile;
-    private final FileChannel mChannel;
     private final FileLock mLock;
 
-    private Reservation(File file, FileChannel channel, FileLock lock) {
+    private Reservation(File file, FileLock lock) {
       mFile = file;
-      mChannel = channel;
       mLock = lock;
     }
   }

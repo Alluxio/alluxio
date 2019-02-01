@@ -13,12 +13,13 @@ package alluxio.master;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -30,9 +31,10 @@ public final class PortRegistryTest {
 
   @Test
   public void lockOnce() {
-    int port = PortRegistry.getFreePort();
+    int port = -1;
     boolean locked = false;
     for (int i = 0; i < 100; i++) {
+      port = PortRegistry.getFreePort();
       if (mRegistry.lockPort(port)) {
         locked = true;
         break;
@@ -40,13 +42,13 @@ public final class PortRegistryTest {
     }
     assertTrue(locked);
     for (int i = 0; i < 100; i++) {
-      Assert.assertFalse(mRegistry.lockPort(port));
+      assertFalse(mRegistry.lockPort(port));
     }
   }
 
   @Test
   public void lockMany() {
-    int numPorts = 100;
+    int numPorts = 20;
     Set<Integer> ports = new HashSet<>();
     for (int i = 0; i < numPorts; i++) {
       ports.add(mRegistry.reservePort());
@@ -58,13 +60,28 @@ public final class PortRegistryTest {
   public void lockAndRelease() {
     int port = PortRegistry.getFreePort();
     int successes = 0;
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 10; i++) {
       if (mRegistry.lockPort(port)) {
         successes++;
         mRegistry.release(port);
       }
     }
     // Other processes could interfere and steal the lock occasionally, so we only check > 50.
-    assertThat(successes, greaterThan(50));
+    assertThat(successes, greaterThan(5));
+  }
+
+  @Test
+  public void releaseDeletesFile() {
+    int successes = 0;
+    for (int i = 0; i < 5; i++) {
+      int port = mRegistry.reservePort();
+      File portFile = mRegistry.portFile(port);
+      assertTrue(portFile.exists());
+      mRegistry.release(port);
+      if (!portFile.exists()) {
+        successes++;
+      }
+    }
+    assertThat(successes, greaterThan(2));
   }
 }

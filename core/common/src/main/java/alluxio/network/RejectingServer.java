@@ -35,6 +35,7 @@ public final class RejectingServer extends Thread {
    * @param port the port to reject requests on
    */
   public RejectingServer(int port) {
+    super("RejectingServer-" + port);
     mPort = port;
   }
 
