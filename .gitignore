@@ -2,6 +2,7 @@
 **/alluxio-site.properties
 **/nb-configuration*.xml
 **/nbproject/
+**/.port_coordination
 *.iml
 *.pyc
 *.swo
