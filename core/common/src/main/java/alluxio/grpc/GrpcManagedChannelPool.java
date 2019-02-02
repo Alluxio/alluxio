@@ -1,6 +1,8 @@
 package alluxio.grpc;
 
 import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -272,14 +274,20 @@ public class GrpcManagedChannelPool {
     private Optional<Integer> mFlowControlWindow = Optional.empty();
     private Optional<Class<? extends io.netty.channel.Channel>> mChannelType = Optional.empty();
     private Optional<EventLoopGroup> mEventLoopGroup = Optional.empty();
-    private long mShutdownTimeoutMs = 0;
-    private long mHealthCheckTimeoutMs = 0;
     private long mPoolKey = 0;
-    private ChannelKey() {}
+    // Set some sane default if not set by the programmer
+    private long mShutdownTimeoutMs;
+    private long mHealthCheckTimeoutMs;
 
-    public static ChannelKey create() {
-      return new ChannelKey();
+    public static ChannelKey create(AlluxioConfiguration conf) {
+      return new ChannelKey(conf);
     }
+
+    private ChannelKey(AlluxioConfiguration conf) {
+      mShutdownTimeoutMs = conf.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT);
+      mHealthCheckTimeoutMs = conf.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS);
+    }
+
 
     /**
      * @param address destination address of the channel

@@ -49,10 +49,8 @@ public final class GrpcChannelBuilder {
   protected AlluxioConfiguration mConfiguration;
 
   private GrpcChannelBuilder(SocketAddress address, AlluxioConfiguration conf) {
-    mChannelKey = GrpcManagedChannelPool.ChannelKey.create();
-    mChannelKey.setAddress(address).usePlaintext()
-        .setHealthCheckTimeout(conf.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS))
-        .setShutdownTimeout(conf.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
+    mChannelKey = GrpcManagedChannelPool.ChannelKey.create(conf);
+    mChannelKey.setAddress(address).usePlaintext();
     mUseSubject = true;
     mAuthenticateChannel = true;
     mConfiguration = conf;
