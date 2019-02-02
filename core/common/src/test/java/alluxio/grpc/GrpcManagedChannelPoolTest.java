@@ -16,11 +16,9 @@ import static org.junit.Assert.assertTrue;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.SleepUtils;
 
 import io.grpc.ManagedChannel;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
