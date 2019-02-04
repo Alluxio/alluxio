@@ -13,6 +13,8 @@ package alluxio.worker.grpc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import alluxio.Constants;
@@ -97,6 +99,26 @@ public abstract class AbstractWriteHandlerTest {
     // Our current implementation does not really abort the file when the write is cancelled.
     // The client issues another request to block worker to abort it.
     checkWriteData(checksum, len);
+  }
+
+  @Test
+  public void cancelIgnoreError() throws Exception {
+    long len = 0;
+    long checksum = 0;
+    mWriteHandler.write(newWriteRequestCommand(0));
+    for (int i = 0; i < 1; i++) {
+      DataBuffer dataBuffer = newDataBuffer(CHUNK_SIZE);
+      checksum += getChecksum(dataBuffer);
+      mWriteHandler.write(newWriteRequest(dataBuffer));
+      len += CHUNK_SIZE;
+    }
+    // Cancel.
+    mWriteHandler.onCancel();
+    mWriteHandler.onError(Status.CANCELLED.asRuntimeException());
+
+    checkComplete(mResponseObserver);
+    checkWriteData(checksum, len);
+    verify(mResponseObserver, never()).onError(any(Throwable.class));
   }
 
   @Test
