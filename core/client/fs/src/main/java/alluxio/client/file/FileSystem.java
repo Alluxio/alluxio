@@ -168,7 +168,7 @@ public interface FileSystem extends Closeable {
      * Closes and removes all {@link FileSystem} from the cache.
      */
     @VisibleForTesting
-    public void purge() {
+    void purge() {
       synchronized (mFileSystemCacheLock) {
         mCacheMap.forEach(((fileSystemKey, fileSystem) -> {
           try {

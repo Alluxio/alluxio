@@ -54,7 +54,7 @@ public class FileSystemFactoryTest {
 
   @After
   public void after() {
-    resetFileSystemCache();
+    FileSystem.Factory.FILESYSTEM_CACHE.purge();
   }
 
   @Test
@@ -127,7 +127,7 @@ public class FileSystemFactoryTest {
   }
 
   public void fileSystemCacheTest()  {
-    resetFileSystemCache();
+    FileSystem.Factory.FILESYSTEM_CACHE.purge();
     FileSystem fs1 = FileSystem.Factory.get();
     FileSystem fs2 = FileSystem.Factory.get();
     assertSame("Second client should have been retrieved from cache.", fs1, fs2);
@@ -148,7 +148,4 @@ public class FileSystemFactoryTest {
     return new Subject(false, principals, new HashSet<>(), new HashSet<>());
   }
 
-  public void resetFileSystemCache() {
-    FileSystem.Factory.FILESYSTEM_CACHE.purge();
-  }
 }
