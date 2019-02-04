@@ -60,6 +60,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -169,16 +170,18 @@ public interface FileSystem extends Closeable {
      */
     @VisibleForTesting
     void purge() {
+      Set<Map.Entry<FileSystemKey, FileSystem>> clients = mCacheMap.entrySet();
       synchronized (mFileSystemCacheLock) {
-        mCacheMap.forEach(((fileSystemKey, fileSystem) -> {
-          try {
-            fileSystem.close();
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }));
         mCacheMap.clear();
       }
+      clients.forEach((entry) -> {
+        try {
+          entry.getValue().close();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
+
     }
   }
 
