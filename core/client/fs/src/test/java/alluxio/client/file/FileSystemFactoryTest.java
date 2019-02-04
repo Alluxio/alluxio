@@ -147,5 +147,4 @@ public class FileSystemFactoryTest {
     principals.add(user);
     return new Subject(false, principals, new HashSet<>(), new HashSet<>());
   }
-
 }

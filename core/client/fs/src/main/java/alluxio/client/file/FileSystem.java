@@ -79,7 +79,7 @@ public interface FileSystem extends Closeable {
   /**
    * Factory for {@link FileSystem}. Calling any of the {@link Factory#get()} methods in this class
    * will attempt to return a cached instance of an Alluxio {@link FileSystem}. Using any of the
-   * {@link Factory#create} methods will always guarantee returning a new FileSystem
+   * {@link Factory#create} methods will always guarantee returning a new FileSystem.
    */
   class Factory {
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
@@ -90,7 +90,7 @@ public interface FileSystem extends Closeable {
     private Factory() {} // prevent instantiation
 
     /**
-     * @return a FileSystem from the cache, creating a new one if it doesn't yet exist.
+     * @return a FileSystem from the cache, creating a new one if it doesn't yet exist
      */
     public static FileSystem get() {
       return get(new Subject()); // Use empty subject
@@ -100,7 +100,7 @@ public interface FileSystem extends Closeable {
      * Get a FileSystem from the cache with a given subject.
      *
      * @param subject The subject to use for security-related client operations
-     * @return a FileSystem from the cache, creating a new one if it doesn't yet exist.
+     * @return a FileSystem from the cache, creating a new one if it doesn't yet exist
      */
     public static FileSystem get(Subject subject) {
       Preconditions.checkNotNull(subject, "subject");
@@ -126,7 +126,7 @@ public interface FileSystem extends Closeable {
     }
 
     /**
-     * @param context the FileSystemContext with the FileSystem
+     * @param context the FileSystemContext to use with the FileSystem
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context) {
@@ -199,7 +199,6 @@ public interface FileSystem extends Closeable {
           throw new RuntimeException(e);
         }
       });
-
     }
   }
 

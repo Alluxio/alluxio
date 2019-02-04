@@ -100,6 +100,8 @@ public class BaseFileSystem implements FileSystem {
 
   /**
    * @param context the {@link FileSystemContext} to use for client operations
+   * @param cachingEnabled whether or not this FileSystem should remove itself from the
+   *                       {@link Factory} cache when closed
    * @return a {@link BaseFileSystem}
    */
   public static BaseFileSystem create(FileSystemContext context, boolean cachingEnabled) {
