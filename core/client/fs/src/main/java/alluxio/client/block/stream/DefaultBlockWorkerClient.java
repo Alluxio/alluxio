@@ -16,7 +16,6 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CreateLocalBlockRequest;
@@ -33,7 +32,6 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NettyUtils;
 
 import com.google.common.io.Closer;
@@ -72,7 +70,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    * @param subject the user subject, can be null if the user is not available
    * @param address the address of the worker
    * @param alluxioConf Alluxio configuration
-   * @param workerGroup The netty {@link EventLoopGroup} the channels are will utilize.
+   * @param workerGroup The netty {@link EventLoopGroup} the channels are will utilize
    */
   public DefaultBlockWorkerClient(Subject subject, SocketAddress address,
       AlluxioConfiguration alluxioConf, EventLoopGroup workerGroup) throws IOException {

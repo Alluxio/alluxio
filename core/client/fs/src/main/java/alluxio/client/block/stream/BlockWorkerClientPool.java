@@ -52,6 +52,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
    * @param address address of the worker
    * @param maxCapacity the maximum capacity of the pool
    * @param alluxioConf Alluxio configuration
+   * @param workerGroup netty event loop group to create clients with
    *        is above the minimum capacity(1), it is closed and removed from the pool.
    */
   public BlockWorkerClientPool(Subject subject, SocketAddress address, int maxCapacity,

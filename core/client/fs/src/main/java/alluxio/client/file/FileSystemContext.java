@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
@@ -29,7 +28,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
 import alluxio.security.authentication.SaslParticipantProviderUtils;
 import alluxio.util.ThreadFactoryUtils;
