@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
@@ -28,10 +29,12 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
 import alluxio.security.authentication.SaslParticipantProviderUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
+import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -41,6 +44,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import io.netty.channel.EventLoopGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,6 +123,7 @@ public final class FileSystemContext implements Closeable {
 
   private final ClientContext mClientContext;
   private final String mAppId;
+  private final EventLoopGroup mWorkerGroup;
 
   /**
    * Creates a {@link FileSystemContext} with a null subject.
@@ -200,6 +205,10 @@ public final class FileSystemContext implements Closeable {
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
     mClosed = new AtomicBoolean(false);
+
+    mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(ctx.getConf()),
+        ctx.getConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
+        "netty-client-worker-%d", true);
 
     mAppId = ctx.getConf().isSet(PropertyKey.USER_APP_ID)
                  ? ctx.getConf().get(PropertyKey.USER_APP_ID) : IdUtils.createFileSystemContextId();
@@ -371,7 +380,7 @@ public final class FileSystemContext implements Closeable {
         SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(), getConf()));
     return mBlockWorkerClientPool.computeIfAbsent(key, k ->
         new BlockWorkerClientPool(mClientContext.getSubject(), address,
-        getConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE), getConf())
+        getConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE), getConf(), mWorkerGroup)
     ).acquire();
   }
 

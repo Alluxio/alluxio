@@ -57,14 +57,6 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private static final Logger LOG =
       LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
 
-  // TODO(zac): Make this a non-singleton
-  private static final EventLoopGroup WORKER_GROUP = NettyUtils
-      .createEventLoop(
-          NettyUtils.getUserChannel(new InstancedConfiguration(ConfigurationUtils.defaults())),
-          new InstancedConfiguration(ConfigurationUtils.defaults())
-              .getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
-          "netty-client-worker-%d", true);
-
   private GrpcChannel mStreamingChannel;
   private GrpcChannel mRpcChannel;
   private SocketAddress mAddress;
@@ -80,17 +72,18 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    * @param subject the user subject, can be null if the user is not available
    * @param address the address of the worker
    * @param alluxioConf Alluxio configuration
+   * @param workerGroup The netty {@link EventLoopGroup} the channels are will utilize.
    */
   public DefaultBlockWorkerClient(Subject subject, SocketAddress address,
-      AlluxioConfiguration alluxioConf) throws IOException {
+      AlluxioConfiguration alluxioConf, EventLoopGroup workerGroup) throws IOException {
     try {
       // Disables channel pooling for data streaming to achieve better throughput.
       // Channel is still reused due to client pooling.
       mStreamingChannel = buildChannel(subject, address,
-          GrpcManagedChannelPool.PoolingStrategy.DISABLED, alluxioConf);
+          GrpcManagedChannelPool.PoolingStrategy.DISABLED, alluxioConf, workerGroup);
       // Uses default pooling strategy for RPC calls for better scalability.
       mRpcChannel = buildChannel(subject, address,
-          GrpcManagedChannelPool.PoolingStrategy.DEFAULT, alluxioConf);
+          GrpcManagedChannelPool.PoolingStrategy.DEFAULT, alluxioConf, workerGroup);
     } catch (StatusRuntimeException e) {
       throw GrpcExceptionUtils.fromGrpcStatusException(e);
     }
@@ -169,13 +162,14 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   private GrpcChannel buildChannel(Subject subject, SocketAddress address,
-      GrpcManagedChannelPool.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf)
+      GrpcManagedChannelPool.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf,
+      EventLoopGroup workerGroup)
       throws UnauthenticatedException, UnavailableException {
     return GrpcChannelBuilder.newBuilder(address, alluxioConf).setSubject(subject)
         .setChannelType(NettyUtils
             .getClientChannelClass(!(address instanceof InetSocketAddress), alluxioConf))
         .setPoolingStrategy(poolingStrategy)
-        .setEventLoopGroup(WORKER_GROUP)
+        .setEventLoopGroup(workerGroup)
         .setKeepAliveTimeout(alluxioConf.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS),
             TimeUnit.MILLISECONDS)
         .setMaxInboundMessageSize(
