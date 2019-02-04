@@ -11,14 +11,12 @@
 
 package alluxio.grpc;
 
-import alluxio.collections.Pair;
 import alluxio.exception.status.AlluxioStatusException;
 
 import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
-import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
