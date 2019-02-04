@@ -60,11 +60,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.security.auth.Subject;
 
 /**
@@ -153,10 +151,6 @@ public interface FileSystem extends Closeable {
    * A cache for storing {@link FileSystem} clients. This should only be used by the Factory class.
    */
   class Cache {
-
-    private final Object mFileSystemCacheLock = new Object();
-
-    @GuardedBy("mFileSystemCacheLock")
     final ConcurrentHashMap<FileSystemKey, FileSystem> mCacheMap = new ConcurrentHashMap<>();
 
     public Cache() { }
@@ -184,17 +178,16 @@ public interface FileSystem extends Closeable {
     }
 
     /**
-     * Closes and removes all {@link FileSystem} from the cache.
+     * Closes and removes all {@link FileSystem} from the cache. Only to be used for testing
+     * purposes. This method operates on the assumption that no concurrent calls to get/remove
+     * will be made while this function is running.
      */
     @VisibleForTesting
     void purge() {
-      Set<Map.Entry<FileSystemKey, FileSystem>> clients = mCacheMap.entrySet();
-      synchronized (mFileSystemCacheLock) {
-        mCacheMap.clear();
-      }
-      clients.forEach((entry) -> {
+      mCacheMap.forEach((fsKey, fs) -> {
         try {
-          entry.getValue().close();
+          mCacheMap.remove(fsKey);
+          fs.close();
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
