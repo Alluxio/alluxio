@@ -25,6 +25,8 @@ import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,6 +141,11 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * @param cause the exception
    */
   public void onError(Throwable cause) {
+    if (cause instanceof StatusRuntimeException
+        && ((StatusRuntimeException) cause).getStatus().getCode() == Status.Code.CANCELLED) {
+      // Cancellation is already handled.
+      return;
+    }
     LOG.error("Exception thrown while handling write request {}:",
         mContext == null ? "unknown" : mContext.getRequest(), cause);
     abort(new Error(AlluxioStatusException.fromThrowable(cause), false));
