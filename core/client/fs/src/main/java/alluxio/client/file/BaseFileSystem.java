@@ -72,7 +72,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -89,9 +88,6 @@ public class BaseFileSystem implements FileSystem {
   protected final AlluxioBlockStore mBlockStore;
   protected final boolean mCachingEnabled;
 
-  private final Object mCloseLock = new Object();
-
-  @GuardedBy("mCLoseLock")
   private volatile boolean mClosed = false;
 
   /**
@@ -128,26 +124,21 @@ public class BaseFileSystem implements FileSystem {
    * @throws IOException
    */
   @Override
-  public void close() throws IOException {
+  public synchronized void close() throws IOException {
+    // TODO(zac) Determine the behavior when closing the context during operations.
     if (!mClosed) {
-      synchronized (mCloseLock) {
-        // TODO(zac) Determine the behavior when closing the context during operations.
-        if (!mClosed) {
-          mClosed = true;
-          if (mCachingEnabled) {
-            Factory.FILESYSTEM_CACHE.remove(new FileSystemKey(mFsContext.getClientContext()));
-          }
-          mFsContext.close();
-        }
+      mClosed = true;
+      if (mCachingEnabled) {
+        Factory.FILESYSTEM_CACHE.remove(new FileSystemKey(mFsContext.getClientContext()));
       }
+      mFsContext.close();
     }
   }
 
   @Override
   public boolean isClosed() {
-    synchronized (mCloseLock) {
-      return mClosed;
-    }
+    // Doesn't require locking because mClosed is volatile and marked first upon close
+    return mClosed;
   }
 
   @Override
@@ -307,6 +298,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public Map<FileBlockInfo, List<WorkerNetAddress>> getBlockLocations(AlluxioURI path)
       throws IOException, AlluxioException {
+    // Don't need to checkUri here because we call other client operations
     List<FileBlockInfo> blocks = getStatus(path).getFileBlockInfos();
     Map<FileBlockInfo, List<WorkerNetAddress>> blockLocations = new HashMap<>();
     for (FileBlockInfo fileBlockInfo : blocks) {

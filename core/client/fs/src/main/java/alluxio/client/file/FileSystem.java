@@ -146,11 +146,8 @@ public interface FileSystem extends Closeable {
      * @return the {@link FileSystem} associated with the key
      */
     public FileSystem get(FileSystemKey key) {
-      synchronized (mFileSystemCacheLock) {
-        return mCacheMap.computeIfAbsent(key,
-            (fileSystemKey) ->
-                Factory.create(FileSystemContext.create(key.mSubject, key.mConf), true));
-      }
+      return mCacheMap.computeIfAbsent(key, (fileSystemKey) ->
+          Factory.create(FileSystemContext.create(key.mSubject, key.mConf), true));
     }
 
     /**
@@ -160,9 +157,7 @@ public interface FileSystem extends Closeable {
      * @return The removed context or null if there is no client associated with the key
      */
     public FileSystem remove(FileSystemKey key) {
-      synchronized (mFileSystemCacheLock) {
-        return mCacheMap.remove(key);
-      }
+      return mCacheMap.remove(key);
     }
 
     /**
