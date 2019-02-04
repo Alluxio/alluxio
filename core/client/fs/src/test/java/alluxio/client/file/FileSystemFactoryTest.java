@@ -26,6 +26,7 @@ import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.ConfigurationUtils;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,6 +50,11 @@ public class FileSystemFactoryTest {
   @Before
   public void before() {
     ConfigurationUtils.reloadProperties();
+  }
+
+  @After
+  public void after() {
+    resetFileSystemCache();
   }
 
   @Test
@@ -106,6 +112,18 @@ public class FileSystemFactoryTest {
   public void nullSubjectTest()  {
     mThrown.expect(NullPointerException.class);
     FileSystem.Factory.get(null);
+  }
+
+  @Test
+  public void uncachedFileSystemDoesntAffectCache() throws Exception {
+    FileSystem fs1 = FileSystem.Factory.get();
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    conf.set(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1sec");
+    FileSystem fs2 = FileSystem.Factory.create(conf);
+    fs2.close();
+    FileSystem fs3 = FileSystem.Factory.get();
+    assertSame("closing custom config should result in same FileSystem", fs1, fs3);
+    assertFalse("FileSystem should not be closed", fs1.isClosed());
   }
 
   public void fileSystemCacheTest()  {

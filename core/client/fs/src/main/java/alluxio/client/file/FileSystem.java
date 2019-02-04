@@ -98,10 +98,18 @@ public interface FileSystem extends Closeable {
     }
 
     public static FileSystem create(AlluxioConfiguration alluxioConf) {
-      return create(FileSystemContext.create(alluxioConf));
+      return create(FileSystemContext.create(alluxioConf), false);
+    }
+
+    public static FileSystem create(ClientContext ctx) {
+      return create(FileSystemContext.create(ctx), false);
     }
 
     public static FileSystem create(FileSystemContext context) {
+      return create(context, false);
+    }
+
+    private static FileSystem create(FileSystemContext context, boolean cachingEnabled) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
         AlluxioConfiguration conf = context.getConf();
@@ -113,11 +121,7 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      return BaseFileSystem.create(context);
-    }
-
-    public static FileSystem create(ClientContext ctx) {
-      return create(FileSystemContext.create(ctx));
+      return BaseFileSystem.create(context, cachingEnabled);
     }
   }
 
@@ -143,7 +147,8 @@ public interface FileSystem extends Closeable {
     public FileSystem get(FileSystemKey key) {
       synchronized (mFileSystemCacheLock) {
         return mCacheMap.computeIfAbsent(key,
-            (fileSystemKey) -> Factory.create(ClientContext.create(key.mSubject, key.mConf)));
+            (fileSystemKey) ->
+                Factory.create(FileSystemContext.create(key.mSubject, key.mConf), true));
       }
     }
 

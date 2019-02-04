@@ -87,18 +87,27 @@ public class BaseFileSystem implements FileSystem {
 
   protected final FileSystemContext mFsContext;
   protected final AlluxioBlockStore mBlockStore;
+  protected final boolean mCachingEnabled;
 
   private final Object mCloseLock = new Object();
 
   @GuardedBy("mCLoseLock")
-  private boolean mClosed = false;
+  private volatile boolean mClosed = false;
 
   /**
    * @param context the {@link FileSystemContext} to use for client operations
    * @return a {@link BaseFileSystem}
    */
   public static BaseFileSystem create(FileSystemContext context) {
-    return new BaseFileSystem(context);
+    return new BaseFileSystem(context, false);
+  }
+
+  /**
+   * @param context the {@link FileSystemContext} to use for client operations
+   * @return a {@link BaseFileSystem}
+   */
+  public static BaseFileSystem create(FileSystemContext context, boolean cachingEnabled) {
+    return new BaseFileSystem(context, cachingEnabled);
   }
 
   /**
@@ -106,9 +115,10 @@ public class BaseFileSystem implements FileSystem {
    *
    * @param fsContext file system context
    */
-  protected BaseFileSystem(FileSystemContext fsContext) {
+  protected BaseFileSystem(FileSystemContext fsContext, boolean cachingEnabled) {
     mFsContext = fsContext;
     mBlockStore = AlluxioBlockStore.create(fsContext);
+    mCachingEnabled = cachingEnabled;
   }
 
   /**
@@ -124,7 +134,9 @@ public class BaseFileSystem implements FileSystem {
         // TODO(zac) Determine the behavior when closing the context during operations.
         if (!mClosed) {
           mClosed = true;
-          Factory.FILESYSTEM_CACHE.remove(new FileSystemKey(mFsContext.getClientContext()));
+          if (mCachingEnabled) {
+            Factory.FILESYSTEM_CACHE.remove(new FileSystemKey(mFsContext.getClientContext()));
+          }
           mFsContext.close();
         }
       }
