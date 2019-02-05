@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -263,6 +264,7 @@ public final class FileSystemContext implements Closeable {
    */
   public synchronized void close() throws IOException {
     if (!mClosed.get()) {
+      mWorkerGroup.shutdownGracefully(1L, 10L, TimeUnit.SECONDS);
       mFileSystemMasterClientPool.close();
       mFileSystemMasterClientPool = null;
       mBlockMasterClientPool.close();
