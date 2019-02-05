@@ -205,7 +205,6 @@ public final class FileSystemContext implements Closeable {
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
     mClosed = new AtomicBoolean(false);
 
-
     mAppId = ctx.getConf().isSet(PropertyKey.USER_APP_ID)
                  ? ctx.getConf().get(PropertyKey.USER_APP_ID) : IdUtils.createFileSystemContextId();
     LOG.info("Created filesystem context with id {}. This ID will be used for identifying info "
