@@ -405,6 +405,7 @@ public class UfsJournal implements Journal {
     if (mWriter != null) {
       mWriter.close();
       mWriter = null;
+      mAsyncWriter.close();
       mAsyncWriter = null;
     }
     if (mTailerThread != null) {
