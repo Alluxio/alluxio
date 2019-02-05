@@ -415,8 +415,6 @@ public class GrpcManagedChannelPool {
           .append(mMaxInboundMessageSize)
           .append(mFlowControlWindow)
           .append(mPoolKey)
-          .append(mHealthCheckTimeoutMs)
-          .append(mShutdownTimeoutMs)
           .append(
               mChannelType.isPresent() ? System.identityHashCode(mChannelType.get()) : null)
           .append(
@@ -436,8 +434,6 @@ public class GrpcManagedChannelPool {
             && mMaxInboundMessageSize.equals(otherKey.mMaxInboundMessageSize)
             && mChannelType.equals(otherKey.mChannelType)
             && mPoolKey == otherKey.mPoolKey
-            && mHealthCheckTimeoutMs == otherKey.mHealthCheckTimeoutMs
-            && mShutdownTimeoutMs== otherKey.mShutdownTimeoutMs
             && mEventLoopGroup.equals(otherKey.mEventLoopGroup);
       }
       return false;
