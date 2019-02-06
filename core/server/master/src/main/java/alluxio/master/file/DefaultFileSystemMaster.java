@@ -3107,6 +3107,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // We retry an async persist request until ufs permits the operation
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE)) {
+      if (!inodePath.getInodeFile().isCompleted()) {
+        throw new InvalidPathException(
+            "Cannot persist an incomplete Alluxio file: " + inodePath.getUri());
+      }
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(inodePath.getInode().getId())
           .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
