@@ -103,8 +103,7 @@ public class BlockMetadataManagerView {
    * @return boolean, true if block is pinned
    */
   public boolean isBlockPinned(long blockId) {
-    return mPinnedInodes.contains(
-        BlockId.createBlockId(BlockId.getContainerId(blockId), BlockId.getMaxSequenceNumber()));
+    return mPinnedInodes.contains(BlockId.getFileId(blockId));
   }
 
   /**
