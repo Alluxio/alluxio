@@ -759,7 +759,8 @@ public final class AlluxioWorkerRestServiceHandler {
     // free/used spaces, those statistics can be gotten via other REST apis.
     String blocksCachedProperty =
         MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
-    @SuppressWarnings("unchecked") Gauge<Integer> blocksCached =
+    @SuppressWarnings("unchecked")
+    Gauge<Integer> blocksCached =
         (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
 
     // Get values of the counters and gauges and put them into a metrics map.

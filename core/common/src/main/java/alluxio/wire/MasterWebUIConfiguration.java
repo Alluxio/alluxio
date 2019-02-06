@@ -11,8 +11,9 @@
 
 package alluxio.wire;
 
+import alluxio.util.webui.UITriple;
+
 import com.google.common.base.MoreObjects;
-import org.apache.commons.lang3.tuple.Triple;
 
 import java.io.Serializable;
 import java.util.List;
@@ -28,7 +29,7 @@ public final class MasterWebUIConfiguration implements Serializable {
   private static final long serialVersionUID = -2277858633604882055L;
 
   private List<String> mWhitelist;
-  private TreeSet<Triple<String, String, String>> mConfiguration;
+  private TreeSet<UITriple> mConfiguration;
 
   /**
    * Creates a new instance of {@link MasterWebUIConfiguration}.
@@ -41,7 +42,7 @@ public final class MasterWebUIConfiguration implements Serializable {
    *
    * @return the configuration
    */
-  public TreeSet<Triple<String, String, String>> getConfiguration() {
+  public TreeSet<UITriple> getConfiguration() {
     return mConfiguration;
   }
 
@@ -61,7 +62,7 @@ public final class MasterWebUIConfiguration implements Serializable {
    * @return the configuration
    */
   public MasterWebUIConfiguration setConfiguration(
-      TreeSet<Triple<String, String, String>> configuration) {
+      TreeSet<UITriple> configuration) {
     mConfiguration = configuration;
     return this;
   }

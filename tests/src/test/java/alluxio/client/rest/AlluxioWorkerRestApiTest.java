@@ -161,12 +161,12 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
         .replace('`', '"');
     WorkerWebUIOverview expected =
         new ObjectMapper().readValue(expectedJson, WorkerWebUIOverview.class);
-    String findClusterName = "test-cluster[^/]+"; // ignore random cluster name
-    String replaceClusterName = "test-cluster";
+    String findIgnored = "(test-cluster-).{36}";
+    String replaceIgnored = "$1";
     String expectedString = new ObjectMapper().writer().writeValueAsString(expected)
-        .replaceAll(findClusterName, replaceClusterName);
+        .replaceAll(findIgnored, replaceIgnored);
     String resultString = new ObjectMapper().writer().writeValueAsString(result)
-        .replaceAll(findClusterName, replaceClusterName);
+        .replaceAll(findIgnored, replaceIgnored);
     Assert.assertEquals(expectedString, resultString);
   }
 
@@ -222,14 +222,12 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
         + "`SetAclOps`:0,`SetAttributeOps`:0,`UnmountOps`:0}}").replace('`', '"');
     WorkerWebUIMetrics expected =
         new ObjectMapper().readValue(expectedJson, WorkerWebUIMetrics.class);
-    String findUniqueClusterId =
-        "UfsSessionCount-Ufs:[^\"]+";
-    String replaceUniqueClusterId =
-        "UfsSessionCount-Ufs:test-cluster_underFSStorage";
+    String findIgnored = "(test-cluster-).{36}";
+    String replaceIgnored = "$1";
     String expectedString = new ObjectMapper().writer().writeValueAsString(expected)
-        .replaceAll(findUniqueClusterId, replaceUniqueClusterId);
+        .replaceAll(findIgnored, replaceIgnored);
     String resultString = new ObjectMapper().writer().writeValueAsString(result)
-        .replaceAll(findUniqueClusterId, replaceUniqueClusterId);
+        .replaceAll(findIgnored, replaceIgnored);
     Assert.assertEquals(expectedString, resultString);
   }
 

@@ -59,6 +59,7 @@ import alluxio.util.webui.StorageTierInfo;
 import alluxio.util.webui.UIFileBlockInfo;
 import alluxio.util.webui.UIFileInfo;
 import alluxio.util.webui.UIMetric;
+import alluxio.util.webui.UITriple;
 import alluxio.util.webui.WebUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
@@ -784,13 +785,13 @@ public final class AlluxioMasterRestServiceHandler {
 
       response.setWhitelist(mFileSystemMaster.getWhiteList());
 
-      TreeSet<Triple<String, String, String>> sortedProperties = new TreeSet<>();
+      TreeSet<UITriple> sortedProperties = new TreeSet<>();
       Set<String> alluxioConfExcludes = Sets.newHashSet(PropertyKey.MASTER_WHITELIST.toString());
       for (ConfigProperty configProperty : mMetaMaster
           .getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())) {
         String confName = configProperty.getName();
         if (!alluxioConfExcludes.contains(confName)) {
-          sortedProperties.add(new ImmutableTriple<>(confName,
+          sortedProperties.add(new UITriple(confName,
               ConfigurationUtils.valueAsString(configProperty.getValue()),
               configProperty.getSource()));
         }
@@ -1280,7 +1281,8 @@ public final class AlluxioMasterRestServiceHandler {
     // free/used
     // spaces, those statistics can be gotten via other REST apis.
     String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
-    @SuppressWarnings("unchecked") Gauge<Integer> filesPinned =
+    @SuppressWarnings("unchecked")
+    Gauge<Integer> filesPinned =
         (Gauge<Integer>) MetricsSystem.METRIC_REGISTRY.getGauges().get(filesPinnedProperty);
 
     // Get values of the counters and gauges and put them into a metrics map.

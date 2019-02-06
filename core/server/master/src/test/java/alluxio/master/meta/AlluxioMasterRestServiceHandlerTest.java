@@ -430,7 +430,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
       assertNotNull("Response must be not null!", response);
       assertNotNull("Response must have a entry!", response.getEntity());
       assertTrue("Entry must be a List!", (response.getEntity() instanceof List));
-      @SuppressWarnings("unchecked") List<WorkerInfo> entry =
+      @SuppressWarnings("unchecked")
+      List<WorkerInfo> entry =
           (List<WorkerInfo>) response.getEntity();
       Set<Long> actual = new HashSet<>();
       for (WorkerInfo info : entry) {
