@@ -3156,27 +3156,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
          FileSystemMasterAuditContext auditContext =
              createAuditContext(commandName, path, null, inodePath.getInodeOrNull())) {
-<<<<<<< HEAD
-||||||| parent of 4713811569... [SMALLFIX]  Ensure pinning and unpinning to recursively sync before the pin and unpin (#8303)
-      mMountTable.checkUnderWritableMountPoint(path);
-      // Possible ufs sync.
-      syncMetadata(rpcContext, inodePath, lockingScheme,
-          options.getRecursive() ? DescendantType.ALL : DescendantType.ONE);
-      if (!inodePath.fullPathExists()) {
-        throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-      }
-=======
-      mMountTable.checkUnderWritableMountPoint(path);
-      // Force recursive sync metadata if it is a pinning and unpinning operation
-      boolean recursiveSync = options.hasPinned() || options.getRecursive();
-
-      // Possible ufs sync.
-      syncMetadata(rpcContext, inodePath, lockingScheme,
-          recursiveSync ? DescendantType.ALL : DescendantType.ONE);
-      if (!inodePath.fullPathExists()) {
-        throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-      }
->>>>>>> 4713811569... [SMALLFIX]  Ensure pinning and unpinning to recursively sync before the pin and unpin (#8303)
       try {
         mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
       } catch (AccessControlException e) {
@@ -3184,9 +3163,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       mMountTable.checkUnderWritableMountPoint(path);
+      // Force recursive sync metadata if it is a pinning and unpinning operation
+      boolean recursiveSync = (options.getPinned() != null) || options.isRecursive();
       // Possible ufs sync.
       syncMetadata(rpcContext, inodePath, lockingScheme,
-          options.isRecursive() ? DescendantType.ALL : DescendantType.ONE);
+          recursiveSync ? DescendantType.ALL : DescendantType.ONE);
       if (!inodePath.fullPathExists()) {
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }

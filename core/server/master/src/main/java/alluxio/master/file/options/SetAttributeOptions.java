@@ -132,7 +132,7 @@ public final class SetAttributeOptions {
   }
 
   /**
-   * @return the mode bits
+   * @return the mode bitsgetPinned
    */
   public Short getMode() {
     return mMode;
