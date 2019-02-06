@@ -67,7 +67,6 @@ public class GrpcManagedChannelPool {
 
   /** Scheduler for destruction of idle channels. */
   protected ScheduledExecutorService mScheduler;
-  /** Timeout for health check on managed channels. */
 
   /**
    * Creates a new {@link GrpcManagedChannelPool}.
@@ -80,7 +79,6 @@ public class GrpcManagedChannelPool {
   private void shutdownManagedChannel(ManagedChannel managedChannel, long shutdownTimeoutMs) {
     managedChannel.shutdown();
     try {
-
       managedChannel.awaitTermination(shutdownTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -208,7 +206,6 @@ public class GrpcManagedChannelPool {
     if (channelKey.mEventLoopGroup.isPresent()) {
       channelBuilder.eventLoopGroup(channelKey.mEventLoopGroup.get());
     }
-
     if (channelKey.mPlain) {
       channelBuilder.usePlaintext();
     }
@@ -287,7 +284,6 @@ public class GrpcManagedChannelPool {
       mShutdownTimeoutMs = conf.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT);
       mHealthCheckTimeoutMs = conf.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS);
     }
-
 
     /**
      * @param address destination address of the channel
