@@ -81,7 +81,14 @@
             <configuration>
               <filesets>
                 <fileset>
-                  <directory>src/main/java</directory>
+                  <directory>src/main/java/alluxio/proto</directory>
+                  <followSymlinks>false</followSymlinks>
+                  <includes>
+                    <include>**/*.java</include>
+                  </includes>
+                </fileset>
+                <fileset>
+                  <directory>src/main/java/alluxio/grpc</directory>
                   <followSymlinks>false</followSymlinks>
                   <includes>
                     <include>**/*.java</include>
