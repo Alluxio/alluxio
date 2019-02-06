@@ -2,7 +2,6 @@ package alluxio.grpc;
 
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -121,13 +120,14 @@ public class GrpcManagedChannelPool {
    * @param channelKey channel key
    * @return a {@link ManagedChannel}
    */
-  public ManagedChannel acquireManagedChannel(ChannelKey channelKey) {
+  public ManagedChannel acquireManagedChannel(ChannelKey channelKey, long healthCheckTimeoutMs,
+      long shutdownTimeoutMs) {
     boolean shutdownExistingChannel = false;
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
       if (mChannels.containsKey(channelKey)) {
         ManagedChannelReference managedChannelRef = mChannels.get(channelKey);
         if (waitForChannelReady(mChannels.get(channelKey).get(),
-            channelKey.mHealthCheckTimeoutMs)) {
+            healthCheckTimeoutMs)) {
           return managedChannelRef.reference();
         } else {
           // Postpone channel shutdown under exclusive lock below.
@@ -139,7 +139,7 @@ public class GrpcManagedChannelPool {
       // Dispose existing channel if required.
       int existingRefCount = 0;
       if (shutdownExistingChannel && mChannels.containsKey(channelKey)) {
-        shutdownManagedChannel(mChannels.get(channelKey).get(), channelKey.mShutdownTimeoutMs);
+        shutdownManagedChannel(mChannels.get(channelKey).get(), shutdownTimeoutMs);
         existingRefCount = mChannels.get(channelKey).getRefCount();
         mChannels.remove(channelKey);
       }
@@ -158,7 +158,7 @@ public class GrpcManagedChannelPool {
    *
    * @param channelKey host address
    */
-  public void releaseManagedChannel(ChannelKey channelKey) {
+  public void releaseManagedChannel(ChannelKey channelKey, long shutdownTimeoutMs) {
     boolean shutdownManagedChannel;
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
       Verify.verify(mChannels.containsKey(channelKey));
@@ -170,8 +170,7 @@ public class GrpcManagedChannelPool {
         if (mChannels.containsKey(channelKey)) {
           ManagedChannelReference channelRef = mChannels.get(channelKey);
           if (channelRef.getRefCount() <= 0) {
-            shutdownManagedChannel(mChannels.remove(channelKey).get(),
-                channelKey.mShutdownTimeoutMs);
+            shutdownManagedChannel(mChannels.remove(channelKey).get(), shutdownTimeoutMs);
           }
         }
       }
@@ -272,18 +271,12 @@ public class GrpcManagedChannelPool {
     private Optional<Class<? extends io.netty.channel.Channel>> mChannelType = Optional.empty();
     private Optional<EventLoopGroup> mEventLoopGroup = Optional.empty();
     private long mPoolKey = 0;
-    // Set some sane default if not set by the programmer
-    private long mShutdownTimeoutMs;
-    private long mHealthCheckTimeoutMs;
 
     public static ChannelKey create(AlluxioConfiguration conf) {
-      return new ChannelKey(conf);
+      return new ChannelKey();
     }
 
-    private ChannelKey(AlluxioConfiguration conf) {
-      mShutdownTimeoutMs = conf.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT);
-      mHealthCheckTimeoutMs = conf.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS);
-    }
+    private ChannelKey() {}
 
     /**
      * @param address destination address of the channel
@@ -321,24 +314,6 @@ public class GrpcManagedChannelPool {
      */
     public ChannelKey setKeepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
       mKeepAliveTimeout = Optional.of(new Pair<>(keepAliveTimeout, timeUnit));
-      return this;
-    }
-
-    /**
-     * @param healthCheckTimeoutMs keep alive timeout for the underlying channel
-     * @return the modified {@link ChannelKey}
-     */
-    public ChannelKey setHealthCheckTimeout(long healthCheckTimeoutMs) {
-      mHealthCheckTimeoutMs = healthCheckTimeoutMs;
-      return this;
-    }
-
-    /**
-     * @param shutdownTimeoutMs keep alive timeout for the underlying channel
-     * @return the modified {@link ChannelKey}
-     */
-    public ChannelKey setShutdownTimeout(long shutdownTimeoutMs) {
-      mShutdownTimeoutMs = shutdownTimeoutMs;
       return this;
     }
 
@@ -444,8 +419,6 @@ public class GrpcManagedChannelPool {
           .add("KeepAliveTimeout", mKeepAliveTimeout)
           .add("FlowControlWindow", mFlowControlWindow)
           .add("ChannelType", mChannelType)
-          .add("HealthCheckTimeoutMs", mHealthCheckTimeoutMs)
-          .add("ShutdownTimeoutMs", mShutdownTimeoutMs)
           .add("EventLoopGroup", mEventLoopGroup)
           .toString();
     }

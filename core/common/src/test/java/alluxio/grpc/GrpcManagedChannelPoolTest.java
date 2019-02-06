@@ -32,6 +32,10 @@ import java.util.concurrent.TimeUnit;
 public final class GrpcManagedChannelPoolTest {
 
   private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static final long SHUTDOWN_TIMEOUT =
+      sConf.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT);
+  private static final long HEALTH_CHECK_TIMEOUT =
+      sConf.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS);
 
   @BeforeClass
   public static void classSetup() {
@@ -56,13 +60,15 @@ public final class GrpcManagedChannelPoolTest {
     key1.setAddress(address);
     key2.setAddress(address);
 
-    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
-    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2);
+    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
+    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
 
     assertTrue(channel1 == channel2);
 
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1, SHUTDOWN_TIMEOUT);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2, SHUTDOWN_TIMEOUT);
     server1.shutdown();
   }
 
@@ -79,13 +85,15 @@ public final class GrpcManagedChannelPoolTest {
     key1.setAddress(address);
     key2.setAddress(address);
 
-    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
-    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2);
+    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
+    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
 
     assertTrue(channel1 != channel2);
 
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1, SHUTDOWN_TIMEOUT);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2, SHUTDOWN_TIMEOUT);
   }
 
   @Test
@@ -113,13 +121,15 @@ public final class GrpcManagedChannelPoolTest {
     key1.setKeepAliveTimeout(100, TimeUnit.MINUTES);
     key2.setKeepAliveTimeout(100, TimeUnit.MINUTES);
 
-    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
-    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2);
+    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
+    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
 
     assertTrue(channel1 == channel2);
 
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1, SHUTDOWN_TIMEOUT);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2, SHUTDOWN_TIMEOUT);
     server1.shutdown();
   }
 
@@ -139,13 +149,15 @@ public final class GrpcManagedChannelPoolTest {
     key1.setAddress(address1);
     key2.setAddress(address2);
 
-    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
-    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2);
+    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
+    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
 
     assertTrue(channel1 != channel2);
 
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1, SHUTDOWN_TIMEOUT);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2, SHUTDOWN_TIMEOUT);
     server2.shutdown();
     server2.shutdown();
   }
@@ -165,13 +177,16 @@ public final class GrpcManagedChannelPoolTest {
     key1.setAddress(address);
     key2.setAddress(address);
 
-    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
-    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2);
+    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
+    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
 
     assertTrue(channel1 != channel2);
 
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1, SHUTDOWN_TIMEOUT);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2, SHUTDOWN_TIMEOUT);
+
     server1.shutdown();
   }
 }
