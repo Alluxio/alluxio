@@ -11,20 +11,28 @@
 
 package alluxio.job.persist;
 
+import static alluxio.job.wire.Status.COMPLETED;
+import static alluxio.job.wire.Status.FAILED;
+
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
+import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
+import alluxio.job.wire.JobInfo;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.job.JobMaster;
+import alluxio.security.authorization.Mode;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,6 +42,7 @@ import org.junit.Test;
  */
 public final class PersistIntegrationTest extends JobIntegrationTest {
   private static final String TEST_URI = "/test";
+  private static final Mode TEST_MODE = new Mode((short) 0777);
 
   /**
    * Tests persisting a file.
@@ -114,5 +123,85 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     String ufsPath = status.getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
     Assert.assertFalse(ufs.exists(ufsPath));
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, "10s"})
+  public void disallowIncompletePersist() throws Exception {
+    AlluxioURI path = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
+
+    // Create file, but do not complete
+    FileOutStream os = mFileSystem.createFile(path,
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
+            .setMode(TEST_MODE.toProto()).build());
+
+    // schedule an async persist
+    FileSystemMasterClient client = mFsContext.acquireMasterClient();
+    try {
+      client.scheduleAsyncPersist(path);
+      Assert.fail("Should not be able to schedule persistence for incomplete file");
+    } catch (Exception e) {
+      // expected
+      Assert.assertTrue("Failure expected to be about incomplete files",
+          e.getMessage().toLowerCase().contains("incomplete"));
+    } finally {
+      mFsContext.releaseMasterClient(client);
+    }
+  }
+
+  @Test(timeout = 30000)
+  public void persistOnlyCompleteFiles() throws Exception {
+    AlluxioURI path = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
+
+    // Create file, but do not complete
+    FileOutStream os = mFileSystem.createFile(path,
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
+            .setMode(TEST_MODE.toProto()).build());
+    URIStatus status = mFileSystem.getStatus(path);
+
+    // Generate a temporary path to be used by the persist job.
+    String tempUfsPath =
+        PathUtils.temporaryFileName(System.currentTimeMillis(), status.getUfsPath());
+    JobMaster jobMaster = mLocalAlluxioJobCluster.getMaster().getJobMaster();
+    // Run persist job on incomplete file (expected to fail)
+    long failId =
+        jobMaster.run(new PersistConfig(path.toString(), status.getMountId(), false, tempUfsPath));
+
+    CommonUtils.waitFor("Wait for persist job to complete", () -> {
+      try {
+        JobInfo jobInfo = jobMaster.getStatus(failId);
+        Assert.assertNotEquals("Persist should not succeed for incomplete file", COMPLETED,
+            jobInfo.getStatus());
+        if (jobInfo.getStatus() == FAILED) {
+          // failed job is expected
+          Assert.assertTrue("Failure expected to be about incomplete files",
+              jobInfo.getErrorMessage().toLowerCase().contains("incomplete"));
+          return true;
+        }
+        return false;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS)
+        .setInterval(100));
+
+    // close the file to allow persist to happen
+    os.close();
+
+    // Run persist job on complete file (expected to succeed)
+    long successId =
+        jobMaster.run(new PersistConfig(path.toString(), status.getMountId(), false, tempUfsPath));
+
+    CommonUtils.waitFor("Wait for persist job to complete", () -> {
+      try {
+        JobInfo jobInfo = jobMaster.getStatus(successId);
+        Assert.assertNotEquals("Persist should not fail", FAILED, jobInfo.getStatus());
+        return jobInfo.getStatus() == COMPLETED;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS)
+        .setInterval(100));
   }
 }
