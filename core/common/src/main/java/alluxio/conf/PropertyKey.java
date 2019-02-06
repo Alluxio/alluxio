@@ -545,7 +545,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey UNDERFS_GCS_DIRECTORY_SUFFIX =
-      new Builder(Name.UNDERFS_S3A_DIRECTORY_SUFFIX)
+      new Builder(Name.UNDERFS_GCS_DIRECTORY_SUFFIX)
           .setDefaultValue("/")
           .setDescription("Directories are represented in GCS as zero-byte objects named with "
               + "the specified suffix.")
