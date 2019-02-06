@@ -213,7 +213,7 @@ public final class FileSystemContext implements Closeable {
 
     mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(ctx.getConf()),
         ctx.getConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
-        String.format("netty-client-worker-%s-%%d", mAppId), true);
+        String.format("alluxio-client-nettyPool-%s-%%d", mAppId), true);
   }
 
   /**
