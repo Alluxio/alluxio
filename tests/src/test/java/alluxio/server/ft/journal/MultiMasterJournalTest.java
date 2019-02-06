@@ -35,7 +35,7 @@ public class MultiMasterJournalTest {
 
   @Before
   public void before() throws Exception {
-    mCluster = new MultiMasterLocalAlluxioCluster(2, 0);
+    mCluster = new MultiMasterLocalAlluxioCluster(2, 2);
     mCluster.initConfiguration();
     Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 5);
     Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 100);
