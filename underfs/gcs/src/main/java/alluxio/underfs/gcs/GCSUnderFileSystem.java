@@ -52,9 +52,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(GCSUnderFileSystem.class);
 
-  /** Suffix for an empty file to flag it as a directory. */
-  private static final String FOLDER_SUFFIX = "_$folder$";
-
   private static final byte[] DIR_HASH;
 
   /** Jets3t GCS client. */
@@ -218,7 +215,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getFolderSuffix() {
-    return FOLDER_SUFFIX;
+    return mUfsConf.get(PropertyKey.UNDERFS_GCS_DIRECTORY_SUFFIX);
   }
 
   @Override
