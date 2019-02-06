@@ -188,8 +188,7 @@ public final class BlockMetadataManagerViewTest {
    */
   @Test
   public void isBlockPinnedOrLocked() {
-    long inode = BlockId.createBlockId(BlockId.getContainerId(TEST_BLOCK_ID),
-        BlockId.getMaxSequenceNumber());
+    long inode = BlockId.getFileId(TEST_BLOCK_ID);
 
     // With no pinned and locked blocks
     assertFalse(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
