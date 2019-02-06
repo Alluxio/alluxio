@@ -2020,6 +2020,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+      new Builder(Name.WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("4MB")
+          .setDescription("The max inbound message size used by worker gRPC connections.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_BOSS_THREADS =
       new Builder(Name.WORKER_NETWORK_NETTY_BOSS_THREADS)
           .setDefaultValue(1)
@@ -2081,6 +2088,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("15sec")
           .setDescription("Maximum amount of time to wait until the worker gRPC server "
               + "is shutdown (regardless of the quiet period).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_ZEROCOPY_ENABLED =
+      new Builder(Name.WORKER_NETWORK_ZEROCOPY_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether zero copy is enabled on worker when processing data streams.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2919,6 +2933,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_NETWORK_WRITER_FLUSH_TIMEOUT)
           .setDefaultValue("30min")
           .setDescription("The timeout to wait for flush to finish in a data writer.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_ZEROCOPY_ENABLED =
+      new Builder(Name.USER_NETWORK_ZEROCOPY_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether zero copy is enabled on client when processing data streams.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3810,6 +3831,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.keepalive.time";
     public static final String WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS =
         "alluxio.worker.network.keepalive.timeout";
+    public static final String WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+        "alluxio.worker.network.max.inbound.message.size";
     public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =
         "alluxio.worker.network.netty.boss.threads";
     public static final String WORKER_NETWORK_NETTY_CHANNEL =
@@ -3826,6 +3849,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.reader.max.chunk.size.bytes";
     public static final String WORKER_NETWORK_SHUTDOWN_TIMEOUT =
         "alluxio.worker.network.shutdown.timeout";
+    public static final String WORKER_NETWORK_ZEROCOPY_ENABLED =
+        "alluxio.worker.network.zerocopy.enabled";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
@@ -3982,6 +4007,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.writer.close.timeout";
     public static final String USER_NETWORK_WRITER_FLUSH_TIMEOUT =
         "alluxio.user.network.writer.flush.timeout";
+    public static final String USER_NETWORK_ZEROCOPY_ENABLED =
+        "alluxio.user.network.zerocopy.enabled";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =

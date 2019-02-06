@@ -24,6 +24,7 @@ import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.GrpcManagedChannelPool;
+import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -32,6 +33,7 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
+import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.util.network.NettyUtils;
 
 import com.google.common.io.Closer;
@@ -79,6 +81,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       // Channel is still reused due to client pooling.
       mStreamingChannel = buildChannel(subject, address,
           GrpcManagedChannelPool.PoolingStrategy.DISABLED, alluxioConf, workerGroup);
+      mStreamingChannel.intercept(new StreamSerializationClientInterceptor());
       // Uses default pooling strategy for RPC calls for better scalability.
       mRpcChannel = buildChannel(subject, address,
           GrpcManagedChannelPool.PoolingStrategy.DEFAULT, alluxioConf, workerGroup);
@@ -116,8 +119,18 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver) {
-    return mStreamingAsyncStub.readBlock(responseObserver);
+  public StreamObserver<ReadRequest> readBlock(
+      StreamObserver<ReadResponse> responseObserver) {
+    if (responseObserver instanceof DataMessageClientResponseObserver) {
+      DataMessageMarshaller<ReadResponse> marshaller =
+          ((DataMessageClientResponseObserver<ReadRequest, ReadResponse>) responseObserver)
+              .getMarshaller();
+      return mStreamingAsyncStub
+          .withOption(GrpcSerializationUtils.RESPONSE_MARSHALLER, marshaller)
+          .readBlock(responseObserver);
+    } else {
+      return mStreamingAsyncStub.readBlock(responseObserver);
+    }
   }
 
   @Override

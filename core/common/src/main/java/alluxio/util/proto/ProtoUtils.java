@@ -53,6 +53,17 @@ public final class ProtoUtils {
   }
 
   /**
+   * A wrapper of {@link CodedInputStream#readRawVarint32(InputStream)}.
+   *
+   * @param input input stream
+   * @return an int value read from the input stream
+   */
+  public static int readRawVarint32(InputStream input) throws IOException {
+    int firstByte = input.read();
+    return CodedInputStream.readRawVarint32(firstByte, input);
+  }
+
+  /**
    * A wrapper of
    * {@link alluxio.proto.journal.Job.TaskInfo.Builder#setResult} to take byte[] as input.
    *

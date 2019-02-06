@@ -28,7 +28,7 @@ import io.grpc.Status;
  */
 public final class GrpcChannel extends Channel {
   private final GrpcManagedChannelPool.ChannelKey mChannelKey;
-  private final Channel mChannel;
+  private Channel mChannel;
   private boolean mChannelReleased;
   private boolean mChannelHealthy = true;
 
@@ -54,6 +54,9 @@ public final class GrpcChannel extends Channel {
     return mChannel.authority();
   }
 
+  public void intercept(ClientInterceptor interceptor) {
+    mChannel = ClientInterceptors.intercept(mChannel, interceptor);
+  }
   /**
    * Shuts down the channel.
    */

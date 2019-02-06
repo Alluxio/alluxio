@@ -163,6 +163,16 @@ public final class GrpcServerBuilder {
   }
 
   /**
+   * Sets the maximum size of inbound messages
+   * @param messageSize maximum size of the message
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder maxInboundMessageSize(int messageSize) {
+    mNettyServerBuilder = mNettyServerBuilder.maxInboundMessageSize(messageSize);
+    return this;
+  }
+
+  /**
    * Add a service to this server.
    *
    * @param serviceType the type of service
