@@ -3163,9 +3163,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       mMountTable.checkUnderWritableMountPoint(path);
+      // Force recursive sync metadata if it is a pinning and unpinning operation
+      boolean recursiveSync = (options.getPinned() != null) || options.isRecursive();
       // Possible ufs sync.
       syncMetadata(rpcContext, inodePath, lockingScheme,
-          options.isRecursive() ? DescendantType.ALL : DescendantType.ONE);
+          recursiveSync ? DescendantType.ALL : DescendantType.ONE);
       if (!inodePath.fullPathExists()) {
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
