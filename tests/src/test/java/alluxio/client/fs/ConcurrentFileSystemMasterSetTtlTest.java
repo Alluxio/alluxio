@@ -83,7 +83,7 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
 
   @Before
   public void before() {
-    mFileSystem = FileSystem.Factory.get(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
   }
 
   @Test

@@ -11,6 +11,7 @@
 
 package alluxio.client.fs;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
@@ -38,6 +39,8 @@ import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,6 +49,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
@@ -294,6 +299,28 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     }
   }
 
+  @Test
+  public void getBlockLocations() throws Exception {
+
+    // Test not in alluxio
+    AlluxioURI testFile = new AlluxioURI("/test1");
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, CreateFilePOptions.newBuilder()
+        .setWriteType(WritePType.THROUGH).setBlockSizeBytes(4).build(), 100);
+    Map<FileBlockInfo, List<WorkerNetAddress>> locations = mFileSystem.getBlockLocations(testFile);
+    assertEquals("should have 25 blocks", 25, locations.size());
+    locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) ->
+            assertEquals("block " + info + " should have single worker", 1, workers.size()));
+
+    // Test in alluxio
+    testFile = new AlluxioURI("/test2");
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, CreateFilePOptions.newBuilder()
+            .setWriteType(WritePType.CACHE_THROUGH).setBlockSizeBytes(100).build(), 500);
+    locations = mFileSystem.getBlockLocations(testFile);
+    assertEquals("Should have 5 blocks", 5, locations.size());
+    locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) ->
+        assertEquals("block " + info + " should have single worker", 1, workers.size()));
+  }
+
 // Test exception cases for all FileSystem RPCs
 
   @Test
@@ -413,5 +440,11 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   public void setAttributeNonexistingPath() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystem.setAttribute(new AlluxioURI("/path"));
+  }
+
+  @Test
+  public void getBlockLocationNonExistingPath() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystem.getBlockLocations(new AlluxioURI("/path"));
   }
 }

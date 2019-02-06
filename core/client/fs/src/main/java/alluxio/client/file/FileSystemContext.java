@@ -160,7 +160,6 @@ public final class FileSystemContext implements Closeable {
    * @return the {@link alluxio.client.file.FileSystemContext}
    */
   public static FileSystemContext create(ClientContext clientContext) {
-    Preconditions.checkNotNull(clientContext);
     FileSystemContext ctx = new FileSystemContext(clientContext);
     ctx.init(MasterInquireClient.Factory.create(clientContext.getConf()));
     return ctx;
@@ -200,6 +199,7 @@ public final class FileSystemContext implements Closeable {
    * @param ctx the parent subject, set to null if not present
    */
   private FileSystemContext(ClientContext ctx) {
+    Preconditions.checkNotNull(ctx, "ctx");
     mClientContext = ctx;
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
@@ -264,6 +264,13 @@ public final class FileSystemContext implements Closeable {
    */
   public synchronized void close() throws IOException {
     if (!mClosed.get()) {
+      // Setting closed should be the first thing we do because if any of the close operations
+      // fail we'll only have a half-closed object and performing any more operations or closing
+      // again on a half-closed object can possibly result in more errors (i.e. NPE). Setting
+      // closed first is also recommended by the JDK that in implementations of #close() that
+      // developers should first mark their resources as closed prior to any exceptions being
+      // thrown.
+      mClosed.set(true);
       mWorkerGroup.shutdownGracefully(1L, 10L, TimeUnit.SECONDS);
       mFileSystemMasterClientPool.close();
       mFileSystemMasterClientPool = null;
@@ -280,7 +287,6 @@ public final class FileSystemContext implements Closeable {
       }
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
-      mClosed.set(true);
     } else {
       LOG.warn("Attempted to close FileSystemContext with app ID {} which has already been closed"
           + " or not initialized.", mAppId);

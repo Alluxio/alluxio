@@ -99,7 +99,7 @@ public final class FileDataManager {
   public FileDataManager(BlockWorker blockWorker, RateLimiter persistenceRateLimiter,
       UfsManager ufsManager) {
     this(blockWorker, persistenceRateLimiter, ufsManager,
-        () -> FileSystem.Factory.get(ServerConfiguration.global()), BufferUtils::fastCopy);
+        () -> FileSystem.Factory.create(ServerConfiguration.global()), BufferUtils::fastCopy);
   }
 
   /**

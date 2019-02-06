@@ -50,6 +50,6 @@ public final class FileSystem extends AbstractFileSystem {
 
   @Override
   protected boolean isZookeeperMode() {
-    return mFsContext.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
+    return mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
   }
 }

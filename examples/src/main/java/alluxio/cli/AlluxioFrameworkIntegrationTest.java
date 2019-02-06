@@ -142,7 +142,7 @@ public final class AlluxioFrameworkIntegrationTest {
 
   private static void basicAlluxioTests() throws Exception {
     LOG.info("Running tests");
-    FileSystem fs = FileSystem.Factory.get(sConf);
+    FileSystem fs = FileSystem.Factory.create(sConf);
     int listSize = fs.listStatus(new AlluxioURI("/")).size();
     if (listSize != 1) {
       throw new RuntimeException("Expected 1 path to exist at the root, but found " + listSize);

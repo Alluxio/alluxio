@@ -188,7 +188,7 @@ public final class MiniBenchmark {
   private static void readFile(CyclicBarrier barrier, AtomicLong runTime, int count,
       AlluxioConfiguration alluxioConf)
       throws Exception {
-    FileSystem fileSystem = FileSystem.Factory.get(alluxioConf);
+    FileSystem fileSystem = FileSystem.Factory.create(alluxioConf);
     byte[] buffer = new byte[(int) Math.min(sFileSize, 4 * Constants.MB)];
 
     barrier.await();
@@ -209,7 +209,7 @@ public final class MiniBenchmark {
   private static void writeFile(CyclicBarrier barrier, AtomicLong runtime, int count,
       AlluxioConfiguration alluxioConf)
       throws Exception {
-    FileSystem fileSystem = FileSystem.Factory.get(alluxioConf);
+    FileSystem fileSystem = FileSystem.Factory.create(alluxioConf);
     byte[] buffer = new byte[(int) Math.min(sFileSize, 4 * Constants.MB)];
     Arrays.fill(buffer, (byte) 'a');
     AlluxioURI path = filename(count);

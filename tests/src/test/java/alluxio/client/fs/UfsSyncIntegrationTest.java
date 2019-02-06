@@ -97,7 +97,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    mFileSystem = FileSystem.Factory.get(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI(mLocalUfsPath));
 
     new File(ufsPath(EXISTING_DIR)).mkdirs();

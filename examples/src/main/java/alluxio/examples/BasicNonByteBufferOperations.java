@@ -76,7 +76,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    FileSystem alluxioClient = FileSystem.Factory.get(mFsContext);
+    FileSystem alluxioClient = FileSystem.Factory.create(mFsContext);
     write(alluxioClient);
     return read(alluxioClient);
   }

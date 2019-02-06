@@ -110,6 +110,9 @@ public interface MasterInquireClient {
       if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return new ZkMasterConnectDetails(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
             conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
+      } else if (ConfigurationUtils.getMasterRpcAddresses(conf).size() > 1) {
+        return new PollingMasterInquireClient.MultiMasterConnectDetails(
+            ConfigurationUtils.getMasterRpcAddresses(conf));
       } else {
         return new SingleMasterConnectDetails(
             NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf));

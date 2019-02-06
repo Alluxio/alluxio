@@ -90,7 +90,7 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
         put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, String.valueOf(mBlockSize));
       }
     }, ServerConfiguration.global()).toResource()) {
-      FileSystem fs = FileSystem.Factory.get(ServerConfiguration.global());
+      FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global());
       AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
       CreateFilePOptions op = CreateFilePOptions.newBuilder()
           .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build();
