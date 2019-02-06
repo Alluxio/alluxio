@@ -72,6 +72,33 @@
       <properties>
         <skip.protoc>false</skip.protoc>
       </properties>
+      <build>
+        <plugins>
+          <!-- Cleans the generated java files, prior to regenerating them from the proto/grpc definitions.  -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-clean-plugin</artifactId>
+            <configuration>
+              <filesets>
+                <fileset>
+                  <directory>src/main/java/alluxio/proto</directory>
+                  <followSymlinks>false</followSymlinks>
+                  <includes>
+                    <include>**/*.java</include>
+                  </includes>
+                </fileset>
+                <fileset>
+                  <directory>src/main/java/alluxio/grpc</directory>
+                  <followSymlinks>false</followSymlinks>
+                  <includes>
+                    <include>**/*.java</include>
+                  </includes>
+                </fileset>
+              </filesets>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 
@@ -105,6 +132,15 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      
+      <!-- Disable findbugs since there are only generated files in this module. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
       </plugin>
     </plugins>
   </build>
