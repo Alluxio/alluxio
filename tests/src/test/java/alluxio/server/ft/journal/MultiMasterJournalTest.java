@@ -14,9 +14,9 @@ package alluxio.server.ft.journal;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.PropertyKey;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalUtils;
@@ -37,8 +37,8 @@ public class MultiMasterJournalTest {
   public void before() throws Exception {
     mCluster = new MultiMasterLocalAlluxioCluster(2, 0);
     mCluster.initConfiguration();
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 5);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 100);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 5);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 100);
     mCluster.start();
   }
 
