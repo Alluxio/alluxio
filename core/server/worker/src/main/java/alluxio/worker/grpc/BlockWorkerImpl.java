@@ -51,7 +51,7 @@ import java.util.Map;
 public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerImpl.class);
 
-  private static boolean ZERO_COPY_ENABLED =
+  private static final boolean ZERO_COPY_ENABLED =
       ServerConfiguration.getBoolean(PropertyKey.WORKER_NETWORK_ZEROCOPY_ENABLED);
   private WorkerProcess mWorkerProcess;
   private final AsyncCacheRequestManager mRequestManager;
