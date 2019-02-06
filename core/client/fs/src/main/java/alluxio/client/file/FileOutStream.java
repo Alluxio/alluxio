@@ -166,7 +166,8 @@ public class FileOutStream extends AbstractOutStream {
         }
       }
 
-      if (mUnderStorageType.isAsyncPersist()) {
+      if (!mCanceled && mUnderStorageType.isAsyncPersist()) {
+        // only schedule the persist for completed files.
         scheduleAsyncPersist();
       }
     } catch (Throwable e) { // must catch Throwable
