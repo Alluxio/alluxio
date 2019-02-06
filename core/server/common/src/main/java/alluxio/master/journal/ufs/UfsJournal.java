@@ -384,7 +384,7 @@ public class UfsJournal implements Journal {
       if (entry == null) {
         return journalReader.getNextSequenceNumber();
       }
-      if (journalReader.getNextSequenceNumber() == 0) {
+      if (entry.getSequenceNumber() == 0) {
         mMaster.resetState();
       }
       try {
