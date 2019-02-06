@@ -59,7 +59,7 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
 
   @Test
   public void distributedMv() throws Exception {
-    FileSystem fs = FileSystem.Factory.get(ServerConfiguration.global());
+    FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global());
     try (OutputStream out = fs.createFile(new AlluxioURI("/test"))) {
       out.write("Hello".getBytes());
     }

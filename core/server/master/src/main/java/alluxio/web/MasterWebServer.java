@@ -71,7 +71,7 @@ public final class MasterWebServer extends WebServer {
         super.init();
         getServletContext().setAttribute(ALLUXIO_MASTER_SERVLET_RESOURCE_KEY, masterProcess);
         getServletContext().setAttribute(ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY,
-            FileSystem.Factory.get(ServerConfiguration.global()));
+            FileSystem.Factory.create(ServerConfiguration.global()));
       }
     };
 

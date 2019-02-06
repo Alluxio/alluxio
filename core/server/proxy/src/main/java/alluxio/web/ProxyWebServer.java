@@ -61,7 +61,7 @@ public final class ProxyWebServer extends WebServer {
         getServletContext().setAttribute(ALLUXIO_PROXY_SERVLET_RESOURCE_KEY, proxyProcess);
         getServletContext()
             .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY,
-                FileSystem.Factory.get(ServerConfiguration.global()));
+                FileSystem.Factory.create(ServerConfiguration.global()));
         getServletContext().setAttribute(STREAM_CACHE_SERVLET_RESOURCE_KEY,
             new StreamCache(ServerConfiguration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
       }

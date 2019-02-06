@@ -12,18 +12,15 @@
 package alluxio.hadoop;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
+import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
@@ -66,12 +63,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
@@ -93,11 +88,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   // Always tell Hadoop that we have 3x replication.
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
 
-  /** Flag for if the contexts have been initialized. */
+  /** Flag for if the client has been initialized. */
   private final AtomicBoolean mInitialized = new AtomicBoolean(false);
 
-  protected FileSystemContext mFsContext = null;
-  private FileSystem mFileSystem = null;
+  protected FileSystem mFileSystem = null;
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
@@ -148,9 +142,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // org.apache.hadoop.fs.FileSystem.close may check the existence of certain temp files before
     // closing
     super.close();
-    if (mFsContext != null) {
-      mFsContext.close();
-    }
+    mFileSystem.close();
   }
 
   /**
@@ -270,7 +262,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public long getDefaultBlockSize() {
-    return mFsContext.getConf()
+    return mFileSystem.getConf()
         .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
@@ -285,50 +277,33 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementReadOps(1);
     }
 
-    AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
-    List<FileBlockInfo> blocks = getFileBlocks(path);
     List<BlockLocation> blockLocations = new ArrayList<>();
-    for (FileBlockInfo fileBlockInfo : blocks) {
-      long offset = fileBlockInfo.getOffset();
-      long end = offset + fileBlockInfo.getBlockInfo().getLength();
-      // Check if there is any overlapping between [start, start+len] and [offset, end]
-      if (end >= start && offset <= start + len) {
-        // add the existing in-Alluxio block locations
-        List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
-            .stream().map(alluxio.wire.BlockLocation::getWorkerAddress).collect(toList());
-        if (locations.isEmpty()) { // No in-Alluxio location
-          if (!fileBlockInfo.getUfsLocations().isEmpty()) {
-            // Case 1: Fallback to use under file system locations with co-located workers.
-            Map<String, WorkerNetAddress> finalWorkerHosts = getHostToWorkerMap();
-            locations = fileBlockInfo.getUfsLocations().stream().map(
-                location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHost()))
-                .filter(Objects::nonNull).collect(toList());
-          }
-          if (locations.isEmpty() && mFsContext.getConf()
-              .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
-            // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
-            locations.addAll(getHostToWorkerMap().values());
-            Collections.shuffle(locations);
-          }
+    AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
+    try {
+      Map<FileBlockInfo, List<WorkerNetAddress>> locations = mFileSystem.getBlockLocations(path);
+      locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) -> {
+        long offset = info.getOffset();
+        long end = offset + info.getBlockInfo().getLength();
+        if (end >= start && offset <= start + len) {
+          List<HostAndPort> addresses = workers.stream()
+              .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
+              .collect(toList());
+          String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
+          String[] hosts = addresses.stream().map(HostAndPort::getHost).toArray(String[]::new);
+          blockLocations.add(new BlockLocation(names, hosts, offset,
+              info.getBlockInfo().getLength()));
         }
-        List<HostAndPort> addresses = locations.stream()
-            .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
-            .collect(toList());
-        String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
-        String[] hosts = addresses.stream().map(HostAndPort::getHost).toArray(String[]::new);
-        blockLocations.add(
-            new BlockLocation(names, hosts, offset, fileBlockInfo.getBlockInfo().getLength()));
-      }
+      });
+      BlockLocation[] ret = new BlockLocation[blockLocations.size()];
+      return blockLocations.toArray(ret);
+    } catch (AlluxioException e) {
+      throw new IOException(e);
     }
-
-    BlockLocation[] ret = new BlockLocation[blockLocations.size()];
-    blockLocations.toArray(ret);
-    return ret;
   }
 
   @Override
   public short getDefaultReplication() {
-    return (short) Math.max(1, mFsContext.getConf()
+    return (short) Math.max(1, mFileSystem.getConf()
         .getInt(PropertyKey.USER_FILE_REPLICATION_MIN));
   }
 
@@ -460,9 +435,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * {@inheritDoc}
    *
-   * Sets up a lazy connection to Alluxio through mFileSystem and mFsContext. This must be
-   * called before client operations in order to guarantee the integrity of the
-   * {@link FileSystemContext}.
+   * Sets up a lazy connection to Alluxio through mFileSystem. This must be called before client
+   * operations.
    *
    * If it is called twice on the same object an exception will be thrown.
    */
@@ -499,19 +473,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     if (subject != null) {
       LOG.debug("Using Hadoop subject: {}", subject);
     } else {
-      LOG.debug("No Hadoop subject. Using FileSystem Context without subject.");
+      LOG.debug("No Hadoop subject. Using context without subject.");
     }
 
-    LOG.info("Initializing filesystem context with connect details {}",
+    LOG.info("Initializing filesystem with connect details {}",
         Factory.getConnectDetails(alluxioConf));
-    // TODO(zac): Is it possible to cache the FileSystemContext?
-    mFsContext = FileSystemContext.create(subject, alluxioConf);
 
-    // Sets the file system.
-    //
-    // Must happen inside the lock so that the filesystem context isn't changed by a
-    // concurrent call to initialize.
-    mFileSystem = FileSystem.Factory.get(mFsContext);
+    mFileSystem = FileSystem.Factory.create(ClientContext.create(subject, alluxioConf));
   }
 
   /**
@@ -741,21 +709,5 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
-  }
-
-  private List<FileBlockInfo> getFileBlocks(AlluxioURI path) throws IOException {
-    try {
-      return mFileSystem.getStatus(path).getFileBlockInfos();
-    } catch (AlluxioException e) {
-      throw new IOException(e);
-    }
-  }
-
-  private Map<String, WorkerNetAddress> getHostToWorkerMap() throws IOException {
-    List<BlockWorkerInfo> workers =
-        AlluxioBlockStore.create(mFsContext).getEligibleWorkers();
-    return workers.stream().collect(
-        toMap(worker -> worker.getNetAddress().getHost(), BlockWorkerInfo::getNetAddress,
-            (worker1, worker2) -> worker1));
   }
 }

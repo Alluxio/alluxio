@@ -81,7 +81,7 @@ public class RunOperation {
    * @param alluxioConf Alluxio configuration
    */
   public RunOperation(AlluxioConfiguration alluxioConf) {
-    mFileSystem = FileSystem.Factory.get(alluxioConf);
+    mFileSystem = FileSystem.Factory.create(alluxioConf);
   }
 
   /**

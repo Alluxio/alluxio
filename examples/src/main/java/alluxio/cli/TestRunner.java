@@ -113,7 +113,7 @@ public final class TestRunner {
     FileSystemContext fsContext =
         FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
     FileSystem fs =
-        FileSystem.Factory.get(fsContext);
+        FileSystem.Factory.create(fsContext);
     if (fs.exists(testDir)) {
       fs.delete(testDir, DeletePOptions.newBuilder().setRecursive(true).setUnchecked(true).build());
     }
