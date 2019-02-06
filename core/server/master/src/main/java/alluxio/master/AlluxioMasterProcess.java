@@ -43,6 +43,7 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
@@ -80,6 +81,8 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   /** The manager for creating and restoring backups. */
   private final BackupManager mBackupManager;
+
+  private final ExecutorService mRPCExecutor = null;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -285,10 +288,10 @@ public class AlluxioMasterProcess extends MasterProcess {
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(bindAddress,
           ServerConfiguration.global());
 
-      ExecutorService executorService =
+      ExecutorService mRPCExecutor =
           new ForkJoinPool(ServerConfiguration.getInt(
               PropertyKey.MASTER_RPC_FORKJOIN_POOL_PARALLELISM));
-      serverBuilder.executor(executorService);
+      serverBuilder.executor(mRPCExecutor);
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
       }
@@ -299,7 +302,6 @@ public class AlluxioMasterProcess extends MasterProcess {
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
-      executorService.shutdown();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -313,6 +315,17 @@ public class AlluxioMasterProcess extends MasterProcess {
     if (isServing()) {
       if (!mGrpcServer.shutdown()) {
         LOG.warn("RPC Server shutdown timed out.");
+      }
+    }
+    if (mRPCExecutor != null) {
+      mRPCExecutor.shutdown();
+      try {
+        mRPCExecutor.awaitTermination(
+            ServerConfiguration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT), TimeUnit.MILLISECONDS);
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+      } finally {
+        mRPCExecutor.shutdownNow();
       }
     }
     if (mJvmPauseMonitor != null) {
