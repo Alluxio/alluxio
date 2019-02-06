@@ -16,8 +16,11 @@ import alluxio.conf.PropertyKey;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
+import jdk.nashorn.internal.objects.annotations.Property;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -61,8 +64,11 @@ public final class UIFileBlockInfo {
    * @param blockLastAccessTimeMs the block last access time in milliseconds
    * @param tierAlias the tier alias of the block
    */
-  public UIFileBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs,
-      String tierAlias) {
+  @JsonCreator
+  public UIFileBlockInfo(@JsonProperty("blockId") long blockId,
+      @JsonProperty("blockLength") long blockLength,
+      @JsonProperty("blockLastAccessTimeMs") long blockLastAccessTimeMs,
+      @JsonProperty("tierAlias") String tierAlias) {
     mId = blockId;
     mBlockLength = blockLength;
     mLastAccessTimeMs = blockLastAccessTimeMs;
@@ -135,7 +141,6 @@ public final class UIFileBlockInfo {
    * @return true if it's in the highest tier alias
    */
   public boolean getIsInHighestTier(AlluxioConfiguration conf) {
-    return mTierAliases
-        .contains(conf.get(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
+    return mTierAliases.contains(conf.get(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
   }
 }

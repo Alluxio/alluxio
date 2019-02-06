@@ -45,6 +45,14 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.web.MasterWebServer;
+import alluxio.wire.MasterWebUIBrowse;
+import alluxio.wire.MasterWebUIConfiguration;
+import alluxio.wire.MasterWebUIData;
+import alluxio.wire.MasterWebUIInit;
+import alluxio.wire.MasterWebUILogs;
+import alluxio.wire.MasterWebUIMetrics;
+import alluxio.wire.MasterWebUIOverview;
+import alluxio.wire.MasterWebUIWorkers;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -76,24 +84,24 @@ import javax.ws.rs.core.Response;
  * Unit tests for {@link AlluxioMasterRestServiceHandler}.
  */
 public final class AlluxioMasterRestServiceHandlerTest {
-  private static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
-      .setRpcPort(80).setDataPort(81).setWebPort(82);
-  private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")
-      .setRpcPort(83).setDataPort(84).setWebPort(85);
+  private static final WorkerNetAddress NET_ADDRESS_1 =
+      new WorkerNetAddress().setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82);
+  private static final WorkerNetAddress NET_ADDRESS_2 =
+      new WorkerNetAddress().setHost("localhost").setRpcPort(83).setDataPort(84).setWebPort(85);
   private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
 
   private static final long UFS_SPACE_TOTAL = 100L;
   private static final long UFS_SPACE_USED = 25L;
   private static final long UFS_SPACE_FREE = 75L;
   private static final String TEST_PATH = "test://test";
-  private static final Map<String, Long> WORKER1_TOTAL_BYTES_ON_TIERS = ImmutableMap.of("MEM", 10L,
-      "SSD", 20L);
-  private static final Map<String, Long> WORKER2_TOTAL_BYTES_ON_TIERS = ImmutableMap.of("MEM",
-      1000L, "SSD", 2000L);
-  private static final Map<String, Long> WORKER1_USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 1L,
-      "SSD", 2L);
-  private static final Map<String, Long> WORKER2_USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 100L,
-      "SSD", 200L);
+  private static final Map<String, Long> WORKER1_TOTAL_BYTES_ON_TIERS =
+      ImmutableMap.of("MEM", 10L, "SSD", 20L);
+  private static final Map<String, Long> WORKER2_TOTAL_BYTES_ON_TIERS =
+      ImmutableMap.of("MEM", 1000L, "SSD", 2000L);
+  private static final Map<String, Long> WORKER1_USED_BYTES_ON_TIERS =
+      ImmutableMap.of("MEM", 1L, "SSD", 2L);
+  private static final Map<String, Long> WORKER2_USED_BYTES_ON_TIERS =
+      ImmutableMap.of("MEM", 100L, "SSD", 200L);
 
   private AlluxioMasterProcess mMasterProcess;
   private BlockMaster mBlockMaster;
@@ -101,6 +109,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
   private MetricsMaster mMetricsMaster;
+  private MetaMaster mMetaMaster;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -123,26 +132,28 @@ public final class AlluxioMasterRestServiceHandlerTest {
     registerMockUfs();
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
+    mMetaMaster = new MetaMasterFactory().create(mRegistry, masterContext);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(mMasterProcess.getMaster(FileSystemMaster.class)).thenReturn(mFileSystemMaster);
-    when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
-        mMasterProcess);
+    when(mMasterProcess.getMaster(MetaMaster.class)).thenReturn(mMetaMaster);
+    when(mMasterProcess.getRpcAddress()).thenReturn(new InetSocketAddress(80));
+    when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
+        .thenReturn(mMasterProcess);
     mHandler = new AlluxioMasterRestServiceHandler(context);
     // Register two workers
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
     List<String> tiers = Arrays.asList("MEM", "SSD");
 
-    mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
-        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS,
-        RegisterWorkerPOptions.getDefaultInstance());
-    mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
-        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS,
-        RegisterWorkerPOptions.getDefaultInstance());
+    mBlockMaster
+        .workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS, WORKER1_USED_BYTES_ON_TIERS,
+            NO_BLOCKS_ON_TIERS, RegisterWorkerPOptions.getDefaultInstance());
+    mBlockMaster
+        .workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS, WORKER2_USED_BYTES_ON_TIERS,
+            NO_BLOCKS_ON_TIERS, RegisterWorkerPOptions.getDefaultInstance());
 
-    String filesPinnedProperty =
-        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+    String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
     MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
   }
 
@@ -153,15 +164,15 @@ public final class AlluxioMasterRestServiceHandlerTest {
     when(underFileSystemFactoryMock.supportsPath(eq(TEST_PATH), anyObject()))
         .thenReturn(Boolean.TRUE);
     UnderFileSystem underFileSystemMock = mock(UnderFileSystem.class);
-    when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_FREE)).thenReturn(
-        UFS_SPACE_FREE);
+    when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_FREE))
+        .thenReturn(UFS_SPACE_FREE);
     when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_TOTAL))
         .thenReturn(UFS_SPACE_TOTAL);
-    when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(
-        UFS_SPACE_USED);
-    when(underFileSystemFactoryMock.create(eq(TEST_PATH),
-        Matchers.<UnderFileSystemConfiguration>any(), any(AlluxioConfiguration.class)))
-        .thenReturn(underFileSystemMock);
+    when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_USED))
+        .thenReturn(UFS_SPACE_USED);
+    when(underFileSystemFactoryMock
+        .create(eq(TEST_PATH), Matchers.<UnderFileSystemConfiguration>any(),
+            any(AlluxioConfiguration.class))).thenReturn(underFileSystemMock);
     UnderFileSystemFactoryRegistry.register(underFileSystemFactoryMock);
   }
 
@@ -202,8 +213,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   @Test
   public void getMetrics() {
     final int FILES_PINNED_TEST_VALUE = 100;
-    String filesPinnedProperty =
-        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+    String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
     Gauge<Integer> filesPinnedGauge = () -> FILES_PINNED_TEST_VALUE;
     MetricSet mockMetricsSet = mock(MetricSet.class);
     Map<String, Metric> map = new HashMap<>();
@@ -420,13 +430,117 @@ public final class AlluxioMasterRestServiceHandlerTest {
       assertNotNull("Response must be not null!", response);
       assertNotNull("Response must have a entry!", response.getEntity());
       assertTrue("Entry must be a List!", (response.getEntity() instanceof List));
-      @SuppressWarnings("unchecked")
-      List<WorkerInfo> entry = (List<WorkerInfo>) response.getEntity();
+      @SuppressWarnings("unchecked") List<WorkerInfo> entry =
+          (List<WorkerInfo>) response.getEntity();
       Set<Long> actual = new HashSet<>();
       for (WorkerInfo info : entry) {
         actual.add(info.getId());
       }
       assertEquals(expected, actual);
+    } finally {
+      response.close();
+    }
+  }
+
+  @Test
+  public void getWebUIInit() {
+    Response response = mHandler.getWebUIInit();
+    try {
+      assertNotNull("Response must be not null!", response);
+      assertNotNull("Response must have a entry!", response.getEntity());
+      assertEquals("Entry must be a MasterWebUIInit!", MasterWebUIInit.class,
+          response.getEntity().getClass());
+    } finally {
+      response.close();
+    }
+  }
+
+  @Test
+  public void getWebUIOverview() {
+    Response response = mHandler.getWebUIOverview();
+    try {
+      assertNotNull("Response must be not null!", response);
+      assertNotNull("Response must have a entry!", response.getEntity());
+      assertEquals("Entry must be a MasterWebUIOverview!", MasterWebUIOverview.class,
+          response.getEntity().getClass());
+    } finally {
+      response.close();
+    }
+  }
+
+  @Test
+  public void getWebUIBrowse() {
+    Response response = mHandler.getWebUIBrowse("test", "0", "", "20");
+    try {
+      assertNotNull("Response must be not null!", response);
+      assertNotNull("Response must have a entry!", response.getEntity());
+      assertEquals("Entry must be a MasterWebUIBrowse!", MasterWebUIBrowse.class,
+          response.getEntity().getClass());
+    } finally {
+      response.close();
+    }
+  }
+
+  @Test
+  public void getWebUIData() {
+    Response response = mHandler.getWebUIData("0", "20");
+    try {
+      assertNotNull("Response must be not null!", response);
+      assertNotNull("Response must have a entry!", response.getEntity());
+      assertEquals("Entry must be a MasterWebUIData!", MasterWebUIData.class,
+          response.getEntity().getClass());
+    } finally {
+      response.close();
+    }
+  }
+
+  @Test
+  public void getWebUILogs() {
+    Response response = mHandler.getWebUILogs("", "0", "", "20");
+    try {
+      assertNotNull("Response must be not null!", response);
+      assertNotNull("Response must have a entry!", response.getEntity());
+      assertEquals("Entry must be a MasterWebUILogs!", MasterWebUILogs.class,
+          response.getEntity().getClass());
+    } finally {
+      response.close();
+    }
+  }
+
+  @Test
+  public void getWebUIConfiguration() {
+    Response response = mHandler.getWebUIConfiguration();
+    try {
+      assertNotNull("Response must be not null!", response);
+      assertNotNull("Response must have a entry!", response.getEntity());
+      assertEquals("Entry must be a MasterWebUIConfiguration!", MasterWebUIConfiguration.class,
+          response.getEntity().getClass());
+    } finally {
+      response.close();
+    }
+  }
+
+  @Test
+  public void getWebUIWorkers() {
+    Response response = mHandler.getWebUIWorkers();
+    try {
+      assertNotNull("Response must be not null!", response);
+      assertNotNull("Response must have a entry!", response.getEntity());
+      assertEquals("Entry must be a MasterWebUIWorkers!", MasterWebUIWorkers.class,
+          response.getEntity().getClass());
+    } finally {
+      response.close();
+    }
+  }
+
+  @Test
+  public void getWebUIMetrics() {
+    Response response = mHandler.getWebUIMetrics();
+    try {
+      assertNotNull("Response must be not null!", response);
+      assertNotNull("Response must have a entry!", response.getEntity());
+      assertEquals("Entry must be a MasterWebUIMetrics!", MasterWebUIMetrics.class,
+          response.getEntity().getClass());
     } finally {
       response.close();
     }

@@ -11,6 +11,9 @@
 
 package alluxio.util.webui;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Displays information about a storage directory in the UI.
  */
@@ -28,7 +31,10 @@ public class UIStorageDir {
    * @param capacityBytes capacity in bytes
    * @param usedBytes used capacity in bytes
    */
-  public UIStorageDir(String tierAlias, String dirPath, long capacityBytes, long usedBytes) {
+  @JsonCreator
+  public UIStorageDir(@JsonProperty("tierAlias") String tierAlias,
+      @JsonProperty("dirPath") String dirPath, @JsonProperty("capacityBytes") long capacityBytes,
+      @JsonProperty("usedBytes") long usedBytes) {
     mTierAlias = tierAlias;
     mDirPath = dirPath;
     mCapacityBytes = capacityBytes;

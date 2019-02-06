@@ -13,13 +13,16 @@ package alluxio.util.webui;
 
 import alluxio.util.CommonUtils;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Displays information about a worker in the UI.
  */
 public class UIWorkerInfo {
   private final String mWorkerAddress;
   private final long mStartTimeMs;
-  private final String mDateFormatPattern;
+  private final String mStartTime;
 
   /**
    * Creates a new instance of {@link UIWorkerInfo}.
@@ -31,7 +34,21 @@ public class UIWorkerInfo {
   public UIWorkerInfo(String workerAddress, long startTimeMs, String dateFormatPattern) {
     mWorkerAddress = workerAddress;
     mStartTimeMs = startTimeMs;
-    mDateFormatPattern = dateFormatPattern;
+    mStartTime = CommonUtils.convertMsToDate(mStartTimeMs, dateFormatPattern);
+  }
+
+  /**
+   * Instantiates a new Ui worker info.
+   *
+   * @param workerAddress the worker address
+   * @param startTime the start time
+   */
+  @JsonCreator
+  public UIWorkerInfo(@JsonProperty("workerAddress") String workerAddress,
+      @JsonProperty("startTime") String startTime) {
+    mWorkerAddress = workerAddress;
+    mStartTime = startTime;
+    mStartTimeMs = System.currentTimeMillis();
   }
 
   /**
@@ -40,16 +57,7 @@ public class UIWorkerInfo {
    * @return the start time
    */
   public String getStartTime() {
-    return CommonUtils.convertMsToDate(mStartTimeMs, mDateFormatPattern);
-  }
-
-  /**
-   * Gets uptime.
-   *
-   * @return the uptime
-   */
-  public String getUptime() {
-    return CommonUtils.convertMsToClockTime(System.currentTimeMillis() - mStartTimeMs);
+    return mStartTime;
   }
 
   /**

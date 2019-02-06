@@ -33,6 +33,7 @@ import alluxio.util.LogUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.webui.UIFileBlockInfo;
 import alluxio.util.webui.UIFileInfo;
+import alluxio.util.webui.UIMetric;
 import alluxio.util.webui.UIStorageDir;
 import alluxio.util.webui.UIUsageOnTier;
 import alluxio.util.webui.UIWorkerInfo;
@@ -403,24 +404,24 @@ public final class AlluxioWorkerRestServiceHandler {
         }
       });
 
-      Map<String, Metric> operations = new TreeMap<>();
+      Map<String, UIMetric> operations = new TreeMap<>();
       // Remove the instance name from the metrics.
       for (Map.Entry<String, Counter> entry : counters.entrySet()) {
-        operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
+        operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()),
+            new UIMetric(entry.getValue().getCount()));
       }
       String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
       operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
-          mr.getGauges().get(filesPinnedProperty));
-
+          new UIMetric(((Number) mr.getGauges().get(filesPinnedProperty).getValue()).longValue()));
       response.setOperationMetrics(operations);
 
-      Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
+      Map<String, Long> rpcInvocationsUpdated = new TreeMap<>();
       for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
         rpcInvocationsUpdated
-            .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
+            .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue().getCount());
       }
 
-      response.setRpcInvocationMetrics(rpcInvocations);
+      response.setRpcInvocationMetrics(rpcInvocationsUpdated);
 
       return response;
     }, ServerConfiguration.global());
@@ -588,8 +589,8 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(() -> mWorkerProcess.getRpcAddress().toString(),
-        ServerConfiguration.global());
+    return RestUtils
+        .call(() -> mWorkerProcess.getRpcAddress().toString(), ServerConfiguration.global());
   }
 
   /**
@@ -744,8 +745,8 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    return new TreeMap<>(ServerConfiguration.toMap(
-        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
+    return new TreeMap<>(ServerConfiguration
+        .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 
   private Map<String, Long> getMetricsInternal() {

@@ -11,8 +11,8 @@
 
 package alluxio.wire;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Metric;
+import alluxio.util.webui.UIMetric;
+
 import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
@@ -21,7 +21,7 @@ import java.util.Map;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Alluxio WebUI overview information.
+ * Alluxio WebUI metrics information.
  */
 @NotThreadSafe
 public final class WorkerWebUIMetrics implements Serializable {
@@ -29,8 +29,8 @@ public final class WorkerWebUIMetrics implements Serializable {
 
   private long mWorkerCapacityFreePercentage;
   private long mWorkerCapacityUsedPercentage;
-  private Map<String, Counter> mRpcInvocationMetrics;
-  private Map<String, Metric> mOperationMetrics;
+  private Map<String, Long> mRpcInvocationMetrics;
+  private Map<String, UIMetric> mOperationMetrics;
 
   /**
    * Creates a new instance of {@link WorkerWebUIMetrics}.
@@ -61,7 +61,7 @@ public final class WorkerWebUIMetrics implements Serializable {
    *
    * @return the operation metrics
    */
-  public Map<String, Metric> getOperationMetrics() {
+  public Map<String, UIMetric> getOperationMetrics() {
     return mOperationMetrics;
   }
 
@@ -70,7 +70,7 @@ public final class WorkerWebUIMetrics implements Serializable {
    *
    * @return the rpc invocation metrics
    */
-  public Map<String, Counter> getRpcInvocationMetrics() {
+  public Map<String, Long> getRpcInvocationMetrics() {
     return mRpcInvocationMetrics;
   }
 
@@ -102,7 +102,7 @@ public final class WorkerWebUIMetrics implements Serializable {
    * @param OperationMetrics the operation metrics
    * @return the operation metrics
    */
-  public WorkerWebUIMetrics setOperationMetrics(Map<String, Metric> OperationMetrics) {
+  public WorkerWebUIMetrics setOperationMetrics(Map<String, UIMetric> OperationMetrics) {
     mOperationMetrics = OperationMetrics;
     return this;
   }
@@ -113,7 +113,7 @@ public final class WorkerWebUIMetrics implements Serializable {
    * @param RpcInvocationMetrics the rpc invocation metrics
    * @return the rpc invocation metrics
    */
-  public WorkerWebUIMetrics setRpcInvocationMetrics(Map<String, Counter> RpcInvocationMetrics) {
+  public WorkerWebUIMetrics setRpcInvocationMetrics(Map<String, Long> RpcInvocationMetrics) {
     mRpcInvocationMetrics = RpcInvocationMetrics;
     return this;
   }

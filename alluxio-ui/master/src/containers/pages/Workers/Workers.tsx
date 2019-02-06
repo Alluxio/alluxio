@@ -112,7 +112,7 @@ export class Workers extends React.Component<AllProps> {
           </div>
           <div className="row">
             <div className="col-12">
-              <h5>Alluxio Configuration</h5>
+              <h5>Lost Workers</h5>
               <Table hover={true}>
                 <thead>
                 <tr>

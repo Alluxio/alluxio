@@ -11,8 +11,8 @@
 
 package alluxio.wire;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Metric;
+import alluxio.util.webui.UIMetric;
+
 import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
@@ -31,9 +31,9 @@ public final class MasterWebUIMetrics implements Serializable {
   private int mMasterCapacityUsedPercentage;
   private int mMasterUnderfsCapacityFreePercentage;
   private int mMasterUnderfsCapacityUsedPercentage;
-  private Map<String, Counter> mRpcInvocationMetrics;
+  private Map<String, Long> mRpcInvocationMetrics;
   private Map<String, Map<String, Long>> mUfsOps;
-  private Map<String, Metric> mOperationMetrics;
+  private Map<String, UIMetric> mOperationMetrics;
   private Map<String, String> mUfsReadSize;
   private Map<String, String> mUfsWriteSize;
   private String mCacheHitLocal;
@@ -241,7 +241,7 @@ public final class MasterWebUIMetrics implements Serializable {
    *
    * @return the operation metrics
    */
-  public Map<String, Metric> getOperationMetrics() {
+  public Map<String, UIMetric> getOperationMetrics() {
     return mOperationMetrics;
   }
 
@@ -250,7 +250,7 @@ public final class MasterWebUIMetrics implements Serializable {
    *
    * @return the rpc invocation metrics
    */
-  public Map<String, Counter> getRpcInvocationMetrics() {
+  public Map<String, Long> getRpcInvocationMetrics() {
     return mRpcInvocationMetrics;
   }
 
@@ -485,7 +485,7 @@ public final class MasterWebUIMetrics implements Serializable {
    * @param operationMetrics the operation metrics
    * @return the operation metrics
    */
-  public MasterWebUIMetrics setOperationMetrics(Map<String, Metric> operationMetrics) {
+  public MasterWebUIMetrics setOperationMetrics(Map<String, UIMetric> operationMetrics) {
     mOperationMetrics = operationMetrics;
     return this;
   }
@@ -496,7 +496,7 @@ public final class MasterWebUIMetrics implements Serializable {
    * @param rpcInvocationMetrics the rpc invocation metrics
    * @return the rpc invocation metrics
    */
-  public MasterWebUIMetrics setRpcInvocationMetrics(Map<String, Counter> rpcInvocationMetrics) {
+  public MasterWebUIMetrics setRpcInvocationMetrics(Map<String, Long> rpcInvocationMetrics) {
     mRpcInvocationMetrics = rpcInvocationMetrics;
     return this;
   }

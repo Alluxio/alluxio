@@ -19,6 +19,8 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.FileInfo;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
@@ -39,9 +41,8 @@ public final class UIFileInfo {
    * Provides ordering of {@link alluxio.util.webui.UIFileInfo} based off a string comparison of the
    * absolute paths.
    */
-  public static final Ordering<UIFileInfo> PATH_STRING_COMPARE =
-      Ordering.natural().onResultOf(
-          (Function<UIFileInfo, Comparable<String>>) input -> input.mAbsolutePath);
+  public static final Ordering<UIFileInfo> PATH_STRING_COMPARE = Ordering.natural()
+      .onResultOf((Function<UIFileInfo, Comparable<String>>) input -> input.mAbsolutePath);
 
   /**
    * The type Local file info.
@@ -98,7 +99,7 @@ public final class UIFileInfo {
   private final String mPersistenceState;
   private final List<String> mFileLocations;
 
-  private final Map<String, List<UIFileBlockInfo>> mBlocksOnTier = new HashMap<>();
+  private final Map<String, List<UIFileBlockInfo>> mBlocksOnTier;
   private final Map<String, Long> mSizeOnTier = new HashMap<>();
 
   /**
@@ -126,6 +127,59 @@ public final class UIFileInfo {
     mMode = FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended);
     mPersistenceState = status.getPersistenceState();
     mFileLocations = new ArrayList<>();
+    mBlocksOnTier = new HashMap<>();
+  }
+
+  /**
+   * Instantiates a new Ui file info.
+   *
+   * @param id the id
+   * @param name the name
+   * @param absolutePath the absolute path
+   * @param blockSizeBytes the block size bytes
+   * @param size the size
+   * @param creationTimeMs the creation time ms
+   * @param lastModificationTimeMs the last modification time ms
+   * @param inAlluxio the in alluxio
+   * @param inAlluxioPercentage the in alluxio percentage
+   * @param isDirectory the is directory
+   * @param pinned the pinned
+   * @param owner the owner
+   * @param group the group
+   * @param mode the mode
+   * @param persistenceState the persistence state
+   * @param fileLocations the file locations
+   */
+  @JsonCreator
+  public UIFileInfo(@JsonProperty("id") long id, @JsonProperty("name") String name,
+      @JsonProperty("absolutePath") String absolutePath,
+      @JsonProperty("blockSizeBytes") long blockSizeBytes, @JsonProperty("size") long size,
+      @JsonProperty("creationTimeMs") long creationTimeMs,
+      @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs,
+      @JsonProperty("inAlluxio") boolean inAlluxio,
+      @JsonProperty("inAlluxioPercentage") int inAlluxioPercentage,
+      @JsonProperty("isDirectory") boolean isDirectory, @JsonProperty("pinned") boolean pinned,
+      @JsonProperty("owner") String owner, @JsonProperty("group") String group,
+      @JsonProperty("mode") String mode, @JsonProperty("persistenceState") String persistenceState,
+      @JsonProperty("fileLocations") List<String> fileLocations,
+      @JsonProperty("blocksOnTier") Map<String, List<UIFileBlockInfo>> blocksOnTier) {
+    mId = id;
+    mName = name;
+    mAbsolutePath = absolutePath;
+    mBlockSizeBytes = blockSizeBytes;
+    mSize = size;
+    mCreationTimeMs = creationTimeMs;
+    mLastModificationTimeMs = lastModificationTimeMs;
+    mInAlluxio = inAlluxio;
+    mInAlluxioPercentage = inAlluxioPercentage;
+    mIsDirectory = isDirectory;
+    mPinned = pinned;
+    mOwner = owner;
+    mGroup = group;
+    mMode = mode;
+    mPersistenceState = persistenceState;
+    mFileLocations = fileLocations;
+    mBlocksOnTier = blocksOnTier;
   }
 
   /**
@@ -159,6 +213,7 @@ public final class UIFileInfo {
     mMode = FormatUtils.formatMode(Mode.createNoAccess().toShort(), true, false);
     mPersistenceState = PersistenceState.NOT_PERSISTED.name();
     mFileLocations = new ArrayList<>();
+    mBlocksOnTier = new HashMap<>();
   }
 
   /**

@@ -14,6 +14,8 @@ package alluxio.util.webui;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 /**
@@ -26,7 +28,9 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   private final String mLastContactSec;
   private final String mWorkerState;
   private final long mCapacityBytes;
+  private final String mCapacity;
   private final long mUsedBytes;
+  private final String mUsedMemory;
   private final int mFreePercent;
   private final int mUsedPercent;
   private final String mUptimeClockTime;
@@ -43,17 +47,56 @@ public final class NodeInfo implements Comparable<NodeInfo> {
     mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
     mWorkerState = workerInfo.getState();
     mCapacityBytes = workerInfo.getCapacityBytes();
+    mCapacity = FormatUtils.getSizeFromBytes(mCapacityBytes);
     mUsedBytes = workerInfo.getUsedBytes();
+    mUsedMemory = FormatUtils.getSizeFromBytes(mUsedBytes);
     if (mCapacityBytes != 0) {
       mUsedPercent = (int) (100L * mUsedBytes / mCapacityBytes);
     } else {
       mUsedPercent = 0;
     }
     mFreePercent = 100 - mUsedPercent;
-    mUptimeClockTime =
-        WebUtils.convertMsToShortClockTime(
-            System.currentTimeMillis() - workerInfo.getStartTimeMs());
+    mUptimeClockTime = WebUtils
+        .convertMsToShortClockTime(System.currentTimeMillis() - workerInfo.getStartTimeMs());
     mWorkerId = workerInfo.getId();
+  }
+
+  /**
+   * Instantiates a new Node info.
+   *
+   * @param host the host
+   * @param webPort the web port
+   * @param lastContactSec the last contact sec
+   * @param workerState the worker state
+   * @param capacityBytes the capacity bytes
+   * @param usedBytes the used bytes
+   * @param freePercent the free percent
+   * @param usedPercent the used percent
+   * @param uptimeClockTime the uptime clock time
+   * @param workerId the worker id
+   */
+  @JsonCreator
+  public NodeInfo(@JsonProperty("host") String host, @JsonProperty("webPort") int webPort,
+      @JsonProperty("lastHeartbeat") String lastContactSec,
+      @JsonProperty("state") String workerState, @JsonProperty("capacity") String capacity,
+      @JsonProperty("capacityBytes") long capacityBytes, @JsonProperty("usedBytes") long usedBytes,
+      @JsonProperty("usedMemory") String usedMemory,
+      @JsonProperty("freeSpacePercent") int freePercent,
+      @JsonProperty("usedSpacePercent") int usedPercent,
+      @JsonProperty("uptimeClockTime") String uptimeClockTime,
+      @JsonProperty("workerId") long workerId) {
+    mHost = host;
+    mWebPort = webPort;
+    mLastContactSec = lastContactSec;
+    mWorkerState = workerState;
+    mCapacityBytes = capacityBytes;
+    mCapacity = FormatUtils.getSizeFromBytes(mCapacityBytes);
+    mUsedBytes = usedBytes;
+    mUsedMemory = usedMemory;
+    mFreePercent = freePercent;
+    mUsedPercent = usedPercent;
+    mUptimeClockTime = uptimeClockTime;
+    mWorkerId = workerId;
   }
 
   /**
@@ -62,7 +105,7 @@ public final class NodeInfo implements Comparable<NodeInfo> {
    * @return the worker capacity in bytes
    */
   public String getCapacity() {
-    return FormatUtils.getSizeFromBytes(mCapacityBytes);
+    return mCapacity;
   }
 
   /**
@@ -125,7 +168,7 @@ public final class NodeInfo implements Comparable<NodeInfo> {
    * @return the worker used capacity in bytes
    */
   public String getUsedMemory() {
-    return FormatUtils.getSizeFromBytes(mUsedBytes);
+    return mUsedMemory;
   }
 
   /**

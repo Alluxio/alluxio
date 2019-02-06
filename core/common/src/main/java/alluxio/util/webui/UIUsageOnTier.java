@@ -11,6 +11,9 @@
 
 package alluxio.util.webui;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * A wrapper class of the usage info per tier for displaying in the UI.
  * This is mainly used to avoid using Map in jsp, which could cause problem with Java 8.
@@ -28,7 +31,10 @@ public class UIUsageOnTier {
    * @param capacityBytes capacity in bytes
    * @param usedBytes used space in bytes
    */
-  public UIUsageOnTier(String tierAlias, long capacityBytes, long usedBytes) {
+  @JsonCreator
+  public UIUsageOnTier(@JsonProperty("tierAlias") String tierAlias,
+      @JsonProperty("capacityBytes") long capacityBytes,
+      @JsonProperty("usedBytes") long usedBytes) {
     mTierAlias = tierAlias;
     mCapacityBytes = capacityBytes;
     mUsedBytes = usedBytes;
