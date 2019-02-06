@@ -544,6 +544,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey UNDERFS_GCS_DIRECTORY_SUFFIX =
+      new Builder(Name.UNDERFS_GCS_DIRECTORY_SUFFIX)
+          .setDefaultValue("/")
+          .setDescription("Directories are represented in GCS as zero-byte objects named with "
+              + "the specified suffix.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING)
           .setDescription("Optionally, specify a preset gcs owner id to Alluxio username "
@@ -3492,6 +3500,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_CLEANUP_ENABLED = "alluxio.underfs.cleanup.enabled";
     public static final String UNDERFS_CLEANUP_INTERVAL = "alluxio.underfs.cleanup.interval";
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
+    public static final String UNDERFS_GCS_DIRECTORY_SUFFIX =
+        "alluxio.underfs.gcs.directory.suffix";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
