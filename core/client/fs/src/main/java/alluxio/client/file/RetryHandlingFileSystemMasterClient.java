@@ -28,6 +28,7 @@ import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
+import alluxio.grpc.GetFilePathPRequest;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetNewBlockIdForFilePOptions;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
@@ -155,6 +156,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       throws AlluxioStatusException {
     retryRPC(() -> mClient.free(FreePRequest.newBuilder().setPath(path.getPath())
         .setOptions(options).build()), "Free");
+  }
+
+  @Override
+  public String getFilePath(long fileId) throws AlluxioStatusException {
+    return retryRPC(() -> mClient.getFilePath(GetFilePathPRequest
+            .newBuilder().setFileId(fileId).build()).getPath(), "GetFilePath");
   }
 
   @Override

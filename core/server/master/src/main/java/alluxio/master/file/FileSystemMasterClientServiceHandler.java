@@ -33,6 +33,8 @@ import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.FreePResponse;
+import alluxio.grpc.GetFilePathPRequest;
+import alluxio.grpc.GetFilePathPResponse;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetMountTablePResponse;
 import alluxio.grpc.GetNewBlockIdForFilePOptions;
@@ -193,6 +195,18 @@ public final class FileSystemMasterClientServiceHandler
         () -> GetNewBlockIdForFilePResponse.newBuilder()
             .setId(mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path))).build(),
         "GetNewBlockIdForFile", "path=%s, options=%s", responseObserver, path, options);
+  }
+
+  @Override
+  public void getFilePath(GetFilePathPRequest request,
+      StreamObserver<GetFilePathPResponse> responseObserver) {
+    long fileId = request.getFileId();
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetFilePathPResponse>) () -> GetFilePathPResponse
+            .newBuilder()
+            .setPath(mFileSystemMaster.getPath(fileId).toString())
+            .build(),
+        "GetFilePath", true, "id=%s", responseObserver, fileId);
   }
 
   @Override

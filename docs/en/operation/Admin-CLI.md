@@ -53,6 +53,15 @@ The `doctor` command shows Alluxio errors and warnings.
 $ ./bin/alluxio fsadmin doctor configuration
 ```
 
+### getBlockInfo
+
+The `getBlockInfo` command provides the block information and file path of a block id.
+It is primarily intended to assist power users in debugging their system.
+
+```bash
+$ ./bin/alluxio fsadmin getBlockInfo <block_id>
+```
+
 ### report
 
 The `report` command provides Alluxio running cluster information.

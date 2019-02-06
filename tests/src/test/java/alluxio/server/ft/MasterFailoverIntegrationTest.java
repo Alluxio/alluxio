@@ -11,6 +11,7 @@
 
 package alluxio.server.ft;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
@@ -72,8 +73,10 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
     mMultiMasterLocalAlluxioCluster =
         new MultiMasterLocalAlluxioCluster(2);
     mMultiMasterLocalAlluxioCluster.initConfiguration();
-    ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "15sec");
+    ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec");
+    ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec");
     ServerConfiguration.set(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "30sec");
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0sec");
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
         DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH);
     mMultiMasterLocalAlluxioCluster.start();
@@ -104,7 +107,7 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
     assertFalse(mFileSystem.exists(dir));
     // Restart to make sure the journal is consistent (we didn't write two delete entries for /dir).
     mMultiMasterLocalAlluxioCluster.restartMasters();
-    mFileSystem.listStatus(new AlluxioURI("/"));
+    assertEquals(0, mFileSystem.listStatus(new AlluxioURI("/")).size());
   }
 
   private class DeleteThread extends Thread {

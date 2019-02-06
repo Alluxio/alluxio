@@ -1297,7 +1297,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_LOCKCACHE_MAXSIZE =
       new Builder(Name.MASTER_LOCKCACHE_MAXSIZE)
-          .setDefaultValue(10000)
+          .setDefaultValue(100000)
           .setDescription("Maximum inodelock cache size")
           .setScope(Scope.MASTER)
           .build();

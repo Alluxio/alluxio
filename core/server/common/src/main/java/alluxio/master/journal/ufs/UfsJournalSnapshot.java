@@ -52,14 +52,14 @@ public final class UfsJournalSnapshot {
   /**
    * @return the checkpoints sorted by end sequence number increasingly
    */
-  List<UfsJournalFile> getCheckpoints() {
+  public List<UfsJournalFile> getCheckpoints() {
     return mCheckpoints;
   }
 
   /**
    * @return the latest checkpoint, null if no checkpoint exists
    */
-  UfsJournalFile getLatestCheckpoint() {
+  public UfsJournalFile getLatestCheckpoint() {
     if (!mCheckpoints.isEmpty()) {
       return mCheckpoints.get(mCheckpoints.size() - 1);
     }
@@ -69,23 +69,24 @@ public final class UfsJournalSnapshot {
   /**
    * @return the logs sorted by the end sequence number increasingly
    */
-  List<UfsJournalFile> getLogs() {
+  public List<UfsJournalFile> getLogs() {
     return mLogs;
   }
 
   /**
    * @return the temporary checkpoints
    */
-  List<UfsJournalFile> getTemporaryCheckpoints() {
+  public List<UfsJournalFile> getTemporaryCheckpoints() {
     return mTemporaryCheckpoints;
   }
 
   /**
    * Creates a snapshot of the journal.
    *
+   * @param journal the journal
    * @return the journal snapshot
    */
-  static UfsJournalSnapshot getSnapshot(UfsJournal journal) throws IOException {
+  public static UfsJournalSnapshot getSnapshot(UfsJournal journal) throws IOException {
     // Checkpoints.
     List<UfsJournalFile> checkpoints = new ArrayList<>();
     UfsStatus[] statuses = journal.getUfs().listStatus(journal.getCheckpointDir().toString());

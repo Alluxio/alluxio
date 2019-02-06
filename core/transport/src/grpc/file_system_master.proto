@@ -278,6 +278,13 @@ message FileInfo {
   optional int32 replicationMin = 30;
 }
 
+message GetFilePathPResponse {
+  optional string path = 1;
+}
+message GetFilePathPRequest {
+  optional int64 fileId = 1;
+}
+
 message MountPResponse {}
 message MountPOptions {
   optional bool readOnly = 1;
@@ -470,6 +477,11 @@ service FileSystemMasterClientService {
    * Frees the given file or directory from Alluxio.
    */
   rpc Free(FreePRequest) returns (FreePResponse);
+
+  /**
+  * Returns the file path of a file id
+  */
+  rpc GetFilePath(GetFilePathPRequest) returns (GetFilePathPResponse);
 
   /**
   * Returns a map from each Alluxio path to information of corresponding mount point

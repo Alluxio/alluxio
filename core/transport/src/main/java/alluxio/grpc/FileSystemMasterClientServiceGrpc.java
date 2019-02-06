@@ -191,6 +191,38 @@ public final class FileSystemMasterClientServiceGrpc {
      return getFreeMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetFilePathPRequest,
+      alluxio.grpc.GetFilePathPResponse> getGetFilePathMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetFilePath",
+      requestType = alluxio.grpc.GetFilePathPRequest.class,
+      responseType = alluxio.grpc.GetFilePathPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetFilePathPRequest,
+      alluxio.grpc.GetFilePathPResponse> getGetFilePathMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetFilePathPRequest, alluxio.grpc.GetFilePathPResponse> getGetFilePathMethod;
+    if ((getGetFilePathMethod = FileSystemMasterClientServiceGrpc.getGetFilePathMethod) == null) {
+      synchronized (FileSystemMasterClientServiceGrpc.class) {
+        if ((getGetFilePathMethod = FileSystemMasterClientServiceGrpc.getGetFilePathMethod) == null) {
+          FileSystemMasterClientServiceGrpc.getGetFilePathMethod = getGetFilePathMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetFilePathPRequest, alluxio.grpc.GetFilePathPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.file.FileSystemMasterClientService", "GetFilePath"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetFilePathPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetFilePathPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetFilePath"))
+                  .build();
+          }
+        }
+     }
+     return getGetFilePathMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetMountTablePRequest,
       alluxio.grpc.GetMountTablePResponse> getGetMountTableMethod;
 
@@ -760,6 +792,17 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Returns the file path of a file id
+     * </pre>
+     */
+    public void getFilePath(alluxio.grpc.GetFilePathPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetFilePathPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetFilePathMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a map from each Alluxio path to information of corresponding mount point
      * </pre>
      */
@@ -965,6 +1008,13 @@ public final class FileSystemMasterClientServiceGrpc {
                 alluxio.grpc.FreePResponse>(
                   this, METHODID_FREE)))
           .addMethod(
+            getGetFilePathMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetFilePathPRequest,
+                alluxio.grpc.GetFilePathPResponse>(
+                  this, METHODID_GET_FILE_PATH)))
+          .addMethod(
             getGetMountTableMethod(),
             asyncUnaryCall(
               new MethodHandlers<
@@ -1153,6 +1203,18 @@ public final class FileSystemMasterClientServiceGrpc {
         io.grpc.stub.StreamObserver<alluxio.grpc.FreePResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getFreeMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns the file path of a file id
+     * </pre>
+     */
+    public void getFilePath(alluxio.grpc.GetFilePathPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetFilePathPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetFilePathMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -1421,6 +1483,17 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Returns the file path of a file id
+     * </pre>
+     */
+    public alluxio.grpc.GetFilePathPResponse getFilePath(alluxio.grpc.GetFilePathPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getGetFilePathMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a map from each Alluxio path to information of corresponding mount point
      * </pre>
      */
@@ -1674,6 +1747,18 @@ public final class FileSystemMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Returns the file path of a file id
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetFilePathPResponse> getFilePath(
+        alluxio.grpc.GetFilePathPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetFilePathMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a map from each Alluxio path to information of corresponding mount point
      * </pre>
      */
@@ -1862,21 +1947,22 @@ public final class FileSystemMasterClientServiceGrpc {
   private static final int METHODID_CREATE_DIRECTORY = 2;
   private static final int METHODID_CREATE_FILE = 3;
   private static final int METHODID_FREE = 4;
-  private static final int METHODID_GET_MOUNT_TABLE = 5;
-  private static final int METHODID_GET_SYNC_PATH_LIST = 6;
-  private static final int METHODID_GET_NEW_BLOCK_ID_FOR_FILE = 7;
-  private static final int METHODID_GET_STATUS = 8;
-  private static final int METHODID_LIST_STATUS = 9;
-  private static final int METHODID_MOUNT = 10;
-  private static final int METHODID_REMOVE = 11;
-  private static final int METHODID_RENAME = 12;
-  private static final int METHODID_SCHEDULE_ASYNC_PERSISTENCE = 13;
-  private static final int METHODID_SET_ACL = 14;
-  private static final int METHODID_SET_ATTRIBUTE = 15;
-  private static final int METHODID_START_SYNC = 16;
-  private static final int METHODID_STOP_SYNC = 17;
-  private static final int METHODID_UNMOUNT = 18;
-  private static final int METHODID_UPDATE_UFS_MODE = 19;
+  private static final int METHODID_GET_FILE_PATH = 5;
+  private static final int METHODID_GET_MOUNT_TABLE = 6;
+  private static final int METHODID_GET_SYNC_PATH_LIST = 7;
+  private static final int METHODID_GET_NEW_BLOCK_ID_FOR_FILE = 8;
+  private static final int METHODID_GET_STATUS = 9;
+  private static final int METHODID_LIST_STATUS = 10;
+  private static final int METHODID_MOUNT = 11;
+  private static final int METHODID_REMOVE = 12;
+  private static final int METHODID_RENAME = 13;
+  private static final int METHODID_SCHEDULE_ASYNC_PERSISTENCE = 14;
+  private static final int METHODID_SET_ACL = 15;
+  private static final int METHODID_SET_ATTRIBUTE = 16;
+  private static final int METHODID_START_SYNC = 17;
+  private static final int METHODID_STOP_SYNC = 18;
+  private static final int METHODID_UNMOUNT = 19;
+  private static final int METHODID_UPDATE_UFS_MODE = 20;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -1914,6 +2000,10 @@ public final class FileSystemMasterClientServiceGrpc {
         case METHODID_FREE:
           serviceImpl.free((alluxio.grpc.FreePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.FreePResponse>) responseObserver);
+          break;
+        case METHODID_GET_FILE_PATH:
+          serviceImpl.getFilePath((alluxio.grpc.GetFilePathPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetFilePathPResponse>) responseObserver);
           break;
         case METHODID_GET_MOUNT_TABLE:
           serviceImpl.getMountTable((alluxio.grpc.GetMountTablePRequest) request,
@@ -2041,6 +2131,7 @@ public final class FileSystemMasterClientServiceGrpc {
               .addMethod(getCreateDirectoryMethod())
               .addMethod(getCreateFileMethod())
               .addMethod(getFreeMethod())
+              .addMethod(getGetFilePathMethod())
               .addMethod(getGetMountTableMethod())
               .addMethod(getGetSyncPathListMethod())
               .addMethod(getGetNewBlockIdForFileMethod())

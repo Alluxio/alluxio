@@ -261,9 +261,10 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
    */
   protected void checkFilePersisted(AlluxioURI uri, int size) throws Exception {
     assertTrue(mFileSystem.getStatus(uri).isPersisted());
-    mFileSystem.free(uri);
     CommonUtils.waitFor("file to be completely freed", () -> {
       try {
+        // Call free inside the loop in case a worker reports blocks after the call to free.
+        mFileSystem.free(uri);
         return mFileSystem.getStatus(uri).getInAlluxioPercentage() == 0;
       } catch (Exception e) {
         throw new RuntimeException(e);
