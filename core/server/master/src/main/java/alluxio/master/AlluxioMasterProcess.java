@@ -39,6 +39,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
@@ -76,6 +79,8 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   /** The manager for creating and restoring backups. */
   private final BackupManager mBackupManager;
+
+  private ExecutorService mRPCExecutor = null;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -269,13 +274,16 @@ public class AlluxioMasterProcess extends MasterProcess {
    * {@link Master}s and meta services.
    */
   protected void startServingRPCServer() {
-    // TODO(ggezer) Executor threads not reused until thread capacity is hit.
-    // ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
       stopRejectingRpcServer();
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress,
           ServerConfiguration.global());
+
+      mRPCExecutor =
+          new ForkJoinPool(ServerConfiguration.getInt(
+              PropertyKey.MASTER_RPC_FORKJOIN_POOL_PARALLELISM));
+      serverBuilder.executor(mRPCExecutor);
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
       }
@@ -299,6 +307,18 @@ public class AlluxioMasterProcess extends MasterProcess {
     if (isServing()) {
       if (!mGrpcServer.shutdown()) {
         LOG.warn("RPC Server shutdown timed out.");
+      }
+    }
+    if (mRPCExecutor != null) {
+      mRPCExecutor.shutdown();
+      try {
+        mRPCExecutor.awaitTermination(
+            ServerConfiguration.getMs(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT),
+            TimeUnit.MILLISECONDS);
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+      } finally {
+        mRPCExecutor.shutdownNow();
       }
     }
     if (mJvmPauseMonitor != null) {
