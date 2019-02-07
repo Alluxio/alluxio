@@ -19,6 +19,7 @@ import alluxio.exception.status.Status;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.SettableFuture;
 
@@ -27,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -42,7 +45,7 @@ public final class AsyncJournalWriter {
    * Used to manage and keep track of pending callers of ::flush.
    */
   private class FlushTicket {
-    private long mTargetCounter;
+    private final long mTargetCounter;
     private SettableFuture<Void> mIsCompleted;
 
     public FlushTicket(long targetCounter) {
@@ -77,7 +80,7 @@ public final class AsyncJournalWriter {
    * Represents the count of entries written to the journal writer.
    * Invariant: {@code mWriteCounter >= mFlushCounter}
    */
-  private final AtomicLong mWriteCounter;
+  private Long mWriteCounter;
   /** Maximum number of nanoseconds for a batch flush. */
   private final long mFlushBatchTimeNs;
 
@@ -96,7 +99,17 @@ public final class AsyncJournalWriter {
    * Dedicated thread for writing and flushing entries in journal queue.
    * It goes over the {@code mTicketList} after every flush session and releases waiters.
    */
-  private final Thread mFlushThread = new Thread(this::flushProc);
+  private Thread mFlushThread = new Thread(this::flushProc);
+
+  /**
+   * Used to give permits to flush thread to start processing immediately.
+   */
+  private final Semaphore mFlushSemaphore = new Semaphore(0, true);
+
+  /**
+   * Control flag that is used to instruct flush thread to exit.
+   */
+  private boolean mStopFlushing = false;
 
   /**
    * Creates a {@link AsyncJournalWriter}.
@@ -108,9 +121,10 @@ public final class AsyncJournalWriter {
     mQueue = new ConcurrentLinkedQueue<>();
     mCounter = new AtomicLong(0);
     mFlushCounter = new AtomicLong(0);
-    mWriteCounter = new AtomicLong(0);
-    mFlushBatchTimeNs =
-            1000000L * ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
+    mWriteCounter = 0L;
+    mFlushBatchTimeNs = TimeUnit.NANOSECONDS.convert(
+        ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS),
+        TimeUnit.MILLISECONDS);
     mFlushThread.start();
   }
 
@@ -147,12 +161,42 @@ public final class AsyncJournalWriter {
 
   /**
    * Closes the async writer.
-   * PS: It initiates but does not wait for outstanding entries to be flushed.
+   * PS: It's not guaranteed for pending entries to be flushed.
+   *     Use ::flush() for guaranteeing the entries have been flushed.
    */
   public void close() {
-    if (mFlushThread != null) {
-      mFlushThread.interrupt();
+    stop();
+  }
+
+  @VisibleForTesting
+  protected void stop() {
+    // Set termination flag.
+    mStopFlushing = true;
+    // Give a permit for flush thread to run, in case it was blocked on permit.
+    mFlushSemaphore.release();
+
+    try {
+      mFlushThread.join();
+    } catch (InterruptedException ie) {
+      Thread.currentThread().interrupt();
+      return;
+    } finally {
+      mFlushThread = null;
+      // Try to reacquire the permit.
+      mFlushSemaphore.tryAcquire();
     }
+  }
+
+  @VisibleForTesting
+  protected void start() {
+    if (mFlushThread != null) {
+      close();
+    }
+    // Create a new thread.
+    mFlushThread = new Thread(this::flushProc);
+    // Reset termination flag before starting the new thread.
+    mStopFlushing = false;
+    mFlushThread.start();
   }
 
   /**
@@ -161,31 +205,32 @@ public final class AsyncJournalWriter {
    */
   private void flushProc() {
     /**
-     * Runs the loop until thread is interrupted.
+     * Runs the loop until ::stop() is called.
      */
-    boolean exit = false;
-    while (!exit) {
+    while (!mStopFlushing) {
 
       /**
-       * Wait to be woken up by flush requests as long as the queue is empty. Bail and drain the
-       * queue, if interrupted.
+       * Stand still unless;
+       * - queue has items
+       * - permit is given by:
+       *   - clients
+       *   -::stop()
        */
-      synchronized (mFlushThread) {
-        while (mQueue.isEmpty()) {
-          try {
-            mFlushThread.wait();
-          } catch (InterruptedException ie) {
-            // Time to exit.
-            exit = true;
+      while (mQueue.isEmpty() && !mStopFlushing) {
+        try {
+          // Wait for permit up to batch timeout.
+          // PS: We don't wait for permit indefinitely in order to process
+          // queued entries proactively.
+          if (mFlushSemaphore.tryAcquire(mFlushBatchTimeNs, TimeUnit.NANOSECONDS)) {
             break;
           }
+        } catch (InterruptedException ie) {
+          break;
         }
       }
 
       try {
-        long writeCounter = mWriteCounter.get();
         long startTime = System.nanoTime();
-        boolean needFlush = false;
 
         /**
          * Write pending entries to journal.
@@ -198,35 +243,35 @@ public final class AsyncJournalWriter {
             break;
           }
           mJournalWriter.write(entry);
-          needFlush = true;
           // Remove the head entry, after the entry was successfully written.
           mQueue.poll();
-          writeCounter = mWriteCounter.incrementAndGet();
+          mWriteCounter++;
 
-          if ((System.nanoTime() - startTime) >= mFlushBatchTimeNs) {
+          if (((System.nanoTime() - startTime) >= mFlushBatchTimeNs) && !mStopFlushing) {
             // This thread has been writing to the journal for enough time. Break out of the
             // infinite while-loop.
             break;
           }
         }
 
-        if (needFlush) {
+        // Either written new entries or previous flush had been failed.
+        if (mFlushCounter.get() < mWriteCounter) {
           mJournalWriter.flush();
-          mFlushCounter.set(writeCounter);
+          mFlushCounter.set(mWriteCounter);
+        }
 
-          /**
-           * Notify tickets that have been served to wake up.
-           */
-          List<FlushTicket> closedTickets = new ArrayList<>();
-          try (LockResource lr = new LockResource(mTicketLock)) {
-            for (FlushTicket ticket : mTicketList) {
-              if (ticket.getTargetCounter() <= writeCounter) {
-                ticket.setCompleted();
-                closedTickets.add(ticket);
-              }
+        /**
+         * Notify tickets that have been served to wake up.
+         */
+        List<FlushTicket> closedTickets = new ArrayList<>();
+        try (LockResource lr = new LockResource(mTicketLock)) {
+          for (FlushTicket ticket : mTicketList) {
+            if (ticket.getTargetCounter() <= mFlushCounter.get()) {
+              ticket.setCompleted();
+              closedTickets.add(ticket);
             }
-            mTicketList.removeAll(closedTickets);
           }
+          mTicketList.removeAll(closedTickets);
         }
       } catch (IOException | JournalClosedException exc) {
         /**
@@ -272,12 +317,9 @@ public final class AsyncJournalWriter {
 
     try {
       /**
-       * Notify the flush thread. It will have no effect if there is no ticket left to process,
-       * which means this ticket has been served as well.
+       * Give a permit for flush thread to run.
        */
-      synchronized (mFlushThread) {
-        mFlushThread.notify();
-      }
+      mFlushSemaphore.release();
 
       /**
        * Wait on the ticket until completed.
@@ -301,6 +343,12 @@ public final class AsyncJournalWriter {
       }
       // Not expected. throw internal error.
       throw new AlluxioStatusException(Status.INTERNAL, ee);
+    } finally {
+      /**
+       * Client can only try to reacquire the permit it has given
+       * because the permit may or may not have been used by the flush thread.
+       */
+      mFlushSemaphore.tryAcquire();
     }
   }
 }
