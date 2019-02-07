@@ -59,12 +59,12 @@ public abstract class DataMessageMarshaller<T> implements MethodDescriptor.Marsh
       if (rawBuffer != null) {
         CompositeReadableBuffer readableBuffer = new CompositeReadableBuffer();
         readableBuffer.addBuffer(rawBuffer);
-        return parseResponse(readableBuffer);
+        return deserialize(readableBuffer);
       } else {
         // falls back to buffer copy
         byte[] byteBuffer = new byte[message.available()];
         message.read(byteBuffer);
-        return parseResponse(ReadableBuffers.wrap(byteBuffer));
+        return deserialize(ReadableBuffers.wrap(byteBuffer));
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -96,10 +96,28 @@ public abstract class DataMessageMarshaller<T> implements MethodDescriptor.Marsh
    */
   public abstract T combineData(DataMessage<T, DataBuffer> message);
 
-  protected abstract ByteBuf[] extractMessageBuffer(T message) throws IOException;
+  /**
+   * Serialize the message to buffers.
+   * @param message the message to be serialized
+   * @return an array of {@link ByteBuf}s containing the serialized message
+   * @throws IOException if the marshaller fails to serialize the message
+   */
+  protected abstract ByteBuf[] serialize(T message) throws IOException;
 
-  protected abstract T parseResponse(ReadableBuffer buffer) throws IOException;
+  /**
+   * Deserialize data buffer to the message.
+   *
+   * @param buffer the buffer that contains the message data
+   * @return the deserialized message
+   * @throws IOException if the marshaller fails to deserialize the data
+   */
+  protected abstract T deserialize(ReadableBuffer buffer) throws IOException;
 
+  /**
+   * A {@link InputStream} for writing a message into a gRPC output stream. It will attempt to
+   * insert raw data buffer directly to the target stream if possible, or fallback to buffer copy if
+   * the insertion fails.
+   */
   private class DataBufferInputStream extends InputStream implements Drainable {
     private final InputStream mStream;
     private final T mMessage;
@@ -117,7 +135,7 @@ public abstract class DataMessageMarshaller<T> implements MethodDescriptor.Marsh
     @Override
     public int drainTo(OutputStream target) throws IOException {
       int bytesWritten = 0;
-      ByteBuf[] buffers = extractMessageBuffer(mMessage);
+      ByteBuf[] buffers = serialize(mMessage);
       for (ByteBuf buffer : buffers) {
         bytesWritten += buffer.readableBytes();
       }

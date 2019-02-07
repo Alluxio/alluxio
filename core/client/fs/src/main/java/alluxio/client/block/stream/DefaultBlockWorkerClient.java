@@ -120,8 +120,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public StreamObserver<ReadRequest> readBlock(
-      StreamObserver<ReadResponse> responseObserver) {
+  public StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver) {
     if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<ReadResponse> marshaller =
           ((DataMessageMarshallerProvider<ReadResponse>) responseObserver).getMarshaller();

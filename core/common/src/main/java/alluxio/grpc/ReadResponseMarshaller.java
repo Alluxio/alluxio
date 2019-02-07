@@ -12,6 +12,7 @@
 package alluxio.grpc;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
@@ -41,8 +42,17 @@ public class ReadResponseMarshaller extends DataMessageMarshaller<ReadResponse> 
   }
 
   @Override
-  protected ByteBuf[] extractMessageBuffer(ReadResponse message) throws IOException {
+  protected ByteBuf[] serialize(ReadResponse message) throws IOException {
     DataBuffer chunkBuffer = pollBuffer(message);
+    if (chunkBuffer == null) {
+      if (!message.hasChunk() || !message.getChunk().hasData()) {
+        // nothing to serialize
+        return new ByteBuf[0];
+      }
+      // attempts to fallback to read chunk from message
+      chunkBuffer = new NettyDataBuffer(
+          Unpooled.wrappedBuffer(message.getChunk().getData().asReadOnlyByteBuffer()));
+    }
     int size = message.getSerializedSize() - chunkBuffer.readableBytes();
     byte[] header = new byte[size];
     CodedOutputStream stream = CodedOutputStream.newInstance(header);
@@ -54,7 +64,10 @@ public class ReadResponseMarshaller extends DataMessageMarshaller<ReadResponse> 
   }
 
   @Override
-  protected ReadResponse parseResponse(ReadableBuffer buffer) throws IOException {
+  protected ReadResponse deserialize(ReadableBuffer buffer) throws IOException {
+    if (buffer.readableBytes() == 0) {
+      return ReadResponse.getDefaultInstance();
+    }
     try (InputStream is = ReadableBuffers.openStream(buffer, false)) {
       Preconditions.checkState(ProtoUtils.readRawVarint32(is) == GrpcSerializationUtils.makeTag(
           ReadResponse.CHUNK_FIELD_NUMBER, WireFormat.WIRETYPE_LENGTH_DELIMITED));

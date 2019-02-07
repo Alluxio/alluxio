@@ -67,7 +67,7 @@ public class DataMessageClientResponseObserver<ReqT, RespT>
     if (mObserver instanceof ClientResponseObserver) {
       ((ClientResponseObserver<ReqT, RespT>) mObserver).beforeStart(requestStream);
     } else {
-      LOG.warn("observer does not implement ClientResponseObserver:beforeStart");
+      LOG.warn("{} does not implement ClientResponseObserver:beforeStart", mObserver);
     }
   }
 
