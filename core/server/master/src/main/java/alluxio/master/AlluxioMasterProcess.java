@@ -82,7 +82,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** The manager for creating and restoring backups. */
   private final BackupManager mBackupManager;
 
-  private final ExecutorService mRPCExecutor = null;
+  private ExecutorService mRPCExecutor = null;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -288,7 +288,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(bindAddress,
           ServerConfiguration.global());
 
-      ExecutorService mRPCExecutor =
+      mRPCExecutor =
           new ForkJoinPool(ServerConfiguration.getInt(
               PropertyKey.MASTER_RPC_FORKJOIN_POOL_PARALLELISM));
       serverBuilder.executor(mRPCExecutor);

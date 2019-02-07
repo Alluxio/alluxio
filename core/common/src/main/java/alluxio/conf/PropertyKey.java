@@ -1699,7 +1699,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_RPC_FORKJOIN_POOL_PARALLELISM =
       new Builder(Name.MASTER_RPC_FORKJOIN_POOL_PARALLELISM)
-          .setDefaultValue(25)
+          .setDefaultValue(50)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
