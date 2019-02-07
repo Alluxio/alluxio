@@ -71,11 +71,11 @@ mount_fuse() {
   # sleep: workaround to let the bg java process exit on errors, if any
   sleep 2s
   if kill -0 $! > /dev/null 2>&1 ; then
-    echo "alluxio-fuse successfully mounted Alluxio path "${alluxio_root}" to ${mount_point}."
+    echo "Successfully mounted Alluxio path \"${alluxio_root}\" to ${mount_point}."
     echo "See ${ALLUXIO_LOGS_DIR}/fuse.log for logging messages"
     return 0
   else
-    echo "alluxio-fuse failed to start. See ${ALLUXIO_LOGS_DIR}/fuse.out for details" >&2
+    echo "Failed to mount. See ${ALLUXIO_LOGS_DIR}/fuse.out for details" >&2
     return 1
   fi
 }
@@ -84,7 +84,7 @@ umount_fuse() {
   local mount_point=$1
   local fuse_pid=$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')
   if [[ -z ${fuse_pid} ]]; then
-    echo "No fuse mounted at ${mount_point}" >&2
+    echo "${mount_point} not mounted" >&2
     return 1
   else
     echo "Unmount fuse at ${mount_point} (PID: ${fuse_pid})."
