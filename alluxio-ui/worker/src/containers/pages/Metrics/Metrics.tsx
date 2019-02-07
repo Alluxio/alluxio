@@ -84,27 +84,27 @@ export class Metrics extends React.Component<AllProps> {
                 <tbody>
                 <tr>
                   <th>Blocks Accessed</th>
-                  <td>{data.operationMetrics && data.operationMetrics.BlocksAccessed ? data.operationMetrics.BlocksAccessed.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BlocksAccessed ? data.operationMetrics.BlocksAccessed.value : 0}</td>
                   <th>Blocks Cached</th>
-                  <td>{data.operationMetrics && data.operationMetrics.BlocksCached ? data.operationMetrics.BlocksCached.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BlocksCached ? data.operationMetrics.BlocksCached.value : 0}</td>
                 </tr>
                 <tr>
                   <th>Blocks Canceled</th>
-                  <td>{data.operationMetrics && data.operationMetrics.BlocksCanceled ? data.operationMetrics.BlocksCanceled.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BlocksCanceled ? data.operationMetrics.BlocksCanceled.value : 0}</td>
                   <th>Blocks Deleted</th>
-                  <td>{data.operationMetrics && data.operationMetrics.BlocksDeleted ? data.operationMetrics.BlocksDeleted.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BlocksDeleted ? data.operationMetrics.BlocksDeleted.value : 0}</td>
                 </tr>
                 <tr>
                   <th>Blocks Evicted</th>
-                  <td>{data.operationMetrics && data.operationMetrics.BlocksEvicted ? data.operationMetrics.BlocksEvicted.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BlocksEvicted ? data.operationMetrics.BlocksEvicted.value : 0}</td>
                   <th>Blocks Promoted</th>
-                  <td>{data.operationMetrics && data.operationMetrics.BlocksPromoted ? data.operationMetrics.BlocksPromoted.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BlocksPromoted ? data.operationMetrics.BlocksPromoted.value : 0}</td>
                 </tr>
                 <tr>
                   <th>Bytes Read Remotely</th>
-                  <td>{data.operationMetrics && data.operationMetrics.BytesReadRemote ? data.operationMetrics.BytesReadRemote.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BytesReadRemote ? data.operationMetrics.BytesReadRemote.value : 0}</td>
                   <th>Bytes Written Remotely</th>
-                  <td>{data.operationMetrics && data.operationMetrics.BytesWrittenRemote ? data.operationMetrics.BytesWrittenRemote.count : 0}</td>
+                  <td>{data.operationMetrics && data.operationMetrics.BytesWrittenRemote ? data.operationMetrics.BytesWrittenRemote.value : 0}</td>
                 </tr>
                 </tbody>
               </Table>

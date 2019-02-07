@@ -61,7 +61,7 @@ public final class RestUtils {
     try {
       return createResponse(callable.call(), alluxioConf, headers);
     } catch (Exception e) {
-      LOG.warn("Unexpected error invoking rest endpoint: {}", e.getMessage());
+      LOG.warn("Unexpected error invoking rest endpoint: {}", e.getMessage(), e);
       return createErrorResponse(e, alluxioConf);
     }
   }

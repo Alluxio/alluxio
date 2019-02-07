@@ -898,7 +898,7 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                                   className="col-12"
                                 >
                                   <h5>
-                                    Alluxio Configuration
+                                    Lost Workers
                                   </h5>
                                   <Table
                                     hover={true}
@@ -1150,7 +1150,7 @@ exports[`Workers Shallow component Matches snapshot 1`] = `
         className="col-12"
       >
         <h5>
-          Alluxio Configuration
+          Lost Workers
         </h5>
         <Table
           hover={true}

@@ -1293,67 +1293,93 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                                           <th>
                                             CompleteFile Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                           <th>
                                             CreateDirectory Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                         </tr>
                                         <tr>
                                           <th>
                                             CreateFile Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                           <th>
                                             DeletePath Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                         </tr>
                                         <tr>
                                           <th>
                                             FreeFile Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                           <th>
                                             GetFileBlockInfo Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                         </tr>
                                         <tr>
                                           <th>
                                             GetFileInfo Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                           <th>
                                             GetNewBlock Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                         </tr>
                                         <tr>
                                           <th>
                                             Mount Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                           <th>
                                             RenamePath Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                         </tr>
                                         <tr>
                                           <th>
                                             SetAcl Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                           <th>
                                             SetAttribute Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                         </tr>
                                         <tr>
                                           <th>
                                             Unmount Operations
                                           </th>
-                                          <td />
+                                          <td>
+                                            0
+                                          </td>
                                         </tr>
                                       </tbody>
                                     </table>
@@ -1887,67 +1913,93 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
               <th>
                 CompleteFile Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
               <th>
                 CreateDirectory Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
             </tr>
             <tr>
               <th>
                 CreateFile Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
               <th>
                 DeletePath Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
             </tr>
             <tr>
               <th>
                 FreeFile Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
               <th>
                 GetFileBlockInfo Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
             </tr>
             <tr>
               <th>
                 GetFileInfo Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
               <th>
                 GetNewBlock Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
             </tr>
             <tr>
               <th>
                 Mount Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
               <th>
                 RenamePath Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
             </tr>
             <tr>
               <th>
                 SetAcl Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
               <th>
                 SetAttribute Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
             </tr>
             <tr>
               <th>
                 Unmount Operations
               </th>
-              <td />
+              <td>
+                0
+              </td>
             </tr>
           </tbody>
         </Table>

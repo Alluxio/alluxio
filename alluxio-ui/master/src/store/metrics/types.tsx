@@ -46,7 +46,7 @@ export interface IMetrics {
     [key: string]: ICounter;
   },
   rpcInvocationMetrics: {
-    [key:string]: ICounter;
+    [key:string]: number;
   }
 }
 

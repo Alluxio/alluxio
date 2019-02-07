@@ -87,8 +87,6 @@ import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.Sets;
 import com.qmino.miredot.annotations.ReturnType;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
-import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -986,8 +984,11 @@ public final class AlluxioMasterRestServiceHandler {
             new UIMetric(entry.getValue().getCount()));
       }
       String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+      SortedMap<String, Gauge> gauges = mr.getGauges();
+      Gauge filesPinned = gauges.get(filesPinnedProperty);
+      Number filesPinnedValue = filesPinned == null ? 0 : ((Number) filesPinned.getValue());
       operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
-          new UIMetric(((Number) mr.getGauges().get(filesPinnedProperty).getValue()).longValue()));
+          new UIMetric(filesPinnedValue.longValue()));
       response.setOperationMetrics(operations);
 
       Map<String, Long> rpcInvocationsUpdated = new TreeMap<>();

@@ -144,8 +144,8 @@ public final class AlluxioWorkerRestServiceHandler {
         (WorkerProcess) context.getAttribute(WorkerWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY);
     mBlockWorker = mWorkerProcess.getWorker(BlockWorker.class);
     mStoreMeta = mWorkerProcess.getWorker(BlockWorker.class).getStoreMeta();
-    mFsClient = (FileSystem) context
-            .getAttribute(WorkerWebServer.ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY);
+    mFsClient =
+        (FileSystem) context.getAttribute(WorkerWebServer.ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY);
   }
 
   /**
@@ -411,8 +411,11 @@ public final class AlluxioWorkerRestServiceHandler {
             new UIMetric(entry.getValue().getCount()));
       }
       String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+      SortedMap<String, Gauge> gauges = mr.getGauges();
+      Gauge filesPinned = gauges.get(filesPinnedProperty);
+      Number filesPinnedValue = filesPinned == null ? 0 : ((Number) filesPinned.getValue());
       operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
-          new UIMetric(((Number) mr.getGauges().get(filesPinnedProperty).getValue()).longValue()));
+          new UIMetric(filesPinnedValue.longValue()));
       response.setOperationMetrics(operations);
 
       Map<String, Long> rpcInvocationsUpdated = new TreeMap<>();
@@ -759,8 +762,7 @@ public final class AlluxioWorkerRestServiceHandler {
     // free/used spaces, those statistics can be gotten via other REST apis.
     String blocksCachedProperty =
         MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
-    @SuppressWarnings("unchecked")
-    Gauge<Integer> blocksCached =
+    @SuppressWarnings("unchecked") Gauge<Integer> blocksCached =
         (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
 
     // Get values of the counters and gauges and put them into a metrics map.
