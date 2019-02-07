@@ -75,7 +75,8 @@ mount_fuse() {
     echo "See ${ALLUXIO_LOGS_DIR}/fuse.log for logging messages"
     return 0
   else
-    echo "Failed to mount. See ${ALLUXIO_LOGS_DIR}/fuse.out for details" >&2
+    echo "Failed to mount Alluxio path \"${alluxio_root}\" to ${mount_point}."
+    echo "See ${ALLUXIO_LOGS_DIR}/fuse.out for more details"
     return 1
   fi
 }
