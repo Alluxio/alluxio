@@ -41,8 +41,6 @@ public class UIUsageOnTier {
   }
 
   /**
-   * Gets tier alias.
-   *
    * @return the tier alias
    */
   public String getTierAlias() {
@@ -50,8 +48,6 @@ public class UIUsageOnTier {
   }
 
   /**
-   * Gets capacity bytes.
-   *
    * @return capacity in bytes
    */
   public long getCapacityBytes() {
@@ -59,8 +55,6 @@ public class UIUsageOnTier {
   }
 
   /**
-   * Gets used bytes.
-   *
    * @return used space in bytes
    */
   public long getUsedBytes() {

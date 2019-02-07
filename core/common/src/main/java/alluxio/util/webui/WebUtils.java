@@ -22,7 +22,7 @@ import java.util.Collection;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The type Web utils.
+ * The Web utils.
  */
 @ThreadSafe
 public final class WebUtils {

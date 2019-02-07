@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
-import jdk.nashorn.internal.objects.annotations.Property;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -89,8 +88,6 @@ public final class UIFileBlockInfo {
   }
 
   /**
-   * Is in tier boolean.
-   *
    * @param tierAlias the alias for the tier
    * @return true if the block is in the given tier alias in some worker, false otherwise
    */
@@ -99,8 +96,6 @@ public final class UIFileBlockInfo {
   }
 
   /**
-   * Gets block length.
-   *
    * @return the block length
    */
   public long getBlockLength() {
@@ -108,8 +103,6 @@ public final class UIFileBlockInfo {
   }
 
   /**
-   * Gets id.
-   *
    * @return the block id
    */
   public long getID() {
@@ -117,8 +110,6 @@ public final class UIFileBlockInfo {
   }
 
   /**
-   * Gets last access time ms.
-   *
    * @return the block last access time in milliseconds
    */
   public long getLastAccessTimeMs() {
@@ -126,8 +117,6 @@ public final class UIFileBlockInfo {
   }
 
   /**
-   * Gets locations.
-   *
    * @return the block locations
    */
   public List<String> getLocations() {
@@ -135,8 +124,6 @@ public final class UIFileBlockInfo {
   }
 
   /**
-   * Gets whether the block is in the highest tier alias.
-   *
    * @param conf configuration to to check for global level 0 tier alias
    * @return true if it's in the highest tier alias
    */

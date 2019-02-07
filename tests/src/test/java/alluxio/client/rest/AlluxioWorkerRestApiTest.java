@@ -11,6 +11,9 @@
 
 package alluxio.client.rest;
 
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
@@ -27,7 +30,6 @@ import alluxio.wire.WorkerWebUIOverview;
 import alluxio.worker.AlluxioWorkerRestServiceHandler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -68,55 +70,55 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   public void getCapacity() throws Exception {
     long total = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     Capacity capacity = getInfo().getCapacity();
-    Assert.assertEquals(total, capacity.getTotal());
-    Assert.assertEquals(0, capacity.getUsed());
+    assertEquals(total, capacity.getTotal());
+    assertEquals(0, capacity.getUsed());
   }
 
   @Test
   public void getConfiguration() throws Exception {
     ServerConfiguration.set(PropertyKey.METRICS_CONF_FILE, "abc");
-    Assert.assertEquals("abc",
+    assertEquals("abc",
         getInfo().getConfiguration().get(PropertyKey.METRICS_CONF_FILE.toString()));
   }
 
   @Test
   public void getMetrics() throws Exception {
-    Assert.assertEquals(Long.valueOf(0),
+    assertEquals(Long.valueOf(0),
         getInfo().getMetrics().get(MetricsSystem.getMetricName("CompleteFileOps")));
   }
 
   @Test
   public void getRpcAddress() throws Exception {
-    Assert.assertTrue(
+    assertTrue(
         NetworkAddressUtils.parseInetSocketAddress(getInfo().getRpcAddress()).getPort() > 0);
   }
 
   @Test
   public void getStartTimeMs() throws Exception {
-    Assert.assertTrue(getInfo().getStartTimeMs() > 0);
+    assertTrue(getInfo().getStartTimeMs() > 0);
   }
 
   @Test
   public void getTierCapacity() throws Exception {
     long total = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     Capacity capacity = getInfo().getTierCapacity().get("MEM");
-    Assert.assertEquals(total, capacity.getTotal());
-    Assert.assertEquals(0, capacity.getUsed());
+    assertEquals(total, capacity.getTotal());
+    assertEquals(0, capacity.getUsed());
   }
 
   @Test
   public void getTierPaths() throws Exception {
-    Assert.assertTrue(getInfo().getTierPaths().containsKey("MEM"));
+    assertTrue(getInfo().getTierPaths().containsKey("MEM"));
   }
 
   @Test
   public void getUptimeMs() throws Exception {
-    Assert.assertTrue(getInfo().getUptimeMs() > 0);
+    assertTrue(getInfo().getUptimeMs() > 0);
   }
 
   @Test
   public void getVersion() throws Exception {
-    Assert.assertEquals(RuntimeConstants.VERSION, getInfo().getVersion());
+    assertEquals(RuntimeConstants.VERSION, getInfo().getVersion());
   }
 
   private WorkerWebUIInit getWebUIInitData() throws Exception {
@@ -137,7 +139,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
     WorkerWebUIInit expected = new ObjectMapper().readValue(expectedJson, WorkerWebUIInit.class);
     String expectedString = new ObjectMapper().writer().writeValueAsString(expected);
     String resultString = new ObjectMapper().writer().writeValueAsString(result);
-    Assert.assertEquals(expectedString, resultString);
+    assertEquals(expectedString, resultString);
   }
 
   private WorkerWebUIOverview getWebUIOverviewData() throws Exception {
@@ -167,7 +169,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
         .replaceAll(findIgnored, replaceIgnored);
     String resultString = new ObjectMapper().writer().writeValueAsString(result)
         .replaceAll(findIgnored, replaceIgnored);
-    Assert.assertEquals(expectedString, resultString);
+    assertEquals(expectedString, resultString);
   }
 
   private WorkerWebUIBlockInfo getWebUIBlockInfoData() throws Exception {
@@ -188,7 +190,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
         new ObjectMapper().readValue(expectedJson, WorkerWebUIBlockInfo.class);
     String expectedString = new ObjectMapper().writer().writeValueAsString(expected);
     String resultString = new ObjectMapper().writer().writeValueAsString(result);
-    Assert.assertEquals(expectedString, resultString);
+    assertEquals(expectedString, resultString);
   }
 
   private WorkerWebUIMetrics getWebUIMetricsData() throws Exception {
@@ -228,7 +230,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
         .replaceAll(findIgnored, replaceIgnored);
     String resultString = new ObjectMapper().writer().writeValueAsString(result)
         .replaceAll(findIgnored, replaceIgnored);
-    Assert.assertEquals(expectedString, resultString);
+    assertEquals(expectedString, resultString);
   }
 
   private WorkerWebUILogs getWebUILogsData() throws Exception {
@@ -248,6 +250,6 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
     WorkerWebUILogs expected = new ObjectMapper().readValue(expectedJson, WorkerWebUILogs.class);
     String expectedString = new ObjectMapper().writer().writeValueAsString(expected);
     String resultString = new ObjectMapper().writer().writeValueAsString(result);
-    Assert.assertEquals(expectedString, resultString);
+    assertEquals(expectedString, resultString);
   }
 }

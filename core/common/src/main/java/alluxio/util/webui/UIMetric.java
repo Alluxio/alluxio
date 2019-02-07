@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * The type Ui metric.
+ * The Ui metric.
  */
 public class UIMetric {
   private long mValue;
@@ -20,8 +20,6 @@ public class UIMetric {
   }
 
   /**
-   * Sets value.
-   *
    * @param value the value
    */
   public void setValue(long value) {
@@ -29,8 +27,6 @@ public class UIMetric {
   }
 
   /**
-   * Gets value.
-   *
    * @return the value
    */
   public long getValue() {

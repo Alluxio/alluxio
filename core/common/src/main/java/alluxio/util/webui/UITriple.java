@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * The type Ui metric.
+ * The Ui triple.
  */
 public class UITriple implements Comparable<UITriple> {
   private String mLeft;
@@ -27,8 +27,6 @@ public class UITriple implements Comparable<UITriple> {
   }
 
   /**
-   * Gets left.
-   *
    * @return the left
    */
   public String getLeft() {
@@ -36,8 +34,6 @@ public class UITriple implements Comparable<UITriple> {
   }
 
   /**
-   * Gets middle.
-   *
    * @return the middle
    */
   public String getMiddle() {
@@ -45,8 +41,6 @@ public class UITriple implements Comparable<UITriple> {
   }
 
   /**
-   * Gets right.
-   *
    * @return the right
    */
   public String getRight() {
@@ -54,8 +48,6 @@ public class UITriple implements Comparable<UITriple> {
   }
 
   /**
-   * Sets left.
-   *
    * @param left the left
    */
   public void setLeft(String left) {
@@ -63,8 +55,6 @@ public class UITriple implements Comparable<UITriple> {
   }
 
   /**
-   * Sets middle.
-   *
    * @param middle the middle
    */
   public void setMiddle(String middle) {
@@ -72,8 +62,6 @@ public class UITriple implements Comparable<UITriple> {
   }
 
   /**
-   * Sets right.
-   *
    * @param right the right
    */
   public void setRight(String right) {

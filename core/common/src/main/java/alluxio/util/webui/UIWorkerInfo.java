@@ -52,8 +52,6 @@ public class UIWorkerInfo {
   }
 
   /**
-   * Gets start time.
-   *
    * @return the start time
    */
   public String getStartTime() {
@@ -61,8 +59,6 @@ public class UIWorkerInfo {
   }
 
   /**
-   * Gets worker address.
-   *
    * @return the worker address
    */
   public String getWorkerAddress() {

@@ -41,8 +41,6 @@ public final class StorageTierInfo {
   }
 
   /**
-   * Gets storage tier alias.
-   *
    * @return the storage alias
    */
   public String getStorageTierAlias() {
@@ -50,8 +48,6 @@ public final class StorageTierInfo {
   }
 
   /**
-   * Gets capacity.
-   *
    * @return the capacity
    */
   public String getCapacity() {
@@ -59,8 +55,6 @@ public final class StorageTierInfo {
   }
 
   /**
-   * Gets free capacity.
-   *
    * @return the free capacity
    */
   public String getFreeCapacity() {
@@ -68,8 +62,6 @@ public final class StorageTierInfo {
   }
 
   /**
-   * Gets free space percent.
-   *
    * @return the free space as a percentage
    */
   public int getFreeSpacePercent() {
@@ -77,8 +69,6 @@ public final class StorageTierInfo {
   }
 
   /**
-   * Gets used capacity.
-   *
    * @return the used capacity
    */
   public String getUsedCapacity() {
@@ -86,8 +76,6 @@ public final class StorageTierInfo {
   }
 
   /**
-   * Gets used space percent.
-   *
    * @return the used space as a percentage
    */
   public int getUsedSpacePercent() {

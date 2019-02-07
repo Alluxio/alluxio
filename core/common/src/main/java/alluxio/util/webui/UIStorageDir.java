@@ -42,8 +42,6 @@ public class UIStorageDir {
   }
 
   /**
-   * Gets capacity bytes.
-   *
    * @return capacity in bytes
    */
   public long getCapacityBytes() {
@@ -51,8 +49,6 @@ public class UIStorageDir {
   }
 
   /**
-   * Gets dir path.
-   *
    * @return directory path
    */
   public String getDirPath() {
@@ -60,8 +56,6 @@ public class UIStorageDir {
   }
 
   /**
-   * Gets tier alias.
-   *
    * @return tier alias
    */
   public String getTierAlias() {
@@ -69,8 +63,6 @@ public class UIStorageDir {
   }
 
   /**
-   * Gets used bytes.
-   *
    * @return used capacity in bytes
    */
   public long getUsedBytes() {
