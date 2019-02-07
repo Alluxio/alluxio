@@ -226,12 +226,12 @@ public final class LsCommand extends AbstractFileSystemCommand {
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
                   boolean hSize, boolean pinnedOnly, String sortField, boolean reverse)
       throws AlluxioException, IOException {
+    URIStatus pathStatus = mFileSystem.getStatus(path);
     if (dirAsFile) {
-      URIStatus status = mFileSystem.getStatus(path);
-      if (pinnedOnly && !status.isPinned()) {
+      if (pinnedOnly && !pathStatus.isPinned()) {
         return;
       }
-      printLsString(status, hSize);
+      printLsString(pathStatus, hSize);
       return;
     }
 
@@ -243,13 +243,15 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
     // If list status takes too long, print the message
     Timer timer = new Timer();
-    timer.schedule(new TimerTask() {
-      @Override
-      public void run() {
-        System.out.println("Getting directory status may take a while "
-            + "if it has millions of files or sub-directories.");
-      }
-    }, 10000);
+    if (pathStatus.isFolder()) {
+      timer.schedule(new TimerTask() {
+        @Override
+        public void run() {
+          System.out.printf("Getting directory status of %s files or sub-directories "
+              + "may taike a while.", pathStatus.getLength());
+        }
+      }, 10000);
+    }
     List<URIStatus> statuses = mFileSystem.listStatus(path, optionsBuilder.build());
     timer.cancel();
 
