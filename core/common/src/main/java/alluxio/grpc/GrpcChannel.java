@@ -31,16 +31,19 @@ public final class GrpcChannel extends Channel {
   private final Channel mChannel;
   private boolean mChannelReleased;
   private boolean mChannelHealthy = true;
+  private final long mShutdownTimeoutMs;
 
   /**
    * Create a new instance of {@link GrpcChannel}.
    *
    * @param channel the grpc channel to wrap
    */
-  public GrpcChannel(GrpcManagedChannelPool.ChannelKey channelKey, Channel channel) {
+  public GrpcChannel(GrpcManagedChannelPool.ChannelKey channelKey, Channel channel,
+      long shutdownTimeoutMs) {
     mChannelKey = channelKey;
     mChannel = ClientInterceptors.intercept(channel, new ChannelResponseTracker((this)));
     mChannelReleased = false;
+    mShutdownTimeoutMs = shutdownTimeoutMs;
   }
 
   @Override
@@ -59,7 +62,7 @@ public final class GrpcChannel extends Channel {
    */
   public void shutdown() {
     if(!mChannelReleased) {
-      GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey);
+      GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey, mShutdownTimeoutMs);
     }
     mChannelReleased = true;
   }

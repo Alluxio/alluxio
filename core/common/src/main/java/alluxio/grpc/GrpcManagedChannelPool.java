@@ -1,15 +1,11 @@
 package alluxio.grpc;
 
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.resource.LockResource;
-import alluxio.util.ConfigurationUtils;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Verify;
 import io.grpc.ConnectivityState;
@@ -47,22 +43,7 @@ public class GrpcManagedChannelPool {
 
   static {
     // TODO(zac): Find a better way to handle handle this instance
-    sInstance = new GrpcManagedChannelPool(
-        new InstancedConfiguration(ConfigurationUtils.defaults())
-            .getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS),
-        new InstancedConfiguration(ConfigurationUtils.defaults())
-            .getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT));
-  }
-
-  /**
-   * Creates a new channel pool with the given health check timeout and channel shutdown timeout
-   *
-   * @param networkHealthCheckTimeoutMs timeout in ms for channel health check
-   * @param channelShutdownTimeoutMs timeout in ms for channel shutdown.
-   */
-  @VisibleForTesting
-  public static void renewChannelPool(long networkHealthCheckTimeoutMs, long channelShutdownTimeoutMs) {
-    sInstance = new GrpcManagedChannelPool(networkHealthCheckTimeoutMs, channelShutdownTimeoutMs);
+    sInstance = new GrpcManagedChannelPool();
   }
 
   /**
@@ -83,27 +64,21 @@ public class GrpcManagedChannelPool {
   /** Used to control access to mChannel */
   private ReentrantReadWriteLock mLock;
 
-  private final long mChannelShutdownTimeoutMs;
-
   /** Scheduler for destruction of idle channels. */
   protected ScheduledExecutorService mScheduler;
-  /** Timeout for health check on managed channels. */
-  private final long mHealthCheckTimeoutMs;
 
   /**
    * Creates a new {@link GrpcManagedChannelPool}.
    */
-  public GrpcManagedChannelPool(long healthCheckTimeoutMs, long channelShutdownTimeoutMs) {
+  public GrpcManagedChannelPool() {
     mChannels = new HashMap<>();
     mLock = new ReentrantReadWriteLock(true);
-    mChannelShutdownTimeoutMs = channelShutdownTimeoutMs;
-    mHealthCheckTimeoutMs = healthCheckTimeoutMs;
   }
 
-  private void shutdownManagedChannel(ManagedChannel managedChannel) {
+  private void shutdownManagedChannel(ManagedChannel managedChannel, long shutdownTimeoutMs) {
     managedChannel.shutdown();
     try {
-      managedChannel.awaitTermination(mChannelShutdownTimeoutMs, TimeUnit.MILLISECONDS);
+      managedChannel.awaitTermination(shutdownTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       // Allow thread to exit.
@@ -113,7 +88,7 @@ public class GrpcManagedChannelPool {
     Verify.verify(managedChannel.isShutdown());
   }
 
-  private boolean waitForChannelReady(ManagedChannel managedChannel) {
+  private boolean waitForChannelReady(ManagedChannel managedChannel, long healthCheckTimeoutMs) {
     try {
       Boolean res = CommonUtils.waitForResult("channel to be ready", () -> {
         ConnectivityState currentState = managedChannel.getState(true);
@@ -129,7 +104,7 @@ public class GrpcManagedChannelPool {
           default:
             return null;
         }
-      }, WaitForOptions.defaults().setTimeoutMs((int) mHealthCheckTimeoutMs));
+      }, WaitForOptions.defaults().setTimeoutMs((int) healthCheckTimeoutMs));
       return res;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -145,12 +120,14 @@ public class GrpcManagedChannelPool {
    * @param channelKey channel key
    * @return a {@link ManagedChannel}
    */
-  public ManagedChannel acquireManagedChannel(ChannelKey channelKey) {
+  public ManagedChannel acquireManagedChannel(ChannelKey channelKey, long healthCheckTimeoutMs,
+      long shutdownTimeoutMs) {
     boolean shutdownExistingChannel = false;
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
       if (mChannels.containsKey(channelKey)) {
         ManagedChannelReference managedChannelRef = mChannels.get(channelKey);
-        if (waitForChannelReady(managedChannelRef.get())) {
+        if (waitForChannelReady(mChannels.get(channelKey).get(),
+            healthCheckTimeoutMs)) {
           return managedChannelRef.reference();
         } else {
           // Postpone channel shutdown under exclusive lock below.
@@ -162,7 +139,7 @@ public class GrpcManagedChannelPool {
       // Dispose existing channel if required.
       int existingRefCount = 0;
       if (shutdownExistingChannel && mChannels.containsKey(channelKey)) {
-        shutdownManagedChannel(mChannels.get(channelKey).get());
+        shutdownManagedChannel(mChannels.get(channelKey).get(), shutdownTimeoutMs);
         existingRefCount = mChannels.get(channelKey).getRefCount();
         mChannels.remove(channelKey);
       }
@@ -181,7 +158,7 @@ public class GrpcManagedChannelPool {
    *
    * @param channelKey host address
    */
-  public void releaseManagedChannel(ChannelKey channelKey) {
+  public void releaseManagedChannel(ChannelKey channelKey, long shutdownTimeoutMs) {
     boolean shutdownManagedChannel;
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
       Verify.verify(mChannels.containsKey(channelKey));
@@ -193,7 +170,7 @@ public class GrpcManagedChannelPool {
         if (mChannels.containsKey(channelKey)) {
           ManagedChannelReference channelRef = mChannels.get(channelKey);
           if (channelRef.getRefCount() <= 0) {
-            shutdownManagedChannel(mChannels.remove(channelKey).get());
+            shutdownManagedChannel(mChannels.remove(channelKey).get(), shutdownTimeoutMs);
           }
         }
       }
@@ -294,11 +271,12 @@ public class GrpcManagedChannelPool {
     private Optional<Class<? extends io.netty.channel.Channel>> mChannelType = Optional.empty();
     private Optional<EventLoopGroup> mEventLoopGroup = Optional.empty();
     private long mPoolKey = 0;
-    private ChannelKey() {}
 
-    public static ChannelKey create() {
+    public static ChannelKey create(AlluxioConfiguration conf) {
       return new ChannelKey();
     }
+
+    private ChannelKey() {}
 
     /**
      * @param address destination address of the channel

@@ -16,11 +16,9 @@ import static org.junit.Assert.assertTrue;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.SleepUtils;
 
 import io.grpc.ManagedChannel;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -34,6 +32,10 @@ import java.util.concurrent.TimeUnit;
 public final class GrpcManagedChannelPoolTest {
 
   private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static final long SHUTDOWN_TIMEOUT =
+      sConf.getMs(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT);
+  private static final long HEALTH_CHECK_TIMEOUT =
+      sConf.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT_MS);
 
   @BeforeClass
   public static void classSetup() {
@@ -48,8 +50,8 @@ public final class GrpcManagedChannelPoolTest {
   @Test
   public void testEqualKeys() throws Exception {
 
-    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create();
-    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create();
+    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf);
+    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf);
 
     GrpcServer server1 =
         GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0), sConf).build().start();
@@ -58,21 +60,23 @@ public final class GrpcManagedChannelPoolTest {
     key1.setAddress(address);
     key2.setAddress(address);
 
-    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
-    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2);
+    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
+    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
 
     assertTrue(channel1 == channel2);
 
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1, SHUTDOWN_TIMEOUT);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2, SHUTDOWN_TIMEOUT);
     server1.shutdown();
   }
 
   @Test
   public void testUnhealthyChannelRecreation() throws Exception {
 
-    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create();
-    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create();
+    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf);
+    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf);
 
     // Not creating the coresponding server will ensure, the channels will never
     // be ready.
@@ -81,19 +85,21 @@ public final class GrpcManagedChannelPoolTest {
     key1.setAddress(address);
     key2.setAddress(address);
 
-    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
-    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2);
+    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
+    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
 
     assertTrue(channel1 != channel2);
 
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1, SHUTDOWN_TIMEOUT);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2, SHUTDOWN_TIMEOUT);
   }
 
   @Test
   public void testEqualKeysComplex() throws Exception {
-    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create();
-    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create();
+    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf);
+    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf);
 
     GrpcServer server1 =
             GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0), sConf).build().start();
@@ -115,20 +121,22 @@ public final class GrpcManagedChannelPoolTest {
     key1.setKeepAliveTimeout(100, TimeUnit.MINUTES);
     key2.setKeepAliveTimeout(100, TimeUnit.MINUTES);
 
-    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
-    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2);
+    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
+    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
 
     assertTrue(channel1 == channel2);
 
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1, SHUTDOWN_TIMEOUT);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2, SHUTDOWN_TIMEOUT);
     server1.shutdown();
   }
 
   @Test
   public void testNotEqualKeys() throws Exception {
-    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create();
-    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create();
+    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf);
+    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf);
 
     GrpcServer server1 =
             GrpcServerBuilder.forAddress(new InetSocketAddress("0.0.0.0", 0), sConf).build().start();
@@ -141,22 +149,24 @@ public final class GrpcManagedChannelPoolTest {
     key1.setAddress(address1);
     key2.setAddress(address2);
 
-    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
-    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2);
+    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
+    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
 
     assertTrue(channel1 != channel2);
 
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1, SHUTDOWN_TIMEOUT);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2, SHUTDOWN_TIMEOUT);
     server2.shutdown();
     server2.shutdown();
   }
 
   @Test
   public void testEqualKeysNoPooling() throws Exception {
-    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create()
+    GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf)
         .setPoolingStrategy(GrpcManagedChannelPool.PoolingStrategy.DISABLED);
-    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create()
+    GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf)
         .setPoolingStrategy(GrpcManagedChannelPool.PoolingStrategy.DISABLED);
 
     GrpcServer server1 =
@@ -167,13 +177,16 @@ public final class GrpcManagedChannelPoolTest {
     key1.setAddress(address);
     key2.setAddress(address);
 
-    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1);
-    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2);
+    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
+    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
 
     assertTrue(channel1 != channel2);
 
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1);
-    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1, SHUTDOWN_TIMEOUT);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2, SHUTDOWN_TIMEOUT);
+
     server1.shutdown();
   }
 }
