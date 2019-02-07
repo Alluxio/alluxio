@@ -78,7 +78,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
       });
     }
     try {
-      CommonUtils.invokeAll(callables, 1 * Constants.HOUR_MS);
+      CommonUtils.invokeAll(callables, 365 * Constants.DAY_MS);
     } catch (TimeoutException | ExecutionException e) {
       throw new RuntimeException(e);
     }
