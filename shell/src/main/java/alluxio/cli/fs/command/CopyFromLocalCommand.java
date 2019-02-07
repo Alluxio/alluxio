@@ -66,7 +66,10 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "copyFromLocal [-t <number of threads for copying>] <src> <remoteDst>";
+    return "copyFromLocal "
+        + "[-t <number of threads for copying>] "
+        + "[-bs <read buffer size in bytes>] "
+        + "<src> <remoteDst>";
   }
 
   @Override

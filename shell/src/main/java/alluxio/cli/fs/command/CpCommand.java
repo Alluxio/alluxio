@@ -69,6 +69,9 @@ public final class CpCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CpCommand.class);
   private static final String COPY_SUCCEED_MESSAGE = "Copied %s to %s";
   private static final String COPY_FAIL_MESSAGE = "Failed to copy %s to %s";
+  private static final int OPTION_NOT_SET = -1;
+  private static final int COPY_FROM_LOCAL_BUFFER_SIZE_DEFAULT = 8 * Constants.MB;
+  private static final int COPY_TO_LOCAL_BUFFER_SIZE_DEFAULT = 64 * Constants.MB;
 
   private static final Option RECURSIVE_OPTION =
       Option.builder("R")
@@ -85,6 +88,20 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .type(Number.class)
           .desc("Number of threads used to copy files in parallel, default value is CPU cores * 2")
           .build();
+  public static final Option BUFFER_SIZE_OPTION =
+      Option.builder("bs")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("buffer size")
+          .type(Number.class)
+          .desc("Read buffer size in bytes, "
+              + "default is 8MB when copying from local, "
+              + "and 64MB when copying to local")
+          .build();
+
+  private int mBufferSizeOption = OPTION_NOT_SET;
+  private int mThreadOption = OPTION_NOT_SET;
 
   /**
    * A thread pool executor for asynchronous copy.
@@ -275,6 +292,22 @@ public final class CpCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
+    if (cl.hasOption(BUFFER_SIZE_OPTION.getOpt())) {
+      try {
+        mBufferSizeOption = ((Number) cl.getParsedOptionValue(BUFFER_SIZE_OPTION.getOpt())).intValue();
+      } catch (ParseException e) {
+        throw new InvalidArgumentException("Failed to parse option " + BUFFER_SIZE_OPTION.getOpt()
+            + " into an integer", e);
+      }
+    }
+    if (cl.hasOption(THREAD_OPTION.getOpt())) {
+      try {
+        mThreadOption = ((Number) cl.getParsedOptionValue(THREAD_OPTION.getOpt())).intValue();
+      } catch (ParseException e) {
+        throw new InvalidArgumentException("Failed to parse option " + THREAD_OPTION.getOpt()
+            + " into an integer", e);
+      }
+    }
   }
 
   @Override
@@ -317,17 +350,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
       if (srcPaths.size() == 1) {
         copyFromLocalFile(srcPaths.get(0), dstPath);
       } else {
-        int numThreads;
-        if (cl.hasOption("t")) {
-          try {
-            numThreads = ((Number) cl.getParsedOptionValue("t")).intValue();
-          } catch (ParseException e) {
-            throw new IOException("Failed to parse option -t into an integer", e);
-          }
-        } else {
-          numThreads = Runtime.getRuntime().availableProcessors() * 2;
+        if (mThreadOption == OPTION_NOT_SET) {
+          mThreadOption = Runtime.getRuntime().availableProcessors() * 2;
         }
-        CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(numThreads, System.out, System.err,
+        CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(mThreadOption, System.out, System.err,
             mFileSystem, mFileSystem.exists(dstPath) ? null : dstPath);
         try {
           createDstDir(dstPath);
@@ -362,9 +388,9 @@ public final class CpCommand extends AbstractFileSystemCommand {
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath.getPath()));
       }
       if (srcPath.containsWildcard()) {
-        copyWildcard(srcPaths, dstPath, cl.hasOption("R"));
+        copyWildcard(srcPaths, dstPath, cl.hasOption(RECURSIVE_OPTION.getOpt()));
       } else {
-        copy(srcPath, dstPath, cl.hasOption("R"));
+        copy(srcPath, dstPath, cl.hasOption(RECURSIVE_OPTION.getOpt()));
       }
     } else {
       throw new InvalidPathException(
@@ -540,7 +566,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
       os = closer.register(mFileSystem.createFile(dstPath, createOptions));
       FileInputStream in = closer.register(new FileInputStream(src));
       FileChannel channel = closer.register(in.getChannel());
-      ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);
+      if (mBufferSizeOption == OPTION_NOT_SET) {
+        mBufferSizeOption = COPY_FROM_LOCAL_BUFFER_SIZE_DEFAULT;
+      }
+      ByteBuffer buf = ByteBuffer.allocate(mBufferSizeOption);
       while (channel.read(buf) != -1) {
         buf.flip();
         os.write(buf.array(), 0, buf.limit());
@@ -707,7 +736,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
       OpenFilePOptions options = OpenFilePOptions.getDefaultInstance();
       FileInStream is = closer.register(mFileSystem.openFile(srcPath, options));
       FileOutputStream out = closer.register(new FileOutputStream(tmpDst));
-      byte[] buf = new byte[64 * Constants.MB];
+      if (mBufferSizeOption == OPTION_NOT_SET) {
+        mBufferSizeOption = COPY_TO_LOCAL_BUFFER_SIZE_DEFAULT;
+      }
+      byte[] buf = new byte[mBufferSizeOption];
       int t = is.read(buf);
       while (t != -1) {
         out.write(buf, 0, t);
@@ -725,7 +757,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "cp [-R] <src> <dst>";
+    return "cp "
+        + "[-R] "
+        + "[-bs <read buffer size in bytes>] "
+        + "<src> <dst>";
   }
 
   @Override
