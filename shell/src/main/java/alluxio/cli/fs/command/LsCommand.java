@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -227,7 +229,19 @@ public final class LsCommand extends AbstractFileSystemCommand {
       options.setLoadMetadataType(LoadMetadataType.Always);
     }
     options.setRecursive(recursive);
+
+    // If list status takes too long, print the message
+    Timer timer = new Timer();
+    timer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        System.out.println("Getting directory status may take a while "
+            + "if it has millions of files or sub-directories.");
+      }
+    }, 10000);
     List<URIStatus> statuses = mFileSystem.listStatus(path, options);
+    timer.cancel();
+
     List<URIStatus> sorted = sortByFieldAndOrder(statuses, sortField, reverse);
     for (URIStatus status : sorted) {
       if (!pinnedOnly || status.isPinned()) {
