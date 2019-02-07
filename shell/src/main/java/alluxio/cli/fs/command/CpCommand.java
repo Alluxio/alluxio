@@ -294,7 +294,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
     if (cl.hasOption(BUFFER_SIZE_OPTION.getOpt())) {
       try {
-        mBufferSizeOption = ((Number) cl.getParsedOptionValue(BUFFER_SIZE_OPTION.getOpt())).intValue();
+        mBufferSizeOption = ((Number) cl.getParsedOptionValue(BUFFER_SIZE_OPTION.getOpt()))
+            .intValue();
       } catch (ParseException e) {
         throw new InvalidArgumentException("Failed to parse option " + BUFFER_SIZE_OPTION.getOpt()
             + " into an integer", e);
@@ -359,8 +360,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
         if (mThreadOption == OPTION_NOT_SET) {
           mThreadOption = Runtime.getRuntime().availableProcessors() * 2;
         }
-        CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(mThreadOption, System.out, System.err,
-            mFileSystem, mFileSystem.exists(dstPath) ? null : dstPath);
+        CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(mThreadOption, System.out,
+            System.err, mFileSystem, mFileSystem.exists(dstPath) ? null : dstPath);
         try {
           createDstDir(dstPath);
           for (AlluxioURI src : srcPaths) {
