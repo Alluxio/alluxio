@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class UIWorkerInfo {
   private final String mWorkerAddress;
-  private final long mStartTimeMs;
   private final String mStartTime;
 
   /**
@@ -33,8 +32,7 @@ public class UIWorkerInfo {
    */
   public UIWorkerInfo(String workerAddress, long startTimeMs, String dateFormatPattern) {
     mWorkerAddress = workerAddress;
-    mStartTimeMs = startTimeMs;
-    mStartTime = CommonUtils.convertMsToDate(mStartTimeMs, dateFormatPattern);
+    mStartTime = CommonUtils.convertMsToDate(startTimeMs, dateFormatPattern);
   }
 
   /**
@@ -48,7 +46,6 @@ public class UIWorkerInfo {
       @JsonProperty("startTime") String startTime) {
     mWorkerAddress = workerAddress;
     mStartTime = startTime;
-    mStartTimeMs = System.currentTimeMillis();
   }
 
   /**

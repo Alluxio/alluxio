@@ -27,9 +27,7 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   private final int mWebPort;
   private final String mLastContactSec;
   private final String mWorkerState;
-  private final long mCapacityBytes;
   private final String mCapacity;
-  private final long mUsedBytes;
   private final String mUsedMemory;
   private final int mFreePercent;
   private final int mUsedPercent;
@@ -46,12 +44,10 @@ public final class NodeInfo implements Comparable<NodeInfo> {
     mWebPort = workerInfo.getAddress().getWebPort();
     mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
     mWorkerState = workerInfo.getState();
-    mCapacityBytes = workerInfo.getCapacityBytes();
-    mCapacity = FormatUtils.getSizeFromBytes(mCapacityBytes);
-    mUsedBytes = workerInfo.getUsedBytes();
-    mUsedMemory = FormatUtils.getSizeFromBytes(mUsedBytes);
-    if (mCapacityBytes != 0) {
-      mUsedPercent = (int) (100L * mUsedBytes / mCapacityBytes);
+    mCapacity = FormatUtils.getSizeFromBytes(workerInfo.getCapacityBytes());
+    mUsedMemory = FormatUtils.getSizeFromBytes(workerInfo.getUsedBytes());
+    if (workerInfo.getCapacityBytes() != 0) {
+      mUsedPercent = (int) (100L * workerInfo.getUsedBytes() / workerInfo.getCapacityBytes());
     } else {
       mUsedPercent = 0;
     }
@@ -89,9 +85,7 @@ public final class NodeInfo implements Comparable<NodeInfo> {
     mWebPort = webPort;
     mLastContactSec = lastContactSec;
     mWorkerState = workerState;
-    mCapacityBytes = capacityBytes;
-    mCapacity = FormatUtils.getSizeFromBytes(mCapacityBytes);
-    mUsedBytes = usedBytes;
+    mCapacity = FormatUtils.getSizeFromBytes(capacityBytes);
     mUsedMemory = usedMemory;
     mFreePercent = freePercent;
     mUsedPercent = usedPercent;
