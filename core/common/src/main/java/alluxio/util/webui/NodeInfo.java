@@ -64,8 +64,10 @@ public final class NodeInfo implements Comparable<NodeInfo> {
    * @param webPort the web port
    * @param lastContactSec the last contact sec
    * @param workerState the worker state
+   * @param capacity the capacity
    * @param capacityBytes the capacity bytes
    * @param usedBytes the used bytes
+   * @param usedMemory the used memory
    * @param freePercent the free percent
    * @param usedPercent the used percent
    * @param uptimeClockTime the uptime clock time

@@ -149,6 +149,7 @@ public final class UIFileInfo {
    * @param mode the mode
    * @param persistenceState the persistence state
    * @param fileLocations the file locations
+   * @param blocksOnTier the blocks on tier
    */
   @JsonCreator
   public UIFileInfo(@JsonProperty("id") long id, @JsonProperty("name") String name,
@@ -371,8 +372,6 @@ public final class UIFileInfo {
   }
 
   /**
-   * Gets owner.
-   *
    * @return the owner of the file
    */
   public String getOwner() {
