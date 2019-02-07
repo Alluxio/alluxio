@@ -11,7 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.GrpcSerializationUtils;
 
 import io.grpc.CallOptions;
@@ -27,11 +26,10 @@ public class StreamSerializationClientInterceptor implements ClientInterceptor {
   @Override
   public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
       MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel channel) {
-    DataMessageMarshaller<RespT> responseDeserializer =
-        callOptions.getOption(GrpcSerializationUtils.RESPONSE_MARSHALLER);
-    // TODO(bf8086): add support for client side custom request marshaller
-    if (responseDeserializer != null) {
-      method = method.toBuilder(method.getRequestMarshaller(), responseDeserializer).build();
+    MethodDescriptor<ReqT, RespT> overriddenMethodDescriptor =
+        callOptions.getOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR);
+    if (overriddenMethodDescriptor != null) {
+      method = overriddenMethodDescriptor;
     }
     return channel.newCall(method, callOptions);
   }

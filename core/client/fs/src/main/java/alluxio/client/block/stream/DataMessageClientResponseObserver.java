@@ -12,10 +12,13 @@
 package alluxio.client.block.stream;
 
 import alluxio.grpc.DataMessageMarshaller;
+import alluxio.grpc.DataMessageMarshallerProvider;
 
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -27,7 +30,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class DataMessageClientResponseObserver<ReqT, RespT>
-    implements ClientResponseObserver<ReqT, RespT> {
+    implements ClientResponseObserver<ReqT, RespT>, DataMessageMarshallerProvider<RespT> {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(DataMessageClientResponseObserver.class);
 
   private final StreamObserver<RespT> mObserver;
   private final DataMessageMarshaller<RespT> mMarshaller;
@@ -61,12 +66,12 @@ public class DataMessageClientResponseObserver<ReqT, RespT>
   public void beforeStart(ClientCallStreamObserver<ReqT> requestStream) {
     if (mObserver instanceof ClientResponseObserver) {
       ((ClientResponseObserver<ReqT, RespT>) mObserver).beforeStart(requestStream);
+    } else {
+      LOG.warn("observer does not implement ClientResponseObserver:beforeStart");
     }
   }
 
-  /**
-   * @return marshaller for the response
-   */
+  @Override
   public DataMessageMarshaller<RespT> getMarshaller() {
     return mMarshaller;
   }

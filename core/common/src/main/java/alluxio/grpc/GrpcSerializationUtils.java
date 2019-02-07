@@ -33,13 +33,27 @@ import java.util.Map;
  * Utilities for gRPC message serialization.
  */
 public class GrpcSerializationUtils {
-  public static final CallOptions.Key<DataMessageMarshaller> RESPONSE_MARSHALLER =
-      CallOptions.Key.create("response marshaller");
+  public static final CallOptions.Key<MethodDescriptor> OVERRIDDEN_METHOD_DESCRIPTOR =
+      CallOptions.Key.create("overridden method descriptor");
 
   private static final Logger LOG = LoggerFactory.getLogger(GrpcSerializationUtils.class);
 
   private static final int TAG_TYPE_BITS = 3;
-  private static Constructor<?> sNettyWritableBufferConstruct;
+
+  private static final String BUFFER_INPUT_STREAM_CLASS_NAME =
+      "io.grpc.internal.ReadableBuffers$BufferInputStream";
+  private static final String BUFFER_FIELD_NAME =
+      "buffer";
+  private static final String NETTY_WRITABLE_BUFFER_CLASS_NAME =
+      "io.grpc.netty.NettyWritableBuffer";
+  private static final String BUFFER_CHAIN_OUTPUT_STREAM_CLASS_NAME =
+      "io.grpc.internal.MessageFramer$BufferChainOutputStream";
+  private static final String BUFFER_LIST_FIELD_NAME =
+      "bufferList";
+  private static final String CURRENT_FIELD_NAME =
+      "current";
+
+  private static Constructor<?> sNettyWritableBufferConstructor;
   private static Field sBufferList;
   private static Field sCurrent;
   private static Field sReadableBufferField = null;
@@ -48,20 +62,16 @@ public class GrpcSerializationUtils {
 
   static {
     try {
-      sReadableBufferField = getPrivateField(
-          "io.grpc.internal.ReadableBuffers$BufferInputStream", "buffer");
+      sReadableBufferField = getPrivateField(BUFFER_INPUT_STREAM_CLASS_NAME, BUFFER_FIELD_NAME);
     } catch (Exception e) {
       LOG.warn("Cannot get gRPC input stream buffer, zero copy send will be disabled.", e);
       sZeroCopySendSupported = false;
     }
-
     try {
-      sNettyWritableBufferConstruct = getPrivateConstructor(
-          "io.grpc.netty.NettyWritableBuffer", ByteBuf.class);
-      sBufferList = getPrivateField(
-          "io.grpc.internal.MessageFramer$BufferChainOutputStream", "bufferList");
-      sCurrent = getPrivateField(
-          "io.grpc.internal.MessageFramer$BufferChainOutputStream", "current");
+      sNettyWritableBufferConstructor =
+          getPrivateConstructor(NETTY_WRITABLE_BUFFER_CLASS_NAME, ByteBuf.class);
+      sBufferList = getPrivateField(BUFFER_CHAIN_OUTPUT_STREAM_CLASS_NAME, BUFFER_LIST_FIELD_NAME);
+      sCurrent = getPrivateField(BUFFER_CHAIN_OUTPUT_STREAM_CLASS_NAME, CURRENT_FIELD_NAME);
     } catch (Exception e) {
       LOG.warn("Cannot get gRPC output stream buffer, zero copy receive will be disabled.", e);
       sZeroCopyReceiveSupported = false;
@@ -131,7 +141,7 @@ public class GrpcSerializationUtils {
         return false;
       }
       for (ByteBuf buffer : buffers) {
-        Object nettyBuffer = sNettyWritableBufferConstruct.newInstance(buffer);
+        Object nettyBuffer = sNettyWritableBufferConstructor.newInstance(buffer);
         List list = (List) sBufferList.get(stream);
         list.add(nettyBuffer);
         buffer.retain();

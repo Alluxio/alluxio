@@ -55,7 +55,7 @@ public final class GrpcDataReader implements DataReader {
   private final WorkerNetAddress mAddress;
 
   private final GrpcBlockingStream<ReadRequest, ReadResponse> mStream;
-  private final ReadResponseMarshaller mMarhshaller;
+  private final ReadResponseMarshaller mMarshaller;
 
   /** The next pos to read. */
   private long mPosToRead;
@@ -79,11 +79,11 @@ public final class GrpcDataReader implements DataReader {
     mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
 
     mClient = mContext.acquireBlockWorkerClient(address);
-    mMarhshaller = new ReadResponseMarshaller();
+    mMarshaller = new ReadResponseMarshaller();
     try {
       if (alluxioConf.getBoolean(PropertyKey.USER_NETWORK_ZEROCOPY_ENABLED)) {
         mStream = new GrpcDataMessageBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
-            address.toString(), mMarhshaller);
+            address.toString(), mMarshaller);
       } else {
         mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
             address.toString());
@@ -141,7 +141,7 @@ public final class GrpcDataReader implements DataReader {
       mStream.close();
       mStream.waitForComplete(mDataTimeoutMs);
     } finally {
-      mMarhshaller.close();
+      mMarshaller.close();
       mContext.releaseBlockWorkerClient(mAddress, mClient);
     }
   }

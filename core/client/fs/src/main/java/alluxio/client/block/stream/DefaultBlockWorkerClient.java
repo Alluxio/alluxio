@@ -20,6 +20,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcExceptionUtils;
@@ -121,12 +122,14 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public StreamObserver<ReadRequest> readBlock(
       StreamObserver<ReadResponse> responseObserver) {
-    if (responseObserver instanceof DataMessageClientResponseObserver) {
+    if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<ReadResponse> marshaller =
-          ((DataMessageClientResponseObserver<ReadRequest, ReadResponse>) responseObserver)
-              .getMarshaller();
+          ((DataMessageMarshallerProvider<ReadResponse>) responseObserver).getMarshaller();
       return mStreamingAsyncStub
-          .withOption(GrpcSerializationUtils.RESPONSE_MARSHALLER, marshaller)
+          .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
+              BlockWorkerGrpc.getReadBlockMethod().toBuilder()
+                  .setResponseMarshaller(marshaller)
+                  .build())
           .readBlock(responseObserver);
     } else {
       return mStreamingAsyncStub.readBlock(responseObserver);
