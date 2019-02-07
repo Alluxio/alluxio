@@ -63,6 +63,7 @@ public abstract class DataMessageMarshaller<T> implements MethodDescriptor.Marsh
       } else {
         // falls back to buffer copy
         byte[] byteBuffer = new byte[message.available()];
+        message.read(byteBuffer);
         return parseResponse(ReadableBuffers.wrap(byteBuffer));
       }
     } catch (IOException e) {
