@@ -299,6 +299,9 @@ public final class CpCommand extends AbstractFileSystemCommand {
         throw new InvalidArgumentException("Failed to parse option " + BUFFER_SIZE_OPTION.getOpt()
             + " into an integer", e);
       }
+      if (mBufferSizeOption <= 0) {
+        throw new InvalidArgumentException(BUFFER_SIZE_OPTION.getOpt() + " must be > 0");
+      }
     }
     if (cl.hasOption(THREAD_OPTION.getOpt())) {
       try {
@@ -306,6 +309,9 @@ public final class CpCommand extends AbstractFileSystemCommand {
       } catch (ParseException e) {
         throw new InvalidArgumentException("Failed to parse option " + THREAD_OPTION.getOpt()
             + " into an integer", e);
+      }
+      if (mThreadOption <= 0) {
+        throw new InvalidArgumentException(THREAD_OPTION.getOpt() + " must be > 0");
       }
     }
   }
