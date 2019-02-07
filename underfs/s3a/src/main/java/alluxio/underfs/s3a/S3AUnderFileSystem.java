@@ -575,7 +575,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         AccessControlList acl = mClient.getBucketAcl(mBucketName);
 
         bucketMode = S3AUtils.translateBucketAcl(acl, owner.getId());
-        if (mConf.isSet(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING)) {
+        if (mConf.isSet(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)) {
           accountOwner = CommonUtils.getValueFromStaticMapping(
               mConf.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), owner.getId());
         } else {
