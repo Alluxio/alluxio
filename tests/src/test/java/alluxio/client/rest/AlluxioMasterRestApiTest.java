@@ -844,24 +844,28 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     assertEquals(expectedString, resultString);
   }
 
-//  private MasterWebUIOverview getWebUIOverviewData() throws Exception {
-//    String result =
-//        new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.WEBUI_OVERVIEW),
-//            NO_PARAMS, HttpMethod.GET, null).call();
-//    MasterWebUIOverview data = new ObjectMapper().readValue(result, MasterWebUIOverview.class);
-//    return data;
-//  }
-//
-//  @Test
-//  public void WebUIOverview() throws Exception {
-//    MasterWebUIOverview result = getWebUIOverviewData();
-//    String expectedJson = ("{}").replace('`', '"');
-//    MasterWebUIOverview expected =
-//        new ObjectMapper().readValue(expectedJson, MasterWebUIOverview.class);
-//    String expectedString = new ObjectMapper().writer().writeValueAsString(expected);
-//    String resultString = new ObjectMapper().writer().writeValueAsString(result);
-//    assertEquals(expectedString, resultString);
-//  }
+  // TODO(william) - finish up this test.
+  //
+  //    private MasterWebUIOverview getWebUIOverviewData() throws Exception {
+  //      String result = new TestCase(mHostname, mPort,
+  //          getEndpoint(AlluxioMasterRestServiceHandler.WEBUI_OVERVIEW), NO_PARAMS, HttpMethod
+  //          .GET,
+  //          null).call();
+  //      MasterWebUIOverview data = new ObjectMapper().readValue(result, MasterWebUIOverview
+  //      .class);
+  //      return data;
+  //    }
+  //
+  //  @Test
+  //  public void WebUIOverview() throws Exception {
+  //    MasterWebUIOverview result = getWebUIOverviewData();
+  //    String expectedJson = ("{}").replace('`', '"');
+  //    MasterWebUIOverview expected =
+  //        new ObjectMapper().readValue(expectedJson, MasterWebUIOverview.class);
+  //    String expectedString = new ObjectMapper().writer().writeValueAsString(expected);
+  //    String resultString = new ObjectMapper().writer().writeValueAsString(result);
+  //    assertEquals(expectedString, resultString);
+  //  }
 
   private MasterWebUIWorkers getWebUIWorkersData() throws Exception {
     String result =
