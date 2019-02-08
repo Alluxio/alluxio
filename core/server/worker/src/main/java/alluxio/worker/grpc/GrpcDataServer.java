@@ -64,10 +64,11 @@ public final class GrpcDataServer implements DataServer {
   private EventLoopGroup mBossGroup;
   private EventLoopGroup mWorkerGroup;
   private GrpcServer mServer;
-  private final FileSystemContext mFsContext =
-      FileSystemContext.create(ServerConfiguration.global());
   /** non-null when the server is used with domain socket address.  */
   private DomainSocketAddress mDomainSocketAddress = null;
+
+  private final FileSystemContext mFsContext =
+      FileSystemContext.create(ServerConfiguration.global());
 
   /**
    * Creates a new instance of {@link GrpcDataServer}.
