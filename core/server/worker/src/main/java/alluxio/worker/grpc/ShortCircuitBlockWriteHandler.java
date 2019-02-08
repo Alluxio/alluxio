@@ -130,6 +130,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
 
   @Override
   public void onError(Throwable t) {
+    LOG.warn("Exception occurred processing write request {}.", mRequest, t);
     if (t instanceof StatusRuntimeException
         && ((StatusRuntimeException) t).getStatus().getCode() == Status.Code.CANCELLED) {
       // Cancellation is already handled.

@@ -22,6 +22,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,10 +84,17 @@ public final class GrpcDataReader implements DataReader {
     try {
       if (alluxioConf.getBoolean(PropertyKey.USER_NETWORK_ZEROCOPY_ENABLED)) {
         mStream = new GrpcDataMessageBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
-            address.toString(), mMarshaller);
+            MoreObjects.toStringHelper(this)
+                .add("request", mReadRequest)
+                .add("address", address)
+                .toString(),
+            mMarshaller);
       } else {
         mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
-            address.toString());
+            MoreObjects.toStringHelper(this)
+                .add("request", mReadRequest)
+                .add("address", address)
+                .toString());
       }
       mStream.send(mReadRequest, mDataTimeoutMs);
     } catch (Exception e) {

@@ -25,6 +25,7 @@ import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
@@ -130,7 +131,10 @@ public final class LocalFileDataReader implements DataReader {
       mBlockWorker = context.acquireBlockWorkerClient(address);
       try {
         mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock, mReadBufferSize,
-            address.toString());
+            MoreObjects.toStringHelper(LocalFileDataReader.class)
+                .add("request", request)
+                .add("address", address)
+                .toString());
         mStream.send(request, mDataTimeoutMs);
         OpenLocalBlockResponse response = mStream.receive(mDataTimeoutMs);
         Preconditions.checkState(response.hasPath());
