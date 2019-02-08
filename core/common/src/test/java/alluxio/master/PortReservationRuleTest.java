@@ -15,7 +15,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.Closeable;
 
@@ -23,6 +25,9 @@ import java.io.Closeable;
  * Tests for {@link PortReservationRule}.
  */
 public final class PortReservationRuleTest {
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
+
   @After
   public void after() {
     PortRegistry.clear();
@@ -45,5 +50,12 @@ public final class PortReservationRuleTest {
       // Another process could have taken the port, retry.
     }
     fail("Failed to lock port after closing the port rule");
+  }
+
+  @Test
+  public void invalidGetPort() {
+    PortReservationRule rule = new PortReservationRule();
+    mThrown.expect(IllegalStateException.class);
+    rule.getPort();
   }
 }

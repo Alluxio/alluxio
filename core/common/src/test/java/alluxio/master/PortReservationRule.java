@@ -13,11 +13,13 @@ package alluxio.master;
 
 import alluxio.AbstractResourceRule;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Rule for reserving a port during a test. Other tests will not attempt to use this port.
  */
 public class PortReservationRule extends AbstractResourceRule {
-  private int mPort;
+  private int mPort = -1;
 
   @Override
   public void before() {
@@ -27,9 +29,12 @@ public class PortReservationRule extends AbstractResourceRule {
   @Override
   public void after() {
     PortRegistry.release(mPort);
+    mPort = -1;
   }
 
   public int getPort() {
+    Preconditions.checkState(mPort >= 0,
+        "cannot call getPort() before the rule has been activated");
     return mPort;
   }
 }
