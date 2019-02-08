@@ -33,6 +33,7 @@ import alluxio.wire.MasterWebUIData;
 import alluxio.wire.MasterWebUIInit;
 import alluxio.wire.MasterWebUILogs;
 import alluxio.wire.MasterWebUIMetrics;
+import alluxio.wire.MasterWebUIOverview;
 import alluxio.wire.MasterWebUIWorkers;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
@@ -40,6 +41,7 @@ import alluxio.wire.WorkerInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -843,28 +845,26 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     assertEquals(expectedString, resultString);
   }
 
-  // TODO(william) - finish up this test.
-  //
-  //    private MasterWebUIOverview getWebUIOverviewData() throws Exception {
-  //      String result = new TestCase(mHostname, mPort,
-  //          getEndpoint(AlluxioMasterRestServiceHandler.WEBUI_OVERVIEW), NO_PARAMS, HttpMethod
-  //          .GET,
-  //          null).call();
-  //      MasterWebUIOverview data = new ObjectMapper().readValue(result, MasterWebUIOverview
-  //      .class);
-  //      return data;
-  //    }
-  //
-  //  @Test
-  //  public void WebUIOverview() throws Exception {
-  //    MasterWebUIOverview result = getWebUIOverviewData();
-  //    String expectedJson = ("{}").replace('`', '"');
-  //    MasterWebUIOverview expected =
-  //        new ObjectMapper().readValue(expectedJson, MasterWebUIOverview.class);
-  //    String expectedString = new ObjectMapper().writer().writeValueAsString(expected);
-  //    String resultString = new ObjectMapper().writer().writeValueAsString(result);
-  //    assertEquals(expectedString, resultString);
-  //  }
+
+  private MasterWebUIOverview getWebUIOverviewData() throws Exception {
+    String result =
+        new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.WEBUI_OVERVIEW),
+            NO_PARAMS, HttpMethod.GET, null).call();
+    MasterWebUIOverview data = new ObjectMapper().readValue(result, MasterWebUIOverview.class);
+    return data;
+  }
+
+  @Ignore // TODO(william) - finish up this test.
+  @Test
+  public void WebUIOverview() throws Exception {
+    MasterWebUIOverview result = getWebUIOverviewData();
+    String expectedJson = ("{}").replace('`', '"');
+    MasterWebUIOverview expected =
+        new ObjectMapper().readValue(expectedJson, MasterWebUIOverview.class);
+    String expectedString = new ObjectMapper().writer().writeValueAsString(expected);
+    String resultString = new ObjectMapper().writer().writeValueAsString(result);
+    assertEquals(expectedString, resultString);
+  }
 
   private MasterWebUIWorkers getWebUIWorkersData() throws Exception {
     String result =
