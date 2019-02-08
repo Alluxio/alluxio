@@ -1059,7 +1059,7 @@ exports[`App Connected component Matches snapshot 1`] = `
                                               >
                                                 <Progress
                                                   bar={true}
-                                                  color="primary"
+                                                  color="dark"
                                                   max={100}
                                                   tag="div"
                                                   value="0"
@@ -1068,7 +1068,7 @@ exports[`App Connected component Matches snapshot 1`] = `
                                                     aria-valuemax={100}
                                                     aria-valuemin="0"
                                                     aria-valuenow="0"
-                                                    className="progress-bar bg-primary"
+                                                    className="progress-bar bg-dark"
                                                     role="progressbar"
                                                     style={
                                                       Object {

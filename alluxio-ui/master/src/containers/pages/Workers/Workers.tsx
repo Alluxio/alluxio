@@ -98,7 +98,7 @@ export class Workers extends React.Component<AllProps> {
                     <td>{nodeInfo.usedMemory}</td>
                     <td>
                       <Progress multi={true}>
-                        <Progress bar={true} color="primary"
+                        <Progress bar={true} color="dark"
                                   value={`${nodeInfo.freeSpacePercent}`}>{nodeInfo.freeSpacePercent}% Free</Progress>
                         <Progress bar={true} color="secondary"
                                   value={`${nodeInfo.usedSpacePercent}`}>{nodeInfo.usedSpacePercent}% Used</Progress>
