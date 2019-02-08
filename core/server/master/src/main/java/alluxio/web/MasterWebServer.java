@@ -73,8 +73,7 @@ public final class MasterWebServer extends WebServer {
       public void init() throws ServletException {
         super.init();
         getServletContext().setAttribute(ALLUXIO_MASTER_SERVLET_RESOURCE_KEY, masterProcess);
-        getServletContext().setAttribute(ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY,
-            mFileSystem);
+        getServletContext().setAttribute(ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY, mFileSystem);
       }
     };
 

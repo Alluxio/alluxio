@@ -60,6 +60,7 @@ public class AsyncCacheRequestManager {
   /**
    * @param service thread pool to run the background caching work
    * @param blockWorker handler to the block worker
+   * @param fsContext context used to instantiate {@link RemoteBlockReader}
    */
   public AsyncCacheRequestManager(ExecutorService service, BlockWorker blockWorker,
       FileSystemContext fsContext) {

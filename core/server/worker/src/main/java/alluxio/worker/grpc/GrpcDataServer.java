@@ -11,7 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;

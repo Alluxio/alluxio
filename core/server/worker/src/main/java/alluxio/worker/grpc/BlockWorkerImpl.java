@@ -62,6 +62,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
    * Creates a new implementation of gRPC BlockWorker interface.
    *
    * @param workerProcess the worker process
+   * @param fsContext context used to read blocks
    */
   public BlockWorkerImpl(WorkerProcess workerProcess, FileSystemContext fsContext) {
     mWorkerProcess = workerProcess;
