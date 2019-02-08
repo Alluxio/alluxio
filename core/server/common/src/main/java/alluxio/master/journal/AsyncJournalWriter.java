@@ -17,7 +17,6 @@ import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.Status;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.resource.LockResource;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -32,7 +31,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -91,11 +89,6 @@ public final class AsyncJournalWriter {
    */
   @GuardedBy("mTicketLock")
   private final List<FlushTicket> mTicketList = new ArrayList<>(200);
-
-  /**
-   * Used to guard access to ticket cache.
-   */
-  private final ReentrantLock mTicketLock = new ReentrantLock(true);
 
   /**
    * Dedicated thread for writing and flushing entries in journal queue.
@@ -206,9 +199,7 @@ public final class AsyncJournalWriter {
    * threads can track progress by submitting tickets via ::flush() call.
    */
   private void doFlush() {
-    /**
-     * Runs the loop until ::stop() is called.
-     */
+    // Runs the loop until ::stop() is called.
     while (!mStopFlushing) {
 
       /**
@@ -260,10 +251,8 @@ public final class AsyncJournalWriter {
           mFlushCounter.set(mWriteCounter);
         }
 
-        /**
-         * Notify tickets that have been served to wake up.
-         */
-        try (LockResource lr = new LockResource(mTicketLock)) {
+        // Notify tickets that have been served to wake up.
+        synchronized (mTicketList) {
           ListIterator<FlushTicket> ticketIterator = mTicketList.listIterator();
           while (ticketIterator.hasNext()) {
             FlushTicket ticket = ticketIterator.next();
@@ -274,10 +263,8 @@ public final class AsyncJournalWriter {
           }
         }
       } catch (IOException | JournalClosedException exc) {
-        /**
-         * Release only tickets that have been flushed. Fail the rest.
-         */
-        try (LockResource lr = new LockResource(mTicketLock)) {
+        // Release only tickets that have been flushed. Fail the rest.
+        synchronized (mTicketList) {
           ListIterator<FlushTicket> ticketIterator = mTicketList.listIterator();
           while (ticketIterator.hasNext()) {
             FlushTicket ticket = ticketIterator.next();
@@ -307,33 +294,23 @@ public final class AsyncJournalWriter {
       return;
     }
 
-    /**
-     * Submit the ticket for flush thread to process.
-     */
+    // Submit the ticket for flush thread to process.
     FlushTicket ticket = new FlushTicket(targetCounter);
-    try (LockResource lr = new LockResource(mTicketLock)) {
+    synchronized (mTicketList) {
       mTicketList.add(ticket);
     }
 
     try {
-      /**
-       * Give a permit for flush thread to run.
-       */
+      // Give a permit for flush thread to run.
       mFlushSemaphore.release();
 
-      /**
-       * Wait on the ticket until completed.
-       */
+      // Wait on the ticket until completed.
       ticket.waitCompleted();
     } catch (InterruptedException ie) {
-      /**
-       * Interpret interruption as cancellation.
-       */
+      // Interpret interruption as cancellation.
       throw new AlluxioStatusException(Status.CANCELED, ie);
     } catch (ExecutionException ee) {
-      /**
-       * Filter, journal specific exception codes.
-       */
+      // Filter, journal specific exception codes.
       Throwable cause = ee.getCause();
       if (cause != null && cause instanceof IOException) {
         throw (IOException) cause;
