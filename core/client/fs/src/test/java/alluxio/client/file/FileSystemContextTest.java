@@ -11,14 +11,16 @@
 
 package alluxio.client.file;
 
-import static org.junit.Assert.fail;
-
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.resource.CloseableResource;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.DeletePOptions;
 
 import com.google.common.io.Closer;
 import org.junit.Before;
@@ -89,6 +91,77 @@ public final class FileSystemContextTest {
     public void run() {
       CloseableResource<FileSystemMasterClient> client = mFsCtx.acquireMasterClientResource();
       client.close();
+    }
+  }
+
+  @Test
+  public void excessWorkerGroupTest() throws Exception {
+    ArrayList<Thread> clients = new ArrayList<>();
+    int numClients = 25;
+    int numFiles = 10000;
+    int totalData = 50 * Constants.MB; // 50MB
+
+    int perFileSize = totalData / numClients / numFiles;
+    byte[] data = new byte[perFileSize];
+    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    String dirPrefix = "test";
+    FileSystem fs = FileSystem.Factory.create(conf);
+    try {
+      fs.delete(new AlluxioURI("/" + dirPrefix),
+          DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).build());
+    } catch (FileDoesNotExistException e) {
+      // ok
+    }
+
+    for (int i = 0; i < numClients; i++) {
+      fs = FileSystem.Factory.create(conf);
+      String dir = String.format("/%s/", dirPrefix) + i;
+      clients.add(new Thread(new CreateOp(fs, numFiles, data, dir)));
+    }
+    long startTime = System.currentTimeMillis();
+    clients.forEach(Thread::start);
+    clients.forEach((client) -> {
+      try {
+        client.join();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+    long endTime = System.currentTimeMillis();
+    System.out.println("Runtime: " + (endTime - startTime) + " millis");
+  }
+
+  class CreateOp implements Runnable {
+    private final int mNumFiles;
+    private final FileSystem mFs;
+    private final byte[] mData;
+    private final String mDir;
+
+    public CreateOp(FileSystem fs, int numFiles, byte[] data, String dir) {
+      mFs = fs;
+      mNumFiles = numFiles;
+      mData = data;
+      mDir = dir;
+    }
+
+    @Override
+    public void run() {
+      try {
+        try {
+          mFs.delete(new AlluxioURI(mDir), DeletePOptions.newBuilder().setRecursive(true).build());
+        } catch (FileDoesNotExistException e) {
+          // ok to continue
+        }
+        mFs.createDirectory(new AlluxioURI(mDir),
+            CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
+        for (int i = 0; i < mNumFiles; i++) {
+          try (FileOutStream out = mFs.createFile(new AlluxioURI(mDir + "/" + i))) {
+            out.write(mData);
+          }
+        }
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 }
