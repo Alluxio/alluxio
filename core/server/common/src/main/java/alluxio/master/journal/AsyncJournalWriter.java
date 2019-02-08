@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.SettableFuture;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -88,7 +89,7 @@ public final class AsyncJournalWriter {
    * List of flush tickets submitted by ::flush() method.
    */
   @GuardedBy("mTicketLock")
-  private final List<FlushTicket> mTicketList = new ArrayList<>(200);
+  private final List<FlushTicket> mTicketList = new LinkedList<>();
 
   /**
    * Dedicated thread for writing and flushing entries in journal queue.
