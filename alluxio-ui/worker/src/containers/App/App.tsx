@@ -91,7 +91,7 @@ export class App extends React.Component<AllProps> {
                     callbackParameters={{masterHostname: init.masterHostname, masterPort: init.masterPort}}
                     autoRefreshCallback={this.setAutoRefresh}/>
           </div>
-          <div className="pages container-fluid mt-3">
+          <div className="w-100 mt-3">
             <Switch>
               <Route exact={true} path="/" render={this.redirectToOverview}/>
               <Route path="/overview" exact={true} component={Overview}/>
