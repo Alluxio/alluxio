@@ -17,6 +17,7 @@ import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.Status;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.LockResource;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -31,6 +32,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -89,6 +91,11 @@ public final class AsyncJournalWriter {
    */
   @GuardedBy("mTicketLock")
   private final List<FlushTicket> mTicketList = new LinkedList<>();
+
+  /**
+   * Used to guard access to ticket cache.
+   */
+  private final ReentrantLock mTicketLock = new ReentrantLock(true);
 
   /**
    * Dedicated thread for writing and flushing entries in journal queue.
@@ -252,7 +259,7 @@ public final class AsyncJournalWriter {
         }
 
         // Notify tickets that have been served to wake up.
-        synchronized (mTicketList) {
+        try (LockResource lr = new LockResource(mTicketLock)) {
           ListIterator<FlushTicket> ticketIterator = mTicketList.listIterator();
           while (ticketIterator.hasNext()) {
             FlushTicket ticket = ticketIterator.next();
@@ -264,7 +271,7 @@ public final class AsyncJournalWriter {
         }
       } catch (IOException | JournalClosedException exc) {
         // Release only tickets that have been flushed. Fail the rest.
-        synchronized (mTicketList) {
+        try (LockResource lr = new LockResource(mTicketLock)) {
           ListIterator<FlushTicket> ticketIterator = mTicketList.listIterator();
           while (ticketIterator.hasNext()) {
             FlushTicket ticket = ticketIterator.next();
@@ -295,7 +302,7 @@ public final class AsyncJournalWriter {
 
     // Submit the ticket for flush thread to process.
     FlushTicket ticket = new FlushTicket(targetCounter);
-    synchronized (mTicketList) {
+    try (LockResource lr = new LockResource(mTicketLock)) {
       mTicketList.add(ticket);
     }
 
