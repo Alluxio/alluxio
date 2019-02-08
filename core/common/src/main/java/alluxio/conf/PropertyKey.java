@@ -29,6 +29,8 @@ import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 import com.sun.management.UnixOperatingSystemMXBean;
 
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
@@ -40,9 +42,6 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Configuration property keys. This class provides a set of pre-defined property keys.
