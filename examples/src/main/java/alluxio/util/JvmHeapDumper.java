@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions;
 import com.sun.management.HotSpotDiagnosticMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.jvm.hotspot.tools.HeapDumper;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +20,7 @@ import javax.management.MBeanServer;
  * Dumps heaps on a separate thread on a fixes interval.
  */
 public class JvmHeapDumper extends Thread {
-  private static final Logger LOG = LoggerFactory.getLogger(JvmHeapDumper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HeapDumper.class);
   private static final String HOTSPOT_BEAN_NAME = "com.sun.management:type=HotSpotDiagnostic";
 
   private final MBeanServer mServer = ManagementFactory.getPlatformMBeanServer();
