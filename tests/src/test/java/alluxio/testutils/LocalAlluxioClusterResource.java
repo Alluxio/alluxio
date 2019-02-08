@@ -25,7 +25,6 @@ import org.junit.runners.model.Statement;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -97,7 +96,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   private LocalAlluxioClusterResource(boolean startCluster, int numWorkers,
       Map<PropertyKey, String> configuration) {
-    IntegrationTestUtils.reserveMasterPorts();
     mStartCluster = startCluster;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
@@ -151,31 +149,33 @@ public final class LocalAlluxioClusterResource implements TestRule {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
+        IntegrationTestUtils.reserveMasterPorts();
         try {
-          boolean startCluster = mStartCluster;
-          Annotation configAnnotation = description.getAnnotation(Config.class);
-          if (configAnnotation != null) {
-            Config config = (Config) configAnnotation;
-            // Override the configuration parameters with any configuration params
-            for (int i = 0; i < config.confParams().length; i += 2) {
-              mConfiguration.put(PropertyKey.fromString(config.confParams()[i]),
-                  config.confParams()[i + 1]);
+          try {
+            boolean startCluster = mStartCluster;
+            Annotation configAnnotation = description.getAnnotation(Config.class);
+            if (configAnnotation != null) {
+              Config config = (Config) configAnnotation;
+              // Override the configuration parameters with any configuration params
+              for (int i = 0; i < config.confParams().length; i += 2) {
+                mConfiguration.put(PropertyKey.fromString(config.confParams()[i]),
+                    config.confParams()[i + 1]);
+              }
+              // Override startCluster
+              startCluster = config.startCluster();
             }
-            // Override startCluster
-            startCluster = config.startCluster();
+            if (startCluster) {
+              start();
+            }
+          } catch (Exception e) {
+            throw new RuntimeException(e);
           }
-          if (startCluster) {
-            start();
+          try {
+            statement.evaluate();
+          } finally {
+            mLocalAlluxioCluster.stop();
           }
-        } catch (Exception e) {
-          throw new RuntimeException(e);
         } finally {
-          IntegrationTestUtils.releaseMasterPorts();
-        }
-        try {
-          statement.evaluate();
-        } finally {
-          mLocalAlluxioCluster.stop();
           IntegrationTestUtils.releaseMasterPorts();
         }
       }
@@ -189,8 +189,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
     private boolean mStartCluster;
     private int mNumWorkers;
     private Map<PropertyKey, String> mConfiguration;
-    private ServerSocket mRpcBindSocket;
-    private ServerSocket mWebBindSocket;
 
     /**
      * Constructs the builder with default values.
