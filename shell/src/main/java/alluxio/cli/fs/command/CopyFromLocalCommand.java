@@ -46,7 +46,8 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(CpCommand.THREAD_OPTION);
+    return new Options().addOption(CpCommand.THREAD_OPTION)
+        .addOption(CpCommand.BUFFER_SIZE_OPTION);
   }
 
   @Override
@@ -66,8 +67,8 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
   @Override
   public String getUsage() {
     return "copyFromLocal "
-        + "[-t <number of threads for copying>] "
-        + "[-bs <read buffer size in bytes>] "
+        + "[--thread <number of threads for copying>] "
+        + "[--buffersize <read buffer size in bytes>] "
         + "<src> <remoteDst>";
   }
 

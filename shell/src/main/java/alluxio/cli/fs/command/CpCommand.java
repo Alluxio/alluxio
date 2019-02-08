@@ -79,7 +79,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .desc("copy files in subdirectories recursively")
           .build();
   public static final Option THREAD_OPTION =
-      Option.builder("t")
+      Option.builder()
+          .longOpt("thread")
           .required(false)
           .hasArg(true)
           .numberOfArgs(1)
@@ -88,7 +89,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .desc("Number of threads used to copy files in parallel, default value is CPU cores * 2")
           .build();
   public static final Option BUFFER_SIZE_OPTION =
-      Option.builder("bs")
+      Option.builder()
+          .longOpt("buffersize")
           .required(false)
           .hasArg(true)
           .numberOfArgs(1)
@@ -292,28 +294,28 @@ public final class CpCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
-    if (cl.hasOption(BUFFER_SIZE_OPTION.getOpt())) {
+    if (cl.hasOption(BUFFER_SIZE_OPTION.getLongOpt())) {
       try {
-        int bufSize = ((Number) cl.getParsedOptionValue(BUFFER_SIZE_OPTION.getOpt()))
+        int bufSize = ((Number) cl.getParsedOptionValue(BUFFER_SIZE_OPTION.getLongOpt()))
             .intValue();
         if (bufSize < 0) {
-          throw new InvalidArgumentException(BUFFER_SIZE_OPTION.getOpt() + " must be > 0");
+          throw new InvalidArgumentException(BUFFER_SIZE_OPTION.getLongOpt() + " must be > 0");
         }
         mCopyFromLocalBufferSize = bufSize;
         mCopyToLocalBufferSize = bufSize;
       } catch (ParseException e) {
-        throw new InvalidArgumentException("Failed to parse option " + BUFFER_SIZE_OPTION.getOpt()
-            + " into an integer", e);
+        throw new InvalidArgumentException("Failed to parse option "
+            + BUFFER_SIZE_OPTION.getLongOpt() + " into an integer", e);
       }
     }
-    if (cl.hasOption(THREAD_OPTION.getOpt())) {
+    if (cl.hasOption(THREAD_OPTION.getLongOpt())) {
       try {
-        mThread = ((Number) cl.getParsedOptionValue(THREAD_OPTION.getOpt())).intValue();
+        mThread = ((Number) cl.getParsedOptionValue(THREAD_OPTION.getLongOpt())).intValue();
         if (mThread <= 0) {
-          throw new InvalidArgumentException(THREAD_OPTION.getOpt() + " must be > 0");
+          throw new InvalidArgumentException(THREAD_OPTION.getLongOpt() + " must be > 0");
         }
       } catch (ParseException e) {
-        throw new InvalidArgumentException("Failed to parse option " + THREAD_OPTION.getOpt()
+        throw new InvalidArgumentException("Failed to parse option " + THREAD_OPTION.getLongOpt()
             + " into an integer", e);
       }
     }
@@ -759,7 +761,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
   public String getUsage() {
     return "cp "
         + "[-R] "
-        + "[-bs <read buffer size in bytes>] "
+        + "[--buffersize <read buffer size in bytes>] "
         + "<src> <dst>";
   }
 

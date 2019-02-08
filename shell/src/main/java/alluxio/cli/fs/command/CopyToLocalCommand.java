@@ -16,6 +16,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
@@ -43,6 +44,11 @@ public final class CopyToLocalCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  public Options getOptions() {
+    return new Options().addOption(CpCommand.BUFFER_SIZE_OPTION);
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     mCpCommand.validateArgs(cl);
   }
@@ -59,7 +65,7 @@ public final class CopyToLocalCommand extends AbstractFileSystemCommand {
   @Override
   public String getUsage() {
     return "copyToLocal "
-        + "[-bs <read buffer size in bytes>] "
+        + "[--buffersize <read buffer size in bytes>] "
         + " <src> <localDst>";
   }
 
