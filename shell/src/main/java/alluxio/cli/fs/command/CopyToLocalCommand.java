@@ -11,7 +11,6 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -45,7 +44,7 @@ public final class CopyToLocalCommand extends AbstractFileSystemCommand {
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsEquals(this, cl, 2);
+    mCpCommand.validateArgs(cl);
   }
 
   @Override
@@ -59,7 +58,9 @@ public final class CopyToLocalCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "copyToLocal <src> <localDst>";
+    return "copyToLocal "
+        + "[-bs <read buffer size in bytes>] "
+        + " <src> <localDst>";
   }
 
   @Override
