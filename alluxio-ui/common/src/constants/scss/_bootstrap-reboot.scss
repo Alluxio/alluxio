@@ -9,19 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import 'babel-polyfill';
-import 'raf/polyfill';
-import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './App';
-
-// Order matters for the following files, so disable alphabetization
-// tslint:disable:ordered-imports
-import 'source-sans-pro/source-sans-pro.css';
-import './index.css';
-// tslint:enable:ordered-imports
-
-ReactDOM.render(
-  <App />,
-  document.getElementById('root') as HTMLElement
-);
+@import "../../../../node_modules/bootstrap/scss/functions";
+@import "../../../../node_modules/bootstrap/scss/variables";
+@import "darkly/variables";
+@import "../../../../node_modules/bootstrap/scss/mixins";
+@import "../../../../node_modules/bootstrap/scss/reboot";

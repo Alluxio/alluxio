@@ -9,6 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+@import '../../constants/scss/darkly/variables';
+
 .header {
   .navbar {
     padding: 0;
@@ -33,7 +35,7 @@
           }
 
           .brandName {
-            color: #156fdb;
+            color: #fafafa;
             font-weight: 600;
             letter-spacing: 0.05em;
             transform: scaleY(0.8);
@@ -63,6 +65,11 @@
 
         .nav-link {
           padding: 0.25em 0.5em;
+
+          &.active {
+            background-color: $body-bg;
+            border-color: transparent;
+          }
         }
 
         .auto-refresh-button {
