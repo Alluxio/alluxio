@@ -287,7 +287,6 @@ public final class AsyncJournalWriter {
    *
    * @param targetCounter the counter to flush
    */
-  @SuppressWarnings("Duplicates")
   public void flush(final long targetCounter) throws IOException, JournalClosedException {
     // Return if flushed.
     if (targetCounter <= mFlushCounter.get()) {
