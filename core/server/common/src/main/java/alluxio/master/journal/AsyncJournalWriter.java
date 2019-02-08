@@ -101,7 +101,7 @@ public final class AsyncJournalWriter {
    * Dedicated thread for writing and flushing entries in journal queue.
    * It goes over the {@code mTicketList} after every flush session and releases waiters.
    */
-  private Thread mFlushThread = new Thread(this::flushProc, "AsyncJournalWriterThread");
+  private Thread mFlushThread = new Thread(this::doFlush, "AsyncJournalWriterThread");
 
   /**
    * Used to give permits to flush thread to start processing immediately.
@@ -195,7 +195,7 @@ public final class AsyncJournalWriter {
       close();
     }
     // Create a new thread.
-    mFlushThread = new Thread(this::flushProc);
+    mFlushThread = new Thread(this::doFlush);
     // Reset termination flag before starting the new thread.
     mStopFlushing = false;
     mFlushThread.start();
@@ -205,7 +205,7 @@ public final class AsyncJournalWriter {
    * A dedicated thread that goes over outstanding queue items and writes/flushes them. Other
    * threads can track progress by submitting tickets via ::flush() call.
    */
-  private void flushProc() {
+  private void doFlush() {
     /**
      * Runs the loop until ::stop() is called.
      */
@@ -234,9 +234,7 @@ public final class AsyncJournalWriter {
       try {
         long startTime = System.nanoTime();
 
-        /**
-         * Write pending entries to journal.
-         */
+        // Write pending entries to journal.
         while (!mQueue.isEmpty()) {
           // Get, but do not remove, the head entry.
           JournalEntry entry = mQueue.peek();
@@ -284,7 +282,7 @@ public final class AsyncJournalWriter {
           while (ticketIterator.hasNext()) {
             FlushTicket ticket = ticketIterator.next();
             ticketIterator.remove();
-            if (ticket.getTargetCounter() < mFlushCounter.get()) {
+            if (ticket.getTargetCounter() <= mFlushCounter.get()) {
               ticket.setCompleted();
             } else {
               ticket.setError(exc);
