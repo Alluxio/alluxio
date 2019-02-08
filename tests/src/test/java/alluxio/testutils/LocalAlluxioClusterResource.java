@@ -169,6 +169,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
           }
         } catch (Exception e) {
           throw new RuntimeException(e);
+        } finally {
+          IntegrationTestUtils.releaseMasterPorts();
         }
         try {
           statement.evaluate();

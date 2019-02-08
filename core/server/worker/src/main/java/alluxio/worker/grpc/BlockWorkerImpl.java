@@ -14,6 +14,7 @@ package alluxio.worker.grpc;
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
@@ -62,10 +63,11 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
    *
    * @param workerProcess the worker process
    */
-  public BlockWorkerImpl(WorkerProcess workerProcess) {
+  public BlockWorkerImpl(WorkerProcess workerProcess, FileSystemContext fsContext) {
     mWorkerProcess = workerProcess;
     mRequestManager = new AsyncCacheRequestManager(
-        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class));
+        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class),
+        fsContext);
   }
 
   /**
