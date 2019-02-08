@@ -23,6 +23,7 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -61,6 +62,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.security.auth.Subject;
@@ -242,6 +245,26 @@ public interface FileSystem extends Closeable {
    * @return whether or not this FileSystem has been closed
    */
   boolean isClosed();
+
+  /**
+   * Convenience method for {@link #checkConsistency(AlluxioURI, CheckConsistencyPOptions)} with
+   * default options.
+   *
+   * @param path the root of the subtree to check
+   * @return a list of inconsistent files and directories
+   */
+  List<AlluxioURI> checkConsistency(AlluxioURI path) throws IOException;
+
+  /**
+   * Checks the consistency of Alluxio metadata against the under storage for all files and
+   * directories in a given subtree.
+   *
+   * @param path the root of the subtree to check
+   * @param options method options
+   * @return a list of inconsistent files and directories
+   */
+  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
+      throws IOException;
 
   /**
    * Convenience method for {@link #createDirectory(AlluxioURI, CreateDirectoryPOptions)} with
@@ -501,6 +524,15 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
+   * Persists the given file to the under file system.
+   *
+   * @param uri the uri of the file to persist
+   * @throws TimeoutException when the file fails to persist within the timeout
+   * @throws InterruptedException when the thread is interrupted while polling the status
+   */
+  void persistFile(AlluxioURI uri) throws IOException, TimeoutException, InterruptedException;
+
+  /**
    * Convenience method for {@link #rename(AlluxioURI, AlluxioURI, RenamePOptions)} with default
    * options.
    *
@@ -597,4 +629,52 @@ public interface FileSystem extends Closeable {
    * @param options options to associate with this operation
    */
   void unmount(AlluxioURI path, UnmountPOptions options) throws IOException, AlluxioException;
+
+  /**
+   * Convenience method {@code waitCompleted(fs, uri, -1, TimeUnit.MILLISECONDS)}, i.e., wait for an
+   * indefinite amount of time. Note that if a file is never completed, the thread will block
+   * forever, so use with care.
+   *
+   * @param uri the URI of the file on which the thread should wait
+   * @param waitCompletedPollMs milliseconds to wait between polling the filesystem
+   * @return true if the file is complete when this method returns and false if the method timed out
+   *         before the file was complete.
+   * @throws InterruptedException if the thread receives an interrupt while waiting for file
+   *         completion
+   * @see #waitCompleted(AlluxioURI, long, TimeUnit, long)
+   */
+  boolean waitCompleted(AlluxioURI uri, long waitCompletedPollMs) throws IOException,
+      AlluxioException, InterruptedException;
+
+  /**
+   * Waits for a file to be marked as completed.
+   * <p/>
+   * The calling thread will block for <i>at most</i> {@code timeout} time units (as specified via
+   * {@code tunit} or until the file is reported as complete by the master. The method will return
+   * the last known completion status of the file (hence, false only if the method has timed out). A
+   * zero value on the {@code timeout} parameter will make the calling thread check once and return;
+   * a negative value will make it block indefinitely. Note that, in this last case, if a file is
+   * never completed, the thread will block forever, so use with care.
+   * <p/>
+   * Note that the file whose uri is specified, might not exist at the moment this method this call.
+   * The method will deliberately block anyway for the specified amount of time, waiting for the
+   * file to be created and eventually completed. Note also that the file might be moved or deleted
+   * while it is waited upon. In such cases the method will throw the a {@link AlluxioException}
+   * <p/>
+   * <i>IMPLEMENTATION NOTES</i> This method is implemented by periodically polling the master about
+   * the file status. The polling period is controlled by the
+   * {@link PropertyKey#USER_FILE_WAITCOMPLETED_POLL_MS} java property and defaults to a generous 1
+   * second.
+   *
+   * @param uri the URI of the file whose completion status is to be watied for
+   * @param timeout maximum time the calling thread should be blocked on this call
+   * @param tunit the @{link TimeUnit} instance describing the {@code timeout} parameter
+   * @param fileWaitCompletedPollMs the milliseconds to wait between polling
+   * @return true if the file is complete when this method returns and false if the method timed out
+   *         before the file was complete.
+   * @throws InterruptedException if the thread receives an interrupt while waiting for file
+   *         completion
+   */
+  boolean waitCompleted(AlluxioURI uri, final long timeout, final TimeUnit tunit,
+      long fileWaitCompletedPollMs) throws IOException, AlluxioException, InterruptedException;
 }

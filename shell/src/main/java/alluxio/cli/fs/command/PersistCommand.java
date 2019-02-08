@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -178,7 +177,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
       AlluxioURI toPersist = mFilesToPersist.poll();
       while (toPersist != null) {
         try {
-          FileSystemUtils.persistFile(mFileSystem, mFsContext, toPersist);
+          mFileSystem.persistFile(toPersist);
           synchronized (mProgressLock) { // Prevents out of order progress tracking.
             String progress = "(" + mCompletedFiles.incrementAndGet() + "/" + mTotalFiles + ")";
             System.out.println(progress + " Successfully persisted file: " + toPersist);

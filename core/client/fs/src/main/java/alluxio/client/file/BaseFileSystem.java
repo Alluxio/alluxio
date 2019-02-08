@@ -35,6 +35,7 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -55,6 +56,8 @@ import alluxio.grpc.UnmountPOptions;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.MountPointInfo;
@@ -62,6 +65,7 @@ import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +75,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -141,6 +147,22 @@ public class BaseFileSystem implements FileSystem {
   public boolean isClosed() {
     // Doesn't require locking because mClosed is volatile and marked first upon close
     return mClosed;
+  }
+
+  @Override
+  public List<AlluxioURI> checkConsistency(AlluxioURI path) throws IOException {
+    return checkConsistency(path, CheckConsistencyPOptions.getDefaultInstance());
+  }
+
+  @Override
+  public List<AlluxioURI> checkConsistency(AlluxioURI path,
+      CheckConsistencyPOptions options) throws IOException {
+    FileSystemMasterClient client = mFsContext.acquireMasterClient();
+    try {
+      return client.checkConsistency(path, options);
+    } finally {
+      mFsContext.releaseMasterClient(client);
+    }
   }
 
   @Override
@@ -478,6 +500,26 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public void persistFile(final AlluxioURI uri) throws IOException, TimeoutException,
+      InterruptedException {
+    FileSystemMasterClient client = mFsContext.acquireMasterClient();
+    try {
+      client.scheduleAsyncPersist(uri);
+    } finally {
+      mFsContext.releaseMasterClient(client);
+    }
+    CommonUtils.waitFor(String.format("%s to be persisted", uri) , () -> {
+      try {
+        return getStatus(uri).isPersisted();
+      } catch (Exception e) {
+        Throwables.throwIfUnchecked(e);
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(20 * Constants.MINUTE_MS)
+        .setInterval(Constants.SECOND_MS));
+  }
+
+  @Override
   public FileInStream openFile(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
     return openFile(path, OpenFilePOptions.getDefaultInstance());
@@ -639,6 +681,48 @@ public class BaseFileSystem implements FileSystem {
     } finally {
       mFsContext.releaseMasterClient(masterClient);
     }
+  }
+
+  @Override
+  public boolean waitCompleted(AlluxioURI uri, long waitCompletedPollMs)
+      throws IOException, AlluxioException, InterruptedException {
+    return waitCompleted(uri, -1, TimeUnit.MILLISECONDS, waitCompletedPollMs);
+  }
+
+  @Override
+  public boolean waitCompleted(final AlluxioURI uri, final long timeout, final TimeUnit tunit,
+      long fileWaitCompletedPollMs) throws IOException, AlluxioException, InterruptedException {
+
+    final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
+    boolean completed = false;
+    long timeleft = deadline - System.currentTimeMillis();
+
+    while (!completed && (timeout <= 0 || timeleft > 0)) {
+
+      if (!exists(uri)) {
+        LOG.debug("The file {} being waited upon does not exist yet. Waiting for it to be "
+            + "created.", uri);
+      } else {
+        completed = getStatus(uri).isCompleted();
+      }
+
+      if (timeout == 0) {
+        return completed;
+      } else if (!completed) {
+        long toSleep;
+
+        if (timeout < 0 || timeleft > fileWaitCompletedPollMs) {
+          toSleep = fileWaitCompletedPollMs;
+        } else {
+          toSleep = timeleft;
+        }
+
+        CommonUtils.sleepMs(LOG, toSleep);
+        timeleft = deadline - System.currentTimeMillis();
+      }
+    }
+
+    return completed;
   }
 
   /**
