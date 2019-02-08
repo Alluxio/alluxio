@@ -232,16 +232,6 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
     // If list status takes too long, print the message
     Timer timer = new Timer();
-<<<<<<< HEAD
-    timer.schedule(new TimerTask() {
-      @Override
-      public void run() {
-        System.out.println("Getting directory status may take a while "
-            + "if it has millions of files or sub-directories.");
-      }
-    }, 10000);
-    List<URIStatus> statuses = mFileSystem.listStatus(path, options);
-=======
     if (pathStatus.isFolder()) {
       timer.schedule(new TimerTask() {
         @Override
@@ -251,8 +241,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
         }
       }, 10000);
     }
-    List<URIStatus> statuses = mFileSystem.listStatus(path, optionsBuilder.build());
->>>>>>> 34d1dadb1c... display detailed file number in slow fs ls command (#8364)
+    List<URIStatus> statuses = mFileSystem.listStatus(path, options);
     timer.cancel();
 
     List<URIStatus> sorted = sortByFieldAndOrder(statuses, sortField, reverse);
