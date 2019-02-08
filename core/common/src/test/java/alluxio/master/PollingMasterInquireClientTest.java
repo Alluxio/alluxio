@@ -45,5 +45,6 @@ public class PollingMasterInquireClientTest {
     } catch (UnavailableException e) {
       // Expected
     }
+    PortRegistry.INSTANCE.release(port);
   }
 }

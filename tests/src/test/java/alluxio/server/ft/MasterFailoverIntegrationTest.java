@@ -107,6 +107,7 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
     assertFalse(mFileSystem.exists(dir));
     // Restart to make sure the journal is consistent (we didn't write two delete entries for /dir).
     mMultiMasterLocalAlluxioCluster.restartMasters();
+    mFileSystem = mMultiMasterLocalAlluxioCluster.getClient(); // need new client after restart
     assertEquals(0, mFileSystem.listStatus(new AlluxioURI("/")).size());
   }
 

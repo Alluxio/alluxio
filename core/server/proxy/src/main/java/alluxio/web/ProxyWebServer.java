@@ -38,6 +38,8 @@ public final class ProxyWebServer extends WebServer {
   public static final String FILE_SYSTEM_SERVLET_RESOURCE_KEY = "File System";
   public static final String STREAM_CACHE_SERVLET_RESOURCE_KEY = "Stream Cache";
 
+  private FileSystem mFileSystem;
+
   /**
    * Creates a new instance of {@link ProxyWebServer}.
    *
@@ -52,6 +54,7 @@ public final class ProxyWebServer extends WebServer {
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.proxy", "alluxio.proxy.s3")
         .register(JacksonProtobufObjectMapperProvider.class);
+    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
     ServletContainer servlet = new ServletContainer(config) {
       private static final long serialVersionUID = 7756010860672831556L;
 
@@ -60,8 +63,7 @@ public final class ProxyWebServer extends WebServer {
         super.init();
         getServletContext().setAttribute(ALLUXIO_PROXY_SERVLET_RESOURCE_KEY, proxyProcess);
         getServletContext()
-            .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY,
-                FileSystem.Factory.create(ServerConfiguration.global()));
+            .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY, mFileSystem);
         getServletContext().setAttribute(STREAM_CACHE_SERVLET_RESOURCE_KEY,
             new StreamCache(ServerConfiguration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
       }
@@ -69,5 +71,11 @@ public final class ProxyWebServer extends WebServer {
     ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
     mServletContextHandler
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+  }
+
+  @Override
+  public void stop() throws Exception {
+    mFileSystem.close();
+    super.stop();
   }
 }

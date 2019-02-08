@@ -117,6 +117,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
     // restart master
     mLocalAlluxioClusterResource.get().restartMasters();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient(); // need new client after restart
     // verify not persisted
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());

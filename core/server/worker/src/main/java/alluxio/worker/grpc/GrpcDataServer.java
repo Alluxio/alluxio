@@ -11,6 +11,7 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
@@ -66,6 +67,9 @@ public final class GrpcDataServer implements DataServer {
   /** non-null when the server is used with domain socket address.  */
   private DomainSocketAddress mDomainSocketAddress = null;
 
+  private final FileSystemContext mFsContext =
+      FileSystemContext.create(ServerConfiguration.global());
+
   /**
    * Creates a new instance of {@link GrpcDataServer}.
    *
@@ -75,7 +79,7 @@ public final class GrpcDataServer implements DataServer {
   public GrpcDataServer(final SocketAddress address, final WorkerProcess workerProcess) {
     mSocketAddress = address;
     try {
-      BlockWorkerImpl blockWorkerService = new BlockWorkerImpl(workerProcess);
+      BlockWorkerImpl blockWorkerService = new BlockWorkerImpl(workerProcess, mFsContext);
       mServer = createServerBuilder(address, NettyUtils.getWorkerChannel(
           ServerConfiguration.global()))
           .addService(new GrpcService(
@@ -133,7 +137,8 @@ public final class GrpcDataServer implements DataServer {
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
+    mFsContext.close();
     if (mServer != null) {
       boolean completed = mServer.shutdown();
       if (!completed) {

@@ -63,6 +63,13 @@ public final class ClientPool implements Closeable {
   @Override
   public void close() throws IOException {
     synchronized (mClients) {
+      mClients.forEach((client) -> {
+        try {
+          client.close();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
       mClients.clear();
     }
   }
