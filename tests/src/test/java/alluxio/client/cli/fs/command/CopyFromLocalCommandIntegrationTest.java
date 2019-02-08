@@ -356,9 +356,10 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
   }
 
   @Test
-  public void parseThreadOption() throws Exception {
+  public void parseOption() throws Exception {
     String testDir = FileSystemShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
-    int ret = mFsShell.run("copyFromLocal", "-t", "1", testDir + "/*/foo*", "/testDir");
+    int ret = mFsShell.run("copyFromLocal", "--thread", "1", "--buffersize", "1024",
+        testDir + "/*/foo*", "/testDir");
     Assert.assertEquals(0, ret);
   }
 }
