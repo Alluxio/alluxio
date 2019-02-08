@@ -11,8 +11,12 @@
 
 package alluxio.security.authentication;
 
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.exception.status.UnknownException;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.SaslMessage;
 
 import com.google.common.util.concurrent.SettableFuture;
@@ -91,7 +95,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
    * @param channelId channel that is authenticating with the server
    * @throws UnauthenticatedException
    */
-  public void start(String channelId) throws UnauthenticatedException, UnavailableException {
+  public void start(String channelId) throws AlluxioStatusException {
     try {
       // Send the server initial message.
       mRequestObserver.onNext(mSaslHandshakeClientHandler.getInitialMessage(channelId));
@@ -101,15 +105,13 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
       throw new UnauthenticatedException(se.getMessage(), se);
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
-      throw new UnauthenticatedException(ie.getMessage(), ie);
+      throw new CanceledException(ie.getMessage(), ie);
     } catch (ExecutionException e) {
       Throwable cause = e.getCause();
       if (cause != null && cause instanceof StatusRuntimeException) {
-        if (((StatusRuntimeException) cause).getStatus().getCode() == Status.Code.UNAVAILABLE) {
-          throw new UnavailableException(cause.getMessage(), cause);
-        }
+        throw GrpcExceptionUtils.fromGrpcStatusException((StatusRuntimeException) cause);
       }
-      throw new UnauthenticatedException(cause.getMessage(), cause);
+      throw new UnknownException(cause.getMessage(), cause);
     } catch (TimeoutException e) {
       throw new UnavailableException(e);
     }
