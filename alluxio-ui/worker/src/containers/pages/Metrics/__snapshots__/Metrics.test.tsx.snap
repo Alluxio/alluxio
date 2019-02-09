@@ -647,7 +647,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="pages container-fluid mt-3"
+                  className="w-100 mt-3"
                 >
                   <Switch>
                     <Route
