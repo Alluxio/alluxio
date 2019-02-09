@@ -12,7 +12,6 @@
 package alluxio.security.authentication;
 
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnknownException;
@@ -105,7 +104,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
       throw new UnauthenticatedException(se.getMessage(), se);
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
-      throw new CanceledException(ie.getMessage(), ie);
+      throw new UnavailableException(ie.getMessage(), ie);
     } catch (ExecutionException e) {
       Throwable cause = (e.getCause() != null) ? e.getCause() : e;
       if (cause != null && cause instanceof StatusRuntimeException) {
