@@ -14,7 +14,6 @@ package alluxio.security.authentication;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.exception.status.UnimplementedException;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
@@ -121,7 +120,7 @@ public class GrpcSecurityTest {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE);
     GrpcChannelBuilder channelBuilder =
         GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
-    mThrown.expect(UnimplementedException.class);
+    mThrown.expect(UnauthenticatedException.class);
     channelBuilder.build();
     server.shutdown();
   }

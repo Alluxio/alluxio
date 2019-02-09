@@ -108,6 +108,11 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
     } catch (ExecutionException e) {
       Throwable cause = (e.getCause() != null) ? e.getCause() : e;
       if (cause != null && cause instanceof StatusRuntimeException) {
+        StatusRuntimeException sre = (StatusRuntimeException) cause;
+        // If caught unimplemented, that means server does not support authentication.
+        if (sre.getStatus().getCode() == Status.Code.UNIMPLEMENTED) {
+          throw new UnauthenticatedException("Authentication is disabled on target host.");
+        }
         throw GrpcExceptionUtils.fromGrpcStatusException((StatusRuntimeException) cause);
       }
       throw new UnknownException(cause.getMessage(), cause);
