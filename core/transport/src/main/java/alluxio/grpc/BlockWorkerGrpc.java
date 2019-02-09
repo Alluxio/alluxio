@@ -222,6 +222,38 @@ public final class BlockWorkerGrpc {
      return getRemoveBlockMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CheckRequest,
+      alluxio.grpc.CheckResponse> getCheckMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "Check",
+      requestType = alluxio.grpc.CheckRequest.class,
+      responseType = alluxio.grpc.CheckResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.CheckRequest,
+      alluxio.grpc.CheckResponse> getCheckMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.CheckRequest, alluxio.grpc.CheckResponse> getCheckMethod;
+    if ((getCheckMethod = BlockWorkerGrpc.getCheckMethod) == null) {
+      synchronized (BlockWorkerGrpc.class) {
+        if ((getCheckMethod = BlockWorkerGrpc.getCheckMethod) == null) {
+          BlockWorkerGrpc.getCheckMethod = getCheckMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.CheckRequest, alluxio.grpc.CheckResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.block.BlockWorker", "Check"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.CheckRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.CheckResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("Check"))
+                  .build();
+          }
+        }
+     }
+     return getCheckMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -300,6 +332,13 @@ public final class BlockWorkerGrpc {
       asyncUnimplementedUnaryCall(getRemoveBlockMethod(), responseObserver);
     }
 
+    /**
+     */
+    public void check(alluxio.grpc.CheckRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.CheckResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getCheckMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -344,6 +383,13 @@ public final class BlockWorkerGrpc {
                 alluxio.grpc.RemoveBlockRequest,
                 alluxio.grpc.RemoveBlockResponse>(
                   this, METHODID_REMOVE_BLOCK)))
+          .addMethod(
+            getCheckMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.CheckRequest,
+                alluxio.grpc.CheckResponse>(
+                  this, METHODID_CHECK)))
           .build();
     }
   }
@@ -422,6 +468,14 @@ public final class BlockWorkerGrpc {
       asyncUnaryCall(
           getChannel().newCall(getRemoveBlockMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void check(alluxio.grpc.CheckRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.CheckResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getCheckMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -457,6 +511,13 @@ public final class BlockWorkerGrpc {
     public alluxio.grpc.RemoveBlockResponse removeBlock(alluxio.grpc.RemoveBlockRequest request) {
       return blockingUnaryCall(
           getChannel(), getRemoveBlockMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public alluxio.grpc.CheckResponse check(alluxio.grpc.CheckRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getCheckMethod(), getCallOptions(), request);
     }
   }
 
@@ -496,14 +557,23 @@ public final class BlockWorkerGrpc {
       return futureUnaryCall(
           getChannel().newCall(getRemoveBlockMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.CheckResponse> check(
+        alluxio.grpc.CheckRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getCheckMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_ASYNC_CACHE = 0;
   private static final int METHODID_REMOVE_BLOCK = 1;
-  private static final int METHODID_READ_BLOCK = 2;
-  private static final int METHODID_WRITE_BLOCK = 3;
-  private static final int METHODID_OPEN_LOCAL_BLOCK = 4;
-  private static final int METHODID_CREATE_LOCAL_BLOCK = 5;
+  private static final int METHODID_CHECK = 2;
+  private static final int METHODID_READ_BLOCK = 3;
+  private static final int METHODID_WRITE_BLOCK = 4;
+  private static final int METHODID_OPEN_LOCAL_BLOCK = 5;
+  private static final int METHODID_CREATE_LOCAL_BLOCK = 6;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -529,6 +599,10 @@ public final class BlockWorkerGrpc {
         case METHODID_REMOVE_BLOCK:
           serviceImpl.removeBlock((alluxio.grpc.RemoveBlockRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.RemoveBlockResponse>) responseObserver);
+          break;
+        case METHODID_CHECK:
+          serviceImpl.check((alluxio.grpc.CheckRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.CheckResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -609,6 +683,7 @@ public final class BlockWorkerGrpc {
               .addMethod(getCreateLocalBlockMethod())
               .addMethod(getAsyncCacheMethod())
               .addMethod(getRemoveBlockMethod())
+              .addMethod(getCheckMethod())
               .build();
         }
       }

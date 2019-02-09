@@ -21,7 +21,15 @@ service BlockWorker {
 
   rpc AsyncCache (AsyncCacheRequest) returns (AsyncCacheResponse);
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
+
+  rpc Check(CheckRequest) returns (CheckResponse);
 }
+
+// The check request
+message CheckRequest {}
+
+// The check response
+message CheckResponse {}
 
 // The data chunk.
 // next available id: 2
