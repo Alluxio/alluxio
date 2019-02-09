@@ -14,8 +14,13 @@ package alluxio.master.file.activesync;
 import alluxio.AlluxioURI;
 import alluxio.ProcessUtils;
 import alluxio.SyncInfo;
+<<<<<<< HEAD
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+||||||| parent of d897ab5c87... [AE-594] Various active sync related fixes (#1573)
+=======
+import alluxio.collections.Pair;
+>>>>>>> d897ab5c87... [AE-594] Various active sync related fixes (#1573)
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -200,6 +205,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    * @param txId specifies the transaction id to initialize the pollling thread
    */
   public void launchPollingThread(long mountId, long txId) {
+    LOG.debug("launch polling thread for mount id {}, txId {}", mountId, txId);
     if (!mPollerMap.containsKey(mountId)) {
       try (CloseableResource<UnderFileSystem> ufsClient =
                mMountTable.getUfsClient(mountId).acquireUfsResource()) {
@@ -252,12 +258,19 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    * @param mountId mountId to stop active sync
    */
   public void stopSyncForMount(long mountId) throws InvalidPathException, IOException {
+    LOG.debug("Stop sync for mount id {}", mountId);
     if (mFilterMap.containsKey(mountId)) {
+      List<Pair<AlluxioURI, MountTable.Resolution>> toBeDeleted = new ArrayList<>();
       for (AlluxioURI uri : mFilterMap.get(mountId)) {
         MountTable.Resolution resolution = resolveSyncPoint(uri);
         if (resolution != null) {
-          stopSyncInternal(uri, resolution);
+          toBeDeleted.add(new Pair<>(uri, resolution));
         }
+      }
+      // Calling stopSyncInternal outside of the traversal of mFilterMap.get(mountId) to avoid
+      // ConcurrentModificationException
+      for (Pair<AlluxioURI, MountTable.Resolution> deleteInfo : toBeDeleted) {
+        stopSyncInternal(deleteInfo.getFirst(), deleteInfo.getSecond());
       }
     }
   }
@@ -434,7 +447,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     AlluxioURI syncPoint = new AlluxioURI(addSyncPoint.getSyncpointPath());
     long mountId = addSyncPoint.getMountId();
 
-    LOG.debug("adding syncPoint {}", syncPoint.getPath());
+    LOG.debug("adding syncPoint {}, mount id {}", syncPoint.getPath(), mountId);
     // Add the new sync point to the filter map
     if (mFilterMap.containsKey(mountId)) {
       mFilterMap.get(mountId).add(syncPoint);
@@ -569,12 +582,18 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     }
   }
 
-  private void startInitSync(AlluxioURI uri, MountTable.Resolution resolution) throws IOException {
+  private void startInitSync(AlluxioURI uri, MountTable.Resolution resolution) {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       Future<?> syncFuture = mExecutorService.submit(
           () -> {
             try {
+              // Notify ufs polling thread to keep track of events related to specified uri
               ufsResource.get().startSync(resolution.getUri());
+              // Start the initial metadata sync between the ufs and alluxio for the specified uri
+              if (Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
+                mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
+              }
+
             } catch (IOException e) {
               LOG.info(ExceptionMessage.FAILED_INITIAL_SYNC.getMessage(
                   resolution.getUri()), e);
@@ -583,9 +602,17 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
 
       mSyncPathStatus.put(uri, syncFuture);
     }
+<<<<<<< HEAD
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
       mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
     }
+||||||| parent of d897ab5c87... [AE-594] Various active sync related fixes (#1573)
+    if (Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
+      mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
+    }
+=======
+
+>>>>>>> d897ab5c87... [AE-594] Various active sync related fixes (#1573)
   }
 
   /**
@@ -593,7 +620,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    *
    * @param uri the sync point that we are trying to start
    */
-  public void startSyncPostJournal(AlluxioURI uri) throws InvalidPathException, IOException {
+  public void startSyncPostJournal(AlluxioURI uri) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(uri);
     startInitSync(uri, resolution);
     launchPollingThread(resolution.getMountId(), SyncInfo.INVALID_TXID);
