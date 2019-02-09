@@ -107,7 +107,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
       Thread.currentThread().interrupt();
       throw new CanceledException(ie.getMessage(), ie);
     } catch (ExecutionException e) {
-      Throwable cause = e.getCause();
+      Throwable cause = (e.getCause() != null) ? e.getCause() : e;
       if (cause != null && cause instanceof StatusRuntimeException) {
         throw GrpcExceptionUtils.fromGrpcStatusException((StatusRuntimeException) cause);
       }
