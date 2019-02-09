@@ -18,6 +18,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CheckRequest;
+import alluxio.grpc.CheckResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -142,5 +144,11 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
       mWorkerProcess.getWorker(BlockWorker.class).removeBlock(sessionId, request.getBlockId());
       return RemoveBlockResponse.getDefaultInstance();
     }, "removeBlock", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void check(CheckRequest request, StreamObserver<CheckResponse> responseObserver) {
+    responseObserver.onNext(CheckResponse.getDefaultInstance());
+    responseObserver.onCompleted();
   }
 }
