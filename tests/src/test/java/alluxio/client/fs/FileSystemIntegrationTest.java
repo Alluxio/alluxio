@@ -51,7 +51,6 @@ import org.junit.rules.ExpectedException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
@@ -323,121 +322,6 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     assertEquals("Should have 5 blocks", 5, locations.size());
     locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) ->
         assertEquals("block " + info + " should have single worker", 1, workers.size()));
-  }
-
-  @Test
-  public void waitCompletedTest1() throws IOException, AlluxioException, InterruptedException {
-    final String uniqPath = PathUtils.uniqPath();
-    final int numWrites = 4; // random value chosen through a fair dice roll :P
-    final AlluxioURI uri = new AlluxioURI(uniqPath);
-
-    final Runnable writer = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          FileOutStream os = mFileSystem.createFile(uri, sWriteBoth);
-          boolean completed = mFileSystem.getStatus(uri).isCompleted();
-          Assert.assertFalse(completed);
-          for (int i = 0; i < numWrites; i++) {
-            os.write(42);
-            CommonUtils.sleepMs(200);
-          }
-          os.close();
-          completed = mFileSystem.getStatus(uri).isCompleted();
-          Assert.assertTrue(completed);
-        } catch (Exception e) {
-          Assert.fail(e.getMessage());
-        }
-      }
-    };
-
-    final Runnable waiter = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          boolean completed = mFileSystem.waitCompleted(uri,
-              ServerConfiguration.getMs(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS));
-          Assert.assertTrue(completed);
-          completed = mFileSystem.getStatus(uri).isCompleted();
-          Assert.assertTrue(completed);
-        } catch (Exception e) {
-          e.printStackTrace();
-          Assert.fail(e.getMessage());
-        }
-      }
-    };
-
-    final Thread waitingThread = new Thread(waiter);
-    waitingThread.start();
-
-    final Thread writingThread = new Thread(writer);
-    writingThread.start();
-
-    waitingThread.join();
-    writingThread.join();
-  }
-
-  @Test
-  public void waitCompletedTest2() throws IOException, AlluxioException, InterruptedException {
-    final String uniqPath = PathUtils.uniqPath();
-    final int numWrites = 4; // random value chosen through a fair dice roll :P
-    final AlluxioURI uri = new AlluxioURI(uniqPath);
-
-    final Runnable writer = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          FileOutStream os = mFileSystem.createFile(uri, sWriteBoth);
-          boolean completed = mFileSystem.getStatus(uri).isCompleted();
-          Assert.assertFalse(completed);
-          // four writes that will take > 600ms due to the sleeps
-          for (int i = 0; i < numWrites; i++) {
-            os.write(42);
-            CommonUtils.sleepMs(200);
-          }
-          os.close();
-          completed = mFileSystem.getStatus(uri).isCompleted();
-          Assert.assertTrue(completed);
-        } catch (Exception e) {
-          Assert.fail(e.getMessage());
-        }
-      }
-    };
-
-    final Runnable waiter = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          // set the slow default polling period to a more sensible value, in order
-          // to speed up the tests artificial waiting times
-          String original = ServerConfiguration.get(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
-          ServerConfiguration.set(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
-          try {
-            // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
-            boolean completed = mFileSystem.waitCompleted(uri, 300,
-                TimeUnit.MILLISECONDS, ServerConfiguration
-                    .getMs(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS));
-            Assert.assertFalse(completed);
-            completed = mFileSystem.getStatus(uri).isCompleted();
-            Assert.assertFalse(completed);
-          } finally {
-            ServerConfiguration.set(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS, original);
-          }
-        } catch (Exception e) {
-          e.printStackTrace();
-          Assert.fail(e.getMessage());
-        }
-      }
-    };
-
-    final Thread waitingThread = new Thread(waiter);
-    waitingThread.start();
-
-    final Thread writingThread = new Thread(writer);
-    writingThread.start();
-
-    waitingThread.join();
-    writingThread.join();
   }
 
 // Test exception cases for all FileSystem RPCs
