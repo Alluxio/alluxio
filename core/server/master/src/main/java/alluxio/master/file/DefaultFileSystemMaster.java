@@ -4277,7 +4277,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /**
    * Class that contains metrics for FileSystemMaster.
    * This class is public because the counter names are referenced in
-   * {@link alluxio.web.WebInterfaceMasterMetricsServlet}.
+   * {@link alluxio.web.WebInterfaceAbstractMetricsServlet}.
    */
   public static final class Metrics {
     private static final Counter DIRECTORIES_CREATED
