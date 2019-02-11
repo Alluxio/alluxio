@@ -13,8 +13,8 @@ package alluxio.security.authentication;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.util.SecurityUtils;
@@ -105,7 +105,7 @@ public class ChannelAuthenticator {
    * @throws UnauthenticatedException
    */
   public Channel authenticate(ManagedChannel managedChannel, AlluxioConfiguration conf)
-      throws UnauthenticatedException, UnavailableException {
+      throws AlluxioStatusException {
     if (mAuthType == AuthType.NOSASL) {
       return managedChannel;
     }

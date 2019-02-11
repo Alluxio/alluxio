@@ -11,8 +11,7 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.exception.status.UnauthenticatedException;
-import alluxio.exception.status.UnavailableException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.conf.AlluxioConfiguration;
@@ -185,7 +184,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private GrpcChannel buildChannel(Subject subject, SocketAddress address,
       GrpcManagedChannelPool.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf,
       EventLoopGroup workerGroup)
-      throws UnauthenticatedException, UnavailableException {
+      throws AlluxioStatusException {
     return GrpcChannelBuilder.newBuilder(address, alluxioConf).setSubject(subject)
         .setChannelType(NettyUtils
             .getClientChannelClass(!(address instanceof InetSocketAddress), alluxioConf))
