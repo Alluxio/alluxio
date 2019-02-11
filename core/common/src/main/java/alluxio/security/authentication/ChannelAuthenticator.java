@@ -26,6 +26,8 @@ import io.grpc.ClientInterceptors;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.security.auth.Subject;
 import javax.security.sasl.SaslClient;
@@ -38,7 +40,7 @@ import java.util.UUID;
  * Used to authenticate with the target host. Used internally by {@link GrpcChannelBuilder}.
  */
 public class ChannelAuthenticator {
-
+  private static final Logger LOG = LoggerFactory.getLogger(ChannelAuthenticator.class);
   /** Whether to use mParentSubject as authentication user. */
   protected boolean mUseSubject;
   /** Subject for authentication. */
@@ -106,6 +108,9 @@ public class ChannelAuthenticator {
    */
   public Channel authenticate(ManagedChannel managedChannel, AlluxioConfiguration conf)
       throws AlluxioStatusException {
+    LOG.debug("Channel authentication initiated. ChannelId:{}, AuthType:{}, Target:{}", mChannelId,
+        mAuthType, managedChannel.authority());
+
     if (mAuthType == AuthType.NOSASL) {
       return managedChannel;
     }
