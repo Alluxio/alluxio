@@ -199,6 +199,5 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
     assertFalse("File cannot yet be persisted", sFileSystem.getStatus(alluxioPath).isPersisted());
     FileSystemUtils.waitPersisted(sFileSystem, alluxioPath, -1);
     assertTrue("File must be persisted", sFileSystem.getStatus(alluxioPath).isPersisted());
-
   }
 }
