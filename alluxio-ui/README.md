@@ -61,7 +61,7 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
 1. Follow the prerequisite instructions above.
 1. Enable CORS for the alluxio RESTful api endpoints by setting `alluxio.webui.enable.cors=true` in `conf/alluxio-site.properties`
 1. Start a development server in one of the following ways:
-    1. For all packages: `lerna run start --parallel --stream`
+    1. For all packages: `npm run start`
     1. For each package independently:
         1. common-ui: `cd alluxio-ui/common-ui && npm run start`
         1. master-ui: `cd alluxio-ui/master-ui && npm run start`
@@ -77,7 +77,7 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
     This will continuously run your tests and will show you when tests pass or fail as you work.
 
 1. (Optionally) Run a test coverage report in one of the following ways:
-    1. For all packages: `lerna run coverage-ci`
+    1. For all packages: `npm run coverage-ci`
     1. For each package independently:
         1. common-ui: `cd alluxio-ui/common-ui && npm run coverage`
         1. master-ui: `cd alluxio-ui/master-ui && npm run coverage`
