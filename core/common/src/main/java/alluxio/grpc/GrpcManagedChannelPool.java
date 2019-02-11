@@ -77,7 +77,12 @@ public class GrpcManagedChannelPool {
   }
 
   /**
-   * PS: Should be called with {@code mLock} acquired.
+   * Shuts down the managed channel for given key.
+   *
+   * (Should be called with {@code mLock} acquired.)
+   *
+   * @param channelKey channel key
+   * @param shutdownTimeoutMs shutdown timeout in miliseconds
    */
   private void shutdownManagedChannel(ChannelKey channelKey, long shutdownTimeoutMs) {
     ManagedChannel managedChannel = mChannels.get(channelKey).get();
@@ -134,7 +139,7 @@ public class GrpcManagedChannelPool {
         ManagedChannelReference managedChannelRef = mChannels.get(channelKey);
         if (waitForChannelReady(managedChannelRef.get(),
             healthCheckTimeoutMs)) {
-          LOG.debug("Acquiring an existing managed channel. ChannelKey: {}. Ref-count:{}",
+          LOG.debug("Acquiring an existing managed channel. ChannelKey: {}. Ref-count: {}",
               channelKey, managedChannelRef.getRefCount());
           return managedChannelRef.reference();
         } else {
@@ -149,7 +154,7 @@ public class GrpcManagedChannelPool {
       if (shutdownExistingChannel && mChannels.containsKey(channelKey)) {
         existingRefCount = mChannels.get(channelKey).getRefCount();
         LOG.debug(
-            "Shutting down an existing unheealthy managed channel. ChannelKey: {}. Existing Ref-count:{}",
+            "Shutting down an existing unhealthy managed channel. ChannelKey: {}. Existing Ref-count: {}",
             channelKey, existingRefCount);
         shutdownManagedChannel(channelKey, shutdownTimeoutMs);
         mChannels.remove(channelKey);
@@ -178,7 +183,7 @@ public class GrpcManagedChannelPool {
       ManagedChannelReference channelRef = mChannels.get(channelKey);
       channelRef.dereference();
       shutdownManagedChannel = channelRef.getRefCount() <= 0;
-      LOG.debug("Released managed channel for :{}. Ref-count:{}", channelKey,
+      LOG.debug("Released managed channel for: {}. Ref-count: {}", channelKey,
           channelRef.getRefCount());
     }
     if (shutdownManagedChannel) {
@@ -196,7 +201,7 @@ public class GrpcManagedChannelPool {
   /**
    * Creates a {@link ManagedChannel} by given pool key.
    *
-   * PS: Should be called with {@code mLock} acquired.
+   * (Should be called with {@code mLock} acquired.)
    *
    * @param channelKey channel pool key
    * @return the created channel
