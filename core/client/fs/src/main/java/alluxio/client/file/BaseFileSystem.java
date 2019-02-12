@@ -49,6 +49,7 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -496,9 +497,15 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void persist(final AlluxioURI uri) throws IOException {
+    persist(uri, ScheduleAsyncPersistencePOptions.getDefaultInstance());
+  }
+
+  @Override
+  public void persist(final AlluxioURI uri, ScheduleAsyncPersistencePOptions options)
+      throws IOException {
     FileSystemMasterClient client = mFsContext.acquireMasterClient();
     try {
-      client.scheduleAsyncPersist(uri);
+      client.scheduleAsyncPersist(uri, options);
     } finally {
       mFsContext.releaseMasterClient(client);
     }
