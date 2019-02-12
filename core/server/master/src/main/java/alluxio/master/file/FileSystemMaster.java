@@ -58,6 +58,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -553,4 +554,9 @@ public interface FileSystemMaster extends Master {
    * @return true if successfully recorded in the journal
    */
   boolean recordActiveSyncTxid(long txId, long mountId);
+
+  /**
+   * @return the time series data stored by the master
+   */
+  Map<String, TreeMap<Long, Long>> getTimeSeries();
 }

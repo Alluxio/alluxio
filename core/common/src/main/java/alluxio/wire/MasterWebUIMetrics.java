@@ -17,6 +17,7 @@ import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -36,6 +37,7 @@ public final class MasterWebUIMetrics implements Serializable {
   private Map<String, Metric> mOperationMetrics;
   private Map<String, String> mUfsReadSize;
   private Map<String, String> mUfsWriteSize;
+  private Map<String, TreeMap<Long, Long>> mTimeSeriesMetrics;
   private String mCacheHitLocal;
   private String mCacheHitRemote;
   private String mCacheMiss;
@@ -252,6 +254,13 @@ public final class MasterWebUIMetrics implements Serializable {
    */
   public Map<String, Counter> getRpcInvocationMetrics() {
     return mRpcInvocationMetrics;
+  }
+
+  /**
+   * @return the time series metrics
+   */
+  public Map<String, TreeMap<Long, Long>> getTimeSeriesMetrics() {
+    return mTimeSeriesMetrics;
   }
 
   /**
@@ -491,6 +500,15 @@ public final class MasterWebUIMetrics implements Serializable {
   }
 
   /**
+   * @param timeSeries the time series metrics to set
+   * @return the updated masterWebUIMetrics object
+   */
+  public MasterWebUIMetrics setTimeSeriesMetrics(Map<String, TreeMap<Long, Long>> timeSeries) {
+    mTimeSeriesMetrics = timeSeries;
+    return this;
+  }
+
+  /**
    * Sets rpc invocation metrics.
    *
    * @param rpcInvocationMetrics the rpc invocation metrics
@@ -520,6 +538,7 @@ public final class MasterWebUIMetrics implements Serializable {
         .add("totalBytesWrittenUfs", mTotalBytesWrittenUfs)
         .add("totalBytesWrittenUfsThroughput", mTotalBytesWrittenUfsThroughput)
         .add("ufsOps", mUfsOps).add("ufsReadSize", mUfsReadSize).add("ufsWriteSize", mUfsWriteSize)
+        .add("timeSeriesMetrics", mTimeSeriesMetrics)
         .toString();
   }
 }
