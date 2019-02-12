@@ -62,9 +62,10 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   private static final Option TIMEOUT_OPTION =
       Option.builder("t")
           .longOpt("timeout")
-          .argName("timeout milliseconds")
+          .argName("timeout in milliseconds")
           .numberOfArgs(1)
-          .desc("Time in milliseconds for a single file persist to time out: " + DEFAULT_TIMEOUT)
+          .desc("Time in milliseconds for a single file persist to time out; default:"
+              + DEFAULT_TIMEOUT)
           .required(false)
           .build();
 
