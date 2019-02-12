@@ -67,9 +67,6 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   private CreateFilePOptions mWriteBoth;
   private UnderFileSystem mUfs;
 
-  private static CreateFilePOptions sWriteBoth = CreateFilePOptions.newBuilder()
-      .setWriteType(WritePType.CACHE_THROUGH).setRecursive(true).build();
-
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
