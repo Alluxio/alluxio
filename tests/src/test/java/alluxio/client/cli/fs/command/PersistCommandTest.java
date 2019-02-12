@@ -265,7 +265,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
 
   @Test
   public void persistShortTimeout() throws Exception {
-    createUnpersistedFiles("testPersistTimeout", 100, 50);
+    createUnpersistedFiles("/testPersistTimeout", 100, 50);
     mFsShell.run("persist", "--timeout", String.valueOf(1), "/*"); // 1ms persist timeout
     assertTrue("Should log at least one timeout",
         mLogRule.wasLogged("Timed out waiting for file to be persisted:"));
@@ -274,7 +274,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void persistLongTimeout() throws Exception {
     int fileSize = 100;
-    List<AlluxioURI> files = createUnpersistedFiles("testPersistTimeout", fileSize, 25);
+    List<AlluxioURI> files = createUnpersistedFiles("/testPersistTimeout", fileSize, 25);
     int ret = mFsShell.run("persist", "--timeout", String.valueOf(60 * 1000), "/*");
     assertEquals("shell should not report error", 0, ret);
     assertFalse("Should not have logged timeout",
@@ -284,11 +284,11 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     }
   }
 
-  private List<AlluxioURI> createUnpersistedFiles(String dirName, int fileSize, int totalFiles)
+  private List<AlluxioURI> createUnpersistedFiles(String dirPath, int fileSize, int totalFiles)
       throws Exception {
     List<AlluxioURI> files = new ArrayList<>(totalFiles);
     for (int i = 0; i < totalFiles; i++) {
-      String path = String.format("/%s/%d", dirName, i);
+      String path = String.format("%s/%d", dirPath, i);
       files.add(new AlluxioURI(path));
       FileSystemTestUtils.createByteFile(mFileSystem, path, WritePType.MUST_CACHE, fileSize);
       assertFalse(mFileSystem.getStatus(files.get(i)).isPersisted());
@@ -298,7 +298,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
 
   public void persistParallel(int totalFiles, int parallelism) throws Exception {
     int fileSize = 30;
-    List<AlluxioURI> files = createUnpersistedFiles("testPersistParallel", fileSize, totalFiles);
+    List<AlluxioURI> files = createUnpersistedFiles("/testPersistParallel", fileSize, totalFiles);
     int ret = mFsShell.run("persist", "--parallelism", String.valueOf(parallelism), "/*");
     Assert.assertEquals(0, ret);
     for (AlluxioURI file : files) {
