@@ -187,8 +187,8 @@ public final class AlluxioMasterRestServiceHandler {
     mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
-    mFsClient = (FileSystem) context
-        .getAttribute(MasterWebServer.ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY);
+    mFsClient =
+        (FileSystem) context.getAttribute(MasterWebServer.ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY);
   }
 
   /**
@@ -540,7 +540,8 @@ public final class AlluxioMasterRestServiceHandler {
       try {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
-        limit = limit > fileInfos.size() ? fileInfos.size() : limit;
+        limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
+        limit = offset * limit > fileInfos.size() ? fileInfos.size() % offset : limit;
         int sum = Math.addExact(offset, limit);
         fileInfos = fileInfos.subList(offset, sum);
         response.setFileInfos(fileInfos);
@@ -612,7 +613,8 @@ public final class AlluxioMasterRestServiceHandler {
       try {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
-        limit = limit > fileInfos.size() ? fileInfos.size() : limit;
+        limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
+        limit = offset * limit > fileInfos.size() ? fileInfos.size() % offset : limit;
         int sum = Math.addExact(offset, limit);
         fileInfos = fileInfos.subList(offset, sum);
         response.setFileInfos(fileInfos);
@@ -685,7 +687,8 @@ public final class AlluxioMasterRestServiceHandler {
         try {
           int offset = Integer.parseInt(requestOffset);
           int limit = Integer.parseInt(requestLimit);
-          limit = limit > fileInfos.size() ? fileInfos.size() : limit;
+          limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
+          limit = offset * limit > fileInfos.size() ? fileInfos.size() % offset : limit;
           int sum = Math.addExact(offset, limit);
           fileInfos = fileInfos.subList(offset, sum);
           response.setFileInfos(fileInfos);

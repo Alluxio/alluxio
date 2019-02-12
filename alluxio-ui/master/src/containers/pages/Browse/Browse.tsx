@@ -219,7 +219,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
             <tr key={fileInfo.absolutePath}>
               <td><FontAwesomeIcon icon={fileInfo.isDirectory ? faFolder : faFile}/></td>
               <td>
-                {this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}
+                {this.renderFileNameLink(fileInfo.absolutePath)}
               </td>
               <td>{fileInfo.size}</td>
               <td>{fileInfo.inAlluxio ? 'YES' : 'NO'}</td>
@@ -238,7 +238,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     )
   }
 
-  private renderFileNameLink(filePath: string, queryStringSuffix: string) {
+  private renderFileNameLink(filePath: string) {
     const {lastFetched} = this.state;
     if (filePath === lastFetched.path) {
       return (
@@ -247,7 +247,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     }
 
     return (
-      <Link to={`/browse?path=${filePath}${queryStringSuffix}`}>
+      <Link to={`/browse?path=${filePath}`}>
         {filePath}
       </Link>
     );

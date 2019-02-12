@@ -163,7 +163,7 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
           <tbody>
           {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
             <tr key={fileInfo.absolutePath}>
-              <td>{this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}</td>
+              <td>{this.renderFileNameLink(fileInfo.absolutePath)}</td>
               {tierAliases.map((tierAlias: string) => (
                 <td key={tierAlias}>{`${fileInfo.inAlluxioPercentage}%`}</td>
               ))}
@@ -179,7 +179,7 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
     )
   }
 
-  private renderFileNameLink(filePath: string, queryStringSuffix: string) {
+  private renderFileNameLink(filePath: string) {
     const {lastFetched} = this.state;
     if (filePath === lastFetched.path) {
       return (
@@ -188,7 +188,7 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
     }
 
     return (
-      <Link to={`/blockInfo?path=${filePath}${queryStringSuffix}`}>
+      <Link to={`/blockInfo?path=${filePath}`}>
         {filePath}
       </Link>
     );

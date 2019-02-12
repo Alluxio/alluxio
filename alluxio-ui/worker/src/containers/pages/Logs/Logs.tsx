@@ -158,7 +158,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
         {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
           <tr key={fileInfo.absolutePath}>
             <td>
-              {this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}
+              {this.renderFileNameLink(fileInfo.absolutePath)}
             </td>
             <td>{fileInfo.size}</td>
             <td>{fileInfo.blockSizeBytes}</td>
@@ -184,7 +184,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
     )
   }
 
-  private renderFileNameLink(filePath: string, queryStringSuffix: string) {
+  private renderFileNameLink(filePath: string) {
     const {lastFetched} = this.state;
     if (filePath === lastFetched.path) {
       return (
@@ -193,7 +193,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
     }
 
     return (
-      <Link to={`/logs?path=${filePath}${queryStringSuffix}`}>
+      <Link to={`/logs?path=${filePath}`}>
         {filePath}
       </Link>
     );
