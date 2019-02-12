@@ -35,7 +35,6 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -143,22 +142,6 @@ public class BaseFileSystem implements FileSystem {
   public boolean isClosed() {
     // Doesn't require locking because mClosed is volatile and marked first upon close
     return mClosed;
-  }
-
-  @Override
-  public List<AlluxioURI> checkConsistency(AlluxioURI path) throws IOException {
-    return checkConsistency(path, CheckConsistencyPOptions.getDefaultInstance());
-  }
-
-  @Override
-  public List<AlluxioURI> checkConsistency(AlluxioURI path,
-      CheckConsistencyPOptions options) throws IOException {
-    FileSystemMasterClient client = mFsContext.acquireMasterClient();
-    try {
-      return client.checkConsistency(path, options);
-    } finally {
-      mFsContext.releaseMasterClient(client);
-    }
   }
 
   @Override

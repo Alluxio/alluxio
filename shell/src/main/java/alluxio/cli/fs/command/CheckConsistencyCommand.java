@@ -14,6 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -51,7 +52,7 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    checkConsistency(plainPath, cl.hasOption("r"));
+    runConsistencyCheck(plainPath, cl.hasOption("r"));
   }
 
   @Override
@@ -79,6 +80,24 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   }
 
   /**
+   * Checks the consistency of Alluxio metadata against the under storage for all files and
+   * directories in a given subtree.
+   *
+   * @param path the root of the subtree to check
+   * @param options method options
+   * @return a list of inconsistent files and directories
+   */
+  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
+      throws IOException {
+    FileSystemMasterClient client = mFsContext.acquireMasterClient();
+    try {
+      return client.checkConsistency(path, options);
+    } finally {
+      mFsContext.releaseMasterClient(client);
+    }
+  }
+
+  /**
    * Checks the inconsistent files and directories which exist in Alluxio but don't exist in the
    * under storage, repairs the inconsistent paths by deleting them if repairConsistency is true.
    *
@@ -87,11 +106,10 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
    * @throws AlluxioException
    * @throws IOException
    */
-  private void checkConsistency(AlluxioURI path, boolean repairConsistency) throws
+  private void runConsistencyCheck(AlluxioURI path, boolean repairConsistency) throws
       AlluxioException, IOException {
     List<AlluxioURI> inconsistentUris =
-        mFileSystem.checkConsistency(path,
-            CheckConsistencyPOptions.getDefaultInstance());
+        checkConsistency(path, CheckConsistencyPOptions.getDefaultInstance());
     if (inconsistentUris.isEmpty()) {
       System.out.println(path + " is consistent with the under storage system.");
       return;

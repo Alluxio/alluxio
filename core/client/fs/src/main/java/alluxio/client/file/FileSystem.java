@@ -23,7 +23,6 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -244,26 +243,6 @@ public interface FileSystem extends Closeable {
    * @return whether or not this FileSystem has been closed
    */
   boolean isClosed();
-
-  /**
-   * Convenience method for {@link #checkConsistency(AlluxioURI, CheckConsistencyPOptions)} with
-   * default options.
-   *
-   * @param path the root of the subtree to check
-   * @return a list of inconsistent files and directories
-   */
-  List<AlluxioURI> checkConsistency(AlluxioURI path) throws IOException;
-
-  /**
-   * Checks the consistency of Alluxio metadata against the under storage for all files and
-   * directories in a given subtree.
-   *
-   * @param path the root of the subtree to check
-   * @param options method options
-   * @return a list of inconsistent files and directories
-   */
-  List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
-      throws IOException;
 
   /**
    * Convenience method for {@link #createDirectory(AlluxioURI, CreateDirectoryPOptions)} with
