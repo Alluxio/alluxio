@@ -274,7 +274,8 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   /**
-   * Ensure a short timeout results in a proper log message
+   * Ensure a short timeout results in a proper log message.
+   *
    * @param option the short or long-form command line option
    */
   void shortTimeoutTest(String option) throws Exception {

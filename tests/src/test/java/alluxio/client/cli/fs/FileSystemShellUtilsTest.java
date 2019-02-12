@@ -35,7 +35,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -291,7 +290,6 @@ public final class FileSystemShellUtilsTest {
 
     cmdLine = getCmdLine(opt);
     assertEquals("Should not get arg", 0, FileSystemShellUtils.getIntArg(cmdLine, opt, 0));
-
   }
 
   CommandLine getCmdLine(Option opt, String... args) throws Exception {
