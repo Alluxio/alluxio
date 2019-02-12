@@ -34,8 +34,7 @@ import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Constructs an isolated master. Primary users of this class are the {@link LocalAlluxioCluster}
- * and {@link MultiMasterLocalAlluxioCluster}.
+ * Constructs an isolated master.
  *
  * Isolated is defined as having its own root directory, and port.
  */
@@ -214,7 +213,7 @@ public final class LocalAlluxioMaster {
   /**
    * @return the client from the pool
    */
-  public FileSystem getClient() throws IOException {
+  public FileSystem getClient() {
     return mClientPool.getClient();
   }
 
@@ -222,11 +221,11 @@ public final class LocalAlluxioMaster {
    * @param context the FileSystemContext to use
    * @return the client from the pool, using a specific context
    */
-  public FileSystem getClient(FileSystemContext context) throws IOException {
+  public FileSystem getClient(FileSystemContext context) {
     return mClientPool.getClient(context);
   }
 
-  private static String uniquePath() throws IOException {
+  private static String uniquePath() {
     return AlluxioTestDirectory.createTemporaryDirectory("alluxio-master").getAbsolutePath();
   }
 

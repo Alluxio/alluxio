@@ -29,7 +29,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
-import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
@@ -180,7 +179,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void multiMasterMountUnmountJournal() throws Exception {
-    MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
+    LocalAlluxioCluster cluster = setupMultiMasterCluster();
     UnderFileSystemFactory factory = mountUnmount(cluster.getClient());
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
@@ -234,9 +233,12 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   /**
    * Sets up and starts a multi-master cluster.
    */
-  private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {
+  private LocalAlluxioCluster setupMultiMasterCluster() throws Exception {
     // Setup and start the alluxio-ft cluster.
-    MultiMasterLocalAlluxioCluster cluster = new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
+    LocalAlluxioCluster cluster = LocalAlluxioCluster.newBuilder()
+        .setNumMasters(TEST_NUM_MASTERS)
+        .build();
+    ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
     cluster.initConfiguration();
     cluster.start();
     return cluster;
@@ -247,7 +249,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   private LocalAlluxioCluster setupSingleMasterCluster() throws Exception {
     // Setup and start the local alluxio cluster.
-    LocalAlluxioCluster cluster = new LocalAlluxioCluster();
+    LocalAlluxioCluster cluster = LocalAlluxioCluster.newBuilder().build();
     cluster.initConfiguration();
     ServerConfiguration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE);
     cluster.start();

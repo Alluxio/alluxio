@@ -32,20 +32,21 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.hadoop.HadoopClientTestUtils;
-import alluxio.master.MultiMasterLocalAlluxioCluster;
+import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.PollingMasterInquireClient;
 import alluxio.master.block.BlockMaster;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
 import jersey.repackaged.com.google.common.collect.Lists;
-import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -63,8 +64,18 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static final int MASTERS = 5;
 
-  private MultiMasterLocalAlluxioCluster mMultiMasterLocalAlluxioCluster = null;
-  private FileSystem mFileSystem = null;
+  @Rule
+  public LocalAlluxioClusterResource mClusterResource = LocalAlluxioClusterResource.newBuilder()
+      .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
+      .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
+      .setProperty(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100)
+      .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2)
+      .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 32)
+      .setNumMasters(MASTERS)
+      .build();
+
+  private LocalAlluxioCluster mCluster = mClusterResource.get();
+  private FileSystem mFileSystem;
 
   @BeforeClass
   public static void beforeClass() {
@@ -74,24 +85,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     Assume.assumeFalse(HadoopClientTestUtils.isHadoop1x());
   }
 
-  @After
-  public final void after() throws Exception {
-    mMultiMasterLocalAlluxioCluster.stop();
-  }
-
   @Before
-  public final void before() throws Exception {
-    // TODO(gpang): Implement multi-master cluster as a resource.
-    mMultiMasterLocalAlluxioCluster =
-        new MultiMasterLocalAlluxioCluster(MASTERS);
-    mMultiMasterLocalAlluxioCluster.initConfiguration();
-    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES);
-    ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 32);
-    mMultiMasterLocalAlluxioCluster.start();
-    mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
+  public void before() throws Exception {
+    mFileSystem = mCluster.getClient();
   }
 
   /**
@@ -160,8 +156,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     faultTestDataCheck(answer);
 
     for (int kills = 0; kills < MASTERS - 1; kills++) {
-      assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
-      mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
+      assertTrue(mCluster.stopLeader());
+      mCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
       waitForWorkerRegistration(AlluxioBlockStore
               .create(FileSystemContext.create(ServerConfiguration.global())), 1,
           CLUSTER_WAIT_TIMEOUT_MS);
@@ -175,8 +171,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     // Kill leader -> create files -> kill leader -> delete files, repeat.
     List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
-      assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
-      mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
+      assertTrue(mCluster.stopLeader());
+      mCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
       waitForWorkerRegistration(AlluxioBlockStore
               .create(FileSystemContext.create(ServerConfiguration.global())), 1,
           CLUSTER_WAIT_TIMEOUT_MS);
@@ -228,7 +224,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     // If standby masters are killed(or node failure), current leader should not be affected and the
     // cluster should run properly.
 
-    int leaderIndex = mMultiMasterLocalAlluxioCluster.getLeaderIndex();
+    int leaderIndex = mCluster.getLeaderIndex();
     assertNotEquals(-1, leaderIndex);
 
     List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
@@ -238,32 +234,31 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     faultTestDataCheck(answer);
 
     for (int kills = 0; kills < MASTERS - 1; kills++) {
-      assertTrue(mMultiMasterLocalAlluxioCluster.stopStandby());
+      assertTrue(mCluster.stopStandby());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
 
       // Leader should not change.
-      assertEquals(leaderIndex, mMultiMasterLocalAlluxioCluster.getLeaderIndex());
+      assertEquals(leaderIndex, mCluster.getLeaderIndex());
       // Cluster should still work.
       faultTestDataCheck(answer);
       faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
     }
   }
 
-  @Test(timeout = 30000)
+  @Test(timeout = 15000)
   public void queryStandby() throws Exception {
-    List<InetSocketAddress> addresses = mMultiMasterLocalAlluxioCluster.getMasterAddresses();
+    List<InetSocketAddress> addresses = mCluster.getMasterAddresses();
     Collections.shuffle(addresses);
     PollingMasterInquireClient inquireClient =
         new PollingMasterInquireClient(addresses, ServerConfiguration.global());
-    assertEquals(mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster().getAddress(),
-        inquireClient.getPrimaryRpcAddress());
+    inquireClient.getPrimaryRpcAddress();
   }
 
   @Test
   public void workerReRegister() throws Exception {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
-      assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
-      mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
+      assertTrue(mCluster.stopLeader());
+      mCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
       AlluxioBlockStore store =
           AlluxioBlockStore.create(FileSystemContext.create(ServerConfiguration.global()));
       waitForWorkerRegistration(store, 1, 1 * Constants.MINUTE_MS);
@@ -275,17 +270,16 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void failoverWorkerRegister() throws Exception {
-    // Stop the default cluster.
-    after();
+    mCluster.stop();
 
     // Create a new cluster, with no workers initially
-    final MultiMasterLocalAlluxioCluster cluster = new MultiMasterLocalAlluxioCluster(2, 0);
+    LocalAlluxioCluster cluster =
+        LocalAlluxioCluster.newBuilder().setNumMasters(2).setNumWorkers(0).build();
     cluster.initConfiguration();
     cluster.start();
     try {
       // Get the first block master
-      BlockMaster blockMaster1 =
-          cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
+      BlockMaster blockMaster1 = cluster.getLeaderProcess().getMaster(BlockMaster.class);
       // Register worker 1
       long workerId1a =
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
@@ -315,8 +309,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       cluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
 
       // Get the new block master, after the failover
-      BlockMaster blockMaster2 = cluster.getLocalAlluxioMaster().getMasterProcess()
-          .getMaster(BlockMaster.class);
+      BlockMaster blockMaster2 = cluster.getLeaderProcess().getMaster(BlockMaster.class);
 
       // Worker 2 tries to heartbeat (with original id), and should get "Register" in response.
       assertEquals(CommandType.Register, blockMaster2

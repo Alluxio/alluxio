@@ -114,13 +114,7 @@ public class JournalIntegrationTest {
     private AtomicInteger mFilesTouched = new AtomicInteger(0);
 
     public void run() {
-      FileSystem fs;
-      try {
-        fs = mCluster.getClient();
-      } catch (IOException e) {
-        mException.set(e);
-        return;
-      }
+      FileSystem fs = mCluster.getClient();
       while (!Thread.interrupted()) {
         try {
           fs.createFile(new AlluxioURI("/file-" + UUID.randomUUID()));

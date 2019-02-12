@@ -17,13 +17,16 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.LocalAlluxioJobCluster;
-import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -34,15 +37,17 @@ import java.io.PrintStream;
  * Tests that the job service is available to the shell when running in fault-tolerant mode.
  */
 public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest {
-  private MultiMasterLocalAlluxioCluster mLocalAlluxioCluster;
+  @Rule
+  public LocalAlluxioClusterResource mClusterResource = LocalAlluxioClusterResource.newBuilder()
+      .setProperty(PropertyKey.ZOOKEEPER_ENABLED, true)
+      .build();
+
+  private LocalAlluxioCluster mCluster = mClusterResource.get();
   private LocalAlluxioJobCluster mLocalAlluxioJobCluster;
   private ByteArrayOutputStream mOutput;
 
   @Before
   public void before() throws Exception {
-    mLocalAlluxioCluster = new MultiMasterLocalAlluxioCluster(1);
-    mLocalAlluxioCluster.initConfiguration();
-    mLocalAlluxioCluster.start();
     mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
     mLocalAlluxioJobCluster.start();
     mOutput = new ByteArrayOutputStream();
@@ -52,7 +57,7 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
   @After
   public void after() throws Exception {
     mLocalAlluxioJobCluster.stop();
-    mLocalAlluxioCluster.stop();
+    mCluster.stop();
     System.setOut(System.out);
     ServerConfiguration.reset();
   }

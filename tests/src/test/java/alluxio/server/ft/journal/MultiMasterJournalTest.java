@@ -16,31 +16,32 @@ import static org.junit.Assert.assertEquals;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.master.MultiMasterLocalAlluxioCluster;
+import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
 
-public class MultiMasterJournalTest {
-  private MultiMasterLocalAlluxioCluster mCluster;
+public class MultiMasterJournalTest extends BaseIntegrationTest {
+  @Rule
+  public LocalAlluxioClusterResource mClusterResource = LocalAlluxioClusterResource.newBuilder()
+      .setNumMasters(2)
+      .setNumWorkers(0)
+      .setProperty(PropertyKey.ZOOKEEPER_ENABLED, true)
+      .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 5)
+      .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 100)
+      .build();
 
-  @Before
-  public void before() throws Exception {
-    mCluster = new MultiMasterLocalAlluxioCluster(2, 0);
-    mCluster.initConfiguration();
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 5);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 100);
-    mCluster.start();
-  }
+  private LocalAlluxioCluster mCluster = mClusterResource.get();
 
   @Test
   public void testCheckpointReplay() throws Exception {

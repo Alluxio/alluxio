@@ -11,8 +11,8 @@
 
 package alluxio.testutils;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.LoginUserTestUtils;
@@ -71,10 +71,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioClusterResource implements TestRule {
-
-  /** Number of Alluxio workers in the cluster. */
-  private final int mNumWorkers;
-
   /**
    * If true (default), we start the cluster before running a test method. Otherwise, the method
    * must start the cluster explicitly.
@@ -85,19 +81,19 @@ public final class LocalAlluxioClusterResource implements TestRule {
   private final Map<PropertyKey, String> mConfiguration = new HashMap<>();
 
   /** The Alluxio cluster being managed. */
-  private LocalAlluxioCluster mLocalAlluxioCluster = null;
+  private final LocalAlluxioCluster mLocalAlluxioCluster;
 
   /**
    * Creates a new instance.
    *
+   * @param cluster the local alluxio cluster to manage
    * @param startCluster whether or not to start the cluster before the test method starts
-   * @param numWorkers the number of Alluxio workers to launch
    * @param configuration configuration for configuring the cluster
    */
-  private LocalAlluxioClusterResource(boolean startCluster, int numWorkers,
+  private LocalAlluxioClusterResource(LocalAlluxioCluster cluster, boolean startCluster,
       Map<PropertyKey, String> configuration) {
     mStartCluster = startCluster;
-    mNumWorkers = numWorkers;
+    mLocalAlluxioCluster = cluster;
     mConfiguration.putAll(configuration);
     MetricsSystem.resetAllCounters();
   }
@@ -131,8 +127,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public void start() throws Exception {
     AuthenticatedClientUser.remove();
     LoginUserTestUtils.resetLoginUser();
-    // Create a new cluster.
-    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers);
     // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration();
     // Overwrite the test configuration with test specific parameters
@@ -183,19 +177,26 @@ public final class LocalAlluxioClusterResource implements TestRule {
   }
 
   /**
+   * @return a new cluster resource builder
+   */
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
+  /**
    * Builder for a {@link LocalAlluxioClusterResource}.
    */
   public static class Builder {
+    private final LocalAlluxioCluster.Builder mClusterBuilder;
     private boolean mStartCluster;
-    private int mNumWorkers;
     private Map<PropertyKey, String> mConfiguration;
 
     /**
      * Constructs the builder with default values.
      */
     public Builder() {
+      mClusterBuilder = new LocalAlluxioCluster.Builder();
       mStartCluster = true;
-      mNumWorkers = 1;
       mConfiguration = new HashMap<>();
     }
 
@@ -211,7 +212,15 @@ public final class LocalAlluxioClusterResource implements TestRule {
      * @param numWorkers the number of workers to run in the cluster
      */
     public Builder setNumWorkers(int numWorkers) {
-      mNumWorkers = numWorkers;
+      mClusterBuilder.setNumWorkers(numWorkers);
+      return this;
+    }
+
+    /**
+     * @param numMasters the number of masters to run in the cluster
+     */
+    public Builder setNumMasters(int numMasters) {
+      mClusterBuilder.setNumMasters(numMasters);
       return this;
     }
 
@@ -228,7 +237,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
      * @return a {@link LocalAlluxioClusterResource} for the current builder values
      */
     public LocalAlluxioClusterResource build() {
-      return new LocalAlluxioClusterResource(mStartCluster, mNumWorkers, mConfiguration);
+      return new LocalAlluxioClusterResource(mClusterBuilder.build(), mStartCluster,
+          mConfiguration);
     }
   }
 

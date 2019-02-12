@@ -15,13 +15,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
-import alluxio.master.MultiMasterLocalAlluxioCluster;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystem;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystem;
@@ -29,9 +30,9 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.io.Files;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +44,6 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
 
   private static final String LOCAL_UFS_PATH = Files.createTempDir().getAbsolutePath();
   private static final long DELETE_DELAY = 5 * Constants.SECOND_MS;
-
-  private MultiMasterLocalAlluxioCluster mMultiMasterLocalAlluxioCluster;
-  private FileSystem mFileSystem;
 
   // An under file system which has slow directory deletion.
   private static final UnderFileSystem UFS =
@@ -68,24 +66,24 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
       new UnderFileSystemFactoryRegistryRule(new DelegatingUnderFileSystemFactory(UFS));
 
-  @Before
-  public final void before() throws Exception {
-    mMultiMasterLocalAlluxioCluster =
-        new MultiMasterLocalAlluxioCluster(2);
-    mMultiMasterLocalAlluxioCluster.initConfiguration();
-    ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec");
-    ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec");
-    ServerConfiguration.set(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "30sec");
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0sec");
-    ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
-        DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH);
-    mMultiMasterLocalAlluxioCluster.start();
-    mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
-  }
+  @Rule
+  public LocalAlluxioClusterResource mClusterResource = LocalAlluxioClusterResource.newBuilder()
+      .setNumMasters(2)
+      .setProperty(PropertyKey.ZOOKEEPER_ENABLED, true)
+      .setProperty(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec")
+      .setProperty(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec")
+      .setProperty(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "30sec")
+      .setProperty(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0sec")
+      .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+          DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH)
+      .build();
 
-  @After
-  public final void after() throws Exception {
-    mMultiMasterLocalAlluxioCluster.stop();
+  private LocalAlluxioCluster mCluster = mClusterResource.get();
+  private FileSystem mFileSystem;
+
+  @Before
+  public void before() {
+    mFileSystem = mCluster.getClient();
   }
 
   @Test
@@ -98,16 +96,16 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
     deleteThread.start();
     // Give the delete thread a chance to start.
     Thread.sleep(500);
-    mMultiMasterLocalAlluxioCluster.stopZk();
+    mCluster.stopZk();
     // Give master a chance to notice that ZK is dead and trigger failover.
     Thread.sleep(5000);
-    mMultiMasterLocalAlluxioCluster.restartZk();
+    mCluster.restartZk();
     deleteThread.join();
     // After failing on the original master, the delete should be retried on the new master.
     assertFalse(mFileSystem.exists(dir));
     // Restart to make sure the journal is consistent (we didn't write two delete entries for /dir).
-    mMultiMasterLocalAlluxioCluster.restartMasters();
-    mFileSystem = mMultiMasterLocalAlluxioCluster.getClient(); // need new client after restart
+    mCluster.restartMasters();
+    mFileSystem = mCluster.getClient(); // need new client after restart
     assertEquals(0, mFileSystem.listStatus(new AlluxioURI("/")).size());
   }
 
