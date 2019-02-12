@@ -22,6 +22,8 @@ import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.security.sasl.SaslException;
 import java.util.concurrent.ExecutionException;
@@ -32,6 +34,7 @@ import java.util.concurrent.TimeoutException;
  * Responsible for driving sasl traffic from client-side. Acts as a client's Sasl stream.
  */
 public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
+  private static final Logger LOG = LoggerFactory.getLogger(SaslStreamClientDriver.class);
   /** Server's sasl stream. */
   private StreamObserver<SaslMessage> mRequestObserver;
   /** Handshake handler for client. */
@@ -66,6 +69,8 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
   @Override
   public void onNext(SaslMessage saslMessage) {
     try {
+      LOG.debug("SaslClientDriver received message: {}",
+          saslMessage != null ? saslMessage.getMessageType().toString() : "<NULL>");
       SaslMessage response = mSaslHandshakeClientHandler.handleSaslMessage(saslMessage);
       if (response == null) {
         mRequestObserver.onCompleted();
@@ -96,6 +101,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
    */
   public void start(String channelId) throws AlluxioStatusException {
     try {
+      LOG.debug("Starting SASL handshake for ChannelId:{}", channelId);
       // Send the server initial message.
       mRequestObserver.onNext(mSaslHandshakeClientHandler.getInitialMessage(channelId));
       // Wait until authentication status changes.

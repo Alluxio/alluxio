@@ -76,7 +76,16 @@ public class GrpcManagedChannelPool {
     mLock = new ReentrantReadWriteLock(true);
   }
 
-  private void shutdownManagedChannel(ManagedChannel managedChannel, long shutdownTimeoutMs) {
+  /**
+   * Shuts down the managed channel for given key.
+   *
+   * (Should be called with {@code mLock} acquired.)
+   *
+   * @param channelKey channel key
+   * @param shutdownTimeoutMs shutdown timeout in miliseconds
+   */
+  private void shutdownManagedChannel(ChannelKey channelKey, long shutdownTimeoutMs) {
+    ManagedChannel managedChannel = mChannels.get(channelKey).get();
     managedChannel.shutdown();
     try {
       managedChannel.awaitTermination(shutdownTimeoutMs, TimeUnit.MILLISECONDS);
@@ -87,6 +96,7 @@ public class GrpcManagedChannelPool {
       managedChannel.shutdownNow();
     }
     Verify.verify(managedChannel.isShutdown());
+    LOG.debug("Shut down managed channel. ChannelKey: {}", channelKey);
   }
 
   private boolean waitForChannelReady(ManagedChannel managedChannel, long healthCheckTimeoutMs) {
@@ -127,8 +137,10 @@ public class GrpcManagedChannelPool {
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
       if (mChannels.containsKey(channelKey)) {
         ManagedChannelReference managedChannelRef = mChannels.get(channelKey);
-        if (waitForChannelReady(mChannels.get(channelKey).get(),
+        if (waitForChannelReady(managedChannelRef.get(),
             healthCheckTimeoutMs)) {
+          LOG.debug("Acquiring an existing managed channel. ChannelKey: {}. Ref-count: {}",
+              channelKey, managedChannelRef.getRefCount());
           return managedChannelRef.reference();
         } else {
           // Postpone channel shutdown under exclusive lock below.
@@ -140,11 +152,16 @@ public class GrpcManagedChannelPool {
       // Dispose existing channel if required.
       int existingRefCount = 0;
       if (shutdownExistingChannel && mChannels.containsKey(channelKey)) {
-        shutdownManagedChannel(mChannels.get(channelKey).get(), shutdownTimeoutMs);
         existingRefCount = mChannels.get(channelKey).getRefCount();
+        LOG.debug(
+            "Shutting down an existing unhealthy managed channel. ChannelKey: {}. Existing Ref-count: {}",
+            channelKey, existingRefCount);
+        shutdownManagedChannel(channelKey, shutdownTimeoutMs);
         mChannels.remove(channelKey);
       }
       if (!mChannels.containsKey(channelKey)) {
+        LOG.debug("Creating a new managed channel. ChannelKey: {}. Ref-count:{}", channelKey,
+            existingRefCount);
         mChannels.put(channelKey,
             new ManagedChannelReference(createManagedChannel(channelKey), existingRefCount));
       }
@@ -163,15 +180,18 @@ public class GrpcManagedChannelPool {
     boolean shutdownManagedChannel;
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
       Verify.verify(mChannels.containsKey(channelKey));
-      mChannels.get(channelKey).dereference();
-      shutdownManagedChannel = mChannels.get(channelKey).getRefCount() <= 0;
+      ManagedChannelReference channelRef = mChannels.get(channelKey);
+      channelRef.dereference();
+      shutdownManagedChannel = channelRef.getRefCount() <= 0;
+      LOG.debug("Released managed channel for: {}. Ref-count: {}", channelKey,
+          channelRef.getRefCount());
     }
     if (shutdownManagedChannel) {
       try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
         if (mChannels.containsKey(channelKey)) {
           ManagedChannelReference channelRef = mChannels.get(channelKey);
           if (channelRef.getRefCount() <= 0) {
-            shutdownManagedChannel(mChannels.remove(channelKey).get(), shutdownTimeoutMs);
+            shutdownManagedChannel(channelKey, shutdownTimeoutMs);
           }
         }
       }
@@ -180,6 +200,8 @@ public class GrpcManagedChannelPool {
 
   /**
    * Creates a {@link ManagedChannel} by given pool key.
+   *
+   * (Should be called with {@code mLock} acquired.)
    *
    * @param channelKey channel pool key
    * @return the created channel
