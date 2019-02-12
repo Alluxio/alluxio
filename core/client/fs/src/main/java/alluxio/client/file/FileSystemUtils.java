@@ -123,16 +123,16 @@ public final class FileSystemUtils {
   }
 
   /**
-   * Convenience method for {@code #waitPersisted(fs, uri, -1)}. i.e. wait for an indefinite period
+   * Convenience method for {@code #persistAndWait(fs, uri, -1)}. i.e. wait for an indefinite period
    * of time to persist. This will block for an indefinite period of time if the path is never
    * persisted. Use with care.
    *
    * @param fs {@link FileSystem} to carry out Alluxio operations
    * @param uri the uri of the file to persist
    */
-  public static void waitPersisted(final FileSystem fs, final AlluxioURI uri)
+  public static void persistAndWait(final FileSystem fs, final AlluxioURI uri)
       throws IOException, TimeoutException, InterruptedException {
-    waitPersisted(fs, uri, -1);
+    persistAndWait(fs, uri, -1);
   }
 
   /**
@@ -145,7 +145,7 @@ public final class FileSystemUtils {
    *                  indefinitely
    * @throws TimeoutException if the persist takes longer than the timeout
    */
-  public static void waitPersisted(final FileSystem fs, final AlluxioURI uri, int timeoutMs)
+  public static void persistAndWait(final FileSystem fs, final AlluxioURI uri, int timeoutMs)
       throws IOException, TimeoutException, InterruptedException {
     fs.persist(uri);
     CommonUtils.waitFor(String.format("%s to be persisted", uri) , () -> {

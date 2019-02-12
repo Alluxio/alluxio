@@ -189,7 +189,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
       AlluxioURI toPersist = mFilesToPersist.poll();
       while (toPersist != null) {
         try {
-          FileSystemUtils.waitPersisted(mFileSystem, toPersist, mTimeoutMs);
+          FileSystemUtils.persistAndWait(mFileSystem, toPersist, mTimeoutMs);
           synchronized (mProgressLock) { // Prevents out of order progress tracking.
             String progress = "(" + mCompletedFiles.incrementAndGet() + "/" + mTotalFiles + ")";
             System.out.println(progress + " Successfully persisted file: " + toPersist);
