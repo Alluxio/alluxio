@@ -360,7 +360,8 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       mIdToChildMap.getOrDefault(inodeId, Collections.emptyMap()).forEach((name, id) -> {
         childIds.put(name, id);
       });
-      // Copy the list of unflushed deletes before reading the backing store to prevent racing async deletion.
+      // Copy the list of unflushed deletes before reading the backing store to prevent racing async
+      // deletion.
       Set<String> unflushedDeletes =
           new HashSet<>(mUnflushedDeletes.getOrDefault(inodeId, Collections.EMPTY_SET));
       mBackingStore.getChildren(inodeId).forEach(inode -> {
