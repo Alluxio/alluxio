@@ -15,6 +15,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.exception.status.UnknownException;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.util.SecurityUtils;
@@ -146,9 +147,14 @@ public class ChannelAuthenticator {
           ClientInterceptors.intercept(managedChannel, getInterceptors(saslClient));
       return authenticatedChannel;
     } catch (Exception exc) {
-      LOG.error("Channel authentication failed. ChannelId:{}, AuthType:{}, Target:{}, Error:{}",
+      String message = String.format(
+          "Channel authentication failed. ChannelId: %s, AuthType: %s, Target: %s, Error: %s",
           mChannelId, mAuthType, managedChannel.authority(), exc.getMessage());
-      throw exc;
+      if (exc instanceof AlluxioStatusException) {
+        throw new AlluxioStatusException(((AlluxioStatusException) exc).getStatus(), message, exc);
+      } else {
+        throw new UnknownException(message, exc);
+      }
     }
   }
 
