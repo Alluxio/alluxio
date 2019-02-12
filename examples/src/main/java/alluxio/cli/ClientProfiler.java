@@ -21,9 +21,6 @@ public class ClientProfiler {
 
   private static final String DEFAULT_DIR = "/alluxio-profiling";
 
-  private static final AlluxioConfiguration CONF =
-      new InstancedConfiguration(ConfigurationUtils.defaults());
-
   enum ClientType {
     alluxio,
     hadoop,
@@ -54,6 +51,9 @@ public class ClientProfiler {
   @Parameter(names = {"--dump-interval"}, description = "Interval at which to collect heap dumps")
   private String mDumpInterval = "10sec";
 
+  @Parameter(names = {"--dry"}, description = "Perform a dry run by simply printing all operations")
+  private boolean mDryRun = false;
+
   /**
    * New client profiler.
    * @param args command line arguments
@@ -66,19 +66,15 @@ public class ClientProfiler {
    * Profiles; creating heap dumps.
    */
   public void profile() throws IOException, InterruptedException {
+    ProfilerClient.sDryRun = mDryRun;
     ProfilerClient client = ProfilerClient.Factory.create(mClientType.toString());
     System.out.println(System.getProperty("user.dir"));
     mDumpInterval = "1s";
     JvmHeapDumper dumper = new JvmHeapDumper(FormatUtils.parseTimeSize(mDumpInterval), "dumps",
-        "dump");
+        "dump-" + mClientType.toString());
     client.cleanup(mDataDir);
     dumper.start();
     client.createFiles(mDataDir, mNumFiles, 50, mDataSize / mNumFiles);
-    try {
-      Thread.sleep(5 * Constants.SECOND_MS);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
     dumper.stopDumps();
     System.exit(0);
   }

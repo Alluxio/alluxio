@@ -17,13 +17,8 @@ import java.util.Arrays;
 /**
  * Profiler client for Alluxio.
  */
-public class AlluxioProfilerClient implements ProfilerClient {
-  private static final int CHUNK_SIZE = 10 * Constants.MB;
-  private static final byte[] DATA = new byte[CHUNK_SIZE];
+public class AlluxioProfilerClient extends ProfilerClient {
 
-  static {
-    Arrays.fill(DATA, (byte)0xCF);
-  }
 
   private final FileSystem mClient;
 
@@ -36,14 +31,22 @@ public class AlluxioProfilerClient implements ProfilerClient {
     try {
       AlluxioURI path = new AlluxioURI(dir);
       try {
-        mClient.delete(path,
-            DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).build());
+        if (!sDryRun) {
+          mClient.delete(path,
+              DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).build());
+        } else {
+          System.out.println("Delete: " + path);
+        }
       } catch (FileDoesNotExistException e) {
         // ok if it doesn't exist already
       }
 
-      mClient.createDirectory(path,
-          CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
+      if (!sDryRun) {
+        mClient.createDirectory(path,
+            CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
+      } else {
+        System.out.println("create directory: " + path);
+      }
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -53,22 +56,26 @@ public class AlluxioProfilerClient implements ProfilerClient {
 
   @Override
   public void createFiles(String dir, long numFiles, long filesPerDir, long fileSize) throws IOException {
-
     int createdFiles = 0;
     while (createdFiles < numFiles) {
       try {
         String subDir = PathUtils.concatPath(dir, createdFiles);
         AlluxioURI subUri = new AlluxioURI(subDir);
-        mClient.createDirectory(subUri,
-            CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
+        if (!sDryRun) {
+          mClient.createDirectory(subUri,
+              CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
+        } else {
+          System.out.println("Create directory: " + subUri);
+        }
         for (int j = 0; j < filesPerDir; j++) {
           AlluxioURI filePath = new AlluxioURI(PathUtils.concatPath(subUri.getPath(), j));
-          try (FileOutStream stream = mClient.createFile(filePath,
-              CreateFilePOptions.newBuilder().build())) {
-            for (int k = 0; k < fileSize / CHUNK_SIZE; k++) {
-              stream.write(DATA);
+          if (!sDryRun) {
+            try (FileOutStream stream = mClient.createFile(filePath,
+                CreateFilePOptions.newBuilder().build())) {
+              writeOutput(stream, fileSize);
             }
-            stream.write(DATA, 0, (int)(fileSize % CHUNK_SIZE)); // Write any remaining data
+          } else {
+            System.out.println("Create file: " + filePath);
           }
           createdFiles++;
         }
