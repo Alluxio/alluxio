@@ -158,6 +158,54 @@ public class AlluxioStatusException extends IOException {
   }
 
   /**
+   * Converts an Alluxio exception from status and message representation to native representation.
+   * The status must not be null or {@link Status#OK}.
+   *
+   * @param status the status
+   * @param m the message
+   * @param cause the cause
+   * @return an {@link AlluxioStatusException} for the given status and message
+   */
+  public static AlluxioStatusException from(Status status, String m, Throwable cause) {
+    Preconditions.checkNotNull(status, "status");
+    Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
+    switch (status) {
+      case CANCELED:
+        return new CanceledException(m, cause);
+      case INVALID_ARGUMENT:
+        return new InvalidArgumentException(m, cause);
+      case DEADLINE_EXCEEDED:
+        return new DeadlineExceededException(m, cause);
+      case NOT_FOUND:
+        return new NotFoundException(m, cause);
+      case ALREADY_EXISTS:
+        return new AlreadyExistsException(m, cause);
+      case PERMISSION_DENIED:
+        return new PermissionDeniedException(m, cause);
+      case UNAUTHENTICATED:
+        return new UnauthenticatedException(m, cause);
+      case RESOURCE_EXHAUSTED:
+        return new ResourceExhaustedException(m, cause);
+      case FAILED_PRECONDITION:
+        return new FailedPreconditionException(m, cause);
+      case ABORTED:
+        return new AbortedException(m, cause);
+      case OUT_OF_RANGE:
+        return new OutOfRangeException(m, cause);
+      case UNIMPLEMENTED:
+        return new UnimplementedException(m, cause);
+      case INTERNAL:
+        return new InternalException(m, cause);
+      case UNAVAILABLE:
+        return new UnavailableException(m, cause);
+      case DATA_LOSS:
+        return new DataLossException(m, cause);
+      default:
+        return new UnknownException(m, cause);
+    }
+  }
+
+  /**
    * Converts checked throwables to Alluxio status exceptions. Unchecked throwables should not be
    * passed to this method. Use Throwables.propagateIfPossible before passing a Throwable to this
    * method.
