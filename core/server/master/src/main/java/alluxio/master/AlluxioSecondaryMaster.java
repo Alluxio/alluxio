@@ -77,13 +77,13 @@ public final class AlluxioSecondaryMaster implements Process {
 
   @Override
   public void start() throws Exception {
-    mRegistry.start(false);
+    mJournalSystem.start();
     mLatch.await();
   }
 
   @Override
   public void stop() throws Exception {
-    mRegistry.stop();
+    mJournalSystem.stop();
     mLatch.countDown();
   }
 
