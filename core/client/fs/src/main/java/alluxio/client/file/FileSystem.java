@@ -510,8 +510,9 @@ public interface FileSystem extends Closeable {
   void persist(AlluxioURI uri) throws IOException;
 
   /**
-   * Schedules the given path to be asynchronously persisted to the under file system. If a
-   * synchronous persist operation is desired please see
+   * Schedules the given path to be asynchronously persisted to the under file system.
+   *
+   * To persist synchronously please see
    * {@link FileSystemUtils#persistAndWait(FileSystem, AlluxioURI)}.
    *
    * @param uri the uri of the file to persist
