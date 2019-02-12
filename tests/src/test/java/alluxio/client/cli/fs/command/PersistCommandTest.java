@@ -265,8 +265,21 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
 
   @Test
   public void persistShortTimeout() throws Exception {
+    shortTimeoutTest("--timeout");
+  }
+
+  @Test
+  public void persistShortTimeoutShortOption() throws Exception {
+    shortTimeoutTest("-t");
+  }
+
+  /**
+   * Ensure a short timeout results in a proper log message
+   * @param option the short or long-form command line option
+   */
+  void shortTimeoutTest(String option) throws Exception {
     createUnpersistedFiles("/testPersistTimeout", 100, 50);
-    mFsShell.run("persist", "--timeout", String.valueOf(1), "/*"); // 1ms persist timeout
+    mFsShell.run("persist", option, String.valueOf(1), "/*"); // 1ms persist timeout
     assertTrue("Should log at least one timeout",
         mLogRule.wasLogged("Timed out waiting for file to be persisted:"));
   }
