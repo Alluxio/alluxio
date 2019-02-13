@@ -16,7 +16,6 @@ import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcExceptionUtils;
@@ -103,8 +102,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
           // In case the client is a UfsFallbackDataWriter, DO NOT clean the temp blocks.
           if (throwable instanceof alluxio.exception.WorkerOutOfSpaceException
               && request.hasCleanupOnFailure() && !request.getCleanupOnFailure()) {
-            mResponseObserver.onError(GrpcExceptionUtils.toGrpcStatusException(
-                AlluxioStatusException.fromThrowable(throwable)));
+            mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
             return;
           }
           mBlockWorker.cleanupSession(mSessionId);
@@ -173,8 +171,8 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
         }
 
         @Override
-        public void exceptionCaught(Throwable throwable) {
-          mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
+      public void exceptionCaught(Throwable throwable) {
+        mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
           mSessionId = INVALID_SESSION_ID;
         }
       }, methodName, false, !isCanceled, "Session=%d, Request=%s",

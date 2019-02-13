@@ -28,10 +28,9 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.grpc.GrpcExceptionUtils;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
-import alluxio.grpc.GrpcUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -408,7 +407,7 @@ public final class ConfigurationUtils {
           client.getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
               .getConfigsList();
     } catch (io.grpc.StatusRuntimeException e) {
-      AlluxioStatusException ase = GrpcExceptionUtils.fromGrpcStatusException(e);
+      AlluxioStatusException ase = AlluxioStatusException.fromStatusRuntimeException(e);
       LOG.warn("Failed to handshake with master {} : {}", address, ase.getMessage());
       throw new UnavailableException(String.format(
           "Failed to handshake with master %s to load cluster default configuration values",
