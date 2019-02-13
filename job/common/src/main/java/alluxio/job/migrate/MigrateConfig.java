@@ -38,14 +38,15 @@ public class MigrateConfig implements JobConfig {
   /**
    * @param source the source path
    * @param dst the destination path
-   * @param writeType the Alluxio write type with which to write the migrated file; a null value means
-   *        to use the default write type from the Alluxio configuration
+   * @param writeType the Alluxio write type with which to write the migrated file; a null value
+   *        means to use the default write type from the Alluxio configuration
    * @param overwrite whether an existing file should be overwritten; if the source and destination
    *        are directories, the contents of the directories will be merged with common files
    *        overwritten by the source
    * @param deleteSource whether to delete the source file or the entire source directory
    */
-  public MigrateConfig(@JsonProperty("source") String source, @JsonProperty("destination") String dst,
+  public MigrateConfig(@JsonProperty("source") String source,
+                       @JsonProperty("destination") String dst,
                        @JsonProperty("writeType") String writeType,
                        @JsonProperty("overwrite") boolean overwrite,
                        @JsonProperty("deleteSource") boolean deleteSource) {
