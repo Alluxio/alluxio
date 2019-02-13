@@ -58,16 +58,15 @@ exports[`Header React component Matches snapshot 1`] = `
       }
     >
       <div
-        className="header card bg-light"
+        className="header"
       >
         <Navbar
-          className="headerNavigation"
+          className="headerNavigation navbar-dark bg-secondary"
           expand="lg"
-          light={true}
           tag="nav"
         >
           <nav
-            className="headerNavigation navbar navbar-expand-lg navbar-light"
+            className="headerNavigation navbar-dark bg-secondary navbar navbar-expand-lg"
           >
             <NavbarBrand
               href="/"
@@ -240,13 +239,12 @@ exports[`Header React component Matches snapshot 1`] = `
                                 active={false}
                                 color="secondary"
                                 onClick={[Function]}
-                                outline={true}
                                 size="sm"
                                 tag="button"
                               >
                                 <button
                                   aria-label={null}
-                                  className="btn btn-outline-secondary btn-sm"
+                                  className="btn btn-secondary btn-sm"
                                   onClick={[Function]}
                                   type="button"
                                 >
@@ -320,12 +318,11 @@ exports[`Header React component Matches snapshot 1`] = `
 
 exports[`Header Shallow component Matches snapshot 1`] = `
 <div
-  className="header card bg-light"
+  className="header"
 >
   <Navbar
-    className="headerNavigation"
+    className="headerNavigation navbar-dark bg-secondary"
     expand="lg"
-    light={true}
     tag="nav"
   >
     <NavbarBrand
@@ -422,7 +419,6 @@ exports[`Header Shallow component Matches snapshot 1`] = `
               active={false}
               color="secondary"
               onClick={[Function]}
-              outline={true}
               size="sm"
               tag="button"
             >
