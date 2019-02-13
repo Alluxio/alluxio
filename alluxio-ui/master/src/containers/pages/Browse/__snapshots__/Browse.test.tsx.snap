@@ -890,11 +890,13 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                                     className="mb-3 browse-directory-form"
                                     id="browseDirectoryForm"
                                     inline={true}
+                                    onSubmit={[Function]}
                                     tag="form"
                                   >
                                     <form
                                       className="mb-3 browse-directory-form form-inline"
                                       id="browseDirectoryForm"
+                                      onSubmit={[Function]}
                                     >
                                       <FormGroup
                                         className="mb-2 mr-sm-2"
@@ -1250,6 +1252,7 @@ exports[`Browse Shallow component Matches snapshot 1`] = `
           className="mb-3 browse-directory-form"
           id="browseDirectoryForm"
           inline={true}
+          onSubmit={[Function]}
           tag="form"
         >
           <FormGroup
