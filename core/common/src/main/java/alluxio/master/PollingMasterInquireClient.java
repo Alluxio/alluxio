@@ -19,6 +19,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -26,6 +27,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
 
+import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,13 +106,16 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     return null;
   }
 
-  private void pingMetaService(InetSocketAddress address)
-      throws AlluxioStatusException {
+  private void pingMetaService(InetSocketAddress address) throws AlluxioStatusException {
     GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, mConfiguration).build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
-    versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()
-        .setServiceType(ServiceType.META_MASTER_CLIENT_SERVICE).build());
+    try {
+      versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()
+          .setServiceType(ServiceType.META_MASTER_CLIENT_SERVICE).build());
+    } catch (StatusRuntimeException e) {
+      throw GrpcExceptionUtils.fromGrpcStatusException(e);
+    }
     channel.shutdown();
   }
 
