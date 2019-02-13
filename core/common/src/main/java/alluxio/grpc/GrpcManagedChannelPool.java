@@ -43,7 +43,6 @@ public class GrpcManagedChannelPool {
   private static GrpcManagedChannelPool sInstance;
 
   static {
-    // TODO(zac): Find a better way to handle handle this instance
     sInstance = new GrpcManagedChannelPool();
   }
 
