@@ -53,21 +53,14 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
-<<<<<<< HEAD
     if (mFileSystem.exists(dstPath)) {
       throw new RuntimeException(dstPath + " already exists");
     }
     Thread thread = JobGrpcClientUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
     thread.start();
     try {
-      JobGrpcClientUtils.run(new MoveConfig(srcPath.getPath(), dstPath.getPath(), null, true),
-          3, mFsContext.getConf());
-=======
-    Thread thread = JobThriftClientUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
-    thread.start();
-    try {
-      JobThriftClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(), null, true, true), 3);
->>>>>>> 7e9fabe811... [AE-588] Distributed copy (#1550)
+      JobGrpcClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(),null, true,
+          true), 3, mFsContext.getConf());
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;

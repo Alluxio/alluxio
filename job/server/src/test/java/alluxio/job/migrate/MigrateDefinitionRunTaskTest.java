@@ -13,9 +13,7 @@ package alluxio.job.migrate;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
@@ -123,15 +121,11 @@ public final class MigrateDefinitionRunTaskTest {
     when(mMockFileSystem.listStatus(new AlluxioURI(TEST_DIR)))
         .thenReturn(Lists.newArrayList());
     runTask(TEST_DIR, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
-<<<<<<< HEAD:job/server/src/test/java/alluxio/job/move/MoveDefinitionRunTaskTest.java
-    verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeletePOptions.class));
-=======
     if (mDeleteSource) {
-      verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeleteOptions.class));
+      verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeletePOptions.class));
     } else {
       verify(mMockFileSystem, never()).delete(new AlluxioURI(TEST_DIR));
     }
->>>>>>> 7e9fabe811... [AE-588] Distributed copy (#1550):job/server/src/test/java/alluxio/job/migrate/MigrateDefinitionRunTaskTest.java
   }
 
   /**
@@ -147,15 +141,11 @@ public final class MigrateDefinitionRunTaskTest {
     when(mMockFileSystem.listStatus(new AlluxioURI(inner)))
         .thenReturn(Lists.newArrayList());
     runTask(TEST_DIR, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
-<<<<<<< HEAD:job/server/src/test/java/alluxio/job/move/MoveDefinitionRunTaskTest.java
-    verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeletePOptions.class));
-=======
     if (mDeleteSource) {
-      verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeleteOptions.class));
+      verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeletePOptions.class));
     } else {
       verify(mMockFileSystem, never()).delete(new AlluxioURI(TEST_DIR));
     }
->>>>>>> 7e9fabe811... [AE-588] Distributed copy (#1550):job/server/src/test/java/alluxio/job/migrate/MigrateDefinitionRunTaskTest.java
   }
 
   /**
@@ -167,12 +157,8 @@ public final class MigrateDefinitionRunTaskTest {
     when(mMockFileSystem.listStatus(new AlluxioURI(TEST_DIR)))
         .thenReturn(Lists.newArrayList(new URIStatus(new FileInfo())));
     runTask(TEST_DIR, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
-<<<<<<< HEAD:job/server/src/test/java/alluxio/job/move/MoveDefinitionRunTaskTest.java
-    verify(mMockFileSystem, times(0)).delete(eq(new AlluxioURI(TEST_DIR)),
+    verify(mMockFileSystem, never()).delete(eq(new AlluxioURI(TEST_DIR)),
         any(DeletePOptions.class));
-=======
-    verify(mMockFileSystem, never()).delete(eq(new AlluxioURI(TEST_DIR)), any(DeleteOptions.class));
->>>>>>> 7e9fabe811... [AE-588] Distributed copy (#1550):job/server/src/test/java/alluxio/job/migrate/MigrateDefinitionRunTaskTest.java
   }
 
   /**

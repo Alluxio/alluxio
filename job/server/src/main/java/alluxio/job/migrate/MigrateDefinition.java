@@ -12,8 +12,6 @@
 package alluxio.job.migrate;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
@@ -23,6 +21,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -102,16 +102,9 @@ import java.util.concurrent.ConcurrentMap;
  *     │   └── f3
  *     └── f1
  */
-<<<<<<< HEAD:job/server/src/main/java/alluxio/job/move/MoveDefinition.java
-public final class MoveDefinition
-    extends AbstractVoidJobDefinition<MoveConfig, ArrayList<MoveCommand>> {
-  private static final Logger LOG = LoggerFactory.getLogger(MoveDefinition.class);
-=======
 public final class MigrateDefinition
     extends AbstractVoidJobDefinition<MigrateConfig, ArrayList<MigrateCommand>> {
   private static final Logger LOG = LoggerFactory.getLogger(MigrateDefinition.class);
-  private final FileSystemContext mFileSystemContext;
->>>>>>> 7e9fabe811... [AE-588] Distributed copy (#1550):job/server/src/main/java/alluxio/job/migrate/MigrateDefinition.java
   private final FileSystem mFileSystem;
   private final FileSystemContext mFsContext;
   private final Random mRandom = new Random();
@@ -119,15 +112,9 @@ public final class MigrateDefinition
   /**
    * Constructs a new {@link MigrateDefinition}.
    */
-<<<<<<< HEAD:job/server/src/main/java/alluxio/job/move/MoveDefinition.java
-  public MoveDefinition() {
+  public MigrateDefinition() {
     mFsContext = FileSystemContext.create(ServerConfiguration.global());
     mFileSystem = BaseFileSystem.create(mFsContext);
-=======
-  public MigrateDefinition() {
-    mFileSystemContext = FileSystemContext.get();
-    mFileSystem = BaseFileSystem.get(FileSystemContext.get());
->>>>>>> 7e9fabe811... [AE-588] Distributed copy (#1550):job/server/src/main/java/alluxio/job/migrate/MigrateDefinition.java
   }
 
   /**
@@ -136,13 +123,8 @@ public final class MigrateDefinition
    * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
    * @param fileSystem the {@link FileSystem} client
    */
-<<<<<<< HEAD:job/server/src/main/java/alluxio/job/move/MoveDefinition.java
-  public MoveDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
+  public MigrateDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
     mFsContext = fsContext;
-=======
-  public MigrateDefinition(FileSystemContext context, FileSystem fileSystem) {
-    mFileSystemContext = context;
->>>>>>> 7e9fabe811... [AE-588] Distributed copy (#1550):job/server/src/main/java/alluxio/job/migrate/MigrateDefinition.java
     mFileSystem = fileSystem;
   }
 
@@ -197,14 +179,7 @@ public final class MigrateDefinition
     if (source.equals(destination)) {
       return new HashMap<>();
     }
-<<<<<<< HEAD:job/server/src/main/java/alluxio/job/move/MoveDefinition.java
-    checkMoveValid(config);
-
-    List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(mFsContext).getAllWorkers();
-=======
     checkMigrateValid(config);
->>>>>>> 7e9fabe811... [AE-588] Distributed copy (#1550):job/server/src/main/java/alluxio/job/migrate/MigrateDefinition.java
     Preconditions.checkState(!jobWorkerInfoList.isEmpty(), "No workers are available");
 
     List<URIStatus> allPathStatuses = getPathStatuses(source);
@@ -214,7 +189,7 @@ public final class MigrateDefinition
       hostnameToWorker.put(workerInfo.getAddress().getHost(), workerInfo);
     }
     List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(mFileSystemContext).getAllWorkers();
+        AlluxioBlockStore.create(mFsContext).getAllWorkers();
     // Assign each file to the worker with the most block locality.
     for (URIStatus status : allPathStatuses) {
       if (status.isFolder()) {
@@ -316,24 +291,15 @@ public final class MigrateDefinition
     WriteType writeType = config.getWriteType() == null
         ? ServerConfiguration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
         : WriteType.valueOf(config.getWriteType());
-<<<<<<< HEAD:job/server/src/main/java/alluxio/job/move/MoveDefinition.java
-    for (MoveCommand command : commands) {
-      move(command, writeType.toProto(), mFileSystem);
-=======
     for (MigrateCommand command : commands) {
-      migrate(command, writeType, config.isDeleteSource(), mFileSystem);
->>>>>>> 7e9fabe811... [AE-588] Distributed copy (#1550):job/server/src/main/java/alluxio/job/migrate/MigrateDefinition.java
+      migrate(command, writeType.toProto(), config.isDeleteSource(), mFileSystem);
     }
     // Try to delete the source directory if it is empty.
     if (config.isDeleteSource() && !hasFiles(new AlluxioURI(config.getSource()), mFileSystem)) {
       try {
         LOG.debug("Deleting {}", config.getSource());
         mFileSystem.delete(new AlluxioURI(config.getSource()),
-<<<<<<< HEAD:job/server/src/main/java/alluxio/job/move/MoveDefinition.java
             DeletePOptions.newBuilder().setRecursive(true).build());
-=======
-                DeleteOptions.defaults().setRecursive(true));
->>>>>>> 7e9fabe811... [AE-588] Distributed copy (#1550):job/server/src/main/java/alluxio/job/migrate/MigrateDefinition.java
       } catch (FileDoesNotExistException e) {
         // It's already deleted, possibly by another worker.
       }
@@ -347,13 +313,8 @@ public final class MigrateDefinition
    * @param deleteSource whether to delete source
    * @param fileSystem the Alluxio file system
    */
-<<<<<<< HEAD:job/server/src/main/java/alluxio/job/move/MoveDefinition.java
-  private static void move(MoveCommand command, WritePType writeType, FileSystem fileSystem)
-      throws Exception {
-=======
-  private static void migrate(MigrateCommand command, WriteType writeType, boolean deleteSource,
+  private static void migrate(MigrateCommand command, WritePType writeType, boolean deleteSource,
       FileSystem fileSystem) throws Exception {
->>>>>>> 7e9fabe811... [AE-588] Distributed copy (#1550):job/server/src/main/java/alluxio/job/migrate/MigrateDefinition.java
     String source = command.getSource();
     String destination = command.getDestination();
     LOG.debug("Migrating {} to {}", source, destination);
