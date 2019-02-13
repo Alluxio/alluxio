@@ -20,7 +20,7 @@ import {Dispatch} from 'redux';
 
 import {FileView, Paginator} from '@alluxio/common-ui/src/components';
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
-import {getDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
+import {disableFormSubmit, getDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/browse/actions';
 import {IBrowse} from '../../../store/browse/types';
@@ -184,7 +184,8 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     const pathInputHandler = this.createInputHandler('path', value => value).bind(this);
     return (
       <React.Fragment>
-        <Form className="mb-3 browse-directory-form" id="browseDirectoryForm" inline={true}>
+        <Form className="mb-3 browse-directory-form" id="browseDirectoryForm" inline={true}
+              onSubmit={disableFormSubmit}>
           <FormGroup className="mb-2 mr-sm-2">
             <Button tag={Link} to={`/browse?path=/${queryStringSuffix}`} color="secondary"
                     outline={true} disabled={'/' === lastFetched.path}>Root</Button>
