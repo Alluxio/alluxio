@@ -14,13 +14,9 @@ package alluxio.master.file.activesync;
 import alluxio.AlluxioURI;
 import alluxio.ProcessUtils;
 import alluxio.SyncInfo;
-<<<<<<< HEAD
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-||||||| parent of d897ab5c87... [AE-594] Various active sync related fixes (#1573)
-=======
 import alluxio.collections.Pair;
->>>>>>> d897ab5c87... [AE-594] Various active sync related fixes (#1573)
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -590,7 +586,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
               // Notify ufs polling thread to keep track of events related to specified uri
               ufsResource.get().startSync(resolution.getUri());
               // Start the initial metadata sync between the ufs and alluxio for the specified uri
-              if (Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
+              if (ServerConfiguration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
                 mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
               }
 
@@ -602,17 +598,6 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
 
       mSyncPathStatus.put(uri, syncFuture);
     }
-<<<<<<< HEAD
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
-      mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
-    }
-||||||| parent of d897ab5c87... [AE-594] Various active sync related fixes (#1573)
-    if (Configuration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
-      mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
-    }
-=======
-
->>>>>>> d897ab5c87... [AE-594] Various active sync related fixes (#1573)
   }
 
   /**
