@@ -42,6 +42,7 @@ public final class UIFileBlockInfo {
    * Creates a new instance of {@link alluxio.util.webui.UIFileBlockInfo}.
    *
    * @param fileBlockInfo underlying {@link FileBlockInfo}
+   * @param alluxioConfiguration the alluxio configuration
    */
   public UIFileBlockInfo(FileBlockInfo fileBlockInfo, AlluxioConfiguration alluxioConfiguration) {
     Preconditions.checkNotNull(fileBlockInfo, "fileBlockInfo");
@@ -63,6 +64,7 @@ public final class UIFileBlockInfo {
    * @param blockLength the block length
    * @param blockLastAccessTimeMs the block last access time in milliseconds
    * @param tierAlias the tier alias of the block
+   * @param alluxioConfiguration the alluxio configuration
    */
   public UIFileBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs,
       String tierAlias, AlluxioConfiguration alluxioConfiguration) {
