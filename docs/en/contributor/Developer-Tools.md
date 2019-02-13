@@ -157,44 +157,28 @@ leverage the Scala shell, as discussed in this
 - The fuse tests are ignored if the libfuse library is missing. To run those tests, please install the correct libraries
 mentioned in [this page]({{ '/en/api/FUSE-API.html' | relativize_url }}#requirements).
 
-## Modifying a Thrift RPC definition
+## Modifying a gRPC definition
 
-Alluxio uses [Thrift](https://thrift.apache.org/) 0.9.3 for RPC communication between clients and servers. The `.thrift`
-files defined in `core/common/src/thrift/` are used to auto-generate Java code for calling the
-RPCs on clients and implementing the RPCs on servers. To change a Thrift definition, you
-must first [install the Thrift compiler](https://thrift.apache.org/docs/install/).
-If you have brew, you can do this by running
-
-```bash
-$ brew install thrift@0.9
-$ brew link --force thrift@0.9
-```
-
-Then to regenerate the Java code, run
+Alluxio uses [gRPC](https://grpc.io/) 1.17.1 for RPC communication between clients and servers. The `.proto`
+files defined in `core/transport/src/grpc/` are used to auto-generate Java code for calling the
+RPCs on clients and implementing the RPCs on servers. To regenerate Java code after changing 
+a gRPC definition, you must rebuild `alluxio-core-transport` module with `'generate'` maven profile.
 
 ```bash
-$ bin/alluxio thriftGen
+$ mvn clean install -Pgenerate
 ```
 
 ## Modifying a Protocol Buffer Message
 
 Alluxio uses [Protocol Buffers](https://developers.google.com/protocol-buffers/) 2.5.0 to read and write journal messages. The `.proto` files
-defined in `core/protobuf/src/proto/` are used to auto-generate Java definitions for
+defined in `core/transport/src/proto/` are used to auto-generate Java definitions for
 the protocol buffer messages. To change one of these messages, first read about
 [updating a message type](https://developers.google.com/protocol-buffers/docs/proto#updating)
-to make sure your change will not break backwards compatibility. Next,
-[install protoc](https://github.com/google/protobuf#protocol-buffers---googles-data-interchange-format).
-If you have brew, you can do this by running
+to make sure your change will not break backwards compatibility. To regenerate Java code after changing 
+a definition, you must rebuild `alluxio-core-transport` module with `'generate'` maven profile.
 
 ```bash
-$ brew install protobuf@2.5
-$ brew link --force protobuf@2.5
-```
-
-Then to regenerate the Java code, run
-
-```bash
-$ bin/alluxio protoGen
+$ mvn clean install -Pgenerate
 ```
 
 ## Usage of `./bin/alluxio`
