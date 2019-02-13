@@ -498,7 +498,7 @@ main() {
 
   if [[ "${killonstart}" != "no" ]]; then
     case "${ACTION}" in
-      all | local | master | masters | proxy | proxies | worker | workers | logserver)
+      all | local | master | masters | secondary_master | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers | logserver)
         stop ${ACTION}
         sleep 1
         ;;
