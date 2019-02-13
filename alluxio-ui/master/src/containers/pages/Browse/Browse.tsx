@@ -227,7 +227,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
               <td>{fileInfo.owner}</td>
               <td>{fileInfo.group}</td>
               <td>{fileInfo.persistenceState}</td>
-              <td>{fileInfo.pinned}</td>
+              <td>{fileInfo.pinned ? 'YES' : 'NO'}</td>
               <td>{fileInfo.creationTime}</td>
             </tr>
           ))}

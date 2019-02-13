@@ -143,8 +143,8 @@ public final class AlluxioWorkerRestServiceHandler {
         (WorkerProcess) context.getAttribute(WorkerWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY);
     mBlockWorker = mWorkerProcess.getWorker(BlockWorker.class);
     mStoreMeta = mWorkerProcess.getWorker(BlockWorker.class).getStoreMeta();
-    mFsClient = (FileSystem) context
-            .getAttribute(WorkerWebServer.ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY);
+    mFsClient =
+        (FileSystem) context.getAttribute(WorkerWebServer.ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY);
   }
 
   /**
@@ -279,7 +279,8 @@ public final class AlluxioWorkerRestServiceHandler {
         // Display file block info
         try {
           URIStatus status = mFsClient.getStatus(new AlluxioURI(requestPath));
-          UIFileInfo uiFileInfo = new UIFileInfo(status);
+          UIFileInfo uiFileInfo = new UIFileInfo(status, ServerConfiguration.global(),
+              new WorkerStorageTierAssoc().getOrderedStorageAliases());
           for (long blockId : status.getBlockIds()) {
             if (mBlockWorker.hasBlockMeta(blockId)) {
               BlockMeta blockMeta = mBlockWorker.getVolatileBlockMeta(blockId);
@@ -333,7 +334,8 @@ public final class AlluxioWorkerRestServiceHandler {
         for (long fileId : subFileIds) {
           try {
             URIStatus status = new URIStatus(mBlockWorker.getFileInfo(fileId));
-            UIFileInfo uiFileInfo = new UIFileInfo(status);
+            UIFileInfo uiFileInfo = new UIFileInfo(status, ServerConfiguration.global(),
+                new WorkerStorageTierAssoc().getOrderedStorageAliases());
             for (long blockId : status.getBlockIds()) {
               if (mBlockWorker.hasBlockMeta(blockId)) {
                 BlockMeta blockMeta = mBlockWorker.getVolatileBlockMeta(blockId);
@@ -471,7 +473,8 @@ public final class AlluxioWorkerRestServiceHandler {
             fileInfos.add(new UIFileInfo(
                 new UIFileInfo.LocalFileInfo(logFileName, logFileName, logFile.length(),
                     UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME, logFile.lastModified(),
-                    logFile.isDirectory())));
+                    logFile.isDirectory()), ServerConfiguration.global(),
+                new WorkerStorageTierAssoc().getOrderedStorageAliases()));
           }
         }
         Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
@@ -590,8 +593,8 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(() -> mWorkerProcess.getRpcAddress().toString(),
-        ServerConfiguration.global());
+    return RestUtils
+        .call(() -> mWorkerProcess.getRpcAddress().toString(), ServerConfiguration.global());
   }
 
   /**
@@ -746,8 +749,8 @@ public final class AlluxioWorkerRestServiceHandler {
   }
 
   private Map<String, String> getConfigurationInternal(boolean raw) {
-    return new TreeMap<>(ServerConfiguration.toMap(
-        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
+    return new TreeMap<>(ServerConfiguration
+        .toMap(ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(raw)));
   }
 
   private Map<String, Long> getMetricsInternal() {

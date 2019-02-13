@@ -373,6 +373,7 @@ public final class AlluxioMasterRestServiceHandler {
       if (!ServerConfiguration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
         return response;
       }
+
       if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
           && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
         AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
@@ -391,7 +392,8 @@ public final class AlluxioMasterRestServiceHandler {
       try {
         long fileId = mFileSystemMaster.getFileId(currentPath);
         FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-        UIFileInfo currentFileInfo = new UIFileInfo(fileInfo);
+        UIFileInfo currentFileInfo = new UIFileInfo(fileInfo, ServerConfiguration.global(),
+            new MasterStorageTierAssoc().getOrderedStorageAliases());
         if (currentFileInfo.getAbsolutePath() == null) {
           throw new FileDoesNotExistException(currentPath.toString());
         }
@@ -454,7 +456,7 @@ public final class AlluxioMasterRestServiceHandler {
             List<UIFileBlockInfo> uiBlockInfo = new ArrayList<>();
             for (FileBlockInfo fileBlockInfo : mFileSystemMaster
                 .getFileBlockInfoList(absolutePath)) {
-              uiBlockInfo.add(new UIFileBlockInfo(fileBlockInfo));
+              uiBlockInfo.add(new UIFileBlockInfo(fileBlockInfo, ServerConfiguration.global()));
             }
             response.setFileBlocks(uiBlockInfo).setFileData(fileData)
                 .setHighestTierAlias(mBlockMaster.getGlobalStorageTierAssoc().getAlias(0));
@@ -471,12 +473,16 @@ public final class AlluxioMasterRestServiceHandler {
           String[] splitPath = PathUtils.getPathComponents(currentPath.toString());
           UIFileInfo[] pathInfos = new UIFileInfo[splitPath.length - 1];
           fileId = mFileSystemMaster.getFileId(currentPath);
-          pathInfos[0] = new UIFileInfo(mFileSystemMaster.getFileInfo(fileId));
+          pathInfos[0] =
+              new UIFileInfo(mFileSystemMaster.getFileInfo(fileId), ServerConfiguration.global(),
+                  new MasterStorageTierAssoc().getOrderedStorageAliases());
           AlluxioURI breadcrumb = new AlluxioURI(AlluxioURI.SEPARATOR);
           for (int i = 1; i < splitPath.length - 1; i++) {
             breadcrumb = breadcrumb.join(splitPath[i]);
             fileId = mFileSystemMaster.getFileId(breadcrumb);
-            pathInfos[i] = new UIFileInfo(mFileSystemMaster.getFileInfo(fileId));
+            pathInfos[i] =
+                new UIFileInfo(mFileSystemMaster.getFileInfo(fileId), ServerConfiguration.global(),
+                    new MasterStorageTierAssoc().getOrderedStorageAliases());
           }
           response.setPathInfos(pathInfos);
         }
@@ -504,7 +510,8 @@ public final class AlluxioMasterRestServiceHandler {
 
       List<UIFileInfo> fileInfos = new ArrayList<>(filesInfo.size());
       for (FileInfo fileInfo : filesInfo) {
-        UIFileInfo toAdd = new UIFileInfo(fileInfo);
+        UIFileInfo toAdd = new UIFileInfo(fileInfo, ServerConfiguration.global(),
+            new MasterStorageTierAssoc().getOrderedStorageAliases());
         try {
           if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
             FileBlockInfo blockInfo =
@@ -597,7 +604,8 @@ public final class AlluxioMasterRestServiceHandler {
           long fileId = mFileSystemMaster.getFileId(file);
           FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
           if (fileInfo != null && fileInfo.getInAlluxioPercentage() == 100) {
-            fileInfos.add(new UIFileInfo(fileInfo));
+            fileInfos.add(new UIFileInfo(fileInfo, ServerConfiguration.global(),
+                new MasterStorageTierAssoc().getOrderedStorageAliases()));
           }
         } catch (FileDoesNotExistException e) {
           response.setFatalError("Error: File does not exist " + e.getLocalizedMessage());
@@ -678,7 +686,8 @@ public final class AlluxioMasterRestServiceHandler {
             fileInfos.add(new UIFileInfo(
                 new UIFileInfo.LocalFileInfo(logFileName, logFileName, logFile.length(),
                     UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME, logFile.lastModified(),
-                    logFile.isDirectory())));
+                    logFile.isDirectory()), ServerConfiguration.global(),
+                new MasterStorageTierAssoc().getOrderedStorageAliases()));
           }
         }
         Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
