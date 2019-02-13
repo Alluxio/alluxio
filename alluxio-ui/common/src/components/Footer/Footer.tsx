@@ -31,12 +31,10 @@ export class Footer extends React.PureComponent<IFooterProps> {
   public render(): JSX.Element {
     const {data} = this.props;
     return (
-      <div className="footer mt-auto card bg-light">
-        <div className="mx-auto">
-          <Nav>
-            {this.renderNavItems(data)}
-          </Nav>
-        </div>
+      <div className="footer mt-auto bg-secondary">
+        <Nav className="justify-content-center">
+          {this.renderNavItems(data)}
+        </Nav>
       </div>
     );
   }
@@ -48,9 +46,10 @@ export class Footer extends React.PureComponent<IFooterProps> {
         ? (callbackParameters ? data.url(callbackParameters) : data.url({}))
         : data.url;
       return (
-      <NavItem key={url}>
-        <NavLink href={url}>{data.innerText}</NavLink>
-      </NavItem>
-    )});
+        <NavItem key={url}>
+          <NavLink href={url}>{data.innerText}</NavLink>
+        </NavItem>
+      )
+    });
   }
 }

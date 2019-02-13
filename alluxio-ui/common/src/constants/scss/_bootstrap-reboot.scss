@@ -9,13 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-.App {
-  .header-wrapper {
-    position: fixed;
-  }
-
-  .footer-wrapper {
-    position: fixed;
-    bottom: 0;
-  }
-}
+@import "../../../../node_modules/bootstrap/scss/functions";
+@import "../../../../node_modules/bootstrap/scss/variables";
+@import "darkly/variables";
+@import "../../../../node_modules/bootstrap/scss/mixins";
+@import "../../../../node_modules/bootstrap/scss/reboot";
