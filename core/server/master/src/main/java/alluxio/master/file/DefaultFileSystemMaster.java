@@ -479,7 +479,60 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   @Override
   public void resetState() {
     mInodeTree.reset();
+<<<<<<< HEAD
     mMountTable.reset();
+||||||| parent of 5a4b029f6b... [AE-595] Stop master fail over from clearing state for Active Sync (#1580)
+    String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    Map<String, String> rootUfsConf =
+        Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+    mMountTable.clear();
+    // Initialize the root mount if it doesn't exist yet.
+    if (!mMountTable.isMountPoint(new AlluxioURI(MountTable.ROOT))) {
+      try (CloseableResource<UnderFileSystem> ufsResource =
+          mUfsManager.getRoot().acquireUfsResource()) {
+        // The root mount is a part of the file system master's initial state. The mounting is not
+        // journaled, so the root will be re-mounted based on configuration whenever the master
+        // starts.
+        long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
+        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
+            MountOptions.defaults()
+                .setShared(ufsResource.get().isObjectStorage() && Configuration
+                    .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
+                .setProperties(rootUfsConf));
+      } catch (FileAlreadyExistsException | InvalidPathException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+    // ALLUXIO CS ADD
+    mDelegationTokenManager.reset();
+    // ALLUXIO CS END
+=======
+    String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    Map<String, String> rootUfsConf =
+        Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+    mMountTable.clear();
+    // Initialize the root mount if it doesn't exist yet.
+    if (!mMountTable.isMountPoint(new AlluxioURI(MountTable.ROOT))) {
+      try (CloseableResource<UnderFileSystem> ufsResource =
+          mUfsManager.getRoot().acquireUfsResource()) {
+        // The root mount is a part of the file system master's initial state. The mounting is not
+        // journaled, so the root will be re-mounted based on configuration whenever the master
+        // starts.
+        long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
+        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
+            MountOptions.defaults()
+                .setShared(ufsResource.get().isObjectStorage() && Configuration
+                    .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
+                .setProperties(rootUfsConf));
+      } catch (FileAlreadyExistsException | InvalidPathException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+    // ALLUXIO CS ADD
+    mDelegationTokenManager.reset();
+    // ALLUXIO CS END
+    mSyncManager.reset();
+>>>>>>> 5a4b029f6b... [AE-595] Stop master fail over from clearing state for Active Sync (#1580)
   }
 
   @Override
