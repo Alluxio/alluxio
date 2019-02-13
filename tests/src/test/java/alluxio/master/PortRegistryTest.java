@@ -17,6 +17,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.master.PortRegistry.Registry;
+
 import org.junit.Test;
 
 import java.io.File;
@@ -27,7 +29,7 @@ import java.util.Set;
  * Unit tests for {@link PortRegistry}.
  */
 public final class PortRegistryTest {
-  private PortRegistry mRegistry = new PortRegistry();
+  private Registry mRegistry = new Registry();
 
   @Test
   public void lockOnce() {
