@@ -71,8 +71,8 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
     const {isAutoRefreshing, isOpen} = this.state;
     const {data} = this.props;
     return (
-      <div className={'header card bg-light'}>
-        <Navbar className="headerNavigation" expand="lg" light={true}>
+      <div className={'header'}>
+        <Navbar className="headerNavigation navbar-dark bg-secondary" expand="lg">
           <NavbarBrand tag={Link} to="/" href="/">
             <div className="headerLogo align-top d-inline-block ml-lg-2">
               <div className="brand">
@@ -97,8 +97,7 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
             <Nav tabs={!isOpen} vertical={isOpen}>
               <NavItem>
                 <ButtonGroup className="auto-refresh-button">
-                  <Button size="sm" outline={true}
-                          color={isAutoRefreshing ? 'primary' : 'secondary'}
+                  <Button size="sm" color="secondary"
                           onClick={this.toggleAutoRefresh} active={isAutoRefreshing}>
                     <FontAwesomeIcon icon={isAutoRefreshing ? faCheckSquare : faSquare}/>&nbsp;
                     Auto Refresh

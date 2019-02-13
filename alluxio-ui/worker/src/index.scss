@@ -9,6 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+@import '../../common/src/constants/scss/bootstrap';
+@import '../../common/src/constants/scss/bootstrap-grid';
+@import '../../common/src/constants/scss/bootstrap-reboot';
+@import '../../common/src/constants/scss/darkly/custom';
+
 body {
   margin: 0;
   padding: 0;
