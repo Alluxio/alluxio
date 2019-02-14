@@ -43,6 +43,7 @@ import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.metrics.TimeSeries;
 import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.FileBlockInfo;
@@ -58,7 +59,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -558,5 +558,5 @@ public interface FileSystemMaster extends Master {
   /**
    * @return the time series data stored by the master
    */
-  Map<String, TreeMap<Long, Long>> getTimeSeries();
+  List<TimeSeries> getTimeSeries();
 }

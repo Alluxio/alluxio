@@ -12,10 +12,12 @@
 package alluxio.master.metrics;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 
+import alluxio.metrics.TimeSeries;
 import alluxio.util.CommonUtils;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -29,11 +31,11 @@ public class TimeSeriesStoreTest {
     long value1 = 10;
     long value2 = 20;
     store.record(metric1, value1);
-    assertTrue(store.getTimeSeries().containsKey(metric1));
-    assertEquals(1, store.getTimeSeries().get(metric1).size());
+    assertEquals(metric1, store.getTimeSeries().get(0).getName());
+    assertEquals(1, store.getTimeSeries().get(0).getDataPoints().size());
     CommonUtils.sleepMs(10); // To prevent the two records from being placed in the same ms.
     store.record(metric1, value2);
-    assertEquals(2, store.getTimeSeries().get(metric1).size());
+    assertEquals(2, store.getTimeSeries().get(0).getDataPoints().size());
   }
 
   @Test
@@ -41,26 +43,37 @@ public class TimeSeriesStoreTest {
     TimeSeriesStore store = new TimeSeriesStore();
     String metric1 = "test_metric_1";
     String metric2 = "test_metric_2";
-    long value1 = 10;
-    long value2 = 20;
+    double value1 = 10;
+    double value2 = 20;
     store.record(metric1, value1);
     store.record(metric2, value2);
-    assertTrue(store.getTimeSeries().containsKey(metric1));
-    assertTrue(store.getTimeSeries().containsKey(metric2));
-    assertTrue(store.getTimeSeries().get(metric1).containsValue(value1));
-    assertTrue(store.getTimeSeries().get(metric2).containsValue(value2));
+    TimeSeries ts1 = null;
+    TimeSeries ts2 = null;
+    for (TimeSeries ts : store.getTimeSeries()) {
+      if (ts.getName().equals(metric1)) {
+        ts1 = ts;
+      } else if (ts.getName().equals(metric2)) {
+        ts2 = ts;
+      } else {
+        Assert.fail("Invalid Timeseries " + ts.getName());
+      }
+    }
+    assertNotNull(ts1);
+    assertNotNull(ts2);
+    assertEquals(value1, ts1.getDataPoints().get(0).getValue(), 0);
+    assertEquals(value2, ts2.getDataPoints().get(0).getValue(), 0);
   }
 
   @Test
   public void orderedTimeSeries() {
     TimeSeriesStore store = new TimeSeriesStore();
     String metric1 = "test_metric";
-    Long value1 = 10L;
-    Long value2 = 20L;
+    double value1 = 10;
+    double value2 = 20;
     store.record(metric1, value1);
     CommonUtils.sleepMs(10); // To prevent the two records from being placed in the same ms.
     store.record(metric1, value2);
-    assertEquals(value1, store.getTimeSeries().get(metric1).firstEntry().getValue());
-    assertEquals(value2, store.getTimeSeries().get(metric1).lastEntry().getValue());
+    assertEquals(value1, store.getTimeSeries().get(0).getDataPoints().get(0).getValue(), 0);
+    assertEquals(value2, store.getTimeSeries().get(0).getDataPoints().get(1).getValue(), 0);
   }
 }

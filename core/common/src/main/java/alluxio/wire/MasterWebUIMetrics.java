@@ -11,13 +11,15 @@
 
 package alluxio.wire;
 
+import alluxio.metrics.TimeSeries;
+
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
 import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -37,7 +39,7 @@ public final class MasterWebUIMetrics implements Serializable {
   private Map<String, Metric> mOperationMetrics;
   private Map<String, String> mUfsReadSize;
   private Map<String, String> mUfsWriteSize;
-  private Map<String, TreeMap<Long, Long>> mTimeSeriesMetrics;
+  private List<TimeSeries> mTimeSeriesMetrics;
   private String mCacheHitLocal;
   private String mCacheHitRemote;
   private String mCacheMiss;
@@ -259,7 +261,7 @@ public final class MasterWebUIMetrics implements Serializable {
   /**
    * @return the time series metrics
    */
-  public Map<String, TreeMap<Long, Long>> getTimeSeriesMetrics() {
+  public List<TimeSeries> getTimeSeriesMetrics() {
     return mTimeSeriesMetrics;
   }
 
@@ -503,7 +505,7 @@ public final class MasterWebUIMetrics implements Serializable {
    * @param timeSeries the time series metrics to set
    * @return the updated masterWebUIMetrics object
    */
-  public MasterWebUIMetrics setTimeSeriesMetrics(Map<String, TreeMap<Long, Long>> timeSeries) {
+  public MasterWebUIMetrics setTimeSeriesMetrics(List<TimeSeries> timeSeries) {
     mTimeSeriesMetrics = timeSeries;
     return this;
   }

@@ -11,11 +11,13 @@
 
 package alluxio.master.metrics;
 
-import com.google.common.collect.ImmutableMap;
+import alluxio.metrics.TimeSeries;
+
+import com.google.common.collect.ImmutableList;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -23,8 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @ThreadSafe
 public class TimeSeriesStore {
-  /** <MetricName, Map<Epoch Time, Value>>. **/
-  private final Map<String, TreeMap<Long, Long>> mTimeSeries;
+  /** <MetricName, TimeSeries>. **/
+  private final Map<String, TimeSeries> mTimeSeries;
 
   /**
    * Constructs a new time series store.
@@ -39,20 +41,20 @@ public class TimeSeriesStore {
    * @param metric the name of the metric
    * @param value the value of the metric
    */
-  public void record(String metric, long value) {
-    mTimeSeries.compute(metric, (metricName, timeseries) -> {
-      if (timeseries == null) {
-        timeseries = new TreeMap<>();
+  public void record(String metric, double value) {
+    mTimeSeries.compute(metric, (metricName, timeSeries) -> {
+      if (timeSeries == null) {
+        timeSeries = new TimeSeries(metricName);
       }
-      timeseries.put(System.currentTimeMillis(), value);
-      return timeseries;
+      timeSeries.record(value);
+      return timeSeries;
     });
   }
 
   /**
-   * @return a copy of the time series data collected so far
+   * @return a copy of all the time series data collected so far
    */
-  public Map<String, TreeMap<Long, Long>> getTimeSeries() {
-    return ImmutableMap.copyOf(mTimeSeries);
+  public List<TimeSeries> getTimeSeries() {
+    return ImmutableList.copyOf(mTimeSeries.values());
   }
 }

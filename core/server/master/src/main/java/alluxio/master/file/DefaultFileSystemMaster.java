@@ -107,6 +107,7 @@ import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.TimeSeriesStore;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.TimeSeries;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddSyncPointEntry;
 import alluxio.proto.journal.File.NewBlockEntry;
@@ -4520,7 +4521,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public Map<String, TreeMap<Long, Long>> getTimeSeries() {
+  public List<TimeSeries> getTimeSeries() {
     return mTimeSeriesStore.getTimeSeries();
   }
 }
