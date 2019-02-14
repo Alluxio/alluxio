@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
@@ -37,6 +38,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -56,6 +58,16 @@ public final class PersistCommand extends AbstractFileSystemCommand {
           .desc("Number of concurrent persist operations, default: " + DEFAULT_PARALLELISM)
           .required(false)
           .build();
+  private static final int DEFAULT_TIMEOUT = 20 * Constants.MINUTE_MS;
+  private static final Option TIMEOUT_OPTION =
+      Option.builder("t")
+          .longOpt("timeout")
+          .argName("timeout in milliseconds")
+          .numberOfArgs(1)
+          .desc("Time in milliseconds for a single file persist to time out; default:"
+              + DEFAULT_TIMEOUT)
+          .required(false)
+          .build();
 
   /**
    * @param fsContext the filesystem of Alluxio
@@ -71,7 +83,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(PARALLELISM_OPTION);
+    return new Options().addOption(PARALLELISM_OPTION).addOption(TIMEOUT_OPTION);
   }
 
   @Override
@@ -81,7 +93,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "persist [-p|--parallelism <#>] <path> [<path> ...]";
+    return "persist [-p|--parallelism <#>] [-t|--timeout <milliseconds>] <path> [<path> ...]";
   }
 
   @Override
@@ -92,11 +104,8 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     // Parse arguments.
-    int parallelism = DEFAULT_PARALLELISM;
-    if (cl.hasOption(PARALLELISM_OPTION.getLongOpt())) {
-      String parellismOption = cl.getOptionValue(PARALLELISM_OPTION.getLongOpt());
-      parallelism = Integer.parseInt(parellismOption);
-    }
+    int parallelism = FileSystemShellUtils.getIntArg(cl, PARALLELISM_OPTION, DEFAULT_PARALLELISM);
+    int timeoutMs = FileSystemShellUtils.getIntArg(cl, TIMEOUT_OPTION, DEFAULT_TIMEOUT);
     String[] args = cl.getArgs();
 
     // Gather files to persist and enqueue them.
@@ -123,7 +132,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
     List<Future<Void>> futures = new ArrayList<>(parallelism);
     for (int i = 0; i < parallelism; i++) {
       futures.add(service.submit(new PersistCallable(toPersist, totalFiles, completedFiles,
-          progressLock)));
+          progressLock, timeoutMs)));
     }
 
     // Await result.
@@ -164,13 +173,15 @@ public final class PersistCommand extends AbstractFileSystemCommand {
     private final int mTotalFiles;
     private final Object mProgressLock;
     private final AtomicInteger mCompletedFiles;
+    private final int mTimeoutMs;
 
     PersistCallable(Queue<AlluxioURI> toPersist, int totalFiles, AtomicInteger completedFiles,
-        Object progressLock) {
+        Object progressLock, int timeoutMs) {
       mFilesToPersist = toPersist;
       mTotalFiles = totalFiles;
       mProgressLock = progressLock;
       mCompletedFiles = completedFiles;
+      mTimeoutMs = timeoutMs;
     }
 
     @Override
@@ -178,7 +189,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
       AlluxioURI toPersist = mFilesToPersist.poll();
       while (toPersist != null) {
         try {
-          FileSystemUtils.persistFile(mFileSystem, mFsContext, toPersist);
+          FileSystemUtils.persistAndWait(mFileSystem, toPersist, mTimeoutMs);
           synchronized (mProgressLock) { // Prevents out of order progress tracking.
             String progress = "(" + mCompletedFiles.incrementAndGet() + "/" + mTotalFiles + ")";
             System.out.println(progress + " Successfully persisted file: " + toPersist);
@@ -186,6 +197,11 @@ public final class PersistCommand extends AbstractFileSystemCommand {
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
           throw e;
+        } catch (TimeoutException e) {
+          String timeoutMsg =
+              String.format("Timed out waiting for file to be persisted: %s", toPersist);
+          System.out.println(timeoutMsg);
+          LOG.error(timeoutMsg, e);
         } catch (Exception e) {
           System.out.println("Failed to persist file " + toPersist);
           LOG.error("Failed to persist file {}", toPersist, e);
