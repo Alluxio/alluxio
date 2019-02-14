@@ -147,12 +147,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
           <th>In-Alluxio</th>
           <th>Persistence State</th>
           <th>Pin</th>
-          <th>Creation Time</th>
           <th>Modification Time</th>
-          <th>[D]DepID</th>
-          <th>[D]INumber</th>
-          <th>[D]UnderfsPath</th>
-          <th>[D]File Locations</th>
         </tr>
         </thead>
         <tbody>
@@ -166,18 +161,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
             <td>{fileInfo.inAlluxioPercentage}%</td>
             <td>{fileInfo.persistenceState}</td>
             <td>{fileInfo.pinned ? 'YES' : 'NO'}</td>
-            <td>{fileInfo.creationTime}</td>
             <td>{fileInfo.modificationTime}</td>
-            <td>{fileInfo.id}</td>
-            <td>
-              {fileInfo.fileLocations.map((location: string) => <div key={location}>location</div>)}
-            </td>
-            <td>{fileInfo.absolutePath}</td>
-            <td>
-              {fileInfo.fileLocations.map((location: string) => (
-                <div key={location}>{location}</div>
-              ))}
-            </td>
           </tr>
         ))}
         </tbody>
