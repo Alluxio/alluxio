@@ -14,7 +14,10 @@ package alluxio.client.file.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
+import alluxio.util.TieredIdentityUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
@@ -38,24 +41,29 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private final TieredIdentity mTieredIdentity;
+  private final boolean mCompareNodeIps;
 
   /**
    * Constructs a {@link LocalFirstPolicy}.
+   *
+   * @param alluxioConf Alluxio configuration
    */
-  public LocalFirstPolicy() {
-    this(TieredIdentityFactory.localIdentity());
+  public LocalFirstPolicy(AlluxioConfiguration alluxioConf) {
+    this(TieredIdentityFactory.localIdentity(alluxioConf),
+        alluxioConf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP));
   }
 
   /**
    * @param localTieredIdentity the local tiered identity
    */
-  private LocalFirstPolicy(TieredIdentity localTieredIdentity) {
+  private LocalFirstPolicy(TieredIdentity localTieredIdentity, boolean compareNodeIp) {
     mTieredIdentity = localTieredIdentity;
+    mCompareNodeIps = compareNodeIp;
   }
 
   @VisibleForTesting
-  static LocalFirstPolicy create(TieredIdentity localTieredIdentity) {
-    return new LocalFirstPolicy(localTieredIdentity);
+  static LocalFirstPolicy create(TieredIdentity localTieredIdentity, boolean compareNodeIps) {
+    return new LocalFirstPolicy(localTieredIdentity, compareNodeIps);
   }
 
   @Override
@@ -74,7 +82,8 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
         .map(worker -> worker.getNetAddress().getTieredIdentity())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
-    Optional<TieredIdentity> nearest = mTieredIdentity.nearest(identities);
+    Optional<TieredIdentity> nearest = TieredIdentityUtils.nearest(mTieredIdentity, identities,
+        mCompareNodeIps);
     if (!nearest.isPresent()) {
       return null;
     }
@@ -109,7 +118,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
 
   @Override
   public String toString() {
-    return com.google.common.base.Objects.toStringHelper(this)
+    return com.google.common.base.MoreObjects.toStringHelper(this)
         .add("tieredIdentity", mTieredIdentity)
         .toString();
   }

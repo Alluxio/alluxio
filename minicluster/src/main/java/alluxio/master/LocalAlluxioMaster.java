@@ -12,15 +12,16 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.master.journal.JournalType;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -45,23 +47,20 @@ public final class LocalAlluxioMaster {
 
   private final String mJournalFolder;
 
-  private final Supplier<String> mClientSupplier = new Supplier<String>() {
-    @Override
-    public String get() {
-      return getUri();
-    }
-  };
+  private final Supplier<String> mClientSupplier = this::getUri;
+
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
-  private MasterProcess mMasterProcess;
+  private AlluxioMasterProcess mMasterProcess;
   private Thread mMasterThread;
 
   private AlluxioSecondaryMaster mSecondaryMaster;
   private Thread mSecondaryMasterThread;
 
-  private LocalAlluxioMaster() throws IOException {
-    mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
-    mJournalFolder = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+  private LocalAlluxioMaster() {
+    mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC,
+        ServerConfiguration.global());
+    mJournalFolder = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
   }
 
   /**
@@ -72,7 +71,7 @@ public final class LocalAlluxioMaster {
   public static LocalAlluxioMaster create() throws IOException {
     String workDirectory = uniquePath();
     FileUtils.deletePathRecursively(workDirectory);
-    Configuration.set(PropertyKey.WORK_DIR, workDirectory);
+    ServerConfiguration.set(PropertyKey.WORK_DIR, workDirectory);
     return create(workDirectory);
   }
 
@@ -93,7 +92,7 @@ public final class LocalAlluxioMaster {
    * Starts the master.
    */
   public void start() {
-    mMasterProcess = MasterProcess.Factory.create();
+    mMasterProcess = AlluxioMasterProcess.Factory.create();
     Runnable runMaster = new Runnable() {
       @Override
       public void run() {
@@ -112,7 +111,12 @@ public final class LocalAlluxioMaster {
     mMasterThread = new Thread(runMaster);
     mMasterThread.setName("MasterThread-" + System.identityHashCode(mMasterThread));
     mMasterThread.start();
-    mMasterProcess.waitForReady();
+    TestUtils.waitForReady(mMasterProcess);
+    // Don't start a secondary master when using the Raft journal.
+    if (ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE,
+        JournalType.class) == JournalType.EMBEDDED) {
+      return;
+    }
     mSecondaryMaster = new AlluxioSecondaryMaster();
     Runnable runSecondaryMaster = new Runnable() {
       @Override
@@ -133,7 +137,7 @@ public final class LocalAlluxioMaster {
     mSecondaryMasterThread
         .setName("SecondaryMasterThread-" + System.identityHashCode(mSecondaryMasterThread));
     mSecondaryMasterThread.start();
-    mSecondaryMaster.waitForReady();
+    TestUtils.waitForReady(mSecondaryMaster);
   }
 
   /**
@@ -187,7 +191,7 @@ public final class LocalAlluxioMaster {
   /**
    * @return the internal {@link MasterProcess}
    */
-  public MasterProcess getMasterProcess() {
+  public AlluxioMasterProcess getMasterProcess() {
     return mMasterProcess;
   }
 
@@ -212,6 +216,14 @@ public final class LocalAlluxioMaster {
    */
   public FileSystem getClient() throws IOException {
     return mClientPool.getClient();
+  }
+
+  /**
+   * @param context the FileSystemContext to use
+   * @return the client from the pool, using a specific context
+   */
+  public FileSystem getClient(FileSystemContext context) throws IOException {
+    return mClientPool.getClient(context);
   }
 
   private static String uniquePath() throws IOException {

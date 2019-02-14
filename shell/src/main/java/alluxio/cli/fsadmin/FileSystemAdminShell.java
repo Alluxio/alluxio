@@ -11,11 +11,23 @@
 
 package alluxio.cli.fsadmin;
 
+import alluxio.ClientContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.master.MasterClientConfig;
+import alluxio.cli.CommandUtils;
+import alluxio.cli.fsadmin.command.Context;
+import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.block.RetryHandlingBlockMasterClient;
+import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.conf.Source;
+import alluxio.master.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -23,11 +35,20 @@ import java.util.Map;
  * Shell for admin to manage file system.
  */
 public final class FileSystemAdminShell extends AbstractShell {
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemAdminShell.class);
+
+  /**
+   * Context shared with fsadmin commands.
+   */
+  private Context mContext;
+
   /**
    * Construct a new instance of {@link FileSystemAdminShell}.
+   *
+   * @param alluxioConf Alluxio configuration
    */
-  FileSystemAdminShell() {
-    super(null);
+  public FileSystemAdminShell(InstancedConfiguration alluxioConf) {
+    super(null, alluxioConf);
   }
 
   /**
@@ -36,11 +57,14 @@ public final class FileSystemAdminShell extends AbstractShell {
    * @param args array of arguments given by the user's input from the terminal
    */
   public static void main(String[] args) {
-    if (!ConfigurationUtils.masterHostConfigured()) {
-      System.out.println("Cannot run fsadmin shell as master hostname is not configured.");
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    if (!ConfigurationUtils.masterHostConfigured(conf) && args.length > 0) {
+      System.out.println("Cannot run alluxio fsadmin shell as master hostname is not configured.");
       System.exit(1);
     }
-    FileSystemAdminShell fsAdminShell = new FileSystemAdminShell();
+    // Reduce the RPC retry max duration to fall earlier for CLIs
+    conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
+    FileSystemAdminShell fsAdminShell = new FileSystemAdminShell(conf);
     System.exit(fsAdminShell.run(args));
   }
 
@@ -51,7 +75,16 @@ public final class FileSystemAdminShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
-    return FileSystemAdminShellUtils
-        .loadCommands(FileSystemMasterClient.Factory.create(MasterClientConfig.defaults()));
+    ClientContext ctx = ClientContext.create(mConfiguration);
+    MasterClientContext masterConfig = MasterClientContext.newBuilder(ctx).build();
+    Context context = new Context(
+        new RetryHandlingFileSystemMasterClient(masterConfig),
+        new RetryHandlingBlockMasterClient(masterConfig),
+        new RetryHandlingMetaMasterClient(masterConfig),
+        System.out
+    );
+    return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(),
+        new Class[] {Context.class, AlluxioConfiguration.class}, new Object[] {context,
+            mConfiguration});
   }
 }

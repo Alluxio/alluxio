@@ -11,7 +11,10 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 
@@ -29,10 +32,10 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MasterInfoCommand extends AbstractFileSystemCommand {
   /**
-   * @param fs the {@link FileSystem}
+   * @param fsContext the {@link FileSystem}
    */
-  public MasterInfoCommand(FileSystem fs) {
-    super(fs);
+  public MasterInfoCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -41,13 +44,14 @@ public final class MasterInfoCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public int getNumOfArgs() {
-    return 0;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 0);
   }
 
   @Override
   public int run(CommandLine cl) {
-    MasterInquireClient inquireClient = MasterInquireClient.Factory.create();
+    MasterInquireClient inquireClient =
+        MasterInquireClient.Factory.create(mFsContext.getConf());
     try {
       InetSocketAddress leaderAddress = inquireClient.getPrimaryRpcAddress();
       System.out.println("Current leader master: " + leaderAddress.toString());

@@ -11,9 +11,10 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidJournalEntryException;
+import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
@@ -22,6 +23,8 @@ import alluxio.master.journal.JournalEntryStateMachine;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.MasterJournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -36,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -107,8 +111,9 @@ public class UfsJournal implements Journal {
    */
   protected static UnderFileSystemConfiguration getJournalUfsConf() {
     Map<String, String> ufsConf =
-        Configuration.getNestedProperties(PropertyKey.MASTER_JOURNAL_UFS_OPTION);
-    return UnderFileSystemConfiguration.defaults().setUserSpecifiedConf(ufsConf);
+        ServerConfiguration.getNestedProperties(PropertyKey.MASTER_JOURNAL_UFS_OPTION);
+    return UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
+               .createMountSpecificConf(ufsConf);
   }
 
   /**
@@ -155,7 +160,7 @@ public class UfsJournal implements Journal {
    * @param entry an entry to write to the journal
    */
   @VisibleForTesting
-  synchronized void write(JournalEntry entry) throws IOException {
+  synchronized void write(JournalEntry entry) throws IOException, JournalClosedException {
     writer().write(entry);
   }
 
@@ -163,7 +168,7 @@ public class UfsJournal implements Journal {
    * Flushes the journal.
    */
   @VisibleForTesting
-  synchronized void flush() throws IOException {
+  public synchronized void flush() throws IOException, JournalClosedException {
     writer().flush();
   }
 
@@ -176,7 +181,7 @@ public class UfsJournal implements Journal {
     return new MasterJournalContext(mAsyncWriter);
   }
 
-  private synchronized UfsJournalLogWriter writer() throws IOException {
+  private synchronized UfsJournalLogWriter writer() {
     Preconditions.checkState(mState == State.PRIMARY,
         "Cannot write to the journal in state " + mState);
     return mWriter;
@@ -250,6 +255,13 @@ public class UfsJournal implements Journal {
   }
 
   /**
+   * @return the next sequence number to write
+   */
+  public long getNextSequenceNumberToWrite() {
+    return writer().getNextSequenceNumber();
+  }
+
+  /**
    * @return the first log sequence number that hasn't yet been checkpointed
    */
   public long getNextSequenceNumberToCheckpoint() throws IOException {
@@ -265,7 +277,7 @@ public class UfsJournal implements Journal {
       return false;
     }
     // Search for the format file.
-    String formatFilePrefix = Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
+    String formatFilePrefix = ServerConfiguration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
     for (UfsStatus file : files) {
       if (file.getName().startsWith(formatFilePrefix)) {
         return true;
@@ -295,14 +307,15 @@ public class UfsJournal implements Journal {
 
     // Create a breadcrumb that indicates that the journal folder has been formatted.
     UnderFileSystemUtils.touch(mUfs, URIUtils.appendPathOrDie(location,
-        Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
+        ServerConfiguration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
         .toString());
   }
 
   /**
    * @return the log directory location
    */
-  URI getLogDir() {
+  @VisibleForTesting
+  public URI getLogDir() {
     return mLogDir;
   }
 
@@ -334,19 +347,51 @@ public class UfsJournal implements Journal {
    * @return the next sequence number after the final sequence number read
    */
   private synchronized long catchUp(long nextSequenceNumber) {
-    try (JournalReader journalReader = new UfsJournalReader(this, nextSequenceNumber, true)) {
-      JournalEntry entry;
-      while ((entry = journalReader.read()) != null) {
-        mMaster.processJournalEntry(entry);
+    JournalReader journalReader = new UfsJournalReader(this, nextSequenceNumber, true);
+    try {
+      return catchUp(journalReader);
+    } finally {
+      try {
+        journalReader.close();
+      } catch (IOException e) {
+        LOG.warn("Failed to close journal reader: {}", e.toString());
       }
-      return journalReader.getNextSequenceNumber();
-    } catch (IOException e) {
-      LOG.error("{}: Failed to read from journal", mMaster.getName(), e);
-      throw new RuntimeException(e);
-    } catch (InvalidJournalEntryException e) {
-      LOG.error("{}: Invalid journal entry detected.", mMaster.getName(), e);
-      // We found an invalid journal entry, nothing we can do but crash.
-      throw new RuntimeException(e);
+    }
+  }
+
+  private long catchUp(JournalReader journalReader) {
+    RetryPolicy retry =
+        ExponentialTimeBoundedRetry.builder()
+            .withInitialSleep(Duration.ofSeconds(1))
+            .withMaxSleep(Duration.ofSeconds(10))
+            .withMaxDuration(Duration.ofDays(365))
+            .build();
+    while (true) {
+      JournalEntry entry;
+      try {
+        entry = journalReader.read();
+      } catch (IOException e) {
+        LOG.warn("{}: Failed to read from journal: {}", mMaster.getName(), e);
+        if (retry.attempt()) {
+          continue;
+        }
+        throw new RuntimeException(e);
+      } catch (InvalidJournalEntryException e) {
+        LOG.error("{}: Invalid journal entry detected.", mMaster.getName(), e);
+        // We found an invalid journal entry, nothing we can do but crash.
+        throw new RuntimeException(e);
+      }
+      if (entry == null) {
+        return journalReader.getNextSequenceNumber();
+      }
+      if (entry.getSequenceNumber() == 0) {
+        mMaster.resetState();
+      }
+      try {
+        mMaster.processJournalEntry(entry);
+      } catch (IOException e) {
+        throw new RuntimeException(String.format("Failed to process journal entry %s", entry), e);
+      }
     }
   }
 
@@ -360,6 +405,9 @@ public class UfsJournal implements Journal {
     if (mWriter != null) {
       mWriter.close();
       mWriter = null;
+    }
+    if (mAsyncWriter != null) {
+      mAsyncWriter.close();
       mAsyncWriter = null;
     }
     if (mTailerThread != null) {

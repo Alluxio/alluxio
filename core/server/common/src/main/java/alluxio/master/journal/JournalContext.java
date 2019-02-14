@@ -11,19 +11,26 @@
 
 package alluxio.master.journal;
 
+import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.Closeable;
+import java.util.function.Supplier;
 
 /**
  * Context for storing journaling information.
  */
-public interface JournalContext extends Closeable {
+public interface JournalContext extends Closeable, Supplier<JournalContext> {
   /**
    * @param entry the {@link JournalEntry} to append to the journal
    */
   void append(JournalEntry entry);
 
   @Override
-  void close();
+  default JournalContext get() {
+    return this;
+  }
+
+  @Override
+  void close() throws UnavailableException;
 }

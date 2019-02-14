@@ -77,7 +77,7 @@ public final class StorageDirTest {
     long[] testDirCapacity = {1};
 
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL, "MEM",
-        testDirPaths, testDirCapacity, "");
+        testDirPaths, testDirCapacity, null);
 
     mTier = StorageTier.newStorageTier("MEM");
     mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, mTestDirPath);

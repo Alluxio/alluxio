@@ -13,7 +13,8 @@ package alluxio.underfs.swift;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -40,12 +41,13 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   public SwiftUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf) {
     Preconditions.checkNotNull(path, "path");
 
     if (checkSwiftCredentials(conf)) {
       try {
-        return new SwiftUnderFileSystem(new AlluxioURI(path), conf);
+        return new SwiftUnderFileSystem(new AlluxioURI(path), conf, alluxioConf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
@@ -67,19 +69,19 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
    */
   private boolean checkSwiftCredentials(UnderFileSystemConfiguration conf) {
     // We do not need authentication credentials in simulation mode
-    if (conf.containsKey(PropertyKey.SWIFT_SIMULATION)
-        && Boolean.valueOf(conf.getValue(PropertyKey.SWIFT_SIMULATION))) {
+    if (conf.isSet(PropertyKey.SWIFT_SIMULATION)
+        && Boolean.valueOf(conf.get(PropertyKey.SWIFT_SIMULATION))) {
       return true;
     }
 
     // API or Password Key is required
-    PropertyKey apiOrPasswordKey = conf.containsKey(PropertyKey.SWIFT_API_KEY)
+    PropertyKey apiOrPasswordKey = conf.isSet(PropertyKey.SWIFT_API_KEY)
         ? PropertyKey.SWIFT_API_KEY : PropertyKey.SWIFT_PASSWORD_KEY;
 
     // Check if required credentials exist
-    return conf.containsKey(apiOrPasswordKey)
-        && conf.containsKey(PropertyKey.SWIFT_TENANT_KEY)
-        && conf.containsKey(PropertyKey.SWIFT_AUTH_URL_KEY)
-        && conf.containsKey(PropertyKey.SWIFT_USER_KEY);
+    return conf.isSet(apiOrPasswordKey)
+        && conf.isSet(PropertyKey.SWIFT_TENANT_KEY)
+        && conf.isSet(PropertyKey.SWIFT_AUTH_URL_KEY)
+        && conf.isSet(PropertyKey.SWIFT_USER_KEY);
   }
 }

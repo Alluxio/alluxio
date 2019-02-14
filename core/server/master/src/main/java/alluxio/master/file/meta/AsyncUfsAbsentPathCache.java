@@ -12,8 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.resource.CloseableResource;
@@ -52,7 +52,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   private static final int THREAD_KEEP_ALIVE_SECONDS = 60;
   /** Number of paths to cache. */
   private static final int MAX_PATHS =
-      Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
+      ServerConfiguration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
 
   /** The mount table. */
   private final MountTable mMountTable;
@@ -84,7 +84,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public void process(AlluxioURI path, List<Inode<?>> prefixInodes) {
+  public void process(AlluxioURI path, List<Inode> prefixInodes) {
     mPool.submit(new ProcessPathTask(path, prefixInodes));
   }
 
@@ -236,7 +236,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
           PathUtils.concatPath(AlluxioURI.SEPARATOR, baseComponents));
       List<AlluxioURI> components = new ArrayList<>(fullComponents.length - startComponentIndex);
       for (int i = startComponentIndex; i < fullComponents.length; i++) {
-        uri = uri.join(fullComponents[i]);
+        uri = uri.joinUnsafe(fullComponents[i]);
         components.add(uri);
       }
       return components;
@@ -291,13 +291,13 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
    */
   private final class ProcessPathTask implements Runnable {
     private final AlluxioURI mPath;
-    private final List<Inode<?>> mPrefixInodes;
+    private final List<Inode> mPrefixInodes;
 
     /**
      * @param path the path to add
      * @param prefixInodes the existing inodes for the path prefix
      */
-    private ProcessPathTask(AlluxioURI path, List<Inode<?>> prefixInodes) {
+    private ProcessPathTask(AlluxioURI path, List<Inode> prefixInodes) {
       mPath = path;
       mPrefixInodes = prefixInodes;
     }

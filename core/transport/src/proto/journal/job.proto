@@ -1,0 +1,39 @@
+syntax = "proto2";
+
+package alluxio.proto.journal;
+
+// Journal entry messages for the job master.
+
+// next available id: 6
+message FinishJobEntry {
+  optional int64 job_id = 1;
+  repeated TaskInfo task_info = 2;
+  optional Status status = 3;
+  optional string error_message = 4;
+  optional string result = 5;
+}
+
+// next available id: 4
+message StartJobEntry {
+  optional int64 job_id = 1;
+  optional string name = 2;
+  optional bytes serialized_job_config = 3;
+}
+
+// next available id: 6
+enum Status {
+  CREATED = 1;
+  CANCELED = 2;
+  FAILED = 3;
+  RUNNING = 4;
+  COMPLETED = 5;
+}
+
+// next available id: 6
+message TaskInfo {
+  optional int64 job_id = 1;
+  optional int32 task_id = 2;
+  optional Status status = 3;
+  optional string error_message = 4;
+  optional bytes result = 5;
+}

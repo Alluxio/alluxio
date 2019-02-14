@@ -12,11 +12,16 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
 import alluxio.client.WriteType;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
+
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
+import alluxio.grpc.WritePType;
+
+import com.google.common.io.ByteStreams;
+import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +43,7 @@ public final class FileSystemTestUtils {
    * @param options options to create the file with
    */
   public static void createByteFile(FileSystem fs, String fileName, int len,
-      CreateFileOptions options) {
+      CreateFilePOptions options) {
     createByteFile(fs, new AlluxioURI(fileName), options, len);
   }
 
@@ -47,11 +52,11 @@ public final class FileSystemTestUtils {
    *
    * @param fs a {@link FileSystem} handler
    * @param fileName the name of the file to be created
-   * @param writeType {@link WriteType} used to create the file
+   * @param writeType {@link WritePType} used to create the file
    * @param len file size
    */
   public static void createByteFile(FileSystem fs, String fileName,
-      WriteType writeType, int len) {
+      WritePType writeType, int len) {
     createByteFile(fs, new AlluxioURI(fileName), writeType, len);
   }
 
@@ -60,12 +65,13 @@ public final class FileSystemTestUtils {
    *
    * @param fs a {@link FileSystem} handler
    * @param fileURI URI of the file
-   * @param writeType {@link WriteType} used to create the file
+   * @param writeType {@link WritePType} used to create the file
    * @param len file size
    */
   public static void createByteFile(FileSystem fs, AlluxioURI fileURI,
-      WriteType writeType, int len) {
-    CreateFileOptions options = CreateFileOptions.defaults().setWriteType(writeType);
+      WritePType writeType, int len) {
+    CreateFilePOptions options =
+        CreateFilePOptions.newBuilder().setRecursive(true).setWriteType(writeType).build();
     createByteFile(fs, fileURI, options, len);
   }
 
@@ -77,7 +83,7 @@ public final class FileSystemTestUtils {
    * @param options client options to create the file with
    * @param len file size
    */
-  public static void createByteFile(FileSystem fs, AlluxioURI fileURI, CreateFileOptions options,
+  public static void createByteFile(FileSystem fs, AlluxioURI fileURI, CreateFilePOptions options,
       int len) {
     try (FileOutStream os = fs.createFile(fileURI, options)) {
       byte[] arr = new byte[len];
@@ -95,14 +101,14 @@ public final class FileSystemTestUtils {
    *
    * @param fs a {@link FileSystem} handler
    * @param fileName the name of the file to be created
-   * @param writeType {@link WriteType} used to create the file
+   * @param writeType {@link WritePType} used to create the file
    * @param len file size
    * @param blockCapacityByte block size of the file
    */
-  public static void createByteFile(FileSystem fs, String fileName, WriteType writeType, int len,
+  public static void createByteFile(FileSystem fs, String fileName, WritePType writeType, int len,
       long blockCapacityByte) {
-    CreateFileOptions options =
-        CreateFileOptions.defaults().setWriteType(writeType).setBlockSizeBytes(blockCapacityByte);
+    CreateFilePOptions options = CreateFilePOptions.newBuilder().setWriteType(writeType)
+        .setBlockSizeBytes(blockCapacityByte).setRecursive(true).build();
     createByteFile(fs, new AlluxioURI(fileName), options, len);
   }
 
@@ -130,17 +136,32 @@ public final class FileSystemTestUtils {
   }
 
   /**
-   * Converts a {@link CreateFileOptions} object to an {@link OpenFileOptions} object with a
+   * Loads a file into Alluxio by reading it.
+   *
+   * @param fs a {@link FileSystem}
+   * @param fileName the name of the file to load
+   */
+  public static void loadFile(FileSystem fs, String fileName) {
+    try (FileInStream is = fs.openFile(new AlluxioURI(fileName),
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build())) {
+      IOUtils.copy(is, ByteStreams.nullOutputStream());
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Converts a {@link CreateFilePOptions} object to an {@link OpenFilePOptions} object with a
    * matching Alluxio storage type.
    *
-   * @param op a {@link CreateFileOptions} object
-   * @return an {@link OpenFileOptions} object with a matching Alluxio storage type
+   * @param op a {@link CreateFilePOptions} object
+   * @return an {@link OpenFilePOptions} object with a matching Alluxio storage type
    */
-  public static OpenFileOptions toOpenFileOptions(CreateFileOptions op) {
-    if (op.getWriteType().getAlluxioStorageType().isStore()) {
-      return OpenFileOptions.defaults().setReadType(ReadType.CACHE);
+  public static OpenFilePOptions toOpenFileOptions(CreateFilePOptions op) {
+    if (WriteType.fromProto(op.getWriteType()).getAlluxioStorageType().isStore()) {
+      return OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
     }
-    return OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    return OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
   }
 
   private FileSystemTestUtils() {} // prevent instantiation

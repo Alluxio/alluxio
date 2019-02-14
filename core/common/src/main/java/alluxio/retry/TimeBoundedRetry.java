@@ -29,8 +29,7 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
   private final Instant mStartTime;
   private final Instant mEndTime;
 
-  private int mRetryCount = 0;
-  private boolean mDone = false;
+  private int mAttemptCount = 0;
 
   /**
    * @param timeCtx the time context to use for time-based operations
@@ -40,40 +39,36 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
     mClock = timeCtx.getClock();
     mSleeper = timeCtx.getSleeper();
     mMaxDuration = maxDuration;
-    mRetryCount = 0;
     mStartTime = mClock.instant();
     mEndTime = mStartTime.plus(mMaxDuration);
   }
 
   @Override
-  public int getRetryCount() {
-    return mRetryCount;
+  public int getAttemptCount() {
+    return mAttemptCount;
   }
 
   @Override
-  public boolean attemptRetry() {
-    if (mDone) {
-      return false;
+  public boolean attempt() {
+    if (mAttemptCount == 0) {
+      mAttemptCount++;
+      return true;
     }
     Instant now = mClock.instant();
-    // We should not do a retry if now == mEndTime. The final retry is timed to land at mEndTime,
-    // so if now == mEndTime, the operation may have taken less than 1ms.
-    if (!now.isBefore(mEndTime)) {
-      mDone = true;
+    if (now.isAfter(mEndTime) || now.equals(mEndTime)) {
       return false;
     }
+    Duration nextWaitTime = computeNextWaitTime();
+    if (now.plus(nextWaitTime).isAfter(mEndTime)) {
+      nextWaitTime = Duration.between(now, mEndTime);
+    }
     try {
-      Duration nextWaitTime = computeNextWaitTime();
-      if (now.plus(nextWaitTime).isAfter(mEndTime)) {
-        nextWaitTime = Duration.between(now, mEndTime);
-        mDone = true;
-      }
       mSleeper.sleep(nextWaitTime);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return false;
     }
-    mRetryCount++;
+    mAttemptCount++;
     return true;
   }
 

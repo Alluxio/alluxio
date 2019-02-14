@@ -70,8 +70,8 @@ public final class MetricsConfig {
    * properties that are grouped by the prefix.
    *
    * @param prop the original properties
-   * @param regex specifies the prefix and suffix pattern
-   * @return a {@code Map} maps from the prefix to its properties
+   * @param regex prefix and suffix pattern
+   * @return a {@code Map} from the prefix to its properties
    */
   public static Map<String, Properties> subProperties(Properties prop, String regex) {
     Map<String, Properties> subProperties = new HashMap<>();
@@ -105,7 +105,7 @@ public final class MetricsConfig {
   }
 
   /**
-   * This method removes the instance prefix in the properties. This is to make the configuration
+   * Removes the instance prefix in the properties. This is to make the configuration
    * parsing logic backward compatible with old configuration format.
    */
   private void removeInstancePrefix() {

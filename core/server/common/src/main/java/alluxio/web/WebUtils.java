@@ -36,24 +36,6 @@ final class WebUtils {
   }
 
   /**
-   * Converts milliseconds to clock time.
-   *
-   * @param millis milliseconds
-   * @return input encoded as clock time
-   */
-  public static String convertMsToClockTime(long millis) {
-    Preconditions.checkArgument(millis >= 0, "Negative values are not supported");
-
-    long days = millis / Constants.DAY_MS;
-    long hours = (millis % Constants.DAY_MS) / Constants.HOUR_MS;
-    long mins = (millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
-    long secs = (millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
-
-    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
-        mins, secs);
-  }
-
-  /**
    * Converts milliseconds to short clock time.
    *
    * @param millis milliseconds

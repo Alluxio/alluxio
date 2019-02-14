@@ -11,12 +11,18 @@
 
 package alluxio.underfs;
 
+import alluxio.annotation.PublicApi;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.extensions.ExtensionFactory;
+
 import javax.annotation.Nullable;
 
 /**
  * Interface for under file system factories.
  */
-public interface UnderFileSystemFactory {
+@PublicApi
+public interface UnderFileSystemFactory
+    extends ExtensionFactory<UnderFileSystem, UnderFileSystemConfiguration> {
 
   /**
    * Creates a new client for accessing the given path. An {@link IllegalArgumentException} is
@@ -25,13 +31,16 @@ public interface UnderFileSystemFactory {
    *
    * @param path file path
    * @param conf optional configuration object for the UFS, may be null
+   * @param alluxioConf configuration object for alluxio
    * @return the client
    */
-  UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf);
+  UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf);
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, UnderFileSystemConfiguration)} can succeed for this path.
+   * {@link #create(String, UnderFileSystemConfiguration, AlluxioConfiguration)} can succeed for
+   * this path.
    *
    * @param path file path
    * @return true if the path is supported, false otherwise
@@ -40,7 +49,8 @@ public interface UnderFileSystemFactory {
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, UnderFileSystemConfiguration)} can succeed for this path.
+   * {@link #create(String, UnderFileSystemConfiguration, AlluxioConfiguration)} can succeed for
+   * this path.
    *
    * @param path file path
    * @param conf optional configuration object for the UFS, may be null
@@ -48,5 +58,14 @@ public interface UnderFileSystemFactory {
    */
   default boolean supportsPath(String path, @Nullable UnderFileSystemConfiguration conf) {
     return supportsPath(path);
+  }
+
+  /**
+   * Get the version supported by this factory.
+   *
+   * @return the version string
+   */
+  default String getVersion() {
+    return "";
   }
 }

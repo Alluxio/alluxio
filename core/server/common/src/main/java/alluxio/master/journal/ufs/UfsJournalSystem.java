@@ -11,8 +11,12 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.Constants;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.JournalEntryStateMachine;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryPolicy;
+import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 
 import com.google.common.io.Closer;
@@ -21,7 +25,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -59,18 +69,23 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  protected void gainPrimacy() {
-    try {
-      for (UfsJournal journal : mJournals.values()) {
+  public void gainPrimacy() {
+    List<Callable<Void>> callables = new ArrayList<>();
+    for (UfsJournal journal : mJournals.values()) {
+      callables.add(() -> {
         journal.gainPrimacy();
-      }
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to upgrade journal to primary", e);
+        return null;
+      });
+    }
+    try {
+      CommonUtils.invokeAll(callables, 365 * Constants.DAY_MS);
+    } catch (TimeoutException | ExecutionException e) {
+      throw new RuntimeException(e);
     }
   }
 
   @Override
-  protected void losePrimacy() {
+  public void losePrimacy() {
     try {
       for (UfsJournal journal : mJournals.values()) {
         journal.losePrimacy();
@@ -93,10 +108,23 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     for (UfsJournal journal : mJournals.values()) {
       closer.register(journal);
     }
-    try {
-      closer.close();
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to stop journal system", e);
+    RetryPolicy retry = ExponentialTimeBoundedRetry.builder()
+        .withMaxDuration(Duration.ofMinutes(1))
+        .withInitialSleep(Duration.ofMillis(100))
+        .withMaxSleep(Duration.ofSeconds(3))
+        .build();
+    IOException exception = null;
+    while (retry.attempt()) {
+      try {
+        closer.close();
+        return;
+      } catch (IOException e) {
+        exception = e;
+        LOG.warn("Failed to close journal: {}", e.toString());
+      }
+    }
+    if (exception != null) {
+      throw new RuntimeException(exception);
     }
   }
 
@@ -104,6 +132,16 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   public boolean isFormatted() throws IOException {
     for (UfsJournal journal : mJournals.values()) {
       if (!journal.isFormatted()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  public synchronized boolean isEmpty() {
+    for (UfsJournal journal : mJournals.values()) {
+      if (journal.getNextSequenceNumberToWrite() > 0) {
         return false;
       }
     }

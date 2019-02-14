@@ -11,13 +11,14 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 
 import javax.annotation.concurrent.ThreadSafe;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -31,11 +32,11 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
   private CpCommand mCpCommand;
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public CopyFromLocalCommand(FileSystem fs) {
-    super(fs);
-    mCpCommand = new CpCommand(fs);
+  public CopyFromLocalCommand(FileSystemContext fsContext) {
+    super(fsContext);
+    mCpCommand = new CpCommand(fsContext);
   }
 
   @Override
@@ -44,8 +45,14 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 2;
+  public Options getOptions() {
+    return new Options().addOption(CpCommand.THREAD_OPTION)
+        .addOption(CpCommand.BUFFER_SIZE_OPTION);
+  }
+
+  @Override
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    mCpCommand.validateArgs(cl);
   }
 
   @Override
@@ -59,11 +66,15 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "copyFromLocal <src> <remoteDst>";
+    return "copyFromLocal "
+        + "[--thread <number of threads for copying>] "
+        + "[--buffersize <read buffer size in bytes>] "
+        + "<src> <remoteDst>";
   }
 
   @Override
   public String getDescription() {
-    return "Copies a file or a directory from local filesystem to Alluxio filesystem.";
+    return "Copies a file or a directory from local filesystem to Alluxio filesystem "
+        + "in parallel at file level.";
   }
 }

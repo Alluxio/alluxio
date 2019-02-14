@@ -40,7 +40,7 @@ public class NoopJournal implements Journal {
 
   @Override
   public JournalContext createJournalContext() {
-    return new NoopJournalContext();
+    return NoopJournalContext.INSTANCE;
   }
 
   @Override

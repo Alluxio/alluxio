@@ -13,48 +13,51 @@ package alluxio.client;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.master.MasterClientConfig;
-import alluxio.thrift.AlluxioService;
-import alluxio.thrift.GetMasterInfoTOptions;
-import alluxio.thrift.MetaMasterClientService;
-import alluxio.wire.MasterInfo;
-import alluxio.wire.MasterInfo.MasterInfoField;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.GetConfigReportPOptions;
+import alluxio.grpc.GetMasterInfoPOptions;
+import alluxio.grpc.GetMetricsPOptions;
+import alluxio.grpc.MasterInfo;
+import alluxio.grpc.MasterInfoField;
+import alluxio.grpc.MetaMasterClientServiceGrpc;
+import alluxio.grpc.MetricValue;
+import alluxio.grpc.ServiceType;
+import alluxio.master.MasterClientContext;
+import alluxio.wire.BackupResponse;
+import alluxio.wire.ConfigCheckReport;
 
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the thrift client to interact with the meta master.
- *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety and
- * support for retries.
+ * A wrapper for the gRPC client to interact with the meta master.
  */
 @ThreadSafe
-public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
+public class RetryHandlingMetaMasterClient extends AbstractMasterClient
     implements MetaMasterClient {
-  private MetaMasterClientService.Client mClient;
+  private MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub mClient = null;
 
   /**
    * Creates a new meta master client.
    *
    * @param conf master client configuration
    */
-  public RetryHandlingMetaMasterClient(MasterClientConfig conf) {
+  public RetryHandlingMetaMasterClient(MasterClientContext conf) {
     super(conf);
-    mClient = null;
   }
 
   @Override
-  protected AlluxioService.Client getClient() {
-    return mClient;
+  protected ServiceType getRemoteServiceType() {
+    return ServiceType.META_MASTER_CLIENT_SERVICE;
   }
 
   @Override
   protected String getServiceName() {
-    return Constants.META_MASTER_SERVICE_NAME;
+    return Constants.META_MASTER_CLIENT_SERVICE_NAME;
   }
 
   @Override
@@ -64,22 +67,33 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
 
   @Override
   protected void afterConnect() {
-    mClient = new MetaMasterClientService.Client(mProtocol);
+    mClient = MetaMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   @Override
-  public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields) throws IOException {
-    return retryRPC(() -> {
-      Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
-      if (fields == null) {
-        thriftFields = null;
-      } else {
-        for (MasterInfoField field : fields) {
-          thriftFields.add(field.toThrift());
-        }
-      }
-      return MasterInfo.fromThrift(
-          mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
-    });
+  public BackupResponse backup(String targetDirectory,
+                                            boolean localFileSystem) throws IOException {
+    return retryRPC(() -> BackupResponse.fromPoto(mClient.backup(BackupPOptions.newBuilder()
+        .setTargetDirectory(targetDirectory).setLocalFileSystem(localFileSystem).build())));
+  }
+
+  @Override
+  public ConfigCheckReport getConfigReport() throws IOException {
+    return retryRPC(() -> ConfigCheckReport.fromProto(
+        mClient.getConfigReport(GetConfigReportPOptions.getDefaultInstance()).getReport()));
+  }
+
+  @Override
+  public MasterInfo getMasterInfo(final Set<MasterInfoField> fields)
+      throws IOException {
+    return retryRPC(() -> mClient
+        .getMasterInfo(GetMasterInfoPOptions.newBuilder().addAllFilter(fields).build())
+        .getMasterInfo());
+  }
+
+  @Override
+  public Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
+    return retryRPC(
+        () -> mClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap());
   }
 }

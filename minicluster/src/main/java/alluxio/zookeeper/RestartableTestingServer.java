@@ -29,12 +29,13 @@ public final class RestartableTestingServer extends TestingServer {
    * @param tempDirectory directory to use
    */
   public RestartableTestingServer(int port, File tempDirectory) throws Exception {
-    super(new InstanceSpec(tempDirectory, port, -1, -1, true, -1));
+    super(new InstanceSpec(tempDirectory, port, -1, -1, true, -1), true);
     mTestingZooKeeperServer = Whitebox.getInternalState(this, "testingZooKeeperServer");
   }
 
   /**
-   * Restarts the internal testing server.
+   * Restarts the internal testing server. It is required to call {@link #stop()} before calling
+   * {@link #restart()}.
    */
   public void restart() throws Exception {
     mTestingZooKeeperServer.restart();

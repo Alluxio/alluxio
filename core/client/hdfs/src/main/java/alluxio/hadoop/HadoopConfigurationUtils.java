@@ -11,21 +11,22 @@
 
 package alluxio.hadoop;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 
-import org.apache.hadoop.io.DefaultStringifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Utility class for merging Alluxio {@link Configuration} with Hadoop's Configuration class.
+ * Utility class for merging {@link AlluxioConfiguration} with Hadoop's Configuration class.
  */
 @ThreadSafe
 public final class HadoopConfigurationUtils {
@@ -34,35 +35,19 @@ public final class HadoopConfigurationUtils {
   private HadoopConfigurationUtils() {} // Prevent instantiation.
 
   /**
-   * Stores the Alluxio {@link Configuration} to the target
-   * Hadoop {@link org.apache.hadoop.conf.Configuration} object.
+   * Merges Hadoop {@link org.apache.hadoop.conf.Configuration} with Alluxio properties.
    *
-   * @param target the {@link org.apache.hadoop.conf.Configuration} target
+   * @param hadoopConf the {@link org.apache.hadoop.conf.Configuration} to merge
+   * @param alluxioProps the Alluxio properties to merge
+   * @return a configuration with properties all merged
    */
-  public static void storeToHadoopConfiguration(org.apache.hadoop.conf.Configuration target) {
-  // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
-    target.set("io.serializations", "org.apache.hadoop.io.serializer.JavaSerialization,"
-        + "org.apache.hadoop.io.serializer.WritableSerialization");
-    Map<String, String> confProperties = Configuration.toMap();
-    try {
-      DefaultStringifier.store(target, confProperties, PropertyKey.SITE_CONF_DIR.toString());
-    } catch (IOException ex) {
-      LOG.error("Unable to store Alluxio configuration in Hadoop configuration", ex);
-      throw new RuntimeException(ex);
-    }
-  }
-
-  /**
-   * Merges Hadoop {@link org.apache.hadoop.conf.Configuration} into the Alluxio configuration.
-   *
-   * @param source the {@link org.apache.hadoop.conf.Configuration} to merge
-   */
-  public static void mergeHadoopConfiguration(org.apache.hadoop.conf.Configuration source) {
+  public static InstancedConfiguration mergeHadoopConfiguration(
+      org.apache.hadoop.conf.Configuration hadoopConf, AlluxioProperties alluxioProps) {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system
     // Push Alluxio configuration to the Job configuration
     Properties alluxioConfProperties = new Properties();
     // Load any Alluxio configuration parameters existing in the Hadoop configuration.
-    for (Map.Entry<String, String> entry : source) {
+    for (Map.Entry<String, String> entry : hadoopConf) {
       String propertyName = entry.getKey();
       if (PropertyKey.isValid(propertyName)) {
         alluxioConfProperties.put(propertyName, entry.getValue());
@@ -70,8 +55,31 @@ public final class HadoopConfigurationUtils {
     }
     LOG.info("Loading Alluxio properties from Hadoop configuration: {}", alluxioConfProperties);
     // Merge the relevant Hadoop configuration into Alluxio's configuration.
-    // TODO(jiri): support multiple client configurations (ALLUXIO-2034)
-    Configuration.merge(alluxioConfProperties, Configuration.Source.HADOOP_CONF);
-    Configuration.validate();
+
+    alluxioProps.merge(alluxioConfProperties, Source.RUNTIME);
+    // Creting a new instanced configuration from an AlluxioProperties object isn't expensive.
+    InstancedConfiguration mergedConf = new InstancedConfiguration(alluxioProps);
+    mergedConf.validate();
+    return mergedConf;
+  }
+
+  /**
+   * Merges an {@link AlluxioConfiguration} into an hadoop
+   * {@link org.apache.hadoop.conf.Configuration}.
+   *
+   * @param source The source hadoop configuration
+   * @param alluxioConf the alluxio configuration to merge
+   * @return a hadoop configuration object with the properties from the {@link AlluxioConfiguration}
+   */
+  public static org.apache.hadoop.conf.Configuration mergeAlluxioConfiguration(
+      org.apache.hadoop.conf.Configuration source, AlluxioConfiguration alluxioConf) {
+    org.apache.hadoop.conf.Configuration mergedConf = new org.apache.hadoop.conf.Configuration();
+    source.forEach((Map.Entry<String, String> e) -> mergedConf.set(e.getKey(), e.getValue()));
+    alluxioConf.copyProperties().forEach((PropertyKey pk, String val) -> {
+      if (val != null) {
+        mergedConf.set(pk.getName(), val);
+      }
+    });
+    return mergedConf;
   }
 }

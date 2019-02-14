@@ -12,8 +12,8 @@
 package alluxio.underfs.local;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.AtomicFileOutputStream;
@@ -75,14 +75,20 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param ufsConf UFS configuration
+   * @param alluxioConf Alluxio configuration
    */
-  public LocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
-    super(uri, ufsConf);
+  public LocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
+      AlluxioConfiguration alluxioConf) {
+    super(uri, ufsConf, alluxioConf);
   }
 
   @Override
   public String getUnderFSType() {
     return "local";
+  }
+
+  @Override
+  public void cleanup() throws IOException {
   }
 
   @Override
@@ -165,7 +171,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     if (!file.exists()) {
       throw new FileNotFoundException(path);
     }
-    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return mAlluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -175,13 +181,13 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     PosixFileAttributes attr =
         Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
     return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
-        FileUtils.translatePosixPermissionToMode(attr.permissions()));
+        FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
   }
 
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<>();
-    ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC));
+    ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mAlluxioConf));
     return ret;
   }
 
@@ -236,7 +242,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     }
     // Return directory status.
     return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
-        FileUtils.translatePosixPermissionToMode(attr.permissions()));
+        FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
   }
 
   @Override
@@ -269,7 +275,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         UfsStatus retStatus;
         if (f.isDirectory()) {
           retStatus = new UfsDirectoryStatus(f.getName(), attr.owner().getName(),
-              attr.group().getName(), mode);
+              attr.group().getName(), mode, f.lastModified());
         } else {
           String contentHash =
               UnderFileSystemUtils.approximateContentHash(f.length(), f.lastModified());
@@ -379,7 +385,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
       LOG.debug("Exception: ", e);
       LOG.warn("In order for Alluxio to modify ownership of local files, "
           + "Alluxio should be the local file system superuser.");
-      if (!Configuration.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
+      if (!mAlluxioConf.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
         throw e;
       } else {
         LOG.warn("Failure is ignored, which may cause permission inconsistency between "

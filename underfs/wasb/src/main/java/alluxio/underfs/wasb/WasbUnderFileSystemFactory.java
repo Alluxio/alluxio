@@ -12,6 +12,7 @@
 package alluxio.underfs.wasb;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -32,9 +33,10 @@ public class WasbUnderFileSystemFactory implements UnderFileSystemFactory {
   public WasbUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
-    return WasbUnderFileSystem.createInstance(new AlluxioURI(path), conf);
+    return WasbUnderFileSystem.createInstance(new AlluxioURI(path), conf, alluxioConf);
   }
 
   @Override

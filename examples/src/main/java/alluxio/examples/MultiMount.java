@@ -12,11 +12,14 @@
 package alluxio.examples;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
+import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.io.IOUtils;
 
@@ -46,6 +49,8 @@ public final class MultiMount {
       System.exit(-1);
     }
 
+    AlluxioConfiguration alluxioConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+
     AlluxioURI mntPath = new AlluxioURI("/mnt");
     AlluxioURI s3Mount = new AlluxioURI("/mnt/s3");
     AlluxioURI inputPath = new AlluxioURI("/mnt/s3/hello.txt");
@@ -53,7 +58,7 @@ public final class MultiMount {
     AlluxioURI hdfsMount = new AlluxioURI("/mnt/hdfs");
     AlluxioURI outputPath = new AlluxioURI("/mnt/hdfs/hello.txt");
     AlluxioURI hdfsPath = new AlluxioURI(args[0]);
-    FileSystem fileSystem = FileSystem.Factory.get();
+    FileSystem fileSystem = FileSystem.Factory.create(alluxioConf);
 
     try {
       // Make sure mount directory exists.
@@ -101,8 +106,8 @@ public final class MultiMount {
 
       // Open the output stream, setting the write type to make sure result is persisted.
       System.out.print("opening " + outputPath + " ... ");
-      CreateFileOptions options =
-          CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+      CreateFilePOptions options = CreateFilePOptions.newBuilder()
+          .setWriteType(WritePType.CACHE_THROUGH).setRecursive(true).build();
       FileOutStream os = fileSystem.createFile(outputPath, options);
       System.out.println("done");
 

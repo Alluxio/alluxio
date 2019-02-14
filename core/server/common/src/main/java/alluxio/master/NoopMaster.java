@@ -13,9 +13,10 @@ package alluxio.master;
 
 import alluxio.Server;
 import alluxio.exception.ExceptionMessage;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
+import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
-
-import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -56,7 +57,7 @@ public class NoopMaster implements Master {
   }
 
   @Override
-  public Map<String, TProcessor> getServices() {
+  public Map<ServiceType, GrpcService> getServices() {
     return null;
   }
 
@@ -80,5 +81,10 @@ public class NoopMaster implements Master {
 
   @Override
   public void resetState() {
+  }
+
+  @Override
+  public JournalContext createJournalContext() {
+    throw new IllegalStateException("Cannot create journal contexts for NoopMaster");
   }
 }

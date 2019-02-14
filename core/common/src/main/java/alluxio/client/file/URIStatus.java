@@ -12,9 +12,11 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TtlAction;
+import alluxio.grpc.TtlAction;
 
 import com.google.common.base.Preconditions;
 
@@ -40,6 +42,20 @@ public class URIStatus {
    */
   public URIStatus(FileInfo info) {
     mInfo = Preconditions.checkNotNull(info, "Cannot create a URIStatus from a null FileInfo");
+  }
+
+  /**
+   * @return the ACL entries for this path, mutable
+   */
+  public AccessControlList getAcl() {
+    return mInfo.getAcl();
+  }
+
+  /**
+   * @return the default ACL entries for this path, mutable
+   */
+  public DefaultAccessControlList getDefaultAcl() {
+    return mInfo.getDefaultAcl();
   }
 
   /**
@@ -167,6 +183,20 @@ public class URIStatus {
    */
   public String getOwner() {
     return mInfo.getOwner();
+  }
+
+  /**
+   * @return the maximum number of replicas of the entity referenced by this uri, mutable
+   */
+  public int getReplicationMax() {
+    return mInfo.getReplicationMax();
+  }
+
+  /**
+   * @return the minimum number of replicas of the entity referenced by this uri, mutable
+   */
+  public int getReplicationMin() {
+    return mInfo.getReplicationMin();
   }
 
   /**

@@ -11,11 +11,13 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.interfaces.Scoped;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.function.Consumer;
 
 /**
  * Interface for a class which can determine whether the local master is the primary.
@@ -40,9 +42,19 @@ public interface PrimarySelector {
      * @return a primary selector based on zookeeper configuration
      */
     public static PrimarySelector createZkPrimarySelector() {
-      String zkAddress = Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH);
-      String zkLeaderPath = Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH);
+      String zkAddress = ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS);
+      String zkElectionPath = ServerConfiguration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH);
+      String zkLeaderPath = ServerConfiguration.get(PropertyKey.ZOOKEEPER_LEADER_PATH);
+      return new PrimarySelectorClient(zkAddress, zkElectionPath, zkLeaderPath);
+    }
+
+    /**
+     * @return a job master primary selector based on zookeeper configuration
+     */
+    public static PrimarySelector createZkJobPrimarySelector() {
+      String zkAddress = ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS);
+      String zkElectionPath = ServerConfiguration.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH);
+      String zkLeaderPath = ServerConfiguration.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH);
       return new PrimarySelectorClient(zkAddress, zkElectionPath, zkLeaderPath);
     }
 
@@ -60,6 +72,22 @@ public interface PrimarySelector {
    * Stops the primary selector.
    */
   void stop() throws IOException;
+
+  /**
+   * @return the current state
+   */
+  State getState();
+
+  /**
+   * Registers a listener to be executed whenever the selector's state updates.
+   *
+   * The listener will be executed synchronously in the state update thread, so it should run
+   * quickly.
+   *
+   * @param listener the listener
+   * @return an object which will unregister the listener when closed
+   */
+  Scoped onStateChange(Consumer<State> listener);
 
   /**
    * Blocks until the primary selector enters the specified state.

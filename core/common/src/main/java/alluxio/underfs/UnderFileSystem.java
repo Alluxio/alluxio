@@ -12,8 +12,14 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.annotation.PublicApi;
+import alluxio.SyncInfo;
+import alluxio.collections.Pair;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -39,6 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Alluxio stores data into an under layer file system. Any file system implementing this interface
  * can be a valid under layer file system
  */
+@PublicApi
 @ThreadSafe
 // TODO(adit); API calls should use a URI instead of a String wherever appropriate
 public interface UnderFileSystem extends Closeable {
@@ -58,8 +65,8 @@ public interface UnderFileSystem extends Closeable {
      * @param path the file path storing over the ufs
      * @return instance of the under layer file system
      */
-    public static UnderFileSystem create(String path) {
-      return create(path, UnderFileSystemConfiguration.defaults());
+    public static UnderFileSystem create(String path, AlluxioConfiguration conf) {
+      return create(path, UnderFileSystemConfiguration.defaults(conf), conf);
     }
 
     /**
@@ -69,8 +76,8 @@ public interface UnderFileSystem extends Closeable {
      * @param path journal path in ufs
      * @return the instance of under file system for Alluxio journal directory
      */
-    public static UnderFileSystem create(URI path) {
-      return create(path.toString());
+    public static UnderFileSystem create(URI path, AlluxioConfiguration conf) {
+      return create(path.toString(), conf);
     }
 
     /**
@@ -80,12 +87,14 @@ public interface UnderFileSystem extends Closeable {
      *
      * @param path path
      * @param ufsConf optional configuration object for the UFS, may be null
+     * @param alluxioConf Alluxio configuration
      * @return client for the under file system
      */
-    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
+    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf,
+        AlluxioConfiguration alluxioConf) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories =
-          UnderFileSystemFactoryRegistry.findAll(path, ufsConf);
+          UnderFileSystemFactoryRegistry.findAll(path, ufsConf, alluxioConf);
       if (factories.isEmpty()) {
         throw new IllegalArgumentException("No Under File System Factory found for: " + path);
       }
@@ -99,7 +108,8 @@ public interface UnderFileSystem extends Closeable {
           // when creation is done.
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(factory.create(path, ufsConf));
+          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf, alluxioConf),
+              alluxioConf);
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
@@ -124,14 +134,14 @@ public interface UnderFileSystem extends Closeable {
     /**
      * @return the instance of under file system for Alluxio root directory
      */
-    public static UnderFileSystem createForRoot() {
-      String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      boolean readOnly = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
-      boolean shared = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
+    public static UnderFileSystem createForRoot(AlluxioConfiguration conf) {
+      String ufsRoot = conf.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+      boolean readOnly = conf.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
+      boolean shared = conf.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
       Map<String, String> ufsConf =
-          Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return create(ufsRoot, UnderFileSystemConfiguration.defaults().setReadOnly(readOnly)
-          .setShared(shared).setUserSpecifiedConf(ufsConf));
+          conf.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+      return create(ufsRoot, UnderFileSystemConfiguration.defaults(conf).setReadOnly(readOnly)
+          .setShared(shared).createMountSpecificConf(ufsConf));
     }
   }
 
@@ -172,14 +182,10 @@ public interface UnderFileSystem extends Closeable {
   }
 
   /**
-   * Operation mode for under storage. During maintenance the operation mode may be changed to
-   * NO_ACCESS or READ_ONLY.
+   * Cleans up the under file system. If any data or files are created
+   * and not completed/aborted correctly in normal ways, they should be cleaned in this method.
    */
-  enum UfsMode {
-    NO_ACCESS,
-    READ_ONLY,
-    READ_WRITE
-  }
+  void cleanup() throws IOException;
 
   /**
    * Takes any necessary actions required to establish a connection to the under file system from
@@ -256,6 +262,16 @@ public interface UnderFileSystem extends Closeable {
    * @return true if the path exists, false otherwise
    */
   boolean exists(String path) throws IOException;
+
+  /**
+   * Gets the ACL and the Default ACL of a file or directory in under file system.
+   *
+   * @param path the path to the file or directory
+   * @return the access control list, along with a Default ACL if it is a directory
+   *         return null if ACL is unsupported or disabled
+   * @throws IOException if ACL is supported and enabled but cannot be retrieved
+   */
+  Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path) throws IOException;
 
   /**
    * Gets the block size of a file in under file system, in bytes.
@@ -502,6 +518,16 @@ public interface UnderFileSystem extends Closeable {
   AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath);
 
   /**
+   * Sets the access control list of a file or directory in under file system.
+   * if the ufs does not support acls, this is a noop.
+   * This will overwrite the ACL and defaultACL in the UFS.
+   *
+   * @param path the path to the file or directory
+   * @param aclEntries the access control list + default acl represented in a list of acl entries
+   */
+  void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException;
+
+  /**
    * Changes posix file mode.
    *
    * @param path the path of the file
@@ -525,4 +551,47 @@ public interface UnderFileSystem extends Closeable {
    * @return true if this type of UFS supports flush, false otherwise
    */
   boolean supportsFlush();
+
+  /**
+   * Whether this type of UFS supports active sync.
+   *
+   * @return true if this type of UFS supports active sync, false otherwise
+   */
+  boolean supportsActiveSync();
+
+  /**
+   * Return the active sync info for the specified syncPoints.
+   *
+   * @return active sync info consisting of what changed for these sync points
+   */
+  SyncInfo getActiveSyncInfo() throws IOException;
+
+  /**
+   * Add Sync Point.
+   *
+   * @param uri ufs uri to start
+   */
+  void startSync(AlluxioURI uri) throws IOException;
+
+  /**
+   * Stop Sync Point.
+   *
+   * @param uri ufs uri to stop
+   */
+  void stopSync(AlluxioURI uri) throws IOException;
+
+  /**
+   * Start Active Sync.
+   *
+   * @param txId the transaction id to start receiving event
+   * @return true if active sync started
+   */
+  boolean startActiveSyncPolling(long txId) throws IOException;
+
+  /**
+   * Stop Active Sync.
+   *
+   * @return true if active sync stopped
+   */
+  boolean stopActiveSyncPolling() throws IOException;
 }

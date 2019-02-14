@@ -12,6 +12,8 @@
 package alluxio.master.journal;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -22,7 +24,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class AbstractJournalSystem implements JournalSystem {
-  private Mode mMode = Mode.SECONDARY;
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractJournalSystem.class);
+
   private boolean mRunning = false;
 
   @Override
@@ -39,25 +42,6 @@ public abstract class AbstractJournalSystem implements JournalSystem {
     stopInternal();
   }
 
-  @Override
-  public synchronized void setMode(Mode mode) {
-    Preconditions.checkState(mRunning, "Cannot change journal system mode while it is not running");
-    if (mMode.equals(mode)) {
-      return;
-    }
-    switch (mode) {
-      case PRIMARY:
-        gainPrimacy();
-        break;
-      case SECONDARY:
-        losePrimacy();
-        break;
-      default:
-        throw new IllegalStateException("Unrecognized mode: " + mode);
-    }
-    mMode = mode;
-  }
-
   /**
    * Starts the journal system.
    */
@@ -67,14 +51,4 @@ public abstract class AbstractJournalSystem implements JournalSystem {
    * Stops the journal system.
    */
   protected abstract void stopInternal() throws InterruptedException, IOException;
-
-  /**
-   * Transition the journal from secondary to primary mode.
-   */
-  protected abstract void gainPrimacy();
-
-  /**
-   * Transition the journal from primary to secondary mode.
-   */
-  protected abstract void losePrimacy();
 }

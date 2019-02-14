@@ -12,12 +12,13 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.DeleteOptions;
+import alluxio.cli.CommandUtils;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.DeletePOptions;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -31,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Removes the file specified by argv.
  */
 @ThreadSafe
-public final class RmCommand extends WithWildCardPathCommand {
+public final class RmCommand extends AbstractFileSystemCommand {
 
   private static final Option RECURSIVE_OPTION =
       Option.builder("R")
@@ -49,27 +50,23 @@ public final class RmCommand extends WithWildCardPathCommand {
           .build();
 
   private static final Option REMOVE_ALLUXIO_ONLY =
-      Option.builder("alluxioOnly")
+      Option.builder()
+          .longOpt("alluxioOnly")
           .required(false)
           .hasArg(false)
           .desc("remove data and metadata from Alluxio space only")
           .build();
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public RmCommand(FileSystem fs) {
-    super(fs);
+  public RmCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
   public String getCommandName() {
     return "rm";
-  }
-
-  @Override
-  protected int getNumOfArgs() {
-    return 1;
   }
 
   @Override
@@ -81,7 +78,8 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     // TODO(calvin): Remove explicit state checking.
     boolean recursive = cl.hasOption("R");
     if (!mFileSystem.exists(path)) {
@@ -91,13 +89,11 @@ public final class RmCommand extends WithWildCardPathCommand {
       throw new IOException(
           path.getPath() + " is a directory, to remove it, please use \"rm -R <path>\"");
     }
+    boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
+    DeletePOptions options =
+        DeletePOptions.newBuilder().setRecursive(recursive).setAlluxioOnly(isAlluxioOnly)
+            .setUnchecked(cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)).build();
 
-    DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
-    if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
-      options.setUnchecked(true);
-    }
-    boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getOpt());
-    options.setAlluxioOnly(isAlluxioOnly);
     mFileSystem.delete(path, options);
     if (!isAlluxioOnly) {
       System.out.println(path + " has been removed");
@@ -107,8 +103,17 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path, cl);
+
+    return 0;
+  }
+
+  @Override
   public String getUsage() {
-    return "rm [-R] [-U] [-alluxioOnly] <path>";
+    return "rm [-R] [-U] [--alluxioOnly] <path>";
   }
 
   @Override
@@ -119,10 +124,7 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length < 1) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-          .getMessage(getCommandName(), 1, args.length));
-    }
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 }

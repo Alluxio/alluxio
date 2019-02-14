@@ -13,16 +13,20 @@ package alluxio;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.PropertyKey.Builder;
-import alluxio.PropertyKey.Template;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.PropertyKey.Builder;
+import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
 
 /**
  * Tests enum type {@link PropertyKey}.
@@ -36,6 +40,11 @@ public final class PropertyKeyTest {
       .setIsHidden(false)
       .setIgnoredSiteProperty(false)
       .build();
+
+  @After
+  public void after() {
+    PropertyKey.unregister(mTestProperty);
+  }
 
   /**
    * Tests parsing string to PropertyKey by {@link PropertyKey#fromString}.
@@ -233,7 +242,7 @@ public final class PropertyKeyTest {
   public void compare() throws Exception {
     assertTrue(PropertyKey.CONF_DIR.compareTo(PropertyKey.DEBUG) < 0);
     assertTrue(PropertyKey.DEBUG.compareTo(PropertyKey.CONF_DIR) > 0);
-    assertTrue(PropertyKey.DEBUG.compareTo(PropertyKey.DEBUG) == 0);
+    assertEquals(0, PropertyKey.DEBUG.compareTo(PropertyKey.DEBUG));
   }
 
   @Test
@@ -254,5 +263,36 @@ public final class PropertyKeyTest {
     assertTrue(PropertyKey.isValid("alluxio.locality.custom"));
 
     assertEquals("alluxio.locality.custom", Template.LOCALITY_TIER.format("custom").toString());
+  }
+
+  @Test
+  public void isBuiltIn() {
+    assertTrue(mTestProperty.isBuiltIn());
+  }
+
+  @Test
+  public void impersonationRegex() {
+    // test groups
+    String name = "a-A_1.b-B_2@.groups";
+    String groups = String.format("alluxio.master.security.impersonation.%s.groups", name);
+    Matcher matcher = PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION.match(groups);
+    assertTrue(matcher.matches());
+    assertEquals(name, matcher.group(1));
+
+    // test users
+    name = "a-A_1.b-B_2@.users";
+    String users = String.format("alluxio.master.security.impersonation.%s.users", name);
+    matcher = Template.MASTER_IMPERSONATION_USERS_OPTION.match(users);
+    assertTrue(matcher.matches());
+    assertEquals(name, matcher.group(1));
+  }
+
+  @Test
+  public void testEmptyKeyDefaults() {
+    for (PropertyKey key : PropertyKey.defaultKeys()) {
+      assertNotEquals(String.format(
+          "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()),
+          key.getDefaultValue(), "");
+    }
   }
 }

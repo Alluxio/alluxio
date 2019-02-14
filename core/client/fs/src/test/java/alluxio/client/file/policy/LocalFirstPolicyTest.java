@@ -13,8 +13,11 @@ package alluxio.client.file.policy;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
@@ -33,13 +36,18 @@ import java.util.List;
  */
 public final class LocalFirstPolicyTest {
 
+  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static int sResolutionTimeout =
+      (int) sConf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+
   /**
    * Tests that the local host is returned first.
    */
   @Test
   public void getLocalFirst() {
-    String localhostName = NetworkAddressUtils.getLocalHostName();
-    LocalFirstPolicy policy = new LocalFirstPolicy();
+    String localhostName =
+        NetworkAddressUtils.getLocalHostName(sResolutionTimeout);
+    LocalFirstPolicy policy = new LocalFirstPolicy(sConf);
     List<BlockWorkerInfo> workers = new ArrayList<>();
     workers.add(worker(Constants.GB, "worker1", ""));
     workers.add(worker(Constants.GB, localhostName, ""));
@@ -51,8 +59,8 @@ public final class LocalFirstPolicyTest {
    */
   @Test
   public void getOthersWhenNotEnoughCapacityOnLocal() {
-    String localhostName = NetworkAddressUtils.getLocalHostName();
-    LocalFirstPolicy policy = new LocalFirstPolicy();
+    String localhostName = NetworkAddressUtils.getLocalHostName(sResolutionTimeout);
+    LocalFirstPolicy policy = new LocalFirstPolicy(sConf);
     List<BlockWorkerInfo> workers = new ArrayList<>();
     workers.add(worker(Constants.GB, "worker1", ""));
     workers.add(worker(Constants.MB, localhostName, ""));
@@ -64,7 +72,7 @@ public final class LocalFirstPolicyTest {
    */
   @Test
   public void getOthersRandomly() {
-    LocalFirstPolicy policy = new LocalFirstPolicy();
+    LocalFirstPolicy policy = new LocalFirstPolicy(sConf);
     List<BlockWorkerInfo> workers = new ArrayList<>();
     workers.add(worker(Constants.GB, "worker1", ""));
     workers.add(worker(Constants.GB, "worker2", ""));
@@ -89,12 +97,15 @@ public final class LocalFirstPolicyTest {
     LocalFirstPolicy policy;
     WorkerNetAddress chosen;
     // local rack
-    policy = LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=node1,rack=rack2"));
+    policy = LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=node1,rack=rack2",
+        sConf), sConf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP));
     chosen = policy.getWorkerForNextBlock(workers, Constants.GB);
     assertEquals("rack2", chosen.getTieredIdentity().getTier(1).getValue());
 
     // local node
-    policy = LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=node4,rack=rack3"));
+    policy = LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=node4,rack=rack3",
+        sConf),
+        sConf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP));
     chosen = policy.getWorkerForNextBlock(workers, Constants.GB);
     assertEquals("node4", chosen.getTieredIdentity().getTier(0).getValue());
   }
@@ -108,7 +119,8 @@ public final class LocalFirstPolicyTest {
     // Local rack has enough space
     workers.add(worker(Constants.GB, "node4", "rack3"));
     LocalFirstPolicy policy =
-        LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=node2,rack=rack3"));
+        LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=node2,rack=rack3", sConf),
+            sConf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP));
     WorkerNetAddress chosen = policy.getWorkerForNextBlock(workers, Constants.GB);
     assertEquals(workers.get(2).getNetAddress(), chosen);
   }
@@ -117,9 +129,11 @@ public final class LocalFirstPolicyTest {
   public void equalsTest() throws Exception {
     new EqualsTester()
         .addEqualityGroup(
-            LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=x,rack=y")))
+            LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=x,rack=y", sConf),
+                sConf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP)))
         .addEqualityGroup(
-            LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=x,rack=z")))
+            LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=x,rack=z", sConf),
+                sConf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP)))
         .testEquals();
   }
 

@@ -48,9 +48,4 @@ public interface ProxyProcess extends Process {
    * @return the worker web service port (used by unit test only)
    */
   int getWebLocalPort();
-
-  /**
-   * Waits until the worker is ready to server requests.
-   */
-  void waitForReady();
 }

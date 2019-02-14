@@ -46,18 +46,15 @@ public final class ConcurrencyUtils {
       final CountDownLatch afterInitBlocker = new CountDownLatch(1);
       final CountDownLatch allDone = new CountDownLatch(numThreads);
       for (final Runnable submittedTestRunnable : runnables) {
-        threadPool.submit(new Runnable() {
-          @Override
-          public void run() {
-            allExecutorThreadsReady.countDown();
-            try {
-              afterInitBlocker.await();
-              submittedTestRunnable.run();
-            } catch (final Throwable e) {
-              exceptions.add(e);
-            } finally {
-              allDone.countDown();
-            }
+        threadPool.submit(() -> {
+          allExecutorThreadsReady.countDown();
+          try {
+            afterInitBlocker.await();
+            submittedTestRunnable.run();
+          } catch (final Throwable e) {
+            exceptions.add(e);
+          } finally {
+            allDone.countDown();
           }
         });
       }

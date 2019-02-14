@@ -28,7 +28,7 @@ public abstract class AbstractResourceRule extends ExternalResource {
    * @return a Closeable resource that makes the modification of the resource on construction and
    *         restore the rule to the previous value on close.
    */
-  public Closeable toResource() throws Exception {
+  public Closeable toResource() {
     return new Closeable() {
       {
         try {

@@ -62,7 +62,7 @@ public class ExtensionsClassLoader extends URLClassLoader {
     // Pass null to override parent first delegation
     super(urls, null);
     mDefaultClassloader = new DefaultClassLoader(defaultClassLoader);
-    LOG.info("Created ExtensionsClassLoader with jars={}", urls);
+    LOG.debug("Created ExtensionsClassLoader with jars={}", urls);
   }
 
   @Override

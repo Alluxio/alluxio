@@ -13,9 +13,9 @@ package alluxio.master.block;
 
 import alluxio.Constants;
 import alluxio.RestUtils;
-import alluxio.master.MasterProcess;
+import alluxio.conf.ServerConfiguration;
+import alluxio.master.AlluxioMasterProcess;
 import alluxio.web.MasterWebServer;
-import alluxio.wire.BlockInfo;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -54,7 +54,7 @@ public final class BlockMasterClientRestServiceHandler {
    */
   public BlockMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.
-    mBlockMaster = ((MasterProcess) context
+    mBlockMaster = ((AlluxioMasterProcess) context
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY))
         .getMaster(BlockMaster.class);
   }
@@ -67,12 +67,8 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME;
-      }
-    });
+    return RestUtils.call(() -> Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
+        ServerConfiguration.global());
   }
 
   /**
@@ -83,12 +79,8 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION;
-      }
-    });
+    return RestUtils.call(() -> Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION,
+        ServerConfiguration.global());
   }
 
   /**
@@ -100,12 +92,9 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(GET_BLOCK_INFO)
   @ReturnType("alluxio.wire.BlockInfo")
   public Response getBlockInfo(@QueryParam("blockId") final Long blockId) {
-    return RestUtils.call(new RestUtils.RestCallable<BlockInfo>() {
-      @Override
-      public BlockInfo call() throws Exception {
-        Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
-        return mBlockMaster.getBlockInfo(blockId);
-      }
-    });
+    return RestUtils.call(() -> {
+      Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
+      return mBlockMaster.getBlockInfo(blockId);
+    }, ServerConfiguration.global());
   }
 }

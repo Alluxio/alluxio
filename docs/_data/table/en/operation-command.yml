@@ -28,6 +28,8 @@ free:
   in under storage, it will still be available there.
 getCapacityBytes:
   Get the capacity of the AlluxioFS.
+getfacl:
+  Get the Access Control List of a file or directory.
 getUsedBytes:
   Get number of bytes used in the AlluxioFS.
 help:
@@ -74,6 +76,8 @@ rm:
 rmr:
   Remove a file, or a directory with all the files and sub-directories that this directory
   contains.
+setfacl:
+  Set the Access Control List of a file or directory.
 setTtl:
   Set the TTL (time to live) in milliseconds for a file. Allow to perform either "delete"
   or "free" after expiry of ttl interval.

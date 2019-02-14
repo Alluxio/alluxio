@@ -28,15 +28,15 @@ public final class TimeoutRetryTest {
     final int sleepMs = 10;
     int attempts = 0;
     TimeoutRetry timeoutRetry = new TimeoutRetry(timeoutMs, sleepMs);
-    Assert.assertEquals(0, timeoutRetry.getRetryCount());
+    Assert.assertEquals(0, timeoutRetry.getAttemptCount());
     long startMs = System.currentTimeMillis();
-    while (timeoutRetry.attemptRetry()) {
+    while (timeoutRetry.attempt()) {
       attempts++;
     }
     long endMs = System.currentTimeMillis();
     Assert.assertTrue(attempts > 0);
     Assert.assertTrue((endMs - startMs) >= timeoutMs);
-    Assert.assertEquals(attempts, timeoutRetry.getRetryCount());
+    Assert.assertEquals(attempts, timeoutRetry.getAttemptCount());
     Assert.assertTrue(attempts <= (timeoutMs / sleepMs) + 1);
   }
 }

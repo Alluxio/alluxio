@@ -14,8 +14,11 @@ package alluxio.client.file.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -29,6 +32,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class SpecificHostPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private final String mHostname;
+
+  /**
+   * @param alluxioConf Alluxio configuration
+   */
+  public SpecificHostPolicy(AlluxioConfiguration alluxioConf) {
+    this(alluxioConf.get(PropertyKey.WORKER_HOSTNAME));
+  }
 
   /**
    * Constructs the policy with the hostname.
@@ -75,7 +85,7 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy, BlockL
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("hostname", mHostname)
         .toString();
   }

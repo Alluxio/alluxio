@@ -57,14 +57,31 @@ body #content {
 h1 {
     font-size: 28px;
     margin-top: 12px;
+    counter-reset: h2counter;
 }
 h2 {
     font-size: 24px;
     margin-top: 12px;
+    counter-reset: h3counter;
 }
 h3 {
     font-size: 21px;
     margin-top: 10px;
+    counter-reset: h4counter;
+}
+h2:before {
+    counter-increment: h2counter;
+    content: counter(h2counter) "\0000a0\0000a0";
+}
+
+h3:before {
+    counter-increment: h3counter;
+    content: counter(h2counter) "." counter(h3counter) "\0000a0\0000a0";
+}
+
+h4:before {
+    counter-increment: h4counter;
+    content: counter(h2counter) "." counter(h3counter) "." counter(h4counter) "\0000a0\0000a0";
 }
 pre {
     font-family: "Menlo", "Lucida Console", monospace;

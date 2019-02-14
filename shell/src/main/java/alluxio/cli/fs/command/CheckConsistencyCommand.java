@@ -12,12 +12,14 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
+import alluxio.cli.CommandUtils;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CheckConsistencyOptions;
-import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.CheckConsistencyPOptions;
+import alluxio.grpc.DeletePOptions;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -41,15 +43,21 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
           .build();
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public CheckConsistencyCommand(FileSystem fs) {
-    super(fs);
+  public CheckConsistencyCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    checkConsistency(plainPath, cl.hasOption("r"));
+  }
+
+  @Override
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override
@@ -66,7 +74,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI root = new AlluxioURI(args[0]);
-    checkConsistency(root, cl.hasOption("r"));
+
+    runWildCardCmd(root, cl);
     return 0;
   }
 
@@ -81,8 +90,9 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
    */
   private void checkConsistency(AlluxioURI path, boolean repairConsistency) throws
       AlluxioException, IOException {
-    CheckConsistencyOptions options = CheckConsistencyOptions.defaults();
-    List<AlluxioURI> inconsistentUris = FileSystemUtils.checkConsistency(path, options);
+    List<AlluxioURI> inconsistentUris =
+        FileSystemUtils.checkConsistency(mFsContext, path,
+            CheckConsistencyPOptions.getDefaultInstance());
     if (inconsistentUris.isEmpty()) {
       System.out.println(path + " is consistent with the under storage system.");
       return;
@@ -97,23 +107,22 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
       Collections.sort(inconsistentUris);
       System.out.println(path + " has: " + inconsistentUris.size() + " inconsistent files.");
       List<AlluxioURI> inconsistentDirs = new ArrayList<AlluxioURI>();
-      for (int i = 0; i < inconsistentUris.size(); i++) {
-        AlluxioURI inconsistentUri = inconsistentUris.get(i);
+      for (AlluxioURI inconsistentUri : inconsistentUris) {
         URIStatus status = mFileSystem.getStatus(inconsistentUri);
         if (status.isFolder()) {
           inconsistentDirs.add(inconsistentUri);
           continue;
         }
         System.out.println("repairing path: " + inconsistentUri);
-        DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true);
+        DeletePOptions deleteOptions = DeletePOptions.newBuilder().setAlluxioOnly(true).build();
         mFileSystem.delete(inconsistentUri, deleteOptions);
         mFileSystem.exists(inconsistentUri);
         System.out.println(inconsistentUri + " repaired");
         System.out.println();
       }
       for (AlluxioURI uri : inconsistentDirs) {
-        DeleteOptions deleteOptions = DeleteOptions.defaults().setAlluxioOnly(true)
-            .setRecursive(true);
+        DeletePOptions deleteOptions =
+            DeletePOptions.newBuilder().setAlluxioOnly(true).setRecursive(true).build();
         System.out.println("repairing path: " + uri);
         mFileSystem.delete(uri, deleteOptions);
         mFileSystem.exists(uri);

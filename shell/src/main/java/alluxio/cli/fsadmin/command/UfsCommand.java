@@ -12,12 +12,12 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.options.UpdateUfsModeOptions;
+import alluxio.cli.CommandUtils;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.grpc.UfsPMode;
+import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -32,8 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Update attributes for an existing mount point.
  */
 @ThreadSafe
-public final class UfsCommand extends AbstractFileSystemAdminCommand {
-
+public final class UfsCommand extends AbstractFsAdminCommand {
   private static final Option MODE_OPTION =
       Option.builder()
           .longOpt("mode")
@@ -43,10 +42,11 @@ public final class UfsCommand extends AbstractFileSystemAdminCommand {
           .build();
 
   /**
-   * @param masterClient the filesystem master client
+   * @param context fsadmin command context
+   * @param alluxioConf Alluxio configuration
    */
-  public UfsCommand(FileSystemMasterClient masterClient) {
-    super(masterClient);
+  public UfsCommand(Context context, AlluxioConfiguration alluxioConf) {
+    super(context);
   }
 
   @Override
@@ -55,8 +55,8 @@ public final class UfsCommand extends AbstractFileSystemAdminCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override
@@ -75,22 +75,23 @@ public final class UfsCommand extends AbstractFileSystemAdminCommand {
       return -1;
     }
     if (cl.hasOption(MODE_OPTION.getLongOpt())) {
-      UnderFileSystem.UfsMode mode;
+      UfsPMode mode;
       switch (cl.getOptionValue(MODE_OPTION.getLongOpt())) {
         case "noAccess":
-          mode = UnderFileSystem.UfsMode.NO_ACCESS;
+          mode = UfsPMode.NO_ACCESS;
           break;
         case "readOnly":
-          mode = UnderFileSystem.UfsMode.READ_ONLY;
+          mode = UfsPMode.READ_ONLY;
           break;
         case "readWrite":
-          mode = UnderFileSystem.UfsMode.READ_WRITE;
+          mode = UfsPMode.READ_WRITE;
           break;
         default:
           System.out.println("Unrecognized mode");
           return -1;
       }
-      mMasterClient.updateUfsMode(ufsUri, UpdateUfsModeOptions.defaults().setUfsMode(mode));
+      UpdateUfsModePOptions options = UpdateUfsModePOptions.newBuilder().setUfsMode(mode).build();
+      mFsClient.updateUfsMode(ufsUri, options);
       System.out.println("Ufs mode updated");
       return 0;
     }
@@ -106,13 +107,5 @@ public final class UfsCommand extends AbstractFileSystemAdminCommand {
   @Override
   public String getDescription() {
     return "Update attributes for a ufs path.";
-  }
-
-  @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length != 1) {
-      throw new InvalidArgumentException(
-          ExceptionMessage.INVALID_ARGS_GENERIC.getMessage(getCommandName()));
-    }
   }
 }

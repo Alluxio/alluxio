@@ -11,12 +11,17 @@
 
 package alluxio.master.journal;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.journal.raft.RaftJournalConfiguration;
+import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.CommonUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
@@ -73,7 +78,8 @@ public interface JournalSystem {
 
   /**
    * The mode of the journal system. Journal systems begin in SECONDARY mode by default. The
-   * {@link #setMode(Mode)} method may be used to transition between journal modes.
+   * {@link #gainPrimacy()} and {@link #losePrimacy()} methods may be used to transition between
+   * journal modes.
    */
   enum Mode {
     /**
@@ -119,16 +125,14 @@ public interface JournalSystem {
   void stop() throws InterruptedException, IOException;
 
   /**
-   * Sets the mode of the journal to either primary or secondary. This method requires that the
-   * journal system has been started.
-   *
-   * When journal entries are applied, the journal will only update the state machine if in
-   * secondary mode. In primary mode, it is expected that the state machine will update its own
-   * state before it writes entries to the journal.
-   *
-   * @param mode the mode to set
+   * Transitions the journal to primary mode.
    */
-  void setMode(Mode mode);
+  void gainPrimacy();
+
+  /**
+   * Transitions the journal to secondary mode.
+   */
+  void losePrimacy();
 
   /**
    * Formats the journal system.
@@ -141,12 +145,21 @@ public interface JournalSystem {
   boolean isFormatted() throws IOException;
 
   /**
+   * Returns whether the journal is formatted and has not had any entries written to it yet. This
+   * can only be determined when the journal system is in primary mode because entries are written
+   * to the primary first.
+   *
+   * @return whether the journal system is freshly formatted
+   */
+  boolean isEmpty();
+
+  /**
    * Builder for constructing a journal system.
    */
   class Builder {
     private URI mLocation;
     private long mQuietTimeMs =
-        Configuration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
+        ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
 
     /**
      * Creates a new journal system builder.
@@ -177,12 +190,23 @@ public interface JournalSystem {
      */
     public JournalSystem build() {
       JournalType journalType =
-          Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+          ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
       switch (journalType) {
         case NOOP:
           return new NoopJournalSystem();
         case UFS:
           return new UfsJournalSystem(mLocation, mQuietTimeMs);
+        case EMBEDDED:
+          ServiceType serviceType;
+          if (CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.MASTER)) {
+            serviceType = ServiceType.MASTER_RAFT;
+          } else {
+            // We might reach here during journal formatting. In that case the journal system is
+            // never started, so any value of serviceType is fine.
+            serviceType = ServiceType.JOB_MASTER_RAFT;
+          }
+          return RaftJournalSystem.create(RaftJournalConfiguration.defaults(serviceType)
+                  .setPath(new File(mLocation.getPath())));
         default:
           throw new IllegalStateException("Unrecognized journal type: " + journalType);
       }

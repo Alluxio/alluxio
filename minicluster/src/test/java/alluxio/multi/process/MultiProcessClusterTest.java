@@ -19,7 +19,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.options.CreateFileOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 
 import org.junit.Rule;
@@ -34,13 +34,14 @@ public final class MultiProcessClusterTest {
 
   @Test
   public void simpleCluster() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder()
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.MULTI_PROCESS_SIMPLE_CLUSTER)
         .setClusterName("simpleCluster")
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();
     try {
       mCluster.start();
+      mCluster.waitForAllNodesRegistered(60 * Constants.SECOND_MS);
       FileSystem fs = mCluster.getFileSystemClient();
       createAndOpenFile(fs);
       mCluster.notifySuccess();
@@ -51,7 +52,7 @@ public final class MultiProcessClusterTest {
 
   @Test
   public void zookeeper() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder()
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.MULTI_PROCESS_ZOOKEEPER)
         .setClusterName("zookeeper")
         .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setNumMasters(3)
@@ -59,6 +60,7 @@ public final class MultiProcessClusterTest {
         .build();
     try {
       mCluster.start();
+      mCluster.waitForAllNodesRegistered(60 * Constants.SECOND_MS);
       FileSystem fs = mCluster.getFileSystemClient();
       createAndOpenFile(fs);
       mCluster.notifySuccess();
@@ -74,13 +76,17 @@ public final class MultiProcessClusterTest {
       String testFile = "/fileName";
       try {
         FileSystemTestUtils.createByteFile(fs, testFile, len,
-            CreateFileOptions.defaults().setBlockSizeBytes(100));
+            CreateFilePOptions.newBuilder().setBlockSizeBytes(100).build());
         break;
       } catch (Exception e) {
         // This can indicate that the worker hasn't connected yet, so we must delete and retry.
         if (System.currentTimeMillis() < timeoutMs) {
-          if (fs.exists(new AlluxioURI(testFile))) {
-            fs.delete(new AlluxioURI(testFile));
+          try {
+            if (fs.exists(new AlluxioURI(testFile))) {
+              fs.delete(new AlluxioURI(testFile));
+            }
+          } catch (Exception ee) {
+            // the cleanup can still fail because master is not ready. simply ignore the exception.
           }
         } else {
           fail(String.format("Timed out trying to create a file. Latest exception: %s",

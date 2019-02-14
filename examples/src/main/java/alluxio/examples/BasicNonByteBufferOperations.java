@@ -17,10 +17,11 @@ import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
@@ -53,6 +54,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private final WriteType mWriteType;
   private final boolean mDeleteIfExists;
   private final int mLength;
+  private final FileSystemContext mFsContext;
 
   /**
    * @param filePath the path for the files
@@ -60,19 +62,21 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
    * @param writeType the {@link WriteType}
    * @param deleteIfExists delete files if they already exist
    * @param length the number of files
+   * @param fsContext the {@link FileSystemContext} to use for client operations
    */
   public BasicNonByteBufferOperations(AlluxioURI filePath, ReadType readType, WriteType writeType,
-      boolean deleteIfExists, int length) {
+      boolean deleteIfExists, int length, FileSystemContext fsContext) {
     mFilePath = filePath;
     mWriteType = writeType;
     mReadType = readType;
     mDeleteIfExists = deleteIfExists;
     mLength = length;
+    mFsContext = fsContext;
   }
 
   @Override
   public Boolean call() throws Exception {
-    FileSystem alluxioClient = FileSystem.Factory.get();
+    FileSystem alluxioClient = FileSystem.Factory.create(mFsContext);
     write(alluxioClient);
     return read(alluxioClient);
   }
@@ -91,7 +95,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private FileOutStream createFile(FileSystem fileSystem, AlluxioURI filePath,
       boolean deleteIfExists) throws IOException, AlluxioException {
-    CreateFileOptions options = CreateFileOptions.defaults().setWriteType(mWriteType);
+    CreateFilePOptions options = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
+        .setRecursive(true).build();
     if (!fileSystem.exists(filePath)) {
       // file doesn't exist yet, so create it
       return fileSystem.createFile(filePath, options);
@@ -105,7 +110,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private boolean read(FileSystem alluxioClient) throws IOException, AlluxioException {
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(mReadType);
+    OpenFilePOptions options =
+        OpenFilePOptions.newBuilder().setReadType(mReadType.toProto()).build();
     boolean pass = true;
     long startTimeMs = CommonUtils.getCurrentMs();
     try (DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options))) {

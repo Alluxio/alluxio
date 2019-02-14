@@ -11,9 +11,9 @@
 
 package alluxio.cli;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.validation.ClusterConfConsistencyValidationTask;
 import alluxio.cli.validation.HdfsValidationTask;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
@@ -22,6 +22,7 @@ import alluxio.cli.validation.SecureHdfsValidationTask;
 import alluxio.cli.validation.StorageSpaceValidationTask;
 import alluxio.cli.validation.SshValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
+import alluxio.cli.validation.UfsSuperUserValidationTask;
 import alluxio.cli.validation.UserLimitValidationTask;
 import alluxio.cli.validation.Utils;
 import alluxio.cli.validation.ValidationTask;
@@ -99,10 +100,6 @@ public final class ValidateEnv {
         "validate master web port is available",
         new PortAvailabilityValidationTask(ServiceType.MASTER_WEB, ALLUXIO_MASTER_CLASS),
         MASTER_TASKS);
-    registerTask("worker.data.port.available",
-        "validate worker data port is available",
-        new PortAvailabilityValidationTask(ServiceType.WORKER_DATA, ALLUXIO_WORKER_CLASS),
-        WORKER_TASKS);
     registerTask("worker.rpc.port.available",
         "validate worker RPC port is available",
         new PortAvailabilityValidationTask(ServiceType.WORKER_RPC, ALLUXIO_WORKER_CLASS),
@@ -136,6 +133,9 @@ public final class ValidateEnv {
     registerTask("ufs.root.accessible",
         "validate root under file system location is accessible",
         new UfsDirectoryValidationTask(), COMMON_TASKS);
+    registerTask("ufs.root.superuser",
+        "validate Alluxio has super user privilege on root under file system",
+        new UfsSuperUserValidationTask(), COMMON_TASKS);
 
     // RAM disk validations
     registerTask("worker.ramdisk.mount.privilege",
@@ -213,7 +213,7 @@ public final class ValidateEnv {
 
     // args is not null.
     String argStr = String.join(" ", cmd.getArgs());
-    String homeDir = Configuration.get(PropertyKey.HOME);
+    String homeDir = ServerConfiguration.get(PropertyKey.HOME);
     String remoteCommand = String.format(
         "%s/bin/alluxio validateEnv %s %s %s",
         homeDir, target, name == null ? "" : name, argStr);

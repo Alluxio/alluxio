@@ -56,13 +56,15 @@ public final class BlockMetadataManager {
   /** A map from tier alias to {@link StorageTier}. */
   private final Map<String, StorageTier> mAliasToTiers;
 
+  private final StorageTierAssoc mStorageTierAssoc;
+
   private BlockMetadataManager() {
     try {
-      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
-      mAliasToTiers = new HashMap<>(storageTierAssoc.size());
-      mTiers = new ArrayList<>(storageTierAssoc.size());
-      for (int tierOrdinal = 0; tierOrdinal < storageTierAssoc.size(); tierOrdinal++) {
-        StorageTier tier = StorageTier.newStorageTier(storageTierAssoc.getAlias(tierOrdinal));
+      mStorageTierAssoc = new WorkerStorageTierAssoc();
+      mAliasToTiers = new HashMap<>(mStorageTierAssoc.size());
+      mTiers = new ArrayList<>(mStorageTierAssoc.size());
+      for (int tierOrdinal = 0; tierOrdinal < mStorageTierAssoc.size(); tierOrdinal++) {
+        StorageTier tier = StorageTier.newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal));
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
       }
@@ -458,5 +460,12 @@ public final class BlockMetadataManager {
       throws InvalidWorkerStateException {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.resizeTempBlockMeta(tempBlockMeta, newSize);
+  }
+
+  /**
+   * @return the storage tier mapping
+   */
+  public StorageTierAssoc getStorageTierAssoc() {
+    return mStorageTierAssoc;
   }
 }

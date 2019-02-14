@@ -46,7 +46,7 @@ public class ExponentialBackoffRetry extends SleepingRetry {
 
   @Override
   protected long getSleepTime() {
-    int count = getRetryCount();
+    int count = getAttemptCount();
     if (count >= 30) {
       // current logic overflows at 30, so set value to max
       return mMaxSleepMs;

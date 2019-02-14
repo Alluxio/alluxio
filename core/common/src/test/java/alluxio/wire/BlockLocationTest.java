@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.util.CommonUtils;
+import alluxio.grpc.GrpcUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
@@ -31,9 +32,9 @@ public final class BlockLocationTest {
   }
 
   @Test
-  public void thrift() {
+  public void proto() {
     BlockLocation blockLocation = createRandom();
-    BlockLocation other = ThriftUtils.fromThrift(ThriftUtils.toThrift(blockLocation));
+    BlockLocation other = GrpcUtils.fromProto(GrpcUtils.toProto(blockLocation));
     checkEquality(blockLocation, other);
   }
 
@@ -42,7 +43,6 @@ public final class BlockLocationTest {
     Assert.assertEquals(a.getWorkerAddress(), b.getWorkerAddress());
     Assert.assertEquals(a.getTierAlias(), b.getTierAlias());
     Assert.assertEquals(a, b);
-
   }
 
   public static BlockLocation createRandom() {

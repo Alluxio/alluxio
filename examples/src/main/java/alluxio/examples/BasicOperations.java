@@ -17,9 +17,12 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
+import alluxio.grpc.WritePType;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
@@ -43,23 +46,28 @@ public class BasicOperations implements Callable<Boolean> {
   private static final int NUMBERS = 20;
 
   private final AlluxioURI mFilePath;
-  private final OpenFileOptions mReadOptions;
-  private final CreateFileOptions mWriteOptions;
+  private final OpenFilePOptions mReadOptions;
+  private final CreateFilePOptions mWriteOptions;
+  private final FileSystemContext mFsContext;
 
   /**
    * @param filePath the path for the files
-   * @param readType the {@link ReadType}
-   * @param writeType the {@link WriteType}
+   * @param readType the {@link ReadPType}
+   * @param writeType the {@link WritePType}
+   * @param fsContext the {@link FileSystemContext } to use for client operations
    */
-  public BasicOperations(AlluxioURI filePath, ReadType readType, WriteType writeType) {
+  public BasicOperations(AlluxioURI filePath, ReadType readType, WriteType writeType,
+      FileSystemContext fsContext) {
     mFilePath = filePath;
-    mReadOptions = OpenFileOptions.defaults().setReadType(readType);
-    mWriteOptions = CreateFileOptions.defaults().setWriteType(writeType);
+    mReadOptions = OpenFilePOptions.newBuilder().setReadType(readType.toProto()).build();
+    mWriteOptions = CreateFilePOptions.newBuilder().setWriteType(writeType.toProto())
+        .setRecursive(true).build();
+    mFsContext = fsContext;
   }
 
   @Override
   public Boolean call() throws Exception {
-    FileSystem fs = FileSystem.Factory.get();
+    FileSystem fs = FileSystem.Factory.create(mFsContext);
     writeFile(fs);
     return readFile(fs);
   }

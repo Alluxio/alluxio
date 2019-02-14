@@ -14,11 +14,10 @@ package alluxio.worker.block.evictor;
 import alluxio.collections.Pair;
 import alluxio.worker.block.BlockStoreLocation;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,8 +38,8 @@ public final class EvictionPlan {
    */
   public EvictionPlan(List<BlockTransferInfo> toTransfer,
       List<Pair<Long, BlockStoreLocation>> toEvict) {
-    mToMove = Preconditions.checkNotNull(toTransfer);
-    mToEvict = Preconditions.checkNotNull(toEvict);
+    mToMove = Preconditions.checkNotNull(toTransfer, "toTransfer");
+    mToEvict = Preconditions.checkNotNull(toEvict, "toEvict");
   }
 
   /**
@@ -69,6 +68,8 @@ public final class EvictionPlan {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("toMove", mToMove).add("toEvict", mToEvict).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("toMove", mToMove)
+        .add("toEvict", mToEvict).toString();
   }
 }

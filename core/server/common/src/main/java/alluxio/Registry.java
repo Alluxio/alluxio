@@ -15,7 +15,6 @@ import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
@@ -29,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -79,15 +79,18 @@ public class Registry<T extends Server<U>, U> {
    * @return the {@link Server} instance
    */
   public <W extends T> W get(final Class<W> clazz, int timeoutMs) {
-    CommonUtils.waitFor("server " + clazz.getName() + " to be created",
-        new Function<Void, Boolean>() {
-          @Override
-          public Boolean apply(Void input) {
-            try (LockResource r = new LockResource(mLock)) {
-              return mRegistry.get(clazz) != null;
-            }
-          }
-        }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+    try {
+      CommonUtils.waitFor("server " + clazz.getName() + " to be created", () -> {
+        try (LockResource r = new LockResource(mLock)) {
+          return mRegistry.get(clazz) != null;
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    } catch (TimeoutException e) {
+      throw new RuntimeException(e);
+    }
     T server = mRegistry.get(clazz);
     if (!(clazz.isInstance(server))) {
       throw new RuntimeException("Server is not an instance of " + clazz.getName());

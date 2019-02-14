@@ -12,7 +12,6 @@
 package alluxio.master.journal;
 
 import alluxio.Constants;
-import alluxio.exception.InvalidJournalEntryException;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 /**
@@ -23,11 +22,12 @@ public final class JournalEntryAssociation {
   /**
    * @param entry a journal entry
    * @return the name of the master responsible for the given journal entry
-   * @throws InvalidJournalEntryException if the journal entry is unrecognized
    */
-  public static String getMasterForEntry(JournalEntry entry) throws InvalidJournalEntryException {
+  public static String getMasterForEntry(JournalEntry entry) {
     if (entry.hasAddMountPoint()
         || entry.hasAsyncPersistRequest()
+        || entry.hasAddSyncPoint()
+        || entry.hasActiveSyncTxId()
         || entry.hasCompleteFile()
         || entry.hasDeleteFile()
         || entry.hasDeleteMountPoint()
@@ -35,10 +35,16 @@ public final class JournalEntryAssociation {
         || entry.hasInodeDirectoryIdGenerator()
         || entry.hasInodeFile()
         || entry.hasInodeLastModificationTime()
+        || entry.hasNewBlock()
         || entry.hasPersistDirectory()
+        || entry.hasRemoveSyncPoint()
         || entry.hasRename()
-        || entry.hasReinitializeFile()
-        || entry.hasSetAttribute()) {
+        || entry.hasSetAcl()
+        || entry.hasSetAttribute()
+        || entry.hasUpdateUfsMode()
+        || entry.hasUpdateInode()
+        || entry.hasUpdateInodeDirectory()
+        || entry.hasUpdateInodeFile()) {
       return Constants.FILE_SYSTEM_MASTER_NAME;
     }
     if (entry.hasBlockContainerIdGenerator()
@@ -46,19 +52,7 @@ public final class JournalEntryAssociation {
         || entry.hasBlockInfo()) {
       return Constants.BLOCK_MASTER_NAME;
     }
-    if (entry.hasCompletePartition()
-        || entry.hasCompleteStore()
-        || entry.hasCreateStore()
-        || entry.hasDeleteStore()
-        || entry.hasRenameStore()
-        || entry.hasMergeStore()) {
-      return Constants.KEY_VALUE_MASTER_NAME;
-    }
-    if (entry.hasDeleteLineage()
-        || entry.hasLineage()) {
-      return Constants.LINEAGE_MASTER_NAME;
-    }
-    throw new InvalidJournalEntryException("Unrecognized journal entry: " + entry);
+    throw new IllegalStateException("Unrecognized journal entry: " + entry);
   }
 
   private JournalEntryAssociation() {} // Not intended for instantiation.

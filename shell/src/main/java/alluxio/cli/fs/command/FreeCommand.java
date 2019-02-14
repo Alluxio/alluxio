@@ -12,17 +12,22 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.FreeOptions;
+import alluxio.cli.CommandUtils;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.FreePOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
+import com.google.common.base.Throwables;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -31,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * folder).
  */
 @ThreadSafe
-public final class FreeCommand extends WithWildCardPathCommand {
+public final class FreeCommand extends AbstractFileSystemCommand {
 
   private static final Option FORCE_OPTION =
       Option.builder("f")
@@ -43,10 +48,10 @@ public final class FreeCommand extends WithWildCardPathCommand {
   /**
    * Constructs a new instance to free the given file or folder from Alluxio.
    *
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public FreeCommand(FileSystem fs) {
-    super(fs);
+  public FreeCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -60,9 +65,34 @@ public final class FreeCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    FreeOptions options = FreeOptions.defaults().setRecursive(true).setForced(cl.hasOption("f"));
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
+    int interval =
+        Math.toIntExact(mFsContext.getConf()
+            .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    FreePOptions options =
+        FreePOptions.newBuilder().setRecursive(true).setForced(cl.hasOption("f")).build();
     mFileSystem.free(path, options);
+    try {
+      CommonUtils.waitFor("file to be freed. Another user may be loading it.", () -> {
+        try {
+          boolean freed = mFileSystem.getStatus(path).getInAlluxioPercentage() == 0;
+          if (!freed) {
+            mFileSystem.free(path, options);
+          }
+          return freed;
+        } catch (Exception e) {
+          Throwables.propagateIfPossible(e);
+          throw new RuntimeException(e);
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(10 * Math.toIntExact(interval))
+          .setInterval(interval));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    } catch (TimeoutException e) {
+      throw new RuntimeException(e);
+    }
     System.out.println(path + " was successfully freed from memory.");
   }
 
@@ -78,10 +108,16 @@ public final class FreeCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length < 1) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-          .getMessage(getCommandName(), 1, args.length));
-    }
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path, cl);
+
+    return 0;
+  }
+
+  @Override
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 }

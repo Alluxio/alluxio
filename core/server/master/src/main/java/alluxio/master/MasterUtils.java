@@ -11,14 +11,23 @@
 
 package alluxio.master;
 
-import alluxio.ServiceUtils;
-import alluxio.master.journal.JournalSystem;
+import alluxio.Constants;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.master.metastore.BlockStore;
+import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.MetastoreType;
+import alluxio.master.metastore.caching.CachingInodeStore;
+import alluxio.master.metastore.heap.HeapBlockStore;
+import alluxio.master.metastore.heap.HeapInodeStore;
+import alluxio.master.metastore.rocks.RocksBlockStore;
+import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.util.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class encapsulates the different master services that are configured to run.
@@ -29,27 +38,63 @@ final class MasterUtils {
   /**
    * Creates all the masters and registers them to the master registry.
    *
-   * @param journalSystem the journal system to use for creating journals
    * @param registry the master registry
+   * @param context master context
    */
-  public static void createMasters(final JournalSystem journalSystem,
-      final MasterRegistry registry, final SafeModeManager safeModeManager) {
+  public static void createMasters(MasterRegistry registry, MasterContext context) {
     List<Callable<Void>> callables = new ArrayList<>();
-    for (final MasterFactory factory : ServiceUtils.getMasterServiceLoader()) {
+    for (final MasterFactory factory : alluxio.master.ServiceUtils.getMasterServiceLoader()) {
       callables.add(new Callable<Void>() {
         @Override
         public Void call() throws Exception {
           if (factory.isEnabled()) {
-            factory.create(registry, journalSystem, safeModeManager);
+            factory.create(registry, context);
           }
           return null;
         }
       });
     }
     try {
-      CommonUtils.invokeAll(callables, 10, TimeUnit.SECONDS);
+      CommonUtils.invokeAll(callables, 10 * Constants.MINUTE_MS);
     } catch (Exception e) {
       throw new RuntimeException("Failed to start masters", e);
+    }
+  }
+
+  /**
+   * @return a block store factory of the configured type
+   */
+  public static BlockStore.Factory getBlockStoreFactory() {
+    MetastoreType type =
+        ServerConfiguration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
+    switch (type) {
+      case HEAP:
+        return args -> new HeapBlockStore(args);
+      case ROCKS:
+        return args -> new RocksBlockStore(args);
+      default:
+        throw new IllegalStateException("Unknown metastore type: " + type);
+    }
+  }
+
+  /**
+   * @return an inode store factory of the configured type
+   */
+  public static InodeStore.Factory getInodeStoreFactory() {
+    MetastoreType type =
+        ServerConfiguration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
+    switch (type) {
+      case HEAP:
+        return args -> new HeapInodeStore(args);
+      case ROCKS:
+        InstancedConfiguration conf = ServerConfiguration.global();
+        if (conf.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE) == 0) {
+          return args -> new RocksInodeStore(args);
+        } else {
+          return args -> new CachingInodeStore(new RocksInodeStore(args), args);
+        }
+      default:
+        throw new IllegalStateException("Unknown metastore type: " + type);
     }
   }
 }

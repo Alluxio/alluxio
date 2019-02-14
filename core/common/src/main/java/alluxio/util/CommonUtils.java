@@ -11,20 +11,22 @@
 
 package alluxio.util;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.Status;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
-import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -48,8 +50,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -63,8 +65,6 @@ public final class CommonUtils {
 
   private static final String ALPHANUM =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  private static final String DATE_FORMAT_PATTERN =
-      Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
   private static final Random RANDOM = new Random();
 
   /**
@@ -72,6 +72,32 @@ public final class CommonUtils {
    */
   public static long getCurrentMs() {
     return System.currentTimeMillis();
+  }
+
+  /**
+   * @param tmpDirs the list of possible temporary directories to pick from
+   * @return a path to a temporary directory based on the user configuration
+   */
+  public static String getTmpDir(List<String> tmpDirs) {
+    Preconditions.checkState(!tmpDirs.isEmpty(), "No temporary directories available");
+    if (tmpDirs.size() == 1) {
+      return tmpDirs.get(0);
+    }
+    // Use existing random instead of ThreadLocal because contention is not expected to be high.
+    return tmpDirs.get(RANDOM.nextInt(tmpDirs.size()));
+  }
+
+  /**
+   * @param storageDir the root of a storage directory in tiered storage
+   * @param conf Alluxio's current configuration
+   *
+   * @return the worker data folder path after each storage directory, the final path will be like
+   * "/mnt/ramdisk/alluxioworker" for storage dir "/mnt/ramdisk" by appending
+   * {@link PropertyKey#WORKER_DATA_FOLDER).
+   */
+  public static String getWorkerDataDirectory(String storageDir, AlluxioConfiguration conf) {
+    return PathUtils.concatPath(
+        storageDir.trim(), conf.get(PropertyKey.WORKER_DATA_FOLDER));
   }
 
   /**
@@ -156,7 +182,8 @@ public final class CommonUtils {
    * @param timeMs sleep duration in milliseconds
    */
   public static void sleepMs(long timeMs) {
-    sleepMs(null, timeMs);
+    // TODO(adit): remove this wrapper
+    SleepUtils.sleepMs(timeMs);
   }
 
   /**
@@ -170,14 +197,8 @@ public final class CommonUtils {
    * @param timeMs sleep duration in milliseconds
    */
   public static void sleepMs(Logger logger, long timeMs) {
-    try {
-      Thread.sleep(timeMs);
-    } catch (InterruptedException e) {
-      if (logger != null) {
-        logger.warn(e.getMessage(), e);
-      }
-      Thread.currentThread().interrupt();
-    }
+    // TODO(adit): remove this wrapper
+    SleepUtils.sleepMs(logger, timeMs);
   }
 
   /**
@@ -244,18 +265,10 @@ public final class CommonUtils {
    *
    * @param description a description of what causes condition to evaluate to true
    * @param condition the condition to wait on
+   * @throws TimeoutException if the function times out while waiting for the condition to be true
    */
-  public static void waitFor(String description, Supplier<Boolean> condition) {
-    waitFor(description, input -> condition.get(), WaitForOptions.defaults());
-  }
-
-  /**
-   * Waits for a condition to be satisfied.
-   *
-   * @param description a description of what causes condition to evaluate to true
-   * @param condition the condition to wait on
-   */
-  public static void waitFor(String description, Function<Void, Boolean> condition) {
+  public static void waitFor(String description, Supplier<Boolean> condition)
+      throws InterruptedException, TimeoutException {
     waitFor(description, condition, WaitForOptions.defaults());
   }
 
@@ -265,18 +278,11 @@ public final class CommonUtils {
    * @param description a description of what causes condition to evaluate to true
    * @param condition the condition to wait on
    * @param options the options to use
+   * @throws TimeoutException if the function times out while waiting for the condition to be true
    */
-  public static void waitFor(String description, Function<Void, Boolean> condition,
-      WaitForOptions options) {
-    long start = System.currentTimeMillis();
-    int interval = options.getInterval();
-    int timeout = options.getTimeoutMs();
-    while (!condition.apply(null)) {
-      if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
-        throw new RuntimeException("Timed out waiting for " + description);
-      }
-      CommonUtils.sleepMs(interval);
-    }
+  public static void waitFor(String description, Supplier<Boolean> condition,
+      WaitForOptions options) throws InterruptedException, TimeoutException {
+    waitForResult(description, () -> condition.get() ? true : null, options);
   }
 
   /**
@@ -286,19 +292,20 @@ public final class CommonUtils {
    * @param operation the operation
    * @param options the options to use
    * @param <T> the type of the return value
-   * @return the return value, null if it times out
+   * @throws TimeoutException if the function times out while waiting to get a non-null value
+   * @return the first non-null value generated by the operation
    */
-  public static <T> T waitForResult(String description, Function<Void, T> operation,
-      WaitForOptions options) {
+  public static <T> T waitForResult(String description, Supplier<T> operation,
+      WaitForOptions options) throws InterruptedException, TimeoutException {
     T t;
     long start = System.currentTimeMillis();
     int interval = options.getInterval();
     int timeout = options.getTimeoutMs();
-    while ((t = operation.apply(null)) == null) {
+    while ((t = operation.get()) == null) {
       if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
-        throw new RuntimeException("Timed out waiting for " + description);
+        throw new TimeoutException("Timed out waiting for " + description + " options: " + options);
       }
-      CommonUtils.sleepMs(interval);
+      Thread.sleep(interval);
     }
     return t;
   }
@@ -307,10 +314,12 @@ public final class CommonUtils {
    * Gets the primary group name of a user.
    *
    * @param userName Alluxio user name
+   * @param conf Alluxio configuration
    * @return primary group name
    */
-  public static String getPrimaryGroupName(String userName) throws IOException {
-    List<String> groups = getGroups(userName);
+  public static String getPrimaryGroupName(String userName, AlluxioConfiguration conf)
+      throws IOException {
+    List<String> groups = getGroups(userName, conf);
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
   }
 
@@ -318,10 +327,12 @@ public final class CommonUtils {
    * Using {@link CachedGroupMapping} to get the group list of a user.
    *
    * @param userName Alluxio user name
+   * @param conf Alluxio configuration
    * @return the group list of the user
    */
-  public static List<String> getGroups(String userName) throws IOException {
-    GroupMappingService groupMappingService = GroupMappingService.Factory.get();
+  public static List<String> getGroups(String userName, AlluxioConfiguration conf)
+      throws IOException {
+    GroupMappingService groupMappingService = GroupMappingService.Factory.get(conf);
     return groupMappingService.getGroups(userName);
   }
 
@@ -453,56 +464,49 @@ public final class CommonUtils {
    * an exception, that exception will be re-thrown from this method.
    *
    * @param callables the callables to execute
-   * @param timeout the maximum time to wait
-   * @param unit the time unit of the timeout argument
+   * @param timeoutMs time to wait for the callables to complete, in milliseconds
    * @param <T> the return type of the callables
-   * @throws Exception if any of the callables throws an exception
+   * @throws TimeoutException if the callables don't complete before the timeout
+   * @throws ExecutionException if any of the callables throws an exception
    */
-  public static <T> void invokeAll(List<Callable<T>> callables, long timeout, TimeUnit unit)
-      throws TimeoutException, Exception {
+  public static <T> void invokeAll(List<Callable<T>> callables, long timeoutMs)
+      throws TimeoutException, ExecutionException {
+    long endMs = System.currentTimeMillis() + timeoutMs;
     ExecutorService service = Executors.newCachedThreadPool();
     try {
-      List<Future<T>> results = service.invokeAll(callables, timeout, unit);
+      List<Future<T>> pending = new ArrayList<>();
+      for (Callable<T> c : callables) {
+        pending.add(service.submit(c));
+      }
+      // Poll the tasks to exit early in case of failure.
+      while (!pending.isEmpty()) {
+        Iterator<Future<T>> it = pending.iterator();
+        while (it.hasNext()) {
+          Future<T> future = it.next();
+          if (future.isDone()) {
+            // Check whether the callable threw an exception.
+            try {
+              future.get();
+            } catch (InterruptedException e) {
+              // This should never happen since we already checked isDone().
+              Thread.currentThread().interrupt();
+              throw new RuntimeException(e);
+            }
+            it.remove();
+          }
+        }
+        if (pending.isEmpty()) {
+          break;
+        }
+        long remainingMs = endMs - System.currentTimeMillis();
+        if (remainingMs <= 0) {
+          throw new TimeoutException(
+              String.format("Timed out after %dms", timeoutMs - remainingMs));
+        }
+        CommonUtils.sleepMs(Math.min(remainingMs, 50));
+      }
+    } finally {
       service.shutdownNow();
-      propagateExceptions(results);
-      for (Future<T> result : results) {
-        if (result.isCancelled()) {
-          throw new TimeoutException("Timed out invoking task");
-        }
-      }
-      // All tasks are guaranteed to have finished at this point. If they were still running, their
-      // futures would have been canceled by invokeAll.
-      if (!service.awaitTermination(1, TimeUnit.SECONDS)) {
-        throw new IllegalStateException("Failed to shutdown service");
-      }
-    } catch (InterruptedException e) {
-      service.shutdownNow();
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Checks whether any of the futures have completed with an exception, propagating the exception
-   * if any is found.
-   *
-   * @param futures the futures to check
-   * @throws Exception if one of the futures completed with an exception
-   */
-  private static <T> void propagateExceptions(List<Future<T>> futures) throws Exception {
-    for (Future<?> future : futures) {
-      try {
-        if (future.isDone() && !future.isCancelled()) {
-          future.get();
-        }
-      } catch (ExecutionException e) {
-        Throwable cause = e.getCause();
-        Throwables.propagateIfPossible(cause);
-        if (cause instanceof Exception) {
-          throw (Exception) cause;
-        }
-        throw new RuntimeException(cause);
-      }
     }
   }
 
@@ -537,6 +541,8 @@ public final class CommonUtils {
 
   /** Alluxio process types. */
   public enum ProcessType {
+    JOB_MASTER,
+    JOB_WORKER,
     CLIENT,
     MASTER,
     PROXY,
@@ -549,8 +555,8 @@ public final class CommonUtils {
    * NOTE: This will only be set by main methods of Alluxio processes. It will not be set properly
    * for tests. Avoid using this field if at all possible.
    */
-  public static final java.util.concurrent.atomic.AtomicReference<ProcessType> PROCESS_TYPE =
-      new java.util.concurrent.atomic.AtomicReference<>(ProcessType.CLIENT);
+  public static final AtomicReference<ProcessType> PROCESS_TYPE =
+      new AtomicReference<>(ProcessType.CLIENT);
 
   /**
    * Unwraps a {@link alluxio.proto.dataserver.Protocol.Response}.
@@ -558,7 +564,7 @@ public final class CommonUtils {
    * @param response the response
    */
   public static void unwrapResponse(Protocol.Response response) throws AlluxioStatusException {
-    Status status = Status.fromProto(response.getStatus());
+    Status status = ProtoUtils.fromProto(response.getStatus());
     if (status != Status.OK) {
       throw AlluxioStatusException.from(status, response.getMessage());
     }
@@ -572,7 +578,7 @@ public final class CommonUtils {
    */
   public static void unwrapResponseFrom(Protocol.Response response, Channel channel)
       throws AlluxioStatusException {
-    Status status = Status.fromProto(response.getStatus());
+    Status status = ProtoUtils.fromProto(response.getStatus());
     if (status != Status.OK) {
       throw AlluxioStatusException.from(status, String
           .format("Channel to %s: %s", channel.remoteAddress(), response.getMessage()));
@@ -581,59 +587,42 @@ public final class CommonUtils {
 
   /**
    * @param address the Alluxio worker network address
+   * @param conf Alluxio configuration
    * @return true if the worker is local
    */
-  public static boolean isLocalHost(WorkerNetAddress address) {
-    return address.getHost().equals(NetworkAddressUtils.getClientHostName());
-  }
-
-  /**
-   * Closes the netty channel from outside the netty I/O thread.
-   * NOTE: Be careful when holding any lock that can be acquired in the netty I/O thread when
-   * calling this function to avoid having deadlocks.
-   *
-   * @param channel the netty channel
-   */
-  public static void closeChannel(final Channel channel) {
-    if (channel.isOpen())  {
-      try {
-        channel.eventLoop().submit(new Runnable() {
-          @Override
-          public void run() {
-            channel.close();
-          }
-        }).sync();
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException(e);
-      }
-    }
-  }
-
-  /**
-   * Closes the netty channel synchronously. Usually do not do this since this can take long time
-   * if the server is not responsive.
-   *
-   * @param channel the netty channel
-   */
-  public static void closeChannelSync(Channel channel) {
-    try {
-      channel.close().sync();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
-    }
+  public static boolean isLocalHost(WorkerNetAddress address, AlluxioConfiguration conf) {
+    return address.getHost().equals(NetworkAddressUtils.getClientHostName(conf));
   }
 
   /**
    * Converts a millisecond number to a formatted date String.
    *
    * @param millis a long millisecond number
+   * @param dateFormatPattern the date format to follow when converting. i.e. mm-dd-yyyy
    * @return formatted date String
    */
-  public static String convertMsToDate(long millis) {
-    DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
+  public static String convertMsToDate(long millis, String dateFormatPattern) {
+    DateFormat dateFormat = new SimpleDateFormat(dateFormatPattern);
     return dateFormat.format(new Date(millis));
+  }
+
+  /**
+   * Converts milliseconds to clock time.
+   *
+   * @param millis milliseconds
+   * @return input encoded as clock time
+   */
+  public static String convertMsToClockTime(long millis) {
+    Preconditions.checkArgument(millis >= 0,
+        "Negative values %s are not supported to convert to clock time.", millis);
+
+    long days = millis / Constants.DAY_MS;
+    long hours = (millis % Constants.DAY_MS) / Constants.HOUR_MS;
+    long mins = (millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
+    long secs = (millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
+
+    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
+        mins, secs);
   }
 
   private CommonUtils() {} // prevent instantiation

@@ -61,7 +61,7 @@ public class AbstractBlockMetaTest {
     String testDirPath = mFolder.newFolder().getAbsolutePath();
     // Sets up tier with one storage dir under mTestDirPath with 100 bytes capacity.
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL,
-        TEST_TIER_ALIAS, new String[] {testDirPath}, TEST_TIER_CAPACITY_BYTES, "");
+        TEST_TIER_ALIAS, new String[] {testDirPath}, TEST_TIER_CAPACITY_BYTES, null);
 
     mTier = StorageTier.newStorageTier(TEST_TIER_ALIAS);
     mDir = mTier.getDir(0);

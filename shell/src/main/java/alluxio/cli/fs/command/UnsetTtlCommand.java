@@ -13,9 +13,11 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.file.FileSystem;
+import alluxio.cli.CommandUtils;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
-import alluxio.wire.TtlAction;
+import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.TtlAction;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -30,10 +32,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class UnsetTtlCommand extends AbstractFileSystemCommand {
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param fsContext the filesystem of Alluxio
    */
-  public UnsetTtlCommand(FileSystem fs) {
-    super(fs);
+  public UnsetTtlCommand(FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -42,17 +44,23 @@ public final class UnsetTtlCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
+  }
+
+  @Override
+  protected void runPlainPath(AlluxioURI inputPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    // Expiry doesn't matter in this case
+    FileSystemCommandUtils.setTtl(mFileSystem, inputPath, Constants.NO_TTL, TtlAction.DELETE);
+    System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
-    // Expiry doesn't matter in this case
-    FileSystemCommandUtils.setTtl(mFileSystem, inputPath, Constants.NO_TTL, TtlAction.DELETE);
-    System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
+    runWildCardCmd(inputPath, cl);
     return 0;
   }
 

@@ -12,15 +12,15 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.util.IdUtils;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractUfsManager implements UfsManager {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUfsManager.class);
 
+  private final Object mLock = new Object();
+
   /**
    * The key of the UFS cache.
    */
@@ -45,7 +47,7 @@ public abstract class AbstractUfsManager implements UfsManager {
 
     Key(AlluxioURI uri, Map<String, String> properties) {
       mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
-      mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
+      mAuthority = uri.getAuthority().toString().toLowerCase();
       mProperties = (properties == null || properties.isEmpty()) ? null : properties;
     }
 
@@ -71,7 +73,7 @@ public abstract class AbstractUfsManager implements UfsManager {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("authority", mAuthority)
           .add("scheme", mScheme)
           .add("properties", mProperties)
@@ -111,25 +113,22 @@ public abstract class AbstractUfsManager implements UfsManager {
    * @return the UFS instance
    */
   private UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
-    Key key = new Key(ufsUri, ufsConf.getUserSpecifiedConf());
+    Key key = new Key(ufsUri, ufsConf.getMountSpecificConf());
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       return cachedFs;
     }
-    UnderFileSystem fs = UnderFileSystem.Factory.create(ufsUri.toString(), ufsConf);
-    cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
-    if (cachedFs == null) {
-      // above insert is successful
+    // On cache miss, synchronize the creation to ensure ufs is only created once
+    synchronized (mLock) {
+      cachedFs = mUnderFileSystemMap.get(key);
+      if (cachedFs != null) {
+        return cachedFs;
+      }
+      UnderFileSystem fs = UnderFileSystem.Factory.create(ufsUri.toString(), ufsConf);
+      mUnderFileSystemMap.putIfAbsent(key, fs);
       mCloser.register(fs);
       return fs;
     }
-    try {
-      fs.close();
-    } catch (IOException e) {
-      // Cannot close the created ufs which fails the race.
-      LOG.error("Failed to close UFS {}", fs, e);
-    }
-    return cachedFs;
   }
 
   @Override
@@ -138,12 +137,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkNotNull(ufsUri, "ufsUri");
     Preconditions.checkNotNull(ufsConf, "ufsConf");
-    mMountIdToUfsInfoMap.put(mountId, new UfsClient(new Supplier<UnderFileSystem>() {
-      @Override
-      public UnderFileSystem get() {
-        return getOrAdd(ufsUri, ufsConf);
-      }
-    }, ufsUri));
+    mMountIdToUfsInfoMap.put(mountId, new UfsClient(() -> getOrAdd(ufsUri, ufsConf), ufsUri));
   }
 
   @Override
@@ -168,15 +162,16 @@ public abstract class AbstractUfsManager implements UfsManager {
   public UfsClient getRoot() {
     synchronized (this) {
       if (mRootUfsClient == null) {
-        String rootUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+        String rootUri = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
         boolean rootReadOnly =
-            Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
-        boolean rootShared = Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
+            ServerConfiguration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
+        boolean rootShared = ServerConfiguration
+            .getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
         Map<String, String> rootConf =
-            Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+            ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         addMount(IdUtils.ROOT_MOUNT_ID, new AlluxioURI(rootUri),
             UnderFileSystemConfiguration.defaults().setReadOnly(rootReadOnly).setShared(rootShared)
-                .setUserSpecifiedConf(rootConf));
+                .createMountSpecificConf(rootConf));
         try {
           mRootUfsClient = get(IdUtils.ROOT_MOUNT_ID);
         } catch (NotFoundException | UnavailableException e) {

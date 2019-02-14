@@ -12,19 +12,20 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.cli.CommandUtils;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.SetAttributePOptions;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Changes the owner of a file or directory specified by args.
@@ -39,13 +40,26 @@ public final class ChownCommand extends AbstractFileSystemCommand {
           .desc("change owner recursively")
           .build();
 
+  private String mGroup;
+  private String mOwner;
+
   /**
    * Creates a new instance of {@link ChownCommand}.
    *
-   * @param fs an Alluxio file system handle
+   * @param fsContext an Alluxio file system handle
    */
-  public ChownCommand(FileSystem fs) {
-    super(fs);
+  public ChownCommand(FileSystemContext fsContext) {
+    super(fsContext);
+  }
+
+  @Override
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
+    if (mGroup == null) {
+      chown(path, mOwner, cl.hasOption("R"));
+    } else {
+      chown(path, mOwner, mGroup, cl.hasOption("R"));
+    }
   }
 
   @Override
@@ -54,8 +68,8 @@ public final class ChownCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 2;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 2);
   }
 
   @Override
@@ -80,8 +94,8 @@ public final class ChownCommand extends AbstractFileSystemCommand {
    */
   private void chown(AlluxioURI path, String owner, boolean recursive)
       throws AlluxioException, IOException {
-    SetAttributeOptions options =
-        SetAttributeOptions.defaults().setOwner(owner).setRecursive(recursive);
+    SetAttributePOptions options =
+        SetAttributePOptions.newBuilder().setOwner(owner).setRecursive(recursive).build();
     mFileSystem.setAttribute(path, options);
     System.out.println("Changed owner of " + path + " to " + owner);
   }
@@ -96,8 +110,8 @@ public final class ChownCommand extends AbstractFileSystemCommand {
    */
   private void chown(AlluxioURI path, String owner, String group, boolean recursive)
       throws AlluxioException, IOException {
-    SetAttributeOptions options =
-        SetAttributeOptions.defaults().setOwner(owner).setGroup(group).setRecursive(recursive);
+    SetAttributePOptions options = SetAttributePOptions.newBuilder().setOwner(owner).setGroup(group)
+        .setRecursive(recursive).build();
     mFileSystem.setAttribute(path, options);
     System.out.println("Changed owner:group of " + path + " to " + owner + ":" + group + ".");
   }
@@ -108,13 +122,9 @@ public final class ChownCommand extends AbstractFileSystemCommand {
     AlluxioURI path = new AlluxioURI(args[1]);
     Matcher matchUserGroup = USER_GROUP_PATTERN.matcher(args[0]);
     if (matchUserGroup.matches()) {
-      String owner = matchUserGroup.group("user");
-      String group = matchUserGroup.group("group");
-      if (group == null) {
-        chown(path, owner, cl.hasOption("R"));
-      } else {
-        chown(path, owner, group, cl.hasOption("R"));
-      }
+      mOwner = matchUserGroup.group("user");
+      mGroup = matchUserGroup.group("group");
+      runWildCardCmd(path, cl);
       return 0;
     }
     System.out.println("Failed to parse " + args[0] + " as user or user:group");

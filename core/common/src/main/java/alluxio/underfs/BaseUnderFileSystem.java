@@ -13,7 +13,12 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.SyncInfo;
 import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
@@ -51,20 +56,25 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   /** UFS Configuration options. */
   protected final UnderFileSystemConfiguration mUfsConf;
 
+  protected final AlluxioConfiguration mAlluxioConf;
+
   /**
    * Constructs an {@link BaseUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} used to create this ufs
    * @param ufsConf UFS configuration
+   * @param alluxioConf Alluxio configuration
    */
-  protected BaseUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
+  protected BaseUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
+      AlluxioConfiguration alluxioConf) {
     mUri = Preconditions.checkNotNull(uri, "uri");
     mUfsConf = Preconditions.checkNotNull(ufsConf, "ufsConf");
+    mAlluxioConf = Preconditions.checkNotNull(alluxioConf, "alluxioConf");
   }
 
   @Override
   public OutputStream create(String path) throws IOException {
-    return create(path, CreateOptions.defaults().setCreateParent(true));
+    return create(path, CreateOptions.defaults(mUfsConf).setCreateParent(true));
   }
 
   @Override
@@ -78,12 +88,31 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path)
+      throws IOException {
+    return new Pair<>(null, null);
+  }
+
+  @Override
+  public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException{
+    // Noop here by default
+  }
+
+  @Override
   public String getFingerprint(String path) {
+    // TODO(yuzhu): include default ACL in the fingerprint
     try {
       UfsStatus status = getStatus(path);
-      return Fingerprint.create(getUnderFSType(), status).serialize();
+      Pair<AccessControlList, DefaultAccessControlList> aclPair = getAclPair(path);
+
+      if (aclPair == null || aclPair.getFirst() == null || !aclPair.getFirst().hasExtended()) {
+        return Fingerprint.create(getUnderFSType(), status).serialize();
+      } else {
+        return Fingerprint.create(getUnderFSType(), status, aclPair.getFirst()).serialize();
+      }
     } catch (Exception e) {
-      LOG.warn("Failed fingerprint. path: {} error: {}", path, e.toString());
+      // In certain scenarios, it is expected that the UFS path does not exist.
+      LOG.debug("Failed fingerprint. path: {} error: {}", path, e.toString());
       return Constants.INVALID_UFS_FINGERPRINT;
     }
   }
@@ -158,14 +187,40 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path) throws IOException {
-    return mkdirs(path, MkdirsOptions.defaults());
+    return mkdirs(path, MkdirsOptions.defaults(mUfsConf));
   }
 
   @Override
   public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
-    return new AlluxioURI(ufsBaseUri.getScheme(), ufsBaseUri.getAuthority(),
-        PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath), ufsBaseUri.getQueryMap());
+    return new AlluxioURI(ufsBaseUri, PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath),
+        false);
   }
+
+  @Override
+  public boolean supportsActiveSync() {
+    return false;
+  }
+
+  @Override
+  public SyncInfo getActiveSyncInfo() {
+    return SyncInfo.emptyInfo();
+  }
+
+  @Override
+  public boolean startActiveSyncPolling(long txId) throws IOException {
+    return false;
+  }
+
+  @Override
+  public boolean stopActiveSyncPolling() {
+    return false;
+  }
+
+  @Override
+  public void startSync(AlluxioURI uri)  { }
+
+  @Override
+  public void stopSync(AlluxioURI uri) { }
 
   /**
    * Clean the path by creating a URI and turning it back to a string.

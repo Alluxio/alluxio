@@ -11,31 +11,80 @@
 
 package alluxio.cli.fsadmin;
 
-import alluxio.cli.Command;
-import alluxio.cli.CommandUtils;
+import alluxio.ClientContext;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterInquireClient;
+import alluxio.master.PollingMasterInquireClient;
+import alluxio.resource.CloseableResource;
+import alluxio.retry.ExponentialBackoffRetry;
 
-import java.util.Map;
-
-import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * Class for convenience methods used by instances of {@link ExtensionsShell}.
+ * Class for convenience methods used by {@link FileSystemAdminShell}.
  */
-@ThreadSafe
 public final class FileSystemAdminShellUtils {
 
   private FileSystemAdminShellUtils() {} // prevent instantiation
 
   /**
-   * Gets all {@link Command} instances in the same package as {@link ExtensionsShell} and loads
-   * them into a map.
+   * Compares two tier names according to their rank values.
    *
-   * @param masterClient the client to connect to Alluxio master
-   * @return a mapping from command name to command instance
+   * @param a one tier name
+   * @param b another tier name
+   * @return compared result
    */
-  public static Map<String, Command> loadCommands(FileSystemMasterClient masterClient) {
-    return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(),
-        new Class[] {FileSystemMasterClient.class}, new Object[] {masterClient});
+  public static int compareTierNames(String a, String b) {
+    int aValue = getTierRankValue(a);
+    int bValue = getTierRankValue(b);
+    if (aValue == bValue) {
+      return a.compareTo(b);
+    }
+    return aValue - bValue;
+  }
+
+  /**
+   * Checks if the master client service is available.
+   * Throws an exception if fails to determine that the master client service is running.
+   *
+   * @param alluxioConf Alluxio configuration
+   */
+  public static void checkMasterClientService(AlluxioConfiguration alluxioConf) throws IOException {
+    try (CloseableResource<FileSystemMasterClient> client =
+      FileSystemContext.create(ClientContext.create(alluxioConf))
+          .acquireMasterClientResource()) {
+      InetSocketAddress address = client.get().getAddress();
+
+      List<InetSocketAddress> addresses = Arrays.asList(address);
+      MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
+          new ExponentialBackoffRetry(50, 100, 2), alluxioConf);
+      inquireClient.getPrimaryRpcAddress();
+    } catch (UnavailableException e) {
+      throw new IOException("Cannot connect to Alluxio leader master.");
+    }
+  }
+
+  /**
+   * Assigns a rank value to the input string.
+   *
+   * @param input the input to turn to rank value
+   * @return a rank value used to sort tiers
+   */
+  private static int getTierRankValue(String input) {
+    // MEM, SSD, and HDD are the most commonly used Alluxio tier alias,
+    // so we want them to show before other tier names
+    // MEM, SSD, and HDD are sorted according to the speed of access
+    List<String> tierOrder = Arrays.asList("MEM", "SSD", "HDD");
+    int rank = tierOrder.indexOf(input);
+    if (rank == -1) {
+      return Integer.MAX_VALUE;
+    }
+    return rank;
   }
 }

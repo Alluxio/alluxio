@@ -12,8 +12,8 @@
 package alluxio.worker.block;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
@@ -115,7 +115,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    */
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, BlockStore localBlockStore,
       UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager) throws IOException {
-    mInitialBlockSize = Configuration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
+    mInitialBlockSize = ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
     mLocalBlockStore = localBlockStore;
     mInStreamPos = -1;
@@ -134,7 +134,8 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   private void init(long offset) throws IOException {
     UnderFileSystem ufs = mUfsResource.get();
     ufs.connectFromWorker(
-        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC,
+            ServerConfiguration.global()));
     updateUnderFileSystemInputStream(offset);
     updateBlockWriter(offset);
   }
@@ -161,7 +162,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     }
     byte[] data = new byte[(int) bytesToRead];
     int bytesRead = 0;
-    Preconditions.checkNotNull(mUnderFileSystemInputStream);
+    Preconditions.checkNotNull(mUnderFileSystemInputStream, "mUnderFileSystemInputStream");
     while (bytesRead < bytesToRead) {
       int read;
       try {
@@ -191,7 +192,11 @@ public final class UnderFileSystemBlockReader implements BlockReader {
         mBlockWriter.append(buffer.duplicate());
       } catch (Exception e) {
         LOG.warn("Failed to cache data read from UFS (on read()): {}", e.getMessage());
-        cancelBlockWriter();
+        try {
+          cancelBlockWriter();
+        } catch (IOException ee) {
+          LOG.error("Failed to cancel block writer:", ee);
+        }
       }
     }
     return ByteBuffer.wrap(data, 0, bytesRead);

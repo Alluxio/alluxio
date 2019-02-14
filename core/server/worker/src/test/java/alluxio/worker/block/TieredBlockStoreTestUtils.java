@@ -11,8 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -46,9 +46,9 @@ public final class TieredBlockStoreTestUtils {
   public static final String WORKER_DATA_FOLDER = "/alluxioworker/";
 
   /**
-   * Sets up a {@link Configuration} for a {@link TieredBlockStore} with several tiers configured by
-   * the parameters. For simplicity, you can use {@link #setupDefaultConf(String)} which
-   * calls this method with default values.
+   * Sets up a {@link ServerConfiguration} for a {@link TieredBlockStore} with several tiers
+   * configured by the parameters. For simplicity, you can use {@link #setupDefaultConf(String)}
+   * which calls this method with default values.
    *
    * @param baseDir the directory path as prefix for all the paths of directories in the tiered
    *        storage; when specified, the directory needs to exist before calling this method
@@ -79,9 +79,9 @@ public final class TieredBlockStoreTestUtils {
 
     tierPath = createDirHierarchy(baseDir, tierPath);
     if (workerDataFolder != null) {
-      Configuration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
+      ServerConfiguration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(nTier));
+    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(nTier));
 
     // sets up each tier in turn
     for (int i = 0; i < nTier; i++) {
@@ -90,9 +90,9 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Sets up a {@link Configuration} for a {@link TieredBlockStore} with only *one tier* configured
-   * by the parameters. For simplicity, you can use {@link #setupDefaultConf(String)} which
-   * sets up the tierBlockStore with default values.
+   * Sets up a {@link ServerConfiguration} for a {@link TieredBlockStore} with only *one tier*
+   * configured by the parameters. For simplicity, you can use {@link #setupDefaultConf(String)}
+   * which sets up the tierBlockStore with default values.
    *
    * This method modifies the configuration, so be sure to reset it when done.
    *
@@ -111,14 +111,14 @@ public final class TieredBlockStoreTestUtils {
       tierPath = createDirHierarchy(baseDir, tierPath);
     }
     if (workerDataFolder != null) {
-      Configuration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
+      ServerConfiguration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
+    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
     setupConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity);
   }
 
   /**
-   * Sets up a specific tier's {@link Configuration} for a {@link TieredBlockStore}.
+   * Sets up a specific tier's {@link ServerConfiguration} for a {@link TieredBlockStore}.
    *
    * @param tierAlias alias of the tier
    * @param tierPath absolute path of the tier
@@ -131,17 +131,17 @@ public final class TieredBlockStoreTestUtils {
     Preconditions.checkArgument(tierPath.length == tierCapacity.length,
         "tierPath and tierCapacity should have the same length");
 
-    Configuration
+    ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(ordinal),
             tierAlias);
 
     String tierPathString = StringUtils.join(tierPath, ",");
-    Configuration
+    ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(ordinal),
             tierPathString);
 
     String tierCapacityString = StringUtils.join(ArrayUtils.toObject(tierCapacity), ",");
-    Configuration
+    ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(ordinal),
             tierCapacityString);
   }
@@ -211,7 +211,7 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Sets up a {@link Configuration} with default values of {@link #TIER_ORDINAL},
+   * Sets up a {@link ServerConfiguration} with default values of {@link #TIER_ORDINAL},
    * {@link #TIER_ALIAS}, {@link #TIER_PATH} with the baseDir as path prefix,
    * {@link #TIER_CAPACITY_BYTES}.
    *

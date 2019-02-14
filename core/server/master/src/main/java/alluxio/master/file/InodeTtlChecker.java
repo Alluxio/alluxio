@@ -14,15 +14,21 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FreePOptions;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.master.file.meta.Inode;
+import alluxio.master.ProtobufUtils;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
-import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.file.options.FreeOptions;
-import alluxio.wire.TtlAction;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.FreeContext;
+import alluxio.master.journal.JournalContext;
+import alluxio.proto.journal.File.UpdateInodeEntry;
+import alluxio.grpc.TtlAction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +51,10 @@ final class InodeTtlChecker implements HeartbeatExecutor {
   /**
    * Constructs a new {@link InodeTtlChecker}.
    */
-  public InodeTtlChecker(FileSystemMaster fileSystemMaster, InodeTree inodeTree,
-      TtlBucketList ttlBuckets) {
+  public InodeTtlChecker(FileSystemMaster fileSystemMaster, InodeTree inodeTree) {
     mFileSystemMaster = fileSystemMaster;
     mInodeTree = inodeTree;
-    mTtlBuckets = ttlBuckets;
+    mTtlBuckets = inodeTree.getTtlBuckets();
   }
 
   @Override
@@ -58,8 +63,8 @@ final class InodeTtlChecker implements HeartbeatExecutor {
     for (TtlBucket bucket : expiredBuckets) {
       for (Inode inode : bucket.getInodes()) {
         AlluxioURI path = null;
-        try (LockedInodePath inodePath = mInodeTree
-            .lockFullInodePath(inode.getId(), InodeTree.LockMode.READ)) {
+        try (LockedInodePath inodePath =
+            mInodeTree.lockFullInodePath(inode.getId(), LockPattern.READ)) {
           path = inodePath.getUri();
         } catch (FileDoesNotExistException e) {
           // The inode has already been deleted, nothing needs to be done.
@@ -71,29 +76,36 @@ final class InodeTtlChecker implements HeartbeatExecutor {
         if (path != null) {
           try {
             TtlAction ttlAction = inode.getTtlAction();
-            LOG.debug("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
+            LOG.info("Path {} TTL has expired, performing action {}", path.getPath(), ttlAction);
             switch (ttlAction) {
               case FREE:
                 // public free method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {
-                  mFileSystemMaster
-                      .free(path, FreeOptions.defaults().setForced(true).setRecursive(true));
+                  mFileSystemMaster.free(path, FreeContext
+                      .defaults(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
                 } else {
-                  mFileSystemMaster.free(path, FreeOptions.defaults().setForced(true));
+                  mFileSystemMaster.free(path,
+                      FreeContext.defaults(FreePOptions.newBuilder().setForced(true)));
                 }
-                // Reset state
-                inode.setTtl(Constants.NO_TTL);
-                inode.setTtlAction(TtlAction.DELETE);
+                try (JournalContext journalContext = mFileSystemMaster.createJournalContext()) {
+                  // Reset state
+                  mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
+                      .setId(inode.getId())
+                      .setTtl(Constants.NO_TTL)
+                      .setTtlAction(ProtobufUtils.toProtobuf(TtlAction.DELETE))
+                      .build());
+                }
                 mTtlBuckets.remove(inode);
                 break;
               case DELETE:// Default if not set is DELETE
                 // public delete method will lock the path, and check WRITE permission required at
                 // parent of file
                 if (inode.isDirectory()) {
-                  mFileSystemMaster.delete(path, DeleteOptions.defaults().setRecursive(true));
+                  mFileSystemMaster.delete(path,
+                      DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
                 } else {
-                  mFileSystemMaster.delete(path, DeleteOptions.defaults().setRecursive(false));
+                  mFileSystemMaster.delete(path, DeleteContext.defaults());
                 }
                 break;
               default:

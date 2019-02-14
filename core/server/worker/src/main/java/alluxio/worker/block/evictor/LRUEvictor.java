@@ -94,6 +94,11 @@ public class LRUEvictor extends AbstractEvictor {
   }
 
   @Override
+  public void onBlockLost(long blockId) {
+    mLRUCache.remove(blockId);
+  }
+
+  @Override
   protected void onRemoveBlockFromIterator(long blockId) {
     mLRUCache.remove(blockId);
   }

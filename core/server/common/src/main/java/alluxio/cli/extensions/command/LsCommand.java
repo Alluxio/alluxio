@@ -11,7 +11,9 @@
 
 package alluxio.cli.extensions.command;
 
-import alluxio.cli.AbstractCommand;
+import alluxio.cli.Command;
+import alluxio.cli.CommandUtils;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ExtensionUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -26,21 +28,28 @@ import javax.annotation.concurrent.ThreadSafe;
  * Lists all installed extensions.
  */
 @ThreadSafe
-public final class LsCommand extends AbstractCommand {
+public final class LsCommand implements Command {
   private static final Logger LOG = LoggerFactory.getLogger(LsCommand.class);
+
+  private final String mExtensionsDir;
 
   /**
    * Constructs a new instance of {@link LsCommand}.
+   *
+   * @param extensionsDir the path to the directory containing the extensions
    */
-  public LsCommand() {}
+  public LsCommand(String extensionsDir) {
+    mExtensionsDir = extensionsDir;
+  }
 
   @Override
   public String getCommandName() {
     return "ls";
   }
 
-  protected int getNumOfArgs() {
-    return 0;
+  @Override
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 0);
   }
 
   @Override
@@ -55,7 +64,7 @@ public final class LsCommand extends AbstractCommand {
 
   @Override
   public int run(CommandLine cl) {
-    for (File extension : ExtensionUtils.listExtensions()) {
+    for (File extension : ExtensionUtils.listExtensions(mExtensionsDir)) {
       System.out.println(extension.getName());
     }
     return 0;

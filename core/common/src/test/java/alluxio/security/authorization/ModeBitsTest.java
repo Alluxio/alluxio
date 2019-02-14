@@ -12,9 +12,10 @@
 package alluxio.security.authorization;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -90,5 +91,15 @@ public final class ModeBitsTest {
     assertEquals(Mode.Bits.NONE, Mode.Bits.READ.and(Mode.Bits.WRITE));
     assertEquals(Mode.Bits.READ, Mode.Bits.READ_EXECUTE.and(Mode.Bits.READ));
     assertEquals(Mode.Bits.WRITE, Mode.Bits.READ_WRITE.and(Mode.Bits.WRITE));
+  }
+
+  /**
+   * Tests {@link Mode.Bits#toAclActionSet()}.
+   */
+  @Test
+  public void toAclActions() {
+    for (Mode.Bits bits : Mode.Bits.values()) {
+      Assert.assertEquals(bits, new AclActions(bits.toAclActionSet()).toModeBits());
+    }
   }
 }

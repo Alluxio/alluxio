@@ -42,8 +42,8 @@ public final class StorageTierView {
    * @param view the {@link BlockMetadataManagerView} this tierView is associated with
    */
   public StorageTierView(StorageTier tier, BlockMetadataManagerView view) {
-    mTier = Preconditions.checkNotNull(tier);
-    mManagerView = Preconditions.checkNotNull(view);
+    mTier = Preconditions.checkNotNull(tier, "tier");
+    mManagerView = Preconditions.checkNotNull(view, "view");
 
     for (StorageDir dir : mTier.getStorageDirs()) {
       StorageDirView dirView = new StorageDirView(dir, this, view);

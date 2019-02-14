@@ -13,6 +13,7 @@ du,"du ""path"""
 fileInfo,"fileInfo ""path"""
 free,"free ""path"""
 getCapacityBytes,getCapacityBytes
+getfacl,"getfacl ""path"""
 getUsedBytes,getUsedBytes
 help,"help ""cmd"""
 leader,leader
@@ -28,6 +29,7 @@ persist,"persist ""path1"" ... ""pathn"""
 pin,"pin ""path"""
 report,"report ""path"""
 rm,"rm ""path"""
+setfacl,"setfacl ""newACL"" ""path"""
 setTtl,"setTtl ""path"" ""time"""
 stat,"stat ""path"""
 tail,"tail ""path"""

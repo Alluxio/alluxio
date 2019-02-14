@@ -17,18 +17,22 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
-import alluxio.PropertyKey.Template;
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.PropertyKey.Template;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.powermock.reflect.Whitebox;
 
 import java.io.Closeable;
 import java.io.File;
@@ -44,22 +48,29 @@ public class TieredIdentityFactoryTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  private InstancedConfiguration mConfiguration;
+
+  @Before
+  public void before() {
+    mConfiguration = ConfigurationTestUtils.defaults();
+  }
+
   @Test
   public void defaultConf() throws Exception {
-    TieredIdentity identity = TieredIdentityFactory.create();
+    TieredIdentity identity = TieredIdentityFactory.create(mConfiguration);
     TieredIdentity expected = new TieredIdentity(Arrays.asList(
-        new LocalityTier("node", NetworkAddressUtils.getLocalNodeName()),
+        new LocalityTier("node", NetworkAddressUtils.getLocalNodeName(mConfiguration)),
         new LocalityTier("rack", null)));
     assertEquals(expected, identity);
   }
 
   @Test
   public void fromScript() throws Exception {
-    String scriptPath = setupScript("node=myhost,rack=myrack,custom=mycustom");
+    String scriptPath = setupScript("node=myhost,rack=myrack,custom=mycustom", mFolder.newFile());
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.LOCALITY_ORDER, "node,rack,custom",
-        PropertyKey.LOCALITY_SCRIPT, scriptPath)).toResource()) {
-      TieredIdentity identity = TieredIdentityFactory.create();
+        PropertyKey.LOCALITY_SCRIPT, scriptPath), mConfiguration).toResource()) {
+      TieredIdentity identity = TieredIdentityFactory.create(mConfiguration);
       TieredIdentity expected = new TieredIdentity(Arrays.asList(
           new LocalityTier("node", "myhost"),
           new LocalityTier("rack", "myrack"),
@@ -69,13 +80,33 @@ public class TieredIdentityFactoryTest {
   }
 
   @Test
+  public void fromScriptClasspath() throws Exception {
+    String customScriptName = "my-alluxio-locality.sh";
+    File dir = mFolder.newFolder("fromScriptClasspath");
+    Whitebox.invokeMethod(ClassLoader.getSystemClassLoader(), "addURL", dir.toURI().toURL());
+    File script = new File(dir, customScriptName);
+    setupScript("node=myhost,rack=myrack,custom=mycustom", script);
+    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
+        PropertyKey.LOCALITY_ORDER, "node,rack,custom",
+        PropertyKey.LOCALITY_SCRIPT, customScriptName), mConfiguration).toResource()) {
+      TieredIdentity identity = TieredIdentityFactory.create(mConfiguration);
+      TieredIdentity expected = new TieredIdentity(Arrays.asList(
+          new LocalityTier("node", "myhost"),
+          new LocalityTier("rack", "myrack"),
+          new LocalityTier("custom", "mycustom")));
+      assertEquals(expected, identity);
+    }
+    script.delete();
+  }
+
+  @Test
   public void overrideScript() throws Exception {
-    String scriptPath = setupScript("node=myhost,rack=myrack,custom=mycustom");
+    String scriptPath = setupScript("node=myhost,rack=myrack,custom=mycustom", mFolder.newFile());
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         Template.LOCALITY_TIER.format("node"), "overridden",
         PropertyKey.LOCALITY_ORDER, "node,rack,custom",
-        PropertyKey.LOCALITY_SCRIPT, scriptPath)).toResource()) {
-      TieredIdentity identity = TieredIdentityFactory.create();
+        PropertyKey.LOCALITY_SCRIPT, scriptPath), mConfiguration).toResource()) {
+      TieredIdentity identity = TieredIdentityFactory.create(mConfiguration);
       TieredIdentity expected = new TieredIdentity(Arrays.asList(
           new LocalityTier("node", "overridden"),
           new LocalityTier("rack", "myrack"),
@@ -86,10 +117,10 @@ public class TieredIdentityFactoryTest {
 
   @Test
   public void outOfOrderScript() throws Exception {
-    String scriptPath = setupScript("rack=myrack,node=myhost");
+    String scriptPath = setupScript("rack=myrack,node=myhost", mFolder.newFile());
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.LOCALITY_SCRIPT, scriptPath)).toResource()) {
-      TieredIdentity identity = TieredIdentityFactory.create();
+        PropertyKey.LOCALITY_SCRIPT, scriptPath), mConfiguration).toResource()) {
+      TieredIdentity identity = TieredIdentityFactory.create(mConfiguration);
       TieredIdentity expected = new TieredIdentity(Arrays.asList(
           new LocalityTier("node", "myhost"),
           new LocalityTier("rack", "myrack")));
@@ -131,9 +162,9 @@ public class TieredIdentityFactoryTest {
     File script = mFolder.newFile();
     FileUtils.writeStringToFile(script, "#!/bin/bash");
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.LOCALITY_SCRIPT, script.getAbsolutePath())).toResource()) {
+        PropertyKey.LOCALITY_SCRIPT, script.getAbsolutePath()), mConfiguration).toResource()) {
       try {
-        TieredIdentity identity = TieredIdentityFactory.create();
+        TieredIdentity identity = TieredIdentityFactory.create(mConfiguration);
       } catch (RuntimeException e) {
         assertThat(e.getMessage(), containsString(script.getAbsolutePath()));
         assertThat(e.getMessage(), containsString("Permission denied"));
@@ -146,23 +177,22 @@ public class TieredIdentityFactoryTest {
     assertEquals(new TieredIdentity(Arrays.asList(
         new LocalityTier("node", "b"),
         new LocalityTier("rack", "d")
-    )), TieredIdentityFactory.fromString("node=b,rack=d"));
+    )), TieredIdentityFactory.fromString("node=b,rack=d", mConfiguration));
   }
 
-  private String setupScript(String tieredIdentityString) throws Exception {
-    File script = mFolder.newFile();
-    script.setExecutable(true);
+  private String setupScript(String tieredIdentityString, File script) throws Exception {
     String content = "#!/bin/bash\n"
         + "echo \"" + tieredIdentityString + "\"\n";
     FileUtils.writeStringToFile(script, content);
+    script.setExecutable(true);
     return script.getAbsolutePath();
   }
 
   private TieredIdentity runScriptWithOutput(String output) throws Exception {
-    String scriptPath = setupScript(output);
+    String scriptPath = setupScript(output, mFolder.newFile());
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.LOCALITY_SCRIPT, scriptPath)).toResource()) {
-      return TieredIdentityFactory.create();
+        PropertyKey.LOCALITY_SCRIPT, scriptPath), mConfiguration).toResource()) {
+      return TieredIdentityFactory.create(mConfiguration);
     }
   }
 }

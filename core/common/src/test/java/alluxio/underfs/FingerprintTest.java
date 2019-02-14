@@ -11,11 +11,17 @@
 
 package alluxio.underfs;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
+import alluxio.security.authorization.AccessControlList;
 import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -53,6 +59,81 @@ public final class FingerprintTest {
     Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), null);
     String expected = fp.serialize();
     Assert.assertNotNull(expected);
+    Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
+  }
+
+  @Test
+  public void matchMetadataOrContent() {
+    String name = CommonUtils.randomAlphaNumString(10);
+    String contentHash = CommonUtils.randomAlphaNumString(10);
+    String contentHash2 = CommonUtils.randomAlphaNumString(11);
+    Long contentLength = mRandom.nextLong();
+    Long lastModifiedTimeMs = mRandom.nextLong();
+    String owner = CommonUtils.randomAlphaNumString(10);
+    String group = CommonUtils.randomAlphaNumString(10);
+    short mode = (short) mRandom.nextInt();
+    String ufsName = CommonUtils.randomAlphaNumString(10);
+
+    UfsFileStatus status = new UfsFileStatus(name, contentHash, contentLength, lastModifiedTimeMs,
+        owner, group, mode);
+    UfsFileStatus metadataChangedStatus = new UfsFileStatus(name, contentHash, contentLength,
+        lastModifiedTimeMs, CommonUtils.randomAlphaNumString(10),
+        CommonUtils.randomAlphaNumString(10), mode);
+    UfsFileStatus dataChangedStatus = new UfsFileStatus(name, contentHash2, contentLength,
+        lastModifiedTimeMs, owner, group, mode);
+    Fingerprint fp = Fingerprint.create(ufsName, status);
+    Fingerprint fpMetadataChanged = Fingerprint.create(ufsName, metadataChangedStatus);
+    Fingerprint fpDataChanged = Fingerprint.create(ufsName, dataChangedStatus);
+
+    assertTrue(fp.matchMetadata(fp));
+    assertFalse(fp.matchMetadata(fpMetadataChanged));
+    assertTrue(fp.matchContent(fpMetadataChanged));
+    assertFalse(fp.matchContent(fpDataChanged));
+    assertTrue(fp.matchMetadata(fpDataChanged));
+  }
+
+  @Test
+  public void createFingerprintFromUfsStatus() {
+    String name = CommonUtils.randomAlphaNumString(10);
+    String owner = CommonUtils.randomAlphaNumString(10);
+    String group = CommonUtils.randomAlphaNumString(10);
+    short mode = (short) mRandom.nextInt();
+    String ufsName = CommonUtils.randomAlphaNumString(10);
+
+    UfsDirectoryStatus dirStatus = new UfsDirectoryStatus(name, owner, group, mode);
+    Fingerprint fp = Fingerprint.create(ufsName, dirStatus);
+    assertEquals(owner, fp.getTag(Fingerprint.Tag.OWNER));
+    assertEquals(group, fp.getTag(Fingerprint.Tag.GROUP));
+    assertEquals(String.valueOf(mode), fp.getTag(Fingerprint.Tag.MODE));
+
+    String contentHash = CommonUtils.randomAlphaNumString(10);
+    Long contentLength = mRandom.nextLong();
+    Long lastModifiedTimeMs = mRandom.nextLong();
+
+    UfsFileStatus fileStatus = new UfsFileStatus(name, contentHash, contentLength,
+        lastModifiedTimeMs, owner, group, mode);
+    fp = Fingerprint.create(ufsName, fileStatus);
+
+    assertEquals(owner, fp.getTag(Fingerprint.Tag.OWNER));
+    assertEquals(group, fp.getTag(Fingerprint.Tag.GROUP));
+    assertEquals(String.valueOf(mode), fp.getTag(Fingerprint.Tag.MODE));
+  }
+
+  @Test
+  public void createACLFingeprint() {
+    UfsStatus status = new UfsFileStatus(CommonUtils.randomAlphaNumString(10),
+        CommonUtils.randomAlphaNumString(10), mRandom.nextLong(), mRandom.nextLong(),
+        CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10),
+        (short) mRandom.nextInt());
+    AccessControlList acl = AccessControlList.fromStringEntries(
+        CommonUtils.randomAlphaNumString(10),
+        CommonUtils.randomAlphaNumString(10),
+        Arrays.asList("user::rw-", "group::r--", "other::rwx"));
+    Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), status, acl);
+    String expected = fp.serialize();
+    Assert.assertNotNull(expected);
+    Assert.assertEquals("user::rw-,group::r--,other::rwx",
+        Fingerprint.parse(expected).getTag(Fingerprint.Tag.ACL));
     Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
   }
 }

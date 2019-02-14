@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.IdUtils;
 
 import org.slf4j.Logger;
@@ -36,7 +38,6 @@ public final class Sessions {
   public static final int MIGRATE_DATA_SESSION_ID = -3;
   public static final int MASTER_COMMAND_SESSION_ID = -4;
   public static final int ACCESS_BLOCK_SESSION_ID = -5;
-  public static final int KEYVALUE_SESSION_ID = -6;
   public static final int ASYNC_CACHE_SESSION_ID = -7;
 
   // internal session id base should be smaller than all predefined session ids
@@ -58,7 +59,6 @@ public final class Sessions {
    * @return the list of session ids of sessions that timed out
    */
   public List<Long> getTimedOutSessions() {
-    LOG.debug("Worker is checking all sessions' status for timeouts.");
     List<Long> ret = new ArrayList<>();
     synchronized (mSessions) {
       for (Entry<Long, SessionInfo> entry : mSessions.entrySet()) {
@@ -92,7 +92,8 @@ public final class Sessions {
       if (mSessions.containsKey(sessionId)) {
         mSessions.get(sessionId).heartbeat();
       } else {
-        int sessionTimeoutMs = (int) Configuration.getMs(PropertyKey.WORKER_SESSION_TIMEOUT_MS);
+        int sessionTimeoutMs = (int) ServerConfiguration
+            .getMs(PropertyKey.WORKER_SESSION_TIMEOUT_MS);
         mSessions.put(sessionId, new SessionInfo(sessionId, sessionTimeoutMs));
       }
     }

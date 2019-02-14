@@ -13,6 +13,8 @@ package alluxio.underfs;
 
 import alluxio.Constants;
 
+import alluxio.security.authorization.AccessControlList;
+
 import com.google.common.base.Splitter;
 
 import java.util.Collections;
@@ -30,9 +32,19 @@ public final class Fingerprint {
   /** These tags are required in all fingerprints. */
   private static final Tag[] REQUIRED_TAGS = {Tag.TYPE, Tag.UFS, Tag.OWNER, Tag.GROUP, Tag.MODE};
   /** These tags are optional, and are serialized after the required tags. */
-  private static final Tag[] OPTIONAL_TAGS = {Tag.CONTENT_HASH};
+  private static final Tag[] OPTIONAL_TAGS = {Tag.CONTENT_HASH, Tag.ACL};
 
-  private static final Pattern SANITIZE_REGEX = Pattern.compile("[ :]");
+  /** These tags are all the metadata tags in the fingerprints. */
+  private static final Tag[] METADATA_TAGS = {Tag.OWNER, Tag.GROUP, Tag.MODE, Tag.ACL};
+  /** These tags are all the content tags in the fingerprints. */
+  private static final Tag[] CONTENT_TAGS = {Tag.TYPE, Tag.UFS, Tag.CONTENT_HASH};
+
+  private static final char KVDELIMTER = '|';
+  private static final char TAGDELIMTER = ' ';
+
+  private static final Pattern SANITIZE_REGEX = Pattern.compile("[" + KVDELIMTER
+      + TAGDELIMTER + "]");
+  private static final String UNDERSCORE = "_";
 
   private final Map<Tag, String> mValues;
 
@@ -54,6 +66,7 @@ public final class Fingerprint {
     GROUP,
     MODE,
     CONTENT_HASH,
+    ACL,
   }
 
   /**
@@ -67,6 +80,36 @@ public final class Fingerprint {
     if (status == null) {
       return new Fingerprint(Collections.emptyMap());
     }
+    return new Fingerprint(Fingerprint.createTags(ufsName, status));
+  }
+
+  /**
+   * Parses the input string and returns the fingerprint object.
+   *
+   * @param ufsName the name of the ufs, should be {@link UnderFileSystem#getUnderFSType()}
+   * @param status the {@link UfsStatus} to create the fingerprint from
+   * @param acl the {@link AccessControlList} to create the fingerprint from
+   * @return the fingerprint object
+   */
+  public static Fingerprint create(String ufsName, UfsStatus status, AccessControlList acl) {
+    if (status == null) {
+      return new Fingerprint(Collections.emptyMap());
+    }
+    Map<Tag, String> tagMap = Fingerprint.createTags(ufsName, status);
+    if (acl != null) {
+      tagMap.put(Tag.ACL, acl.toString());
+    }
+    return new Fingerprint(tagMap);
+  }
+
+  /**
+   * Parses the input status and returns a tag map.
+   *
+   * @param ufsName the name of the ufs, should be {@link UnderFileSystem#getUnderFSType()}
+   * @param status the {@link UfsStatus} to create the tagmap from
+   * @return the tag map object
+   */
+  private static Map<Tag, String> createTags(String ufsName, UfsStatus status) {
     Map<Tag, String> tagMap = new HashMap<>();
     tagMap.put(Tag.UFS, ufsName);
     tagMap.put(Tag.OWNER, status.getOwner());
@@ -78,7 +121,7 @@ public final class Fingerprint {
     } else {
       tagMap.put(Tag.TYPE, Type.DIRECTORY.name());
     }
-    return new Fingerprint(tagMap);
+    return tagMap;
   }
 
   /**
@@ -94,8 +137,8 @@ public final class Fingerprint {
     if (Constants.INVALID_UFS_FINGERPRINT.equals(input)) {
       return new Fingerprint(Collections.emptyMap());
     }
-    Map<String, String> kv =
-        Splitter.on(' ').trimResults().omitEmptyStrings().withKeyValueSeparator(':').split(input);
+    Map<String, String> kv = Splitter.on(TAGDELIMTER).trimResults().omitEmptyStrings()
+            .withKeyValueSeparator(KVDELIMTER).split(input);
     Map<Tag, String> tagMap = new HashMap<>();
 
     for (Map.Entry<String, String> entry : kv.entrySet()) {
@@ -113,6 +156,26 @@ public final class Fingerprint {
   }
 
   /**
+   * Checks if the fingerprint object was generated from an INVALID_UFS_FINGERPRINT.
+   *
+   * @return returns true if the fingerprint is valid
+   */
+  public boolean isValid() {
+    if (mValues.isEmpty()) {
+      return false;
+    }
+
+    // Check required tags
+    for (Tag tag : REQUIRED_TAGS) {
+      if (!mValues.containsKey(tag)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * @return the serialized string of the fingerprint
    */
   public String serialize() {
@@ -122,15 +185,45 @@ public final class Fingerprint {
     StringBuilder sb = new StringBuilder();
     // Serialize required tags first
     for (Tag tag : REQUIRED_TAGS) {
-      sb.append(tag).append(':').append(getTag(tag)).append(' ');
+      sb.append(tag).append(KVDELIMTER).append(getTag(tag)).append(TAGDELIMTER);
     }
     // Serialize optional tags last
     for (Tag tag : OPTIONAL_TAGS) {
       if (mValues.containsKey(tag)) {
-        sb.append(tag).append(':').append(getTag(tag)).append(' ');
+        sb.append(tag).append(KVDELIMTER).append(getTag(tag)).append(TAGDELIMTER);
       }
     }
     return sb.toString();
+  }
+
+  /**
+   * Returns true if the serialized fingerprint matches the fingerprint in metadata.
+   *
+   * @param fp a parsed fingerprint object
+   * @return true if the given fingerprint matches the current fingerprint in metadata
+   */
+  public boolean matchMetadata(Fingerprint fp) {
+    for (Tag tag : METADATA_TAGS) {
+      if (!getTag(tag).equals(fp.getTag(tag))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Returns true if the serialized fingerprint matches the fingerprint in the content part.
+   *
+   * @param fp a parsed fingerprint object
+   * @return true if the given fingerprint matches the current fingerprint's content
+   */
+  public boolean matchContent(Fingerprint fp) {
+    for (Tag tag : CONTENT_TAGS) {
+      if (!getTag(tag).equals(fp.getTag(tag))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -140,10 +233,22 @@ public final class Fingerprint {
    * @param tag the tag to update
    * @param value the new value of the tag
    */
-  public void updateTag(Tag tag, String value) {
+  public void putTag(Tag tag, String value) {
     if (value != null) {
       mValues.put(tag, sanitizeString(value));
     }
+  }
+
+  /**
+   * @param tag the tag to get
+   * @return the value of the tag
+   */
+  public String getTag(Tag tag) {
+    String value = mValues.get(tag);
+    if (value == null) {
+      return UNDERSCORE;
+    }
+    return value;
   }
 
   private Fingerprint(Map<Tag, String> values) {
@@ -153,22 +258,10 @@ public final class Fingerprint {
     }
   }
 
-  private void putTag(Tag tag, String value) {
-    mValues.put(tag, sanitizeString(value));
-  }
-
-  private String getTag(Tag tag) {
-    String value = mValues.get(tag);
-    if (value == null) {
-      return "_";
-    }
-    return value;
-  }
-
   private String sanitizeString(String input) {
     if (input == null || input.isEmpty()) {
-      return "_";
+      return UNDERSCORE;
     }
-    return SANITIZE_REGEX.matcher(input).replaceAll("_");
+    return SANITIZE_REGEX.matcher(input).replaceAll(UNDERSCORE);
   }
 }

@@ -11,10 +11,11 @@
 
 package alluxio.cli.extensions.command;
 
-import alluxio.Configuration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
-import alluxio.cli.AbstractCommand;
+import alluxio.conf.PropertyKey;
+import alluxio.cli.Command;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.extensions.ExtensionsShellUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
@@ -35,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Install a new extension.
  */
 @ThreadSafe
-public final class InstallCommand extends AbstractCommand {
+public final class InstallCommand implements Command {
   private static final Logger LOG = LoggerFactory.getLogger(InstallCommand.class);
 
   /**
@@ -46,10 +47,6 @@ public final class InstallCommand extends AbstractCommand {
   @Override
   public String getCommandName() {
     return "install";
-  }
-
-  protected int getNumOfArgs() {
-    return 1;
   }
 
   @Override
@@ -65,7 +62,7 @@ public final class InstallCommand extends AbstractCommand {
   @Override
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
-    String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
+    String extensionsDir = ServerConfiguration.get(PropertyKey.EXTENSIONS_DIR);
     File dir = new File(extensionsDir);
     if (!dir.exists() && !dir.mkdirs()) {
       System.err.println("Failed to create extensions directory " + extensionsDir);
@@ -100,9 +97,9 @@ public final class InstallCommand extends AbstractCommand {
   }
 
   @Override
-  protected void validateArgs(String... args) throws InvalidArgumentException {
-    super.validateArgs(args);
-
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    String[] args = cl.getArgs();
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
     if (args[0] == null) {
       throw new InvalidArgumentException(
           ExceptionMessage.INVALID_ARGS_NULL.getMessage(getCommandName()));

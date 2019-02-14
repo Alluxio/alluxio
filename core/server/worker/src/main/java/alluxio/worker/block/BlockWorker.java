@@ -43,11 +43,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
   AtomicReference<Long> getWorkerId();
 
   /**
-   * @return the worker service handler
-   */
-  BlockWorkerClientServiceHandler getWorkerServiceHandler();
-
-  /**
    * Aborts the temporary block created by the session.
    *
    * @param sessionId the id of the client
@@ -87,6 +82,14 @@ public interface BlockWorker extends Worker, SessionCleanable {
       IOException, WorkerOutOfSpaceException;
 
   /**
+   * Commits a block in UFS.
+   *
+   * @param blockId the id of the block to commit
+   * @param length length of the block to commit
+   */
+  void commitBlockInUfs(long blockId, long length) throws IOException;
+
+  /**
    * Creates a block in Alluxio managed space. The block will be temporary until it is committed.
    * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
    *
@@ -105,8 +108,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
 
   /**
    * Creates a block. This method is only called from a data server.
-   * Calls {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the block.
-   * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
+   * Calls {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the
+   * block. Throws an {@link IllegalArgumentException} if the location does not belong to tiered
+   * storage.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be created

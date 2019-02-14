@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-hdfs</artifactId>
   <name>Alluxio Under File System - HDFS</name>
@@ -24,10 +24,9 @@
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
-    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
-    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
-    <ufs.hadoop.version>${hadoop.version}</ufs.hadoop.version>
+    <build.path>${project.parent.parent.basedir}/build</build.path>
+    <!-- Decouple hadoop versions between north and south bound -->
+    <ufs.hadoop.version>2.2.0</ufs.hadoop.version>
   </properties>
 
   <dependencies>
@@ -59,7 +58,8 @@
   <profiles>
     <!-- Profile to build this UFS module connecting to hdfs 1 -->
     <profile>
-      <id>hadoop-1</id>
+      <!-- Decouple hadoop profiles: hadoop-1 to indicate north bound and ufs-hadoop-1 to indicate the south bound -->
+      <id>ufs-hadoop-1</id>
       <dependencies>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
@@ -67,11 +67,27 @@
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.igormaznitsa</groupId>
+            <artifactId>jcp</artifactId>
+            <configuration>
+              <globalVars>
+                <property>
+                  <name>HADOOP1</name>
+                </property>
+              </globalVars>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
 
     <!-- Profile to build this UFS module connecting to hdfs 2, this is the default profile -->
     <profile>
-      <id>hadoop-2</id>
+      <!-- Decouple hadoop profiles: hadoop-2 to indicate north bound and ufs-hadoop-2 to indicate the south bound -->
+      <id>ufs-hadoop-2</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
@@ -81,10 +97,26 @@
           <artifactId>hadoop-common</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
-
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs</artifactId>
+          <version>${ufs.hadoop.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- Profile to build this UFS module connecting to hdfs 3 -->
+    <profile>
+      <id>ufs-hadoop-3</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${ufs.hadoop.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs-client</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
@@ -109,6 +141,39 @@
         </plugins>
       </build>
     </profile>
+
+    <profile>
+      <id>hdfsAcl</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <excludes combine.self="override" >
+                <exclude>**/SupportedHdfsActiveSyncProvider.java</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>hdfsActiveSync</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <excludes combine.self="override" >
+                <exclude>**/SupportedHdfsAclProvider.java</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <build>
@@ -117,6 +182,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
+          <excludes>
+            <exclude>**/SupportedHdfsAclProvider.java</exclude>
+            <exclude>**/SupportedHdfsActiveSyncProvider.java</exclude>
+          </excludes>
           <testExcludes>
             <!-- Skip UFS contract tests unless -DtestHdfsBaseDir="hdfs://ip:port/alluxio_test" is specified -->
             <exclude>**/HdfsUnderFileSystemContractTest.java</exclude>
@@ -130,6 +199,42 @@
       <plugin>
         <groupId>com.coderplus.maven.plugins</groupId>
         <artifactId>copy-rename-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>templating-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>filter-src</id>
+            <goals>
+              <goal>filter-sources</goal>
+            </goals>
+            <configuration>
+              <sourceDirectory>${basedir}/src/main/java-templates</sourceDirectory>
+              <outputDirectory>${basedir}/src/main/java</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.igormaznitsa</groupId>
+        <artifactId>jcp</artifactId>
+        <executions>
+          <execution>
+            <id>preprocessSources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>preprocess</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>clearGeneratedFolders</id>
+            <goals>
+              <goal>clear</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

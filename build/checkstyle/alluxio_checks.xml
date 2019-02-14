@@ -64,11 +64,14 @@
     <property name="fileExtensions" value=".java"/>
     <property name="message" value="Extra newline"/>
   </module>
+  <module name="RegexpMultiline">
+    <property name="format" value="\n\s*\n\s*}"/>
+    <property name="fileExtensions" value=".java"/>
+    <property name="message" value="Extra newline at end of block"/>
+  </module>
 
   <!-- All Java AST specific tests live under TreeWalker module. -->
   <module name="TreeWalker">
-    <!-- Checks that a class which has only private constructors is declared as final. -->
-    <module name="FinalClass"/>
     <module name="OuterTypeFilename"/>
     <module name="IllegalTokenText">
       <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>
@@ -255,6 +258,9 @@
 
     <!-- Checks that there is whitespace after various tokens. -->
     <module name="WhitespaceAfter"/>
+
+    <!-- Allows SuppressionCommentFilter to access module contents. -->
+    <module name="FileContentsHolder"/>
   </module>
 
   <!-- always use Unix-style line separators -->
@@ -265,5 +271,11 @@
     <property name="format" value="\s+$"/>
     <property name="message" value="Trailing whitespace found."/>
     <property name="fileExtensions" value=".java"/>
+  </module>
+
+  <!-- Disables checkstyle for particular lines of codes. -->
+  <module name="SuppressionCommentFilter">
+    <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
+    <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
   </module>
 </module>

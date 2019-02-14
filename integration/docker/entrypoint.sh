@@ -53,6 +53,8 @@ alluxio_env_vars=(
   ALLUXIO_RAM_FOLDER
   ALLUXIO_USER_JAVA_OPTS
   ALLUXIO_WORKER_JAVA_OPTS
+  ALLUXIO_JOB_MASTER_JAVA_OPTS
+  ALLUXIO_JOB_WORKER_JAVA_OPTS
 )
 
 for keyvaluepair in $(env); do
@@ -82,7 +84,9 @@ case ${service,,} in
     if [[ ${options} != ${NO_FORMAT} ]]; then
       bin/alluxio formatMaster
     fi
-    integration/docker/bin/alluxio-master.sh
+    integration/docker/bin/alluxio-job-master.sh &
+    integration/docker/bin/alluxio-master.sh &
+    wait -n
     ;;
   worker)
     if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
@@ -92,7 +96,9 @@ case ${service,,} in
     if [[ ${options} != ${NO_FORMAT} ]]; then
       bin/alluxio formatWorker
     fi
-    integration/docker/bin/alluxio-worker.sh
+    integration/docker/bin/alluxio-job-worker.sh &
+    integration/docker/bin/alluxio-worker.sh &
+    wait -n
     ;;
   proxy)
     integration/docker/bin/alluxio-proxy.sh

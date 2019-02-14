@@ -252,19 +252,27 @@ public final class FormatUtilsTest {
   }
 
   /**
-   * Tests the {@link FormatUtils#formatMode(short, boolean)} method.
+   * Tests the {@link FormatUtils#formatMode(short, boolean, boolean)} method.
    */
   @Test
   public void formatPermission() {
-    Assert.assertEquals("-rw-rw-rw-", FormatUtils.formatMode((short) 0666, false));
-    Assert.assertEquals("drw-rw-rw-", FormatUtils.formatMode((short) 0666, true));
-    Assert.assertEquals("-rwxrwxrwx", FormatUtils.formatMode((short) 0777, false));
-    Assert.assertEquals("drwxrwxrwx", FormatUtils.formatMode((short) 0777, true));
-    Assert.assertEquals("-r--r--r--", FormatUtils.formatMode((short) 0444, false));
-    Assert.assertEquals("dr--r--r--", FormatUtils.formatMode((short) 0444, true));
-    Assert.assertEquals("-r-xr-xr-x", FormatUtils.formatMode((short) 0555, false));
-    Assert.assertEquals("dr-xr-xr-x", FormatUtils.formatMode((short) 0555, true));
-    Assert.assertEquals("-rwxr-xr--", FormatUtils.formatMode((short) 0754, false));
-    Assert.assertEquals("drwxr-xr--", FormatUtils.formatMode((short) 0754, true));
+    Assert.assertEquals("-rw-rw-rw-", FormatUtils.formatMode((short) 0666, false, false));
+    Assert.assertEquals("drw-rw-rw-", FormatUtils.formatMode((short) 0666, true, false));
+    Assert.assertEquals("-rwxrwxrwx", FormatUtils.formatMode((short) 0777, false, false));
+    Assert.assertEquals("drwxrwxrwx", FormatUtils.formatMode((short) 0777, true, false));
+    Assert.assertEquals("-r--r--r--", FormatUtils.formatMode((short) 0444, false, false));
+    Assert.assertEquals("dr--r--r--", FormatUtils.formatMode((short) 0444, true, false));
+    Assert.assertEquals("-r-xr-xr-x", FormatUtils.formatMode((short) 0555, false, false));
+    Assert.assertEquals("dr-xr-xr-x", FormatUtils.formatMode((short) 0555, true, false));
+    Assert.assertEquals("-rwxr-xr--", FormatUtils.formatMode((short) 0754, false, false));
+    Assert.assertEquals("drwxr-xr--", FormatUtils.formatMode((short) 0754, true, false));
+  }
+
+  @Test
+  public void formatPermissionExtendedAcl() {
+    Assert.assertEquals("-rw-rw-rw-+", FormatUtils.formatMode((short) 0666, false, true));
+    Assert.assertEquals("drw-rw-rw-+", FormatUtils.formatMode((short) 0666, true, true));
+    Assert.assertEquals("-rwxrwxrwx+", FormatUtils.formatMode((short) 0777, false, true));
+    Assert.assertEquals("drwxrwxrwx+", FormatUtils.formatMode((short) 0777, true, true));
   }
 }

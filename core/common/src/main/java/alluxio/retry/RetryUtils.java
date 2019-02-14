@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
 
 /**
  * Utilities for performing retries.
@@ -32,17 +33,69 @@ public final class RetryUtils {
    */
   public static void retry(String action, RunnableThrowsIOException f, RetryPolicy policy)
       throws IOException {
-    IOException e;
-    do {
+    IOException e = null;
+    while (policy.attempt()) {
       try {
         f.run();
         return;
       } catch (IOException ioe) {
         e = ioe;
-        LOG.warn("Failed to {} (attempt {}): {}", action, policy.getRetryCount() + 1, e.toString());
+        LOG.warn("Failed to {} (attempt {}): {}", action, policy.getAttemptCount(), e.toString());
       }
-    } while (policy.attemptRetry());
+    }
     throw e;
+  }
+
+  /**
+   * Gives a ClientRetry based on the given parameters.
+   *
+   * @param maxRetryDuration the maximum total duration to retry for
+   * @param baseSleepMs initial sleep time in milliseconds
+   * @param maxSleepMs max sleep time in milliseconds
+   * @return the default client retry
+   */
+  public static RetryPolicy defaultClientRetry(Duration maxRetryDuration, Duration baseSleepMs,
+      Duration maxSleepMs) {
+    return ExponentialTimeBoundedRetry.builder()
+        .withMaxDuration(maxRetryDuration)
+        .withInitialSleep(baseSleepMs)
+        .withMaxSleep(maxSleepMs)
+        .build();
+  }
+
+  /**
+   * @param workerMasterConnectRetryTimeout the max duration to wait between retrying for worker
+   *                                        and master
+   * @return the default worker to master client retry
+   */
+  public static RetryPolicy defaultWorkerMasterClientRetry(
+      Duration workerMasterConnectRetryTimeout) {
+    return ExponentialTimeBoundedRetry.builder()
+        .withMaxDuration(workerMasterConnectRetryTimeout)
+        .withInitialSleep(Duration.ofMillis(100))
+        .withMaxSleep(Duration.ofSeconds(5))
+        .build();
+  }
+
+  /**
+   * @return the default metrics client retry
+   */
+  public static RetryPolicy defaultMetricsClientRetry() {
+    // No retry for metrics since they are best effort and automatically retried with the heartbeat.
+    return new CountingRetry(0);
+  }
+
+  /**
+   * @param activeUfsPollTimeoutMs the max time in milliseconds to wait for active ufs sync retries
+   * @return the default active sync retry behavior
+   */
+  public static RetryPolicy defaultActiveSyncClientRetry(long activeUfsPollTimeoutMs) {
+    return ExponentialTimeBoundedRetry.builder()
+        .withMaxDuration(Duration
+            .ofMillis(activeUfsPollTimeoutMs))
+        .withInitialSleep(Duration.ofMillis(100))
+        .withMaxSleep(Duration.ofSeconds(60))
+        .build();
   }
 
   /**

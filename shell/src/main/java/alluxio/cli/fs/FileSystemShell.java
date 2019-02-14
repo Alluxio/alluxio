@@ -12,10 +12,12 @@
 package alluxio.cli.fs;
 
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
-import alluxio.client.file.FileSystem;
+import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -37,6 +39,7 @@ public final class FileSystemShell extends AbstractShell {
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
       .put("lsr", new String[] {"ls", "-R"})
       .put("rmr", new String[] {"rm", "-R"})
+      .put("umount", new String[] {"unmount"})
       .build();
 
   /**
@@ -46,10 +49,11 @@ public final class FileSystemShell extends AbstractShell {
    */
   public static void main(String[] argv) throws IOException {
     int ret;
-
-    if (!ConfigurationUtils.masterHostConfigured()) {
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    if (!ConfigurationUtils.masterHostConfigured(conf)
+        && argv.length > 0 && !argv[0].equals("help")) {
       System.out.println(String.format(
-          "Cannot run alluxio shell; master hostname is not "
+          "Cannot run alluxio fs shell; master hostname is not "
               + "configured. Please modify %s to either set %s or configure zookeeper with "
               + "%s=true and %s=[comma-separated zookeeper master addresses]",
           Constants.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
@@ -57,7 +61,9 @@ public final class FileSystemShell extends AbstractShell {
       System.exit(1);
     }
 
-    try (FileSystemShell shell = new FileSystemShell()) {
+    // Reduce the RPC retry max duration to fall earlier for CLIs
+    conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
+    try (FileSystemShell shell = new FileSystemShell(conf)) {
       ret = shell.run(argv);
     }
     System.exit(ret);
@@ -65,9 +71,11 @@ public final class FileSystemShell extends AbstractShell {
 
   /**
    * Creates a new instance of {@link FileSystemShell}.
+   *
+   * @param alluxioConf Alluxio configuration
    */
-  public FileSystemShell() {
-    super(CMD_ALIAS);
+  public FileSystemShell(InstancedConfiguration alluxioConf) {
+    super(CMD_ALIAS, alluxioConf);
   }
 
   @Override
@@ -77,6 +85,6 @@ public final class FileSystemShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
-    return FileSystemShellUtils.loadCommands(FileSystem.Factory.get());
+    return FileSystemShellUtils.loadCommands(FileSystemContext.create(mConfiguration));
   }
 }

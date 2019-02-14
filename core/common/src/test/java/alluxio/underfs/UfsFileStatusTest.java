@@ -41,7 +41,7 @@ public final class UfsFileStatusTest {
     Assert.assertEquals(contentLength, status.getContentLength());
     Assert.assertEquals(false, status.isDirectory());
     Assert.assertEquals(true, status.isFile());
-    Assert.assertEquals(lastModifiedTimeMs, status.getLastModifiedTime());
+    Assert.assertEquals(lastModifiedTimeMs, (long) status.getLastModifiedTime());
     Assert.assertEquals("owner", status.getOwner());
     Assert.assertEquals("group", status.getGroup());
     Assert.assertEquals(mode, status.getMode());

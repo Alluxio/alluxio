@@ -182,10 +182,12 @@ public final class FileUtils {
    * permissions.
    *
    * @param path the path of the block
+   * @param workerDataFolderPermissions The permissions to set on the worker's data folder
    */
-  public static void createBlockPath(String path) throws IOException {
+  public static void createBlockPath(String path, String workerDataFolderPermissions)
+      throws IOException {
     try {
-      createStorageDirPath(PathUtils.getParent(path));
+      createStorageDirPath(PathUtils.getParent(path), workerDataFolderPermissions);
     } catch (InvalidPathException e) {
       throw new IOException("Failed to create block path, get parent path of " + path + "failed",
           e);
@@ -246,12 +248,14 @@ public final class FileUtils {
    * Creates the storage directory path, including any necessary but nonexistent parent directories.
    * If the directory already exists, do nothing.
    *
-   * Also, appropriate directory permissions (777 + StickyBit, namely "drwxrwxrwt") are set.
+   * Also, appropriate directory permissions (w/ StickyBit) are set.
    *
    * @param path storage directory path to create
+   * @param workerDataFolderPermissions the permissions to set for the worker's data folder
    * @return true if the directory is created and false if the directory already exists
    */
-  public static boolean createStorageDirPath(String path) throws IOException {
+  public static boolean createStorageDirPath(String path, String workerDataFolderPermissions)
+      throws IOException {
     if (Files.exists(Paths.get(path))) {
       return false;
     }
@@ -262,7 +266,7 @@ public final class FileUtils {
       throw new IOException("Failed to create folder " + path, e);
     }
     String absolutePath = storagePath.toAbsolutePath().toString();
-    changeLocalFileToFullPermission(absolutePath);
+    changeLocalFilePermission(absolutePath, workerDataFolderPermissions);
     setLocalDirStickyBit(absolutePath);
     return true;
   }
@@ -295,6 +299,20 @@ public final class FileUtils {
    */
   public static boolean exists(String path) {
     return Files.exists(Paths.get(path));
+  }
+
+  /**
+   * Checks if a storage directory path is accessible.
+   *
+   * @param path the given path
+   * @return true if path exists, false otherwise
+   */
+  public static boolean isStorageDirAccessible(String path) {
+    Path filePath = Paths.get(path);
+    return Files.exists(filePath)
+        && Files.isReadable(filePath)
+        && Files.isWritable(filePath)
+        && Files.isExecutable(filePath);
   }
 
   private FileUtils() {} // prevent instantiation

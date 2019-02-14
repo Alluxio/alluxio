@@ -12,14 +12,17 @@
 package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.Constants;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -29,9 +32,9 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.internal.Mimetypes;
@@ -48,11 +51,11 @@ import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.util.Base64;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +65,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.annotation.Nullable;
@@ -93,17 +98,37 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
+  /** Executor for executing upload tasks in streaming upload. */
+  private final ListeningExecutorService mExecutor;
+
   /** Transfer Manager for efficient I/O to S3. */
   private final TransferManager mManager;
 
+  /** Whether the streaming upload is enabled. */
+  private final boolean mStreamingUploadEnabled;
+
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
-  private final Supplier<ObjectPermissions> mPermissions = Suppliers
-      .memoize(new Supplier<ObjectPermissions>() {
-        @Override
-        public ObjectPermissions get() {
-          return getPermissionsInternal();
+  private final Supplier<ObjectPermissions> mPermissions = memoize(this::getPermissionsInternal);
+
+  /** Memoize implementation for java.util.function.supplier. */
+  private static <T> Supplier<T> memoize(Supplier<T> original) {
+    return new Supplier<T>() {
+      Supplier<T> mDelegate = this::firstTime;
+      boolean mInitialized;
+      public T get() {
+        return mDelegate.get();
+      }
+
+      private synchronized T firstTime() {
+        if (!mInitialized) {
+          T value = original.get();
+          mDelegate = () -> value;
+          mInitialized = true;
         }
-      });
+        return mDelegate.get();
+      }
+    };
+  }
 
   /** The configuration for ufs. */
   private final UnderFileSystemConfiguration mConf;
@@ -122,12 +147,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       UnderFileSystemConfiguration conf) {
     // Set the aws credential system properties based on Alluxio properties, if they are set;
     // otherwise, use the default credential provider.
-    if (conf.containsKey(PropertyKey.S3A_ACCESS_KEY)
-        && conf.containsKey(PropertyKey.S3A_SECRET_KEY)) {
-      return new StaticCredentialsProvider(new BasicAWSCredentials(
-          conf.getValue(PropertyKey.S3A_ACCESS_KEY), conf.getValue(PropertyKey.S3A_SECRET_KEY)));
+    if (conf.isSet(PropertyKey.S3A_ACCESS_KEY)
+        && conf.isSet(PropertyKey.S3A_SECRET_KEY)) {
+      return new AWSStaticCredentialsProvider(new BasicAWSCredentials(
+          conf.get(PropertyKey.S3A_ACCESS_KEY), conf.get(PropertyKey.S3A_SECRET_KEY)));
     }
-    // Checks, in order, env variables, system properties, profile file, and instance profile
+    // Checks, in order, env variables, system properties, profile file, and instance profile.
     return new DefaultAWSCredentialsProviderChain();
   }
 
@@ -136,83 +161,89 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
+   * @param alluxioConf Alluxio configuration
    * @return the created {@link S3AUnderFileSystem} instance
    */
-  public static S3AUnderFileSystem createInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration conf) {
+  public static S3AUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf) {
 
     AWSCredentialsProvider credentials = createAwsCredentialsProvider(conf);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
 
-    // Set the client configuration based on Alluxio configuration values
+    // Set the client configuration based on Alluxio configuration values.
     ClientConfiguration clientConf = new ClientConfiguration();
 
     // Socket timeout
     clientConf
-        .setSocketTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+        .setSocketTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
 
     // HTTP protocol
-    if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED))) {
+    if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED))) {
       clientConf.setProtocol(Protocol.HTTPS);
     } else {
       clientConf.setProtocol(Protocol.HTTP);
     }
 
     // Proxy host
-    if (conf.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST)) {
-      clientConf.setProxyHost(conf.getValue(PropertyKey.UNDERFS_S3_PROXY_HOST));
+    if (conf.isSet(PropertyKey.UNDERFS_S3_PROXY_HOST)) {
+      clientConf.setProxyHost(conf.get(PropertyKey.UNDERFS_S3_PROXY_HOST));
     }
 
     // Proxy port
-    if (conf.containsKey(PropertyKey.UNDERFS_S3_PROXY_PORT)) {
-      clientConf.setProxyPort(Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_PROXY_PORT)));
+    if (conf.isSet(PropertyKey.UNDERFS_S3_PROXY_PORT)) {
+      clientConf.setProxyPort(Integer.parseInt(conf.get(PropertyKey.UNDERFS_S3_PROXY_PORT)));
     }
 
-    // Number of metadata and I/O threads to S3
-    int numAdminThreads = Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
+    // Number of metadata and I/O threads to S3.
+    int numAdminThreads = Integer.parseInt(conf.get(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
     int numTransferThreads =
-        Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX));
-    int numThreads = Integer.parseInt(conf.getValue(PropertyKey.UNDERFS_S3_THREADS_MAX));
+        Integer.parseInt(conf.get(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX));
+    int numThreads = Integer.parseInt(conf.get(PropertyKey.UNDERFS_S3_THREADS_MAX));
     if (numThreads < numAdminThreads + numTransferThreads) {
-      LOG.warn("Configured s3 max threads: {} is less than # admin threads: {} plus transfer "
-          + "threads {}. Using admin threads + transfer threads as max threads instead.");
+      LOG.warn("Configured s3 max threads ({}) is less than # admin threads ({}) plus transfer "
+          + "threads ({}). Using admin threads + transfer threads as max threads instead.",
+              numThreads, numAdminThreads, numTransferThreads);
       numThreads = numAdminThreads + numTransferThreads;
     }
     clientConf.setMaxConnections(numThreads);
 
-    // Set client request timeout for all requests since multipart copy is used, and copy parts can
-    // only be set with the client configuration.
+    // Set client request timeout for all requests since multipart copy is used,
+    // and copy parts can only be set with the client configuration.
     clientConf
-        .setRequestTimeout((int) Configuration.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
+        .setRequestTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
+
+    boolean streamingUploadEnabled =
+        conf.getBoolean(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED);
 
     // Signer algorithm
-    if (conf.containsKey(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM)) {
-      clientConf.setSignerOverride(conf.getValue(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM));
+    if (conf.isSet(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM)) {
+      clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM));
     }
 
     AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
 
     // Set a custom endpoint.
-    if (conf.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
-      amazonS3Client.setEndpoint(conf.getValue(PropertyKey.UNDERFS_S3_ENDPOINT));
+    if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
+      amazonS3Client.setEndpoint(conf.get(PropertyKey.UNDERFS_S3_ENDPOINT));
     }
 
     // Disable DNS style buckets, this enables path style requests.
-    if (Boolean.parseBoolean(conf.getValue(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS))) {
+    if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS))) {
       S3ClientOptions clientOptions = S3ClientOptions.builder().setPathStyleAccess(true).build();
       amazonS3Client.setS3ClientOptions(clientOptions);
     }
 
     ExecutorService service = ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory("alluxio-s3-transfer-manager-worker",
+        .fixedThreadPool("alluxio-s3-transfer-manager-worker",
             numTransferThreads).create();
 
-    TransferManager transferManager = new TransferManager(amazonS3Client, service);
+    TransferManager transferManager = TransferManagerBuilder.standard()
+        .withS3Client(amazonS3Client).withExecutorFactory(() -> service)
+        .withMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD)
+        .build();
 
-    TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
-    transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
-    transferManager.setConfiguration(transferConf);
-    return new S3AUnderFileSystem(uri, amazonS3Client, bucketName, transferManager, conf);
+    return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
+        service, transferManager, conf, alluxioConf, streamingUploadEnabled);
   }
 
   /**
@@ -221,16 +252,21 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @param uri the {@link AlluxioURI} for this UFS
    * @param amazonS3Client AWS-SDK S3 client
    * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param executor the executor for executing upload tasks
    * @param transferManager Transfer Manager for efficient I/O to S3
    * @param conf configuration for this S3A ufs
+   * @param streamingUploadEnabled whether streaming upload is enabled
    */
   protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3Client amazonS3Client, String bucketName,
-      TransferManager transferManager, UnderFileSystemConfiguration conf) {
-    super(uri, conf);
+      ExecutorService executor, TransferManager transferManager, UnderFileSystemConfiguration conf,
+      AlluxioConfiguration alluxioConf, boolean streamingUploadEnabled) {
+    super(uri, conf, alluxioConf);
     mClient = amazonS3Client;
     mBucketName = bucketName;
+    mExecutor = MoreExecutors.listeningDecorator(executor);
     mManager = transferManager;
     mConf = conf;
+    mStreamingUploadEnabled = streamingUploadEnabled;
   }
 
   @Override
@@ -247,6 +283,16 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   public void setMode(String path, short mode) throws IOException {}
 
   @Override
+  public void cleanup() {
+    long cleanAge = mConf.isSet(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+        ? mConf.getMs(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+        : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE
+        .getDefaultValue());
+    Date cleanBefore = new Date(new Date().getTime() - cleanAge);
+    mManager.abortMultipartUploads(mBucketName, cleanBefore);
+  }
+
+  @Override
   protected boolean copyObject(String src, String dst) {
     LOG.debug("Copying {} to {}", src, dst);
     // Retry copy for a few times, in case some AWS internal errors happened during copy.
@@ -255,7 +301,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       try {
         CopyObjectRequest request = new CopyObjectRequest(mBucketName, src, mBucketName, dst);
         if (Boolean.parseBoolean(
-            mConf.getValue(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED))) {
+            mConf.get(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED))) {
           ObjectMetadata meta = new ObjectMetadata();
           meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
           request.setNewObjectMetadata(meta);
@@ -291,7 +337,16 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    return new S3AOutputStream(mBucketName, key, mManager);
+    if (mStreamingUploadEnabled) {
+      return new S3ALowLevelOutputStream(mBucketName, key, mClient, mExecutor,
+          mAlluxioConf.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE),
+          mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","),
+          mAlluxioConf.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
+    }
+    return new S3AOutputStream(mBucketName, key, mManager,
+        mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","),
+        mAlluxioConf
+            .getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
   }
 
   @Override
@@ -307,7 +362,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected List<String> deleteObjects(List<String> keys) throws IOException {
-    if (!Configuration.getBoolean(PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED)) {
+    if (!mAlluxioConf.getBoolean(PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED)) {
       return super.deleteObjects(keys);
     }
     Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
@@ -331,7 +386,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getFolderSuffix() {
-    return mUfsConf.getValue(PropertyKey.UNDERFS_S3A_DIRECTORY_SUFFIX);
+    return mUfsConf.get(PropertyKey.UNDERFS_S3A_DIRECTORY_SUFFIX);
   }
 
   @Override
@@ -340,13 +395,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       throws IOException {
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
-    // In case key is root (empty string) do not normalize prefix
+    // In case key is root (empty string) do not normalize prefix.
     key = key.equals(PATH_SEPARATOR) ? "" : key;
-    if (mConf.containsKey(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1) && mConf
-        .getValue(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1).equals(Boolean.toString(true))) {
+    if (mConf.isSet(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1) && mConf
+        .get(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1).equals(Boolean.toString(true))) {
       ListObjectsRequest request =
           new ListObjectsRequest().withBucketName(mBucketName).withPrefix(key)
-              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength());
+              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mAlluxioConf));
       ObjectListing result = getObjectListingChunkV1(request);
       if (result != null) {
         return new S3AObjectListingChunkV1(request, result);
@@ -354,7 +409,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     } else {
       ListObjectsV2Request request =
           new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(key)
-              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength());
+              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mAlluxioConf));
       ListObjectsV2Result result = getObjectListingChunk(request);
       if (result != null) {
         return new S3AObjectListingChunk(request, result);
@@ -363,14 +418,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return null;
   }
 
-  // Get next chunk of listing result
+  // Get next chunk of listing result.
   private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request)
       throws IOException {
     ListObjectsV2Result result;
     try {
-      // Query S3 for the next batch of objects
+      // Query S3 for the next batch of objects.
       result = mClient.listObjectsV2(request);
-      // Advance the request continuation token to the next set of objects
+      // Advance the request continuation token to the next set of objects.
       request.setContinuationToken(result.getNextContinuationToken());
     } catch (AmazonClientException e) {
       throw new IOException(e);
@@ -378,13 +433,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return result;
   }
 
-  // Get next chunk of listing result
+  // Get next chunk of listing result.
   private ObjectListing getObjectListingChunkV1(ListObjectsRequest request) throws IOException {
     ObjectListing result;
     try {
-      // Query S3 for the next batch of objects
+      // Query S3 for the next batch of objects.
       result = mClient.listObjects(request);
-      // Advance the request continuation token to the next set of objects
+      // Advance the request continuation token to the next set of objects.
       request.setMarker(result.getNextMarker());
     } catch (AmazonClientException e) {
       throw new IOException(e);
@@ -514,15 +569,17 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     String accountOwner = DEFAULT_OWNER;
 
     // if ACL enabled try to inherit bucket acl for all the objects.
-    if (Boolean.parseBoolean(mConf.getValue(PropertyKey.UNDERFS_S3A_INHERIT_ACL))) {
+    if (Boolean.parseBoolean(mConf.get(PropertyKey.UNDERFS_S3A_INHERIT_ACL))) {
       try {
         Owner owner = mClient.getS3AccountOwner();
         AccessControlList acl = mClient.getBucketAcl(mBucketName);
 
         bucketMode = S3AUtils.translateBucketAcl(acl, owner.getId());
-        accountOwner = CommonUtils.getValueFromStaticMapping(
-            mConf.getValue(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), owner.getId());
-        if (accountOwner == null) { // If there is no user-defined mapping, use display name or id
+        if (mConf.isSet(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)) {
+          accountOwner = CommonUtils.getValueFromStaticMapping(
+              mConf.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), owner.getId());
+        } else {
+          // If there is no user-defined mapping, use display name or id.
           accountOwner = owner.getDisplayName() != null ? owner.getDisplayName() : owner.getId();
         }
       } catch (AmazonClientException e) {
@@ -541,7 +598,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected InputStream openObject(String key, OpenOptions options) throws IOException {
     try {
-      return new S3AInputStream(mBucketName, key, mClient, options.getOffset());
+      RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+          (int) mUfsConf.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS),
+          (int) mUfsConf.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS),
+          mUfsConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM));
+      return new S3AInputStream(mBucketName, key, mClient, retryPolicy, options.getOffset());
     } catch (AmazonClientException e) {
       throw new IOException(e);
     }

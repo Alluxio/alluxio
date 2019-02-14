@@ -50,7 +50,6 @@ public interface BlockReader extends Closeable {
 
   /**
    * Transfers data (up to buf.writableBytes()) from this reader to the buffer.
-   * This is only called by the netty data server.
    *
    * @param buf the byte buffer
    * @return the number of bytes transferred, -1 if the end of the block is reached

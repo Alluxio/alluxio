@@ -13,7 +13,10 @@ package alluxio.client.file;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.master.MasterClientConfig;
+import alluxio.ClientContext;
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.master.MasterClientContext;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,13 +30,15 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class FileSystemMasterClientPoolTest {
   @Test
   public void create() throws Exception {
+    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
     FileSystemMasterClient expectedClient = Mockito.mock(FileSystemMasterClient.class);
     PowerMockito.mockStatic(FileSystemMasterClient.Factory.class);
     Mockito.when(FileSystemMasterClient.Factory
-        .create(Mockito.any(MasterClientConfig.class)))
+        .create(Mockito.any(MasterClientContext.class)))
         .thenReturn(expectedClient);
     FileSystemMasterClient client;
-    try (FileSystemMasterClientPool pool = new FileSystemMasterClientPool(null, null)) {
+    try (FileSystemMasterClientPool pool =
+        new FileSystemMasterClientPool(ClientContext.create(conf), null)) {
       client = pool.acquire();
       assertEquals(expectedClient, client);
       pool.release(client);

@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.journal.JournalEntryStateMachine;
 import alluxio.master.journal.JournalReader;
@@ -76,9 +76,9 @@ public final class UfsJournalCheckpointThread extends Thread {
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mShutdownQuietWaitTimeMs = journal.getQuietPeriodMs();
     mJournalCheckpointSleepTimeMs =
-        (int) Configuration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
+        (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
     mJournalReader = new UfsJournalReader(mJournal, 0, false);
-    mCheckpointPeriodEntries = Configuration.getLong(
+    mCheckpointPeriodEntries = ServerConfiguration.getLong(
         PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
   }
 
@@ -121,7 +121,7 @@ public final class UfsJournalCheckpointThread extends Thread {
   public void run() {
     try {
       runInternal();
-    } catch (RuntimeException e) {
+    } catch (Throwable e) {
       LOG.error("{}: Failed to run journal checkpoint thread, crashing.", mMaster.getName(), e);
       throw e;
     }
@@ -140,6 +140,9 @@ public final class UfsJournalCheckpointThread extends Thread {
       try {
         entry = mJournalReader.read();
         if (entry != null) {
+          if (entry.getSequenceNumber() == 0) {
+            mMaster.resetState();
+          }
           mMaster.processJournalEntry(entry);
           if (quietPeriodWaited) {
             LOG.info("Quiet period interrupted by new journal entry");

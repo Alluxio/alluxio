@@ -12,8 +12,8 @@
 package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.ufs.UfsJournal;
@@ -148,7 +148,7 @@ public final class JournalTool {
    * @return the journal location
    */
   private static URI getJournalLocation() {
-    String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    String journalDirectory = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
       journalDirectory += AlluxioURI.SEPARATOR;
     }
@@ -177,8 +177,8 @@ public final class JournalTool {
     }
     sHelp = cmd.hasOption("help");
     sMaster = cmd.getOptionValue("master", "FileSystemMaster");
-    sStart = Long.parseLong(cmd.getOptionValue("start", "0"));
-    sEnd = Long.parseLong(cmd.getOptionValue("end", Long.valueOf(Long.MAX_VALUE).toString()));
+    sStart = Long.decode(cmd.getOptionValue("start", "0"));
+    sEnd = Long.decode(cmd.getOptionValue("end", Long.valueOf(Long.MAX_VALUE).toString()));
     sJournalFile = cmd.getOptionValue("journalFile", "");
     return true;
   }

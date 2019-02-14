@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import java.util.List;
@@ -82,7 +83,7 @@ public class StartupConsistencyCheck {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("inconsistent URIs", mInconsistentUris)
         .add("status", mStatus).toString();
   }

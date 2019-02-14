@@ -11,13 +11,13 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 
 import com.google.common.base.Objects;
 
-import java.util.Set;
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,14 +34,17 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * This field is intentionally not final so that tests can change the value.
    */
   private static long sTtlIntervalMs =
-      Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS);
+      ServerConfiguration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS);
   /**
    * Each bucket has a time to live interval, this value is the start of the interval, interval
    * value is the same as the configuration of {@link PropertyKey#MASTER_TTL_CHECKER_INTERVAL_MS}.
    */
   private final long mTtlIntervalStartTimeMs;
-  /** A set of Inode whose ttl value is in the range of this bucket's interval. */
-  private final ConcurrentHashSet<Inode<?>> mInodes;
+  /**
+   * A collection of inodes whose ttl value is in the range of this bucket's interval. The mapping
+   * is from inode id to inode.
+   */
+  private final ConcurrentHashMap<Long, Inode> mInodes;
 
   /**
    * Creates a new instance of {@link TtlBucket}.
@@ -50,7 +53,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   public TtlBucket(long startTimeMs) {
     mTtlIntervalStartTimeMs = startTimeMs;
-    mInodes = new ConcurrentHashSet<>();
+    mInodes = new ConcurrentHashMap<>();
   }
 
   /**
@@ -79,8 +82,8 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * @return the set of all inodes in the bucket backed by the internal set, changes made to the
    *         returned set will be shown in the internal set, and vice versa
    */
-  public Set<Inode<?>> getInodes() {
-    return mInodes;
+  public Collection<Inode> getInodes() {
+    return mInodes.values();
   }
 
   /**
@@ -88,8 +91,8 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    *
    * @param inode the inode to be added
    */
-  public void addInode(Inode<?> inode) {
-    mInodes.add(inode);
+  public void addInode(Inode inode) {
+    mInodes.put(inode.getId(), inode);
   }
 
   /**
@@ -97,8 +100,8 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    *
    * @param inode the inode to be removed
    */
-  public void removeInode(Inode<?> inode) {
-    mInodes.remove(inode);
+  public void removeInode(InodeView inode) {
+    mInodes.remove(inode.getId());
   }
 
   /**
@@ -112,14 +115,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
   public int compareTo(TtlBucket ttlBucket) {
     long startTime1 = getTtlIntervalStartTimeMs();
     long startTime2 = ttlBucket.getTtlIntervalStartTimeMs();
-
-    if (startTime1 < startTime2) {
-      return -1;
-    }
-    if (startTime1 == startTime2) {
-      return 0;
-    }
-    return 1;
+    return Long.compare(startTime1, startTime2);
   }
 
   /**

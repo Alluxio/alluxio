@@ -49,9 +49,11 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for OSS
+   * @param multiRangeChunkSize the chunk size to use on this stream
    */
-  OSSInputStream(String bucketName, String key, OSSClient client) throws IOException {
-    this(bucketName, key, client, 0L);
+  OSSInputStream(String bucketName, String key, OSSClient client, long multiRangeChunkSize)
+      throws IOException {
+    this(bucketName, key, client, 0L, multiRangeChunkSize);
   }
 
   /**
@@ -61,9 +63,11 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
    * @param key the key of the file
    * @param client the client for OSS
    * @param position the position to begin reading from
+   * @param multiRangeChunkSize the chunk size to use on this stream
    */
-  OSSInputStream(String bucketName, String key, OSSClient client, long position)
-      throws IOException {
+  OSSInputStream(String bucketName, String key, OSSClient client, long position,
+      long multiRangeChunkSize) throws IOException {
+    super(multiRangeChunkSize);
     mBucketName = bucketName;
     mKey = key;
     mOssClient = client;
@@ -73,7 +77,8 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
   }
 
   @Override
-  protected InputStream createStream(long startPos, long endPos) throws IOException {
+  protected InputStream createStream(long startPos, long endPos)
+      throws IOException {
     GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
     // OSS returns entire object if we read past the end
     req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);

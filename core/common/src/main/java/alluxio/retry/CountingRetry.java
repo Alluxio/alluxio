@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class CountingRetry implements RetryPolicy {
 
   private final int mMaxRetries;
-  private int mCount = 0;
+  private int mAttemptCount = 0;
 
   /**
    * Constructs a retry facility which allows max number of retries.
@@ -30,21 +30,28 @@ public class CountingRetry implements RetryPolicy {
    * @param maxRetries max number of retries
    */
   public CountingRetry(int maxRetries) {
-    Preconditions.checkArgument(maxRetries >= 0, "Max retries must be a positive number");
+    Preconditions.checkArgument(maxRetries >= 0, "Max retries must be a non-negative number");
     mMaxRetries = maxRetries;
   }
 
   @Override
-  public int getRetryCount() {
-    return mCount;
+  public int getAttemptCount() {
+    return mAttemptCount;
   }
 
   @Override
-  public boolean attemptRetry() {
-    if (mMaxRetries > mCount) {
-      mCount++;
+  public boolean attempt() {
+    if (mAttemptCount <= mMaxRetries) {
+      mAttemptCount++;
       return true;
     }
     return false;
+  }
+
+  /**
+   * Reset the count of retries.
+   */
+  public void reset() {
+    mAttemptCount = 0;
   }
 }

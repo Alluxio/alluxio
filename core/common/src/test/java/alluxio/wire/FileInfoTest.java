@@ -11,41 +11,66 @@
 
 package alluxio.wire;
 
+import alluxio.grpc.TtlAction;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.CommonUtils;
+import alluxio.grpc.GrpcUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 public class FileInfoTest {
 
   @Test
+  public void javaSerialization() throws Exception {
+    FileInfo fileInfo = createRandom();
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    new ObjectOutputStream(byteArrayOutputStream).writeObject(fileInfo);
+    ByteArrayInputStream byteArrayInputStream =
+        new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+    FileInfo newFileInfo = (FileInfo) new ObjectInputStream(byteArrayInputStream).readObject();
+    checkEquality(fileInfo, newFileInfo);
+  }
+
+  @Test
   public void json() throws Exception {
     FileInfo fileInfo = createRandom();
     ObjectMapper mapper = new ObjectMapper();
+    String s = mapper.writeValueAsString(fileInfo);
+
     FileInfo other = mapper.readValue(mapper.writeValueAsBytes(fileInfo), FileInfo.class);
     checkEquality(fileInfo, other);
   }
 
   @Test
-  public void thrift() {
+  public void proto() {
     FileInfo fileInfo = createRandom();
-    FileInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(fileInfo));
+    FileInfo other = GrpcUtils.fromProto(GrpcUtils.toProto(fileInfo));
     checkEquality(fileInfo, other);
   }
 
   public void checkEquality(FileInfo a, FileInfo b) {
+    /*
+        && mInMemoryPercentage == that.mInMemoryPercentage
+        && mOwner.equals(that.mOwner)
+     */
     Assert.assertEquals(a.getBlockIds(), b.getBlockIds());
     Assert.assertEquals(a.getBlockSizeBytes(), b.getBlockSizeBytes());
     Assert.assertEquals(a.getCreationTimeMs(), b.getCreationTimeMs());
     Assert.assertEquals(a.getFileBlockInfos(), b.getFileBlockInfos());
     Assert.assertEquals(a.getFileId(), b.getFileId());
     Assert.assertEquals(a.getGroup(), b.getGroup());
-    Assert.assertEquals(a.getInMemoryPercentage(), b.getInMemoryPercentage());
     Assert.assertEquals(a.getLastModificationTimeMs(), b.getLastModificationTimeMs());
     Assert.assertEquals(a.getLength(), b.getLength());
     Assert.assertEquals(a.getMode(), b.getMode());
@@ -57,7 +82,6 @@ public class FileInfoTest {
     Assert.assertEquals(a.getTtlAction(), b.getTtlAction());
     Assert.assertEquals(a.getMountId(), b.getMountId());
     Assert.assertEquals(a.getUfsPath(), b.getUfsPath());
-    Assert.assertEquals(a.getUfsPath(), b.getUfsPath());
     Assert.assertEquals(a.isCacheable(), b.isCacheable());
     Assert.assertEquals(a.isCompleted(), b.isCompleted());
     Assert.assertEquals(a.isFolder(), b.isFolder());
@@ -65,6 +89,11 @@ public class FileInfoTest {
     Assert.assertEquals(a.isPersisted(), b.isPersisted());
     Assert.assertEquals(a.isPinned(), b.isPinned());
     Assert.assertEquals(a.getInAlluxioPercentage(), b.getInAlluxioPercentage());
+    Assert.assertEquals(a.getAcl(), b.getAcl());
+    Assert.assertEquals(a.getDefaultAcl(), b.getDefaultAcl());
+    Assert.assertEquals(a.getUfsFingerprint(), b.getUfsFingerprint());
+    Assert.assertEquals(a.getReplicationMax(), b.getReplicationMax());
+    Assert.assertEquals(a.getReplicationMin(), b.getReplicationMin());
     Assert.assertEquals(a, b);
   }
 
@@ -130,6 +159,14 @@ public class FileInfoTest {
     result.setMountId(mountId);
     result.setUfsPath(ufsPath);
     result.setInAlluxioPercentage(inAlluxioPercentage);
+    List<String> stringEntries = Arrays.asList("user::rw-", "group::r--", "other::rwx");
+    AccessControlList acl =
+        AccessControlList.fromStringEntries(userName, groupName, stringEntries);
+    result.setAcl(acl);
+    List<String> defaultStringEntries =
+        Arrays.asList("default:user::rw-", "default:group::r--", "default:other::rwx");
+    result.setDefaultAcl((DefaultAccessControlList) AccessControlList
+        .fromStringEntries(userName, groupName, defaultStringEntries));
     return result;
   }
 }

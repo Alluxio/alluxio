@@ -24,7 +24,7 @@ import java.util.Properties;
 public final class MetricsSystemTest {
   private MetricsConfig mMetricsConfig;
   private static Counter sCounter =
-      MetricsSystem.METRIC_REGISTRY.counter(MetricsSystem.getMasterMetricName("counter"));
+      MetricsSystem.METRIC_REGISTRY.counter(MetricsSystem.getMetricName("counter"));
 
   /**
    * Sets up the properties for the configuration of the metrics before a test runs.

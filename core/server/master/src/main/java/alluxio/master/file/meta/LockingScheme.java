@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.master.file.meta.InodeTree.LockPattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -21,38 +22,38 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class LockingScheme {
   private final AlluxioURI mPath;
-  private final InodeTree.LockMode mDesiredLockMode;
+  private final LockPattern mDesiredLockPattern;
   private final boolean mShouldSync;
 
   /**
    * Constructs a {@link LockingScheme}.
    *
    * @param path the path to lock
-   * @param desiredLockMode the desired lock mode
+   * @param desiredLockPattern the desired lock mode
    * @param shouldSync true if the path should be synced
    */
-  public LockingScheme(AlluxioURI path, InodeTree.LockMode desiredLockMode, boolean shouldSync) {
+  public LockingScheme(AlluxioURI path, LockPattern desiredLockPattern, boolean shouldSync) {
     mPath = path;
-    mDesiredLockMode = desiredLockMode;
+    mDesiredLockPattern = desiredLockPattern;
     mShouldSync = shouldSync;
   }
 
   /**
    * @return the desired mode for the locking
    */
-  InodeTree.LockMode getDesiredMode() {
-    return mDesiredLockMode;
+  public LockPattern getDesiredPattern() {
+    return mDesiredLockPattern;
   }
 
   /**
    * @return the mode that should be used to lock the path, considering if ufs sync should occur
    */
-  public InodeTree.LockMode getMode() {
+  public LockPattern getPattern() {
     if (mShouldSync) {
-      // Syncing requires write.
-      return InodeTree.LockMode.WRITE;
+      // Syncing needs to be able to delete the inode if it was deleted in the UFS.
+      return LockPattern.WRITE_EDGE;
     }
-    return mDesiredLockMode;
+    return mDesiredLockPattern;
   }
 
   /**

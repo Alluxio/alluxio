@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.options;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
@@ -83,7 +84,7 @@ public final class JournalWriterOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("nextSequenceNumber", mNextSequenceNumber)
         .add("primary", mPrimary).toString();
   }

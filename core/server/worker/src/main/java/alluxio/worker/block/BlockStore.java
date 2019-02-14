@@ -341,4 +341,11 @@ public interface BlockStore extends SessionCleanable {
    * @param inodes a set of inodes that are currently pinned
    */
   void updatePinnedInodes(Set<Long> inodes);
+
+  /**
+   * Checks storage health.
+   *
+   * @return true if at least one storage path failed check and is removed, false otherwise
+   */
+  boolean checkStorage();
 }

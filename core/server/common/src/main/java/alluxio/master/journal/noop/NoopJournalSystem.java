@@ -32,10 +32,22 @@ public final class NoopJournalSystem implements JournalSystem {
   }
 
   @Override
-  public void setMode(Mode mode) {}
+  public void gainPrimacy() {
+    return;
+  }
+
+  @Override
+  public void losePrimacy() {
+    return;
+  }
 
   @Override
   public boolean isFormatted() throws IOException {
+    return true;
+  }
+
+  @Override
+  public boolean isEmpty() {
     return true;
   }
 

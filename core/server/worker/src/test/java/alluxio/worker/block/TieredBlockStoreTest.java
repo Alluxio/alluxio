@@ -16,7 +16,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -25,6 +30,7 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.test.util.ConcurrencyUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.evictor.Evictor;
@@ -39,15 +45,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Unit tests for {@link TieredBlockStore}.
@@ -82,6 +85,8 @@ public final class TieredBlockStoreTest {
    */
   @Before
   public void before() throws Exception {
+    ServerConfiguration.reset();
+    ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, "false");
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
     mBlockStore = new TieredBlockStore();
@@ -335,19 +340,15 @@ public final class TieredBlockStoreTest {
   @Test
   public void freeSpaceThreadSafe() throws Exception {
     int threadAmount = 10;
-    int count = 100_000;
     List<Runnable> runnables = new ArrayList<>();
-    Evictor evictor = Mockito.mock(Evictor.class);
-    Set<Long> set = new HashSet<>();
-    Mockito.when(
-        evictor.freeSpaceWithView(Mockito.any(Long.class), Mockito.any(BlockStoreLocation.class),
-            Mockito.any(BlockMetadataManagerView.class), Mockito.any(Mode.class)))
+    Evictor evictor = mock(Evictor.class);
+    when(
+        evictor.freeSpaceWithView(any(Long.class), any(BlockStoreLocation.class),
+            any(BlockMetadataManagerView.class), any(Mode.class)))
         .thenAnswer((InvocationOnMock invocation) -> {
-              for (int i = 0; i < count; i++) {
-                set.add(System.nanoTime());
-              }
-              return new EvictionPlan(new ArrayList<>(), new ArrayList<>());
-            }
+          CommonUtils.sleepMs(20);
+          return new EvictionPlan(new ArrayList<>(), new ArrayList<>());
+        }
       );
     Field field = mBlockStore.getClass().getDeclaredField("mEvictor");
     field.setAccessible(true);
@@ -363,7 +364,7 @@ public final class TieredBlockStoreTest {
       });
     }
     RetryPolicy retry = new CountingRetry(threadAmount);
-    while (retry.attemptRetry()) {
+    while (retry.attempt()) {
       ConcurrencyUtils.assertConcurrent(runnables, threadAmount);
     }
   }
@@ -423,7 +424,9 @@ public final class TieredBlockStoreTest {
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
+    mThrown.expectMessage(
+        ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(mTestDir1.getCapacityBytes(),
+            mTestDir1.toBlockStoreLocation().tierAlias()));
     mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
         mTestDir1.getCapacityBytes());
 
@@ -453,7 +456,8 @@ public final class TieredBlockStoreTest {
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
+    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
+        BLOCK_SIZE, mTestDir2.toBlockStoreLocation().tierAlias()));
     mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
 
     // Expect createBlockMeta to succeed after unlocking this block.
@@ -479,7 +483,8 @@ public final class TieredBlockStoreTest {
 
     // Expect an empty eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
-    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
+    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
+        mTestDir1.getCapacityBytes(), mTestDir1.toBlockStoreLocation().tierAlias()));
     mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
         mTestDir1.toBlockStoreLocation());
 
@@ -652,5 +657,39 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.removeBlock(SESSION_ID1, BLOCK_ID1);
+  }
+
+  /**
+   * Tests that check storage fails when a directory is inaccessible.
+   */
+  @Test
+  public void checkStorageFailed() throws Exception {
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
+        mEvictor);
+    BlockStoreMeta oldMeta = mBlockStore.getBlockStoreMeta();
+    FileUtils.deletePathRecursively(mTestDir2.getDirPath());
+    assertTrue("check storage should fail if one of the directory is not accessible",
+        mBlockStore.checkStorage());
+    BlockStoreMeta meta = mBlockStore.getBlockStoreMetaFull();
+    long usedByteInDir = mTestDir2.getCapacityBytes() - mTestDir2.getAvailableBytes();
+    assertFalse("failed storage path should be removed",
+        meta.getDirectoryPathsOnTiers().get(FIRST_TIER_ALIAS).contains(mTestDir2.getDirPath()));
+    assertEquals("failed storage path quota should be deducted from store capacity",
+        oldMeta.getCapacityBytes() - mTestDir2.getCapacityBytes(), meta.getCapacityBytes());
+    assertEquals("failed storage path used bytes should be deducted from store used bytes",
+        oldMeta.getUsedBytes() - usedByteInDir,
+        meta.getUsedBytes());
+    assertEquals("failed storage path quota should be deducted from tier capacity",
+        oldMeta.getCapacityBytesOnTiers().get(FIRST_TIER_ALIAS) - mTestDir2.getCapacityBytes(),
+        (long) meta.getCapacityBytesOnTiers().get(FIRST_TIER_ALIAS));
+    assertEquals("failed storage path used bytes should be deducted from tier used bytes",
+        oldMeta.getUsedBytesOnTiers().get(FIRST_TIER_ALIAS) - usedByteInDir,
+        (long) meta.getUsedBytesOnTiers().get(FIRST_TIER_ALIAS));
+    assertFalse("blocks in failed storage path should be removed",
+        meta.getBlockList().get(FIRST_TIER_ALIAS).contains(BLOCK_ID2));
+    assertTrue("blocks in working storage path should be retained",
+        meta.getBlockList().get(FIRST_TIER_ALIAS).contains(BLOCK_ID1));
   }
 }

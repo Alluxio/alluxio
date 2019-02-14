@@ -12,10 +12,13 @@
 package alluxio.cli;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
-import alluxio.PropertyKey;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -29,7 +32,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.HashMap;
 
 /**
@@ -43,6 +46,7 @@ public final class FormatTest {
   @Test
   public void formatWorker() throws Exception {
     final int storageLevels = 3;
+    final String perms = "rwx------";
     String workerDataFolder;
     final File[] dirs = new File[] {
         mTemporaryFolder.newFolder("level0"),
@@ -50,7 +54,8 @@ public final class FormatTest {
         mTemporaryFolder.newFolder("level2")
     };
     for (File dir : dirs) {
-      workerDataFolder = PathUtils.getWorkerDataDirectory(dir.getPath());
+      workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
+          ServerConfiguration.global());
       FileUtils.createDir(PathUtils.concatPath(workerDataFolder, "subdir"));
       FileUtils.createFile(PathUtils.concatPath(workerDataFolder, "file"));
     }
@@ -60,15 +65,17 @@ public final class FormatTest {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
+        put(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS, perms);
       }
-    }).toResource()) {
-      Format.format(Format.Mode.WORKER);
+    }, ServerConfiguration.global()).toResource()) {
+      Format.format(Format.Mode.WORKER, ServerConfiguration.global());
       for (File dir : dirs) {
-        workerDataFolder = PathUtils.getWorkerDataDirectory(dir.getPath());
+        workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
+            ServerConfiguration.global());
         assertTrue(FileUtils.exists(dir.getPath()));
         assertTrue(FileUtils.exists(workerDataFolder));
-        assertTrue(Files.getPosixFilePermissions(Paths.get(workerDataFolder)).contains(
-            PosixFilePermission.OTHERS_EXECUTE));
+        assertEquals(PosixFilePermissions.fromString(perms), Files.getPosixFilePermissions(Paths
+            .get(workerDataFolder)));
         try (DirectoryStream<Path> directoryStream = Files
             .newDirectoryStream(Paths.get(workerDataFolder))) {
           for (Path child : directoryStream) {
@@ -90,7 +97,8 @@ public final class FormatTest {
     };
     // Have files of same name as the target worker data dir in each tier
     for (File dir : dirs) {
-      workerDataFolder = PathUtils.getWorkerDataDirectory(dir.getPath());
+      workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
+          ServerConfiguration.global());
       FileUtils.createFile(workerDataFolder);
     }
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
@@ -100,13 +108,15 @@ public final class FormatTest {
         put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(storageLevels));
       }
-    }).toResource()) {
-      Format.format(Format.Mode.WORKER);
+    }, ServerConfiguration.global()).toResource()) {
+      final String perms = ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
+      Format.format(Format.Mode.WORKER, ServerConfiguration.global());
       for (File dir : dirs) {
-        workerDataFolder = PathUtils.getWorkerDataDirectory(dir.getPath());
+        workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
+            ServerConfiguration.global());
         assertTrue(Files.isDirectory(Paths.get(workerDataFolder)));
-        assertTrue(Files.getPosixFilePermissions(Paths.get(workerDataFolder)).contains(
-            PosixFilePermission.OTHERS_EXECUTE));
+        assertEquals(PosixFilePermissions.fromString(perms), Files.getPosixFilePermissions(Paths
+            .get(workerDataFolder)));
         try (DirectoryStream<Path> directoryStream =
                  Files.newDirectoryStream(Paths.get(workerDataFolder))) {
           for (Path child : directoryStream) {
