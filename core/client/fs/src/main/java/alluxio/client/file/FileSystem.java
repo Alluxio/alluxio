@@ -507,7 +507,8 @@ public interface FileSystem extends Closeable {
    *
    * @param uri the uri of the file to persist
    */
-  void persist(AlluxioURI uri) throws IOException;
+  void persist(AlluxioURI uri)
+      throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
    * Schedules the given path to be asynchronously persisted to the under file system.
@@ -518,7 +519,8 @@ public interface FileSystem extends Closeable {
    * @param uri the uri of the file to persist
    * @param options the options to use when submitting persist the path
    */
-  void persist(AlluxioURI uri, ScheduleAsyncPersistencePOptions options) throws IOException;
+  void persist(AlluxioURI uri, ScheduleAsyncPersistencePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #rename(AlluxioURI, AlluxioURI, RenamePOptions)} with default

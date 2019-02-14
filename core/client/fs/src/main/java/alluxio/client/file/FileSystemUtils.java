@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -131,7 +132,8 @@ public final class FileSystemUtils {
    * @param uri the uri of the file to persist
    */
   public static void persistAndWait(final FileSystem fs, final AlluxioURI uri)
-      throws IOException, TimeoutException, InterruptedException {
+      throws FileDoesNotExistException, IOException, AlluxioException, TimeoutException,
+      InterruptedException {
     persistAndWait(fs, uri, -1);
   }
 
@@ -146,7 +148,8 @@ public final class FileSystemUtils {
    * @throws TimeoutException if the persist takes longer than the timeout
    */
   public static void persistAndWait(final FileSystem fs, final AlluxioURI uri, int timeoutMs)
-      throws IOException, TimeoutException, InterruptedException {
+      throws FileDoesNotExistException, IOException, AlluxioException, TimeoutException,
+      InterruptedException {
     fs.persist(uri);
     CommonUtils.waitFor(String.format("%s to be persisted", uri) , () -> {
       try {
