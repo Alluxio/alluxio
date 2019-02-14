@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-@import '../../common/src/constants/scss/bootstrap';
-@import '../../common/src/constants/scss/bootstrap-grid';
-@import '../../common/src/constants/scss/bootstrap-reboot';
+@import '../../common/src/constants/scss/darkly/variables';
+@import '../../node_modules/bootstrap/scss/bootstrap';
+@import '../../node_modules/bootstrap/scss/bootstrap-grid';
+@import '../../node_modules/bootstrap/scss/bootstrap-reboot';
 @import '../../common/src/constants/scss/darkly/custom';
 
 body {
