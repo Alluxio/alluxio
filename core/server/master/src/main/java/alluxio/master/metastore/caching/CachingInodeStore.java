@@ -324,7 +324,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     // Indexes non-removed cache entries by parent id. The inner map is from child name to child id
     @VisibleForTesting
     TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>>
-        mIdToChildMap = new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>());
+        mIdToChildMap = new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>(4));
     // Indexes removed cache entries by parent id. The inner set contains the names of deleted
     // children.
     @VisibleForTesting
@@ -457,7 +457,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     private void addToUnflushedDeletes(long parentId, String childName) {
       mUnflushedDeletes.compute(parentId, (key, children) -> {
         if (children == null) {
-          children = ConcurrentHashMap.newKeySet();
+          children = ConcurrentHashMap.newKeySet(4);
         }
         children.add(childName);
         return children;
@@ -574,7 +574,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       mMap.computeIfAbsent(inodeId, x -> {
         mWeight.incrementAndGet();
         ListingCacheEntry entry = new ListingCacheEntry();
-        entry.mChildren = new ConcurrentHashMap<>();
+        entry.mChildren = new ConcurrentHashMap<>(4);
         return entry;
       });
     }
