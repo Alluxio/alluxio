@@ -994,6 +994,8 @@ public final class AlluxioMasterRestServiceHandler {
 
       response.setOperationMetrics(operations).setRpcInvocationMetrics(rpcInvocationsUpdated);
 
+      response.setTimeSeriesMetrics(mFileSystemMaster.getTimeSeries());
+
       return response;
     }, ServerConfiguration.global());
   }
