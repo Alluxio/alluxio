@@ -266,7 +266,8 @@ public class AlluxioStatusException extends IOException {
    * @return the converted {@link AlluxioStatusException}
    */
   public static AlluxioStatusException fromStatusRuntimeException(StatusRuntimeException e) {
-    return AlluxioStatusException.from(Status.from(e.getStatus().getCode()), e.getMessage(), e);
+    return AlluxioStatusException.from(Status.from(e.getStatus().getCode()),
+        e.getStatus().getDescription(), e);
   }
 
   /**
