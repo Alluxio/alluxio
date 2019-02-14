@@ -122,7 +122,6 @@ public class ChannelAuthenticator {
 
     AuthenticatedManagedChannel authenticatedChannel =
         new AuthenticatedManagedChannel(managedChannel, conf);
-    authenticatedChannel.authenticate();
     return authenticatedChannel;
   }
 
@@ -156,12 +155,14 @@ public class ChannelAuthenticator {
     private Channel mChannel;
     private boolean mAuthenticated;
 
-    AuthenticatedManagedChannel(ManagedChannel managedChannel, AlluxioConfiguration conf) {
+    AuthenticatedManagedChannel(ManagedChannel managedChannel, AlluxioConfiguration conf)
+        throws AlluxioStatusException {
       mManagedChannel = managedChannel;
       mConf = conf;
+      authenticate();
     }
 
-    void authenticate() throws AlluxioStatusException {
+    public void authenticate() throws AlluxioStatusException {
       try {
         // Create a channel for talking with target host's authentication service.
         // Create SaslClient for authentication based on provided credentials.
