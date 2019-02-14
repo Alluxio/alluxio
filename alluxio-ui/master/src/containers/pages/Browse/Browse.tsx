@@ -203,7 +203,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
         <Table hover={true}>
           <thead>
           <tr>
-            <th></th>
+            <th/>{/* Icon placeholder */}
             <th>File Name</th>
             <th>Size</th>
             <th>Block Size</th>

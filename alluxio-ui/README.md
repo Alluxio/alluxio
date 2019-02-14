@@ -17,8 +17,7 @@ We use [NVM](https://github.com/creationix/nvm) to have multiple versions on nod
 1. Install NVM: `brew install nvm`
 1. From the `alluxio-ui` directory:
     1. Install Node using NVM. `nvm install`
-    1. Install Lerna globally: `npm install -g lerna`
-    1. Install UI module dependencies: `lerna bootstrap`
+    1. Install UI module dependencies: `npm run bootstrap`
 
 NOTE: Please ensure you are running the correct version of Node before building packages. The expected version can be found both in the [package.json](package.json) file and in the [.nvmrc](.nvmrc) file.
 
@@ -26,7 +25,7 @@ NOTE: Please ensure you are running the correct version of Node before building 
 
 This can be done in two ways:
 
-1. Let lerna build everything: `lerna run build`
+1. Let lerna build everything: `npm run build`
 1. Build everything independently:
     1. common-ui: `cd alluxio-ui/common-ui && npm run build`
     1. master-ui: `cd alluxio-ui/master-ui && npm run build`
@@ -36,7 +35,7 @@ This can be done in two ways:
 
 This can be done in two ways:
 
-1. Let lerna test everything: `lerna run test-ci`
+1. Let lerna test everything: `npm run test-ci`
 1. Test everything independently:
     1. common-ui: `cd alluxio-ui/common-ui && npm run test`
     1. master-ui: `cd alluxio-ui/master-ui && npm run test`
@@ -48,7 +47,7 @@ NOTE: `test-ci` is meant to run tests once and quit (for continuous integration)
 
 This can be done in two ways:
 
-1. Let lerna generate coverage for everything: `lerna run coverage-ci`
+1. Let lerna generate coverage for everything: `npm run coverage-ci`
 1. Generate coverage for everything independently:
     1. common-ui: `cd alluxio-ui/common-ui && npm run coverage`
     1. master-ui: `cd alluxio-ui/master-ui && npm run coverage`
