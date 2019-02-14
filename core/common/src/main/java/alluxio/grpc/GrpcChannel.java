@@ -11,6 +11,8 @@
 
 package alluxio.grpc;
 
+import alluxio.security.authentication.AuthenticatedChannel;
+
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -73,7 +75,7 @@ public final class GrpcChannel extends Channel {
   /**
    * @return {@code true} if the channel has been shut down
    */
-  public boolean isShutdown(){
+  public boolean isShutdown() {
     return mChannelReleased;
   }
 
@@ -81,6 +83,10 @@ public final class GrpcChannel extends Channel {
    * @return {@code true} if channel is healthy
    */
   public boolean isHealthy() {
+    if (mChannel instanceof AuthenticatedChannel
+        && !((AuthenticatedChannel) mChannel).isAuthenticated()) {
+      return false;
+    }
     return mChannelHealthy;
   }
 
