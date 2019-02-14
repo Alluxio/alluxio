@@ -14,7 +14,7 @@ package alluxio.master;
 import static java.util.stream.Collectors.joining;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.status.UnauthenticatedException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
@@ -97,7 +97,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       } catch (UnavailableException e) {
         LOG.debug("Failed to connect to {}", address);
         continue;
-      } catch (UnauthenticatedException e) {
+      } catch (AlluxioStatusException e) {
         throw new RuntimeException(e);
       }
     }
@@ -105,7 +105,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   }
 
   private void pingMetaService(InetSocketAddress address)
-      throws UnauthenticatedException, UnavailableException {
+      throws AlluxioStatusException {
     GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, mConfiguration).build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);

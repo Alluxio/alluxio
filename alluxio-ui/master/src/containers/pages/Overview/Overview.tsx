@@ -141,9 +141,9 @@ export class Overview extends React.Component<AllProps> {
                     <td>{info.usedCapacity}</td>
                     <td>
                       <Progress multi={true}>
-                        <Progress bar={true} color="success" value={`${info.freeSpacePercent}`}>{info.freeSpacePercent}%
+                        <Progress bar={true} color="dark" value={`${info.freeSpacePercent}`}>{info.freeSpacePercent}%
                           Free</Progress>
-                        <Progress bar={true} color="danger" value={`${info.usedSpacePercent}`}>{info.usedSpacePercent}%
+                        <Progress bar={true} color="secondary" value={`${info.usedSpacePercent}`}>{info.usedSpacePercent}%
                           Used</Progress>
                       </Progress>
                     </td>

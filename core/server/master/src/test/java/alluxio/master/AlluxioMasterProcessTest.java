@@ -21,8 +21,8 @@ import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -37,21 +37,21 @@ import java.util.concurrent.TimeoutException;
  * Tests for {@link AlluxioMasterProcess}.
  */
 public final class AlluxioMasterProcessTest {
+
+  @Rule
+  public PortReservationRule mRpcPortRule = new PortReservationRule();
+  @Rule
+  public PortReservationRule mWebPortRule = new PortReservationRule();
+
   private int mRpcPort;
   private int mWebPort;
 
   @Before
   public void before() {
-    mRpcPort = PortRegistry.INSTANCE.reservePort();
-    mWebPort = PortRegistry.INSTANCE.reservePort();
+    mRpcPort = mRpcPortRule.getPort();
+    mWebPort = mWebPortRule.getPort();
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, mRpcPort);
     ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, mWebPort);
-  }
-
-  @After
-  public void after() {
-    PortRegistry.INSTANCE.release(mRpcPort);
-    PortRegistry.INSTANCE.release(mWebPort);
   }
 
   @Test

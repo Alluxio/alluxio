@@ -173,7 +173,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                 className="App pt-5 pb-4"
               >
                 <div
-                  className="container-fluid sticky-top header-wrapper"
+                  className="w-100 sticky-top header-wrapper"
                 >
                   <Header
                     autoRefreshCallback={[Function]}
@@ -229,16 +229,15 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                     }
                   >
                     <div
-                      className="header card bg-light"
+                      className="header"
                     >
                       <Navbar
-                        className="headerNavigation"
+                        className="headerNavigation navbar-dark bg-secondary"
                         expand="lg"
-                        light={true}
                         tag="nav"
                       >
                         <nav
-                          className="headerNavigation navbar navbar-expand-lg navbar-light"
+                          className="headerNavigation navbar-dark bg-secondary navbar navbar-expand-lg"
                         >
                           <NavbarBrand
                             href="/"
@@ -573,13 +572,12 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                                               active={false}
                                               color="secondary"
                                               onClick={[Function]}
-                                              outline={true}
                                               size="sm"
                                               tag="button"
                                             >
                                               <button
                                                 aria-label={null}
-                                                className="btn btn-outline-secondary btn-sm"
+                                                className="btn btn-secondary btn-sm"
                                                 onClick={[Function]}
                                                 type="button"
                                               >
@@ -649,7 +647,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="pages container-fluid mt-3"
+                  className="w-100 mt-3"
                 >
                   <Switch>
                     <Route
@@ -802,7 +800,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                                               >
                                                 <Progress
                                                   bar={true}
-                                                  color="success"
+                                                  color="dark"
                                                   max={100}
                                                   tag="div"
                                                   value="0"
@@ -811,7 +809,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                                                     aria-valuemax={100}
                                                     aria-valuemin="0"
                                                     aria-valuenow="0"
-                                                    className="progress-bar bg-success"
+                                                    className="progress-bar bg-dark"
                                                     role="progressbar"
                                                     style={
                                                       Object {
@@ -825,7 +823,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                                                 </Progress>
                                                 <Progress
                                                   bar={true}
-                                                  color="danger"
+                                                  color="secondary"
                                                   max={100}
                                                   tag="div"
                                                   value="0"
@@ -834,7 +832,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                                                     aria-valuemax={100}
                                                     aria-valuemin="0"
                                                     aria-valuenow="0"
-                                                    className="progress-bar bg-danger"
+                                                    className="progress-bar bg-secondary"
                                                     role="progressbar"
                                                     style={
                                                       Object {
@@ -938,7 +936,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                   </Switch>
                 </div>
                 <div
-                  className="container-fluid footer-wrapper"
+                  className="w-100 footer-wrapper"
                 >
                   <Footer
                     callbackParameters={
@@ -973,126 +971,123 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                     }
                   >
                     <div
-                      className="footer mt-auto card bg-light"
+                      className="footer mt-auto bg-secondary"
                     >
-                      <div
-                        className="mx-auto"
+                      <Nav
+                        className="justify-content-center"
+                        tag="ul"
+                        vertical={false}
                       >
-                        <Nav
-                          tag="ul"
-                          vertical={false}
+                        <ul
+                          className="justify-content-center nav"
                         >
-                          <ul
-                            className="nav"
+                          <NavItem
+                            key="https://alluxio.org/"
+                            tag="li"
                           >
-                            <NavItem
-                              key="https://alluxio.org/"
-                              tag="li"
+                            <li
+                              className="nav-item"
                             >
-                              <li
-                                className="nav-item"
+                              <NavLink
+                                href="https://alluxio.org/"
+                                tag="a"
                               >
-                                <NavLink
+                                <a
+                                  className="nav-link"
                                   href="https://alluxio.org/"
-                                  tag="a"
+                                  onClick={[Function]}
                                 >
-                                  <a
-                                    className="nav-link"
-                                    href="https://alluxio.org/"
-                                    onClick={[Function]}
-                                  >
-                                    Project Website
-                                  </a>
-                                </NavLink>
-                              </li>
-                            </NavItem>
-                            <NavItem
-                              key="https://groups.google.com/forum/#!forum/alluxio-users"
-                              tag="li"
+                                  Project Website
+                                </a>
+                              </NavLink>
+                            </li>
+                          </NavItem>
+                          <NavItem
+                            key="https://groups.google.com/forum/#!forum/alluxio-users"
+                            tag="li"
+                          >
+                            <li
+                              className="nav-item"
                             >
-                              <li
-                                className="nav-item"
+                              <NavLink
+                                href="https://groups.google.com/forum/#!forum/alluxio-users"
+                                tag="a"
                               >
-                                <NavLink
+                                <a
+                                  className="nav-link"
                                   href="https://groups.google.com/forum/#!forum/alluxio-users"
-                                  tag="a"
+                                  onClick={[Function]}
                                 >
-                                  <a
-                                    className="nav-link"
-                                    href="https://groups.google.com/forum/#!forum/alluxio-users"
-                                    onClick={[Function]}
-                                  >
-                                    User Mailing List
-                                  </a>
-                                </NavLink>
-                              </li>
-                            </NavItem>
-                            <NavItem
-                              key="https://alluxio.org/resources/survey-users"
-                              tag="li"
+                                  User Mailing List
+                                </a>
+                              </NavLink>
+                            </li>
+                          </NavItem>
+                          <NavItem
+                            key="https://alluxio.org/resources/survey-users"
+                            tag="li"
+                          >
+                            <li
+                              className="nav-item"
                             >
-                              <li
-                                className="nav-item"
+                              <NavLink
+                                href="https://alluxio.org/resources/survey-users"
+                                tag="a"
                               >
-                                <NavLink
+                                <a
+                                  className="nav-link"
                                   href="https://alluxio.org/resources/survey-users"
-                                  tag="a"
+                                  onClick={[Function]}
                                 >
-                                  <a
-                                    className="nav-link"
-                                    href="https://alluxio.org/resources/survey-users"
-                                    onClick={[Function]}
-                                  >
-                                    User Survey
-                                  </a>
-                                </NavLink>
-                              </li>
-                            </NavItem>
-                            <NavItem
-                              key="http://:19999/workers"
-                              tag="li"
+                                  User Survey
+                                </a>
+                              </NavLink>
+                            </li>
+                          </NavItem>
+                          <NavItem
+                            key="http://:19999/workers"
+                            tag="li"
+                          >
+                            <li
+                              className="nav-item"
                             >
-                              <li
-                                className="nav-item"
+                              <NavLink
+                                href="http://:19999/workers"
+                                tag="a"
                               >
-                                <NavLink
+                                <a
+                                  className="nav-link"
                                   href="http://:19999/workers"
-                                  tag="a"
+                                  onClick={[Function]}
                                 >
-                                  <a
-                                    className="nav-link"
-                                    href="http://:19999/workers"
-                                    onClick={[Function]}
-                                  >
-                                    Workers
-                                  </a>
-                                </NavLink>
-                              </li>
-                            </NavItem>
-                            <NavItem
-                              key="https://alluxio.org/alluxio-resources/"
-                              tag="li"
+                                  Workers
+                                </a>
+                              </NavLink>
+                            </li>
+                          </NavItem>
+                          <NavItem
+                            key="https://alluxio.org/alluxio-resources/"
+                            tag="li"
+                          >
+                            <li
+                              className="nav-item"
                             >
-                              <li
-                                className="nav-item"
+                              <NavLink
+                                href="https://alluxio.org/alluxio-resources/"
+                                tag="a"
                               >
-                                <NavLink
+                                <a
+                                  className="nav-link"
                                   href="https://alluxio.org/alluxio-resources/"
-                                  tag="a"
+                                  onClick={[Function]}
                                 >
-                                  <a
-                                    className="nav-link"
-                                    href="https://alluxio.org/alluxio-resources/"
-                                    onClick={[Function]}
-                                  >
-                                    Resources
-                                  </a>
-                                </NavLink>
-                              </li>
-                            </NavItem>
-                          </ul>
-                        </Nav>
-                      </div>
+                                  Resources
+                                </a>
+                              </NavLink>
+                            </li>
+                          </NavItem>
+                        </ul>
+                      </Nav>
                     </div>
                   </Footer>
                 </div>
@@ -1143,7 +1138,7 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
                 >
                   <Progress
                     bar={true}
-                    color="success"
+                    color="dark"
                     max={100}
                     tag="div"
                     value="0"
@@ -1153,7 +1148,7 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
                   </Progress>
                   <Progress
                     bar={true}
-                    color="danger"
+                    color="secondary"
                     max={100}
                     tag="div"
                     value="0"

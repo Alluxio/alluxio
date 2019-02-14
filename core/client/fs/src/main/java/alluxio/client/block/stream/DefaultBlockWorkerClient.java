@@ -11,13 +11,13 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.exception.status.UnauthenticatedException;
-import alluxio.exception.status.UnavailableException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CheckRequest;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshallerProvider;
@@ -70,8 +70,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   /**
    * Creates a client instance for communicating with block worker.
    *
-   * @param subject the user subject, can be null if the user is not available
-   * @param address the address of the worker
+   * @param subject     the user subject, can be null if the user is not available
+   * @param address     the address of the worker
    * @param alluxioConf Alluxio configuration
    * @param workerGroup The netty {@link EventLoopGroup} the channels are will utilize
    */
@@ -103,6 +103,13 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public boolean isHealthy() {
+    try {
+      mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
+          .check(CheckRequest.getDefaultInstance());
+    } catch (Exception e) {
+      LOG.warn("Block worker check failed for {}", mAddress, e);
+      return false;
+    }
     return !isShutdown() && mStreamingChannel.isHealthy() && mRpcChannel.isHealthy();
   }
 
@@ -177,7 +184,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private GrpcChannel buildChannel(Subject subject, SocketAddress address,
       GrpcManagedChannelPool.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf,
       EventLoopGroup workerGroup)
-      throws UnauthenticatedException, UnavailableException {
+      throws AlluxioStatusException {
     return GrpcChannelBuilder.newBuilder(address, alluxioConf).setSubject(subject)
         .setChannelType(NettyUtils
             .getClientChannelClass(!(address instanceof InetSocketAddress), alluxioConf))
