@@ -488,16 +488,16 @@ public class BaseFileSystem implements FileSystem {
   public void persist(final AlluxioURI path, ScheduleAsyncPersistencePOptions options)
     throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    FileSystemMasterClient client = mFsContext.acquireMasterClient();
+    FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
-      client.scheduleAsyncPersist(path, options);
+      masterClient.scheduleAsyncPersist(path, options);
       LOG.debug("Scheduled persist for {}, options: {}", path.getPath(), options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
-      mFsContext.releaseMasterClient(client);
+      mFsContext.releaseMasterClient(masterClient);
     }
   }
 
