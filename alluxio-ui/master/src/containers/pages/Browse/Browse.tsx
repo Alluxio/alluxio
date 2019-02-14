@@ -196,7 +196,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
                    onChange={pathInputHandler}/>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
-            <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="primary"
+            <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="secondary"
                     disabled={path === lastFetched.path}>Go</Button>
           </FormGroup>
         </Form>

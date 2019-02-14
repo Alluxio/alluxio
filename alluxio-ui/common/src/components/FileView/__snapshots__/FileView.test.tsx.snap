@@ -339,14 +339,14 @@ exports[`FileView React component Matches snapshot 1`] = `
               className="col-2 form-group"
             >
               <Button
-                color="primary"
+                color="secondary"
                 disabled={true}
                 tag={[Function]}
                 to="?path=undefined"
               >
                 <Link
                   aria-label={null}
-                  className="btn btn-primary disabled"
+                  className="btn btn-secondary disabled"
                   disabled={true}
                   onClick={[Function]}
                   replace={false}
@@ -354,7 +354,7 @@ exports[`FileView React component Matches snapshot 1`] = `
                 >
                   <a
                     aria-label={null}
-                    className="btn btn-primary disabled"
+                    className="btn btn-secondary disabled"
                     disabled={true}
                     href="/someLocation?path=undefined"
                     onClick={[Function]}
@@ -554,7 +554,7 @@ exports[`FileView Shallow component Matches snapshot 1`] = `
       tag="div"
     >
       <Button
-        color="primary"
+        color="secondary"
         disabled={true}
         tag={[Function]}
         to="?path=undefined"

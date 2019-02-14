@@ -985,14 +985,14 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                                           className="mb-2 mr-sm-2 form-group"
                                         >
                                           <Button
-                                            color="primary"
+                                            color="secondary"
                                             disabled={true}
                                             tag={[Function]}
                                             to="/browse?path=/"
                                           >
                                             <Link
                                               aria-label={null}
-                                              className="btn btn-primary disabled"
+                                              className="btn btn-secondary disabled"
                                               disabled={true}
                                               onClick={[Function]}
                                               replace={false}
@@ -1000,7 +1000,7 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                                             >
                                               <a
                                                 aria-label={null}
-                                                className="btn btn-primary disabled"
+                                                className="btn btn-secondary disabled"
                                                 disabled={true}
                                                 href="/browse?path=/"
                                                 onClick={[Function]}
@@ -1028,6 +1028,9 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                                             File Name
                                           </th>
                                           <th>
+                                            Size
+                                          </th>
+                                          <th>
                                             Block Size
                                           </th>
                                           <th>
@@ -1050,6 +1053,9 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                                           </th>
                                           <th>
                                             Creation Time
+                                          </th>
+                                          <th>
+                                            Modification Time
                                           </th>
                                         </tr>
                                       </thead>
@@ -1297,7 +1303,7 @@ exports[`Browse Shallow component Matches snapshot 1`] = `
             tag="div"
           >
             <Button
-              color="primary"
+              color="secondary"
               disabled={true}
               tag={[Function]}
               to="/browse?path=/"
@@ -1316,6 +1322,9 @@ exports[`Browse Shallow component Matches snapshot 1`] = `
               <th />
               <th>
                 File Name
+              </th>
+              <th>
+                Size
               </th>
               <th>
                 Block Size
@@ -1340,6 +1349,9 @@ exports[`Browse Shallow component Matches snapshot 1`] = `
               </th>
               <th>
                 Creation Time
+              </th>
+              <th>
+                Modification Time
               </th>
             </tr>
           </thead>

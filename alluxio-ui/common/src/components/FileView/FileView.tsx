@@ -93,7 +93,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
             </ButtonGroup>
           </FormGroup>
           <FormGroup className="col-2">
-            <Button tag={Link} to={`${queryStringPrefix}?path=${path}${queryStringSuffix}`} color="primary"
+            <Button tag={Link} to={`${queryStringPrefix}?path=${path}${queryStringSuffix}`} color="secondary"
                     disabled={offset === lastFetched.offset && end === lastFetched.end}>Go</Button>
           </FormGroup>
           {this.renderDownloadLink()}

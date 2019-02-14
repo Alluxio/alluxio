@@ -871,22 +871,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                             Pin
                                           </th>
                                           <th>
-                                            Creation Time
-                                          </th>
-                                          <th>
                                             Modification Time
-                                          </th>
-                                          <th>
-                                            [D]DepID
-                                          </th>
-                                          <th>
-                                            [D]INumber
-                                          </th>
-                                          <th>
-                                            [D]UnderfsPath
-                                          </th>
-                                          <th>
-                                            [D]File Locations
                                           </th>
                                         </tr>
                                       </thead>
@@ -1101,22 +1086,7 @@ exports[`Logs Shallow component Matches snapshot 1`] = `
                 Pin
               </th>
               <th>
-                Creation Time
-              </th>
-              <th>
                 Modification Time
-              </th>
-              <th>
-                [D]DepID
-              </th>
-              <th>
-                [D]INumber
-              </th>
-              <th>
-                [D]UnderfsPath
-              </th>
-              <th>
-                [D]File Locations
               </th>
             </tr>
           </thead>
