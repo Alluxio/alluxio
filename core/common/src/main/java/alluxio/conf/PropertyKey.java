@@ -1274,6 +1274,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METRICS_TIME_SERIES_INTERVAL =
+      new Builder(Name.MASTER_METRICS_TIME_SERIES_INTERVAL)
+          .setDefaultValue("5min")
+          .setDescription("Interval for which the master records metrics information. This affects "
+              + "the granularity of the metrics graphed in the UI.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_WORKER_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_WORKER_HEARTBEAT_INTERVAL)
           .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms",
@@ -3708,6 +3716,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.cache.max.size";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval.ms";
+    public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
+        "alluxio.master.metrics.time.series.interval";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
         "alluxio.master.persistence.initial.interval.ms";
     public static final String MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS =
