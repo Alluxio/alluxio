@@ -22,25 +22,26 @@ import alluxio.job.migrate.MigrateConfig;
 
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- * Moves a file or directory specified by args.
+ * Copies a file or directory specified by args.
  */
 @ThreadSafe
-public final class DistributedMvCommand extends AbstractFileSystemCommand {
+public final class DistributedCpCommand extends AbstractFileSystemCommand {
 
   /**
-   * @param fsContext the filesystem of Alluxio
+   * @param fsContext the filesystem context of Alluxio
    */
-  public DistributedMvCommand(FileSystemContext fsContext) {
+  public DistributedCpCommand(FileSystemContext fsContext) {
     super(fsContext);
   }
 
   @Override
   public String getCommandName() {
-    return "distributedMv";
+    return "distributedCp";
   }
 
   @Override
@@ -53,31 +54,28 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
-    if (mFileSystem.exists(dstPath)) {
-      throw new RuntimeException(dstPath + " already exists");
-    }
     Thread thread = JobGrpcClientUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
     thread.start();
     try {
       JobGrpcClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(), null, true,
-          true), 3, mFsContext.getConf());
+          false), 3, mFsContext.getConf());
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;
     } finally {
       thread.interrupt();
     }
-    System.out.println("Moved " + srcPath + " to " + dstPath);
+    System.out.println("Copied " + srcPath + " to " + dstPath);
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "distributedMv <src> <dst>";
+    return "distributedCp <src> <dst>";
   }
 
   @Override
   public String getDescription() {
-    return "Moves a file or directory in parallel at file level.";
+    return "Copies a file or directory in parallel at file level.";
   }
 }

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job.move;
+package alluxio.job.migrate;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
@@ -23,20 +23,35 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
- * Integration test for the move job.
+ * Integration test for the migrate job.
  */
-public final class MoveIntegrationTest extends JobIntegrationTest {
+@RunWith(Parameterized.class)
+public final class MigrateIntegrationTest extends JobIntegrationTest {
   private static final byte[] TEST_BYTES = "hello".getBytes();
+
+  @Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] { {true}, {false} });
+  }
+
+  @Parameter
+  public boolean mDeleteSource;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Test
-  public void moveFile() throws Exception {
+  public void migrateFile() throws Exception {
     File ufsMountPoint1 = mFolder.newFolder();
     File ufsMountPoint2 = mFolder.newFolder();
     mFileSystem.mount(new AlluxioURI("/mount1"), new AlluxioURI(ufsMountPoint1.getAbsolutePath()));
@@ -45,9 +60,14 @@ public final class MoveIntegrationTest extends JobIntegrationTest {
     String destination = "/mount2/destination";
     createFileWithTestBytes(source);
     long jobId = mJobMaster
-        .run(new MoveConfig(source, destination, WriteType.CACHE_THROUGH.toString(), true));
+        .run(new MigrateConfig(source, destination, WriteType.CACHE_THROUGH.toString(), true,
+            mDeleteSource));
     JobInfo info = waitForJobToFinish(jobId);
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI(source)));
+    if (mDeleteSource) {
+      Assert.assertFalse(mFileSystem.exists(new AlluxioURI(source)));
+    } else {
+      Assert.assertTrue(mFileSystem.exists(new AlluxioURI(source)));
+    }
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI(destination)));
     checkFileContainsTestBytes(destination);
     // One worker task is needed when moving within the same mount point.
@@ -55,7 +75,7 @@ public final class MoveIntegrationTest extends JobIntegrationTest {
   }
 
   @Test
-  public void moveDirectory() throws Exception {
+  public void migrateDirectory() throws Exception {
     File ufsMountPoint1 = mFolder.newFolder();
     File ufsMountPoint2 = mFolder.newFolder();
     mFileSystem.mount(new AlluxioURI("/mount1"), new AlluxioURI(ufsMountPoint1.getAbsolutePath()));
@@ -65,10 +85,14 @@ public final class MoveIntegrationTest extends JobIntegrationTest {
     createFileWithTestBytes("/mount1/source/bar");
     mFileSystem.createDirectory(new AlluxioURI("/mount1/source/baz"));
     createFileWithTestBytes("/mount1/source/baz/bat");
-    long jobId = mJobMaster.run(new MoveConfig("/mount1/source", "/mount2/destination",
-        WriteType.CACHE_THROUGH.toString(), true));
+    long jobId = mJobMaster.run(new MigrateConfig("/mount1/source", "/mount2/destination",
+        WriteType.CACHE_THROUGH.toString(), true, mDeleteSource));
     waitForJobToFinish(jobId);
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/mount1/source")));
+    if (mDeleteSource) {
+      Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/mount1/source")));
+    } else {
+      Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mount1/source")));
+    }
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mount2/destination")));
     checkFileContainsTestBytes("/mount2/destination/foo");
     checkFileContainsTestBytes("/mount2/destination/bar");

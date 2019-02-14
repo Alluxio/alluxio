@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job.move;
+package alluxio.job.migrate;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,20 +41,27 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
- * Unit tests for {@link MoveDefinition#runTask(MoveConfig, ArrayList, JobWorkerContext)}.
+ * Unit tests for {@link MigrateDefinition#runTask(MigrateConfig, ArrayList, JobWorkerContext)}.
  */
 @RunWith(PowerMockRunner.class)
+@PowerMockRunnerDelegate(Parameterized.class)
 @PrepareForTest({FileSystemContext.class})
-public final class MoveDefinitionRunTaskTest {
+public final class MigrateDefinitionRunTaskTest {
   private static final String TEST_DIR = "/DIR";
   private static final String TEST_SOURCE = "/DIR/TEST_SOURCE";
   private static final String TEST_DESTINATION = "/DIR/TEST_DESTINATION";
@@ -65,6 +72,14 @@ public final class MoveDefinitionRunTaskTest {
   private MockFileInStream mMockInStream;
   private MockFileOutStream mMockOutStream;
   private UfsManager mMockUfsManager;
+
+  @Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] { {true}, {false} });
+  }
+
+  @Parameter
+  public boolean mDeleteSource;
 
   @Before
   public void before() throws Exception {
@@ -84,29 +99,41 @@ public final class MoveDefinitionRunTaskTest {
   }
 
   /**
-   * Tests that the bytes of the file to move are written to the destination stream.
+   * Tests that the bytes of the file to migrate are written to the destination stream.
+   * When deleteSource is true, the source is deleted, otherwise, it is kept.
    */
   @Test
-  public void basicMoveTest() throws Exception {
+  public void basicMigrateTest() throws Exception {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
     Assert.assertArrayEquals(TEST_SOURCE_CONTENTS, mMockOutStream.toByteArray());
-    verify(mMockFileSystem).delete(new AlluxioURI(TEST_SOURCE));
+    if (mDeleteSource) {
+      verify(mMockFileSystem).delete(new AlluxioURI(TEST_SOURCE));
+    } else {
+      verify(mMockFileSystem, never()).delete(new AlluxioURI(TEST_SOURCE));
+    }
   }
 
   /**
-   * Tests that the worker will delete the source directory if the directory contains nothing.
+   * Tests that when deleteSource is true,
+   * the worker will delete the source directory if the directory contains nothing,
+   * otherwise, the source directory is kept.
    */
   @Test
   public void deleteEmptySourceDir() throws Exception {
     when(mMockFileSystem.listStatus(new AlluxioURI(TEST_DIR)))
-        .thenReturn(Lists.<URIStatus>newArrayList());
+        .thenReturn(Lists.newArrayList());
     runTask(TEST_DIR, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
-    verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeletePOptions.class));
+    if (mDeleteSource) {
+      verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeletePOptions.class));
+    } else {
+      verify(mMockFileSystem, never()).delete(new AlluxioURI(TEST_DIR));
+    }
   }
 
   /**
-   * Tests that the worker will delete the source directory if the directory contains only
-   * directories.
+   * Tests that when deleteSource is true,
+   * the worker will delete the source directory if the directory contains only directories,
+   * otherwise, the source directory is kept.
    */
   @Test
   public void deleteDirsOnlySourceDir() throws Exception {
@@ -114,21 +141,25 @@ public final class MoveDefinitionRunTaskTest {
     when(mMockFileSystem.listStatus(new AlluxioURI(TEST_DIR))).thenReturn(
         Lists.newArrayList(new URIStatus(new FileInfo().setPath(inner).setFolder(true))));
     when(mMockFileSystem.listStatus(new AlluxioURI(inner)))
-        .thenReturn(Lists.<URIStatus>newArrayList());
+        .thenReturn(Lists.newArrayList());
     runTask(TEST_DIR, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
-    verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeletePOptions.class));
+    if (mDeleteSource) {
+      verify(mMockFileSystem).delete(eq(new AlluxioURI(TEST_DIR)), any(DeletePOptions.class));
+    } else {
+      verify(mMockFileSystem, never()).delete(new AlluxioURI(TEST_DIR));
+    }
   }
 
   /**
    * Tests that the worker will not delete the source directory if the directory still contains
-   * files.
+   * files because this means not all files have been migrated.
    */
   @Test
   public void dontDeleteNonEmptySourceTest() throws Exception {
     when(mMockFileSystem.listStatus(new AlluxioURI(TEST_DIR)))
         .thenReturn(Lists.newArrayList(new URIStatus(new FileInfo())));
     runTask(TEST_DIR, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
-    verify(mMockFileSystem, times(0)).delete(eq(new AlluxioURI(TEST_DIR)),
+    verify(mMockFileSystem, never()).delete(eq(new AlluxioURI(TEST_DIR)),
         any(DeletePOptions.class));
   }
 
@@ -151,16 +182,16 @@ public final class MoveDefinitionRunTaskTest {
   /**
    * Runs the task.
    *
-   * @param configSource {@link MoveConfig} source
-   * @param commandSource {@link MoveCommand} source
-   * @param commandDestination {@link MoveCommand} destination
-   * @param writeType {@link MoveConfig} writeType
+   * @param configSource {@link MigrateConfig} source
+   * @param commandSource {@link MigrateCommand} source
+   * @param commandDestination {@link MigrateCommand} destination
+   * @param writeType {@link MigrateConfig} writeType
    */
   private void runTask(String configSource, String commandSource, String commandDestination,
       WriteType writeType) throws Exception {
-    new MoveDefinition(mMockFileSystemContext, mMockFileSystem).runTask(
-        new MoveConfig(configSource, "", writeType.toString(), false),
-        Lists.newArrayList(new MoveCommand(commandSource, commandDestination)),
+    new MigrateDefinition(mMockFileSystemContext, mMockFileSystem).runTask(
+        new MigrateConfig(configSource, "", writeType.toString(), false, mDeleteSource),
+        Lists.newArrayList(new MigrateCommand(commandSource, commandDestination)),
         new JobWorkerContext(1, 1, mMockUfsManager));
   }
 }
