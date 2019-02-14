@@ -644,7 +644,6 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
               if (ServerConfiguration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
                 mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
               }
-
             } catch (IOException e) {
               LOG.info(ExceptionMessage.FAILED_INITIAL_SYNC.getMessage(
                   resolution.getUri()), e);
