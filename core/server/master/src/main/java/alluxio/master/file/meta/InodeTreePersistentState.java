@@ -75,11 +75,21 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
   /** A set of inode ids whose replication max value is non-default. */
   private final Set<Long> mReplicationLimitedFileIds = new ConcurrentHashSet<>(64, 0.90f, 64);
 
+  /** A set of inode ids whose persistence state is {@link PersistenceState#TO_BE_PERSISTED}. */
+  private final Set<Long> mToBePersistedIds = new ConcurrentHashSet<>(64, 0.90f, 64);
   /**
    * @return an unmodifiable view of the replication limited file ids
    */
   public Set<Long> getReplicationLimitedFileIds() {
     return Collections.unmodifiableSet(mReplicationLimitedFileIds);
+  }
+
+  /**
+   * @return an unmodifiable view of the files with persistence state
+   *         {@link PersistenceState#TO_BE_PERSISTED}
+   */
+  public Set<Long> getToBePersistedIds() {
+    return Collections.unmodifiableSet(mToBePersistedIds);
   }
 
   /**
@@ -313,6 +323,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     updateLastModifiedAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
     mPinnedInodeFileIds.remove(id);
     mReplicationLimitedFileIds.remove(id);
+    mToBePersistedIds.remove(id);
 
     // The recursive option is only used by old versions.
     if (inode.isDirectory() && entry.getRecursive()) {
@@ -404,6 +415,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
       }
     }
     mInodeStore.writeInode(inode);
+    updateToBePersistedIds(inode);
   }
 
   private void applyUpdateInodeDirectory(UpdateInodeDirectoryEntry entry) {
@@ -516,6 +528,10 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
       mInodeStore.clear();
       mInodeStore.writeNewInode(inode);
       mPinnedInodeFileIds.clear();
+      mReplicationLimitedFileIds.clear();
+      mToBePersistedIds.clear();
+
+      updateToBePersistedIds(inode);
       return;
     }
     // inode should be added to the inode store before getting added to its parent list, because it
@@ -540,6 +556,7 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
     }
     // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
     mTtlBuckets.insert(Inode.wrap(inode));
+    updateToBePersistedIds(inode);
   }
 
   private void applyRename(RenameEntry entry) {
@@ -591,6 +608,14 @@ public class InodeTreePersistentState implements JournalEntryReplayable {
       if (madeUpdate) {
         mInodeStore.writeInode(inode);
       }
+    }
+  }
+
+  private void updateToBePersistedIds(MutableInode<?> inode) {
+    if (inode.getPersistenceState() == PersistenceState.TO_BE_PERSISTED) {
+      mToBePersistedIds.add(inode.getId());
+    } else {
+      mToBePersistedIds.remove(inode.getId());
     }
   }
 

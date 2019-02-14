@@ -20,7 +20,6 @@ import alluxio.client.job.JobMasterClientPool;
 import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
-import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
@@ -537,41 +536,34 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         mUfsManager.addMount(mountInfo.getMountId(), new AlluxioURI(key), ufsConf);
       }
       // Startup Checks and Periodic Threads.
+
       // Rebuild the list of persist jobs (mPersistJobs) and map of pending persist requests
       // (mPersistRequests)
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(new AlluxioURI("/"),
-          LockPattern.WRITE_INODE)) {
-        // Walk the inode tree looking for files in the TO_BE_PERSISTED state.
-        java.util.Queue<InodeDirectory> dirsToProcess = new java.util.LinkedList<>();
-        dirsToProcess.add(inodePath.getInode().asDirectory());
-        while (!dirsToProcess.isEmpty()) {
-          InodeDirectory dir = dirsToProcess.poll();
-          for (Inode inode : mInodeStore.getChildren(dir)) {
-            if (inode.isDirectory()) {
-              dirsToProcess.add(inode.asDirectory());
-              continue;
-            }
-            InodeFile inodeFile = inode.asFile();
-            if (!inodeFile.getPersistenceState().equals(PersistenceState.TO_BE_PERSISTED)) {
-              continue;
-            }
-            try (LockResource lr = mInodeLockManager.lockInode(inodeFile, LockMode.READ)) {
-              if (inodeFile.getPersistJobId() != Constants.PERSISTENCE_INVALID_JOB_ID) {
-                addPersistJob(inodeFile.getId(), inodeFile.getPersistJobId(),
-                    mInodeTree.getPath(inodeFile), inodeFile.getTempUfsPath());
-              } else {
-                mPersistRequests.put(inodeFile.getId(), new alluxio.time.ExponentialTimer(
-                    ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-                    ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-                    ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
-                    ServerConfiguration.getMs(
-                        PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
-              }
-            }
-          }
+      for (Long id : mInodeTree.getToBePersistedIds()) {
+        Inode inode = mInodeStore.get(id).get();
+        if (inode.isDirectory()) {
+          continue;
         }
-      } catch (InvalidPathException | FileDoesNotExistException e) {
-        throw new IllegalStateException(e);
+        if (inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED) {
+          continue;
+        }
+        InodeFile inodeFile = inode.asFile();
+        if (inodeFile.getPersistJobId() == Constants.PERSISTENCE_INVALID_JOB_ID) {
+          mPersistRequests.put(inodeFile.getId(), new alluxio.time.ExponentialTimer(
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+        } else {
+          AlluxioURI path;
+          try {
+            path = mInodeTree.getPath(inodeFile);
+          } catch (FileDoesNotExistException e) {
+            LOG.error("Failed to determine path for inode with id {}", id, e);
+            continue;
+          }
+          addPersistJob(id, inodeFile.getPersistJobId(), path, inodeFile.getTempUfsPath());
+        }
       }
       if (ServerConfiguration
           .getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
