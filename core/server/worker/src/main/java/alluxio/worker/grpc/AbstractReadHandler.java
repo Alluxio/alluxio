@@ -11,13 +11,12 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.grpc.DataMessage;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
-import alluxio.grpc.GrpcExceptionUtils;
+import alluxio.grpc.DataMessage;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.resource.LockResource;
@@ -113,10 +112,18 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
       mContext.setDataReaderActive(true);
     } catch (Exception e) {
+<<<<<<< HEAD
       LogUtils.warnWithException(LOG, "Exception occurred while processing read request {}.",
           request, e);
       mSerializingExecutor.execute(() ->
           mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e)));
+||||||| merged common ancestors
+      mSerializingExecutor.execute(() ->
+          mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e)));
+=======
+      mSerializingExecutor.execute(() -> mResponseObserver
+          .onError(AlluxioStatusException.fromCheckedException(e).toGrpcStatusException()));
+>>>>>>> upstream/master
     }
   }
 
@@ -399,7 +406,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     private void replyError(Error error) {
       mSerializingExecutor.execute(() -> {
         try {
-          mResponse.onError(GrpcExceptionUtils.toGrpcStatusException(error.getCause()));
+          mResponse.onError(error.getCause().toGrpcStatusException());
         } catch (StatusRuntimeException e) {
           // Ignores the error when client already closed the stream.
           if (e.getStatus().getCode() != Status.Code.CANCELLED) {

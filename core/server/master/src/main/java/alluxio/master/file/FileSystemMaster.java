@@ -43,6 +43,7 @@ import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.metrics.TimeSeries;
 import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsMode;
 import alluxio.wire.FileBlockInfo;
@@ -553,4 +554,9 @@ public interface FileSystemMaster extends Master {
    * @return true if successfully recorded in the journal
    */
   boolean recordActiveSyncTxid(long txId, long mountId);
+
+  /**
+   * @return the time series data stored by the master
+   */
+  List<TimeSeries> getTimeSeries();
 }

@@ -34,6 +34,7 @@ import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -498,6 +499,27 @@ public interface FileSystem extends Closeable {
    * @throws FileDoesNotExistException if the given file does not exist
    */
   FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Convenience method for {@link #persist(AlluxioURI, ScheduleAsyncPersistencePOptions)} which
+   * uses the default {@link ScheduleAsyncPersistencePOptions}.
+   *
+   * @param path the uri of the file to persist
+   */
+  void persist(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Schedules the given path to be asynchronously persisted to the under file system.
+   *
+   * To persist synchronously please see
+   * {@link FileSystemUtils#persistAndWait(FileSystem, AlluxioURI)}.
+   *
+   * @param path the uri of the file to persist
+   * @param options the options to use when submitting persist the path
+   */
+  void persist(AlluxioURI path, ScheduleAsyncPersistencePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

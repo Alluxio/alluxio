@@ -29,6 +29,8 @@ import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 import com.sun.management.UnixOperatingSystemMXBean;
 
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
@@ -40,9 +42,6 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Configuration property keys. This class provides a set of pre-defined property keys.
@@ -1273,6 +1272,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
               + "the on-heap inode cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METRICS_TIME_SERIES_INTERVAL =
+      new Builder(Name.MASTER_METRICS_TIME_SERIES_INTERVAL)
+          .setDefaultValue("5min")
+          .setDescription("Interval for which the master records metrics information. This affects "
+              + "the granularity of the metrics graphed in the UI.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WORKER_HEARTBEAT_INTERVAL =
@@ -3709,6 +3716,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.cache.max.size";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval.ms";
+    public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
+        "alluxio.master.metrics.time.series.interval";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
         "alluxio.master.persistence.initial.interval.ms";
     public static final String MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS =

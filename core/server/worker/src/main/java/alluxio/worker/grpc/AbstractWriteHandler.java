@@ -14,18 +14,16 @@ package alluxio.worker.grpc;
 import alluxio.client.block.stream.GrpcDataWriter;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
 import alluxio.util.LogUtils;
 
-import com.google.protobuf.ByteString;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-
+import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -296,7 +294,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   private void replyError() {
     Error error = Preconditions.checkNotNull(mContext.getError());
     if (error.isNotifyClient()) {
-      mResponseObserver.onError(GrpcExceptionUtils.toGrpcStatusException(error.getCause()));
+      mResponseObserver.onError(error.getCause().toGrpcStatusException());
     }
   }
 

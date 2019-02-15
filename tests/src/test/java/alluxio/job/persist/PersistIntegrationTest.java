@@ -22,6 +22,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.wire.JobInfo;
@@ -100,7 +101,8 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     // persist the file
     FileSystemMasterClient client = mFsContext.acquireMasterClient();
     try {
-      client.scheduleAsyncPersist(new AlluxioURI(TEST_URI));
+      client.scheduleAsyncPersist(new AlluxioURI(TEST_URI),
+          ScheduleAsyncPersistencePOptions.getDefaultInstance());
     } finally {
       mFsContext.releaseMasterClient(client);
     }
@@ -117,6 +119,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
     // restart master
     mLocalAlluxioClusterResource.get().restartMasters();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient(); // need new client after restart
     // verify not persisted
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
@@ -139,7 +142,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     // schedule an async persist
     FileSystemMasterClient client = mFsContext.acquireMasterClient();
     try {
-      client.scheduleAsyncPersist(path);
+      client.scheduleAsyncPersist(path, ScheduleAsyncPersistencePOptions.getDefaultInstance());
       Assert.fail("Should not be able to schedule persistence for incomplete file");
     } catch (Exception e) {
       // expected

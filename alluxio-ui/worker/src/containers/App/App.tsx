@@ -86,12 +86,12 @@ export class App extends React.Component<AllProps> {
     return (
       <ConnectedRouter history={history}>
         <div className="App pt-5 pb-4">
-          <div className="container-fluid sticky-top header-wrapper">
+          <div className="w-100 sticky-top header-wrapper">
             <Header history={history} data={headerNavigationData}
                     callbackParameters={{masterHostname: init.masterHostname, masterPort: init.masterPort}}
                     autoRefreshCallback={this.setAutoRefresh}/>
           </div>
-          <div className="pages container-fluid mt-3">
+          <div className="w-100 mt-3">
             <Switch>
               <Route exact={true} path="/" render={this.redirectToOverview}/>
               <Route path="/overview" exact={true} component={Overview}/>
@@ -101,7 +101,7 @@ export class App extends React.Component<AllProps> {
               <Route render={this.redirectToOverview}/>
             </Switch>
           </div>
-          <div className="container-fluid footer-wrapper">
+          <div className="w-100 footer-wrapper">
             <Footer data={footerNavigationData}
                     callbackParameters={{masterHostname: init.masterHostname, masterPort: init.masterPort}}/>
           </div>

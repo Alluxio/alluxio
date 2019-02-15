@@ -13,19 +13,22 @@ package alluxio.security.authentication;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.SaslMessage;
 
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
-import java.util.UUID;
 
 /**
  * Responsible for driving sasl traffic from server-side. Acts as a server's Sasl stream.
  */
 public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
+  private static final Logger LOG = LoggerFactory.getLogger(SaslStreamServerDriver.class);
   /** Client's sasl stream. */
   private StreamObserver<SaslMessage> mRequestObserver = null;
   /** Handshake handler for server. */
@@ -62,12 +65,17 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
   @Override
   public void onNext(SaslMessage saslMessage) {
     try {
+      LOG.debug("SaslServerDriver received message: {}",
+          saslMessage != null ? saslMessage.getMessageType().toString() : "<NULL>");
+
       if (mSaslHandshakeServerHandler == null) {
         // First message received from the client.
         // ChannelId and the AuthenticationName will be set only in the first call.
         // Initialize this server driver accordingly.
         mChannelId = UUID.fromString(saslMessage.getClientId());
         AuthType authType = AuthType.valueOf(saslMessage.getAuthenticationName());
+        LOG.debug("SaslServerDriver received authentication request. ChannelId: {}, AuthType: {}",
+            mChannelId, authType);
         // TODO(ggezer) wire server name?
         mSaslServer =
             SaslParticipantProvider.Factory.create(authType).createSaslServer("localhost",
@@ -80,11 +88,9 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
       // Respond to client.
       mRequestObserver.onNext(mSaslHandshakeServerHandler.handleSaslMessage(saslMessage));
     } catch (SaslException se) {
-      mRequestObserver.onError(
-          GrpcExceptionUtils.toGrpcStatusException(new UnauthenticatedException(se)));
+      mRequestObserver.onError(new UnauthenticatedException(se).toGrpcStatusException());
     } catch (UnauthenticatedException ue) {
-      mRequestObserver.onError(
-          GrpcExceptionUtils.toGrpcStatusException(ue));
+      mRequestObserver.onError(ue.toGrpcStatusException());
     }
   }
 

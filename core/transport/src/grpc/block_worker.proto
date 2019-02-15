@@ -23,6 +23,12 @@ service BlockWorker {
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
 }
 
+// The check request
+message CheckRequest {}
+
+// The check response
+message CheckResponse {}
+
 // The data chunk.
 // next available id: 2
 message Chunk {

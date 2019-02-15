@@ -79,7 +79,6 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_RPC_RETRY_MAX_DURATION, "10s"})
   public void masterUnavailable() throws Exception {
-    FileSystem fileSystem = mLocalAlluxioClusterResource.get().getClient();
     mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().stop();
 
     Thread thread = new Thread(new Runnable() {
@@ -94,7 +93,7 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
       }
     });
     thread.start();
-
+    FileSystem fileSystem = mLocalAlluxioClusterResource.get().getClient();
     fileSystem.listStatus(new AlluxioURI("/"));
     thread.join();
   }

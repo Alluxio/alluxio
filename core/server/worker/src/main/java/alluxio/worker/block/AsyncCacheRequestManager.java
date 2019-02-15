@@ -60,17 +60,17 @@ public class AsyncCacheRequestManager {
   /**
    * @param service thread pool to run the background caching work
    * @param blockWorker handler to the block worker
+   * @param fsContext context used to instantiate {@link RemoteBlockReader}
    */
-  public AsyncCacheRequestManager(ExecutorService service, BlockWorker blockWorker) {
+  public AsyncCacheRequestManager(ExecutorService service, BlockWorker blockWorker,
+      FileSystemContext fsContext) {
     mAsyncCacheExecutor = service;
     mBlockWorker = blockWorker;
     mPendingRequests = new ConcurrentHashMap<>();
     mLocalWorkerHostname =
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
-    // TODO(zac): Make this object accept FileSystemContext parameter. Shouldn't be creating one
-    //  here
-    mFsContext = FileSystemContext.create(ServerConfiguration.global());
+    mFsContext = fsContext;
   }
 
   /**

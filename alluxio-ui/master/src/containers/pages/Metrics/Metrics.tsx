@@ -66,10 +66,10 @@ export class Metrics extends React.Component<AllProps> {
                   <th scope="row">Master Capacity</th>
                   <td>
                     <Progress multi={true}>
-                      <Progress bar={true} color="success"
+                      <Progress bar={true} color="dark"
                                 value={`${data.masterCapacityFreePercentage}`}>{data.masterCapacityFreePercentage}%
                         Free</Progress>
-                      <Progress bar={true} color="danger"
+                      <Progress bar={true} color="secondary"
                                 value={`${data.masterCapacityUsedPercentage}`}>{data.masterCapacityUsedPercentage}%
                         Used</Progress>
                     </Progress>
@@ -79,10 +79,10 @@ export class Metrics extends React.Component<AllProps> {
                   <th scope="row">Master UnderFS Capacity</th>
                   <td>
                     <Progress multi={true}>
-                      <Progress bar={true} color="success"
+                      <Progress bar={true} color="dark"
                                 value={`${data.masterUnderfsCapacityFreePercentage}`}>{data.masterUnderfsCapacityFreePercentage}%
                         Free</Progress>
-                      <Progress bar={true} color="danger"
+                      <Progress bar={true} color="secondary"
                                 value={`${data.masterUnderfsCapacityUsedPercentage}`}>{data.masterUnderfsCapacityUsedPercentage}%
                         Used</Progress>
                     </Progress>

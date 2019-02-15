@@ -11,7 +11,6 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -47,12 +46,13 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(CpCommand.THREAD_OPTION);
+    return new Options().addOption(CpCommand.THREAD_OPTION)
+        .addOption(CpCommand.BUFFER_SIZE_OPTION);
   }
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsEquals(this, cl, 2);
+    mCpCommand.validateArgs(cl);
   }
 
   @Override
@@ -66,7 +66,10 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "copyFromLocal [-t <number of threads for copying>] <src> <remoteDst>";
+    return "copyFromLocal "
+        + "[--thread <number of threads for copying>] "
+        + "[--buffersize <read buffer size in bytes>] "
+        + "<src> <remoteDst>";
   }
 
   @Override
