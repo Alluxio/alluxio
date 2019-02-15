@@ -6810,6 +6810,11 @@
 				}
 			}
 		},
+		"find-parent-dir": {
+			"version": "0.3.0",
+			"resolved": "https://registry.npmjs.org/find-parent-dir/-/find-parent-dir-0.3.0.tgz",
+			"integrity": "sha1-M8RLQpqysvBkYpnF+fcY83b/jVQ="
+		},
 		"find-up": {
 			"version": "2.1.0",
 			"resolved": "https://registry.npmjs.org/find-up/-/find-up-2.1.0.tgz",
@@ -12348,6 +12353,14 @@
 					"resolved": "https://registry.npmjs.org/trim-newlines/-/trim-newlines-1.0.0.tgz",
 					"integrity": "sha1-WIeWa7WCpFA6QetST301ARgVphM="
 				}
+			}
+		},
+		"node-sass-tilde-importer": {
+			"version": "1.0.2",
+			"resolved": "https://registry.npmjs.org/node-sass-tilde-importer/-/node-sass-tilde-importer-1.0.2.tgz",
+			"integrity": "sha512-Swcmr38Y7uB78itQeBm3mThjxBy9/Ah/ykPIaURY/L6Nec9AyRoL/jJ7ECfMR+oZeCTVQNxVMu/aHU+TLRVbdg==",
+			"requires": {
+				"find-parent-dir": "^0.3.0"
 			}
 		},
 		"nopt": {

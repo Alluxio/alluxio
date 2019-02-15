@@ -10,6 +10,7 @@
     "@fortawesome/react-fontawesome": "0.1.4",
     "bootstrap": "4.3.1",
     "bootswatch": "4.3.1",
+    "node-sass-tilde-importer": "^1.0.2",
     "react": "16.8.2",
     "react-dom": "16.8.2",
     "react-router-dom": "4.3.1",
@@ -18,8 +19,8 @@
     "source-sans-pro": "2.45.0"
   },
   "scripts": {
-    "build-css": "node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/",
-    "watch-css": "npm run build-css && node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/ --watch --recursive",
+    "build-css": "node-sass-chokidar --importer=../node_modules/node-sass-tilde-importer --include-path ./src --include-path ./node_modules src/ -o src/",
+    "watch-css": "npm run build-css && node-sass-chokidar --importer=../node_modules/node-sass-tilde-importer --include-path ./src --include-path ./node_modules src/ -o src/ --watch --recursive",
     "start-js": "BROWSER=none react-scripts start --watch --recursive",
     "build-js": "react-scripts build",
     "start": "npm-run-all --parallel watch-css start-js",

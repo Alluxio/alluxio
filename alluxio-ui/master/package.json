@@ -14,6 +14,7 @@
     "bootstrap": "4.3.1",
     "bootswatch": "4.3.1",
     "connected-react-router": "6.3.1",
+    "node-sass-tilde-importer": "^1.0.2",
     "react": "16.8.2",
     "react-dom": "16.8.2",
     "react-redux": "6.0.0",
@@ -26,8 +27,8 @@
     "typesafe-actions": "3.0.0"
   },
   "scripts": {
-    "build-css": "node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/",
-    "watch-css": "npm run build-css && node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o src/ --watch --recursive",
+    "build-css": "node-sass-chokidar --importer=../node_modules/node-sass-tilde-importer --include-path ./src --include-path ./node_modules src/ -o src/",
+    "watch-css": "npm run build-css && node-sass-chokidar --importer=../node_modules/node-sass-tilde-importer --include-path ./src --include-path ./node_modules src/ -o src/ --watch --recursive",
     "start-js": "PORT=3001 react-app-rewired start --scripts-version react-scripts --watch --recursive",
     "build-js": "react-app-rewired build --scripts-version react-scripts",
     "start": "npm-run-all --parallel watch-css start-js",
