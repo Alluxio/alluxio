@@ -16,7 +16,6 @@ import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.resource.LockResource;
 
 import io.grpc.StatusRuntimeException;
@@ -216,7 +215,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
   private AlluxioStatusException toAlluxioStatusException(Throwable t) {
     AlluxioStatusException ex;
     if (t instanceof StatusRuntimeException) {
-      ex = GrpcExceptionUtils.fromGrpcStatusException((StatusRuntimeException) t);
+      ex = AlluxioStatusException.fromStatusRuntimeException((StatusRuntimeException) t);
       if (ex.getStatus() == Status.CANCELED) {
         // Streams are canceled when server is shutdown. Convert it to UnavailableException for
         // client to retry.
