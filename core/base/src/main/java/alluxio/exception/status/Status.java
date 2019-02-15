@@ -11,10 +11,13 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status.Code;
+
 /**
  * A class representing gRPC status codes. The definitions are from
  * https://github.com/grpc/grpc-go/blob/v1.2.0/codes/codes.go.
  */
+// TODO(andrew): replace alluxio.exception.status.Status with io.grpc.Status
 public enum Status {
   // OK is returned on success.
   OK,
@@ -131,4 +134,89 @@ public enum Status {
 
   // DataLoss indicates unrecoverable data loss or corruption.
   DATA_LOSS;
+
+  /**
+   * @return the corresponding gRPC status code
+   */
+  public Code toGrpcCode() {
+    switch (this) {
+      case OK:
+        return Code.OK;
+      case ABORTED:
+        return Code.ABORTED;
+      case ALREADY_EXISTS:
+        return Code.ALREADY_EXISTS;
+      case CANCELED:
+        return Code.CANCELLED;
+      case DATA_LOSS:
+        return Code.DATA_LOSS;
+      case DEADLINE_EXCEEDED:
+        return Code.DEADLINE_EXCEEDED;
+      case FAILED_PRECONDITION:
+        return Code.FAILED_PRECONDITION;
+      case INTERNAL:
+        return Code.INTERNAL;
+      case INVALID_ARGUMENT:
+        return Code.INVALID_ARGUMENT;
+      case NOT_FOUND:
+        return Code.NOT_FOUND;
+      case OUT_OF_RANGE:
+        return Code.OUT_OF_RANGE;
+      case PERMISSION_DENIED:
+        return Code.PERMISSION_DENIED;
+      case RESOURCE_EXHAUSTED:
+        return Code.RESOURCE_EXHAUSTED;
+      case UNAUTHENTICATED:
+        return Code.UNAUTHENTICATED;
+      case UNAVAILABLE:
+        return Code.UNAVAILABLE;
+      case UNIMPLEMENTED:
+        return Code.UNIMPLEMENTED;
+      default:
+        return Code.UNKNOWN;
+    }
+  }
+
+  /**
+   * @param code a grpc status code
+   * @return the corresponding status
+   */
+  public static Status from(Code code) {
+    switch (code) {
+      case OK:
+        return OK;
+      case ABORTED:
+        return ABORTED;
+      case ALREADY_EXISTS:
+        return ALREADY_EXISTS;
+      case CANCELLED:
+        return CANCELED;
+      case DATA_LOSS:
+        return DATA_LOSS;
+      case DEADLINE_EXCEEDED:
+        return DEADLINE_EXCEEDED;
+      case FAILED_PRECONDITION:
+        return FAILED_PRECONDITION;
+      case INTERNAL:
+        return INTERNAL;
+      case INVALID_ARGUMENT:
+        return INVALID_ARGUMENT;
+      case NOT_FOUND:
+        return NOT_FOUND;
+      case OUT_OF_RANGE:
+        return OUT_OF_RANGE;
+      case PERMISSION_DENIED:
+        return PERMISSION_DENIED;
+      case RESOURCE_EXHAUSTED:
+        return RESOURCE_EXHAUSTED;
+      case UNAUTHENTICATED:
+        return UNAUTHENTICATED;
+      case UNAVAILABLE:
+        return UNAVAILABLE;
+      case UNIMPLEMENTED:
+        return UNIMPLEMENTED;
+      default:
+        return UNKNOWN;
+    }
+  }
 }

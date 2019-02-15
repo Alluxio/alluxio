@@ -23,7 +23,6 @@ import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.GrpcManagedChannelPool;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.OpenLocalBlockRequest;
@@ -87,7 +86,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       mRpcChannel = buildChannel(subject, address,
           GrpcManagedChannelPool.PoolingStrategy.DEFAULT, alluxioConf, workerGroup);
     } catch (StatusRuntimeException e) {
-      throw GrpcExceptionUtils.fromGrpcStatusException(e);
+      throw AlluxioStatusException.fromStatusRuntimeException(e);
     }
     mStreamingAsyncStub = BlockWorkerGrpc.newStub(mStreamingChannel);
     mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);

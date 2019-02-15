@@ -15,7 +15,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnknownException;
-import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.SaslMessage;
 
 import com.google.common.util.concurrent.SettableFuture;
@@ -25,10 +24,11 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.security.sasl.SaslException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import javax.security.sasl.SaslException;
 
 /**
  * Responsible for driving sasl traffic from client-side. Acts as a client's Sasl stream.
@@ -119,7 +119,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
         if (sre.getStatus().getCode() == Status.Code.UNIMPLEMENTED) {
           throw new UnauthenticatedException("Authentication is disabled on target host.");
         }
-        throw GrpcExceptionUtils.fromGrpcStatusException((StatusRuntimeException) cause);
+        throw AlluxioStatusException.fromStatusRuntimeException((StatusRuntimeException) cause);
       }
       throw new UnknownException(cause.getMessage(), cause);
     } catch (TimeoutException e) {

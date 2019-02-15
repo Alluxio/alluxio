@@ -11,12 +11,14 @@
 
 package alluxio.client.cli.fs.command;
 
+import static org.hamcrest.CoreMatchers.containsString;
+
 import alluxio.AlluxioURI;
+import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
@@ -24,7 +26,6 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -316,7 +317,8 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     // Write the second file to the same location, which should cause an exception
     String[] cmd2 = {"cp", "file://" +  testFile2.getPath(), alluxioFilePath.getPath()};
     Assert.assertEquals(-1, mFsShell.run(cmd2));
-    Assert.assertEquals(alluxioFilePath.getPath() + " already exists\n", mOutput.toString());
+    Assert.assertThat(mOutput.toString(),
+        containsString(alluxioFilePath.getPath() + " already exists"));
     // Make sure the original file is intact
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
@@ -334,7 +336,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
         BufferUtils.getIncreasingByteArray(10, 20));
     String[] cmd = new String[]{"cp", "file://" + testFile.getParent(), "/testDir"};
     mFsShell.run(cmd);
-    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString(getCommandOutput(cmd)));
+    Assert.assertThat(mOutput.toString(), containsString(getCommandOutput(cmd)));
     AlluxioURI uri1 = new AlluxioURI("/testDir/testFile");
     AlluxioURI uri2 = new AlluxioURI("/testDir/testDirInner/testFile2");
     URIStatus status1 = mFileSystem.getStatus(uri1);
