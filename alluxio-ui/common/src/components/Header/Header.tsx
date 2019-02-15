@@ -72,7 +72,7 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
     const {data} = this.props;
     return (
       <div className={'header'}>
-        <Navbar className="headerNavigation navbar-dark bg-secondary" expand="lg">
+        <Navbar className="headerNavigation navbar-dark bg-dark" expand="lg">
           <NavbarBrand tag={Link} to="/" href="/">
             <div className="headerLogo align-top d-inline-block ml-lg-2">
               <div className="brand">
@@ -120,7 +120,7 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
         : data.url;
       return (
         <NavItem key={url}>
-          <NavLink tag={isExternalLink(url) ? NavLink : Link} to={url} href={url}
+          <NavLink className="text-white" tag={isExternalLink(url) ? NavLink : Link} to={url} href={url}
                    active={pathname === url} onClick={this.closeHeaderOnClick}>{data.innerText}</NavLink>
         </NavItem>
       )

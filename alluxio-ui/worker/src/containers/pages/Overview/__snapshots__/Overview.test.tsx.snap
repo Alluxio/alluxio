@@ -232,12 +232,12 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                       className="header"
                     >
                       <Navbar
-                        className="headerNavigation navbar-dark bg-secondary"
+                        className="headerNavigation navbar-dark bg-dark"
                         expand="lg"
                         tag="nav"
                       >
                         <nav
-                          className="headerNavigation navbar-dark bg-secondary navbar navbar-expand-lg"
+                          className="headerNavigation navbar-dark bg-dark navbar navbar-expand-lg"
                         >
                           <NavbarBrand
                             href="/"
@@ -350,20 +350,21 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={true}
+                                          className="text-white"
                                           href="/overview"
                                           onClick={[Function]}
                                           tag={[Function]}
                                           to="/overview"
                                         >
                                           <Link
-                                            className="nav-link active"
+                                            className="text-white nav-link active"
                                             href="/overview"
                                             onClick={[Function]}
                                             replace={false}
                                             to="/overview"
                                           >
                                             <a
-                                              className="nav-link active"
+                                              className="text-white nav-link active"
                                               href="/overview"
                                               onClick={[Function]}
                                             >
@@ -382,20 +383,21 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={false}
+                                          className="text-white"
                                           href="/blockInfo"
                                           onClick={[Function]}
                                           tag={[Function]}
                                           to="/blockInfo"
                                         >
                                           <Link
-                                            className="nav-link"
+                                            className="text-white nav-link"
                                             href="/blockInfo"
                                             onClick={[Function]}
                                             replace={false}
                                             to="/blockInfo"
                                           >
                                             <a
-                                              className="nav-link"
+                                              className="text-white nav-link"
                                               href="/blockInfo"
                                               onClick={[Function]}
                                             >
@@ -414,20 +416,21 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={false}
+                                          className="text-white"
                                           href="/logs"
                                           onClick={[Function]}
                                           tag={[Function]}
                                           to="/logs"
                                         >
                                           <Link
-                                            className="nav-link"
+                                            className="text-white nav-link"
                                             href="/logs"
                                             onClick={[Function]}
                                             replace={false}
                                             to="/logs"
                                           >
                                             <a
-                                              className="nav-link"
+                                              className="text-white nav-link"
                                               href="/logs"
                                               onClick={[Function]}
                                             >
@@ -446,20 +449,21 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={false}
+                                          className="text-white"
                                           href="/metrics"
                                           onClick={[Function]}
                                           tag={[Function]}
                                           to="/metrics"
                                         >
                                           <Link
-                                            className="nav-link"
+                                            className="text-white nav-link"
                                             href="/metrics"
                                             onClick={[Function]}
                                             replace={false}
                                             to="/metrics"
                                           >
                                             <a
-                                              className="nav-link"
+                                              className="text-white nav-link"
                                               href="/metrics"
                                               onClick={[Function]}
                                             >
@@ -478,20 +482,21 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={false}
+                                          className="text-white"
                                           href="http://:19999"
                                           onClick={[Function]}
                                           tag={[Function]}
                                           to="http://:19999"
                                         >
                                           <NavLink
-                                            className="nav-link"
+                                            className="text-white nav-link"
                                             href="http://:19999"
                                             onClick={[Function]}
                                             tag="a"
                                             to="http://:19999"
                                           >
                                             <a
-                                              className="nav-link nav-link"
+                                              className="text-white nav-link nav-link"
                                               href="http://:19999"
                                               onClick={[Function]}
                                               to="http://:19999"
@@ -934,7 +939,7 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                     }
                   >
                     <div
-                      className="footer mt-auto bg-secondary"
+                      className="footer mt-auto navbar-dark bg-dark"
                     >
                       <Nav
                         className="justify-content-center"

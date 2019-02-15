@@ -61,12 +61,12 @@ exports[`Header React component Matches snapshot 1`] = `
         className="header"
       >
         <Navbar
-          className="headerNavigation navbar-dark bg-secondary"
+          className="headerNavigation navbar-dark bg-dark"
           expand="lg"
           tag="nav"
         >
           <nav
-            className="headerNavigation navbar-dark bg-secondary navbar navbar-expand-lg"
+            className="headerNavigation navbar-dark bg-dark navbar navbar-expand-lg"
           >
             <NavbarBrand
               href="/"
@@ -321,7 +321,7 @@ exports[`Header Shallow component Matches snapshot 1`] = `
   className="header"
 >
   <Navbar
-    className="headerNavigation navbar-dark bg-secondary"
+    className="headerNavigation navbar-dark bg-dark"
     expand="lg"
     tag="nav"
   >
