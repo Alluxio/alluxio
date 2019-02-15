@@ -11,17 +11,19 @@
 
 package alluxio.client.cli.fs.command;
 
+import static org.hamcrest.CoreMatchers.containsString;
+
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.conf.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.URIStatus;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.AlluxioException;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -29,7 +31,6 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 
 import org.apache.commons.io.FileUtils;
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -194,7 +195,8 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     // Write the second file to the same location, which should cause an exception
     String[] cmd2 = {"copyFromLocal", testFile2.getPath(), alluxioFilePath.getPath()};
     Assert.assertEquals(-1, mFsShell.run(cmd2));
-    Assert.assertEquals(alluxioFilePath.getPath() + " already exists\n", mOutput.toString());
+    Assert.assertThat(mOutput.toString(),
+        containsString(alluxioFilePath.getPath() + " already exists\n"));
     // Make sure the original file is intact
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
@@ -212,7 +214,7 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
         BufferUtils.getIncreasingByteArray(10, 20));
 
     mFsShell.run("copyFromLocal", testFile.getParent(), "/testDir");
-    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString(
+    Assert.assertThat(mOutput.toString(), containsString(
         getCommandOutput(new String[]{"copyFromLocal", testFile.getParent(), "/testDir"})));
     AlluxioURI uri1 = new AlluxioURI("/testDir/testFile");
     AlluxioURI uri2 = new AlluxioURI("/testDir/testDirInner/testFile2");
@@ -240,7 +242,7 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
       mOutput.reset();
       mFsShell.run("copyFromLocal", file.getAbsolutePath(), "/");
     }
-    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString("already exists"));
+    Assert.assertThat(mOutput.toString(), containsString("already exists"));
   }
 
   @Test

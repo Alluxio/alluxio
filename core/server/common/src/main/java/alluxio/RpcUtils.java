@@ -18,7 +18,6 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.grpc.GrpcExceptionUtils;
 
 import com.codahale.metrics.Timer;
 import io.grpc.stub.StreamObserver;
@@ -55,10 +54,10 @@ public final class RpcUtils {
       responseObserver.onNext(ret);
       responseObserver.onCompleted();
     } catch (AlluxioException e) {
-      responseObserver.onError(
-          GrpcExceptionUtils.toGrpcStatusException(AlluxioStatusException.fromAlluxioException(e)));
+      responseObserver
+          .onError(AlluxioStatusException.fromAlluxioException(e).toGrpcStatusException());
     } catch (RuntimeException e) {
-      responseObserver.onError(GrpcExceptionUtils.toGrpcStatusException(new InternalException(e)));
+      responseObserver.onError(new InternalException(e).toGrpcStatusException());
     }
   }
 
@@ -116,11 +115,11 @@ public final class RpcUtils {
         }
       }
       responseObserver.onError(
-          GrpcExceptionUtils.toGrpcStatusException(AlluxioStatusException.fromAlluxioException(e)));
+          AlluxioStatusException.fromAlluxioException(e).toGrpcStatusException());
     } catch (RuntimeException e) {
       logger.error("Exit (Error): {}: {}", methodName, String.format(description, args), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
-      responseObserver.onError(GrpcExceptionUtils.toGrpcStatusException(new InternalException(e)));
+      responseObserver.onError(new InternalException(e).toGrpcStatusException());
     }
   }
 
@@ -139,13 +138,12 @@ public final class RpcUtils {
       responseObserver.onNext(ret);
       responseObserver.onCompleted();
     } catch (AlluxioException e) {
-      responseObserver.onError(
-          GrpcExceptionUtils.toGrpcStatusException(AlluxioStatusException.fromAlluxioException(e)));
+      responseObserver
+          .onError(AlluxioStatusException.fromAlluxioException(e).toGrpcStatusException());
     } catch (IOException e) {
-      responseObserver.onError(
-          GrpcExceptionUtils.toGrpcStatusException(AlluxioStatusException.fromIOException(e)));
+      responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
     } catch (RuntimeException e) {
-      responseObserver.onError(GrpcExceptionUtils.toGrpcStatusException(new InternalException(e)));
+      responseObserver.onError((new InternalException(e).toGrpcStatusException()));
     }
   }
 
@@ -203,8 +201,8 @@ public final class RpcUtils {
               String.format(description, args), e);
         }
       }
-      responseObserver.onError(
-          GrpcExceptionUtils.toGrpcStatusException(AlluxioStatusException.fromAlluxioException(e)));
+      responseObserver
+          .onError(AlluxioStatusException.fromAlluxioException(e).toGrpcStatusException());
     } catch (IOException e) {
       logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
       if (!failureOk) {
@@ -214,12 +212,11 @@ public final class RpcUtils {
               String.format(description, args), e);
         }
       }
-      responseObserver.onError(
-          GrpcExceptionUtils.toGrpcStatusException(AlluxioStatusException.fromIOException(e)));
+      responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
     } catch (RuntimeException e) {
       logger.error("Exit (Error): {}: {}", methodName, String.format(description, args), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
-      responseObserver.onError(GrpcExceptionUtils.toGrpcStatusException(new InternalException(e)));
+      responseObserver.onError(new InternalException(e).toGrpcStatusException());
     }
   }
 
