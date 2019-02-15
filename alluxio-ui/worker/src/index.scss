@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-@import '~@alluxio/common-ui/src/constants/scss/themeVariables';
+@import '../../common/src/constants/scss/themeVariables'; // using tilde here will break the note-sass watcher
 @import '~bootstrap/scss/bootstrap';
 @import '~bootstrap/scss/bootstrap-grid';
 @import '~bootstrap/scss/bootstrap-reboot';
-@import '~@alluxio/common-ui/src/constants/scss/themeCustomization';
+@import '../../common/src/constants/scss/themeCustomization'; // using tilde here will break the node-sass watcher
 @import '~source-sans-pro/source-sans-pro.css';
 
 body {
