@@ -17,6 +17,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
+import alluxio.util.LogUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -80,6 +81,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   public void write(WriteRequest writeRequest) {
     try {
       if (mContext == null) {
+        LOG.debug("Received write request {}.", writeRequest);
         mContext = createRequestContext(writeRequest);
       } else {
         Preconditions.checkState(!mContext.isDoneUnsafe(),
@@ -102,6 +104,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
         writeData(data);
       }
     } catch (Exception e) {
+      LogUtils.warnWithException(LOG, "Exception occurred while processing write request {}.",
+          writeRequest, e);
       abort(new Error(AlluxioStatusException.fromThrowable(e), true));
     }
   }
@@ -115,6 +119,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       completeRequest(mContext);
       replySuccess();
     } catch (Exception e) {
+      LogUtils.warnWithException(LOG, "Exception occurred while completing write request {}.",
+          mContext.getRequest(), e);
       Throwables.throwIfUnchecked(e);
       abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
     }
@@ -128,6 +134,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       cancelRequest(mContext);
       replyCancel();
     } catch (Exception e) {
+      LogUtils.warnWithException(LOG, "Exception occurred while cancelling write request {}.",
+          mContext.getRequest(), e);
       Throwables.throwIfUnchecked(e);
       abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
     }
@@ -144,7 +152,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       // Cancellation is already handled.
       return;
     }
-    LOG.error("Exception thrown while handling write request {}:",
+    LogUtils.warnWithException(LOG, "Exception thrown while handling write request {}",
         mContext == null ? "unknown" : mContext.getRequest(), cause);
     abort(new Error(AlluxioStatusException.fromThrowable(cause), false));
   }

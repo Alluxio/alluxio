@@ -140,6 +140,7 @@ public final class GrpcDataServer implements DataServer {
   public void close() throws IOException {
     mFsContext.close();
     if (mServer != null) {
+      LOG.info("Shutting down RPC Server at {}.", getBindAddress());
       boolean completed = mServer.shutdown();
       if (!completed) {
         LOG.warn("RPC Server shutdown timed out.");
