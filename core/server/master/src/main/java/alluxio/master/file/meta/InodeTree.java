@@ -13,7 +13,6 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockInfoException;
@@ -958,7 +957,15 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
    * @return the set of file ids whose replication max is not infinity
    */
   public Set<Long> getReplicationLimitedFileIds() {
-    return java.util.Collections.unmodifiableSet(mState.getReplicationLimitedFileIds());
+    return mState.getReplicationLimitedFileIds();
+  }
+
+  /**
+   * @return an unmodifiable view of the files with persistence state
+   *         {@link PersistenceState#TO_BE_PERSISTED}
+   */
+  public Set<Long> getToBePersistedIds() {
+    return mState.getToBePersistedIds();
   }
 
   /**
