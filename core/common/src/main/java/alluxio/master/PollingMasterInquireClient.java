@@ -19,7 +19,6 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -114,7 +113,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()
           .setServiceType(ServiceType.META_MASTER_CLIENT_SERVICE).build());
     } catch (StatusRuntimeException e) {
-      throw GrpcExceptionUtils.fromGrpcStatusException(e);
+      throw AlluxioStatusException.fromThrowable(e);
     }
     channel.shutdown();
   }
