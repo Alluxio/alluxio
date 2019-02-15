@@ -21,6 +21,7 @@ import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.LogUtils;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -130,7 +131,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
 
   @Override
   public void onError(Throwable t) {
-    LOG.warn("Exception occurred processing write request {}.", mRequest, t);
+    LogUtils.warnWithException(LOG, "Exception occurred processing write request {}.", mRequest, t);
     if (t instanceof StatusRuntimeException
         && ((StatusRuntimeException) t).getStatus().getCode() == Status.Code.CANCELLED) {
       // Cancellation is already handled.

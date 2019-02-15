@@ -21,6 +21,7 @@ import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.util.IdUtils;
+import alluxio.util.LogUtils;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 
@@ -115,7 +116,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
 
   @Override
   public void onError(Throwable t) {
-    LOG.warn("Exception occurred processing read request {}.", mRequest, t);
+    LogUtils.warnWithException(LOG, "Exception occurred processing read request {}.", mRequest, t);
     if (mLockId != BlockLockManager.INVALID_LOCK_ID) {
       try {
         mWorker.unlockBlock(mLockId);
