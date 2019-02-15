@@ -11,13 +11,27 @@
 
 package alluxio.master;
 
+<<<<<<< HEAD
 import alluxio.Configuration;
+||||||| parent of 14dc0bd30b... Fix secondary master to create checkpoints (#8391)
+import alluxio.conf.ServerConfiguration;
+=======
+>>>>>>> 14dc0bd30b... Fix secondary master to create checkpoints (#8391)
 import alluxio.Process;
 import alluxio.ProcessUtils;
+<<<<<<< HEAD
 import alluxio.PropertyKey;
+||||||| parent of 14dc0bd30b... Fix secondary master to create checkpoints (#8391)
+import alluxio.conf.PropertyKey;
+=======
+>>>>>>> 14dc0bd30b... Fix secondary master to create checkpoints (#8391)
 import alluxio.RuntimeConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -41,6 +56,8 @@ public final class AlluxioSecondaryMaster implements Process {
   private final BackupManager mBackupManager;
   private final long mStartTimeMs;
   private final int mPort;
+
+  private volatile boolean mRunning = false;
 
   /**
    * Creates a {@link AlluxioSecondaryMaster}.
@@ -70,19 +87,30 @@ public final class AlluxioSecondaryMaster implements Process {
 
   @Override
   public void start() throws Exception {
-    mRegistry.start(false);
+    mJournalSystem.start();
+    mRunning = true;
     mLatch.await();
+    mJournalSystem.stop();
+    mRunning = false;
   }
 
   @Override
   public void stop() throws Exception {
-    mRegistry.stop();
     mLatch.countDown();
   }
 
   @Override
   public boolean waitForReady(int timeoutMs) {
-    return true;
+    try {
+      CommonUtils.waitFor("Secondary master to start", () -> mRunning,
+          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
   }
 
   @Override

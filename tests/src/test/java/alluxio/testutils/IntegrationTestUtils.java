@@ -18,8 +18,21 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+<<<<<<< HEAD
 import alluxio.master.MasterClientConfig;
+||||||| parent of 14dc0bd30b... Fix secondary master to create checkpoints (#8391)
+import alluxio.master.MasterClientContext;
+import alluxio.master.PortRegistry;
+=======
+import alluxio.master.MasterClientContext;
+import alluxio.master.NoopMaster;
+import alluxio.master.PortRegistry;
+import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsJournalSnapshot;
+>>>>>>> 14dc0bd30b... Fix secondary master to create checkpoints (#8391)
 import alluxio.util.CommonUtils;
+import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
 import alluxio.worker.block.BlockWorker;
@@ -124,5 +137,59 @@ public final class IntegrationTestUtils {
     }
   }
 
+<<<<<<< HEAD
+||||||| parent of 14dc0bd30b... Fix secondary master to create checkpoints (#8391)
+  /**
+   * Reserves ports for each master service and updates the server configuration.
+   */
+  public static void reserveMasterPorts() {
+    for (ServiceType service : Arrays.asList(ServiceType.MASTER_RPC, ServiceType.MASTER_WEB,
+        ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB)) {
+      PropertyKey key = service.getPortKey();
+      ServerConfiguration.set(key, PortRegistry.reservePort());
+    }
+  }
+
+  public static void releaseMasterPorts() {
+    PortRegistry.clear();
+  }
+
+=======
+  /**
+   * Waits for a checkpoint to be written in the specified master's journal.
+   *
+   * @param masterName the name of the master
+   */
+  public static void waitForCheckpoint(String masterName)
+      throws TimeoutException, InterruptedException {
+    UfsJournal journal = new UfsJournal(URIUtils.appendPathOrDie(JournalUtils.getJournalLocation(),
+        masterName), new NoopMaster(""), 0);
+    CommonUtils.waitFor("checkpoint to be written", () -> {
+      UfsJournalSnapshot snapshot;
+      try {
+        snapshot = UfsJournalSnapshot.getSnapshot(journal);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return !snapshot.getCheckpoints().isEmpty();
+    });
+  }
+
+  /**
+   * Reserves ports for each master service and updates the server configuration.
+   */
+  public static void reserveMasterPorts() {
+    for (ServiceType service : Arrays.asList(ServiceType.MASTER_RPC, ServiceType.MASTER_WEB,
+        ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB)) {
+      PropertyKey key = service.getPortKey();
+      ServerConfiguration.set(key, PortRegistry.reservePort());
+    }
+  }
+
+  public static void releaseMasterPorts() {
+    PortRegistry.clear();
+  }
+
+>>>>>>> 14dc0bd30b... Fix secondary master to create checkpoints (#8391)
   private IntegrationTestUtils() {} // This is a utils class not intended for instantiation
 }
