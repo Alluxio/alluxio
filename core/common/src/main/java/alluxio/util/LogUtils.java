@@ -113,4 +113,23 @@ public final class LogUtils {
     }
     result.setLevel(lev.toString());
   }
+
+  /**
+   * Log a warning message with full exception if debug logging is enabled,
+   * or just the message otherwise.
+   *
+   * @param logger the logger to be used
+   * @param message the message to be logged
+   * @param args the arguments for the message
+   */
+  public static void warnWithException(Logger logger, String message, Object ...args) {
+    if (logger.isDebugEnabled()) {
+      logger.debug(message, args);
+    } else {
+      if (args.length > 0 && args[args.length - 1] instanceof Throwable) {
+        args[args.length - 1] = ((Throwable) args[args.length - 1]).getMessage();
+      }
+      logger.warn(message + ": {}", args);
+    }
+  }
 }
