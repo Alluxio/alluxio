@@ -11,10 +11,16 @@
 
 package alluxio.master;
 
+import static java.util.stream.Collectors.joining;
+
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.*;
+import alluxio.grpc.GetServiceVersionPRequest;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.ServiceType;
+import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.uri.Authority;
@@ -30,8 +36,6 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
-
-import static java.util.stream.Collectors.joining;
 
 /**
  * PollingMasterInquireClient finds the address of the primary master by polling a list of master
