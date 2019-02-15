@@ -17,7 +17,6 @@ import alluxio.grpc.AsyncCacheResponse;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockWorkerGrpc;
-import alluxio.grpc.CheckRequest;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshallerProvider;
@@ -102,13 +101,6 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public boolean isHealthy() {
-    try {
-      mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
-          .check(CheckRequest.getDefaultInstance());
-    } catch (Exception e) {
-      LOG.warn("Block worker check failed for {}", mAddress, e);
-      return false;
-    }
     return !isShutdown() && mStreamingChannel.isHealthy() && mRpcChannel.isHealthy();
   }
 
