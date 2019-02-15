@@ -248,7 +248,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
               {browseData.showPermissions && (
                 <React.Fragment>
                   <td>
-                    <pre><code>{fileInfo.mode}</code></pre>
+                    <pre className="mb-0"><code>{fileInfo.mode}</code></pre>
                   </td>
                   <td>{fileInfo.owner}</td>
                   <td>{fileInfo.group}</td>

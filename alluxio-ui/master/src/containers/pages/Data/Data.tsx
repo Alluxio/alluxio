@@ -124,7 +124,7 @@ export class Data extends React.Component<AllProps, IDataState> {
             <td>{fileInfo.size}</td>
             <td>{fileInfo.blockSizeBytes}</td>
             <td>
-              <pre><code>{fileInfo.mode}</code></pre>
+              <pre className="mb-0"><code>{fileInfo.mode}</code></pre>
             </td>
             <td>{fileInfo.owner}</td>
             <td>{fileInfo.group}</td>

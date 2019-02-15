@@ -914,7 +914,9 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                                           <td />
                                           <td />
                                           <td>
-                                            <pre>
+                                            <pre
+                                              className="mb-0"
+                                            >
                                               <code />
                                             </pre>
                                           </td>
@@ -1161,7 +1163,9 @@ exports[`Data Shallow component Matches snapshot 1`] = `
               <td />
               <td />
               <td>
-                <pre>
+                <pre
+                  className="mb-0"
+                >
                   <code />
                 </pre>
               </td>

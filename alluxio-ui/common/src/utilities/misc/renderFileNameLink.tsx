@@ -10,7 +10,7 @@ export const renderFileNameLink = function (this: any, path: string, url: string
   }
 
   return (
-    <pre>
+    <pre className="mb-0">
       <code>
       <Link to={url}>
         {path}
