@@ -487,6 +487,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   public void resetState() {
     mInodeTree.reset();
     mMountTable.reset();
+    mSyncManager.reset();
   }
 
   @Override
