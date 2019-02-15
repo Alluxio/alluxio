@@ -12,6 +12,8 @@
 package alluxio.util;
 
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 
@@ -68,19 +70,20 @@ public final class TieredIdentityUtils {
   /**
    * @param tieredIdentity the tiered identity
    * @param identities the tiered identities to compare to
-   * @param resolveIpAddress whether or not to resolve IP addresses for node locality
+   * @param conf Alluxio configuration
    * @return the identity closest to this one. If none of the identities match, the first identity
    *         is returned
    */
   public static Optional<TieredIdentity> nearest(TieredIdentity tieredIdentity,
-      List<TieredIdentity> identities, boolean resolveIpAddress) {
+      List<TieredIdentity> identities, AlluxioConfiguration conf) {
     if (identities.isEmpty()) {
       return Optional.empty();
     }
     for (TieredIdentity.LocalityTier tier : tieredIdentity.getTiers()) {
       for (TieredIdentity identity : identities) {
         for (TieredIdentity.LocalityTier otherTier : identity.getTiers()) {
-          if (tier != null && matches(tier, otherTier, resolveIpAddress)) {
+          if (tier != null
+              && matches(tier, otherTier,conf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP))) {
             return Optional.of(identity);
           }
         }
