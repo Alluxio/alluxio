@@ -13,16 +13,16 @@ package alluxio.security.authentication;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.SaslMessage;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
+
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
-import java.util.UUID;
 
 /**
  * Responsible for driving sasl traffic from server-side. Acts as a server's Sasl stream.
@@ -88,11 +88,9 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
       // Respond to client.
       mRequestObserver.onNext(mSaslHandshakeServerHandler.handleSaslMessage(saslMessage));
     } catch (SaslException se) {
-      mRequestObserver.onError(
-          GrpcExceptionUtils.toGrpcStatusException(new UnauthenticatedException(se)));
+      mRequestObserver.onError(new UnauthenticatedException(se).toGrpcStatusException());
     } catch (UnauthenticatedException ue) {
-      mRequestObserver.onError(
-          GrpcExceptionUtils.toGrpcStatusException(ue));
+      mRequestObserver.onError(ue.toGrpcStatusException());
     }
   }
 

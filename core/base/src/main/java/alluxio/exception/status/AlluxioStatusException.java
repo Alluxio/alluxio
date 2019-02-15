@@ -30,6 +30,8 @@ import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 
 import com.google.common.base.Preconditions;
+import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -108,6 +110,14 @@ public class AlluxioStatusException extends IOException {
       default:
         return new AlluxioException(getMessage(), this);
     }
+  }
+
+  /**
+   * @return a gRPC status exception representation of this exception
+   */
+  public StatusException toGrpcStatusException() {
+    return io.grpc.Status.fromCode(mStatus.toGrpcCode()).withDescription(getMessage())
+        .asException();
   }
 
   /**
@@ -240,10 +250,24 @@ public class AlluxioStatusException extends IOException {
    * @return the converted {@link AlluxioStatusException}
    */
   public static AlluxioStatusException fromThrowable(Throwable t) {
+    if (t instanceof StatusRuntimeException) {
+      return fromStatusRuntimeException((StatusRuntimeException) t);
+    }
     if (t instanceof Error || t instanceof RuntimeException) {
       return new InternalException(t);
     }
     return fromCheckedException(t);
+  }
+
+  /**
+   * Converts a gRPC StatusRuntimeException to an Alluxio status exception.
+   *
+   * @param e a gRPC StatusRuntimeException
+   * @return the converted {@link AlluxioStatusException}
+   */
+  public static AlluxioStatusException fromStatusRuntimeException(StatusRuntimeException e) {
+    return AlluxioStatusException.from(Status.from(e.getStatus().getCode()),
+        e.getStatus().getDescription(), e);
   }
 
   /**
