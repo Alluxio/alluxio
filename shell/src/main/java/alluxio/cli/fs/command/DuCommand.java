@@ -25,6 +25,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -92,6 +94,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
       return;
     }
 
+    Collections.sort(statuses, Comparator.comparing(URIStatus::getPath));
     getSizeInfo(path, statuses, cl.hasOption(READABLE_OPTION_NAME),
         cl.hasOption(SUMMARIZE_OPTION_NAME), cl.hasOption(MEMORY_OPTION_NAME));
   }
