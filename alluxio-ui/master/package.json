@@ -12,6 +12,7 @@
     "axios": "0.18.0",
     "babel-polyfill": "6.26.0",
     "bootstrap": "4.3.1",
+    "bootswatch": "4.3.1",
     "connected-react-router": "6.3.1",
     "react": "16.8.2",
     "react-dom": "16.8.2",

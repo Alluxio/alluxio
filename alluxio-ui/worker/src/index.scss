@@ -9,11 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-@import '../../common/src/constants/scss/darkly/variables';
-@import '../../node_modules/bootstrap/scss/bootstrap';
-@import '../../node_modules/bootstrap/scss/bootstrap-grid';
-@import '../../node_modules/bootstrap/scss/bootstrap-reboot';
-@import '../../common/src/constants/scss/darkly/custom';
+@import '~bootswatch/dist/darkly/variables';
+@import '~bootstrap/scss/bootstrap';
+@import '~bootstrap/scss/bootstrap-grid';
+@import '~bootstrap/scss/bootstrap-reboot';
+@import '~bootswatch/dist/darkly/bootswatch';
+@import '~source-sans-pro/source-sans-pro.css';
 
 body {
   margin: 0;

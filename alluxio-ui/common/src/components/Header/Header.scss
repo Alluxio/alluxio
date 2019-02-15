@@ -9,8 +9,6 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-@import '../../constants/scss/darkly/variables';
-
 .header {
   .navbar {
     padding: 0;
@@ -58,7 +56,7 @@
     }
 
     .tabs {
-      margin-bottom: -0.9em;
+      margin-bottom: -0.4em;
 
       .nav-tabs {
         border: 0;
