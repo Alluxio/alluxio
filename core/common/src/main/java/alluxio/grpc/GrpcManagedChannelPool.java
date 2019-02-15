@@ -133,9 +133,10 @@ public class GrpcManagedChannelPool {
   public ManagedChannel acquireManagedChannel(ChannelKey channelKey, long healthCheckTimeoutMs,
       long shutdownTimeoutMs) {
     boolean shutdownExistingChannel = false;
+    ManagedChannelReference managedChannelRef = null;
     try (LockResource lockShared = new LockResource(mLock.readLock())) {
       if (mChannels.containsKey(channelKey)) {
-        ManagedChannelReference managedChannelRef = mChannels.get(channelKey);
+        managedChannelRef = mChannels.get(channelKey);
         if (waitForChannelReady(managedChannelRef.get(),
             healthCheckTimeoutMs)) {
           LOG.debug("Acquiring an existing managed channel. ChannelKey: {}. Ref-count: {}",
@@ -150,8 +151,9 @@ public class GrpcManagedChannelPool {
     try (LockResource lockExclusive = new LockResource(mLock.writeLock())) {
       // Dispose existing channel if required.
       int existingRefCount = 0;
-      if (shutdownExistingChannel && mChannels.containsKey(channelKey)) {
-        existingRefCount = mChannels.get(channelKey).getRefCount();
+      if (shutdownExistingChannel && mChannels.containsKey(channelKey)
+          && mChannels.get(channelKey) == managedChannelRef) {
+        existingRefCount = managedChannelRef.getRefCount();
         LOG.debug(
             "Shutting down an existing unhealthy managed channel. ChannelKey: {}. Existing Ref-count: {}",
             channelKey, existingRefCount);

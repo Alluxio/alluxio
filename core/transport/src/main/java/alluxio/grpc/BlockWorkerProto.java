@@ -139,7 +139,7 @@ public final class BlockWorkerProto {
       "eBlockRequest\022\020\n\010block_id\030\001 \001(\003\"\025\n\023Remov" +
       "eBlockResponse*F\n\013RequestType\022\021\n\rALLUXIO" +
       "_BLOCK\020\000\022\014\n\010UFS_FILE\020\001\022\026\n\022UFS_FALLBACK_B" +
-      "LOCK\020\0022\243\005\n\013BlockWorker\022R\n\tReadBlock\022\037.al" +
+      "LOCK\020\0022\325\004\n\013BlockWorker\022R\n\tReadBlock\022\037.al" +
       "luxio.grpc.block.ReadRequest\032 .alluxio.g" +
       "rpc.block.ReadResponse(\0010\001\022U\n\nWriteBlock" +
       "\022 .alluxio.grpc.block.WriteRequest\032!.all" +
@@ -154,9 +154,8 @@ public final class BlockWorkerProto {
       ".grpc.block.AsyncCacheResponse\022^\n\013Remove" +
       "Block\022&.alluxio.grpc.block.RemoveBlockRe" +
       "quest\032\'.alluxio.grpc.block.RemoveBlockRe" +
-      "sponse\022L\n\005Check\022 .alluxio.grpc.block.Che" +
-      "ckRequest\032!.alluxio.grpc.block.CheckResp" +
-      "onseB\"\n\014alluxio.grpcB\020BlockWorkerProtoP\001"
+      "sponseB\"\n\014alluxio.grpcB\020BlockWorkerProto" +
+      "P\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
