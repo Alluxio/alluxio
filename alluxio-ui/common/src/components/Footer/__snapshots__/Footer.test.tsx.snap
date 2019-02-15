@@ -31,7 +31,7 @@ exports[`Footer React component Matches snapshot 1`] = `
       data={Array []}
     >
       <div
-        className="footer mt-auto navbar-dark bg-dark"
+        className="footer mt-auto navbar-dark bg-primary"
       >
         <Nav
           className="justify-content-center"
@@ -50,7 +50,7 @@ exports[`Footer React component Matches snapshot 1`] = `
 
 exports[`Footer Shallow component Matches snapshot 1`] = `
 <div
-  className="footer mt-auto navbar-dark bg-dark"
+  className="footer mt-auto navbar-dark bg-primary"
 >
   <Nav
     className="justify-content-center"

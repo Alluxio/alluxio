@@ -237,12 +237,12 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                       className="header"
                     >
                       <Navbar
-                        className="headerNavigation navbar-dark bg-dark"
+                        className="headerNavigation navbar-dark bg-primary pb-0"
                         expand="lg"
                         tag="nav"
                       >
                         <nav
-                          className="headerNavigation navbar-dark bg-dark navbar navbar-expand-lg"
+                          className="headerNavigation navbar-dark bg-primary pb-0 navbar navbar-expand-lg"
                         >
                           <NavbarBrand
                             href="/"
@@ -302,7 +302,7 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                           </NavbarToggler>
                           <Collapse
                             appear={false}
-                            className="d-lg-inline-flex justify-content-lg-center tabs"
+                            className="mb-0 mt-2 d-lg-inline-flex justify-content-lg-center tabs"
                             enter={true}
                             exit={true}
                             in={false}
@@ -335,7 +335,7 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                               unmountOnExit={false}
                             >
                               <div
-                                className="d-lg-inline-flex justify-content-lg-center tabs collapse navbar-collapse"
+                                className="mb-0 mt-2 d-lg-inline-flex justify-content-lg-center tabs collapse navbar-collapse"
                                 style={Object {}}
                               >
                                 <Nav
@@ -635,12 +635,12 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                                         className="nav-item"
                                       >
                                         <ButtonGroup
-                                          className="auto-refresh-button"
+                                          className="auto-refresh-button mr-1"
                                           role="group"
                                           tag="div"
                                         >
                                           <div
-                                            className="auto-refresh-button btn-group"
+                                            className="auto-refresh-button mr-1 btn-group"
                                             role="group"
                                           >
                                             <Button
@@ -968,7 +968,7 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                     }
                   >
                     <div
-                      className="footer mt-auto navbar-dark bg-dark"
+                      className="footer mt-auto navbar-dark bg-primary"
                     >
                       <Nav
                         className="justify-content-center"
