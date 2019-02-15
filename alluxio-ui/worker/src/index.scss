@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-@import '~bootswatch/dist/darkly/variables';
+@import '~@alluxio/common-ui/src/constants/scss/themeVariables';
 @import '~bootstrap/scss/bootstrap';
 @import '~bootstrap/scss/bootstrap-grid';
 @import '~bootstrap/scss/bootstrap-reboot';
-@import '~bootswatch/dist/darkly/bootswatch';
+@import '~@alluxio/common-ui/src/constants/scss/themeCustomization';
 @import '~source-sans-pro/source-sans-pro.css';
 
 body {
