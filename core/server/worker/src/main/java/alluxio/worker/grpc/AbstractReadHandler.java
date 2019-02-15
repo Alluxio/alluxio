@@ -112,18 +112,10 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
       mContext.setDataReaderActive(true);
     } catch (Exception e) {
-<<<<<<< HEAD
       LogUtils.warnWithException(LOG, "Exception occurred while processing read request {}.",
           request, e);
-      mSerializingExecutor.execute(() ->
-          mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e)));
-||||||| merged common ancestors
-      mSerializingExecutor.execute(() ->
-          mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e)));
-=======
       mSerializingExecutor.execute(() -> mResponseObserver
           .onError(AlluxioStatusException.fromCheckedException(e).toGrpcStatusException()));
->>>>>>> upstream/master
     }
   }
 
