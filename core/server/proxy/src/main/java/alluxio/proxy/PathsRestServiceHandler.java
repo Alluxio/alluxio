@@ -109,12 +109,13 @@ public final class PathsRestServiceHandler {
       final CreateDirectoryPOptions options) {
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       if (options == null) {
-        mFileSystem.createDirectory(new AlluxioURI(path), CreateDirectoryPOptions.getDefaultInstance());
+        mFileSystem.createDirectory(new AlluxioURI(path),
+                CreateDirectoryPOptions.getDefaultInstance());
       } else {
         mFileSystem.createDirectory(new AlluxioURI(path), options);
       }
       return null;
-    }, ServerConfiguration.global());
+    } , ServerConfiguration.global(), null);
   }
 
   /**
@@ -140,7 +141,7 @@ public final class PathsRestServiceHandler {
         }
         return mStreamCache.put(os);
       }
-    }, ServerConfiguration.global());
+    } , ServerConfiguration.global(), null);
   }
 
   /**
