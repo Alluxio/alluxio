@@ -83,7 +83,7 @@ public final class TieredIdentityUtils {
       for (TieredIdentity identity : identities) {
         for (TieredIdentity.LocalityTier otherTier : identity.getTiers()) {
           if (tier != null
-              && matches(tier, otherTier,conf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP))) {
+              && matches(tier, otherTier, conf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP))) {
             return Optional.of(identity);
           }
         }
