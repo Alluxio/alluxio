@@ -25,6 +25,7 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,8 +87,10 @@ public final class UfsSyncChecker {
         .filter(ufsStatus -> !PathUtils.isTemporaryFileName(ufsStatus.getName()))
         .toArray(UfsStatus[]::new);
     Arrays.sort(ufsChildren, Comparator.comparing(UfsStatus::getName));
+    Inode[] alluxioChildren = Iterables.toArray(mInodeStore.getChildren(inode), Inode.class);
+    Arrays.sort(alluxioChildren);
     int ufsPos = 0;
-    for (Inode alluxioInode : mInodeStore.getChildren(inode)) {
+    for (Inode alluxioInode : alluxioChildren) {
       if (ufsPos >= ufsChildren.length) {
         break;
       }
