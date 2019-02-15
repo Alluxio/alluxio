@@ -123,7 +123,9 @@ export class Data extends React.Component<AllProps, IDataState> {
             <td>{fileInfo.absolutePath}</td>
             <td>{fileInfo.size}</td>
             <td>{fileInfo.blockSizeBytes}</td>
-            <td>{fileInfo.mode}</td>
+            <td>
+              <pre><code>{fileInfo.mode}</code></pre>
+            </td>
             <td>{fileInfo.owner}</td>
             <td>{fileInfo.group}</td>
             <td>{fileInfo.pinned ? 'YES' : 'NO'}</td>

@@ -20,7 +20,12 @@ import {Dispatch} from 'redux';
 
 import {FileView, Paginator} from '@alluxio/common-ui/src/components';
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
-import {disableFormSubmit, getDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
+import {
+  disableFormSubmit,
+  getDebouncedFunction,
+  parseQuerystring,
+  renderFileNameLink
+} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/browse/actions';
 import {IBrowse} from '../../../store/browse/types';
@@ -203,7 +208,8 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
         <Table hover={true}>
           <thead>
           <tr>
-            <th/>{/* Icon placeholder */}
+            <th/>
+            {/* Icon placeholder */}
             <th>File Name</th>
             <th>Size</th>
             <th>Block Size</th>
@@ -234,14 +240,16 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
             <tr key={fileInfo.absolutePath}>
               <td><FontAwesomeIcon icon={fileInfo.isDirectory ? faFolder : faFile}/></td>
               <td>
-                {this.renderFileNameLink(fileInfo.absolutePath)}
+                {renderFileNameLink.call(this, fileInfo.absolutePath, `/browse?path=${fileInfo.absolutePath}`)}
               </td>
               <td>{fileInfo.size}</td>
               <td>{fileInfo.blockSizeBytes}</td>
               <td>{fileInfo.inAlluxioPercentage}%</td>
               {browseData.showPermissions && (
                 <React.Fragment>
-                  <td>{fileInfo.mode}</td>
+                  <td>
+                    <pre><code>{fileInfo.mode}</code></pre>
+                  </td>
                   <td>{fileInfo.owner}</td>
                   <td>{fileInfo.group}</td>
                 </React.Fragment>
@@ -271,21 +279,6 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
         <Paginator baseUrl={'/browse'} path={path} total={browseData.ntotalFile} offset={offset} limit={limit}/>
       </React.Fragment>
     )
-  }
-
-  private renderFileNameLink(filePath: string) {
-    const {lastFetched} = this.state;
-    if (filePath === lastFetched.path) {
-      return (
-        filePath
-      );
-    }
-
-    return (
-      <Link to={`/browse?path=${filePath}`}>
-        {filePath}
-      </Link>
-    );
   }
 
   private fetchData(path?: string, offset?: string, limit?: string, end?: string) {

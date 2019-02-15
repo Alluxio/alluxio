@@ -72,7 +72,7 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
     const {data} = this.props;
     return (
       <div className={'header'}>
-        <Navbar className="headerNavigation navbar-dark bg-dark" expand="lg">
+        <Navbar className="headerNavigation navbar-dark bg-primary pb-0" expand="lg">
           <NavbarBrand tag={Link} to="/" href="/">
             <div className="headerLogo align-top d-inline-block ml-lg-2">
               <div className="brand">
@@ -86,7 +86,7 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
             </div>
           </NavbarBrand>
           <NavbarToggler className="mr-1" onClick={this.toggleHamburgerMenu}/>
-          <Collapse className={`d-lg-inline-flex justify-content-lg-center${isOpen ? '' : ' tabs'}`}
+          <Collapse className={`mb-0 mt-2 d-lg-inline-flex justify-content-lg-center${isOpen ? '' : ' tabs'}`}
                     isOpen={isOpen} navbar={true}>
             <Nav tabs={!isOpen} vertical={isOpen}>
               {this.renderNavItems(data)}
@@ -96,7 +96,7 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
                     isOpen={isOpen} navbar={true}>
             <Nav tabs={!isOpen} vertical={isOpen}>
               <NavItem>
-                <ButtonGroup className="auto-refresh-button">
+                <ButtonGroup className="auto-refresh-button mr-1">
                   <Button size="sm" color="secondary"
                           onClick={this.toggleAutoRefresh} active={isAutoRefreshing}>
                     <FontAwesomeIcon icon={isAutoRefreshing ? faCheckSquare : faSquare}/>&nbsp;

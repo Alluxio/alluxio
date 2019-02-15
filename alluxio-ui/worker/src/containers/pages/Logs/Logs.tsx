@@ -12,13 +12,12 @@
 import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
-import {Link} from 'react-router-dom';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
 import {FileView} from '@alluxio/common-ui/src/components';
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
-import {getDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
+import {getDebouncedFunction, parseQuerystring, renderFileNameLink} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/logs/actions';
 import {ILogs} from '../../../store/logs/types';
@@ -154,7 +153,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
         {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
           <tr key={fileInfo.absolutePath}>
             <td>
-              {this.renderFileNameLink(fileInfo.absolutePath)}
+              {renderFileNameLink.call(this, fileInfo.absolutePath, `/logs?path=${fileInfo.absolutePath}`)}
             </td>
             <td>{fileInfo.size}</td>
             <td>{fileInfo.blockSizeBytes}</td>
@@ -167,21 +166,6 @@ export class Logs extends React.Component<AllProps, ILogsState> {
         </tbody>
       </Table>
     )
-  }
-
-  private renderFileNameLink(filePath: string) {
-    const {lastFetched} = this.state;
-    if (filePath === lastFetched.path) {
-      return (
-        filePath
-      );
-    }
-
-    return (
-      <Link to={`/logs?path=${filePath}`}>
-        {filePath}
-      </Link>
-    );
   }
 
   private fetchData(path?: string, offset?: string, limit?: string, end?: string) {

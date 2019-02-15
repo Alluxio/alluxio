@@ -72,7 +72,7 @@ export class Configuration extends React.Component<AllProps> {
                 <tbody>
                 {data.configuration.map((configuration: IConfigTriple) => (
                   <tr key={configuration.left}>
-                    <td>{configuration.left}</td>
+                    <td><pre><code>{configuration.left}</code></pre></td>
                     <td>{configuration.middle}</td>
                     <td>{configuration.right}</td>
                   </tr>
