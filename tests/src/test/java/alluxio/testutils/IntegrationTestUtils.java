@@ -20,12 +20,12 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.GetStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterClientContext;
 import alluxio.master.PortRegistry;
 import alluxio.util.CommonUtils;
+import alluxio.util.GrpcDefaultOptions;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
 import alluxio.worker.block.BlockWorker;
@@ -69,7 +69,8 @@ public final class IntegrationTestUtils {
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       CommonUtils.waitFor(uri + " to be persisted", () -> {
         try {
-          return client.getStatus(uri, GetStatusPOptions.getDefaultInstance()).isPersisted();
+          return client.getStatus(uri,
+              GrpcDefaultOptions.getGetStatusPOptions(ServerConfiguration.global())).isPersisted();
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }

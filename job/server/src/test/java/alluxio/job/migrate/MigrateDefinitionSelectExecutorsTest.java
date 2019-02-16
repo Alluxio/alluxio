@@ -22,12 +22,14 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.job.JobMasterContext;
 import alluxio.underfs.UfsManager;
+import alluxio.util.GrpcDefaultOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
@@ -164,7 +166,7 @@ public final class MigrateDefinitionSelectExecutorsTest {
     setPathToNotExist("/dst/src");
     assignMigrates("/src", "/dst/src");
     verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src/nested")),
-        Matchers.eq(CreateDirectoryPOptions.getDefaultInstance()));
+        Matchers.eq(GrpcDefaultOptions.getCreateDirectoryPOptions(ServerConfiguration.global())));
   }
 
   @Test

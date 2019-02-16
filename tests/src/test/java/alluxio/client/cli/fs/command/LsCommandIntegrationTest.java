@@ -20,13 +20,14 @@ import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.security.authorization.AclEntry;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.GrpcDefaultOptions;
 
 import org.junit.Test;
 
@@ -393,10 +394,10 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
 
     mFileSystem.setAcl(new AlluxioURI("/testRoot/testDir"), SetAclAction.MODIFY,
         Arrays.asList(AclEntry.fromCliString("default:user:nameduser:rwx")),
-        SetAclPOptions.getDefaultInstance());
+        GrpcDefaultOptions.getSetAclPOptions(ServerConfiguration.global()));
     mFileSystem.setAcl(new AlluxioURI("/testRoot/testFile"), SetAclAction.MODIFY,
         Arrays.asList(AclEntry.fromCliString("user:nameduser:rwx")),
-        SetAclPOptions.getDefaultInstance());
+        GrpcDefaultOptions.getSetAclPOptions(ServerConfiguration.global()));
 
     mFsShell.run("ls", "--sort", "path", "/testRoot");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability

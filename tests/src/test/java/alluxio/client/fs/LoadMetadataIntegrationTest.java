@@ -30,6 +30,7 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.GrpcDefaultOptions;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.LoadMetadataType;
 
@@ -175,8 +176,9 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadAlwaysConfiguration() throws Exception {
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
-        LoadMetadataType.Always.toString());
-    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
+        LoadMetadataType.ALWAYS.toString());
+    GetStatusPOptions options =
+        GrpcDefaultOptions.getGetStatusPOptions(ServerConfiguration.global());
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
   }
@@ -184,8 +186,9 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadOnceConfiguration() throws Exception {
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
-        LoadMetadataType.Once.toString());
-    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
+        LoadMetadataType.ONCE.toString());
+    GetStatusPOptions options =
+        GrpcDefaultOptions.getGetStatusPOptions(ServerConfiguration.global());
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
   }
@@ -193,8 +196,9 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadNeverConfiguration() throws Exception {
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
-        LoadMetadataType.Never.toString());
-    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
+        LoadMetadataType.NEVER.toString());
+    GetStatusPOptions options =
+        GrpcDefaultOptions.getGetStatusPOptions(ServerConfiguration.global());
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
   }
@@ -202,7 +206,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadRecursive() throws Exception {
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
-        LoadMetadataType.Once.toString());
+        LoadMetadataType.ONCE.toString());
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {

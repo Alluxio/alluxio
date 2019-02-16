@@ -30,6 +30,7 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
@@ -52,6 +53,7 @@ import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
+import alluxio.util.GrpcDefaultOptions;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -661,8 +663,9 @@ public final class PermissionCheckTest {
       SetAttributePOptions expect = getNonDefaultSetState();
       SetAttributePOptions result = verifySetState(TEST_USER_2, file, expect);
 
-      assertEquals(expect.getTtl(), result.getTtl());
-      assertEquals(expect.getTtlAction(), result.getTtlAction());
+      assertEquals(expect.getCommonOptions().getTtl(), result.getCommonOptions().getTtl());
+      assertEquals(expect.getCommonOptions().getTtlAction(),
+          result.getCommonOptions().getTtlAction());
       assertEquals(expect.getPinned(), result.getPinned());
     }
   }
@@ -685,8 +688,10 @@ public final class PermissionCheckTest {
   }
 
   private SetAttributePOptions getNonDefaultSetState() {
-    return SetAttributePOptions.newBuilder().setPinned(true).setTtl(11)
-        .setTtlAction(TtlAction.DELETE).build();
+    return SetAttributePOptions.newBuilder().setPinned(true)
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(11)
+            .setTtlAction(TtlAction.DELETE).build())
+        .build();
   }
 
   private SetAttributePOptions verifySetState(TestUser user, String path,
@@ -699,7 +704,9 @@ public final class PermissionCheckTest {
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(new AlluxioURI(path),
           GetStatusContext.defaults());
       return FileSystemMasterOptions.setAttributesDefaults().toBuilder()
-          .setPinned(fileInfo.isPinned()).setTtl(fileInfo.getTtl())
+          .setPinned(fileInfo.isPinned()).setCommonOptions(
+              GrpcDefaultOptions.getFileSystemMasterCommonPOptions(ServerConfiguration.global())
+                  .toBuilder().setTtl(fileInfo.getTtl()).build())
           .setPersisted(fileInfo.isPersisted()).build();
     }
   }

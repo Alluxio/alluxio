@@ -3593,14 +3593,17 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           protoOptions.hasReplicationMin() ? protoOptions.getReplicationMin() : null;
       mInodeTree.setReplication(rpcContext, inodePath, replicationMax, replicationMin, opTimeMs);
     }
-    if (protoOptions.hasTtl()) {
-      long ttl = protoOptions.getTtl();
-      if (inode.getTtl() != ttl || inode.getTtlAction() != protoOptions.getTtlAction()) {
+    if (protoOptions.hasCommonOptions() && protoOptions.getCommonOptions().hasTtl()
+        && protoOptions.getCommonOptions().hasTtlAction()) {
+      long ttl = protoOptions.getCommonOptions().getTtl();
+      if (inode.getTtl() != ttl
+          || inode.getTtlAction() != protoOptions.getCommonOptions().getTtlAction()) {
         if (inode.getTtl() != ttl) {
           entry.setTtl(ttl);
         }
         entry.setLastModificationTimeMs(opTimeMs);
-        entry.setTtlAction(ProtobufUtils.toProtobuf(protoOptions.getTtlAction()));
+        entry.setTtlAction(ProtobufUtils.toProtobuf(
+            protoOptions.getCommonOptions().getTtlAction()));
       }
     }
     if (protoOptions.hasPersisted()) {

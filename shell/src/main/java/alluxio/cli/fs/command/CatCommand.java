@@ -22,6 +22,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.util.GrpcDefaultOptions;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -54,7 +55,7 @@ public final class CatCommand extends AbstractFileSystemCommand {
     if (status.isFolder()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
-    OpenFilePOptions options = OpenFilePOptions.getDefaultInstance();
+    OpenFilePOptions options = GrpcDefaultOptions.getOpenFilePOptions(mFileSystem.getConf());
     byte[] buf = new byte[Constants.MB];
     try (FileInStream is = mFileSystem.openFile(path, options)) {
       int read = is.read(buf);

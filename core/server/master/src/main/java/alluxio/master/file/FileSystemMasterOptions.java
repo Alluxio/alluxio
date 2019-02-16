@@ -30,8 +30,8 @@ import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.Mode;
+import alluxio.util.GrpcDefaultOptions;
 import alluxio.util.ModeUtils;
 import alluxio.wire.LoadMetadataType;
 
@@ -47,12 +47,7 @@ public final class FileSystemMasterOptions{
    * @return {@link FileSystemMasterCommonPOptions} with default values for master
    */
   private static FileSystemMasterCommonPOptions commonDefaults() {
-    return FileSystemMasterCommonPOptions.newBuilder()
-        .setTtl(ServerConfiguration.getLong(PropertyKey.USER_FILE_CREATE_TTL))
-        .setTtlAction(
-            ServerConfiguration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class))
-        .setSyncIntervalMs(ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
-        .build();
+    return GrpcDefaultOptions.getFileSystemMasterCommonPOptions(ServerConfiguration.global());
   }
 
   /**
@@ -184,7 +179,6 @@ public final class FileSystemMasterOptions{
   public static SetAttributePOptions setAttributesDefaults() {
     return SetAttributePOptions.newBuilder()
         .setCommonOptions(commonDefaults())
-        .setTtlAction(TtlAction.DELETE)
         .setRecursive(false)
         .build();
   }

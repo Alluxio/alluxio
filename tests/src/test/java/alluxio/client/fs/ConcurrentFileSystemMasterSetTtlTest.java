@@ -30,6 +30,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.GrpcDefaultOptions;
 
 import com.google.common.base.Joiner;
 import org.junit.Assert;
@@ -133,7 +134,10 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
             AuthenticatedClientUser.set(TEST_USER);
             barrier.await();
             mFileSystem.setAttribute(paths[iteration], SetAttributePOptions.newBuilder()
-                .setTtl(ttls[iteration]).setTtlAction(TtlAction.DELETE).build());
+                .setCommonOptions(GrpcDefaultOptions
+                    .getFileSystemMasterCommonPOptions(ServerConfiguration.global()).toBuilder()
+                    .setTtl(ttls[iteration]).setTtlAction(TtlAction.DELETE))
+                .build());
           } catch (Exception e) {
             throw new RuntimeException(e);
           }

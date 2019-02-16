@@ -22,6 +22,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.util.FormatUtils;
+import alluxio.util.GrpcDefaultOptions;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -70,7 +71,7 @@ public final class HeadCommand extends AbstractFileSystemCommand {
     if (status.isFolder()) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(plainPath));
     }
-    OpenFilePOptions options = OpenFilePOptions.getDefaultInstance();
+    OpenFilePOptions options = GrpcDefaultOptions.getOpenFilePOptions(mFileSystem.getConf());
     try (FileInStream is = mFileSystem.openFile(plainPath, options)) {
       long bytesToRead;
       if (status.getLength() > mNumOfBytes) {

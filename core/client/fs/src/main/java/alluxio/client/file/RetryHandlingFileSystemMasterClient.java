@@ -58,6 +58,7 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
+import alluxio.util.GrpcDefaultOptions;
 import alluxio.wire.SyncPointInfo;
 
 import java.util.ArrayList;
@@ -232,7 +233,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public void rename(final AlluxioURI src, final AlluxioURI dst)
       throws AlluxioStatusException {
-    rename(src, dst, RenamePOptions.getDefaultInstance());
+    rename(src, dst, GrpcDefaultOptions.getRenamePOptions(mContext.getConf()));
   }
 
   @Override

@@ -24,11 +24,11 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
-import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.GrpcDefaultOptions;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
@@ -299,7 +299,7 @@ public class FileOutStream extends AbstractOutStream {
     try (CloseableResource<FileSystemMasterClient> masterClient = mContext
         .acquireMasterClientResource()) {
       masterClient.get().scheduleAsyncPersist(mUri,
-          ScheduleAsyncPersistencePOptions.getDefaultInstance());
+          GrpcDefaultOptions.getScheduleAsyncPersistOptions(mContext.getConf()));
     }
   }
 
