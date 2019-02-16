@@ -388,9 +388,9 @@ public final class BaseFileSystemTest {
   public void openFile() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
-    GetStatusPOptions getStatusOptions = GetStatusPOptions.getDefaultInstance();
+    GetStatusPOptions getStatusOptions = GrpcDefaultOptions.getGetStatusPOptions(mConf);
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
-    mFileSystem.openFile(file, OpenFilePOptions.getDefaultInstance());
+    mFileSystem.openFile(file, GrpcDefaultOptions.getOpenFilePOptions(mConf));
     verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
 
     verifyFilesystemContextAcquiredAndReleased();
