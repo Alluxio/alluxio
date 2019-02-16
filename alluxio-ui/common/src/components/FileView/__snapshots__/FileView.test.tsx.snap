@@ -59,11 +59,13 @@ exports[`FileView React component Matches snapshot 1`] = `
         className="mb-3 viewData-file-form"
         id="viewDataFileForm"
         inline={true}
+        onSubmit={[Function]}
         tag="form"
       >
         <form
           className="mb-3 viewData-file-form form-inline"
           id="viewDataFileForm"
+          onSubmit={[Function]}
         >
           <FormGroup
             className="mb-2 mr-sm-2 w-100"
@@ -103,11 +105,13 @@ exports[`FileView React component Matches snapshot 1`] = `
         className="mb-3 viewData-file-settings-form"
         id="viewDataFileSettingsForm"
         inline={true}
+        onSubmit={[Function]}
         tag="form"
       >
         <form
           className="mb-3 viewData-file-settings-form form-inline"
           id="viewDataFileSettingsForm"
+          onSubmit={[Function]}
         >
           <FormGroup
             className="col-5"
@@ -335,14 +339,14 @@ exports[`FileView React component Matches snapshot 1`] = `
               className="col-2 form-group"
             >
               <Button
-                color="primary"
+                color="secondary"
                 disabled={true}
                 tag={[Function]}
                 to="?path=undefined"
               >
                 <Link
                   aria-label={null}
-                  className="btn btn-primary disabled"
+                  className="btn btn-secondary disabled"
                   disabled={true}
                   onClick={[Function]}
                   replace={false}
@@ -350,7 +354,7 @@ exports[`FileView React component Matches snapshot 1`] = `
                 >
                   <a
                     aria-label={null}
-                    className="btn btn-primary disabled"
+                    className="btn btn-secondary disabled"
                     disabled={true}
                     href="/someLocation?path=undefined"
                     onClick={[Function]}
@@ -382,6 +386,7 @@ exports[`FileView Shallow component Matches snapshot 1`] = `
     className="mb-3 viewData-file-form"
     id="viewDataFileForm"
     inline={true}
+    onSubmit={[Function]}
     tag="form"
   >
     <FormGroup
@@ -406,6 +411,7 @@ exports[`FileView Shallow component Matches snapshot 1`] = `
     className="mb-3 viewData-file-settings-form"
     id="viewDataFileSettingsForm"
     inline={true}
+    onSubmit={[Function]}
     tag="form"
   >
     <FormGroup
@@ -548,7 +554,7 @@ exports[`FileView Shallow component Matches snapshot 1`] = `
       tag="div"
     >
       <Button
-        color="primary"
+        color="secondary"
         disabled={true}
         tag={[Function]}
         to="?path=undefined"

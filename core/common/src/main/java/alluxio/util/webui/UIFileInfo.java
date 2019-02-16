@@ -13,6 +13,8 @@ package alluxio.util.webui;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -27,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -39,9 +42,8 @@ public final class UIFileInfo {
    * Provides ordering of {@link alluxio.util.webui.UIFileInfo} based off a string comparison of the
    * absolute paths.
    */
-  public static final Ordering<UIFileInfo> PATH_STRING_COMPARE =
-      Ordering.natural().onResultOf(
-          (Function<UIFileInfo, Comparable<String>>) input -> input.mAbsolutePath);
+  public static final Ordering<UIFileInfo> PATH_STRING_COMPARE = Ordering.natural()
+      .onResultOf((Function<UIFileInfo, Comparable<String>>) input -> input.mAbsolutePath);
 
   /**
    * The type Local file info.
@@ -97,6 +99,8 @@ public final class UIFileInfo {
   private final String mMode;
   private final String mPersistenceState;
   private final List<String> mFileLocations;
+  private final AlluxioConfiguration mAlluxioConfiguration;
+  private final List<String> mOrderedTierAliases;
 
   private final Map<String, List<UIFileBlockInfo>> mBlocksOnTier = new HashMap<>();
   private final Map<String, Long> mSizeOnTier = new HashMap<>();
@@ -105,8 +109,11 @@ public final class UIFileInfo {
    * Creates a new instance of {@link alluxio.util.webui.UIFileInfo}.
    *
    * @param status underlying {@link URIStatus}
+   * @param alluxioConfiguration the alluxio configuration
+   * @param orderedTierAliases the ordered tier aliases
    */
-  public UIFileInfo(URIStatus status) {
+  public UIFileInfo(URIStatus status, AlluxioConfiguration alluxioConfiguration,
+      List<String> orderedTierAliases) {
     // detect the extended acls
     boolean hasExtended = status.getAcl().hasExtended() || !status.getDefaultAcl().isEmpty();
 
@@ -126,23 +133,31 @@ public final class UIFileInfo {
     mMode = FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended);
     mPersistenceState = status.getPersistenceState();
     mFileLocations = new ArrayList<>();
+    mAlluxioConfiguration = alluxioConfiguration;
+    mOrderedTierAliases = orderedTierAliases;
   }
 
   /**
    * Creates a new instance of {@link alluxio.util.webui.UIFileInfo}.
    *
    * @param info underlying {@link FileInfo}
+   * @param alluxioConfiguration the alluxio configuration
+   * @param orderedTierAliases the ordered tier aliases
    */
-  public UIFileInfo(FileInfo info) {
-    this(new URIStatus(info));
+  public UIFileInfo(FileInfo info, AlluxioConfiguration alluxioConfiguration,
+      List<String> orderedTierAliases) {
+    this(new URIStatus(info), alluxioConfiguration, orderedTierAliases);
   }
 
   /**
    * Creates a new instance of {@link alluxio.util.webui.UIFileInfo}.
    *
    * @param fileInfo underlying {@link alluxio.util.webui.UIFileInfo.LocalFileInfo}
+   * @param alluxioConfiguration the alluxio configuration
+   * @param orderedTierAliases the ordered tier aliases
    */
-  public UIFileInfo(UIFileInfo.LocalFileInfo fileInfo) {
+  public UIFileInfo(UIFileInfo.LocalFileInfo fileInfo, AlluxioConfiguration alluxioConfiguration,
+      List<String> orderedTierAliases) {
     mId = -1;
     mName = fileInfo.mName;
     mAbsolutePath = fileInfo.mAbsolutePath;
@@ -159,6 +174,8 @@ public final class UIFileInfo {
     mMode = FormatUtils.formatMode(Mode.createNoAccess().toShort(), true, false);
     mPersistenceState = PersistenceState.NOT_PERSISTED.name();
     mFileLocations = new ArrayList<>();
+    mAlluxioConfiguration = alluxioConfiguration;
+    mOrderedTierAliases = orderedTierAliases;
   }
 
   /**
@@ -171,7 +188,8 @@ public final class UIFileInfo {
    */
   public void addBlock(String tierAlias, long blockId, long blockSize, long blockLastAccessTimeMs) {
     UIFileBlockInfo block =
-        new UIFileBlockInfo(blockId, blockSize, blockLastAccessTimeMs, tierAlias);
+        new UIFileBlockInfo(blockId, blockSize, blockLastAccessTimeMs, tierAlias,
+            mAlluxioConfiguration);
     List<UIFileBlockInfo> blocksOnTier = mBlocksOnTier.get(tierAlias);
     if (blocksOnTier == null) {
       blocksOnTier = new ArrayList<>();
@@ -217,24 +235,24 @@ public final class UIFileInfo {
   /**
    * Gets creation time.
    *
-   * @param dateFormatPattern the pattern to use when formatting the timestamp
    * @return the creation time (in milliseconds)
    */
-  public String getCreationTime(String dateFormatPattern) {
+  public String getCreationTime() {
     if (mCreationTimeMs == UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME) {
       return "";
     }
-    return CommonUtils.convertMsToDate(mCreationTimeMs, dateFormatPattern);
+    return CommonUtils.convertMsToDate(mCreationTimeMs,
+        mAlluxioConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   /**
    * Gets modification time.
    *
-   * @param dateFormatPattern the pattern to use when formatting the timestamp
    * @return the modification time (in milliseconds)
    */
-  public String getModificationTime(String dateFormatPattern) {
-    return CommonUtils.convertMsToDate(mLastModificationTimeMs, dateFormatPattern);
+  public String getModificationTime() {
+    return CommonUtils.convertMsToDate(mLastModificationTimeMs,
+        mAlluxioConfiguration.get(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   /**
@@ -301,14 +319,15 @@ public final class UIFileInfo {
   }
 
   /**
-   * Gets on tier percentage.
+   * Gets on-tier percentages.
    *
-   * @param tierAlias a tier alias
-   * @return the percentage of the file stored in the given tier
+   * @return the on-tier percentages
    */
-  public int getOnTierPercentage(String tierAlias) {
-    Long sizeOnTier = mSizeOnTier.containsKey(tierAlias) ? mSizeOnTier.get(tierAlias) : 0L;
-    return (int) (100 * sizeOnTier / mSize);
+  public Map<String, Integer> getOnTierPercentages() {
+    return mOrderedTierAliases.stream().collect(Collectors.toMap(tier -> tier, tier -> {
+      Long sizeOnTier = mSizeOnTier.getOrDefault(tier, 0L);
+      return mSize > 0 ? (int) (100 * sizeOnTier / mSize) : 0;
+    }));
   }
 
   /**
