@@ -9,19 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-@import '../../common/src/constants/scss/bootstrap';
-@import '../../common/src/constants/scss/bootstrap-grid';
-@import '../../common/src/constants/scss/bootstrap-reboot';
-@import '../../common/src/constants/scss/darkly/custom';
+@import '../../common/src/constants/scss/themeVariables'; // using tilde here will break the note-sass watcher
+@import '~bootstrap/scss/bootstrap';
+@import '~bootstrap/scss/bootstrap-grid';
+@import '~bootstrap/scss/bootstrap-reboot';
+@import '../../common/src/constants/scss/themeCustomization'; // using tilde here will break the node-sass watcher
+@import '~source-sans-pro/source-sans-pro.css';
 
 body {
-  margin: 0;
-  padding: 0;
   font-family: 'Source Sans Pro', sans-serif;
-  font-size: 1em;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-shadow: rgba(0,0,0,.01) 0 0 1px;
-  text-shadow: rgba(0,0,0,.01) 0 0 1px;
 }

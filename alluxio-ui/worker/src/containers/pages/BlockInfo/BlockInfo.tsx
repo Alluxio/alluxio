@@ -12,13 +12,12 @@
 import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
-import {Link} from 'react-router-dom';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
 import {Paginator} from '@alluxio/common-ui/src/components';
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
-import {parseQuerystring} from '@alluxio/common-ui/src/utilities';
+import {parseQuerystring, renderFileNameLink} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/blockInfo/actions';
 import {IBlockInfo, IFileBlocksOnTier} from '../../../store/blockInfo/types';
@@ -125,18 +124,18 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
           </tr>
           </thead>
           <tbody>
-            {blockInfo.fileBlocksOnTier.map((fileBlocksOnTier: IFileBlocksOnTier) => {
-              return Object.keys(fileBlocksOnTier).map((tierAlias: string) => {
-                const fileBlocksDatas: IFileBlockInfo[] = fileBlocksOnTier[tierAlias];
-                return fileBlocksDatas.map((fileBlocksData: IFileBlockInfo) => (
-                  <tr key={fileBlocksData.id}>
-                    <td>{fileBlocksData.id}</td>
-                    <td>{tierAlias}</td>
-                    <td>{fileBlocksData.blockLength}</td>
-                  </tr>
-                ));
-              });
-            })}
+          {blockInfo.fileBlocksOnTier.map((fileBlocksOnTier: IFileBlocksOnTier) => {
+            return Object.keys(fileBlocksOnTier).map((tierAlias: string) => {
+              const fileBlocksDatas: IFileBlockInfo[] = fileBlocksOnTier[tierAlias];
+              return fileBlocksDatas.map((fileBlocksData: IFileBlockInfo) => (
+                <tr key={fileBlocksData.id}>
+                  <td>{fileBlocksData.id}</td>
+                  <td>{tierAlias}</td>
+                  <td>{fileBlocksData.blockLength}</td>
+                </tr>
+              ));
+            });
+          })}
           </tbody>
         </Table>
       </React.Fragment>
@@ -163,7 +162,7 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
           <tbody>
           {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
             <tr key={fileInfo.absolutePath}>
-              <td>{this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}</td>
+              <td>{renderFileNameLink.call(this, fileInfo.absolutePath, `/blockInfo?path=${fileInfo.absolutePath}`)}</td>
               {tierAliases.map((tierAlias: string) => (
                 <td key={tierAlias}>{`${fileInfo.inAlluxioPercentage}%`}</td>
               ))}
@@ -177,21 +176,6 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
         <Paginator baseUrl={'/blockInfo'} path={path} total={blockInfo.ntotalFile} offset={offset} limit={limit}/>
       </React.Fragment>
     )
-  }
-
-  private renderFileNameLink(filePath: string, queryStringSuffix: string) {
-    const {lastFetched} = this.state;
-    if (filePath === lastFetched.path) {
-      return (
-        filePath
-      );
-    }
-
-    return (
-      <Link to={`/blockInfo?path=${filePath}${queryStringSuffix}`}>
-        {filePath}
-      </Link>
-    );
   }
 
   private fetchData(path?: string, offset?: string, limit?: string, end?: string) {
