@@ -42,6 +42,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.util.GrpcDefaultOptions;
 import alluxio.wire.FileInfo;
 
 import org.junit.After;
@@ -401,10 +402,10 @@ public final class BaseFileSystemTest {
   @Test
   public void openException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    GetStatusPOptions getStatusOptions = GetStatusPOptions.getDefaultInstance();
+    GetStatusPOptions getStatusOptions = GrpcDefaultOptions.getGetStatusPOptions(mConf);
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
     try {
-      mFileSystem.openFile(file, OpenFilePOptions.getDefaultInstance());
+      mFileSystem.openFile(file, GrpcDefaultOptions.getOpenFilePOptions(mConf));
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       assertSame(EXCEPTION, e);
