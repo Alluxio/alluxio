@@ -16,11 +16,11 @@ import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.LogUtils;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -64,8 +64,8 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
   }
 
   /**
-   * Handles request to create local block. No exceptions should be
-   * thrown.
+   * Handles request to create local block. No exceptions should be thrown.
+   *
    * @param request a create request
    */
   @Override
@@ -75,8 +75,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
       @Override
       public CreateLocalBlockResponse call() throws Exception {
         if (request.getOnlyReserveSpace()) {
-          mBlockWorker
-              .requestSpace(mSessionId, request.getBlockId(), request.getSpaceToReserve());
+          mBlockWorker.requestSpace(mSessionId, request.getBlockId(), request.getSpaceToReserve());
           return CreateLocalBlockResponse.newBuilder().build();
         } else {
           Preconditions.checkState(mRequest == null);
@@ -103,8 +102,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
           // In case the client is a UfsFallbackDataWriter, DO NOT clean the temp blocks.
           if (throwable instanceof alluxio.exception.WorkerOutOfSpaceException
               && request.hasCleanupOnFailure() && !request.getCleanupOnFailure()) {
-            mResponseObserver.onError(GrpcExceptionUtils.toGrpcStatusException(
-                AlluxioStatusException.fromThrowable(throwable)));
+            mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
             return;
           }
           mBlockWorker.cleanupSession(mSessionId);
@@ -112,8 +110,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
         }
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
       }
-    }, methodName, true, false, "Session=%d, Request=%s",
-        mResponseObserver, mSessionId, request);
+    }, methodName, true, false, "Session=%d, Request=%s", mResponseObserver, mSessionId, request);
   }
 
   @Override
@@ -130,6 +127,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
 
   @Override
   public void onError(Throwable t) {
+    LogUtils.warnWithException(LOG, "Exception occurred processing write request {}.", mRequest, t);
     if (t instanceof StatusRuntimeException
         && ((StatusRuntimeException) t).getStatus().getCode() == Status.Code.CANCELLED) {
       // Cancellation is already handled.
@@ -152,32 +150,32 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
   public void handleBlockCompleteRequest(boolean isCanceled) {
     final String methodName = isCanceled ? "AbortBlock" : "CommitBlock";
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<CreateLocalBlockResponse>() {
-        @Override
-        public CreateLocalBlockResponse call() throws Exception {
-          if (mRequest == null) {
-            return null;
-          }
-          Context newContext = Context.current().fork();
-          Context previousContext = newContext.attach();
-          try {
-            if (isCanceled) {
-              mBlockWorker.abortBlock(mSessionId, mRequest.getBlockId());
-            } else {
-              mBlockWorker.commitBlock(mSessionId, mRequest.getBlockId());
-            }
-          } finally {
-            newContext.detach(previousContext);
-          }
-          mSessionId = INVALID_SESSION_ID;
+      @Override
+      public CreateLocalBlockResponse call() throws Exception {
+        if (mRequest == null) {
           return null;
         }
-
-        @Override
-        public void exceptionCaught(Throwable throwable) {
-          mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
-          mSessionId = INVALID_SESSION_ID;
+        Context newContext = Context.current().fork();
+        Context previousContext = newContext.attach();
+        try {
+          if (isCanceled) {
+            mBlockWorker.abortBlock(mSessionId, mRequest.getBlockId());
+          } else {
+            mBlockWorker.commitBlock(mSessionId, mRequest.getBlockId());
+          }
+        } finally {
+          newContext.detach(previousContext);
         }
-      }, methodName, false, !isCanceled, "Session=%d, Request=%s",
-        mResponseObserver, mSessionId, mRequest);
+        mSessionId = INVALID_SESSION_ID;
+        return null;
+      }
+
+      @Override
+      public void exceptionCaught(Throwable throwable) {
+        mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
+        mSessionId = INVALID_SESSION_ID;
+      }
+    }, methodName, false, !isCanceled, "Session=%d, Request=%s", mResponseObserver, mSessionId,
+        mRequest);
   }
 }

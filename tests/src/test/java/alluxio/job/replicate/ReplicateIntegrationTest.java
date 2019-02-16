@@ -12,18 +12,16 @@
 package alluxio.job.replicate;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.TestLoggerRule;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.ExceptionMessage;
+import alluxio.conf.PropertyKey;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
@@ -108,19 +106,13 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
       AlluxioURI uri = new AlluxioURI(rootDir + "/" + i);
       createFileOutsideOfAlluxio(uri);
     }
-    String exceptionMsg = ExceptionMessage.JOB_MASTER_FULL_CAPACITY
-        .getMessage(ServerConfiguration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY));
-    String replicationCheckerMsg = "The job service is busy, will retry later."
-        + " alluxio.exception.status.ResourceExhaustedException: " + exceptionMsg;
-    String rpcUtilsMsg = "Error=alluxio.exception.status.ResourceExhaustedException: "
-        + exceptionMsg;
     SetAttributePOptions opts = SetAttributePOptions.newBuilder().setReplicationMin(2).build();
     mFileSystem.setAttribute(new AlluxioURI(rootDir), opts);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_REPLICATION_CHECK);
 
     // After logging we expect only one log message to be logged as the job master has a zero job
     // capacity even though there should be 10 replication jobs.
-    Assert.assertEquals(1, mLogger.logCount(replicationCheckerMsg));
-    //Assert.assertEquals(1, mLogger.logCount(rpcUtilsMsg));
+    Assert.assertEquals(1, mLogger.logCount("The job service is busy, will retry later."));
+    Assert.assertEquals(1, mLogger.logCount("Job master is at full capacity of 0 jobs"));
   }
 }

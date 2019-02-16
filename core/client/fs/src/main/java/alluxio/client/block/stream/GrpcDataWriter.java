@@ -25,6 +25,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.UnsafeByteOperations;
 import io.netty.buffer.ByteBuf;
@@ -152,7 +153,10 @@ public final class GrpcDataWriter implements DataWriter {
     mChunkSize = chunkSize;
     mClient = client;
     mStream = new GrpcBlockingStream<>(mClient::writeBlock, mWriterBufferSizeMessages,
-        address.toString());
+        MoreObjects.toStringHelper(this)
+            .add("request", mPartialRequest)
+            .add("address", address)
+            .toString());
     mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest.toBuilder()).build(),
         mDataTimeoutMs);
   }

@@ -12,13 +12,12 @@
 import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
-import {Link} from 'react-router-dom';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
 import {FileView} from '@alluxio/common-ui/src/components';
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
-import {getDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
+import {getDebouncedFunction, parseQuerystring, renderFileNameLink} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/logs/actions';
 import {ILogs} from '../../../store/logs/types';
@@ -71,7 +70,8 @@ export class Logs extends React.Component<AllProps, ILogsState> {
       const {path, offset, limit, end} = parseQuerystring(search);
       this.setState({path, offset, limit, end});
       this.fetchData(path, offset, limit, end);
-    } else if (refresh !== prevRefresh) {
+    }
+    if (refresh !== prevRefresh) {
       const {path, offset, limit, end} = this.state;
       this.fetchData(path, offset, limit, end);
     }
@@ -146,57 +146,26 @@ export class Logs extends React.Component<AllProps, ILogsState> {
           <th>In-Alluxio</th>
           <th>Persistence State</th>
           <th>Pin</th>
-          <th>Creation Time</th>
           <th>Modification Time</th>
-          <th>[D]DepID</th>
-          <th>[D]INumber</th>
-          <th>[D]UnderfsPath</th>
-          <th>[D]File Locations</th>
         </tr>
         </thead>
         <tbody>
         {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
           <tr key={fileInfo.absolutePath}>
             <td>
-              {this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}
+              {renderFileNameLink.call(this, fileInfo.absolutePath, `/logs?path=${fileInfo.absolutePath}`)}
             </td>
             <td>{fileInfo.size}</td>
             <td>{fileInfo.blockSizeBytes}</td>
             <td>{fileInfo.inAlluxioPercentage}%</td>
             <td>{fileInfo.persistenceState}</td>
             <td>{fileInfo.pinned ? 'YES' : 'NO'}</td>
-            <td>{fileInfo.creationTime}</td>
             <td>{fileInfo.modificationTime}</td>
-            <td>{fileInfo.id}</td>
-            <td>
-              {fileInfo.fileLocations.map((location: string) => <div key={location}>location</div>)}
-            </td>
-            <td>{fileInfo.absolutePath}</td>
-            <td>
-              {fileInfo.fileLocations.map((location: string) => (
-                <div key={location}>{location}</div>
-              ))}
-            </td>
           </tr>
         ))}
         </tbody>
       </Table>
     )
-  }
-
-  private renderFileNameLink(filePath: string, queryStringSuffix: string) {
-    const {lastFetched} = this.state;
-    if (filePath === lastFetched.path) {
-      return (
-        filePath
-      );
-    }
-
-    return (
-      <Link to={`/logs?path=${filePath}${queryStringSuffix}`}>
-        {filePath}
-      </Link>
-    );
   }
 
   private fetchData(path?: string, offset?: string, limit?: string, end?: string) {

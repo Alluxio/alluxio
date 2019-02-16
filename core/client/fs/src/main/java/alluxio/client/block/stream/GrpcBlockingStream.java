@@ -16,13 +16,14 @@ import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.resource.LockResource;
 
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -43,6 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class GrpcBlockingStream<ReqT, ResT> {
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcBlockingStream.class);
   private final StreamObserver<ResT> mResponseObserver;
   private final ClientCallStreamObserver<ReqT> mRequestObserver;
   /** Buffer that stores responses to be consumed by {@link GrpcBlockingStream#receive(long)}. */
@@ -72,6 +74,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
    */
   public GrpcBlockingStream(Function<StreamObserver<ResT>, StreamObserver<ReqT>> rpcFunc,
       int bufferSize, String description) {
+    LOG.debug("Opening stream ({})", description);
     mResponses = new ArrayBlockingQueue<>(bufferSize);
     mResponseObserver = new ResponseStreamObserver();
     mRequestObserver = (ClientCallStreamObserver) rpcFunc.apply(mResponseObserver);
@@ -151,6 +154,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
    */
   public void close() {
     if (isOpen()) {
+      LOG.debug("Closing stream ({})", mDescription);
       mClosed = true;
       mRequestObserver.onCompleted();
     }
@@ -161,6 +165,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
    */
   public void cancel() {
     if (isOpen()) {
+      LOG.debug("Cancelling stream ({})", mDescription);
       mCanceled = true;
       mRequestObserver.cancel("Request is cancelled by user.", null);
     }
@@ -216,7 +221,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
   private AlluxioStatusException toAlluxioStatusException(Throwable t) {
     AlluxioStatusException ex;
     if (t instanceof StatusRuntimeException) {
-      ex = GrpcExceptionUtils.fromGrpcStatusException((StatusRuntimeException) t);
+      ex = AlluxioStatusException.fromStatusRuntimeException((StatusRuntimeException) t);
       if (ex.getStatus() == Status.CANCELED) {
         // Streams are canceled when server is shutdown. Convert it to UnavailableException for
         // client to retry.
@@ -252,6 +257,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
     @Override
     public void onError(Throwable t) {
       try (LockResource lr = new LockResource(mLock)) {
+        LOG.warn("Received error {} for stream ({})", t, mDescription);
         updateException(t);
         mReadyOrFailed.signal();
       }
@@ -260,6 +266,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
     @Override
     public void onCompleted() {
       try {
+        LOG.debug("Received completed event for stream ({})", mDescription);
         mResponses.put(this);
       } catch (InterruptedException e) {
         handleInterruptedException(e);

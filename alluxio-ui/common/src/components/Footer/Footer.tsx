@@ -31,7 +31,7 @@ export class Footer extends React.PureComponent<IFooterProps> {
   public render(): JSX.Element {
     const {data} = this.props;
     return (
-      <div className="footer mt-auto bg-secondary">
+      <div className="footer mt-auto navbar-dark bg-primary">
         <Nav className="justify-content-center">
           {this.renderNavItems(data)}
         </Nav>

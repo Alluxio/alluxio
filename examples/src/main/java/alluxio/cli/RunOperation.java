@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.util.ConfigurationUtils;
 
 import com.beust.jcommander.JCommander;
@@ -147,7 +148,9 @@ public class RunOperation {
           mFileSystem.delete(uri);
           break;
         case CreateFile:
-          try (FileOutStream file = mFileSystem.createFile(uri)) {
+          try (FileOutStream file =
+              mFileSystem.createFile(uri,
+                  CreateFilePOptions.newBuilder().setRecursive(true).build())) {
             file.write(mFiledata);
           }
           break;

@@ -18,17 +18,10 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
-import alluxio.master.NoopMaster;
-import alluxio.master.journal.JournalUtils;
-import alluxio.master.journal.ufs.UfsJournal;
-import alluxio.master.journal.ufs.UfsJournalSnapshot;
-import alluxio.util.CommonUtils;
-import alluxio.util.URIUtils;
+import alluxio.testutils.IntegrationTestUtils;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
 
 public class MultiMasterJournalTest {
   private MultiMasterLocalAlluxioCluster mCluster;
@@ -48,17 +41,7 @@ public class MultiMasterJournalTest {
     for (int i = 0; i < 10; i++) {
       mCluster.getClient().createFile(new AlluxioURI("/" + i)).close();
     }
-    UfsJournal journal = new UfsJournal(URIUtils.appendPathOrDie(JournalUtils.getJournalLocation(),
-        Constants.FILE_SYSTEM_MASTER_NAME), new NoopMaster(""), 0);
-    CommonUtils.waitFor("checkpoint to be written", () -> {
-      UfsJournalSnapshot snapshot;
-      try {
-        snapshot = UfsJournalSnapshot.getSnapshot(journal);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      return !snapshot.getCheckpoints().isEmpty();
-    });
+    IntegrationTestUtils.waitForCheckpoint(Constants.FILE_SYSTEM_MASTER_NAME);
     mCluster.restartMasters();
     assertEquals("The cluster should remember the 10 files", 10,
         mCluster.getClient().listStatus(new AlluxioURI("/")).size());

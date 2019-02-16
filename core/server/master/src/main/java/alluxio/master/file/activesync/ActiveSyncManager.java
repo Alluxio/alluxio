@@ -16,6 +16,7 @@ import alluxio.ProcessUtils;
 import alluxio.SyncInfo;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -59,6 +60,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Manager for the Active UFS sync process.
+ * There are several threads cooperating to make the active sync process happen.
+ * 1. An active polling thread that polls HDFS for change events and aggregates these events.
+ * 2. A heartbeat thread that wakes up periodically to consume the aggregated events, and perform
+ *    syncing if necessary.
+ * 3. For initial syncing, we launch a future to perform initial syncing asynchronously. This is
+ *    stored in mSyncPathStatus.
  */
 @NotThreadSafe
 public class ActiveSyncManager implements JournalEntryIterable, JournalEntryReplayable {
@@ -200,6 +207,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    * @param txId specifies the transaction id to initialize the pollling thread
    */
   public void launchPollingThread(long mountId, long txId) {
+    LOG.debug("launch polling thread for mount id {}, txId {}", mountId, txId);
     if (!mPollerMap.containsKey(mountId)) {
       try (CloseableResource<UnderFileSystem> ufsClient =
                mMountTable.getUfsClient(mountId).acquireUfsResource()) {
@@ -252,12 +260,19 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    * @param mountId mountId to stop active sync
    */
   public void stopSyncForMount(long mountId) throws InvalidPathException, IOException {
+    LOG.debug("Stop sync for mount id {}", mountId);
     if (mFilterMap.containsKey(mountId)) {
+      List<Pair<AlluxioURI, MountTable.Resolution>> toBeDeleted = new ArrayList<>();
       for (AlluxioURI uri : mFilterMap.get(mountId)) {
         MountTable.Resolution resolution = resolveSyncPoint(uri);
         if (resolution != null) {
-          stopSyncInternal(uri, resolution);
+          toBeDeleted.add(new Pair<>(uri, resolution));
         }
+      }
+      // Calling stopSyncInternal outside of the traversal of mFilterMap.get(mountId) to avoid
+      // ConcurrentModificationException
+      for (Pair<AlluxioURI, MountTable.Resolution> deleteInfo : toBeDeleted) {
+        stopSyncInternal(deleteInfo.getFirst(), deleteInfo.getSecond());
       }
     }
   }
@@ -434,7 +449,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     AlluxioURI syncPoint = new AlluxioURI(addSyncPoint.getSyncpointPath());
     long mountId = addSyncPoint.getMountId();
 
-    LOG.debug("adding syncPoint {}", syncPoint.getPath());
+    LOG.debug("adding syncPoint {}, mount id {}", syncPoint.getPath(), mountId);
     // Add the new sync point to the filter map
     if (mFilterMap.containsKey(mountId)) {
       mFilterMap.get(mountId).add(syncPoint);
@@ -553,28 +568,82 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
   }
 
   /**
-   * Stop the sync manager.
+   * Stops the sync manager and any outstanding threads, does not change the sync points.
+   * This stops four things in the following order.
+   * 1. Stop any outstanding initial sync futures for the sync points. (syncFuture.cancel)
+   * 2. Stop the heartbeat thread that periodically wakes up to process events that have been
+   *    recorded for the past heartbeat interval.
+   * 3. Tell the polling thread to stop monitoring the path for events
+   * 4. Stop the thread that is polling HDFS for events
    */
   public void stop() {
+    for (AlluxioURI syncPoint : mSyncPathList) {
+      MountTable.Resolution resolution = null;
+      try {
+        resolution = mMountTable.resolve(syncPoint);
+      } catch (InvalidPathException e) {
+        LOG.warn("stop: InvalidPathException resolving syncPoint {}, exception {}",
+            syncPoint,  e);
+      }
+      long mountId = resolution.getMountId();
+      // Remove initial sync thread
+      Future<?> syncFuture = mSyncPathStatus.remove(syncPoint);
+      if (syncFuture != null) {
+        syncFuture.cancel(true);
+      }
+
+      Future<?> future = mPollerMap.remove(mountId);
+      if (future != null) {
+        future.cancel(true);
+      }
+
+      // Tell UFS to stop monitoring the path
+      try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
+        ufs.get().stopSync(resolution.getUri());
+      } catch (IOException e) {
+        LOG.warn("Ufs IOException for uri {}, exception is {}", syncPoint, e);
+      }
+
+      try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
+        ufs.get().stopActiveSyncPolling();
+      } catch (IOException e) {
+        LOG.warn("Encountered IOException when trying to stop polling thread {}", e);
+      }
+    }
+  }
+
+  /**
+   * Resets the sync manager.
+   *
+   * It clears all sync point, and stops polling thread.
+   */
+  public void reset() {
     for (long mountId : mFilterMap.keySet()) {
       try {
+        // stops sync point under this mount point. Note this clears the sync point and
+        // stops associated polling threads.
         stopSyncForMount(mountId);
       } catch (IOException e) {
-        LOG.info("ActiveSyncManager stop: IOException stopping mountId {}, exception {}",
+        LOG.info("reset: IOException resetting mountId {}, exception {}",
             mountId,  e);
       } catch (InvalidPathException e) {
-        LOG.info("ActiveSyncManager stop: InvalidPathException stopping mountId {}, exception {}",
+        LOG.info("reset: InvalidPathException resetting mountId {}, exception {}",
             mountId,  e);
       }
     }
   }
 
-  private void startInitSync(AlluxioURI uri, MountTable.Resolution resolution) throws IOException {
+  private void startInitSync(AlluxioURI uri, MountTable.Resolution resolution) {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       Future<?> syncFuture = mExecutorService.submit(
           () -> {
             try {
+              // Notify ufs polling thread to keep track of events related to specified uri
               ufsResource.get().startSync(resolution.getUri());
+              // Start the initial metadata sync between the ufs and alluxio for the specified uri
+              if (ServerConfiguration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
+                mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
+              }
             } catch (IOException e) {
               LOG.info(ExceptionMessage.FAILED_INITIAL_SYNC.getMessage(
                   resolution.getUri()), e);
@@ -583,9 +652,6 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
 
       mSyncPathStatus.put(uri, syncFuture);
     }
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_ACTIVE_UFS_SYNC_INITIAL_SYNC)) {
-      mFileSystemMaster.activeSyncMetadata(uri, null, getExecutor());
-    }
   }
 
   /**
@@ -593,7 +659,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    *
    * @param uri the sync point that we are trying to start
    */
-  public void startSyncPostJournal(AlluxioURI uri) throws InvalidPathException, IOException {
+  public void startSyncPostJournal(AlluxioURI uri) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(uri);
     startInitSync(uri, resolution);
     launchPollingThread(resolution.getMountId(), SyncInfo.INVALID_TXID);

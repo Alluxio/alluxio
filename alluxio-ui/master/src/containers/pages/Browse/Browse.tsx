@@ -20,7 +20,12 @@ import {Dispatch} from 'redux';
 
 import {FileView, Paginator} from '@alluxio/common-ui/src/components';
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
-import {getDebouncedFunction, parseQuerystring} from '@alluxio/common-ui/src/utilities';
+import {
+  disableFormSubmit,
+  getDebouncedFunction,
+  parseQuerystring,
+  renderFileNameLink
+} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/browse/actions';
 import {IBrowse} from '../../../store/browse/types';
@@ -126,7 +131,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
           <div className="row">
             <div className="col-12">
               {!browseData.currentDirectory.isDirectory && this.renderFileView(browseData, queryStringSuffix, initData)}
-              {browseData.currentDirectory.isDirectory && this.renderDirectoryListing(browseData, queryStringSuffix)}
+              {browseData.currentDirectory.isDirectory && this.renderDirectoryListing(initData, browseData, queryStringSuffix)}
             </div>
           </div>
         </div>
@@ -178,13 +183,14 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     );
   }
 
-  private renderDirectoryListing(browseData: IBrowse, queryStringSuffix: string) {
+  private renderDirectoryListing(initData: IInit, browseData: IBrowse, queryStringSuffix: string) {
     const {path, lastFetched, offset, limit} = this.state;
     const fileInfos = browseData.fileInfos;
     const pathInputHandler = this.createInputHandler('path', value => value).bind(this);
     return (
       <React.Fragment>
-        <Form className="mb-3 browse-directory-form" id="browseDirectoryForm" inline={true}>
+        <Form className="mb-3 browse-directory-form" id="browseDirectoryForm" inline={true}
+              onSubmit={disableFormSubmit}>
           <FormGroup className="mb-2 mr-sm-2">
             <Button tag={Link} to={`/browse?path=/${queryStringSuffix}`} color="secondary"
                     outline={true} disabled={'/' === lastFetched.path}>Root</Button>
@@ -195,7 +201,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
                    onChange={pathInputHandler}/>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
-            <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="primary"
+            <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="secondary"
                     disabled={path === lastFetched.path}>Go</Button>
           </FormGroup>
         </Form>
@@ -203,15 +209,30 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
           <thead>
           <tr>
             <th/>
+            {/* Icon placeholder */}
             <th>File Name</th>
+            <th>Size</th>
             <th>Block Size</th>
             <th>In-Alluxio</th>
-            <th>Mode</th>
-            <th>Owner</th>
-            <th>Group</th>
+            {browseData.showPermissions && (
+              <React.Fragment>
+                <th>Mode</th>
+                <th>Owner</th>
+                <th>Group</th>
+              </React.Fragment>
+            )}
             <th>Persistence State</th>
             <th>Pin</th>
             <th>Creation Time</th>
+            <th>Modification Time</th>
+            {initData.debug && (
+              <React.Fragment>
+                <th>[D]DepID</th>
+                <th>[D]INumber</th>
+                <th>[D]UnderfsPath</th>
+                <th>[D]File Locations</th>
+              </React.Fragment>
+            )}
           </tr>
           </thead>
           <tbody>
@@ -219,16 +240,38 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
             <tr key={fileInfo.absolutePath}>
               <td><FontAwesomeIcon icon={fileInfo.isDirectory ? faFolder : faFile}/></td>
               <td>
-                {this.renderFileNameLink(fileInfo.absolutePath, queryStringSuffix)}
+                {renderFileNameLink.call(this, fileInfo.absolutePath, `/browse?path=${fileInfo.absolutePath}`)}
               </td>
               <td>{fileInfo.size}</td>
-              <td>{fileInfo.inAlluxio ? 'YES' : 'NO'}</td>
-              <td>{fileInfo.mode}</td>
-              <td>{fileInfo.owner}</td>
-              <td>{fileInfo.group}</td>
+              <td>{fileInfo.blockSizeBytes}</td>
+              <td>{fileInfo.inAlluxioPercentage}%</td>
+              {browseData.showPermissions && (
+                <React.Fragment>
+                  <td>
+                    <pre className="mb-0"><code>{fileInfo.mode}</code></pre>
+                  </td>
+                  <td>{fileInfo.owner}</td>
+                  <td>{fileInfo.group}</td>
+                </React.Fragment>
+              )}
               <td>{fileInfo.persistenceState}</td>
-              <td>{fileInfo.pinned}</td>
+              <td>{fileInfo.pinned ? 'YES' : 'NO'}</td>
               <td>{fileInfo.creationTime}</td>
+              <td>{fileInfo.modificationTime}</td>
+              {initData.debug && (
+                <React.Fragment>
+                  <td>{fileInfo.id}</td>
+                  <td>
+                    {fileInfo.fileLocations.map((location: string) => <div key={location}>location</div>)}
+                  </td>
+                  <td>{fileInfo.absolutePath}</td>
+                  <td>
+                    {fileInfo.fileLocations.map((location: string) => (
+                      <div key={location}>{location}</div>
+                    ))}
+                  </td>
+                </React.Fragment>
+              )}
             </tr>
           ))}
           </tbody>
@@ -236,21 +279,6 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
         <Paginator baseUrl={'/browse'} path={path} total={browseData.ntotalFile} offset={offset} limit={limit}/>
       </React.Fragment>
     )
-  }
-
-  private renderFileNameLink(filePath: string, queryStringSuffix: string) {
-    const {lastFetched} = this.state;
-    if (filePath === lastFetched.path) {
-      return (
-        filePath
-      );
-    }
-
-    return (
-      <Link to={`/browse?path=${filePath}${queryStringSuffix}`}>
-        {filePath}
-      </Link>
-    );
   }
 
   private fetchData(path?: string, offset?: string, limit?: string, end?: string) {

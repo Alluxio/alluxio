@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job.move;
+package alluxio.job.migrate;
 
 import alluxio.job.JobConfig;
 
@@ -21,34 +21,40 @@ import com.google.common.base.Preconditions;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Configuration for the move job. See {@code MoveDefinition} for detailed semantics.
+ * Configuration for the migrate job. A migration can either be a copy or a move.
+ * See {@code MigrateDefinition} for detailed semantics.
  */
 @ThreadSafe
-public class MoveConfig implements JobConfig {
-  public static final String NAME = "Move";
-
-  private static final long serialVersionUID = 2249161137868881346L;
+public class MigrateConfig implements JobConfig {
+  private static final long serialVersionUID = 8014674802258120190L;
+  private static final String NAME = "Migrate";
 
   private final String mSource;
   private final String mDestination;
   private final String mWriteType;
   private final boolean mOverwrite;
+  private final boolean mDeleteSource;
 
   /**
    * @param source the source path
    * @param dst the destination path
-   * @param writeType the Alluxio write type with which to write the moved file; a null value means
-   *        to use the default write type from the Alluxio configuration
+   * @param writeType the Alluxio write type with which to write the migrated file; a null value
+   *        means to use the default write type from the Alluxio configuration
    * @param overwrite whether an existing file should be overwritten; if the source and destination
    *        are directories, the contents of the directories will be merged with common files
    *        overwritten by the source
+   * @param deleteSource whether to delete the source path after migration
    */
-  public MoveConfig(@JsonProperty("source") String source, @JsonProperty("destination") String dst,
-      @JsonProperty("writeType") String writeType, @JsonProperty("overwrite") boolean overwrite) {
+  public MigrateConfig(@JsonProperty("source") String source,
+                       @JsonProperty("destination") String dst,
+                       @JsonProperty("writeType") String writeType,
+                       @JsonProperty("overwrite") boolean overwrite,
+                       @JsonProperty("deleteSource") boolean deleteSource) {
     mSource = Preconditions.checkNotNull(source, "source must be set");
     mDestination = Preconditions.checkNotNull(dst, "destination must be set");
     mWriteType = writeType;
     mOverwrite = overwrite;
+    mDeleteSource = deleteSource;
   }
 
   /**
@@ -79,6 +85,13 @@ public class MoveConfig implements JobConfig {
     return mOverwrite;
   }
 
+  /**
+   * @return whether to delete the source path after migration
+   */
+  public boolean isDeleteSource() {
+    return mDeleteSource;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -87,19 +100,20 @@ public class MoveConfig implements JobConfig {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof MoveConfig)) {
+    if (!(obj instanceof MigrateConfig)) {
       return false;
     }
-    MoveConfig that = (MoveConfig) obj;
+    MigrateConfig that = (MigrateConfig) obj;
     return Objects.equal(mSource, that.mSource)
         && Objects.equal(mDestination, that.mDestination)
         && Objects.equal(mWriteType, that.mWriteType)
-        && Objects.equal(mOverwrite, that.mOverwrite);
+        && Objects.equal(mOverwrite, that.mOverwrite)
+        && Objects.equal(mDeleteSource, that.mDeleteSource);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mSource, mDestination, mWriteType, mOverwrite);
+    return Objects.hashCode(mSource, mDestination, mWriteType, mOverwrite, mDeleteSource);
   }
 
   @Override
@@ -109,6 +123,7 @@ public class MoveConfig implements JobConfig {
         .add("destination", mDestination)
         .add("writeType", mWriteType)
         .add("overwrite", mOverwrite)
+        .add("deleteSource", mDeleteSource)
         .toString();
   }
 

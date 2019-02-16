@@ -9,8 +9,4 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-@import "../../../../node_modules/bootstrap/scss/functions";
-@import "../../../../node_modules/bootstrap/scss/variables";
-@import "darkly/variables";
-@import "../../../../node_modules/bootstrap/scss/mixins";
-@import "../../../../node_modules/bootstrap/scss/reboot";
+@import '~bootswatch/dist/darkly/variables';

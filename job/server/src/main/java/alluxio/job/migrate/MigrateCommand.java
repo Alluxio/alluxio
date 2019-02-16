@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job.move;
+package alluxio.job.migrate;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -17,19 +17,19 @@ import com.google.common.base.Objects;
 import java.io.Serializable;
 
 /**
- * A command telling a worker to move a file.
+ * A command telling a worker to migrate a file.
  */
-public final class MoveCommand implements Serializable {
-  private static final long serialVersionUID = -4287491133291080690L;
+public final class MigrateCommand implements Serializable {
+  private static final long serialVersionUID = -971331761581807038L;
 
   private final String mSource;
   private final String mDestination;
 
   /**
-   * @param source the source file to move
-   * @param destination the destination file to move it to
+   * @param source the source file to migrate
+   * @param destination the destination file to migrate it to
    */
-  public MoveCommand(String source, String destination) {
+  public MigrateCommand(String source, String destination) {
     mSource = source;
     mDestination = destination;
   }
@@ -53,10 +53,10 @@ public final class MoveCommand implements Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof MoveCommand)) {
+    if (!(o instanceof MigrateCommand)) {
       return false;
     }
-    MoveCommand that = (MoveCommand) o;
+    MigrateCommand that = (MigrateCommand) o;
     return Objects.equal(mSource, that.mSource)
         && Objects.equal(mDestination, that.mDestination);
   }

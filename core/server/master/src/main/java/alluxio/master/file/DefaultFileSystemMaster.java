@@ -20,7 +20,6 @@ import alluxio.client.job.JobMasterClientPool;
 import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
-import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
@@ -64,6 +63,7 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.activesync.ActiveSyncManager;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -103,8 +103,10 @@ import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metastore.ReadOnlyInodeStore;
+import alluxio.master.metrics.TimeSeriesStore;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.TimeSeries;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddSyncPointEntry;
 import alluxio.proto.journal.File.NewBlockEntry;
@@ -164,6 +166,7 @@ import alluxio.worker.job.JobMasterClientContext;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -366,10 +369,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   private Future<List<AlluxioURI>> mStartupConsistencyCheck;
 
   private ActiveSyncManager mSyncManager;
-  /**
-   * Log writer for user access audit log.
-   */
+
+  /** Log writer for user access audit log. */
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+
+  /** Stores the time series for various metrics which are exposed in the UI. */
+  private TimeSeriesStore mTimeSeriesStore;
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
@@ -417,6 +422,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
     mUfsSyncPathCache = new UfsSyncPathCache();
     mSyncManager = new ActiveSyncManager(mMountTable, this);
+    mTimeSeriesStore = new TimeSeriesStore();
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -480,6 +486,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   public void resetState() {
     mInodeTree.reset();
     mMountTable.reset();
+    mSyncManager.reset();
   }
 
   @Override
@@ -537,41 +544,34 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         mUfsManager.addMount(mountInfo.getMountId(), new AlluxioURI(key), ufsConf);
       }
       // Startup Checks and Periodic Threads.
+
       // Rebuild the list of persist jobs (mPersistJobs) and map of pending persist requests
       // (mPersistRequests)
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(new AlluxioURI("/"),
-          LockPattern.WRITE_INODE)) {
-        // Walk the inode tree looking for files in the TO_BE_PERSISTED state.
-        java.util.Queue<InodeDirectory> dirsToProcess = new java.util.LinkedList<>();
-        dirsToProcess.add(inodePath.getInode().asDirectory());
-        while (!dirsToProcess.isEmpty()) {
-          InodeDirectory dir = dirsToProcess.poll();
-          for (Inode inode : mInodeStore.getChildren(dir)) {
-            if (inode.isDirectory()) {
-              dirsToProcess.add(inode.asDirectory());
-              continue;
-            }
-            InodeFile inodeFile = inode.asFile();
-            if (!inodeFile.getPersistenceState().equals(PersistenceState.TO_BE_PERSISTED)) {
-              continue;
-            }
-            try (LockResource lr = mInodeLockManager.lockInode(inodeFile, LockMode.READ)) {
-              if (inodeFile.getPersistJobId() != Constants.PERSISTENCE_INVALID_JOB_ID) {
-                addPersistJob(inodeFile.getId(), inodeFile.getPersistJobId(),
-                    mInodeTree.getPath(inodeFile), inodeFile.getTempUfsPath());
-              } else {
-                mPersistRequests.put(inodeFile.getId(), new alluxio.time.ExponentialTimer(
-                    ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-                    ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-                    ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
-                    ServerConfiguration.getMs(
-                        PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
-              }
-            }
-          }
+      for (Long id : mInodeTree.getToBePersistedIds()) {
+        Inode inode = mInodeStore.get(id).get();
+        if (inode.isDirectory()) {
+          continue;
         }
-      } catch (InvalidPathException | FileDoesNotExistException e) {
-        throw new IllegalStateException(e);
+        if (inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED) {
+          continue;
+        }
+        InodeFile inodeFile = inode.asFile();
+        if (inodeFile.getPersistJobId() == Constants.PERSISTENCE_INVALID_JOB_ID) {
+          mPersistRequests.put(inodeFile.getId(), new alluxio.time.ExponentialTimer(
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+        } else {
+          AlluxioURI path;
+          try {
+            path = mInodeTree.getPath(inodeFile);
+          } catch (FileDoesNotExistException e) {
+            LOG.error("Failed to determine path for inode with id {}", id, e);
+            continue;
+          }
+          addPersistJob(id, inodeFile.getPersistJobId(), path, inodeFile.getTempUfsPath());
+        }
       }
       if (ServerConfiguration
           .getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
@@ -618,6 +618,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_CHECKER,
               new PersistenceChecker(),
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS),
+              ServerConfiguration.global()));
+      getExecutorService().submit(
+          new HeartbeatThread(HeartbeatContext.MASTER_METRICS_TIME_SERIES,
+              new TimeSeriesRecorder(),
+              (int) ServerConfiguration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL),
               ServerConfiguration.global()));
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
         mStartupConsistencyCheck = getExecutorService().submit(() -> startupCheckConsistency(
@@ -4210,6 +4215,39 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
   }
 
+  @NotThreadSafe
+  private final class TimeSeriesRecorder implements alluxio.heartbeat.HeartbeatExecutor {
+    @Override
+    public void heartbeat() throws InterruptedException {
+      // TODO(calvin): Provide a better way to keep track of metrics collected as time series
+      MetricRegistry registry = MetricsSystem.METRIC_REGISTRY;
+
+      // % Alluxio space used
+      Long masterCapacityTotal = (Long) registry.getGauges()
+          .get(MetricsSystem.getMetricName(DefaultBlockMaster.Metrics.CAPACITY_TOTAL)).getValue();
+      Long masterCapacityUsed = (Long) registry.getGauges()
+          .get(MetricsSystem.getMetricName(DefaultBlockMaster.Metrics.CAPACITY_USED)).getValue();
+      int percentAlluxioSpaceUsed =
+          (masterCapacityTotal > 0) ? (int) (100L * masterCapacityUsed / masterCapacityTotal) : 0;
+      mTimeSeriesStore.record("% Alluxio Space Used", percentAlluxioSpaceUsed);
+
+      // % UFS space used
+      Long masterUnderfsCapacityTotal =
+          (Long) registry.getGauges()
+              .get(MetricsSystem.getMetricName(MasterMetrics.UFS_CAPACITY_TOTAL)).getValue();
+      Long masterUnderfsCapacityUsed =
+          (Long) registry.getGauges()
+              .get(MetricsSystem.getMetricName(MasterMetrics.UFS_CAPACITY_USED)).getValue();
+      int percentUfsSpaceUsed =
+          (masterUnderfsCapacityTotal > 0) ? (int) (100L * masterUnderfsCapacityUsed
+              / masterUnderfsCapacityTotal) : 0;
+      mTimeSeriesStore.record("% UFS Space Used", percentUfsSpaceUsed);
+    }
+
+    @Override
+    public void close() {} // Nothing to clean up.
+  }
+
   private static void cleanup(UnderFileSystem ufs, String ufsPath) {
     final String errMessage = "Failed to delete UFS file {}.";
     if (!ufsPath.isEmpty()) {
@@ -4473,5 +4511,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   private boolean isAclEnabled() {
     return ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
+  }
+
+  @Override
+  public List<TimeSeries> getTimeSeries() {
+    return mTimeSeriesStore.getTimeSeries();
   }
 }

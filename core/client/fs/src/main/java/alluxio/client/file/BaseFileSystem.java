@@ -48,6 +48,7 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -470,6 +471,29 @@ public class BaseFileSystem implements FileSystem {
       return masterClient.getSyncPathList();
     } catch (UnavailableException e) {
       throw e;
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
+    } finally {
+      mFsContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
+  public void persist(final AlluxioURI path)
+    throws FileDoesNotExistException, IOException, AlluxioException {
+    persist(path, ScheduleAsyncPersistencePOptions.getDefaultInstance());
+  }
+
+  @Override
+  public void persist(final AlluxioURI path, ScheduleAsyncPersistencePOptions options)
+    throws FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(path);
+    FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
+    try {
+      masterClient.scheduleAsyncPersist(path, options);
+      LOG.debug("Scheduled persist for {}, options: {}", path.getPath(), options);
+    } catch (NotFoundException e) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {

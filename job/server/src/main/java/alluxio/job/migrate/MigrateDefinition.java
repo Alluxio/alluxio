@@ -9,11 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job.move;
+package alluxio.job.migrate;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
@@ -23,6 +21,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -55,17 +55,19 @@ import java.util.Stack;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * A job that moves a source path to a destination path.
+ * A job that migrates a source path to a destination path.
+ * The source and the destination can be across mount points.
  *
  * If the destination exists, the source and destination must either both be files or both be
  * directories, and the overwrite configuration option must be set. If the destination does not
- * exist, its parent must be a directory and the destination will be created by the move command.
+ * exist, its parent must be a directory and the destination will be created by the migrate command.
  *
- * If moving a directory to an existing directory causes files to conflict, the moved files will
- * replace the existing files.
+ * If migrating a directory to an existing directory causes files to conflict, the migrated files
+ * will replace the existing files.
  *
- * Unlike Unix mv, the source will not be nested inside the destination when the destination is a
- * directory. This makes it so that the move job is idempotent when the overwrite flag is set.
+ * Unlike Unix {@code mv} or {@code cp}, the source will not be nested inside the destination when
+ * the destination is a directory. This makes it so that the migrate job is idempotent when the
+ * overwrite flag is set.
  *
  * Suppose we have this directory structure, where a to e are directories and f1 to f3 are files:
  *
@@ -78,47 +80,62 @@ import java.util.concurrent.ConcurrentMap;
  *     └── e
  *         └── f3
  *
- * Moving a to b will result in
+ * Migrating a to b with source deleted ({@code mv}) will result in
  *
  * ├── b
  *     ├── d
  *     ├── e
- *     |   └── f2
+ *     │   └── f2
+ *     │   └── f3
+ *     └── f1
+ *
+ * Migrating a to b with source kept ({@code cp}) will result in
+ *
+ * ├── a
+ * │   ├── e
+ * │   │   └── f2
+ * │   └── f1
+ * └── b
+ *     ├── d
+ *     ├── e
+ *     │   └── f2
+ *     │   └── f3
  *     └── f1
  */
-public final class MoveDefinition
-    extends AbstractVoidJobDefinition<MoveConfig, ArrayList<MoveCommand>> {
-  private static final Logger LOG = LoggerFactory.getLogger(MoveDefinition.class);
+public final class MigrateDefinition
+    extends AbstractVoidJobDefinition<MigrateConfig, ArrayList<MigrateCommand>> {
+  private static final Logger LOG = LoggerFactory.getLogger(MigrateDefinition.class);
   private final FileSystem mFileSystem;
   private final FileSystemContext mFsContext;
   private final Random mRandom = new Random();
 
   /**
-   * Constructs a new {@link MoveDefinition}.
+   * Constructs a new {@link MigrateDefinition}.
    */
-  public MoveDefinition() {
+  public MigrateDefinition() {
     mFsContext = FileSystemContext.create(ServerConfiguration.global());
     mFileSystem = BaseFileSystem.create(mFsContext);
   }
 
   /**
-   * Constructs a new {@link MoveDefinition} with FileSystem context and instance.
+   * Constructs a new {@link MigrateDefinition} with FileSystem context and instance.
    *
    * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
    * @param fileSystem the {@link FileSystem} client
    */
-  public MoveDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
+  public MigrateDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
     mFsContext = fsContext;
     mFileSystem = fileSystem;
   }
 
-  private void checkMoveValid(MoveConfig config) throws Exception {
+  private void checkMigrateValid(MigrateConfig config) throws Exception {
     AlluxioURI source = new AlluxioURI(config.getSource());
     AlluxioURI destination = new AlluxioURI(config.getDestination());
-    // The source cannot be a prefix of the destination - that would be moving a path inside itself.
+    // The source cannot be a prefix of the destination -
+    // that would be migrating a path inside itself.
     if (PathUtils.hasPrefix(destination.toString(), source.toString())) {
-      throw new RuntimeException(ExceptionMessage.MOVE_CANNOT_BE_TO_SUBDIRECTORY.getMessage(source,
-          config.getDestination()));
+      throw new RuntimeException(ExceptionMessage.MIGRATE_CANNOT_BE_TO_SUBDIRECTORY.getMessage(
+          source, config.getDestination()));
     }
 
     // This will throw an appropriate exception if the source does not exist.
@@ -129,21 +146,21 @@ public final class MoveDefinition
       boolean destinationIsDirectory = destinationStatus.isFolder();
       if (sourceIsDirectory && !destinationIsDirectory) {
         throw new RuntimeException(
-            ExceptionMessage.MOVE_DIRECTORY_TO_FILE.getMessage(source, destination));
+            ExceptionMessage.MIGRATE_DIRECTORY_TO_FILE.getMessage(source, destination));
       } else if (!sourceIsDirectory && destinationIsDirectory) {
         throw new RuntimeException(
-            ExceptionMessage.MOVE_FILE_TO_DIRECTORY.getMessage(source, destination));
+            ExceptionMessage.MIGRATE_FILE_TO_DIRECTORY.getMessage(source, destination));
       }
       if (!config.isOverwrite()) {
         throw new FileAlreadyExistsException(
-            ExceptionMessage.MOVE_NEED_OVERWRITE.getMessage(destination));
+            ExceptionMessage.MIGRATE_NEED_OVERWRITE.getMessage(destination));
       }
     } catch (FileDoesNotExistException e) {
       // Handle the case where the destination does not exist.
       // This will throw an appropriate exception if the destination's parent does not exist.
       URIStatus destinationParentStatus = mFileSystem.getStatus(destination.getParent());
       if (!destinationParentStatus.isFolder()) {
-        throw new RuntimeException(ExceptionMessage.MOVE_TO_FILE_AS_DIRECTORY
+        throw new RuntimeException(ExceptionMessage.MIGRATE_TO_FILE_AS_DIRECTORY
             .getMessage(destination, destination.getParent()));
       }
     }
@@ -152,42 +169,39 @@ public final class MoveDefinition
   /**
    * {@inheritDoc}
    *
-   * Assigns each worker to move whichever files it has the most blocks for. If no worker has blocks
-   * for a file, a random worker is chosen.
+   * Assigns each worker to migrate whichever files it has the most blocks for.
+   * If no worker has blocks for a file, a random worker is chosen.
    */
   @Override
-  public Map<WorkerInfo, ArrayList<MoveCommand>> selectExecutors(MoveConfig config,
+  public Map<WorkerInfo, ArrayList<MigrateCommand>> selectExecutors(MigrateConfig config,
       List<WorkerInfo> jobWorkerInfoList, JobMasterContext jobMasterContext) throws Exception {
     AlluxioURI source = new AlluxioURI(config.getSource());
     AlluxioURI destination = new AlluxioURI(config.getDestination());
     if (source.equals(destination)) {
-      return new HashMap<WorkerInfo, ArrayList<MoveCommand>>();
+      return new HashMap<>();
     }
-    checkMoveValid(config);
-
-    List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(mFsContext).getAllWorkers();
+    checkMigrateValid(config);
     Preconditions.checkState(!jobWorkerInfoList.isEmpty(), "No workers are available");
 
     List<URIStatus> allPathStatuses = getPathStatuses(source);
-    ConcurrentMap<WorkerInfo, ArrayList<MoveCommand>> assignments = Maps.newConcurrentMap();
+    ConcurrentMap<WorkerInfo, ArrayList<MigrateCommand>> assignments = Maps.newConcurrentMap();
     ConcurrentMap<String, WorkerInfo> hostnameToWorker = Maps.newConcurrentMap();
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
       hostnameToWorker.put(workerInfo.getAddress().getHost(), workerInfo);
     }
-    List<String> keys = new ArrayList<>();
-    keys.addAll(hostnameToWorker.keySet());
+    List<BlockWorkerInfo> alluxioWorkerInfoList =
+        AlluxioBlockStore.create(mFsContext).getAllWorkers();
     // Assign each file to the worker with the most block locality.
     for (URIStatus status : allPathStatuses) {
       if (status.isFolder()) {
-        moveDirectory(status.getPath(), source.getPath(), destination.getPath());
+        migrateDirectory(status.getPath(), source.getPath(), destination.getPath());
       } else {
         WorkerInfo bestJobWorker = getBestJobWorker(status, alluxioWorkerInfoList,
             jobWorkerInfoList, hostnameToWorker);
         String destinationPath =
             computeTargetPath(status.getPath(), source.getPath(), destination.getPath());
-        assignments.putIfAbsent(bestJobWorker, Lists.<MoveCommand>newArrayList());
-        assignments.get(bestJobWorker).add(new MoveCommand(status.getPath(), destinationPath));
+        assignments.putIfAbsent(bestJobWorker, Lists.newArrayList());
+        assignments.get(bestJobWorker).add(new MigrateCommand(status.getPath(), destinationPath));
       }
     }
     return assignments;
@@ -210,12 +224,13 @@ public final class MoveDefinition
   }
 
   /**
-   * Computes the path that the given path should end up at when source is moved to destination.
+   * Computes the path that the given path should end up at when source is migrated to destination.
    *
-   * @param path a path to move which must be a descendent path of the source path, e.g. /src/file
-   * @param source the base source path being moved, e.g. /src
-   * @param destination the path to move to, e.g. /dst/src
-   * @return the path which file should be moved to, e.g. /dst/src/file
+   * @param path a path to migrate which must be a descendent path of the source path,
+   *        e.g. /src/file
+   * @param source the base source path being migrated, e.g. /src
+   * @param destination the path to migrate to, e.g. /dst/src
+   * @return the path which file should be migrated to, e.g. /dst/src/file
    */
   private static String computeTargetPath(String path, String source, String destination)
       throws Exception {
@@ -224,11 +239,11 @@ public final class MoveDefinition
   }
 
   /**
-   * @param path the path of the directory to move; it must be a subpath of source
-   * @param source the base source path being moved
+   * @param path the path of the directory to migrate; it must be a subpath of source
+   * @param source the base source path being migrated
    * @param destination the destination path
    */
-  private void moveDirectory(String path, String source, String destination) throws Exception {
+  private void migrateDirectory(String path, String source, String destination) throws Exception {
     String newDir = computeTargetPath(path, source, destination);
     mFileSystem.createDirectory(new AlluxioURI(newDir),
         CreateDirectoryPOptions.getDefaultInstance());
@@ -269,20 +284,20 @@ public final class MoveDefinition
   /**
    * {@inheritDoc}
    *
-   * Moves the file specified in the config to the configured path. If the destination path is a
-   * directory, the file is moved inside that directory.
+   * Migrates the file specified in the config to the configured path. If the destination path is a
+   * directory, the file is migrated inside that directory.
    */
   @Override
-  public SerializableVoid runTask(MoveConfig config, ArrayList<MoveCommand> commands,
-      JobWorkerContext jobWorkerContext) throws Exception {
+  public SerializableVoid runTask(MigrateConfig config, ArrayList<MigrateCommand> commands,
+                                  JobWorkerContext jobWorkerContext) throws Exception {
     WriteType writeType = config.getWriteType() == null
         ? ServerConfiguration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
         : WriteType.valueOf(config.getWriteType());
-    for (MoveCommand command : commands) {
-      move(command, writeType.toProto(), mFileSystem);
+    for (MigrateCommand command : commands) {
+      migrate(command, writeType.toProto(), config.isDeleteSource(), mFileSystem);
     }
     // Try to delete the source directory if it is empty.
-    if (!hasFiles(new AlluxioURI(config.getSource()), mFileSystem)) {
+    if (config.isDeleteSource() && !hasFiles(new AlluxioURI(config.getSource()), mFileSystem)) {
       try {
         LOG.debug("Deleting {}", config.getSource());
         mFileSystem.delete(new AlluxioURI(config.getSource()),
@@ -295,15 +310,16 @@ public final class MoveDefinition
   }
 
   /**
-   * @param command the move command to execute
+   * @param command the migrate command to execute
    * @param writeType the write type to use for the moved file
+   * @param deleteSource whether to delete source
    * @param fileSystem the Alluxio file system
    */
-  private static void move(MoveCommand command, WritePType writeType, FileSystem fileSystem)
-      throws Exception {
+  private static void migrate(MigrateCommand command, WritePType writeType, boolean deleteSource,
+      FileSystem fileSystem) throws Exception {
     String source = command.getSource();
     String destination = command.getDestination();
-    LOG.debug("Moving {} to {}", source, destination);
+    LOG.debug("Migrating {} to {}", source, destination);
 
     CreateFilePOptions createOptions =
         CreateFilePOptions.newBuilder().setWriteType(writeType).build();
@@ -320,7 +336,9 @@ public final class MoveDefinition
         throw t;
       }
     }
-    fileSystem.delete(new AlluxioURI(source));
+    if (deleteSource) {
+      fileSystem.delete(new AlluxioURI(source));
+    }
   }
 
   /**
@@ -349,7 +367,7 @@ public final class MoveDefinition
   }
 
   @Override
-  public Class<MoveConfig> getJobConfigClass() {
-    return MoveConfig.class;
+  public Class<MigrateConfig> getJobConfigClass() {
+    return MigrateConfig.class;
   }
 }

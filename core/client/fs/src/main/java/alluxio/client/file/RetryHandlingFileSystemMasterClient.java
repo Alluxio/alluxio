@@ -42,6 +42,7 @@ import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.RenamePRequest;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAclAction;
@@ -259,12 +260,11 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public void scheduleAsyncPersist(final AlluxioURI path)
+  public void scheduleAsyncPersist(final AlluxioURI path, ScheduleAsyncPersistencePOptions options)
       throws AlluxioStatusException {
     retryRPC(
-        () -> mClient.scheduleAsyncPersistence(
-            ScheduleAsyncPersistencePRequest.newBuilder().setPath(path.getPath()).build()),
-        "ScheduleAsyncPersist");
+        () -> mClient.scheduleAsyncPersistence(ScheduleAsyncPersistencePRequest.newBuilder()
+            .setPath(path.getPath()).setOptions(options).build()), "ScheduleAsyncPersist");
   }
 
   @Override
