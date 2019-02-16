@@ -394,13 +394,13 @@ public final class Client {
 
   private void setupAppMasterEnv(Map<String, String> appMasterEnv) throws IOException {
     String classpath = ApplicationConstants.Environment.CLASSPATH.name();
+    Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(Environment.PWD.$(), "*"),
+        ApplicationConstants.CLASS_PATH_SEPARATOR);
     for (String path : mYarnConf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
         YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
       Apps.addToEnvironment(appMasterEnv, classpath, path.trim(),
           ApplicationConstants.CLASS_PATH_SEPARATOR);
     }
-    Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(Environment.PWD.$(), "*"),
-        ApplicationConstants.CLASS_PATH_SEPARATOR);
 
     appMasterEnv.put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$());
 
