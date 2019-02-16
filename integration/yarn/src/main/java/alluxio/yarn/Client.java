@@ -393,6 +393,11 @@ public final class Client {
   }
 
   private void setupAppMasterEnv(Map<String, String> appMasterEnv) throws IOException {
+    // NOTE(cc): class path order matters, for example:
+    // Alluxio uses a newer version of Guava, an old version of Guava might also exist in the
+    // YARN_APPLICATION_CLASSPATH, if YARN_APPLICATION_CLASSPATH has the highest priority in
+    // class paths, then the old version Guava will be loaded, which may lack some functionality
+    // required by Alluxio.
     String classpath = ApplicationConstants.Environment.CLASSPATH.name();
     Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(Environment.PWD.$(), "*"),
         ApplicationConstants.CLASS_PATH_SEPARATOR);
