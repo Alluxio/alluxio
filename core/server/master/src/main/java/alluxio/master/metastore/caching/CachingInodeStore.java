@@ -38,9 +38,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -48,10 +48,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -324,12 +321,10 @@ public final class CachingInodeStore implements InodeStore, Closeable {
    */
   @VisibleForTesting
   class EdgeCache extends Cache<Edge, Long> {
-    private final ConcurrentSkipListMap<String, Long> mEmpty = new ConcurrentSkipListMap<>();
-
     // Indexes non-removed cache entries by parent id. The inner map is from child name to child id
     @VisibleForTesting
-    TwoKeyConcurrentMap<Long, String, Long, ConcurrentSkipListMap<String, Long>>
-        mIdToChildMap = new TwoKeyConcurrentMap<>(() -> new ConcurrentSkipListMap<>());
+    TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>>
+        mIdToChildMap = new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>(4));
     // Indexes removed cache entries by parent id. The inner set contains the names of deleted
     // children.
     @VisibleForTesting
@@ -354,69 +349,27 @@ public final class CachingInodeStore implements InodeStore, Closeable {
      * @param inodeId the inode to get the children for
      * @return the children
      */
-    public ConcurrentSkipListMap<String, Long> getChildIds(Long inodeId) {
+    public Map<String, Long> getChildIds(Long inodeId) {
       if (mBackingStoreEmpty) {
-        return mIdToChildMap.getOrDefault(inodeId, mEmpty);
+        return mIdToChildMap.getOrDefault(inodeId, Collections.emptyMap());
       }
       // This implementation must be careful because edges can be asynchronously evicted from the
-      // cache to the backing store.
-      //
-      // To prevent races, we copy the cached children and unflushed deletes *before* inspecting the
-      // backing store. This fulfills the first consistency guarantee because pre-existing children
-      // move in the direction of cache -> backing store, so by checking in this order we are
-      // guaranteed to find them. The mUnflushedDeletes map prevents inclusion of inodes which have
-      // been removed from the cache, but not yet flushed to the backing store. This could happen
-      // if we create, evict, load, then remove an edge. Before the remove is evicted, the edge will
-      // be returned by the backing store's getChildIds. mUnflushedDeletes filters out such phantom
-      // edges.
-      Iterator<Map.Entry<String, Long>> cachedChildren =
-          new ArrayList<>(mIdToChildMap.getOrDefault(inodeId, mEmpty).entrySet()).iterator();
+      // cache to the backing store. To account for this, we read from the cache before consulting
+      // the backing store.
+      Map<String, Long> childIds = new HashMap<>();
+      mIdToChildMap.getOrDefault(inodeId, Collections.emptyMap()).forEach((name, id) -> {
+        childIds.put(name, id);
+      });
+      // Copy the list of unflushed deletes before reading the backing store to prevent racing async
+      // deletion.
       Set<String> unflushedDeletes =
           new HashSet<>(mUnflushedDeletes.getOrDefault(inodeId, Collections.EMPTY_SET));
-      Iterator<Long> flushedChildren = mBackingStore.getChildIds(inodeId).iterator();
-      ConcurrentSkipListMap<String, Long> result = new ConcurrentSkipListMap<>();
-
-      Map.Entry<String, Long> cached = nextCachedInode(cachedChildren);
-      Inode flushed = nextFlushedInode(flushedChildren, unflushedDeletes);
-      while (cached != null && flushed != null) {
-        int comparison = cached.getKey().compareTo(flushed.getName());
-        if (comparison == 0) {
-          // De-duplicate children with the same name.
-          result.put(cached.getKey(), cached.getValue());
-          flushed = nextFlushedInode(flushedChildren, unflushedDeletes);
-          cached = nextCachedInode(cachedChildren);
-        } else if (comparison < 0) {
-          result.put(cached.getKey(), cached.getValue());
-          cached = nextCachedInode(cachedChildren);
-        } else {
-          result.put(flushed.getName(), flushed.getId());
-          flushed = nextFlushedInode(flushedChildren, unflushedDeletes);
+      mBackingStore.getChildren(inodeId).forEach(inode -> {
+        if (!unflushedDeletes.contains(inode.getName())) {
+          childIds.put(inode.getName(), inode.getId());
         }
-      }
-      while (cached != null) {
-        result.put(cached.getKey(), cached.getValue());
-        cached = nextCachedInode(cachedChildren);
-      }
-      while (flushed != null) {
-        result.put(flushed.getName(), flushed.getId());
-        flushed = nextFlushedInode(flushedChildren, unflushedDeletes);
-      }
-      return result;
-    }
-
-    private Inode nextFlushedInode(Iterator<Long> flushedIterator, Set<String> unflushedDeletes) {
-      while (flushedIterator.hasNext()) {
-        Long id = flushedIterator.next();
-        Optional<Inode> inode = CachingInodeStore.this.get(id);
-        if (inode.isPresent() && !unflushedDeletes.contains(inode.get().getName())) {
-          return inode.get();
-        }
-      }
-      return null;
-    }
-
-    private <T> T nextCachedInode(Iterator<T> cacheIterator) {
-      return cacheIterator.hasNext() ? cacheIterator.next() : null;
+      });
+      return childIds;
     }
 
     @Override
@@ -504,7 +457,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     private void addToUnflushedDeletes(long parentId, String childName) {
       mUnflushedDeletes.compute(parentId, (key, children) -> {
         if (children == null) {
-          children = new ConcurrentSkipListSet<>();
+          children = ConcurrentHashMap.newKeySet(4);
         }
         children.add(childName);
         return children;
@@ -621,7 +574,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       mMap.computeIfAbsent(inodeId, x -> {
         mWeight.incrementAndGet();
         ListingCacheEntry entry = new ListingCacheEntry();
-        entry.mChildren = new ConcurrentSkipListMap<>();
+        entry.mChildren = new ConcurrentHashMap<>(4);
         return entry;
       });
     }
@@ -700,15 +653,15 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       return loadChildren(inodeId, entry).values();
     }
 
-    private SortedMap<String, Long> loadChildren(Long inodeId, ListingCacheEntry entry) {
+    private Map<String, Long> loadChildren(Long inodeId, ListingCacheEntry entry) {
       evictIfNecessary();
       entry.mModified = false;
-      SortedMap<String, Long> listing = mEdgeCache.getChildIds(inodeId);
+      Map<String, Long> listing = mEdgeCache.getChildIds(inodeId);
       mMap.computeIfPresent(inodeId, (key, value) -> {
         // Perform the update inside computeIfPresent to prevent concurrent modification to the
         // cache entry.
         if (!entry.mModified) {
-          entry.mChildren = new ConcurrentSkipListMap<>(listing);
+          entry.mChildren = new ConcurrentHashMap<>(listing);
           mWeight.addAndGet(weight(entry));
           return entry;
         }
@@ -771,7 +724,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       private volatile boolean mReferenced = true;
       // null indicates that we are in the process of loading the children.
       @Nullable
-      private volatile ConcurrentSkipListMap<String, Long> mChildren = null;
+      private volatile Map<String, Long> mChildren = null;
 
       public void addChild(String name, Long id) {
         if (mChildren != null && mChildren.put(name, id) == null) {

@@ -54,7 +54,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void lsNoAcl() throws IOException, AlluxioException {
+  public void lsNoAcl() {
     createFiles();
     mFsShell.run("ls", "/testRoot");
     checkOutput(

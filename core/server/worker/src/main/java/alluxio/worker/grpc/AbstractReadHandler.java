@@ -20,6 +20,7 @@ import alluxio.grpc.DataMessage;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.resource.LockResource;
+import alluxio.util.LogUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -102,6 +103,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     // Expected state: context equals null as this handler is new for request.
     // Otherwise, notify the client an illegal state. Note that, we reset the context before
     // validation msg as validation may require to update error in context.
+    LOG.debug("Received read request {}.", request);
     try (LockResource lr = new LockResource(mLock)) {
       Preconditions.checkState(mContext == null || !mContext.isDataReaderActive());
       mContext = createRequestContext(request);
@@ -110,6 +112,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
       mContext.setDataReaderActive(true);
     } catch (Exception e) {
+      LogUtils.warnWithException(LOG, "Exception occurred while processing read request {}.",
+          request, e);
       mSerializingExecutor.execute(() -> mResponseObserver
           .onError(AlluxioStatusException.fromCheckedException(e).toGrpcStatusException()));
     }
@@ -117,7 +121,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
   @Override
   public void onError(Throwable cause) {
-    LOG.error("Exception caught in AbstractReadHandler:", cause);
+    LogUtils.warnWithException(LOG, "Exception occurred while processing read request {}",
+        mContext == null ? null : mContext.getRequest(), cause);
     setError(new Error(AlluxioStatusException.fromThrowable(cause), false));
   }
 
@@ -322,7 +327,9 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
                 }
                 incrementMetrics(finalChunk.getLength());
               } catch (Exception e) {
-                LOG.error("Failed to read data.", e);
+                LogUtils.warnWithException(LOG,
+                    "Exception occurred while sending data for read request {}.",
+                    mContext.getRequest(), e);
                 setError(new Error(AlluxioStatusException.fromThrowable(e), true));
               } finally {
                 if (finalChunk != null) {
@@ -332,7 +339,9 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
             });
           }
         } catch (Exception e) {
-          LOG.error("Failed to read data.", e);
+          LogUtils.warnWithException(LOG,
+              "Exception occurred while reading data for read request {}.", mContext.getRequest(),
+              e);
           setError(new Error(AlluxioStatusException.fromThrowable(e), true));
           continue;
         }
@@ -352,6 +361,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
         try {
           completeRequest(mContext);
         } catch (Exception e) {
+          LogUtils.warnWithException(LOG, "Exception occurred while completing read request {}.",
+              mContext.getRequest(), e);
           setError(new Error(AlluxioStatusException.fromThrowable(e), true));
         }
         if (eof) {

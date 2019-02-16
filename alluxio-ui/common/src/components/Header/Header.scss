@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-@import '../../constants/scss/darkly/variables';
+@import '../../constants/scss/themeVariables';
 
 .header {
   .navbar {
@@ -20,6 +20,7 @@
 
       .headerLogo {
         .brand {
+          font-size: 1.125rem;
           padding: 0.25em;
 
           .brandImage {
@@ -58,8 +59,6 @@
     }
 
     .tabs {
-      margin-bottom: -0.9em;
-
       .nav-tabs {
         border: 0;
 
@@ -70,11 +69,6 @@
             background-color: $body-bg;
             border-color: transparent;
           }
-        }
-
-        .auto-refresh-button {
-          margin-top: -1.125em;
-          margin-right: 0.33em;
         }
       }
     }

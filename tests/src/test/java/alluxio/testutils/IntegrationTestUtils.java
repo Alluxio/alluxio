@@ -23,9 +23,14 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterClientContext;
+import alluxio.master.NoopMaster;
 import alluxio.master.PortRegistry;
+import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsJournalSnapshot;
 import alluxio.util.CommonUtils;
 import alluxio.util.GrpcDefaultOptions;
+import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
 import alluxio.worker.block.BlockWorker;
@@ -126,6 +131,26 @@ public final class IntegrationTestUtils {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Waits for a checkpoint to be written in the specified master's journal.
+   *
+   * @param masterName the name of the master
+   */
+  public static void waitForCheckpoint(String masterName)
+      throws TimeoutException, InterruptedException {
+    UfsJournal journal = new UfsJournal(URIUtils.appendPathOrDie(JournalUtils.getJournalLocation(),
+        masterName), new NoopMaster(""), 0);
+    CommonUtils.waitFor("checkpoint to be written", () -> {
+      UfsJournalSnapshot snapshot;
+      try {
+        snapshot = UfsJournalSnapshot.getSnapshot(journal);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return !snapshot.getCheckpoints().isEmpty();
+    });
   }
 
   /**
