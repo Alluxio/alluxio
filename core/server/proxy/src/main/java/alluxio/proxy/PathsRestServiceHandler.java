@@ -115,7 +115,7 @@ public final class PathsRestServiceHandler {
         mFileSystem.createDirectory(new AlluxioURI(path), options);
       }
       return null;
-    } , ServerConfiguration.global(), null);
+    }, ServerConfiguration.global());
   }
 
   /**
@@ -141,7 +141,7 @@ public final class PathsRestServiceHandler {
         }
         return mStreamCache.put(os);
       }
-    } , ServerConfiguration.global(), null);
+    }, ServerConfiguration.global());
   }
 
   /**
