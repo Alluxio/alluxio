@@ -20,6 +20,7 @@ import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -45,6 +46,8 @@ import ru.serce.jnrfuse.struct.FuseFileInfo;
 import ru.serce.jnrfuse.struct.Timespec;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -253,6 +256,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         mNextOpenFileId += 1;
       }
       LOG.debug("{} created and opened", path);
+    } catch (FileAlreadyExistsException e) {
+      LOG.debug("Failed to create {}, file already exists", path, e);
+      return -ErrorCodes.EEXIST();
     } catch (Throwable t) {
       LOG.error("Failed to create {}", path, t);
       return AlluxioFuseUtils.getErrorCode(t);
@@ -351,6 +357,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       }
       stat.st_mode.set(mode);
       stat.st_nlink.set(1);
+    } catch (InvalidPathException | FileDoesNotExistException e) {
+      LOG.debug("Failed to get info of {}, path is invaid or does not exist", path, e);
+      return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to get info of {}", path, t);
       return AlluxioFuseUtils.getErrorCode(t);
@@ -380,6 +389,12 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("mkdir({}) [Alluxio: {}]", path, turi);
     try {
       mFileSystem.createDirectory(turi);
+    } catch (FileAlreadyExistsException e) {
+      LOG.debug("Failed to create directory {}, directory already exists", path);
+      return -ErrorCodes.EEXIST();
+    } catch (InvalidPathException e) {
+      LOG.debug("Failed to create directory {}, path is invalid", path);
+      return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to create directory {}", path, t);
       return AlluxioFuseUtils.getErrorCode(t);
@@ -429,6 +444,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
       }
+    } catch (FileDoesNotExistException e) {
+      LOG.debug("Failed to open file {}, path does not exist", path);
+      return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to open file {}", path, t);
       return AlluxioFuseUtils.getErrorCode(t);
@@ -522,6 +540,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       for (final URIStatus file : ls) {
         filter.apply(buff, file.getName(), null, 0);
       }
+    } catch (FileDoesNotExistException | InvalidPathException e) {
+      LOG.debug("Failed to read directory {}, path is invalid or does not exist", path, e);
+      return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to read directory {}", path, t);
       return AlluxioFuseUtils.getErrorCode(t);
@@ -582,6 +603,12 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
           oe.setPath(newPath);
         }
       }
+    } catch (FileDoesNotExistException e) {
+      LOG.debug("Failed to rename {} to {}, file {} does not exist", oldPath, newPath, oldPath);
+      return -ErrorCodes.ENOENT();
+    } catch (FileAlreadyExistsException e) {
+      LOG.debug("Failed to rename {} to {}, file {} already exists", oldPath, newPath, newPath);
+      return -ErrorCodes.EEXIST();
     } catch (Throwable t) {
       LOG.error("Failed to rename {} to {}", oldPath, newPath, t);
       return AlluxioFuseUtils.getErrorCode(t);
@@ -697,6 +724,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
 
     try {
       mFileSystem.delete(turi);
+    } catch (FileDoesNotExistException e) {
+      LOG.debug("Failed to remove {}, file does not exist", path);
+      return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to remove {}", path, t);
       return AlluxioFuseUtils.getErrorCode(t);
