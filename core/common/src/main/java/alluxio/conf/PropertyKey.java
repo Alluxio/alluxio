@@ -621,33 +621,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
-      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS)
-          .setDefaultValue("50ms")
-          .setDescription("Block reads from an object store automatically retry for transient "
-              + "errors with an exponential backoff. This property determines the base time in the "
-              + "exponential backoff. Only applicable for S3A.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
-      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM)
-          .setDefaultValue(20)
-          .setDescription("Block reads from an object store automatically retry for transient "
-              + "errors with an exponential backoff. This property determines the maximum number of"
-              + " retries. Only applicable for S3A.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
-      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS)
-          .setDefaultValue("30sec")
-          .setDescription("Block reads from an object store automatically retry for transient "
-              + "errors with an exponential backoff. This property determines the maximum wait time"
-              + " in the backoff. Only applicable for S3A.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_MAX =
       new Builder(Name.UNDERFS_OSS_CONNECT_MAX)
           .setDefaultValue(1024)
@@ -806,6 +779,33 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Setting this property to a non-zero value can improve performance by "
               + "avoiding the long tail of requests to S3. For very slow connections to S3, "
               + "consider increasing this value or setting it to 0.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_S3A_RETRY_BASE_SLEEP_MS =
+      new Builder(Name.UNDERFS_S3A_RETRY_BASE_SLEEP_MS)
+          .setDefaultValue("50ms")
+          .setDescription("Block reads and gets metadata information from S3A "
+              + "automatically retry for transient errors with an exponential backoff. "
+              + "This property determines the base time in the exponential backoff.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_S3A_RETRY_MAX_NUM =
+      new Builder(Name.UNDERFS_S3A_RETRY_MAX_NUM)
+          .setDefaultValue(20)
+          .setDescription("Block reads and gets metadata information from S3A "
+              + "automatically retry for transient errors with an exponential backoff. "
+              + "This property determines the maximum number of retries.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_S3A_RETRY_MAX_SLEEP_MS =
+      new Builder(Name.UNDERFS_S3A_RETRY_MAX_SLEEP_MS)
+          .setDefaultValue("30sec")
+          .setDescription("Block reads and gets metadata information from S3A "
+              + "automatically retry for transient errors with an exponential backoff. "
+              + "This property determines the maximum wait time in the backoff.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -3541,12 +3541,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.object.store.mount.shared.publicly";
     public static final String UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
         "alluxio.underfs.object.store.multi.range.chunk.size";
-    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
-        "alluxio.underfs.object.store.read.retry.base.sleep";
-    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
-        "alluxio.underfs.object.store.read.retry.max.num";
-    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
-        "alluxio.underfs.object.store.read.retry.max.sleep";
     public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
     public static final String UNDERFS_OSS_CONNECT_TIMEOUT =
         "alluxio.underfs.oss.connection.timeout";
@@ -3565,6 +3559,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.s3a.list.objects.v1";
     public static final String UNDERFS_S3A_REQUEST_TIMEOUT_MS =
         "alluxio.underfs.s3a.request.timeout";
+    public static final String UNDERFS_S3A_RETRY_BASE_SLEEP_MS =
+        "alluxio.underfs.s3a.retry.base.sleep";
+    public static final String UNDERFS_S3A_RETRY_MAX_NUM =
+        "alluxio.underfs.s3a.retry.max.num";
+    public static final String UNDERFS_S3A_RETRY_MAX_SLEEP_MS =
+        "alluxio.underfs.s3a.retry.max.sleep";
     public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
         "alluxio.underfs.s3a.secure.http.enabled";
     public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
