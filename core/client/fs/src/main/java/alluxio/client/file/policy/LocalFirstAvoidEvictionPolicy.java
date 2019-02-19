@@ -56,8 +56,7 @@ public final class LocalFirstAvoidEvictionPolicy
   @VisibleForTesting
   LocalFirstAvoidEvictionPolicy(TieredIdentity localTieredIdentity,
       AlluxioConfiguration conf) {
-    mPolicy = LocalFirstPolicy.create(localTieredIdentity,
-        conf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP));
+    mPolicy = LocalFirstPolicy.create(localTieredIdentity, conf);
     mFileWriteCapacityReserved = conf
         .getBytes(PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES);
   }
