@@ -121,6 +121,11 @@ public final class GrpcDataReader implements DataReader {
       if (message != null) {
         response = message.getMessage();
         buffer = message.getBuffer();
+        if (buffer == null && response.hasChunk() && response.getChunk().hasData()) {
+          // falls back to use chunk message for compatibility
+          ByteBuffer byteBuffer = response.getChunk().getData().asReadOnlyByteBuffer();
+          buffer = new NioDataBuffer(byteBuffer, byteBuffer.remaining());
+        }
         Preconditions.checkState(buffer != null, "response should always contain chunk");
       }
     } else {
