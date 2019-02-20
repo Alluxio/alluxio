@@ -50,6 +50,11 @@ interact with. Alluxio supports other language bindings including
 [Python]({{ '/en/api/FS-API.html' | relativize_url }}#python) and
 [Golang]({{ '/en/api/FS-API.html' | relativize_url }}#go).
 
+Alluxio can be run as a FUSE mount exposing a [POSIX API]({{ '/en/api/FUSE-API.html' | relativize_url }}).
+This enables any program which normally accesses a local file system to access data from Alluxio without
+modification. This is a common way for applications written in non-Java languages or non-Hadoop APIs
+to access Alluxio data without needing to rewrite the application.
+
 ## What happens if my data set does not fit in memory?
 
 It is not required for the input data set to fit in Alluxio storage space in order for
@@ -59,7 +64,7 @@ resources such as SSD and HDD in addition to memory to extend Alluxio storage ca
 Read more about Alluxio storage setup
 [here]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}).
 
-## Does Alluxio support a fault tolerant mode?
+## Does Alluxio support a high availability mode?
 
 Yes. See instructions about
 [Deploy Alluxio on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}).
@@ -76,9 +81,12 @@ systems.
 
 ## Does Alluxio require HDFS?
 
-No, in addition to HDFS, Alluxio can also run on different under storage systems such as Amazon S3 or Swift.
+No, Alluxio can run on many under storage systems such as Amazon S3 or Swift in addition to HDFS.
 
 ## How can I learn more about Alluxio?
+
+Join the [Alluxio community Slack Channel](https://www.alluxio.org/slack) to chat with users and
+developers.
 
 Read the recent [blogs](https://alluxio.org/resources/posts) and
 [presentations](https://alluxio.org/resources/presentations).
