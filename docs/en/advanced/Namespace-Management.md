@@ -74,15 +74,15 @@ Alluxio, one can read the data using `FileInStream` or use the `load` command of
 
 ## Mounting Under Storage Systems
 Mounting in Alluxio works similarly to mounting a volume in a Linux file system.
-The mount command attaches a UFS to the file system tree in the Alluxio namespace. 
+The mount command attaches a UFS to the file system tree in the Alluxio namespace.
 
 ### Root Mount Point
 The root mount point of the Alluxio namespace can be specified in `conf/alluxio-site.properties`.
 The following line is an example configuration where a HDFS path is at the root of the Alluxio namespace.
 
 ```
-alluxio.underfs.address=hdfs://HDFS_HOSTNAME:9000
-``` 
+alluxio.underfs.address=hdfs://HDFS_HOSTNAME:8020
+```
 
 Mount options for the root mount point can be configured using the configuration prefix:
 
@@ -95,19 +95,19 @@ alluxio.master.mount.table.root.option.aws.accessKeyId=<AWS_ACCESS_KEY_ID>
 alluxio.master.mount.table.root.option.aws.secretKey=<AWS_SECRET_ACCESS_KEY>
 ```
 
-The following configuration shows how to set other parameters for the root mount point. 
+The following configuration shows how to set other parameters for the root mount point.
 
 ```
 alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.principal=client
 alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.keytab.file=keytab
 alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.impersonation.enabled=true
-alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.version=hdp-2.6
+alluxio.master.mount.table.root.option.alluxio.underfs.version=2.6
 ```
 
 ### Nested Mount Points
 In addition to the root mount point, other under file systems can be mounted into Alluxio namespace
 by using the mount command. The `--option` flag allows the user to pass additional parameters
-to the mount operation, such as credentials for S3 storage. 
+to the mount operation, such as credentials for S3 storage.
 
 ```bash
 $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
@@ -117,6 +117,12 @@ $ ./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId> --option aws.sec
 
 Note that mount points can be nested as well. For example, if a UFS is mounted at
 `alluxio:///path1`, another UFS could be mounted at `alluxio:///path1/path2`.
+
+### Mount UFS with Specific Versions
+
+Alluxio v{{site.ALLUXIO_RELEASED_VERSION}} supports mounting HDFS with specified versions.
+As a result, users can mount HDFS with different versions into a single Alluxio namespace. Please
+refer to [HDFS Under Store]({{ '/en/ufs/HDFS.html' | relativize_url }}) for more details.
 
 ## Relationship Between Alluxio and UFS Namespace
 Alluxio provides a unified namespace, acting as a cache for data in one or more
@@ -143,7 +149,7 @@ the metadata sync feature is used to synchronize the two namespaces.
 > The UFS metadata sync feature has been available since version `1.7.0`.
 
 When Alluxio scans a UFS directory and loads metadata for its sub-paths,
-it creates a copy of the metadata so that future operations do not need to load from the UFS. 
+it creates a copy of the metadata so that future operations do not need to load from the UFS.
 By default, the cached copy lives forever but its lifetime can be configured using the
 `alluxio.user.file.metadata.sync.interval` property.
 This property applies to client side operations.
@@ -166,7 +172,7 @@ If a file is added or deleted in the UFS, Alluxio will update the metadata in it
 #### Periodic Metadata Sync
 
 If the UFS updates at a scheduled interval, you can manually trigger the sync command after the update.
-Set the sync interval to `0` by running the command: 
+Set the sync interval to `0` by running the command:
 
 ```bash
 $ alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0
@@ -177,7 +183,7 @@ since it is known that there will be no further external changes to the UFS unti
 
 #### Centralized Configuration
 
-For clusters where jobs run with data from a frequently updated UFS,  
+For clusters where jobs run with data from a frequently updated UFS,
 it is inconvenient for every client to specify a sync interval.
 Requests will be handled with a default sync interval if one is set in the master configuration.
 
@@ -194,7 +200,7 @@ Here are some other methods for loading files:
 
 * `alluxio.user.file.metadata.load.type`: This property can be set to either
 `ALWAYS`, `ONCE`, or `NEVER`. It acts similar to `alluxio.user.file.metadata.sync.interval`,
-but with two caveats: 
+but with two caveats:
     1. It only discovers new files and does not reload modified or deleted files
     1. It only applies to the `exists`, `list`, and `getStatus` RPCs
 `ALWAYS` will always check the UFS for new files, `ONCE` will use the default
@@ -282,7 +288,7 @@ hello
 
 ### Unified Namespace
 
-This example will mount multiple under storages of different types to showcase the unified 
+This example will mount multiple under storages of different types to showcase the unified
 file system namespace abstraction. This example will use two S3 buckets owned by different AWS
 accounts and a HDFS service.
 
