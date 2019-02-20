@@ -13,7 +13,7 @@ This guide describes the instructions to configure
 [HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html)
 as Alluxio's under storage system.
 
-## Initial Setup
+## Prerequisites
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio server binaries to each of
 these machines. You can either
@@ -50,7 +50,7 @@ If everything succeeds, you should see
 `alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in
 the `${ALLUXIO_HOME}/assembly/server/target` directory.
 
-## Configuring Alluxio
+## Basic Setup
 
 To configure Alluxio to use HDFS as under storage, you will need to modify the configuration
 file `conf/alluxio-site.properties`.
@@ -60,17 +60,52 @@ If the file does not exist, create the configuration file from the template.
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-### Basic Configuration
-
 Edit `conf/alluxio-site.properties` file to set the under storage address to the HDFS namenode
 address and the HDFS directory you want to mount to Alluxio. For example, the under storage address
-can be `hdfs://localhost:9000` if you are running the HDFS namenode locally with default port and
-mapping HDFS root directory to Alluxio, or `hdfs://localhost:9000/alluxio/data` if only the HDFS
+can be `hdfs://localhost:8020` if you are running the HDFS namenode locally with default port and
+mapping HDFS root directory to Alluxio, or `hdfs://localhost:8020/alluxio/data` if only the HDFS
 directory `/alluxio/data` is mapped to Alluxio.
 
 ```
 alluxio.underfs.address=hdfs://<NAMENODE>:<PORT>
 ```
+
+## Example: Running Alluxio Locally with HDFS
+
+Before this step, make sure your HDFS cluster is running and the directory mapped to Alluxio
+exists. Start the Alluxio servers:
+
+```bash
+$ bin/alluxio format
+$ bin/alluxio-start.sh local
+```
+
+This will start one Alluxio master and one Alluxio worker locally. You can see the master UI at
+[http://localhost:19999](http://localhost:19999).
+
+Run a simple example program:
+
+```bash
+$ bin/alluxio runTests
+```
+
+If the test fails with permission errors, make sure that the current user (`${USER}`) has
+read/write access to the HDFS directory mounted to Alluxio. By default,
+the login user is the current user of the host OS. To change the user, set the value of
+`alluxio.security.login.username` in `conf/alluxio-site.properties` to the desired username.
+
+After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
+to verify the files and directories created by Alluxio exist. For this test, you should see
+files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
+[http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)
+
+Stop Alluxio by running:
+
+```bash
+$ bin/alluxio-stop.sh local
+```
+
+## Advanced Setup
 
 ### HDFS namenode HA mode
 
@@ -123,7 +158,7 @@ The user set above is only the identity that starts Alluxio master and worker
 processes. Once Alluxio servers started, it is **unnecessary** to run your Alluxio client
 applications using this user.
 
-### HDFS Security Configuration
+### Connect to Secure HDFS
 
 If your HDFS cluster is Kerberized, security configuration is needed for Alluxio to be able to
 communicate with the HDFS cluster. Set the following Alluxio properties in `alluxio-site.properties`:
@@ -134,6 +169,13 @@ alluxio.master.principal=hdfs/<_HOST>@<REALM>
 alluxio.worker.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
 alluxio.worker.principal=hdfs/<_HOST>@<REALM>
 ```
+
+If connecting to secure HDFS, run `kinit` on all Alluxio nodes.
+Use the principal `hdfs` and the keytab that you configured earlier in `alluxio-site.properties`
+A known limitation is that the Kerberos TGT may expire after
+the max renewal lifetime. You can work around this by renewing the TGT periodically. Otherwise you
+may see `No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)`
+when starting Alluxio services.
 
 #### Custom Kerberos Realm/KDC
 
@@ -147,46 +189,36 @@ To set these, set `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
 ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
-## Running Alluxio Locally with HDFS
+### Mount HDFS with Specific Versions
 
-Before this step, make sure your HDFS cluster is running and the directory mapped to Alluxio
-exists.
+There are multiple ways for a user to mount an HDFS cluster with a specified version as an under storage into Alluxio namespace.
 
-If connecting to secure HDFS, run `kinit` on all Alluxio nodes.
-Use the principal `hdfs` and the keytab that you configured earlier in `alluxio-site.properties`
-A known limitation is that the Kerberos TGT may expire after
-the max renewal lifetime. You can work around this by renewing the TGT periodically. Otherwise you
-may see `No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)`
-when starting Alluxio services.
+#### Using Mount Command-line
+When using the mount Alluxio shell command, one can pass through the mount option `alluxio.underfs.version` to specify which version of HDFS to mount. If no such a version is specificed, by default Alluxio treats it as Apache HDFS 2.2.
 
-Finally, you are ready to start the Alluxio servers!
+For example, the following commands mount two HDFS deployments—one is HDFS 1.2 and the other is 2.7—into Alluxio namespace under directory `/mnt/hdfs12` and `/mnt/hdfs27`.
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+$ ./bin/alluxio fs mount \
+--option alluxio.underfs.version=1.2 \
+/mnt/hdfs12 hdfs://namenode1:8020/
+$ ./bin/alluxio fs mount \
+--option alluxio.underfs.version=2.7 \
+/mnt/hdfs27 hdfs://namenode2:8020/
 ```
 
-This will start one Alluxio master and one Alluxio worker locally. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
+#### Using Site Properties
 
-Run a simple example program:
+When mounting the under storage of Alluxio root directory with a specific HDFS version, one can add the
+following line to the site properties file (`conf/alluxio-site.properties`)
 
-```bash
-$ bin/alluxio runTests
+```
+alluxio.master.mount.table.root.ufs=hdfs://namenode1:8020
+alluxio.master.mount.table.root.option.alluxio.underfs.version=1.2
 ```
 
-If the test fails with permission errors, make sure that the current user (`${USER}`) has
-read/write access to the HDFS directory mounted to Alluxio. By default,
-the login user is the current user of the host OS. To change the user, set the value of
-`alluxio.security.login.username` in `conf/alluxio-site.properties` to the desired username.
+#### Supported HDFS Versions
 
-After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
-to verify the files and directories created by Alluxio exist. For this test, you should see
-files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
-[http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)
+Alluxio v{{site.ALLUXIO_RELEASED_VERSION}} supports the following versions of HDFS as a valid argument of mount option `alluxio.underfs.version`:
 
-Stop Alluxio by running:
-
-```bash
-$ bin/alluxio-stop.sh local
-```
+- Apache Hadoop: 1.0, 1.2, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1
