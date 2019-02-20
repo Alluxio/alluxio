@@ -14,7 +14,7 @@ This guide goes over how to run and test Alluxio on your local machine.
 ## Requirement
 
 The prerequisite for this part is that you have
-[Java](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) (JDK 8 
+[Java](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) (JDK 8
 or above) installed.
 
 [Download](https://alluxio.org/download) the binary distribution of Alluxio
@@ -24,7 +24,7 @@ To run in standalone mode, do the following:
 
 * Create `conf/alluxio-site.properties` by copying `conf/alluxio-site.properties.template`
 
-* Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost` (i.e., 
+* Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost` (i.e.,
 `alluxio.master.hostname=localhost`).
 
 * Set `alluxio.underfs.address` in `conf/alluxio-site.properties` to a tmp directory in the local
@@ -51,6 +51,9 @@ $ ./bin/alluxio format
 Simply run the following command to start Alluxio filesystem.
 
 ```bash
+# If you have not mounted the ramdisk or want to remount it (ie. to change the size)
+$ ./bin/alluxio-start.sh local SudoMount
+# OR if you have already mounted the ramdisk
 $ ./bin/alluxio-start.sh local
 ```
 
