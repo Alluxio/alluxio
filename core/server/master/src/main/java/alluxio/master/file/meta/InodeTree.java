@@ -595,6 +595,7 @@ public class InodeTree implements JournalEntryIterable {
 
         if (!currentInodeDirectory.addChild(dir)) {
           // The child directory inode already exists. Get the existing child inode.
+          dir.setDeleted(true);
           extensibleInodePath.getLockList().unlockLast();
 
           dir =
@@ -612,7 +613,8 @@ public class InodeTree implements JournalEntryIterable {
               // Do not journal the persist entry, since a creation entry will be journaled instead.
               syncPersistDirectory(RpcContext.NOOP, dir);
             }
-          } catch (Exception e) {
+          } catch (Throwable e) {
+            dir.setDeleted(true);
             // Failed to persist the directory, so remove it from the parent.
             currentInodeDirectory.removeChild(dir);
             throw e;
@@ -718,6 +720,7 @@ public class InodeTree implements JournalEntryIterable {
         if (!currentInodeDirectory.addChild(lastInode)) {
           // Could not add the child inode to the parent. Continue and try again.
           // Cleanup is not necessary, since other state is updated later, after a successful add.
+          lastInode.setDeleted(true);
           mInodes.remove(lastInode);
           extensibleInodePath.getLockList().unlockLast();
           lastInode = null;
