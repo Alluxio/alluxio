@@ -11,18 +11,21 @@ can either use the [Alluxio Java Client](#Java-Client), or the
 [Hadoop-Compatible Java Client](#Hadoop-Compatible-Java-Client), which
 wraps the Alluxio Java Client to implement the Hadoop API.
 
-By setting up an Alluxio Proxy, users can also interact with Alluxio through a REST
-API similar to the Filesystem API. The REST API currently has language bindings for
-Go and Python.
+Alluxio also provides a [POSIX API]({{ '/en/api/FUSE-API.html' | relativize_url }}) after mounting
+Alluxio as a local FUSE volume.
 
-A third option is to interact with Alluxio through its S3 API. Users can interact
+By setting up an Alluxio Proxy, users can also interact with Alluxio through a REST
+API similar to the Filesystem API. The REST API is currently used for the Go and Python language
+bindings.
+
+A fourth option is to interact with Alluxio through its S3 API. Users can interact
 using the same S3 clients used for AWS S3 operations. This makes it easy to change
 existing S3 workloads to use Alluxio.
 
 * Table of Contents
 {:toc}
 
-## Java Client
+# Java Client
 
 Alluxio provides access to data through a filesystem interface. Files in Alluxio offer write-once
 semantics: they become immutable after they have been written in their entirety and cannot be read
@@ -30,6 +33,8 @@ before being completed. Alluxio provides two different Filesystem APIs: the Allu
 compatible API. The Alluxio API provides additional functionality, while the Hadoop compatible API
 gives users the flexibility of leveraging Alluxio without having to modify existing code written
 using Hadoop's API.
+
+## Alluxio Java API
 
 All resources with the Alluxio Java API are specified through a `AlluxioURI` which represents the
 path to the resource.
@@ -68,8 +73,8 @@ users to specify non-default settings for the operation. For example:
 ```java
 FileSystem fs = FileSystem.Factory.get();
 AlluxioURI path = new AlluxioURI("/myFile");
-// Generate options to set a custom blocksize of 128 MB
-CreateFileOptions options = CreateFileOptions.defaults().setBlockSize(128 * Constants.MB);
+// Generate options to set a custom blocksize of 64 MB
+CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(67108864).build();
 FileOutStream out = fs.createFile(path, options);
 ```
 
@@ -113,8 +118,8 @@ Below is a table of the expected behaviors of `WriteType`
 
 Alluxio provides location policy to choose which workers to store the blocks of a file.
 
-Using Alluxio's Java API, users can set the policy in `CreateFileOptions` for writing files and
-`OpenFileOptions` for reading files into Alluxio.
+Using Alluxio's Java API, users can set the policy in `CreateFilePOptions` for writing files and
+`OpenFilePOptions` for reading files into Alluxio.
 
 Users can override the default policy class in the
 [configuration file]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) at property
