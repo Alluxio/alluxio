@@ -595,6 +595,10 @@ public class InodeTree implements JournalEntryIterable {
 
         if (!currentInodeDirectory.addChild(dir)) {
           // The child directory inode already exists. Get the existing child inode.
+
+          // The inode couldn't be added, so we will not add it to the tree and it should soon be
+          // garbage collected. We mark it deleted as a precautionary measure in case something
+          // manages to get a reference the inode.
           dir.setDeleted(true);
           extensibleInodePath.getLockList().unlockLast();
 
@@ -614,6 +618,9 @@ public class InodeTree implements JournalEntryIterable {
               syncPersistDirectory(RpcContext.NOOP, dir);
             }
           } catch (Throwable e) {
+            // The inode was temporarily in the child list of its parent, so another thread could
+            // have access to the inode. We must mark it as deleted so that the other thread knows
+            // not to operate on the inode.
             dir.setDeleted(true);
             // Failed to persist the directory, so remove it from the parent.
             currentInodeDirectory.removeChild(dir);
@@ -720,6 +727,10 @@ public class InodeTree implements JournalEntryIterable {
         if (!currentInodeDirectory.addChild(lastInode)) {
           // Could not add the child inode to the parent. Continue and try again.
           // Cleanup is not necessary, since other state is updated later, after a successful add.
+
+          // The inode couldn't be added, so we will not add it to the tree and it should soon be
+          // garbage collected. We mark it deleted as a precautionary measure in case something
+          // manages to get a reference the inode.
           lastInode.setDeleted(true);
           mInodes.remove(lastInode);
           extensibleInodePath.getLockList().unlockLast();
