@@ -57,7 +57,7 @@ $ ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
 ```
 
 The above CLI spawns a background user-space java process (`alluxio-fuse`) that mounts the Alluxio path specified at `/training-data` 
-to the local file system on the specified mount point `/mnt/alluxio`. Please refer to [FUSE section]({{ '/en/api/FUSE-API.html' | relativize_url }}) 
+to the local file system on the specified mount point `/mnt/alluxio`. Please refer to [FUSE documentation]({{ '/en/api/FUSE-API.html' | relativize_url }}) 
 for details about how to mount Alluxio-FUSE and set up fuse related options. 
 
 Check the status of the FUSE process with:
@@ -78,7 +78,7 @@ If the training data is already in a remote data storage, you can mount it as a 
 the Alluxio `/training-data` directory. Those data will be visible to the applications running on
 local `/mnt/fuse/`.
 
-Suppose the ImageNet data is stored in an S3 bucket `s3a://alluxio-tensorflow-imagenet/`.
+Suppose the ImageNet data is stored in a S3 bucket `s3a://alluxio-tensorflow-imagenet/`.
 Run the following command to mount this S3 bucket to Alluxio path `/training-data/imagenet`:
 
 ```bash
@@ -112,10 +112,11 @@ total 0
 
 ### Run image recognition test
 
-Download the [image recognition script](https://github.com/tensorflow/models/tree/master/tutorials/image/imagenet)
+Download the [image recognition script](https://raw.githubusercontent.com/tensorflow/models/master/tutorials/image/imagenet/classify_image.py)
 and run it with the local folder which holds the training data.
 
 ```bash
+$ curl -o classify_image.py -L https://raw.githubusercontent.com/tensorflow/models/master/tutorials/image/imagenet/classify_image.py
 $ python classify_image.py --model_dir /mnt/fuse/imagenet/
 ```
 
