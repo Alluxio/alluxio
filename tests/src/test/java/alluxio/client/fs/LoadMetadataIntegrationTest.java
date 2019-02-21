@@ -172,27 +172,35 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false);
   }
 
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.USER_FILE_METADATA_LOAD_TYPE, "ALWAYS"
+      })
   @Test
   public void loadAlwaysConfiguration() throws Exception {
-    GetStatusPOptions options = GetStatusPOptions.newBuilder()
-        .setLoadMetadataType(LoadMetadataPType.ALWAYS).build();
+    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
   }
 
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.USER_FILE_METADATA_LOAD_TYPE, "ONCE"
+      })
   @Test
   public void loadOnceConfiguration() throws Exception {
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
-        LoadMetadataType.ONCE.toString());
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
   }
 
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.USER_FILE_METADATA_LOAD_TYPE, "NEVER"
+      })
   @Test
   public void loadNeverConfiguration() throws Exception {
-    GetStatusPOptions options = GetStatusPOptions.newBuilder()
-        .setLoadMetadataType(LoadMetadataPType.NEVER).build();
+    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
   }

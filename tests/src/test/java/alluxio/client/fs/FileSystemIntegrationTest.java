@@ -36,7 +36,6 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -335,8 +334,8 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   @Test
   public void createDirectoryOnTopOfFile() throws Exception {
     AlluxioURI path = new AlluxioURI("/dir");
-    FileSystemTestUtils.createByteFile(mFileSystem, path,
-        FileSystemOptions.createFileDefaults(ServerConfiguration.global()), 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, path, CreateFilePOptions.getDefaultInstance(),
+        10);
     mThrown.expect(FileAlreadyExistsException.class);
     mFileSystem.createDirectory(path);
   }
@@ -379,7 +378,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     mFileSystem.createDirectory(dir);
     mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "file"))).close();
     mThrown.expect(DirectoryNotEmptyException.class);
-    mFileSystem.delete(dir, FileSystemOptions.deleteDefaults(ServerConfiguration.global()));
+    mFileSystem.delete(dir, DeletePOptions.getDefaultInstance());
   }
 
   @Test
