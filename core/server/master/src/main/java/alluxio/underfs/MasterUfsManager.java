@@ -14,8 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryIterable;
-import alluxio.master.journal.JournalEntryReplayable;
+import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -23,6 +22,9 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -37,8 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A class that manages the UFS for master servers.
  */
 @ThreadSafe
-public final class MasterUfsManager extends AbstractUfsManager
-    implements JournalEntryIterable, JournalEntryReplayable {
+public final class MasterUfsManager extends AbstractUfsManager implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(MasterUfsManager.class);
 
   private final State mState;
@@ -114,19 +115,46 @@ public final class MasterUfsManager extends AbstractUfsManager
   }
 
   @Override
+  public boolean processJournalEntry(JournalEntry entry) {
+    return mState.processJournalEntry(entry);
+  }
+
+  @Override
+  public void resetState() {
+    mState.resetState();
+  }
+
+  @Override
+  public String getName() {
+    return mState.getName();
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    mState.writeToCheckpoint(output);
+  }
+
+  @Override
+  public void restoreFromCheckpoint(InputStream input) throws IOException {
+    mState.restoreFromCheckpoint(input);
+  }
+
+  @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
     return mState.getJournalEntryIterator();
   }
 
-  @Override
-  public boolean replayJournalEntryFromJournal(JournalEntry entry) {
-    return mState.replayJournalEntryFromJournal(entry);
-  }
+  private static class State implements Journaled {
+    private static final String NAME = "UfsManager";
 
-  private static class State implements JournalEntryReplayable, JournalEntryIterable {
     // The physical ufs state for all managed mounts. The keys are URIs normalized to set the path
     // to "/", e.g. "hdfs://namenode/" or just "/" for local filesystem.
     private final Map<String, UfsMode> mUfsModes = new HashMap<>();
+
+    @Override
+    public String getName() {
+      return NAME;
+    }
 
     /**
      * @param key a root ufs path
@@ -137,7 +165,12 @@ public final class MasterUfsManager extends AbstractUfsManager
     }
 
     @Override
-    public boolean replayJournalEntryFromJournal(JournalEntry entry) {
+    public void resetState() {
+      mUfsModes.clear();
+    }
+
+    @Override
+    public boolean processJournalEntry(JournalEntry entry) {
       if (entry.hasUpdateUfsMode()) {
         apply(entry.getUpdateUfsMode());
       } else {
@@ -151,8 +184,7 @@ public final class MasterUfsManager extends AbstractUfsManager
      * @param entry update ufs mode entry
      */
     public void applyAndJournal(Supplier<JournalContext> context, UpdateUfsModeEntry entry) {
-      apply(entry);
-      context.get().append(JournalEntry.newBuilder().setUpdateUfsMode(entry).build());
+      applyAndJournal(context, JournalEntry.newBuilder().setUpdateUfsMode(entry).build());
     }
 
     private void apply(UpdateUfsModeEntry entry) {

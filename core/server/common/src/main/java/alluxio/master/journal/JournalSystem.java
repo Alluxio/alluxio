@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A journal system for storing and applying journal entries.
  *
  * To use the journal system, first create per-state-machine journals with the
- * {@link #createJournal(JournalEntryStateMachine)} method. Once all state machines are added,
+ * {@link #createJournal(Journaled)} method. Once all state machines are added,
  * {@link #start()} the journal system. The journal system starts in secondary mode, meaning it will
  * not accept writes, but will apply journal entries to keep state machine states up to date with
  * previously written journal entries.
@@ -102,14 +102,14 @@ public interface JournalSystem {
    * written when the journal system is in PRIMARY mode.
    *
    * When the journal is started in secondary mode, it will call
-   * {@link JournalEntryStateMachine#processJournalEntry(JournalEntry)} and
-   * {@link JournalEntryStateMachine#resetState()} to keep the state machine's state in sync with
+   * {@link Journaled#processJournalEntry(JournalEntry)} and
+   * {@link Journaled#resetState()} to keep the state machine's state in sync with
    * the entries written to the journal.
    *
    * @param stateMachine the state machine to create the journal for
    * @return a new instance of {@link Journal}
    */
-  Journal createJournal(JournalEntryStateMachine stateMachine);
+  Journal createJournal(Journaled stateMachine);
 
   /**
    * Starts the journal system.

@@ -15,10 +15,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.state.DirectoryId;
-import alluxio.master.file.state.DirectoryId.UnmodifiableDirectoryId;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryIterable;
-import alluxio.master.journal.JournalEntryReplayable;
+import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
@@ -26,7 +24,6 @@ import alluxio.util.CommonUtils;
 import com.google.common.base.Preconditions;
 
 import java.util.Iterator;
-import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -36,11 +33,12 @@ import javax.annotation.concurrent.ThreadSafe;
  * retrieved.
  */
 @ThreadSafe
-public class InodeDirectoryIdGenerator implements JournalEntryIterable, JournalEntryReplayable {
+public class InodeDirectoryIdGenerator implements Journaled {
+  private static final String NAME = "InodeDirectoryIdGenerator";
+
   private final ContainerIdGenerable mContainerIdGenerator;
 
-  private final InodeDirectoryIdGeneratorState mState;
-  private final UnmodifiableDirectoryId mNextDirectoryId;
+  private final DirectoryId mNextDirectoryId;
   private boolean mInitialized = false;
 
   /**
@@ -49,13 +47,12 @@ public class InodeDirectoryIdGenerator implements JournalEntryIterable, JournalE
   public InodeDirectoryIdGenerator(ContainerIdGenerable containerIdGenerator) {
     mContainerIdGenerator =
         Preconditions.checkNotNull(containerIdGenerator, "containerIdGenerator");
-    mState = new InodeDirectoryIdGeneratorState();
-    mNextDirectoryId = mState.getDirectoryId();
+    mNextDirectoryId = new DirectoryId();
   }
 
   @Override
-  public boolean replayJournalEntryFromJournal(JournalEntry entry) {
-    return mState.replayJournalEntryFromJournal(entry);
+  public String getName() {
+    return NAME;
   }
 
   /**
@@ -75,13 +72,13 @@ public class InodeDirectoryIdGenerator implements JournalEntryIterable, JournalE
     } else {
       sequenceNumber++;
     }
-    mState.applyAndJournal(context, toEntry(containerId, sequenceNumber));
+    applyAndJournal(context, toEntry(containerId, sequenceNumber));
     return directoryId;
   }
 
   private void initialize(JournalContext context) throws UnavailableException {
     if (!mInitialized) {
-      mState.applyAndJournal(context, toEntry(mContainerIdGenerator.getNewContainerId(), 0));
+      applyAndJournal(context, toEntry(mContainerIdGenerator.getNewContainerId(), 0));
       mInitialized = true;
     }
   }
@@ -89,57 +86,39 @@ public class InodeDirectoryIdGenerator implements JournalEntryIterable, JournalE
   /**
    * @param containerId a container ID
    * @param sequenceNumber a sequence number
-   * @return an inode directory journal entry for the given container ID and sequence number
+   * @return a journal entry for the given container ID and sequence number
    */
-  private static InodeDirectoryIdGeneratorEntry toEntry(long containerId, long sequenceNumber) {
-    return InodeDirectoryIdGeneratorEntry.newBuilder()
-        .setContainerId(containerId)
-        .setSequenceNumber(sequenceNumber)
+  private static JournalEntry toEntry(long containerId, long sequenceNumber) {
+    return JournalEntry.newBuilder().setInodeDirectoryIdGenerator(
+        InodeDirectoryIdGeneratorEntry.newBuilder()
+            .setContainerId(containerId)
+            .setSequenceNumber(sequenceNumber))
         .build();
   }
 
   @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    return CommonUtils.singleElementIterator(
-        JournalEntry.newBuilder().setInodeDirectoryIdGenerator(
-            InodeDirectoryIdGeneratorEntry.newBuilder()
-                .setContainerId(mNextDirectoryId.getContainerId())
-                .setSequenceNumber(mNextDirectoryId.getSequenceNumber())
-                .build()
-        ).build());
-  }
-
-  private static class InodeDirectoryIdGeneratorState implements JournalEntryReplayable {
-    private final DirectoryId mNextDirectoryId = new DirectoryId();
-
-    public UnmodifiableDirectoryId getDirectoryId() {
-      return mNextDirectoryId.getUnmodifiableView();
-    }
-
-    public void applyAndJournal(Supplier<JournalContext> context,
-        InodeDirectoryIdGeneratorEntry entry) {
-      apply(entry);
-      context.get().append(JournalEntry.newBuilder().setInodeDirectoryIdGenerator(entry).build());
-    }
-
-    @Override
-    public boolean replayJournalEntryFromJournal(JournalEntry entry) {
-      if (entry.hasInodeDirectoryIdGenerator()) {
-        apply(entry.getInodeDirectoryIdGenerator());
-      } else {
-        return false;
-      }
+  public boolean processJournalEntry(JournalEntry entry) {
+    if (entry.hasInodeDirectoryIdGenerator()) {
+      InodeDirectoryIdGeneratorEntry e = entry.getInodeDirectoryIdGenerator();
+      mNextDirectoryId.setContainerId(e.getContainerId());
+      mNextDirectoryId.setSequenceNumber(e.getSequenceNumber());
       return true;
     }
+    return false;
+  }
 
-    private void apply(InodeDirectoryIdGeneratorEntry entry) {
-      mNextDirectoryId.setContainerId(entry.getContainerId());
-      mNextDirectoryId.setSequenceNumber(entry.getSequenceNumber());
-    }
+  @Override
+  public void resetState() {
+    mNextDirectoryId.setContainerId(0);
+    mNextDirectoryId.setSequenceNumber(0);
+  }
 
-    public void reset() {
-      mNextDirectoryId.setContainerId(0);
-      mNextDirectoryId.setSequenceNumber(0);
-    }
+  @Override
+  public Iterator<JournalEntry> getJournalEntryIterator() {
+    return CommonUtils.singleElementIterator(JournalEntry.newBuilder()
+        .setInodeDirectoryIdGenerator(InodeDirectoryIdGeneratorEntry.newBuilder()
+            .setContainerId(mNextDirectoryId.getContainerId())
+            .setSequenceNumber(mNextDirectoryId.getSequenceNumber()))
+        .build());
   }
 }

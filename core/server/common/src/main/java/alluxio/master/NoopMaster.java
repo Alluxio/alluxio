@@ -12,14 +12,11 @@
 package alluxio.master;
 
 import alluxio.Server;
-import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.master.journal.JournalContext;
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.master.journal.NoopJournaled;
 
-import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,7 +24,7 @@ import java.util.Set;
  * Master implementation that does nothing. This is useful for testing and for situations where we
  * don't want to run a real master, e.g. when formatting the journal.
  */
-public class NoopMaster implements Master {
+public class NoopMaster implements Master, NoopJournaled {
   private final String mName;
 
   /**
@@ -47,13 +44,13 @@ public class NoopMaster implements Master {
   }
 
   @Override
-  public Set<Class<? extends Server>> getDependencies() {
-    return null;
+  public String getName() {
+    return mName;
   }
 
   @Override
-  public String getName() {
-    return mName;
+  public Set<Class<? extends Server>> getDependencies() {
+    return null;
   }
 
   @Override
@@ -62,25 +59,11 @@ public class NoopMaster implements Master {
   }
 
   @Override
-  public void start(Boolean options) throws IOException {
+  public void start(Boolean options) {
   }
 
   @Override
-  public void stop() throws IOException {
-  }
-
-  @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    return null;
-  }
-
-  @Override
-  public void processJournalEntry(JournalEntry entry) throws IOException {
-    throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
-  }
-
-  @Override
-  public void resetState() {
+  public void stop() {
   }
 
   @Override

@@ -18,7 +18,6 @@ import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 
-import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.Map;
@@ -55,18 +54,19 @@ public final class MockMaster implements Master {
   }
 
   @Override
-  public void processJournalEntry(Journal.JournalEntry entry) throws IOException {
+  public void start(Boolean isPrimary) {}
+
+  @Override
+  public void stop() {}
+
+  @Override
+  public boolean processJournalEntry(Journal.JournalEntry entry) {
     mEntries.add(entry);
+    return true;
   }
 
   @Override
   public void resetState() {}
-
-  @Override
-  public void start(Boolean isPrimary) throws IOException {}
-
-  @Override
-  public void stop() throws IOException {}
 
   @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
