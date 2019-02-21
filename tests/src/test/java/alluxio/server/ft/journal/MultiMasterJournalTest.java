@@ -18,12 +18,13 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 
 import org.junit.Before;
 import org.junit.Test;
 
-public class MultiMasterJournalTest {
+public class MultiMasterJournalTest extends BaseIntegrationTest {
   private MultiMasterLocalAlluxioCluster mCluster;
 
   @Before

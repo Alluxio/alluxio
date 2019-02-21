@@ -12,10 +12,11 @@
 package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.NoopMaster;
+import alluxio.master.journal.JournalReader.State;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalReader;
 import alluxio.master.journal.ufs.UfsJournalSystem;
@@ -131,13 +132,29 @@ public final class JournalTool {
     UfsJournal journal =
         new UfsJournalSystem(getJournalLocation(), 0).createJournal(new NoopMaster(sMaster));
     try (JournalReader reader = new UfsJournalReader(journal, sStart, true)) {
-      JournalEntry entry;
-      while ((entry = reader.read()) != null) {
-        if (entry.getSequenceNumber() >= sEnd) {
-          break;
+      boolean done = false;
+      while (!done) {
+        State state = reader.advance();
+        switch (state) {
+          case CHECKPOINT:
+            // ignore checkpoints.
+            reader.getCheckpoint().close();
+            break;
+          case LOG:
+            JournalEntry entry = reader.getEntry();
+            System.out.println(ENTRY_SEPARATOR);
+            System.out.print(entry);
+            if (entry.getSequenceNumber() >= sEnd) {
+              done = true;
+              break;
+            }
+            break;
+          case DONE:
+            done = true;
+            break;
+          default:
+            throw new RuntimeException("Unknown state: " + state);
         }
-        System.out.println(ENTRY_SEPARATOR);
-        System.out.print(entry);
       }
     } catch (Exception e) {
       LOG.error("Failed to read next journal entry.", e);

@@ -11,11 +11,10 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.InvalidJournalEntryException;
-import alluxio.master.journal.JournalEntryStateMachine;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 
@@ -24,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -39,7 +37,7 @@ public final class UfsJournalCheckpointThread extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalCheckpointThread.class);
 
   /** The master to apply the journal entries to. */
-  private final JournalEntryStateMachine mMaster;
+  private final Journaled mMaster;
   /** The journal. */
   private final UfsJournal mJournal;
   /** Make sure no new journal logs are found for this amount of time before shutting down. */
@@ -71,7 +69,7 @@ public final class UfsJournalCheckpointThread extends Thread {
    * @param master the master to apply the journal entries to
    * @param journal the journal
    */
-  public UfsJournalCheckpointThread(JournalEntryStateMachine master, UfsJournal journal) {
+  public UfsJournalCheckpointThread(Journaled master, UfsJournal journal) {
     mMaster = Preconditions.checkNotNull(master, "master");
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mShutdownQuietWaitTimeMs = journal.getQuietPeriodMs();
@@ -91,6 +89,8 @@ public final class UfsJournalCheckpointThread extends Thread {
     LOG.info("{}: Journal checkpointer shutdown has been initiated.", mMaster.getName());
     mWaitQuietPeriod = waitQuietPeriod;
     mShutdownInitiated = true;
+    // Actively interrupt to cancel slow checkpoints.
+    interrupt();
 
     try {
       // Wait for the thread to finish.
@@ -133,23 +133,27 @@ public final class UfsJournalCheckpointThread extends Thread {
     // no new journal entries.
 
     LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
-    alluxio.proto.journal.Journal.JournalEntry entry;
     // Set to true if it has waited for a quiet period. Reset if a valid journal entry is read.
     boolean quietPeriodWaited = false;
     while (true) {
+      JournalEntry entry = null;
       try {
-        entry = mJournalReader.read();
-        if (entry != null) {
-          if (entry.getSequenceNumber() == 0) {
-            mMaster.resetState();
-          }
-          mMaster.processJournalEntry(entry);
-          if (quietPeriodWaited) {
-            LOG.info("Quiet period interrupted by new journal entry");
-            quietPeriodWaited = false;
-          }
+        switch (mJournalReader.advance()) {
+          case CHECKPOINT:
+            mMaster.restoreFromCheckpoint(mJournalReader.getCheckpoint());
+            break;
+          case LOG:
+            entry = mJournalReader.getEntry();
+            mMaster.processJournalEntry(entry);
+            if (quietPeriodWaited) {
+              LOG.info("Quiet period interrupted by new journal entry");
+              quietPeriodWaited = false;
+            }
+            break;
+          default:
+            break;
         }
-      } catch (IOException | InvalidJournalEntryException e) {
+      } catch (IOException e) {
         LOG.warn("{}: Failed to read or process the journal entry with error {}.",
             mMaster.getName(), e.getMessage());
         try {
@@ -191,6 +195,12 @@ public final class UfsJournalCheckpointThread extends Thread {
           CommonUtils.sleepMs(LOG, mJournalCheckpointSleepTimeMs);
         }
       }
+      if (Thread.interrupted()) {
+        if (!mShutdownInitiated) {
+          LOG.info("Checkpoint thread interrupted, shutting down");
+          return;
+        }
+      }
     }
   }
 
@@ -221,37 +231,25 @@ public final class UfsJournalCheckpointThread extends Thread {
 
   private void writeCheckpoint(long nextSequenceNumber) {
     LOG.info("{}: Writing checkpoint [sequence number {}].", mMaster.getName(), nextSequenceNumber);
-
-    Iterator<JournalEntry> it = mMaster.getJournalEntryIterator();
-    UfsJournalCheckpointWriter journalWriter = null;
-    IOException exception = null;
     try {
-      journalWriter = mJournal.getCheckpointWriter(nextSequenceNumber);
-      while (it.hasNext() && !mShutdownInitiated) {
-        journalWriter.write(it.next());
+      UfsJournalCheckpointWriter journalWriter =
+          mJournal.getCheckpointWriter(nextSequenceNumber);
+      try {
+        mMaster.writeToCheckpoint(journalWriter);
+      } catch (InterruptedException e) {
+        journalWriter.cancel();
+        LOG.info("{}: Cancelled checkpoint [sequence number {}].", mMaster.getName(),
+            nextSequenceNumber);
+        Thread.currentThread().interrupt();
+        return;
+      } finally {
+        journalWriter.close();
       }
+      LOG.info("{}: Finished checkpoint [sequence number {}].", mMaster.getName(),
+          nextSequenceNumber);
+      mNextSequenceNumberToCheckpoint = nextSequenceNumber;
     } catch (IOException e) {
       LOG.warn("{}: Failed to checkpoint with error {}.", mMaster.getName(), e.getMessage());
-      exception = e;
-    }
-
-    if (journalWriter != null) {
-      try {
-        if (it.hasNext() || mShutdownInitiated || exception != null) {
-          journalWriter.cancel();
-          LOG.info("{}: Cancelled checkpoint [sequence number {}].", mMaster.getName(),
-              nextSequenceNumber);
-        } else {
-          journalWriter.close();
-          LOG.info("{}: Finished checkpoint [sequence number {}].", mMaster.getName(),
-              nextSequenceNumber);
-          mNextSequenceNumberToCheckpoint = nextSequenceNumber;
-        }
-      } catch (IOException e) {
-        LOG.warn(
-            "{}: Failed to cancel or finish the checkpoint [sequence number {}] with error {}.",
-            mMaster.getName(), nextSequenceNumber, e.getMessage());
-      }
     }
   }
 }

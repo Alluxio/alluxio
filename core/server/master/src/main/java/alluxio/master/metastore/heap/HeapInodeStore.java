@@ -42,7 +42,8 @@ public class HeapInodeStore implements InodeStore {
   /**
    * @param args inode store arguments
    */
-  public HeapInodeStore(InodeStoreArgs args) {}
+  public HeapInodeStore(InodeStoreArgs args) {
+  }
 
   @Override
   public void remove(Long inodeId) {

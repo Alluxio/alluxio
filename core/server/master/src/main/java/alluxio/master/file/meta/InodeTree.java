@@ -24,14 +24,13 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.master.journal.Journaled;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.CreatePathContext;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryIterable;
-import alluxio.master.journal.JournalEntryReplayable;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -42,7 +41,6 @@ import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
-import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
@@ -57,19 +55,17 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.interfaces.Scoped;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -81,7 +77,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 // TODO(jiri): Make this class thread-safe.
-public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
+public class InodeTree implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTree.class);
   /** The base amount (exponential backoff) to sleep before retrying persisting an inode. */
   private static final int PERSIST_WAIT_BASE_SLEEP_MS = 2;
@@ -219,6 +215,11 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     mMountTable = mountTable;
   }
 
+  @Override
+  public String getName() {
+    return mState.getName();
+  }
+
   /**
    * Initializes the root of the inode tree.
    *
@@ -238,17 +239,6 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       root.setPersistenceState(PersistenceState.PERSISTED);
       mState.applyAndJournal(context, root);
     }
-  }
-
-  /**
-   * Applies a journal entry to the inode tree state. This method should only be used during journal
-   * replay.
-   *
-   * @param entry an entry to apply to the inode tree
-   * @return whether the journal entry was of a type recognized by the inode tree
-   */
-  public boolean replayJournalEntryFromJournal(JournalEntry entry) {
-    return mState.replayJournalEntryFromJournal(entry);
   }
 
   /**
@@ -993,43 +983,28 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   }
 
   @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    // Write tree via breadth-first traversal, so that during deserialization, it may be more
-    // efficient than depth-first during deserialization due to parent directory's locality.
-    Queue<Inode> inodes = new LinkedList<>();
-    if (mState.getRoot() != null) {
-      inodes.add(mState.getRoot());
-    }
-    return new Iterator<Journal.JournalEntry>() {
-      @Override
-      public boolean hasNext() {
-        return !inodes.isEmpty();
-      }
-
-      @Override
-      public Journal.JournalEntry next() {
-        if (!hasNext()) {
-          throw new NoSuchElementException();
-        }
-        Inode inode = inodes.poll();
-        if (inode.isDirectory()) {
-          Iterables.addAll(inodes, mInodeStore.getChildren(inode.asDirectory()));
-        }
-        return inode.toJournalEntry();
-      }
-
-      @Override
-      public void remove() {
-        throw new UnsupportedOperationException("remove is not supported in inode tree iterator");
-      }
-    };
+  public boolean processJournalEntry(JournalEntry entry) {
+    return mState.processJournalEntry(entry);
   }
 
-  /**
-   * Resets the inode tree state.
-   */
-  public void reset() {
-    mState.reset();
+  @Override
+  public void resetState() {
+    mState.resetState();
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    mState.writeToCheckpoint(output);
+  }
+
+  @Override
+  public void restoreFromCheckpoint(InputStream input) throws IOException {
+    mState.restoreFromCheckpoint(input);
+  }
+
+  @Override
+  public Iterator<JournalEntry> getJournalEntryIterator() {
+    return mState.getJournalEntryIterator();
   }
 
   /**
