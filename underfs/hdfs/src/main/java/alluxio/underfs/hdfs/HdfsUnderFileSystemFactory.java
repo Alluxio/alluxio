@@ -22,6 +22,9 @@ import alluxio.util.ConfigurationUtils;
 
 import com.google.common.base.Preconditions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -32,6 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
 
+  private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystemFactory.class);
   /**
    * Constructs a new {@link HdfsUnderFileSystemFactory}.
    */
