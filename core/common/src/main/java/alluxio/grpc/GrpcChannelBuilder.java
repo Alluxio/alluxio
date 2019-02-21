@@ -48,11 +48,14 @@ public final class GrpcChannelBuilder {
   protected AlluxioConfiguration mConfiguration;
 
   private GrpcChannelBuilder(SocketAddress address, AlluxioConfiguration conf) {
+    mConfiguration = conf;
     mChannelKey = GrpcManagedChannelPool.ChannelKey.create(conf);
+    // Set default overrides for the channel.
     mChannelKey.setAddress(address).usePlaintext();
+    mChannelKey.setMaxInboundMessageSize(
+        (int) mConfiguration.getBytes(PropertyKey.USER_RPC_MAX_INBOUND_MESSAGE_SIZE));
     mUseSubject = true;
     mAuthenticateChannel = true;
-    mConfiguration = conf;
   }
 
   /**

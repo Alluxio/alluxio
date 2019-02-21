@@ -2981,6 +2981,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "an exponential backoff. This property determines the maximum duration to retry for"
               + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
           .build();
+  public static final PropertyKey USER_RPC_MAX_INBOUND_MESSAGE_SIZE =
+          new Builder(Name.USER_RPC_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("100MB")
+          .setDescription("The max inbound message size used by user calls.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
       new Builder(Name.USER_WORKER_LIST_REFRESH_INTERVAL)
           .setDefaultValue("2min")
@@ -4043,6 +4050,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
         "alluxio.user.rpc.retry.max.num.retry";
     public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep";
+    public static final String USER_RPC_MAX_INBOUND_MESSAGE_SIZE =
+        "alluxio.user.rpc.max.inbound.message.size";
     public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.ufs.delegation.read.buffer.size.bytes";
     public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
