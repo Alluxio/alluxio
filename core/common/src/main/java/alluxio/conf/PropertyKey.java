@@ -1712,8 +1712,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_RPC_FORKJOIN_POOL_PARALLELISM =
-      new Builder(Name.MASTER_RPC_FORKJOIN_POOL_PARALLELISM)
+  public static final PropertyKey MASTER_RPC_THREAD_POOL_PARALLELISM =
+      new Builder(Name.MASTER_RPC_THREAD_POOL_PARALLELISM)
           .setDefaultValue(50)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -3802,8 +3802,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
 
-    public static final String MASTER_RPC_FORKJOIN_POOL_PARALLELISM =
-        "alluxio.master.rpc.fork.parallelism";
+    public static final String MASTER_RPC_THREAD_POOL_PARALLELISM =
+        "alluxio.master.rpc.threadpool.parallelism";
     //
     // Worker related properties
     //
