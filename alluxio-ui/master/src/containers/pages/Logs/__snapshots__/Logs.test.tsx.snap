@@ -920,6 +920,13 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                           "innerText": "Resources",
                           "url": "https://alluxio.org/alluxio-resources/",
                         },
+                        Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
+                          "innerText": "Slack Channel",
+                          "url": "https://slackin.alluxio.org/",
+                        },
                       ]
                     }
                   >
@@ -1035,6 +1042,29 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                   onClick={[Function]}
                                 >
                                   Resources
+                                </a>
+                              </NavLink>
+                            </li>
+                          </NavItem>
+                          <NavItem
+                            key="https://slackin.alluxio.org/"
+                            tag="li"
+                          >
+                            <li
+                              className="nav-item"
+                            >
+                              <NavLink
+                                href="https://slackin.alluxio.org/"
+                                tag="a"
+                                target="_blank"
+                              >
+                                <a
+                                  className="nav-link"
+                                  href="https://slackin.alluxio.org/"
+                                  onClick={[Function]}
+                                  target="_blank"
+                                >
+                                  Slack Channel
                                 </a>
                               </NavLink>
                             </li>

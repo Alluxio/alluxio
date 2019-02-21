@@ -11,7 +11,7 @@
 
 import {INavigationData} from '@alluxio/common-ui/src/constants';
 
-export const footerNavigationData : INavigationData[] = [{
+export const footerNavigationData: INavigationData[] = [{
   innerText: 'Project Website',
   url: 'https://alluxio.org/'
 }, {
@@ -26,4 +26,8 @@ export const footerNavigationData : INavigationData[] = [{
 }, {
   innerText: 'Resources',
   url: 'https://alluxio.org/alluxio-resources/'
+}, {
+  attributes: {target: '_blank'},
+  innerText: 'Slack Channel',
+  url: 'https://slackin.alluxio.org/'
 }];
