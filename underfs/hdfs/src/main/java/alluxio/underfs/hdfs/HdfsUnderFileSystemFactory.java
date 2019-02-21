@@ -79,8 +79,8 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
       // are supported this is not an option and we have to continue to use this method.
       for (final String prefix : alluxioConf.getList(PropertyKey.UNDERFS_HDFS_PREFIXES, ",")) {
         if (path.startsWith(prefix)) {
-          if (conf != null && conf.get(PropertyKey.UNDERFS_VERSION) != getVersion()) {
-            continue;
+          if (conf != null && conf.get(PropertyKey.UNDERFS_VERSION).equals(getVersion())) {
+            return true;
           }
           if (conf != null && HdfsVersion
               .find(conf.get(PropertyKey.UNDERFS_VERSION)) != HdfsVersion.find(getVersion())) {
