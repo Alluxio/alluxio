@@ -2889,7 +2889,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
       new Builder(Name.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
-          .setDefaultValue("4MB")
+          .setDefaultValue("100MB")
           .setDescription("The max inbound message size used by user gRPC connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
