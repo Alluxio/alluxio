@@ -153,8 +153,7 @@ public final class MigrateDefinitionSelectExecutorsTest {
     createDirectory("/dst");
     setPathToNotExist("/dst/src");
     assignMigrates("/src", "/dst/src");
-    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src")),
-        any(CreateDirectoryPOptions.class));
+    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src")));
   }
 
   @Test
@@ -165,8 +164,7 @@ public final class MigrateDefinitionSelectExecutorsTest {
     createDirectory("/dst");
     setPathToNotExist("/dst/src");
     assignMigrates("/src", "/dst/src");
-    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src/nested")),
-        Matchers.eq(FileSystemOptions.createDirectoryDefaults(ServerConfiguration.global())));
+    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src/nested")));
   }
 
   @Test
