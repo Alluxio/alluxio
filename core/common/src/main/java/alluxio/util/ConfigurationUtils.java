@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ForkJoinPool;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -400,7 +401,9 @@ public final class ConfigurationUtils {
     List<alluxio.grpc.ConfigProperty> clusterConfig;
 
     try {
-      channel = GrpcChannelBuilder.newBuilder(address, conf).disableAuthentication().build();
+      channel = GrpcChannelBuilder.newBuilder(address, conf).disableAuthentication()
+          .setExecutor(ForkJoinPool.commonPool())
+          .build();
       MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
           MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
       clusterConfig =
