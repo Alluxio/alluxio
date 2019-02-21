@@ -148,7 +148,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void createDirectory(AlluxioURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    createDirectory(path, FileSystemOptions.createDirectoryDefaults(mFsContext.getConf()));
+    createDirectory(path, CreateDirectoryPOptions.getDefaultInstance());
   }
 
   @Override
@@ -177,7 +177,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public FileOutStream createFile(AlluxioURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    return createFile(path, FileSystemOptions.createFileDefaults(mFsContext.getConf()));
+    return createFile(path, CreateFilePOptions.getDefaultInstance());
   }
 
   @Override
@@ -223,7 +223,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void delete(AlluxioURI path)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
-    delete(path, FileSystemOptions.deleteDefaults(mFsContext.getConf()));
+    delete(path, DeletePOptions.getDefaultInstance());
   }
 
   @Override
@@ -253,7 +253,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public boolean exists(AlluxioURI path)
       throws InvalidPathException, IOException, AlluxioException {
-    return exists(path, FileSystemOptions.existsDefaults(mFsContext.getConf()));
+    return exists(path, ExistsPOptions.getDefaultInstance());
   }
 
   @Override
@@ -285,7 +285,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void free(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    free(path, FileSystemOptions.freeDefaults(mFsContext.getConf()));
+    free(path, FreePOptions.getDefaultInstance());
   }
 
   @Override
@@ -354,7 +354,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    return getStatus(path, FileSystemOptions.getStatusDefaults(mFsContext.getConf()));
+    return getStatus(path, GetStatusPOptions.getDefaultInstance());
   }
 
   @Override
@@ -380,7 +380,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public List<URIStatus> listStatus(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    return listStatus(path, FileSystemOptions.listStatusDefaults(mFsContext.getConf()));
+    return listStatus(path, ListStatusPOptions.getDefaultInstance());
   }
 
   @Override
@@ -446,7 +446,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath)
       throws IOException, AlluxioException {
-    mount(alluxioPath, ufsPath, FileSystemOptions.mountDefaults(mFsContext.getConf()));
+    mount(alluxioPath, ufsPath, MountPOptions.getDefaultInstance());
   }
 
   @Override
@@ -500,7 +500,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void persist(final AlluxioURI path)
     throws FileDoesNotExistException, IOException, AlluxioException {
-    persist(path, FileSystemOptions.scheduleAsyncPersistDefaults(mFsContext.getConf()));
+    persist(path, ScheduleAsyncPersistencePOptions.getDefaultInstance());
   }
 
   @Override
@@ -525,7 +525,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public FileInStream openFile(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    return openFile(path, FileSystemOptions.openFileDefaults(mFsContext.getConf()));
+    return openFile(path, OpenFilePOptions.getDefaultInstance());
   }
 
   @Override
@@ -547,7 +547,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void rename(AlluxioURI src, AlluxioURI dst)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    rename(src, dst, FileSystemOptions.renameDefaults(mFsContext.getConf()));
+    rename(src, dst, RenamePOptions.getDefaultInstance());
   }
 
   @Override
@@ -576,7 +576,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    setAcl(path, action, entries, FileSystemOptions.setAclDefaults(mFsContext.getConf()));
+    setAcl(path, action, entries, SetAclPOptions.getDefaultInstance());
   }
 
   @Override
@@ -603,7 +603,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void setAttribute(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    setAttribute(path, FileSystemOptions.setAttributeDefaults(mFsContext.getConf()));
+    setAttribute(path, SetAttributePOptions.getDefaultInstance());
   }
 
   @Override
@@ -674,7 +674,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void unmount(AlluxioURI path) throws IOException, AlluxioException {
-    unmount(path, FileSystemOptions.unmountDefaults(mFsContext.getConf()));
+    unmount(path, UnmountPOptions.getDefaultInstance());
   }
 
   @Override

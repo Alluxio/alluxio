@@ -48,7 +48,7 @@ public class CreateDirectoryContext
     return new CreateDirectoryContext(optionsBuilder);
   }
 
-  // TODO(zac): Consider renaming mergeFrom to disambiguate between POptions merge from since
+  // TODO(zac): Consider renaming mergeFrom to disambiguate between POptions mergeFrom since
   //  this method and the gRPC version have different functionality.
   /**
    * Merges and embeds the given {@link CreateDirectoryPOptions} with the corresponding master
