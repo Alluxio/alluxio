@@ -2035,7 +2035,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS =
       new Builder(Name.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS)
-          .setDefaultValue("10sec")
+          .setDefaultValue("30sec")
           .setDescription("The maximum time for a data server (for block reads and block writes) "
               + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
