@@ -23,7 +23,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.GrpcDefaultOptions;
+import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.Throwables;
 import org.junit.Assert;
@@ -37,7 +37,7 @@ import java.io.IOException;
  */
 public final class FileSystemMasterClientIntegrationTest extends BaseIntegrationTest {
   private static final GetStatusPOptions GET_STATUS_OPTIONS =
-      GrpcDefaultOptions.getGetStatusPOptions(ServerConfiguration.global());
+      FileSystemOptions.getStatusDefaults(ServerConfiguration.global());
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -54,7 +54,7 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
     fsMasterClient.createFile(file,
-        GrpcDefaultOptions.getCreateFilePOptions(ServerConfiguration.global()));
+        FileSystemOptions.createFileDefaults(ServerConfiguration.global()));
     Assert.assertNotNull(fsMasterClient.getStatus(file, GET_STATUS_OPTIONS));
     fsMasterClient.disconnect();
     Assert.assertFalse(fsMasterClient.isConnected());

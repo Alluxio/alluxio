@@ -362,7 +362,7 @@ public final class PersistenceTest {
 
     // Delete the src directory recursively.
     mFileSystemMaster.delete(alluxioDirSrc,
-        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
 
     // Execute the persistence checker heartbeat, checking the internal state. This should
     // re-schedule the persist task as tempUfsPath is deleted.
@@ -441,7 +441,7 @@ public final class PersistenceTest {
     String group = SecurityUtils.getGroupFromGrpcClient(ServerConfiguration.global());
     mFileSystemMaster.createFile(path,
         CreateFileContext
-            .defaults(
+            .mergeFrom(
                 CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toProto()))
             .setOwner(owner).setGroup(group));
     mFileSystemMaster.completeFile(path, CompleteFileContext.defaults());

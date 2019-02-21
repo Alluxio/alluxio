@@ -21,7 +21,7 @@ import alluxio.master.backcompat.TestOp;
 import alluxio.master.backcompat.Utils;
 import alluxio.multi.process.Clients;
 import alluxio.util.CommonUtils;
-import alluxio.util.GrpcDefaultOptions;
+import alluxio.util.FileSystemOptions;
 import alluxio.util.WaitForOptions;
 
 import java.util.Arrays;
@@ -38,10 +38,10 @@ public final class PersistFile implements TestOp {
     FileSystem fs = clients.getFileSystemClient();
     Utils.createFile(fs, PATH);
     clients.getFileSystemMasterClient().scheduleAsyncPersist(PATH,
-        GrpcDefaultOptions.getScheduleAsyncPersistOptions(ServerConfiguration.global()));
+        FileSystemOptions.scheduleAsyncPersistDefaults(ServerConfiguration.global()));
     Utils.createFile(fs, NESTED_PATH);
     clients.getFileSystemMasterClient().scheduleAsyncPersist(NESTED_PATH,
-        GrpcDefaultOptions.getScheduleAsyncPersistOptions(ServerConfiguration.global()));
+        FileSystemOptions.scheduleAsyncPersistDefaults(ServerConfiguration.global()));
     CommonUtils.waitFor("file to be async persisted", () -> {
       try {
         return fs.getStatus(PATH).isPersisted() && fs.getStatus(NESTED_PATH).isPersisted();

@@ -29,7 +29,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
-import alluxio.util.GrpcDefaultOptions;
+import alluxio.util.FileSystemOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
@@ -523,7 +523,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       throws AlluxioException, IOException {
     try (Closer closer = Closer.create()) {
       OpenFilePOptions openFileOptions =
-          GrpcDefaultOptions.getOpenFilePOptions(mFileSystem.getConf());
+          FileSystemOptions.openFileDefaults(mFileSystem.getConf());
       FileInStream is = closer.register(mFileSystem.openFile(srcPath, openFileOptions));
       FileOutStream os = closer.register(mFileSystem.createFile(dstPath));
       try {
@@ -740,7 +740,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
     File tmpDst = new File(outputFile.getPath() + randomSuffix);
 
     try (Closer closer = Closer.create()) {
-      OpenFilePOptions options = GrpcDefaultOptions.getOpenFilePOptions(mFileSystem.getConf());
+      OpenFilePOptions options = FileSystemOptions.openFileDefaults(mFileSystem.getConf());
       FileInStream is = closer.register(mFileSystem.openFile(srcPath, options));
       FileOutputStream out = closer.register(new FileOutputStream(tmpDst));
       byte[] buf = new byte[mCopyToLocalBufferSize];

@@ -31,7 +31,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.GrpcDefaultOptions;
+import alluxio.util.FileSystemOptions;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
@@ -102,7 +102,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     FileSystemMasterClient client = mFsContext.acquireMasterClient();
     try {
       client.scheduleAsyncPersist(new AlluxioURI(TEST_URI),
-          GrpcDefaultOptions.getScheduleAsyncPersistOptions(ServerConfiguration.global()));
+          FileSystemOptions.scheduleAsyncPersistDefaults(ServerConfiguration.global()));
     } finally {
       mFsContext.releaseMasterClient(client);
     }
@@ -143,7 +143,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     FileSystemMasterClient client = mFsContext.acquireMasterClient();
     try {
       client.scheduleAsyncPersist(path,
-          GrpcDefaultOptions.getScheduleAsyncPersistOptions(ServerConfiguration.global()));
+          FileSystemOptions.scheduleAsyncPersistDefaults(ServerConfiguration.global()));
       Assert.fail("Should not be able to schedule persistence for incomplete file");
     } catch (Exception e) {
       // expected

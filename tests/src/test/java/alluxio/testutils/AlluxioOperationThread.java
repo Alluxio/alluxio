@@ -16,7 +16,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
-import alluxio.util.GrpcDefaultOptions;
+import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -125,7 +125,7 @@ public class AlluxioOperationThread extends Thread {
   private AlluxioURI createFile() {
     String file = "/file" + ThreadLocalRandom.current().nextLong();
     FileSystemTestUtils.createByteFile(mFs, file, 100,
-        GrpcDefaultOptions.getCreateFilePOptions(ServerConfiguration.global()));
+        FileSystemOptions.createFileDefaults(ServerConfiguration.global()));
     return new AlluxioURI(file);
   }
 }

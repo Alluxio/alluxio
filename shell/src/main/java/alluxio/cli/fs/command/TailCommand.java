@@ -22,7 +22,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.util.FormatUtils;
-import alluxio.util.GrpcDefaultOptions;
+import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -69,7 +69,7 @@ public final class TailCommand extends AbstractFileSystemCommand {
     if (status.isFolder()) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
-    OpenFilePOptions options = GrpcDefaultOptions.getOpenFilePOptions(mFileSystem.getConf());
+    OpenFilePOptions options = FileSystemOptions.openFileDefaults(mFileSystem.getConf());
     try (FileInStream is = mFileSystem.openFile(path, options)) {
       byte[] buf = new byte[numOfBytes];
       long bytesToRead;

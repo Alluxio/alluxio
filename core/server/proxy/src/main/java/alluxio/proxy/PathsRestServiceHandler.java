@@ -31,7 +31,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.util.GrpcDefaultOptions;
+import alluxio.util.FileSystemOptions;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
@@ -114,7 +114,7 @@ public final class PathsRestServiceHandler {
         if (options == null) {
           mFileSystem
               .createDirectory(new AlluxioURI(path),
-                  GrpcDefaultOptions.getCreateDirectoryPOptions(ServerConfiguration.global()));
+                  FileSystemOptions.createDirectoryDefaults(ServerConfiguration.global()));
         } else {
           mFileSystem.createDirectory(new AlluxioURI(path), options);
         }
@@ -164,7 +164,7 @@ public final class PathsRestServiceHandler {
       public Void call() throws Exception {
         if (options == null) {
           mFileSystem.delete(new AlluxioURI(path),
-              GrpcDefaultOptions.getDeletePOptions(ServerConfiguration.global()));
+              FileSystemOptions.deleteDefaults(ServerConfiguration.global()));
         } else {
           mFileSystem.delete(new AlluxioURI(path), options);
         }
@@ -190,7 +190,7 @@ public final class PathsRestServiceHandler {
       @Override
       public InputStream call() throws Exception {
         FileInStream is = mFileSystem.openFile(uri,
-                GrpcDefaultOptions.getOpenFilePOptions(ServerConfiguration.global()));
+                FileSystemOptions.openFileDefaults(ServerConfiguration.global()));
         if (is != null) {
           return is;
         }
@@ -214,7 +214,7 @@ public final class PathsRestServiceHandler {
       public Boolean call() throws Exception {
         if (options == null) {
           return mFileSystem.exists(new AlluxioURI(path),
-              GrpcDefaultOptions.getExistsPOptions(ServerConfiguration.global()));
+              FileSystemOptions.existsDefaults(ServerConfiguration.global()));
         } else {
           return mFileSystem.exists(new AlluxioURI(path), options);
         }
@@ -237,7 +237,7 @@ public final class PathsRestServiceHandler {
       public Void call() throws Exception {
         if (options == null) {
           mFileSystem.free(new AlluxioURI(path),
-              GrpcDefaultOptions.getFreePOptions(ServerConfiguration.global()));
+              FileSystemOptions.freeDefaults(ServerConfiguration.global()));
         } else {
           mFileSystem.free(new AlluxioURI(path), options);
         }
@@ -285,7 +285,7 @@ public final class PathsRestServiceHandler {
         if (options == null) {
           return mFileSystem
               .listStatus(new AlluxioURI(path),
-                  GrpcDefaultOptions.getListStatusPOptions(ServerConfiguration.global()));
+                  FileSystemOptions.listStatusDefaults(ServerConfiguration.global()));
         } else {
           return mFileSystem.listStatus(new AlluxioURI(path), options);
         }
@@ -311,7 +311,7 @@ public final class PathsRestServiceHandler {
         Preconditions.checkNotNull(src, "required 'src' parameter is missing");
         if (options == null) {
           mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(src),
-                  GrpcDefaultOptions.getMountPOptions(ServerConfiguration.global()));
+                  FileSystemOptions.mountDefaults(ServerConfiguration.global()));
         } else {
           mFileSystem.mount(new AlluxioURI(path), new AlluxioURI(src), options);
         }
@@ -337,7 +337,7 @@ public final class PathsRestServiceHandler {
         FileInStream is;
         if (options == null) {
           is = mFileSystem.openFile(new AlluxioURI(path),
-              GrpcDefaultOptions.getOpenFilePOptions(ServerConfiguration.global()));
+              FileSystemOptions.openFileDefaults(ServerConfiguration.global()));
         } else {
           is = mFileSystem.openFile(new AlluxioURI(path), options);
         }
@@ -364,7 +364,7 @@ public final class PathsRestServiceHandler {
         Preconditions.checkNotNull(dst, "required 'dst' parameter is missing");
         if (options == null) {
           mFileSystem.rename(new AlluxioURI(path), new AlluxioURI(dst),
-              GrpcDefaultOptions.getRenamePOptions(ServerConfiguration.global()));
+              FileSystemOptions.renameDefaults(ServerConfiguration.global()));
         } else {
           mFileSystem.rename(new AlluxioURI(path), new AlluxioURI(dst), options);
         }
@@ -389,7 +389,7 @@ public final class PathsRestServiceHandler {
       public Void call() throws Exception {
         if (options == null) {
           mFileSystem.setAttribute(new AlluxioURI(path),
-              GrpcDefaultOptions.getSetAttributePOptions(ServerConfiguration.global()));
+              FileSystemOptions.setAttributeDefaults(ServerConfiguration.global()));
         } else {
           mFileSystem.setAttribute(new AlluxioURI(path), options);
         }
@@ -413,7 +413,7 @@ public final class PathsRestServiceHandler {
       public Void call() throws Exception {
         if (options == null) {
           mFileSystem.unmount(new AlluxioURI(path),
-              GrpcDefaultOptions.getUnmountPOptions(ServerConfiguration.global()));
+              FileSystemOptions.unmountDefaults(ServerConfiguration.global()));
         } else {
           mFileSystem.unmount(new AlluxioURI(path), options);
         }

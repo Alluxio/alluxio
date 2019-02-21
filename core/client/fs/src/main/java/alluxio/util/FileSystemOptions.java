@@ -23,6 +23,8 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadDescendantPType;
+import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -33,25 +35,26 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.WritePType;
+import alluxio.security.authorization.Mode;
 
 /**
  * This class contains static methods which can be passed Alluxio configuration objects that
  * will populate the gRPC options objects with the proper values based on the given configuration.
  */
-public class GrpcDefaultOptions {
+public class FileSystemOptions {
 
   /**
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static CreateDirectoryPOptions getCreateDirectoryPOptions(AlluxioConfiguration conf) {
+  public static CreateDirectoryPOptions createDirectoryDefaults(AlluxioConfiguration conf) {
     return CreateDirectoryPOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
+        .setAllowExists(false)
+        .setCommonOptions(commonDefaults(conf))
+        .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults(),
+            conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
+        .setRecursive(false)
         .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.class))
-        // No default configuration values, will pull from gRPC defaultInstance
-        // .setMode()
-        // .setRecursive()
-        // .setAllowExists()
         .build();
   }
 
@@ -59,9 +62,9 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static CheckConsistencyPOptions getCheckConsistencyPOptions(AlluxioConfiguration conf) {
+  public static CheckConsistencyPOptions checkConsistencyDefaults(AlluxioConfiguration conf) {
     return CheckConsistencyPOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
+        .setCommonOptions(commonDefaults(conf))
         .build();
   }
 
@@ -69,19 +72,19 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static CreateFilePOptions getCreateFilePOptions(AlluxioConfiguration conf) {
+  public static CreateFilePOptions createFileDefaults(AlluxioConfiguration conf) {
     return CreateFilePOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
         .setBlockSizeBytes(conf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
+        .setCommonOptions(commonDefaults(conf))
         .setFileWriteLocationPolicy(conf.get(PropertyKey.USER_FILE_WRITE_LOCATION_POLICY))
+        .setMode(ModeUtils.applyFileUMask(Mode.defaults(),
+            conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
+        .setRecursive(false)
+        .setReplicationDurable(conf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
+        .setReplicationMax(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX))
+        .setReplicationMin(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
         .setWriteTier(conf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT))
         .setWriteType(conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.class))
-        .setReplicationDurable(conf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
-        .setReplicationMin(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
-        .setReplicationMax(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX))
-        // No default configuration values, will pull from gRPC defaultInstance
-        // .setRecursive()
-        // .setMode()
         .build();
   }
 
@@ -89,12 +92,12 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static DeletePOptions getDeletePOptions(AlluxioConfiguration conf) {
+  public static DeletePOptions deleteDefaults(AlluxioConfiguration conf) {
     return DeletePOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
-        // No default configuration values, will pull from gRPC defaultInstance
-        // .setRecursive()
-        // .setAlluxioOnly()
+        .setAlluxioOnly(false)
+        .setCommonOptions(commonDefaults(conf))
+        .setRecursive(false)
+        .setUnchecked(conf.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED))
         .build();
   }
 
@@ -102,9 +105,9 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static ExistsPOptions getExistsPOptions(AlluxioConfiguration conf) {
+  public static ExistsPOptions existsDefaults(AlluxioConfiguration conf) {
     return ExistsPOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
+        .setCommonOptions(commonDefaults(conf))
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
             LoadMetadataPType.class))
         .build();
@@ -114,7 +117,7 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static FileSystemMasterCommonPOptions getFileSystemMasterCommonPOptions(
+  public static FileSystemMasterCommonPOptions commonDefaults(
       AlluxioConfiguration conf) {
     return FileSystemMasterCommonPOptions.newBuilder()
         .setSyncIntervalMs(conf.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
@@ -127,12 +130,11 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static FreePOptions getFreePOptions(AlluxioConfiguration conf) {
+  public static FreePOptions freeDefaults(AlluxioConfiguration conf) {
     return FreePOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
-        // No default configuration values. Will pull from gRPC defaultInstance
-        // .setForced()
-        // .setRecursive()
+        .setCommonOptions(commonDefaults(conf))
+        .setForced(false)
+        .setRecursive(false)
         .build();
   }
 
@@ -140,9 +142,9 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static GetStatusPOptions getGetStatusPOptions(AlluxioConfiguration conf) {
+  public static GetStatusPOptions getStatusDefaults(AlluxioConfiguration conf) {
     return GetStatusPOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
+        .setCommonOptions(commonDefaults(conf))
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
             LoadMetadataPType.class))
         .build();
@@ -152,14 +154,11 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static ListStatusPOptions getListStatusPOptions(AlluxioConfiguration conf) {
+  public static ListStatusPOptions listStatusDefaults(AlluxioConfiguration conf) {
     return ListStatusPOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
+        .setCommonOptions(commonDefaults(conf))
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
             LoadMetadataPType.class))
-        // No default configuration values. Will pull from gRPC defaultInstance
-        // .setRecursive()
-        // .setLoadDirectChildren()
         .build();
   }
 
@@ -167,12 +166,24 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static MountPOptions getMountPOptions(AlluxioConfiguration conf) {
+  public static LoadMetadataPOptions loadMetadataDefaults(AlluxioConfiguration conf) {
+    return LoadMetadataPOptions.newBuilder()
+        .setCommonOptions(commonDefaults(conf))
+        .setRecursive(false)
+        .setCreateAncestors(false)
+        .setLoadDescendantType(LoadDescendantPType.NONE)
+        .build();
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static MountPOptions mountDefaults(AlluxioConfiguration conf) {
     return MountPOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
-        // No default configuration values. Will pull from gRPC defaultInstance
-        // .setReadOnly()
-        // .setShared()
+        .setCommonOptions(commonDefaults(conf))
+        .setReadOnly(false)
+        .setShared(false)
         .build();
   }
 
@@ -180,17 +191,15 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static OpenFilePOptions getOpenFilePOptions(AlluxioConfiguration conf) {
+  public static OpenFilePOptions openFileDefaults(AlluxioConfiguration conf) {
     return OpenFilePOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
-        .setReadType(conf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
-            .toProto())
+        .setCommonOptions(commonDefaults(conf))
         .setFileReadLocationPolicy(conf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
         .setHashingNumberOfShards(conf
             .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS))
         .setMaxUfsReadConcurrency(conf.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX))
-        // Not needed
-        // .setFileReadLocationPolicyBytes() only for protocol level
+        .setReadType(conf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
+            .toProto())
         .build();
   }
 
@@ -198,9 +207,9 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static RenamePOptions getRenamePOptions(AlluxioConfiguration conf) {
+  public static RenamePOptions renameDefaults(AlluxioConfiguration conf) {
     return RenamePOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
+        .setCommonOptions(commonDefaults(conf))
         .build();
   }
 
@@ -208,10 +217,10 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static ScheduleAsyncPersistencePOptions getScheduleAsyncPersistOptions(
+  public static ScheduleAsyncPersistencePOptions scheduleAsyncPersistDefaults(
       AlluxioConfiguration conf) {
     return ScheduleAsyncPersistencePOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
+        .setCommonOptions(commonDefaults(conf))
         .build();
   }
 
@@ -219,11 +228,10 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static SetAclPOptions getSetAclPOptions(AlluxioConfiguration conf) {
+  public static SetAclPOptions setAclDefaults(AlluxioConfiguration conf) {
     return SetAclPOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
-        // No default configuration values. Will pull from gRPC defaultInstance
-        // .setRecursive()
+        .setCommonOptions(commonDefaults(conf))
+        .setRecursive(false)
         .build();
   }
 
@@ -231,19 +239,10 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static SetAttributePOptions getSetAttributePOptions(AlluxioConfiguration conf) {
+  public static SetAttributePOptions setAttributeDefaults(AlluxioConfiguration conf) {
     return SetAttributePOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
-        .setReplicationMin(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN))
-        .setReplicationMax(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX))
-        // No default configuration values. Will pull from gRPC defaultInstance
-        // .setGroup()
-        // .setGroupBytes()
-        // .setMode()
-        // .setOwner()
-        // .setPersisted()
-        // .setPinned()
-        // .setRecursive()
+        .setCommonOptions(commonDefaults(conf))
+        .setRecursive(false)
         .build();
   }
 
@@ -251,9 +250,9 @@ public class GrpcDefaultOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static UnmountPOptions getUnmountPOptions(AlluxioConfiguration conf) {
+  public static UnmountPOptions unmountDefaults(AlluxioConfiguration conf) {
     return UnmountPOptions.newBuilder()
-        .setCommonOptions(getFileSystemMasterCommonPOptions(conf))
+        .setCommonOptions(commonDefaults(conf))
         .build();
   }
 }

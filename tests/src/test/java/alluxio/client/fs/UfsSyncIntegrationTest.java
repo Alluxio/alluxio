@@ -42,7 +42,7 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.GrpcDefaultOptions;
+import alluxio.util.FileSystemOptions;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.collect.Sets;
@@ -564,7 +564,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     try {
       mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
           SetAttributePOptions.newBuilder().setRecursive(true).setCommonOptions(
-              GrpcDefaultOptions.getFileSystemMasterCommonPOptions(ServerConfiguration.global())
+              FileSystemOptions.commonDefaults(ServerConfiguration.global())
               .toBuilder().setTtl(55555)).build());
     } catch (FileDoesNotExistException e) {
       // expected, continue
@@ -573,7 +573,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     // Enable UFS sync, before next recursive setAttribute.
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
     FileSystemMasterCommonPOptions ttlOption =
-        GrpcDefaultOptions.getFileSystemMasterCommonPOptions(ServerConfiguration.global())
+        FileSystemOptions.commonDefaults(ServerConfiguration.global())
             .toBuilder().setTtl(123456789).build();
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
         SetAttributePOptions.newBuilder().setRecursive(true).setCommonOptions(ttlOption).build());
@@ -590,7 +590,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     // Enable UFS sync, before next recursive setAttribute.
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
     ttlOption =
-        GrpcDefaultOptions.getFileSystemMasterCommonPOptions(ServerConfiguration.global())
+        FileSystemOptions.commonDefaults(ServerConfiguration.global())
             .toBuilder().setTtl(987654321).build();
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
         SetAttributePOptions.newBuilder().setRecursive(true).setCommonOptions(ttlOption).build());

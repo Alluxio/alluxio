@@ -22,7 +22,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.GrpcDefaultOptions;
+import alluxio.util.FileSystemOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -64,7 +64,7 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
 
   private static List<CreateFilePOptions> getOptionSet() {
     List<CreateFilePOptions> ret = new ArrayList<>(3);
-    CreateFilePOptions optionsDefault = GrpcDefaultOptions.getCreateFilePOptions(
+    CreateFilePOptions optionsDefault = FileSystemOptions.createFileDefaults(
         ServerConfiguration.global());
     ret.add(optionsDefault.toBuilder().setWriteType(WritePType.CACHE_THROUGH)
         .setRecursive(true).build());

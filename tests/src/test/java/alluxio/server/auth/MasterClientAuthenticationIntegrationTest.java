@@ -23,7 +23,7 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.GrpcDefaultOptions;
+import alluxio.util.FileSystemOptions;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -143,10 +143,10 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
     masterClient.createFile(new AlluxioURI(filename),
-        GrpcDefaultOptions.getCreateFilePOptions(ServerConfiguration.global()));
+        FileSystemOptions.createFileDefaults(ServerConfiguration.global()));
     Assert.assertNotNull(
         masterClient.getStatus(new AlluxioURI(filename),
-            GrpcDefaultOptions.getGetStatusPOptions(ServerConfiguration.global())));
+            FileSystemOptions.getStatusDefaults(ServerConfiguration.global())));
     masterClient.disconnect();
     masterClient.close();
   }

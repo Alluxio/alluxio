@@ -34,7 +34,7 @@ import alluxio.job.JobMasterContext;
 import alluxio.job.JobWorkerContext;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
-import alluxio.util.GrpcDefaultOptions;
+import alluxio.util.FileSystemOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -246,7 +246,7 @@ public final class MigrateDefinition
   private void migrateDirectory(String path, String source, String destination) throws Exception {
     String newDir = computeTargetPath(path, source, destination);
     mFileSystem.createDirectory(new AlluxioURI(newDir),
-        GrpcDefaultOptions.getCreateDirectoryPOptions(ServerConfiguration.global()));
+        FileSystemOptions.createDirectoryDefaults(ServerConfiguration.global()));
   }
 
   /**
