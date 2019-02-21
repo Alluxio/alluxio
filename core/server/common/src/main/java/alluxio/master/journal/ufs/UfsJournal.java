@@ -19,8 +19,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryStateMachine;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.Journaled;
 import alluxio.master.journal.MasterJournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.ExponentialTimeBoundedRetry;
@@ -85,7 +85,7 @@ public class UfsJournal implements Journal {
   /** The location where this journal is stored. */
   private final URI mLocation;
   /** The state machine managed by this journal. */
-  private final JournalEntryStateMachine mMaster;
+  private final Journaled mMaster;
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
   /** The amount of time to wait to pass without seeing a new journal entry when gaining primacy. */
@@ -124,7 +124,7 @@ public class UfsJournal implements Journal {
    * @param quietPeriodMs the amount of time to wait to pass without seeing a new journal entry when
    *        gaining primacy
    */
-  public UfsJournal(URI location, JournalEntryStateMachine stateMachine, long quietPeriodMs) {
+  public UfsJournal(URI location, Journaled stateMachine, long quietPeriodMs) {
     this(location, stateMachine,
         UnderFileSystem.Factory.create(location.toString(), getJournalUfsConf()), quietPeriodMs);
   }
@@ -138,7 +138,7 @@ public class UfsJournal implements Journal {
    * @param quietPeriodMs the amount of time to wait to pass without seeing a new journal entry when
    *        gaining primacy
    */
-  UfsJournal(URI location, JournalEntryStateMachine stateMachine, UnderFileSystem ufs,
+  UfsJournal(URI location, Journaled stateMachine, UnderFileSystem ufs,
       long quietPeriodMs) {
     mLocation = URIUtils.appendPathOrDie(location, VERSION);
     mMaster = stateMachine;
@@ -251,7 +251,7 @@ public class UfsJournal implements Journal {
    */
   public UfsJournalCheckpointWriter getCheckpointWriter(long checkpointSequenceNumber)
       throws IOException {
-    return new UfsJournalCheckpointWriter(this, checkpointSequenceNumber);
+    return UfsJournalCheckpointWriter.create(this, checkpointSequenceNumber);
   }
 
   /**
@@ -387,11 +387,7 @@ public class UfsJournal implements Journal {
       if (entry.getSequenceNumber() == 0) {
         mMaster.resetState();
       }
-      try {
-        mMaster.processJournalEntry(entry);
-      } catch (IOException e) {
-        throw new RuntimeException(String.format("Failed to process journal entry %s", entry), e);
-      }
+      mMaster.processJournalEntry(entry);
     }
   }
 

@@ -259,9 +259,9 @@ public final class UfsJournalReaderTest {
    * @param sequenceNumber the sequence number after the checkpoint
    */
   private void buildCheckpoint(long sequenceNumber) throws Exception {
-    UfsJournalCheckpointWriter writer = new UfsJournalCheckpointWriter(mJournal, sequenceNumber);
+    UfsJournalCheckpointWriter writer = UfsJournalCheckpointWriter.create(mJournal, sequenceNumber);
     for (int i = 0; i < CHECKPOINT_SIZE; i++) {
-      writer.write(newEntry(i));
+      newEntry(i).writeDelimitedTo(writer);
     }
     writer.close();
   }

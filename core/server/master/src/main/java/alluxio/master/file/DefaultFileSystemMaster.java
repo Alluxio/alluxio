@@ -59,6 +59,9 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
+import alluxio.master.journal.JournalEntryIterable;
+import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.Journaled;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
@@ -141,6 +144,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
+import alluxio.util.StreamUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.interfaces.Scoped;
@@ -177,6 +181,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -360,6 +366,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /** This caches paths which have been synced with UFS. */
   private final UfsSyncPathCache mUfsSyncPathCache;
 
+  /** List of all master subcomponents which require journaling. */
+  private final List<Journaled> mJournaledComponents;
+
   /** Thread pool which asynchronously handles the completion of persist jobs. */
   private java.util.concurrent.ThreadPoolExecutor mPersistCheckerPool;
 
@@ -417,6 +426,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
     mUfsSyncPathCache = new UfsSyncPathCache();
     mSyncManager = new ActiveSyncManager(mMountTable, this);
+    mJournaledComponents =
+        Arrays.asList(mInodeTree, mDirectoryIdGenerator, mSyncManager, mMountTable, mUfsManager);
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -460,39 +471,35 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public void processJournalEntry(JournalEntry entry) throws IOException {
-    if (mDirectoryIdGenerator.replayJournalEntryFromJournal(entry)
-        || mInodeTree.replayJournalEntryFromJournal(entry)
-        || mMountTable.replayJournalEntryFromJournal(entry)
-        || mUfsManager.replayJournalEntryFromJournal(entry)
-        || mSyncManager.replayJournalEntryFromJournal(entry)) {
-      return;
-    } else {
-      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
+  public boolean processJournalEntry(JournalEntry entry) {
+    for (Journaled journaled : mJournaledComponents) {
+      if (journaled.processJournalEntry(entry)) {
+        return true;
+      }
     }
-  }
-
-  private void updateTxIdFromJournalEntry(File.ActiveSyncTxIdEntry activeSyncTxId) {
-    mSyncManager.setTxId(activeSyncTxId.getMountId(), activeSyncTxId.getTxId());
+    return false;
   }
 
   @Override
   public void resetState() {
-    mInodeTree.reset();
-    mMountTable.reset();
+    mJournaledComponents.forEach(Journaled::resetState);
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    JournalUtils.writeToCheckpoint(output, mJournaledComponents);
+  }
+
+  @Override
+  public void restoreFromCheckpoint(InputStream input) throws IOException {
+    JournalUtils.restoreFromCheckpoint(input, mJournaledComponents);
   }
 
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
-    return Iterators.concat(mInodeTree.getJournalEntryIterator(),
-        mDirectoryIdGenerator.getJournalEntryIterator(),
-        // The mount table should be written to the checkpoint after the inodes are written, so that
-        // when replaying the checkpoint, the inodes exist before mount entries. Replaying a mount
-        // entry traverses the inode tree.
-        mMountTable.getJournalEntryIterator(),
-        mUfsManager.getJournalEntryIterator(),
-        mSyncManager.getJournalEntryIterator()
-    );
+    List<Iterator<JournalEntry>> componentIters = StreamUtils
+        .map(JournalEntryIterable::getJournalEntryIterator, mJournaledComponents);
+    return Iterators.concat(componentIters.iterator());
   }
 
   @Override
