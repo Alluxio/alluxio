@@ -53,7 +53,7 @@ public final class GrpcChannelBuilder {
     // Set default overrides for the channel.
     mChannelKey.setAddress(address).usePlaintext();
     mChannelKey.setMaxInboundMessageSize(
-        (int) mConfiguration.getBytes(PropertyKey.USER_RPC_MAX_INBOUND_MESSAGE_SIZE));
+        (int) mConfiguration.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
     mUseSubject = true;
     mAuthenticateChannel = true;
   }
