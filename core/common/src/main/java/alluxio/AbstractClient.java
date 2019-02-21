@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 
@@ -216,7 +217,7 @@ public abstract class AbstractClient implements Client {
         mChannel = GrpcChannelBuilder
             .newBuilder(mAddress, mContext.getConf())
             .setSubject(mContext.getSubject())
-            .setExecutor(ForkJoinPool.commonPool())
+            .setExecutor(Executors.newFixedThreadPool(10))
             .build();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
