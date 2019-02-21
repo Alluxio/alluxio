@@ -1714,7 +1714,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_RPC_THREAD_POOL_PARALLELISM =
       new Builder(Name.MASTER_RPC_THREAD_POOL_PARALLELISM)
-          .setDefaultValue(50)
+          .setDefaultValue(500)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
