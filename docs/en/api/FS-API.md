@@ -25,7 +25,7 @@ existing S3 workloads to use Alluxio.
 * Table of Contents
 {:toc}
 
-# Java Client
+## Java Client
 
 Alluxio provides access to data through a filesystem interface. Files in Alluxio offer write-once
 semantics: they become immutable after they have been written in their entirety and cannot be read
@@ -34,12 +34,12 @@ compatible API. The Alluxio API provides additional functionality, while the Had
 gives users the flexibility of leveraging Alluxio without having to modify existing code written
 using Hadoop's API.
 
-## Alluxio Java API
+### Alluxio Java API
 
 All resources with the Alluxio Java API are specified through a `AlluxioURI` which represents the
 path to the resource.
 
-### Getting a Filesystem Client
+#### Getting a Filesystem Client
 
 To obtain an Alluxio filesystem client in Java code, use:
 
@@ -47,7 +47,7 @@ To obtain an Alluxio filesystem client in Java code, use:
 FileSystem fs = FileSystem.Factory.get();
 ```
 
-### Creating a File
+#### Creating a File
 
 All metadata operations as well as opening a file for reading or creating a file for writing are
 executed through the FileSystem object. Since Alluxio files are immutable once written, the
@@ -65,7 +65,7 @@ out.write(...);
 out.close();
 ```
 
-### Specifying Operation Options
+#### Specifying Operation Options
 
 For all FileSystem operations, an additional `options` field may be specified, which allows
 users to specify non-default settings for the operation. For example:
@@ -74,11 +74,11 @@ users to specify non-default settings for the operation. For example:
 FileSystem fs = FileSystem.Factory.get();
 AlluxioURI path = new AlluxioURI("/myFile");
 // Generate options to set a custom blocksize of 64 MB
-CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(67108864).build();
+CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(64 * Constants.MB).build();
 FileOutStream out = fs.createFile(path, options);
 ```
 
-### IO Options
+#### IO Options
 
 Alluxio uses two different storage types: Alluxio managed storage and under storage. Alluxio managed
 storage is the memory, SSD, and/or HDD allocated to Alluxio workers. Under storage is the storage
@@ -114,7 +114,7 @@ Below is a table of the expected behaviors of `WriteType`
 {% endfor %}
 </table>
 
-### Location policy
+#### Location policy
 
 Alluxio provides location policy to choose which workers to store the blocks of a file.
 
@@ -148,7 +148,7 @@ workload by implementing interface `alluxio.client.file.policy.FileWriteLocation
 default policy must have an empty constructor. And to use `ASYNC_THROUGH` write type, all the blocks
 of a file must be written to the same worker.
 
-### Write Tier
+#### Write Tier
 
 Alluxio allows a client to select a tier preference when writing blocks to a local worker. Currently
 this policy preference exists only for local workers, not remote workers; remote workers will write
@@ -158,12 +158,12 @@ By default, data is written to the top tier. Users can modify the default settin
 `alluxio.user.file.write.tier.default` [configuration]({{ '/en/basic/Configuration-Settings.html' | relativize_url }})
 property or override it through an option to the `FileSystem#createFile(AlluxioURI)` API call.
 
-### Accessing an existing file in Alluxio
+#### Accessing an existing file in Alluxio
 
 All operations on existing files or directories require the user to specify the `AlluxioURI`.
 With the AlluxioURI, the user may use any of the methods of `FileSystem` to access the resource.
 
-### Reading Data
+#### Reading Data
 
 A `AlluxioURI` can be used to perform Alluxio FileSystem operations, such as modifying the file
 metadata, ie. TTL or pin state, or getting an input stream to read the file.
@@ -181,12 +181,12 @@ in.read(...);
 in.close();
 ```
 
-### Javadoc
+#### Javadoc
 
 For additional API information, please refer to the
 [Alluxio javadocs](http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html).
 
-## Hadoop-Compatible Java Client
+### Hadoop-Compatible Java Client
 
 Alluxio provides access to data through a filesystem interface. Files in Alluxio offer write-once
 semantics: they become immutable after they have been written in their entirety and cannot be read
