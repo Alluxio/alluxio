@@ -259,6 +259,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     } catch (FileAlreadyExistsException e) {
       LOG.debug("Failed to create {}, file already exists", path, e);
       return -ErrorCodes.EEXIST();
+    } catch (InvalidPathException e) {
+      LOG.debug("Failed to create {}, path is invalid", path, e);
+      return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to create {}", path, t);
       return AlluxioFuseUtils.getErrorCode(t);
@@ -357,8 +360,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       }
       stat.st_mode.set(mode);
       stat.st_nlink.set(1);
-    } catch (InvalidPathException | FileDoesNotExistException e) {
-      LOG.debug("Failed to get info of {}, path is invaid or does not exist", path, e);
+    } catch (FileDoesNotExistException e) {
+      LOG.debug("Failed to get info of {}, path is invalid or does not exist", path, e);
       return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to get info of {}", path, t);
@@ -444,8 +447,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mNextOpenFileId += 1;
       }
-    } catch (FileDoesNotExistException e) {
-      LOG.debug("Failed to open file {}, path does not exist", path);
+    } catch (FileDoesNotExistException | InvalidPathException e) {
+      LOG.debug("Failed to open file {}, path does not exist or is invalid", path);
       return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to open file {}", path, t);
@@ -541,7 +544,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         filter.apply(buff, file.getName(), null, 0);
       }
     } catch (FileDoesNotExistException | InvalidPathException e) {
-      LOG.debug("Failed to read directory {}, path is invalid or does not exist", path, e);
+      LOG.debug("Failed to read directory {}, path does not exist or is invalid", path, e);
       return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to read directory {}", path, t);
@@ -724,8 +727,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
 
     try {
       mFileSystem.delete(turi);
-    } catch (FileDoesNotExistException e) {
-      LOG.debug("Failed to remove {}, file does not exist", path);
+    } catch (FileDoesNotExistException | InvalidPathException e) {
+      LOG.debug("Failed to remove {}, file does not exist or is invalid", path);
       return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to remove {}", path, t);
