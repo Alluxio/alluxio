@@ -257,10 +257,10 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       }
       LOG.debug("{} created and opened", path);
     } catch (FileAlreadyExistsException e) {
-      LOG.debug("Failed to create {}, file already exists", path, e);
+      LOG.debug("Failed to create {}, file already exists", path);
       return -ErrorCodes.EEXIST();
     } catch (InvalidPathException e) {
-      LOG.debug("Failed to create {}, path is invalid", path, e);
+      LOG.debug("Failed to create {}, path is invalid", path);
       return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to create {}", path, t);
@@ -360,8 +360,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       }
       stat.st_mode.set(mode);
       stat.st_nlink.set(1);
-    } catch (FileDoesNotExistException e) {
-      LOG.debug("Failed to get info of {}, path is invalid or does not exist", path, e);
+    } catch (FileDoesNotExistException | InvalidPathException e) {
+      LOG.debug("Failed to get info of {}, path does not exist or is invalid", path);
       return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to get info of {}", path, t);
@@ -544,7 +544,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         filter.apply(buff, file.getName(), null, 0);
       }
     } catch (FileDoesNotExistException | InvalidPathException e) {
-      LOG.debug("Failed to read directory {}, path does not exist or is invalid", path, e);
+      LOG.debug("Failed to read directory {}, path does not exist or is invalid", path);
       return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to read directory {}", path, t);
