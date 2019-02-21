@@ -100,9 +100,9 @@ This outputs the `pid, mount_point, alluxio_path` of all the running alluxio-fus
 For example, the output will be like:
 
 ```bash
-pid	   mount_point	alluxio_path
-80846	 /mnt/people	/people
-80847	 /mnt/sales	  /sales
+pid	mount_point	alluxio_path
+80846	/mnt/people	/people
+80847	/mnt/sales	/sales
 ```
 
 ## Advanced configuration
