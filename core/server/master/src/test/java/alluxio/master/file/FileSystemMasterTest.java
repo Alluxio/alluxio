@@ -1750,9 +1750,8 @@ public final class FileSystemMasterTest {
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder().setTtl(0)
-            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
+        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
+            .newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
@@ -1805,8 +1804,7 @@ public final class FileSystemMasterTest {
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
-            .setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder().setTtl(0))));
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1859,9 +1857,7 @@ public final class FileSystemMasterTest {
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
-            .setCommonOptions(
-                FileSystemOptions.commonDefaults(ServerConfiguration.global())
-                    .toBuilder().setTtl(0))));
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1884,9 +1880,7 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).getName() != null);
     mFileSystemMaster.setAttribute(NESTED_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
-            .setCommonOptions(FileSystemOptions
-                .commonDefaults(ServerConfiguration.global())
-                .toBuilder().setTtl(0))));
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1908,9 +1902,8 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getFileId());
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder()
-            .setTtl(Constants.HOUR_MS))));
+        .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
+            .newBuilder().setTtl(Constants.HOUR_MS))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
     assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
@@ -1928,9 +1921,8 @@ public final class FileSystemMasterTest {
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))
             .setRecursive(true)));
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder()
-            .setTtl(Constants.HOUR_MS))));
+        .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
+            .newBuilder().setTtl(Constants.HOUR_MS))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 1 hour, the directory should not be deleted during last TTL check.
     assertEquals(NESTED_URI.getName(),
@@ -1951,9 +1943,8 @@ public final class FileSystemMasterTest {
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder()
-            .setTtl(Constants.NO_TTL))));
+        .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
+            .newBuilder().setTtl(Constants.NO_TTL))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
   }
@@ -1973,9 +1964,8 @@ public final class FileSystemMasterTest {
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder()
-            .setTtl(Constants.NO_TTL))));
+        .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
+            .newBuilder().setTtl(Constants.NO_TTL))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     assertEquals(NESTED_URI.getName(),
         mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).getName());
@@ -2008,8 +1998,7 @@ public final class FileSystemMasterTest {
     // Both pinned flag and ttl value.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(false)
-            .setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(1))));
     fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT);
     assertFalse(fileInfo.isPinned());
@@ -2017,8 +2006,7 @@ public final class FileSystemMasterTest {
 
     mFileSystemMaster.setAttribute(NESTED_URI,
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
-            .setCommonOptions(FileSystemOptions
-            .commonDefaults(ServerConfiguration.global()).toBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(1))));
   }
 

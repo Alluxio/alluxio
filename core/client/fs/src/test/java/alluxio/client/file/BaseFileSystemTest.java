@@ -205,8 +205,7 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     FreePOptions freeOptions = FreePOptions.newBuilder().setRecursive(true).build();
     doThrow(EXCEPTION).when(mFileSystemMasterClient).free(file,
-        FileSystemOptions.freeDefaults(mConf)
-            .toBuilder().mergeFrom(freeOptions).build());
+        FileSystemOptions.freeDefaults(mConf).toBuilder().mergeFrom(freeOptions).build());
     try {
       mFileSystem.free(file, freeOptions);
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
@@ -339,6 +338,7 @@ public final class BaseFileSystemTest {
     verify(mFileSystemMasterClient).createDirectory(dir,
         FileSystemOptions.createDirectoryDefaults(mConf)
             .toBuilder().mergeFrom(createDirectoryOptions).build());
+
     verifyFilesystemContextAcquiredAndReleased();
   }
 
@@ -414,6 +414,7 @@ public final class BaseFileSystemTest {
     mFileSystem.openFile(file, OpenFilePOptions.getDefaultInstance());
     verify(mFileSystemMasterClient).getStatus(file,
         FileSystemOptions.getStatusDefaults(mConf).toBuilder().mergeFrom(getStatusOptions).build());
+
     verifyFilesystemContextAcquiredAndReleased();
   }
 

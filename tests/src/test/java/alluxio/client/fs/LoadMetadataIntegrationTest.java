@@ -30,7 +30,6 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.LoadMetadataType;
 
@@ -177,8 +176,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   public void loadAlwaysConfiguration() throws Exception {
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.ALWAYS.toString());
-    GetStatusPOptions options =
-        FileSystemOptions.getStatusDefaults(ServerConfiguration.global());
+    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
   }
@@ -187,8 +185,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   public void loadOnceConfiguration() throws Exception {
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.ONCE.toString());
-    GetStatusPOptions options =
-        FileSystemOptions.getStatusDefaults(ServerConfiguration.global());
+    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
   }
@@ -197,8 +194,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   public void loadNeverConfiguration() throws Exception {
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.NEVER.toString());
-    GetStatusPOptions options =
-        FileSystemOptions.getStatusDefaults(ServerConfiguration.global());
+    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
   }

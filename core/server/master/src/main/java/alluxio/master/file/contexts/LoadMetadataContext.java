@@ -60,7 +60,7 @@ public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.B
    * @return the instance of {@link LoadMetadataContext} with default values for master
    */
   public static LoadMetadataContext defaults() {
-    return mergeFrom(FileSystemOptions
+    return create(FileSystemOptions
         .loadMetadataDefaults(ServerConfiguration.global()).toBuilder());
   }
 

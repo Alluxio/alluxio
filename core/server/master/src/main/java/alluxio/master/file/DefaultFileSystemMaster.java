@@ -3010,7 +3010,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public void  setAttribute(AlluxioURI path, SetAttributeContext context)
+  public void setAttribute(AlluxioURI path, SetAttributeContext context)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException, IOException {
     SetAttributePOptions.Builder options = context.getOptions();
     Metrics.SET_ATTRIBUTE_OPS.inc();
@@ -3588,12 +3588,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     if (protoOptions.hasCommonOptions() && protoOptions.getCommonOptions().hasTtl()
         && protoOptions.getCommonOptions().hasTtlAction()) {
       long ttl = protoOptions.getCommonOptions().getTtl();
-      boolean changedTtl = inode.getTtl() != ttl;
-      if (changedTtl
+      if (inode.getTtl() != ttl
           || inode.getTtlAction() != protoOptions.getCommonOptions().getTtlAction()) {
-        if (changedTtl) {
-          entry.setTtl(ttl);
-        }
+
+        entry.setTtl(ttl);
         entry.setLastModificationTimeMs(opTimeMs);
         entry.setTtlAction(ProtobufUtils.toProtobuf(
             protoOptions.getCommonOptions().getTtlAction()));

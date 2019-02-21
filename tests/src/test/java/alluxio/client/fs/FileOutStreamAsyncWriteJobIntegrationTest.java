@@ -29,7 +29,6 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.FileSystemOptions;
 import alluxio.util.ModeUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockWorker;
@@ -45,9 +44,9 @@ import org.junit.Test;
 public final class FileOutStreamAsyncWriteJobIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
   private static final int LEN = 1024;
-  private static final FileSystemMasterCommonPOptions COMMON_OPTIONS = FileSystemOptions
-          .commonDefaults(ServerConfiguration.global())
-          .toBuilder().setTtl(12345678L).setTtlAction(TtlAction.DELETE).build();
+  private static final FileSystemMasterCommonPOptions COMMON_OPTIONS =
+      FileSystemMasterCommonPOptions.newBuilder().setTtl(12345678L).setTtlAction(TtlAction.DELETE)
+          .build();
 
   private static final SetAttributePOptions TEST_OPTIONS =
       SetAttributePOptions.newBuilder().setMode(new Mode((short) 0555).toProto())
