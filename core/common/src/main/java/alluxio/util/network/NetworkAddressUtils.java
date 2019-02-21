@@ -40,6 +40,7 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -646,7 +647,9 @@ public final class NetworkAddressUtils {
       throws AlluxioStatusException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
-    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, conf).build();
+    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, conf)
+        .setExecutor(ForkJoinPool.commonPool())
+        .build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
     versionClient.getServiceVersion(

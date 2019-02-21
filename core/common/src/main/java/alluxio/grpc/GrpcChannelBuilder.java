@@ -22,6 +22,7 @@ import io.netty.channel.EventLoopGroup;
 
 import javax.security.auth.Subject;
 import java.net.SocketAddress;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -181,6 +182,11 @@ public final class GrpcChannelBuilder {
    */
   public GrpcChannelBuilder setPoolingStrategy(GrpcManagedChannelPool.PoolingStrategy strategy) {
     mChannelKey.setPoolingStrategy(strategy);
+    return this;
+  }
+
+  public GrpcChannelBuilder setExecutor(Executor executor) {
+    mChannelKey.setExecutor(executor);
     return this;
   }
 
