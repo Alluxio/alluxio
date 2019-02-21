@@ -33,8 +33,8 @@ Minio is an object storage server built for cloud applications and DevOps. Minio
 source alternative to AWS S3.
 
 Launch a Minio server instance using the steps mentioned
-[here](http://docs.minio.io/docs/minio-quickstart-guide). Then create a bucket (or use an existing
-bucket). Once the server is launched, keep a note of Minio server endpoint, accessKey and secretKey.
+[here](http://docs.minio.io/docs/minio-quickstart-guide). Then either create or use an existing
+bucket. Once the server is launched, keep a note of Minio server endpoint, accessKey and secretKey.
 
 You should also note the directory you want to use in that bucket, either by creating
 a new directory in the bucket, or using an existing one. For the purposes of this guide, the Minio
@@ -60,3 +60,23 @@ aws.secretKey=<MINIO_SECRET_KEY_ID>
 For these parameters, replace `<MINIO_ENDPOINT>` with the hostname and port of your Minio service,
 e.g., `http://localhost:9000`. If the port value is left unset, it defaults to port 80 for `http`
 and 443 for `https`.
+
+## Test the Minio Configuration
+
+Format and start alluxio with
+
+```bash
+./bin/alluxio format
+./bin/alluxio-start local
+```
+
+Verify Alluxio is running by navigating to [http://localhost:19999](http://localhost:19999) or by
+examining the logs to ensure the process is running.
+
+Then, to run tests using some basic Alluxio operations execute the following command:
+
+```bash
+$ bin/alluxio runTests
+```
+
+If there are no errors then Minio is configured properly!
