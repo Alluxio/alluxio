@@ -191,8 +191,6 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadNeverConfiguration() throws Exception {
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
-        LoadMetadataType.NEVER.toString());
     GetStatusPOptions options = GetStatusPOptions.newBuilder()
         .setLoadMetadataType(LoadMetadataPType.NEVER).build();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
