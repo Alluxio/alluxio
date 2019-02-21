@@ -546,8 +546,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(
       confParams = {
           PropertyKey.Name.USER_FILE_METADATA_LOAD_TYPE, "NEVER"
-      }
-  )
+      })
   @Test
   public void recursiveSync() throws Exception {
 

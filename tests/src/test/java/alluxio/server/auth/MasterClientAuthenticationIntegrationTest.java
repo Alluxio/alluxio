@@ -14,8 +14,6 @@ package alluxio.server.auth;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.conf.PropertyKey;
