@@ -719,6 +719,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                             Object {
                               "operationMetrics": Object {},
                               "rpcInvocationMetrics": Object {},
+                              "timeSeriesMetrics": Object {},
                               "workerCapacityFreePercentage": 0,
                               "workerCapacityUsedPercentage": 0,
                             }
@@ -795,14 +796,14 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                                           </th>
                                           <td>
                                             <Progress
-                                              className="h-50 mt-2"
+                                              className="h-50 mt-1"
                                               max={100}
                                               multi={true}
                                               tag="div"
                                               value={0}
                                             >
                                               <div
-                                                className="h-50 mt-2 progress"
+                                                className="h-50 mt-1 progress"
                                               >
                                                 <Progress
                                                   bar={true}
@@ -1137,7 +1138,7 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
               </th>
               <td>
                 <Progress
-                  className="h-50 mt-2"
+                  className="h-50 mt-1"
                   max={100}
                   multi={true}
                   tag="div"

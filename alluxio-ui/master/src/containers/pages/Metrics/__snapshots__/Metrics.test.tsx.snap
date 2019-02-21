@@ -796,6 +796,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                               "masterUnderfsCapacityUsedPercentage": 0,
                               "operationMetrics": Object {},
                               "rpcInvocationMetrics": Object {},
+                              "timeSeriesMetrics": Array [],
                               "totalBytesReadLocal": "",
                               "totalBytesReadLocalThroughput": "",
                               "totalBytesReadRemote": "",
@@ -883,14 +884,14 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                                           </th>
                                           <td>
                                             <Progress
-                                              className="h-50 mt-2"
+                                              className="h-50 mt-1"
                                               max={100}
                                               multi={true}
                                               tag="div"
                                               value={0}
                                             >
                                               <div
-                                                className="h-50 mt-2 progress"
+                                                className="h-50 mt-1 progress"
                                               >
                                                 <Progress
                                                   bar={true}
@@ -950,14 +951,14 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                                           </th>
                                           <td>
                                             <Progress
-                                              className="h-50 mt-2"
+                                              className="h-50 mt-1"
                                               max={100}
                                               multi={true}
                                               tag="div"
                                               value={0}
                                             >
                                               <div
-                                                className="h-50 mt-2 progress"
+                                                className="h-50 mt-1 progress"
                                               >
                                                 <Progress
                                                   bar={true}
@@ -1366,6 +1367,13 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                                     </table>
                                   </Table>
                                 </div>
+                                <div
+                                  className="col-12"
+                                >
+                                  <div
+                                    className="row"
+                                  />
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -1564,7 +1572,7 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
               </th>
               <td>
                 <Progress
-                  className="h-50 mt-2"
+                  className="h-50 mt-1"
                   max={100}
                   multi={true}
                   tag="div"
@@ -1601,7 +1609,7 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
               </th>
               <td>
                 <Progress
-                  className="h-50 mt-2"
+                  className="h-50 mt-1"
                   max={100}
                   multi={true}
                   tag="div"
@@ -1957,6 +1965,13 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
             </tr>
           </tbody>
         </Table>
+      </div>
+      <div
+        className="col-12"
+      >
+        <div
+          className="row"
+        />
       </div>
     </div>
   </div>

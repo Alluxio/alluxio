@@ -9,15 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+import {LineSerieData} from '@nivo/line';
 import {AxiosResponse} from 'axios';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
-import {Dispatch} from 'redux';
 
+import {Dispatch} from 'redux';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/metrics/actions';
 import {IMetrics} from '../../../store/metrics/types';
+import {LineGraph} from '@alluxio/common-ui/src/components';
 
 interface IPropsFromState {
   data: IMetrics;
@@ -65,7 +67,7 @@ export class Metrics extends React.Component<AllProps> {
                 <tr>
                   <th scope="row">Master Capacity</th>
                   <td>
-                    <Progress className="h-50 mt-2" multi={true}>
+                    <Progress className="h-50 mt-1" multi={true}>
                       <Progress bar={true} color="dark"
                                 value={`${data.masterCapacityFreePercentage}`}>{data.masterCapacityFreePercentage}%
                         Free</Progress>
@@ -78,7 +80,7 @@ export class Metrics extends React.Component<AllProps> {
                 <tr>
                   <th scope="row">Master UnderFS Capacity</th>
                   <td>
-                    <Progress className="h-50 mt-2" multi={true}>
+                    <Progress className="h-50 mt-1" multi={true}>
                       <Progress bar={true} color="dark"
                                 value={`${data.masterUnderfsCapacityFreePercentage}`}>{data.masterUnderfsCapacityFreePercentage}%
                         Free</Progress>
@@ -299,6 +301,15 @@ export class Metrics extends React.Component<AllProps> {
                 </Table>
               </div>
             ))}
+            <div className="col-12">
+              <div className="row">
+                {data.timeSeriesMetrics.map((metric: LineSerieData) => (
+                  metric.data.length && <LineGraph key={metric.id} data={[metric]} xAxisLabel={metric.xAxisLabel}
+                                                   xAxisUnits={metric.xAxisUnits} yAxisLabel={metric.yAxisLabel}
+                                                   yAxisUnits={metric.yAxisUnits}/>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
