@@ -174,9 +174,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void loadAlwaysConfiguration() throws Exception {
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
-        LoadMetadataType.ALWAYS.toString());
-    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
+    GetStatusPOptions options = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.ALWAYS).build();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
   }
@@ -194,7 +193,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   public void loadNeverConfiguration() throws Exception {
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.NEVER.toString());
-    GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
+    GetStatusPOptions options = GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER).build();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
   }
