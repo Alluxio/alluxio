@@ -47,6 +47,7 @@ set_java_opt() {
     -server
     -Xms1G
     -Xmx1G
+    -XX:MaxDirectMemorySize=4g
   "
 
   ALLUXIO_FUSE_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
