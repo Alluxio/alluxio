@@ -11,10 +11,11 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsStatus;
+import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -40,25 +41,36 @@ public class CreateDirectoryContext
   }
 
   /**
+   * @param optionsBuilder Builder for proto {@link CreateDirectoryPOptions}
+   * @return the instance of {@link CreateDirectoryContext} with given options
+   */
+  public static CreateDirectoryContext create(CreateDirectoryPOptions.Builder optionsBuilder) {
+    return new CreateDirectoryContext(optionsBuilder);
+  }
+
+  // TODO(zac): Consider renaming mergeFrom to disambiguate between POptions mergeFrom since
+  //  this method and the gRPC version have different functionality.
+  /**
    * Merges and embeds the given {@link CreateDirectoryPOptions} with the corresponding master
    * options.
    *
    * @param optionsBuilder Builder for proto {@link CreateDirectoryPOptions} to merge with defaults
    * @return the instance of {@link CreateDirectoryContext} with default values for master
    */
-  public static CreateDirectoryContext defaults(CreateDirectoryPOptions.Builder optionsBuilder) {
-    CreateDirectoryPOptions masterOptions = FileSystemMasterOptions.createDirectoryDefaults();
+  public static CreateDirectoryContext mergeFrom(CreateDirectoryPOptions.Builder optionsBuilder) {
+    CreateDirectoryPOptions masterOptions =
+        FileSystemOptions.createDirectoryDefaults(ServerConfiguration.global());
     CreateDirectoryPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
-    return new CreateDirectoryContext(mergedOptionsBuilder);
+    return create(mergedOptionsBuilder);
   }
 
   /**
    * @return the instance of {@link CreateDirectoryContext} with default values for master
    */
   public static CreateDirectoryContext defaults() {
-    CreateDirectoryPOptions masterOptions = FileSystemMasterOptions.createDirectoryDefaults();
-    return new CreateDirectoryContext(masterOptions.toBuilder());
+    return create(FileSystemOptions
+        .createDirectoryDefaults(ServerConfiguration.global()).toBuilder());
   }
 
   protected CreateDirectoryContext getThis() {

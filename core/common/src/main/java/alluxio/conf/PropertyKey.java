@@ -1677,9 +1677,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_UFS_PATH_CACHE_CAPACITY)
           .setDefaultValue(100000)
           .setDescription("The capacity of the UFS path cache. This cache is used to "
-              + "approximate the `Once` metadata load behavior (see "
+              + "approximate the `ONCE` metadata load behavior (see "
               + "`alluxio.user.file.metadata.load.type`). Larger caches will consume more "
-              + "memory, but will better approximate the `Once` behavior.")
+              + "memory, but will better approximate the `ONCE` behavior.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1690,7 +1690,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "paths for the UFS path cache. Greater number of threads will decrease the "
               + "amount of staleness in the async cache, but may impact performance. If this "
               + "is set to 0, the cache will be disabled, and "
-              + "`alluxio.user.file.metadata.load.type=Once` will behave like `Always`.")
+              + "`alluxio.user.file.metadata.load.type=ONCE` will behave like `ALWAYS`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2667,12 +2667,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_METADATA_LOAD_TYPE =
       new Builder(Name.USER_FILE_METADATA_LOAD_TYPE)
-          .setDefaultValue("Once")
+          .setDefaultValue("ONCE")
           .setDescription("The behavior of loading metadata from UFS. When information about "
               + "a path is requested and the path does not exist in Alluxio, metadata can be "
-              + "loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. "
-              + "`Always` will always access UFS to see if the path exists in the UFS. "
-              + "`Never` will never consult the UFS. `Once` will access the UFS the \"first\" "
+              + "loaded from the UFS. Valid options are `ALWAYS`, `NEVER`, and `ONCE`. "
+              + "`ALWAYS` will always access UFS to see if the path exists in the UFS. "
+              + "`NEVER` will never consult the UFS. `ONCE` will access the UFS the \"first\" "
               + "time (according to a cache), but not after that. This parameter is ignored if a "
               + "metadata sync is performed, via the parameter "
               + "\"alluxio.user.file.metadata.sync.interval\"")

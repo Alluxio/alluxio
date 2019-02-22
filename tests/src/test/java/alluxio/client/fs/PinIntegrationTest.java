@@ -195,7 +195,7 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
     // Pin the dir
     mFileSystem.setAttribute(new AlluxioURI("/mnt/tmp/"), attributeOption);
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
-        LoadMetadataType.Never.toString());
+        LoadMetadataType.NEVER.toString());
     URIStatus dirStat = mFileSystem.getStatus(new AlluxioURI("/mnt/tmp/"), getStatusOption);
     URIStatus fileStat = mFileSystem.getStatus(new AlluxioURI(PathUtils.concatPath("/mnt" ,
         deeplyNestedDir, "newfile")), getStatusOption);

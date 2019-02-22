@@ -11,8 +11,9 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.MountPOptions;
-import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
@@ -31,24 +32,31 @@ public class MountContext extends OperationContext<MountPOptions.Builder> {
   }
 
   /**
+   * @param optionsBuilder Builder for proto {@link MountPOptions}
+   * @return the instance of {@link MountContext} with the given options
+   */
+  public static MountContext create(MountPOptions.Builder optionsBuilder) {
+    return new MountContext(optionsBuilder);
+  }
+
+  /**
    * Merges and embeds the given {@link MountPOptions} with the corresponding master options.
    *
    * @param optionsBuilder Builder for proto {@link MountPOptions} to embed
    * @return the instance of {@link MountContext} with default values for master
    */
-  public static MountContext defaults(MountPOptions.Builder optionsBuilder) {
-    MountPOptions masterOptions = FileSystemMasterOptions.mountDefaults();
+  public static MountContext mergeFrom(MountPOptions.Builder optionsBuilder) {
+    MountPOptions masterOptions = FileSystemOptions.mountDefaults(ServerConfiguration.global());
     MountPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
-    return new MountContext(mergedOptionsBuilder);
+    return create(mergedOptionsBuilder);
   }
 
   /**
    * @return the instance of {@link MountContext} with default values for master
    */
   public static MountContext defaults() {
-    MountPOptions masterOptions = FileSystemMasterOptions.mountDefaults();
-    return new MountContext(masterOptions.toBuilder());
+    return create(FileSystemOptions.mountDefaults(ServerConfiguration.global()).toBuilder());
   }
 
   @Override
