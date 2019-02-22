@@ -12,22 +12,18 @@
 import {INavigationData} from '@alluxio/common-ui/src/constants';
 
 export const footerNavigationData: INavigationData[] = [{
+  attributes: {target: '_blank'},
   innerText: 'Project Website',
   url: 'https://alluxio.org/'
 }, {
+  attributes: {target: '_blank'},
   innerText: 'User Mailing List',
   url: 'https://groups.google.com/forum/#!forum/alluxio-users'
-}, {
-  innerText: 'User Survey',
-  url: 'https://alluxio.org/resources/survey-users'
 }, {
   innerText: 'Workers',
   url: '/workers'
 }, {
-  innerText: 'Resources',
-  url: 'https://alluxio.org/alluxio-resources/'
-}, {
   attributes: {target: '_blank'},
   innerText: 'Slack Channel',
-  url: 'https://slackin.alluxio.org/'
+  url: 'https://www.alluxio.org/slack'
 }];
