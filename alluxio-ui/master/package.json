@@ -36,7 +36,7 @@
     "build-js": "react-app-rewired build --production --scripts-version react-scripts",
     "start": "NODE_ENV=development && npm-run-all --parallel watch-css start-js",
     "build": "NODE_ENV=production && npm-run-all --parallel build-css build-js",
-    "test": "npm run build-css && react-app-rewired test --scripts-version react-scripts --env=jsdom --watch --verbose=false",
+    "test": "npm run build-css && react-app-rewired test --scripts-version react-scripts --env=jsdom --watch",
     "test-ci": "npm run build-css && CI=true react-app-rewired test --scripts-version react-scripts --env=jsdom",
     "coverage": "npm run build-css && react-app-rewired test --scripts-version react-scripts --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx --watch",
     "coverage-ci": "npm run build-css && CI=true react-app-rewired test --scripts-version react-scripts --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx",
