@@ -47,7 +47,7 @@ The following is a checklist to run through to address common problems when tuni
 1. Are there warnings or errors in the master or worker logs related to thread pool exhaustion?
 
    Alluxio clients maintain a connection to the master to avoid using a new connection each time.
-   Until a client shuts down, it will occupy a server thread even if it is not sending requests.
+   Each client will occupy a server thread while the RPC is pending.
    This may deplete the master's thread pool; its size can be increased by setting
    `alluxio.master.worker.threads.max`, which defaults to 1/3 of the system's max file descriptor limit.
    The file descriptor limit may also need to be increased to allow the desired number of open connections.
@@ -55,13 +55,13 @@ The following is a checklist to run through to address common problems when tuni
    `alluxio.user.file.master.client.threads` and `alluxio.user.block.master.client.threads`,
    both of which have a default value of `10`.
 
-1. Are there error messages containing "Connection reset by peer" in the worker logs?
+1. Are there error messages containing "DeadlineExceededException" in the user logs?
 
    This could indicate that the client is timing out when communicating with the Alluxio worker.
-   To increase the timeout, configure `alluxio.user.network.netty.timeout`, which has a default of `30s`.
+   To increase the timeout, configure `alluxio.user.network.data.timeout`, which has a default of `30s`.
 
-   If write operations are timing out, configure `alluxio.user.network.netty.writer.close.timeout`,
-   which has a default of `5m`. This is especially important when writing large files to object stores
+   If write operations are timing out, configure `alluxio.user.network.writer.close.timeout`,
+   which has a default of `30m`. This is especially important when writing large files to object stores
    with a slow network connection. The entire object is uploaded at once upon closing the file.
 
 1. Are there frequent JVM GC events?
@@ -204,13 +204,11 @@ If this is set to 0, the cache is disabled and the `Once` setting will behave li
 
 ## Worker Tuning
 
-### Block thread pool size
+### Block reading thread pool size
 
-The `alluxio.worker.block.threads.max` property configures the maximum number of incoming RPC requests to
-worker that can be handled.
-This value is used to configure maximum number of threads in Thrift thread pool of the block worker.
-This value should be greater than the sum of `alluxio.user.block.worker.client.threads` across concurrent Alluxio clients.
-Otherwise, the worker connection pool can be drained, preventing new connections from being established.
+The `alluxio.worker.network.block.reader.threads.max` property configures the maximum number of threads used to
+handle block read request. This value should be increased if you are getting connection refused error while
+reading files.
 
 ### Async block caching
 
@@ -222,12 +220,6 @@ The number of asynchronous threads used to finish reading partial blocks is set 
 `alluxio.worker.network.netty.async.cache.manager.threads.max` property, with a default value of `512`.
 When large amounts of data are expected to be asynchronously cached concurrently, it may be helpful
 to reduce this value to reduce resource contention.
-
-### Netty Configs
-
-The number of RPC threads available on a worker is configured by
-`alluxio.worker.network.netty.rpc.threads.max`, with a default value of `2048`.
-This value should be increased if exhausted thread pool errors are being logged on workers.
 
 ## Client Tuning
 
