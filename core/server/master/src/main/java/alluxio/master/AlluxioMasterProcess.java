@@ -27,6 +27,7 @@ import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.JvmPauseMonitor;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
@@ -281,8 +282,8 @@ public class AlluxioMasterProcess extends MasterProcess {
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress,
           ServerConfiguration.global());
 
-      mRPCExecutor = Executors.newFixedThreadPool(ServerConfiguration.getInt(
-          PropertyKey.MASTER_RPC_THREAD_POOL_SIZE), new GrpcThreadFactory());
+      mRPCExecutor = Executors.newFixedThreadPool(mMaxWorkerThreads,
+          ThreadFactoryUtils.build("grpc-rpc-%d", true));
 
       serverBuilder.executor(mRPCExecutor);
       for (Master master : mRegistry.getServers()) {
@@ -364,18 +365,5 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
 
     private Factory() {} // prevent instantiation
-  }
-
-  private class GrpcThreadFactory implements ThreadFactory {
-    private static final String GRPC_THREAD_PREFIX = "GRPC_THREAD";
-
-    private int mCount = 0;
-
-    @Override
-    public Thread newThread(Runnable r) {
-      Thread newThread = new Thread(GRPC_THREAD_PREFIX + (mCount++));
-      newThread.setDaemon(true);
-      return newThread;
-    }
   }
 }

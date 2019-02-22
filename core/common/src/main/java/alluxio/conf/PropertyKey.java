@@ -1737,20 +1737,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
               .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MAX =
-          new Builder(Name.MASTER_WORKER_THREADS_MAX)
-          .setDefaultSupplier(() -> {
-            try {
-              java.lang.management.OperatingSystemMXBean os =
-                  ManagementFactory.getOperatingSystemMXBean();
-              if (os instanceof UnixOperatingSystemMXBean) {
-                return Math.min(32768, Math.max(2048,
-                    ((UnixOperatingSystemMXBean) os).getMaxFileDescriptorCount() / 3));
-              }
-            } catch (Exception e) {
-              // Set lower limit
-            }
-            return 2048;
-          }, "A third of the max file descriptors limit, if b/w 2048 and 32768")
+      new Builder(Name.MASTER_WORKER_THREADS_MAX)
+          .setDefaultValue(512)
           .setDescription("The maximum number of incoming RPC requests to master that can be "
               + "handled. This value is used to configure maximum number of threads in gRPC "
               + "thread pool with master.")
@@ -1759,7 +1747,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MIN =
       new Builder(Name.MASTER_WORKER_THREADS_MIN)
-          .setDefaultValue(512)
+          .setDefaultValue(256)
           .setDescription("The minimum number of threads used to handle incoming RPC requests "
               + "to master. This value is used to configure minimum number of threads in "
               + "gRPC thread pool with master.")
