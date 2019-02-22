@@ -61,6 +61,7 @@ public class CachingInodeStoreTest {
     InodeStoreArgs args = new InodeStoreArgs(new InodeLockManager(),
         new ConfigurationBuilder()
             .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE)
+            .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE, 5)
             .build());
     mBackingStore = spy(new HeapInodeStore(args));
     mStore = new CachingInodeStore(mBackingStore, args);
@@ -231,6 +232,18 @@ public class CachingInodeStoreTest {
       }
       verify(mBackingStore, times(0)).getChildIds(inode.getId());
     }
+  }
+
+  @Test
+  public void flushToBackingStore() throws Exception {
+    for (long inodeId = 10; inodeId < 10 + CACHE_SIZE / 2; inodeId++) {
+      MutableInodeDirectory dir = createInodeDir(inodeId, 0);
+      mStore.addChild(0, dir);
+    }
+    assertEquals(0, Iterables.size(mBackingStore.getChildren(0L)));
+    mStore.mEdgeCache.flush();
+    mStore.mInodeCache.flush();
+    assertEquals(CACHE_SIZE / 2, Iterables.size(mBackingStore.getChildren(0L)));
   }
 
   private MutableInodeDirectory createInodeDir(long id, long parentId) {
