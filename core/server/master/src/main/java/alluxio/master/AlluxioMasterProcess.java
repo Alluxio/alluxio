@@ -41,6 +41,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
@@ -281,7 +282,7 @@ public class AlluxioMasterProcess extends MasterProcess {
           ServerConfiguration.global());
 
       mRPCExecutor = Executors.newFixedThreadPool(ServerConfiguration.getInt(
-          PropertyKey.MASTER_RPC_THREAD_POOL_PARALLELISM));
+          PropertyKey.MASTER_RPC_THREAD_POOL_SIZE), new GrpcThreadFactory());
 
       serverBuilder.executor(mRPCExecutor);
       for (Master master : mRegistry.getServers()) {
@@ -363,5 +364,18 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
 
     private Factory() {} // prevent instantiation
+  }
+
+  private class GrpcThreadFactory implements ThreadFactory {
+    private static final String GRPC_THREAD_PREFIX = "GRPC_THREAD";
+
+    private int count = 0;
+
+    @Override
+    public Thread newThread(Runnable r) {
+      Thread newThread = new Thread(GRPC_THREAD_PREFIX + (count++));
+      newThread.setDaemon(true);
+      return newThread;
+    }
   }
 }
