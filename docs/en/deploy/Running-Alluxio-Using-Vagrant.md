@@ -41,6 +41,12 @@ $ sudo pip install -r pip-req.txt
 
 * Download and Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 
+For newer versions of macOS and VirtualBox, you might need to grant permission to VirtualBox
+under `System Preferences > Security & Privacy > General`, and then run
+`sudo "/Library/Application Support/VirtualBox/LaunchDaemons/VirtualBoxStartup.sh" restart`,
+otherwise, you might encounter errors like `failed to open /dev/vboxnetctl: No such file or directory`
+when launching cluster.
+
 ### Launch Cluster
 
 Now you can launch the Alluxio cluster with Hadoop as under storage by running the script under deploy/vagrant:
