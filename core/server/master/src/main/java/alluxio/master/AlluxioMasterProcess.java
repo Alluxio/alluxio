@@ -27,6 +27,7 @@ import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.JvmPauseMonitor;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
@@ -40,7 +41,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
@@ -280,9 +281,9 @@ public class AlluxioMasterProcess extends MasterProcess {
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress,
           ServerConfiguration.global());
 
-      mRPCExecutor =
-          new ForkJoinPool(ServerConfiguration.getInt(
-              PropertyKey.MASTER_RPC_FORKJOIN_POOL_PARALLELISM));
+      mRPCExecutor = Executors.newFixedThreadPool(mMaxWorkerThreads,
+          ThreadFactoryUtils.build("grpc-rpc-%d", true));
+
       serverBuilder.executor(mRPCExecutor);
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
