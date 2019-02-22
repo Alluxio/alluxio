@@ -59,6 +59,16 @@ public enum HdfsVersion {
     return null;
   }
 
+  public static boolean matches(String versionA, String versionB) {
+    if (versionA.equals(versionB)) {
+      return true;
+    }
+    if (HdfsVersion.find(versionA) == HdfsVersion.find(versionB) {
+      return true;
+    }
+    return false;
+  }
+
   /**
    * @return the canonical version string
    */

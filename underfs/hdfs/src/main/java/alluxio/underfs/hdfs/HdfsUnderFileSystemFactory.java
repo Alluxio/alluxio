@@ -35,7 +35,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
 
-  private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystemFactory.class);
   /**
    * Constructs a new {@link HdfsUnderFileSystemFactory}.
    */
@@ -83,14 +82,9 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
       // are supported this is not an option and we have to continue to use this method.
       for (final String prefix : alluxioConf.getList(PropertyKey.UNDERFS_HDFS_PREFIXES, ",")) {
         if (path.startsWith(prefix)) {
-          if (conf != null && conf.get(PropertyKey.UNDERFS_VERSION).equals(getVersion())) {
+          if (conf == null || HdfsVersion.matches(conf.get(PropertyKey.UNDERFS_VERSION), getVersion())) {
             return true;
           }
-          if (conf != null && HdfsVersion
-              .find(conf.get(PropertyKey.UNDERFS_VERSION)) != HdfsVersion.find(getVersion())) {
-            continue;
-          }
-          return true;
         }
       }
     }

@@ -147,12 +147,12 @@ func buildModules(srcPath, name, ufsType, moduleFlag, version string, modules ma
 		for _, arg := range strings.Split(moduleEntry.mavenArgs, " ") {
 			moduleMvnArgs = append(moduleMvnArgs, arg)
 		}
-		var versionMvnArg string
-		for _, arg := range strings.Split(moduleEntry.mavenArgs, " ") {
-                        if strings.Contains(arg, "ufs.hadoop.version") {
+		var versionMvnArg = "2.2.0"
+		for _, arg := range moduleMvnArgs {
+			if strings.Contains(arg, "ufs.hadoop.version") {
 				versionMvnArg = strings.Split(arg, "=")[1]
 			}
-                }
+		}
 		run(fmt.Sprintf("compiling %v module %v", name, moduleName), "mvn", moduleMvnArgs...)
 		var srcJar string
 		if ufsType == "hdfs" {
