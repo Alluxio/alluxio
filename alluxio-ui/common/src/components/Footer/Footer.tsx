@@ -47,7 +47,7 @@ export class Footer extends React.PureComponent<IFooterProps> {
         : data.url;
       return (
         <NavItem key={url}>
-          <NavLink href={url}>{data.innerText}</NavLink>
+          <NavLink href={url} {...data.attributes}>{data.innerText}</NavLink>
         </NavItem>
       )
     });
