@@ -11,8 +11,9 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FreePOptions;
-import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
@@ -31,24 +32,31 @@ public class FreeContext extends OperationContext<FreePOptions.Builder> {
   }
 
   /**
+   * @param optionsBuilder Builder for proto {@link FreePOptions}
+   * @return the instance of {@link FreeContext} with the given options
+   */
+  public static FreeContext create(FreePOptions.Builder optionsBuilder) {
+    return new FreeContext(optionsBuilder);
+  }
+
+  /**
    * Merges and embeds the given {@link FreePOptions} with the corresponding master options.
    *
    * @param optionsBuilder Builder for proto {@link FreePOptions} to merge with defaults
    * @return the instance of {@link FreeContext} with default values for master
    */
-  public static FreeContext defaults(FreePOptions.Builder optionsBuilder) {
-    FreePOptions masterOptions = FileSystemMasterOptions.freeDefaults();
+  public static FreeContext mergeFrom(FreePOptions.Builder optionsBuilder) {
+    FreePOptions masterOptions = FileSystemOptions.freeDefaults(ServerConfiguration.global());
     FreePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
-    return new FreeContext(mergedOptionsBuilder);
+    return create(mergedOptionsBuilder);
   }
 
   /**
    * @return the instance of {@link FreeContext} with default values for master
    */
   public static FreeContext defaults() {
-    FreePOptions masterOptions = FileSystemMasterOptions.freeDefaults();
-    return new FreeContext(masterOptions.toBuilder());
+    return create(FileSystemOptions.freeDefaults(ServerConfiguration.global()).toBuilder());
   }
 
   @Override

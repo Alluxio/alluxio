@@ -111,7 +111,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(1,
         fsMaster
             .listStatus(mRootUri,
-                ListStatusContext.defaults(
+                ListStatusContext.mergeFrom(
                     ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)))
             .size());
     long xyzId = fsMaster.getFileId(new AlluxioURI("/xyz"));
@@ -179,7 +179,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(1,
         fsMaster
             .listStatus(mRootUri,
-                ListStatusContext.defaults(
+                ListStatusContext.mergeFrom(
                     ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)))
             .size());
     Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/xyz")) != IdUtils.INVALID_FILE_ID);
@@ -254,7 +254,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(5,
         fsMaster
             .listStatus(mRootUri,
-                ListStatusContext.defaults(
+                ListStatusContext.mergeFrom(
                     ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)))
             .size());
     for (int i = 0; i < 5; i++) {
@@ -277,7 +277,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(0,
         fsMaster
             .listStatus(mRootUri,
-                ListStatusContext.defaults(
+                ListStatusContext.mergeFrom(
                     ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)))
             .size());
     registry.stop();
@@ -310,7 +310,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(10,
         fsMaster
             .listStatus(mRootUri,
-                ListStatusContext.defaults(
+                ListStatusContext.mergeFrom(
                     ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)))
             .size());
     for (int i = 0; i < 10; i++) {
@@ -345,7 +345,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(1,
         fsMaster
             .listStatus(mRootUri,
-                ListStatusContext.defaults(
+                ListStatusContext.mergeFrom(
                     ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)))
             .size());
     long fileId = fsMaster.getFileId(new AlluxioURI("/xyz"));
@@ -426,7 +426,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(1,
         fsMaster
             .listStatus(mRootUri,
-                ListStatusContext.defaults(
+                ListStatusContext.mergeFrom(
                     ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)))
             .size());
     long fileId = fsMaster.getFileId(new AlluxioURI("/xyz"));
@@ -506,7 +506,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(10,
         fsMaster
             .listStatus(mRootUri,
-                ListStatusContext.defaults(
+                ListStatusContext.mergeFrom(
                     ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)))
             .size());
     for (int k = 0; k < 10; k++) {
@@ -539,7 +539,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(124,
         fsMaster
             .listStatus(mRootUri,
-                ListStatusContext.defaults(
+                ListStatusContext.mergeFrom(
                     ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)))
             .size());
     for (int k = 0; k < 124; k++) {
@@ -578,7 +578,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(10,
         fsMaster
             .listStatus(mRootUri,
-                ListStatusContext.defaults(
+                ListStatusContext.mergeFrom(
                     ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)))
             .size());
     for (int i = 0; i < 10; i++) {

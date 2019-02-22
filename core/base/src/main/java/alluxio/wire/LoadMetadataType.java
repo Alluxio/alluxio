@@ -24,15 +24,15 @@ public enum LoadMetadataType {
   /**
    * Never loads metadata.
    */
-  Never(0),
+  NEVER(0),
   /**
    * Loads metadata only at the first time of listing status on a directory.
    */
-  Once(1),
+  ONCE(1),
   /**
    * Always load metadata when listing status on a directory.
    */
-  Always(2),
+  ALWAYS(2),
   ;
 
   private final int mValue;

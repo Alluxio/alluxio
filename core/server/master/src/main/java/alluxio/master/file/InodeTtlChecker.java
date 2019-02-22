@@ -83,10 +83,10 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 // parent of file
                 if (inode.isDirectory()) {
                   mFileSystemMaster.free(path, FreeContext
-                      .defaults(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
+                      .mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
                 } else {
                   mFileSystemMaster.free(path,
-                      FreeContext.defaults(FreePOptions.newBuilder().setForced(true)));
+                      FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)));
                 }
                 try (JournalContext journalContext = mFileSystemMaster.createJournalContext()) {
                   // Reset state
@@ -103,7 +103,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 // parent of file
                 if (inode.isDirectory()) {
                   mFileSystemMaster.delete(path,
-                      DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
+                      DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
                 } else {
                   mFileSystemMaster.delete(path, DeleteContext.defaults());
                 }

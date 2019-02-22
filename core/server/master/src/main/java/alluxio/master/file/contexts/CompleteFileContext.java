@@ -37,24 +37,31 @@ public class CompleteFileContext extends OperationContext<CompleteFilePOptions.B
   }
 
   /**
+   * @param optionsBuilder Builder for proto {@link CompleteFilePOptions}
+   * @return the instance of {@link CompleteFileContext} with given options
+   */
+  public static CompleteFileContext create(CompleteFilePOptions.Builder optionsBuilder) {
+    return new CompleteFileContext(optionsBuilder);
+  }
+
+  /**
    * Merges and embeds the given {@link CompleteFilePOptions} with the corresponding master options.
    *
    * @param optionsBuilder Builder for proto {@link CompleteFilePOptions} to merge with defaults
    * @return the instance of {@link CompleteFileContext} with default values for master
    */
-  public static CompleteFileContext defaults(CompleteFilePOptions.Builder optionsBuilder) {
+  public static CompleteFileContext mergeFrom(CompleteFilePOptions.Builder optionsBuilder) {
     CompleteFilePOptions masterOptions = FileSystemMasterOptions.completeFileDefaults();
     CompleteFilePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
-    return new CompleteFileContext(mergedOptionsBuilder);
+    return create(mergedOptionsBuilder);
   }
 
   /**
    * @return the instance of {@link CompleteFileContext} with default values for master
    */
   public static CompleteFileContext defaults() {
-    CompleteFilePOptions masterOptions = FileSystemMasterOptions.completeFileDefaults();
-    return new CompleteFileContext(masterOptions.toBuilder());
+    return create(FileSystemMasterOptions.completeFileDefaults().toBuilder());
   }
 
   /**

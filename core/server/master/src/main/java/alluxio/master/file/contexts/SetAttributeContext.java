@@ -12,8 +12,9 @@
 package alluxio.master.file.contexts;
 
 import alluxio.Constants;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
@@ -37,24 +38,32 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
   }
 
   /**
+   * @param optionsBuilder Builder for proto {@link SetAttributePOptions}
+   * @return the instance of {@link SetAttributeContext} with the given options
+   */
+  public static SetAttributeContext create(SetAttributePOptions.Builder optionsBuilder) {
+    return new SetAttributeContext(optionsBuilder);
+  }
+
+  /**
    * Merges and embeds the given {@link SetAttributePOptions} with the corresponding master options.
    *
    * @param optionsBuilder Builder for proto {@link SetAttributePOptions} to merge with defaults
    * @return the instance of {@link SetAttributeContext} with default values for master
    */
-  public static SetAttributeContext defaults(SetAttributePOptions.Builder optionsBuilder) {
-    SetAttributePOptions masterOptions = FileSystemMasterOptions.setAttributesDefaults();
+  public static SetAttributeContext mergeFrom(SetAttributePOptions.Builder optionsBuilder) {
+    SetAttributePOptions masterOptions =
+        FileSystemOptions.setAttributeDefaults(ServerConfiguration.global());
     SetAttributePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
-    return new SetAttributeContext(mergedOptionsBuilder);
+    return create(mergedOptionsBuilder);
   }
 
   /**
    * @return the instance of {@link SetAttributeContext} with default values for master
    */
   public static SetAttributeContext defaults() {
-    SetAttributePOptions masterOptions = FileSystemMasterOptions.setAttributesDefaults();
-    return new SetAttributeContext(masterOptions.toBuilder());
+    return create(FileSystemOptions.setAttributeDefaults(ServerConfiguration.global()).toBuilder());
   }
 
   /**
