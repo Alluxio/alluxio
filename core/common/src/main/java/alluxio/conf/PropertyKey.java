@@ -27,7 +27,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
-import com.sun.management.UnixOperatingSystemMXBean;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -1712,9 +1711,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_RPC_FORKJOIN_POOL_PARALLELISM =
-      new Builder(Name.MASTER_RPC_FORKJOIN_POOL_PARALLELISM)
-          .setDefaultValue(50)
+  public static final PropertyKey MASTER_RPC_THREAD_POOL_SIZE =
+      new Builder(Name.MASTER_RPC_THREAD_POOL_SIZE)
+          .setDefaultValue(500)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1737,20 +1736,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
               .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MAX =
-          new Builder(Name.MASTER_WORKER_THREADS_MAX)
-          .setDefaultSupplier(() -> {
-            try {
-              java.lang.management.OperatingSystemMXBean os =
-                  ManagementFactory.getOperatingSystemMXBean();
-              if (os instanceof UnixOperatingSystemMXBean) {
-                return Math.min(32768, Math.max(2048,
-                    ((UnixOperatingSystemMXBean) os).getMaxFileDescriptorCount() / 3));
-              }
-            } catch (Exception e) {
-              // Set lower limit
-            }
-            return 2048;
-          }, "A third of the max file descriptors limit, if b/w 2048 and 32768")
+      new Builder(Name.MASTER_WORKER_THREADS_MAX)
+          .setDefaultValue(512)
           .setDescription("The maximum number of incoming RPC requests to master that can be "
               + "handled. This value is used to configure maximum number of threads in gRPC "
               + "thread pool with master.")
@@ -1759,7 +1746,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MIN =
       new Builder(Name.MASTER_WORKER_THREADS_MIN)
-          .setDefaultValue(512)
+          .setDefaultValue(256)
           .setDescription("The minimum number of threads used to handle incoming RPC requests "
               + "to master. This value is used to configure minimum number of threads in "
               + "gRPC thread pool with master.")
@@ -3802,8 +3789,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
 
-    public static final String MASTER_RPC_FORKJOIN_POOL_PARALLELISM =
-        "alluxio.master.rpc.fork.parallelism";
+    public static final String MASTER_RPC_THREAD_POOL_SIZE =
+        "alluxio.master.rpc.threadpool.size";
     //
     // Worker related properties
     //
