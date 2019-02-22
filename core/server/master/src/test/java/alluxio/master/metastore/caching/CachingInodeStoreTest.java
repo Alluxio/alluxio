@@ -121,6 +121,16 @@ public class CachingInodeStoreTest {
   }
 
   @Test
+  public void listChildrenOverCacheSize() {
+    for (long inodeId = 10; inodeId < 10 + CACHE_SIZE * 2; inodeId++) {
+      MutableInodeDirectory dir = createInodeDir(inodeId, 0);
+      mStore.addChild(0, dir);
+    }
+
+    assertEquals(CACHE_SIZE * 2, Iterables.size(mStore.getChildren(0L)));
+  }
+
+  @Test
   public void cacheGetChildrenInodeLookups() {
     List<Inode> children = new ArrayList<>();
     for (int id = 100; id < 110; id++) {
