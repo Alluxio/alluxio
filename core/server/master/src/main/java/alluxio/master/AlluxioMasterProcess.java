@@ -369,11 +369,11 @@ public class AlluxioMasterProcess extends MasterProcess {
   private class GrpcThreadFactory implements ThreadFactory {
     private static final String GRPC_THREAD_PREFIX = "GRPC_THREAD";
 
-    private int count = 0;
+    private int mCount = 0;
 
     @Override
     public Thread newThread(Runnable r) {
-      Thread newThread = new Thread(GRPC_THREAD_PREFIX + (count++));
+      Thread newThread = new Thread(GRPC_THREAD_PREFIX + (mCount++));
       newThread.setDaemon(true);
       return newThread;
     }
