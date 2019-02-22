@@ -364,10 +364,15 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       // deletion.
       Set<String> unflushedDeletes =
           new HashSet<>(mUnflushedDeletes.getOrDefault(inodeId, Collections.EMPTY_SET));
-      mBackingStore.getChildren(inodeId).forEach(inode -> {
-        if (!unflushedDeletes.contains(inode.getName())) {
-          childIds.put(inode.getName(), inode.getId());
-        }
+      // Cannot use mBackingStore.getChildren because it only returns inodes cached in the backing
+      // store, causing us to lose inodes stored only in the cache.
+      mBackingStore.getChildIds(inodeId).forEach(childId -> {
+        CachingInodeStore.this.get(childId).map(inode -> {
+          if (!unflushedDeletes.contains(inode.getName())) {
+            childIds.put(inode.getName(), inode.getId());
+          }
+          return null;
+        });
       });
       return childIds;
     }
