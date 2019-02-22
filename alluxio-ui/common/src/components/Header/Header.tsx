@@ -121,7 +121,8 @@ export class Header extends React.PureComponent<IHeaderProps, IHeaderState> {
       return (
         <NavItem key={url}>
           <NavLink className="text-white" tag={isExternalLink(url) ? NavLink : Link} to={url} href={url}
-                   active={pathname === url} onClick={this.closeHeaderOnClick}>{data.innerText}</NavLink>
+                   active={pathname === url}
+                   onClick={this.closeHeaderOnClick} {...data.attributes}>{data.innerText}</NavLink>
         </NavItem>
       )
     });

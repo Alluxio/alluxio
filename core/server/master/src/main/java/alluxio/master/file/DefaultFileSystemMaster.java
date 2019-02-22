@@ -1395,7 +1395,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
 
     Metrics.FILES_CREATED.inc();
-    Metrics.DIRECTORIES_CREATED.inc();
     return created;
   }
 

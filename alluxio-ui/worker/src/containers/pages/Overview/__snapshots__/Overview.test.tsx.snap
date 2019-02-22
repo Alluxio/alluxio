@@ -916,24 +916,29 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                     data={
                       Array [
                         Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
                           "innerText": "Project Website",
                           "url": "https://alluxio.org/",
                         },
                         Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
                           "innerText": "User Mailing List",
                           "url": "https://groups.google.com/forum/#!forum/alluxio-users",
-                        },
-                        Object {
-                          "innerText": "User Survey",
-                          "url": "https://alluxio.org/resources/survey-users",
                         },
                         Object {
                           "innerText": "Workers",
                           "url": [Function],
                         },
                         Object {
-                          "innerText": "Resources",
-                          "url": "https://alluxio.org/alluxio-resources/",
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
+                          "innerText": "Slack Channel",
+                          "url": "https://www.alluxio.org/slack",
                         },
                       ]
                     }
@@ -959,11 +964,13 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                               <NavLink
                                 href="https://alluxio.org/"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
                                   href="https://alluxio.org/"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
                                   Project Website
                                 </a>
@@ -980,34 +987,15 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                               <NavLink
                                 href="https://groups.google.com/forum/#!forum/alluxio-users"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
                                   href="https://groups.google.com/forum/#!forum/alluxio-users"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
                                   User Mailing List
-                                </a>
-                              </NavLink>
-                            </li>
-                          </NavItem>
-                          <NavItem
-                            key="https://alluxio.org/resources/survey-users"
-                            tag="li"
-                          >
-                            <li
-                              className="nav-item"
-                            >
-                              <NavLink
-                                href="https://alluxio.org/resources/survey-users"
-                                tag="a"
-                              >
-                                <a
-                                  className="nav-link"
-                                  href="https://alluxio.org/resources/survey-users"
-                                  onClick={[Function]}
-                                >
-                                  User Survey
                                 </a>
                               </NavLink>
                             </li>
@@ -1034,22 +1022,24 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                             </li>
                           </NavItem>
                           <NavItem
-                            key="https://alluxio.org/alluxio-resources/"
+                            key="https://www.alluxio.org/slack"
                             tag="li"
                           >
                             <li
                               className="nav-item"
                             >
                               <NavLink
-                                href="https://alluxio.org/alluxio-resources/"
+                                href="https://www.alluxio.org/slack"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
-                                  href="https://alluxio.org/alluxio-resources/"
+                                  href="https://www.alluxio.org/slack"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
-                                  Resources
+                                  Slack Channel
                                 </a>
                               </NavLink>
                             </li>

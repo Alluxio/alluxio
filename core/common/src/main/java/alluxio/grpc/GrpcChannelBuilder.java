@@ -22,6 +22,7 @@ import io.netty.channel.EventLoopGroup;
 
 import javax.security.auth.Subject;
 import java.net.SocketAddress;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,11 +49,14 @@ public final class GrpcChannelBuilder {
   protected AlluxioConfiguration mConfiguration;
 
   private GrpcChannelBuilder(SocketAddress address, AlluxioConfiguration conf) {
+    mConfiguration = conf;
     mChannelKey = GrpcManagedChannelPool.ChannelKey.create(conf);
+    // Set default overrides for the channel.
     mChannelKey.setAddress(address).usePlaintext();
+    mChannelKey.setMaxInboundMessageSize(
+        (int) mConfiguration.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
     mUseSubject = true;
     mAuthenticateChannel = true;
-    mConfiguration = conf;
   }
 
   /**
@@ -181,6 +185,11 @@ public final class GrpcChannelBuilder {
    */
   public GrpcChannelBuilder setPoolingStrategy(GrpcManagedChannelPool.PoolingStrategy strategy) {
     mChannelKey.setPoolingStrategy(strategy);
+    return this;
+  }
+
+  public GrpcChannelBuilder setExecutor(Executor executor) {
+    mChannelKey.setExecutor(executor);
     return this;
   }
 
