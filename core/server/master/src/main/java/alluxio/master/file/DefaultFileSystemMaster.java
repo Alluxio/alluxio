@@ -436,7 +436,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       Map<String, String> rootUfsConf =
           ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
       MountPOptions mountOptions = MountContext
-          .defaults(MountPOptions.newBuilder().setShared(shared).putAllProperties(rootUfsConf))
+          .mergeFrom(MountPOptions.newBuilder().setShared(shared).putAllProperties(rootUfsConf))
           .getOptions().build();
       return new MountInfo(new AlluxioURI(MountTable.ROOT),
           new AlluxioURI(rootUfsUri), IdUtils.ROOT_MOUNT_ID, mountOptions);
@@ -809,8 +809,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.READ)) {
       mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
-      loadMetadataIfNotExist(rpcContext, inodePath,
-          LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
+      loadMetadataIfNotExist(rpcContext, inodePath, LoadMetadataContext
+          .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
       mInodeTree.ensureFullInodePath(inodePath);
       return inodePath.getInode().getId();
     } catch (InvalidPathException | FileDoesNotExistException e) {
@@ -855,7 +855,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       if (!inodePath.fullPathExists()) {
         checkLoadMetadataOptions(context.getOptions().getLoadMetadataType(), inodePath.getUri());
         loadMetadataIfNotExist(rpcContext, inodePath,
-            LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
+            LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
                 .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
                     .setTtl(context.getOptions().getCommonOptions().getTtl())
                     .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()))));
@@ -945,7 +945,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
       // load metadata for 1 level of descendants, or all descendants if recursive
       LoadMetadataContext loadMetadataContext =
-          LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
+          LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
               .setLoadDescendantType(GrpcUtils.toProto(loadDescendantType))
               .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
                   .setTtl(context.getOptions().getCommonOptions().getTtl())
@@ -2308,7 +2308,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           }
 
           SetAttributeContext setAttributeContext = SetAttributeContext
-              .defaults(SetAttributePOptions.newBuilder().setRecursive(false).setPinned(false));
+              .mergeFrom(SetAttributePOptions.newBuilder().setRecursive(false).setPinned(false));
           setAttributeSingleFile(rpcContext, descedant, true, opTimeMs, setAttributeContext);
         }
         // Remove corresponding blocks from workers.
@@ -2346,7 +2346,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     MountPOptions options = info.getOptions();
     return new UfsInfo().setUri(info.getUfsUri())
         .setMountOptions(MountContext
-            .defaults(MountPOptions.newBuilder().putAllProperties(options.getPropertiesMap())
+            .mergeFrom(MountPOptions.newBuilder().putAllProperties(options.getPropertiesMap())
                 .setReadOnly(options.getReadOnly()).setShared(options.getShared()))
             .getOptions().build());
   }
@@ -2460,7 +2460,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             try (LockedInodePath descendant = inodePath.lockDescendant(
                 inodePath.getUri().joinUnsafe(childStatus.getName()), LockPattern.READ)) {
               LoadMetadataContext loadMetadataContext = LoadMetadataContext
-                  .defaults(LoadMetadataPOptions.newBuilder()
+                  .mergeFrom(LoadMetadataPOptions.newBuilder()
                       .setLoadDescendantType(LoadDescendantPType.NONE).setCreateAncestors(false))
                   .setUfsStatus(childStatus);
               try {
@@ -2565,7 +2565,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite()) {
       createFileInternal(rpcContext, writeLockedPath, createFileContext);
       CompleteFileContext completeContext =
-          CompleteFileContext.defaults(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
+          CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
               .setUfsStatus(context.getUfsStatus());
       if (ufsLastModified != null) {
         completeContext.setOperationTimeMs(ufsLastModified);
@@ -2738,7 +2738,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     try {
       // This will create the directory at alluxioPath
       loadDirectoryMetadata(rpcContext, inodePath, LoadMetadataContext
-          .defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)));
+          .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)));
       loadMetadataSucceeded = true;
     } finally {
       if (!loadMetadataSucceeded) {
@@ -2851,7 +2851,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       // Use the internal delete API, setting {@code alluxioOnly} to true to prevent the delete
       // operations from being persisted in the UFS.
       deleteInternal(rpcContext, inodePath, DeleteContext
-          .defaults(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)));
+          .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)));
     } catch (DirectoryNotEmptyException e) {
       throw new RuntimeException(String.format(
           "We should never see this exception because %s should never be thrown when recursive "
@@ -3317,7 +3317,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           try {
             loadMetadataInternal(rpcContext, inodePath,
                 LoadMetadataContext
-                    .defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
+                    .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
                         .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))));
 
             mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
@@ -3333,7 +3333,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             try {
               loadMetadataInternal(rpcContext, descendantPath,
                   LoadMetadataContext
-                      .defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
+                      .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
                           .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))));
             } catch (Exception e) {
               LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
@@ -3412,7 +3412,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     Set<String> pathsToLoad = new HashSet<>();
     LOG.debug("Syncing inode metadata {}", inodePath.getUri());
     // The options for deleting.
-    DeleteContext syncDeleteContext = DeleteContext.defaults(
+    DeleteContext syncDeleteContext = DeleteContext.mergeFrom(
         DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true).setUnchecked(true));
 
     // The requested path already exists in Alluxio.
@@ -3467,7 +3467,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           short mode = Short.parseShort(ufsFpParsed.getTag(Tag.MODE));
           long opTimeMs = System.currentTimeMillis();
           setAttributeSingleFile(rpcContext, inodePath, false, opTimeMs, SetAttributeContext
-              .defaults(SetAttributePOptions.newBuilder().setOwner(ufsFpParsed.getTag(Tag.OWNER))
+              .mergeFrom(SetAttributePOptions.newBuilder().setOwner(ufsFpParsed.getTag(Tag.OWNER))
                   .setGroup(ufsFpParsed.getTag(Tag.GROUP)).setMode(new Mode(mode).toProto()))
               .setUfsFingerprint(ufsFingerprint));
         }
@@ -3547,7 +3547,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         // Permission checking for each file is performed inside setAttribute
         setAttribute(getPath(fileId),
             SetAttributeContext
-                .defaults(SetAttributePOptions.newBuilder().setPersisted(true))
+                .mergeFrom(SetAttributePOptions.newBuilder().setPersisted(true))
                 .setUfsFingerprint(ufsFingerprint));
       } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {
         LOG.error("Failed to set file {} as persisted, because {}", fileId, e);
@@ -3584,14 +3584,16 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           protoOptions.hasReplicationMin() ? protoOptions.getReplicationMin() : null;
       mInodeTree.setReplication(rpcContext, inodePath, replicationMax, replicationMin, opTimeMs);
     }
-    if (protoOptions.hasTtl()) {
-      long ttl = protoOptions.getTtl();
-      if (inode.getTtl() != ttl || inode.getTtlAction() != protoOptions.getTtlAction()) {
-        if (inode.getTtl() != ttl) {
-          entry.setTtl(ttl);
-        }
+    if (protoOptions.hasCommonOptions() && protoOptions.getCommonOptions().hasTtl()
+        && protoOptions.getCommonOptions().hasTtlAction()) {
+      long ttl = protoOptions.getCommonOptions().getTtl();
+      if (inode.getTtl() != ttl
+          || inode.getTtlAction() != protoOptions.getCommonOptions().getTtlAction()) {
+
+        entry.setTtl(ttl);
         entry.setLastModificationTimeMs(opTimeMs);
-        entry.setTtlAction(ProtobufUtils.toProtobuf(protoOptions.getTtlAction()));
+        entry.setTtlAction(ProtobufUtils.toProtobuf(
+            protoOptions.getCommonOptions().getTtlAction()));
       }
     }
     if (protoOptions.hasPersisted()) {

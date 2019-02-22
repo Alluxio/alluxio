@@ -11,8 +11,9 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CheckConsistencyPOptions;
-import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
@@ -31,25 +32,34 @@ public class CheckConsistencyContext extends OperationContext<CheckConsistencyPO
   }
 
   /**
+   * @param optionsBuilder Builder for proto {@link CheckConsistencyPOptions}
+   * @return the instance of {@link CheckConsistencyContext} with given options
+   */
+  public static CheckConsistencyContext create(CheckConsistencyPOptions.Builder optionsBuilder) {
+    return new CheckConsistencyContext(optionsBuilder);
+  }
+
+  /**
    * Merges and embeds the given {@link CheckConsistencyPOptions} with the corresponding master
    * options.
    *
    * @param optionsBuilder Builder for proto {@link CheckConsistencyPOptions} to merge with defaults
    * @return the instance of {@link CheckConsistencyContext} with default values for master
    */
-  public static CheckConsistencyContext defaults(CheckConsistencyPOptions.Builder optionsBuilder) {
-    CheckConsistencyPOptions masterOptions = FileSystemMasterOptions.checkConsistencyDefaults();
+  public static CheckConsistencyContext mergeFrom(CheckConsistencyPOptions.Builder optionsBuilder) {
+    CheckConsistencyPOptions masterOptions =
+        FileSystemOptions.checkConsistencyDefaults(ServerConfiguration.global());
     CheckConsistencyPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
-    return new CheckConsistencyContext(mergedOptionsBuilder);
+    return create(mergedOptionsBuilder);
   }
 
   /**
    * @return the instance of {@link CheckConsistencyContext} with default values for master
    */
   public static CheckConsistencyContext defaults() {
-    CheckConsistencyPOptions masterOptions = FileSystemMasterOptions.checkConsistencyDefaults();
-    return new CheckConsistencyContext(masterOptions.toBuilder());
+    return create(FileSystemOptions
+        .checkConsistencyDefaults(ServerConfiguration.global()).toBuilder());
   }
 
   @Override

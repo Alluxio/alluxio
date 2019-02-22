@@ -297,7 +297,7 @@ public final class MountTableTest {
   @Test
   public void readOnlyMount() throws Exception {
     MountPOptions options =
-        MountContext.defaults(MountPOptions.newBuilder().setReadOnly(true)).getOptions().build();
+        MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)).getOptions().build();
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
     mMountTable.add(NoopJournalContext.INSTANCE, alluxioUri,

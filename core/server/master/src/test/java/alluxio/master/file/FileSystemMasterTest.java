@@ -90,6 +90,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
+import alluxio.util.FileSystemOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -214,7 +215,7 @@ public final class FileSystemMasterTest {
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    mNestedFileContext = CreateFileContext.defaults(
+    mNestedFileContext = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true));
     mJournalFolder = mTestFolder.newFolder().getAbsolutePath();
     startServices();
@@ -244,11 +245,11 @@ public final class FileSystemMasterTest {
     for (String path : paths) {
       AlluxioURI uri = new AlluxioURI(path);
       long id = mFileSystemMaster.createFile(uri,
-          CreateFileContext.defaults(CreateFilePOptions.newBuilder().setRecursive(true)));
+          CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder().setRecursive(true)));
       Assert.assertEquals(id, mFileSystemMaster.getFileId(uri));
       mFileSystemMaster.delete(uri, DeleteContext.defaults());
       id = mFileSystemMaster.createDirectory(uri, CreateDirectoryContext
-          .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
+          .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
       Assert.assertEquals(id, mFileSystemMaster.getFileId(uri));
     }
   }
@@ -281,7 +282,7 @@ public final class FileSystemMasterTest {
     // cannot delete root
     try {
       mFileSystemMaster.delete(ROOT_URI,
-          DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Should not have been able to delete the root");
     } catch (InvalidPathException e) {
       assertEquals(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage(), e.getMessage());
@@ -319,16 +320,16 @@ public final class FileSystemMasterTest {
 
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
     mFileSystemMaster.listStatus(uri, ListStatusContext
-        .defaults(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
+        .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
     mFileSystemMaster.delete(new AlluxioURI("/mnt/local/dir1/file1"),
-        DeleteContext.defaults(DeletePOptions.newBuilder().setAlluxioOnly(true)));
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setAlluxioOnly(true)));
 
     // ufs file still exists
     assertTrue(Files.exists(Paths.get(ufsMount.join("dir1").join("file1").getPath())));
     // verify the file is deleted
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/dir1/file1"), GetStatusContext
-        .defaults(GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
+        .mergeFrom(GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
   }
 
   /**
@@ -350,7 +351,7 @@ public final class FileSystemMasterTest {
 
     // Now delete with recursive set to true.
     mFileSystemMaster.delete(NESTED_URI,
-        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
   }
 
   /**
@@ -362,7 +363,7 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(NESTED_FILE_URI);
     // delete the dir
     mFileSystemMaster.delete(NESTED_URI,
-        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
 
     // verify the dir is deleted
     assertEquals(-1, mFileSystemMaster.getFileId(NESTED_URI));
@@ -375,9 +376,9 @@ public final class FileSystemMasterTest {
         MountContext.defaults());
     // load the dir1 to alluxio
     mFileSystemMaster.listStatus(new AlluxioURI("/mnt/local"), ListStatusContext
-        .defaults(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
+        .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
     mFileSystemMaster.delete(new AlluxioURI("/mnt/local/dir1"), DeleteContext
-        .defaults(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)));
+        .mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true)));
     // ufs directory still exists
     assertTrue(Files.exists(Paths.get(ufsMount.join("dir1").getPath())));
     // verify the directory is deleted
@@ -391,7 +392,7 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(new AlluxioURI("/a/b/c/d/e"));
     createFileWithSingleBlock(new AlluxioURI("/a/b/x/y/z"));
     mFileSystemMaster.delete(new AlluxioURI("/a/b"),
-        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
     assertEquals(1, mInodeStore.allEdges().size());
     assertEquals(2, mInodeStore.allInodes().size());
   }
@@ -401,13 +402,13 @@ public final class FileSystemMasterTest {
     // userA has permissions to delete directory and nested file
     createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
         ServerConfiguration.global())) {
       mFileSystemMaster.delete(NESTED_URI,
-          DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
     }
     assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
     assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
@@ -419,15 +420,15 @@ public final class FileSystemMasterTest {
     createFileWithSingleBlock(NESTED_FILE_URI);
     createFileWithSingleBlock(NESTED_FILE2_URI);
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0700).toProto())));
     mFileSystemMaster.setAttribute(NESTED_FILE2_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     try (AuthenticatedClientUserResource userA = new AuthenticatedClientUserResource("userA",
         ServerConfiguration.global())) {
       mFileSystemMaster.delete(NESTED_URI,
-          DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)));
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Deleting a directory w/ insufficient permission on child should fail");
     } catch (AccessControlException e) {
       String expectedChildMessage = ExceptionMessage.PERMISSION_DENIED
@@ -483,7 +484,7 @@ public final class FileSystemMasterTest {
     loadPersistedDirectories(levels);
     // delete top-level directory
     mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
-        DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false)
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false)
             .setUnchecked(unchecked)));
     checkPersistedDirectoriesDeleted(levels, ufsMount, Collections.EMPTY_LIST);
   }
@@ -503,7 +504,7 @@ public final class FileSystemMasterTest {
     // delete top-level directory
     try {
       mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
-          DeleteContext.defaults(DeletePOptions.newBuilder().setRecursive(true)
+          DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)
               .setAlluxioOnly(false).setUnchecked(false)));
       fail();
     } catch (IOException e) {
@@ -528,7 +529,7 @@ public final class FileSystemMasterTest {
     Files.createFile(
         Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
     // delete top-level directory
-    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL), DeleteContext.defaults(
+    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL), DeleteContext.mergeFrom(
         DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).setUnchecked(true)));
     checkPersistedDirectoriesDeleted(1, ufsMount, Collections.EMPTY_LIST);
   }
@@ -547,7 +548,7 @@ public final class FileSystemMasterTest {
         .join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
     mThrown.expect(IOException.class);
     // delete top-level directory
-    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL), DeleteContext.defaults(
+    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL), DeleteContext.mergeFrom(
         DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).setUnchecked(false)));
     // Check all that could be deleted.
     List<AlluxioURI> except = new ArrayList<>();
@@ -569,7 +570,7 @@ public final class FileSystemMasterTest {
     Files.createFile(Paths.get(ufsMount.join(DIR_TOP_LEVEL).join(DIR_PREFIX + 0)
         .join(FILE_PREFIX + (DIR_WIDTH)).getPath()));
     // delete top-level directory
-    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL), DeleteContext.defaults(
+    mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL), DeleteContext.mergeFrom(
         DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).setUnchecked(true)));
     checkPersistedDirectoriesDeleted(3, ufsMount, Collections.EMPTY_LIST);
   }
@@ -629,7 +630,7 @@ public final class FileSystemMasterTest {
   private void loadPersistedDirectories(int levels) throws Exception {
     // load persisted ufs entries to alluxio
     mFileSystemMaster.listStatus(new AlluxioURI(MOUNT_URI), ListStatusContext
-        .defaults(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
+        .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
     loadPersistedDirectoryLevel(levels, new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL));
   }
 
@@ -639,7 +640,7 @@ public final class FileSystemMasterTest {
     }
 
     mFileSystemMaster.listStatus(alluxioTop, ListStatusContext
-        .defaults(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
+        .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
 
     for (int i = 0; i < DIR_WIDTH; ++i) {
       loadPersistedDirectoryLevel(levels - 1, alluxioTop.join(DIR_PREFIX + i));
@@ -826,7 +827,7 @@ public final class FileSystemMasterTest {
   private int countPaths() throws Exception {
     return 1 + mFileSystemMaster
             .listStatus(new AlluxioURI("/"),
-                ListStatusContext.defaults(ListStatusPOptions.newBuilder().setRecursive(true)))
+                ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder().setRecursive(true)))
             .size();
   }
 
@@ -849,7 +850,7 @@ public final class FileSystemMasterTest {
     AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
     try {
       mFileSystemMaster.listStatus(uri, ListStatusContext
-          .defaults(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
+          .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
       fail("Exception expected");
     } catch (FileDoesNotExistException e) {
       // Expected case.
@@ -921,7 +922,7 @@ public final class FileSystemMasterTest {
     assertEquals(4, countPaths());
 
     fileInfoList = mFileSystemMaster.listStatus(uri, ListStatusContext
-        .defaults(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
+        .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS)));
     Set<String> paths = new HashSet<>();
     for (FileInfo fileInfo : fileInfoList) {
       paths.add(fileInfo.getPath());
@@ -998,7 +999,7 @@ public final class FileSystemMasterTest {
       createFileWithSingleBlock(ROOT_URI.join("file" + String.format("%05d", i)));
     }
     infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext
-        .defaults(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
+        .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
     assertEquals(files, infos.size());
     // Copy out filenames to use List contains.
     filenames = new ArrayList<>();
@@ -1014,7 +1015,7 @@ public final class FileSystemMasterTest {
     // Test single file.
     createFileWithSingleBlock(ROOT_FILE_URI);
     infos = mFileSystemMaster.listStatus(ROOT_FILE_URI, ListStatusContext
-        .defaults(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
+        .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
     assertEquals(1, infos.size());
     assertEquals(ROOT_FILE_URI.getPath(), infos.get(0).getPath());
 
@@ -1023,7 +1024,7 @@ public final class FileSystemMasterTest {
       createFileWithSingleBlock(NESTED_URI.join("file" + String.format("%05d", i)));
     }
     infos = mFileSystemMaster.listStatus(NESTED_URI, ListStatusContext
-        .defaults(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
+        .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
     assertEquals(files, infos.size());
     // Copy out filenames to use List contains.
     filenames = new ArrayList<>();
@@ -1039,7 +1040,7 @@ public final class FileSystemMasterTest {
     // Test non-existent URIs.
     try {
       mFileSystemMaster.listStatus(NESTED_URI.join("DNE"), ListStatusContext
-          .defaults(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
+          .mergeFrom(ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
       fail("listStatus() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
@@ -1062,7 +1063,7 @@ public final class FileSystemMasterTest {
     }
 
     // Test recursive listStatus
-    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
+    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
         .newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(true)));
     // 10 files in each directory, 2 levels of directories
     assertEquals(files + files + 2, infos.size());
@@ -1097,12 +1098,12 @@ public final class FileSystemMasterTest {
     }
 
     // Test with permissions
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.defaults(SetAttributePOptions
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(SetAttributePOptions
         .newBuilder().setMode(new Mode((short) 0400).toProto()).setRecursive(true)));
     try (Closeable r = new AuthenticatedUserRule("test_user1", ServerConfiguration.global())
         .toResource()) {
       // Test recursive listStatus
-      infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
+      infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
           .newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(true)));
 
       // 10 files in each directory, 1 level of directories
@@ -1122,17 +1123,17 @@ public final class FileSystemMasterTest {
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("ufsfile1").toString());
     // Test interaction between recursive and loadMetadata
-    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
+    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
         .newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setRecursive(false)));
 
     assertEquals(files + 1  , infos.size());
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("ufsfile2").toString());
-    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
+    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
         .newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setRecursive(false)));
     assertEquals(files + 1  , infos.size());
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
+    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
         .newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(false)));
     assertEquals(files + 2, infos.size());
 
@@ -1142,18 +1143,18 @@ public final class FileSystemMasterTest {
     }
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("nested/test/ufsnestedfile1").toString());
-    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
+    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
         .newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setRecursive(true)));
     // 2 sets of files, 2 files inserted at root, 2 directories nested and test,
     // 1 file ufsnestedfile1
     assertEquals(files + files + 2 + 2 + 1, infos.size());
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("nested/test/ufsnestedfile2").toString());
-    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
+    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
         .newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setRecursive(true)));
     assertEquals(files + files + 2 + 2 + 1, infos.size());
 
-    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
+    infos = mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
         .newBuilder().setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(true)));
     assertEquals(files + files + 2 + 2 + 2, infos.size());
   }
@@ -1236,14 +1237,14 @@ public final class FileSystemMasterTest {
     // Test simple file.
     AlluxioURI uri = new AlluxioURI("/mnt/local/file");
     mFileSystemMaster.loadMetadata(uri,
-        LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)));
+        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)));
     assertNotNull(mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT));
 
     // Test nested file.
     uri = new AlluxioURI("/mnt/local/nested/file");
     try {
       mFileSystemMaster.loadMetadata(uri, LoadMetadataContext
-          .defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)));
+          .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)));
       fail("loadMetadata() without recursive, for a nested file should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
@@ -1251,7 +1252,7 @@ public final class FileSystemMasterTest {
 
     // Test the nested file with recursive flag.
     mFileSystemMaster.loadMetadata(uri,
-        LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
+        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
     assertNotNull(mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT));
   }
 
@@ -1442,7 +1443,7 @@ public final class FileSystemMasterTest {
   public void setRecursiveAcl() throws Exception {
     final int files = 10;
     SetAclContext context =
-        SetAclContext.defaults(SetAclPOptions.newBuilder().setRecursive(true));
+        SetAclContext.mergeFrom(SetAclPOptions.newBuilder().setRecursive(true));
 
     // Test files in root directory.
     for (int i = 0; i < files; i++) {
@@ -1464,7 +1465,7 @@ public final class FileSystemMasterTest {
         newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()), context);
 
     List<FileInfo> infos =
-        mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.defaults(ListStatusPOptions
+        mFileSystemMaster.listStatus(ROOT_URI, ListStatusContext.mergeFrom(ListStatusPOptions
             .newBuilder().setLoadMetadataType(LoadMetadataPType.ONCE).setRecursive(true)));
     assertEquals(files * 3 + 3, infos.size());
     for (FileInfo info : infos) {
@@ -1508,7 +1509,7 @@ public final class FileSystemMasterTest {
   public void setAclWithoutOwner() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
+        .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
     assertEquals(3, entries.size());
@@ -1526,7 +1527,7 @@ public final class FileSystemMasterTest {
   @Test
   public void setAclNestedWithoutOwner() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.defaults(SetAttributePOptions
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(SetAttributePOptions
         .newBuilder().setMode(new Mode((short) 0777).toProto()).setOwner("userA")));
     Set<String> entries = Sets.newHashSet(mFileSystemMaster
         .getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).convertAclToStringEntries());
@@ -1538,7 +1539,7 @@ public final class FileSystemMasterTest {
       Set<String> newEntries = Sets.newHashSet("user::rwx", "group::rwx", "other::rwx");
       mFileSystemMaster.setAcl(NESTED_URI, SetAclAction.REPLACE,
           newEntries.stream().map(AclEntry::fromCliString).collect(Collectors.toList()),
-          SetAclContext.defaults(SetAclPOptions.newBuilder().setRecursive(true)));
+          SetAclContext.mergeFrom(SetAclPOptions.newBuilder().setRecursive(true)));
       entries = Sets.newHashSet(mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT)
           .convertAclToStringEntries());
       assertEquals(newEntries, entries);
@@ -1548,7 +1549,7 @@ public final class FileSystemMasterTest {
   @Test
   public void removeExtendedAclMask() throws Exception {
     mFileSystemMaster.createDirectory(NESTED_URI, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
+        .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
     AclEntry newAcl = AclEntry.fromCliString("user:newuser:rwx");
     // Add an ACL
     addAcl(NESTED_URI, newAcl);
@@ -1574,7 +1575,7 @@ public final class FileSystemMasterTest {
   @Test
   public void removeExtendedDefaultAclMask() throws Exception {
     mFileSystemMaster.createDirectory(NESTED_URI, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
+        .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
     AclEntry newAcl = AclEntry.fromCliString("default:user:newuser:rwx");
     // Add an ACL
     addAcl(NESTED_URI, newAcl);
@@ -1660,7 +1661,7 @@ public final class FileSystemMasterTest {
   @Test
   public void ttlDirectoryDelete() throws Exception {
     CreateDirectoryContext context =
-        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0)));
     long dirId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, context);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(dirId);
@@ -1676,7 +1677,7 @@ public final class FileSystemMasterTest {
   @Test
   public void ttlDirectoryDeleteReplay() throws Exception {
     CreateDirectoryContext context =
-        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0)));
     long dirId = mFileSystemMaster.createDirectory(NESTED_DIR_URI, context);
 
@@ -1700,8 +1701,10 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.defaults(
-        SetAttributePOptions.newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE)));
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
+        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
+            .commonDefaults(ServerConfiguration.global()).toBuilder().setTtl(0)
+            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
@@ -1718,9 +1721,10 @@ public final class FileSystemMasterTest {
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.defaults(
-        SetAttributePOptions.newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE)));
-
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
+        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
+            .commonDefaults(ServerConfiguration.global()).toBuilder().setTtl(0)
+            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
     // Simulate restart.
     stopServices();
     startServices();
@@ -1740,13 +1744,14 @@ public final class FileSystemMasterTest {
   @Test
   public void ttlDirectoryFree() throws Exception {
     CreateDirectoryContext directoryContext = CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true));
+        .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true));
     mFileSystemMaster.createDirectory(NESTED_URI, directoryContext);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.defaults(
-        SetAttributePOptions.newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE)));
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
+        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
+            .newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
         ImmutableMap.<String, List<Long>>of(), mMetrics);
@@ -1761,13 +1766,15 @@ public final class FileSystemMasterTest {
   @Test
   public void ttlDirectoryFreeReplay() throws Exception {
     CreateDirectoryContext directoryContext = CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true));
+        .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true));
     mFileSystemMaster.createDirectory(NESTED_URI, directoryContext);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
     // Set ttl & operation.
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.defaults(
-        SetAttributePOptions.newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE)));
+    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
+        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptions
+            .commonDefaults(ServerConfiguration.global()).toBuilder().setTtl(0)
+            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
 
     // Simulate restart.
     stopServices();
@@ -1787,7 +1794,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setTtlForFileWithNoTtl() throws Exception {
-    CreateFileContext context = CreateFileContext.defaults(
+    CreateFileContext context = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true));
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
@@ -1796,7 +1803,8 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getFileId());
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setTtl(0)));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1810,10 +1818,10 @@ public final class FileSystemMasterTest {
   @Test
   public void setTtlForDirectoryWithNoTtl() throws Exception {
     CreateDirectoryContext directoryContext = CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true));
+        .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true));
     mFileSystemMaster.createDirectory(NESTED_URI, directoryContext);
     mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryContext);
-    CreateFileContext createFileContext = CreateFileContext.defaults(
+    CreateFileContext createFileContext = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true));
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, createFileContext);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
@@ -1822,7 +1830,8 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getFileId());
     // Set ttl.
     mFileSystemMaster.setAttribute(NESTED_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setTtl(0)));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is set to 0, the file and directory should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1837,7 +1846,7 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void setSmallerTtlForFileWithTtl() throws Exception {
-    CreateFileContext context = CreateFileContext.defaults(CreateFilePOptions.newBuilder()
+    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(Constants.HOUR_MS))
         .setBlockSizeBytes(Constants.KB).setRecursive(true));
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
@@ -1847,7 +1856,8 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getFileId());
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setTtl(0)));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1861,7 +1871,7 @@ public final class FileSystemMasterTest {
   @Test
   public void setSmallerTtlForDirectoryWithTtl() throws Exception {
     CreateDirectoryContext directoryContext =
-        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder()
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(Constants.HOUR_MS))
             .setRecursive(true));
     mFileSystemMaster.createDirectory(NESTED_URI, directoryContext);
@@ -1869,7 +1879,8 @@ public final class FileSystemMasterTest {
     assertTrue(
         mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).getName() != null);
     mFileSystemMaster.setAttribute(NESTED_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setTtl(0)));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -1882,8 +1893,8 @@ public final class FileSystemMasterTest {
   @Test
   public void setLargerTtlForFileWithTtl() throws Exception {
     mFileSystemMaster.createDirectory(NESTED_URI, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
-    CreateFileContext context = CreateFileContext.defaults(CreateFilePOptions.newBuilder()
+        .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
+    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))
         .setBlockSizeBytes(Constants.KB).setRecursive(true));
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
@@ -1891,7 +1902,8 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getFileId());
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setTtl(Constants.HOUR_MS)));
+        .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
+            .newBuilder().setTtl(Constants.HOUR_MS))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
     assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
@@ -1903,13 +1915,14 @@ public final class FileSystemMasterTest {
   @Test
   public void setLargerTtlForDirectoryWithTtl() throws Exception {
     mFileSystemMaster.createDirectory(new AlluxioURI("/nested"),
-        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
     mFileSystemMaster.createDirectory(NESTED_URI,
-        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder()
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))
             .setRecursive(true)));
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setTtl(Constants.HOUR_MS)));
+        .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
+            .newBuilder().setTtl(Constants.HOUR_MS))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // TTL is reset to 1 hour, the directory should not be deleted during last TTL check.
     assertEquals(NESTED_URI.getName(),
@@ -1922,15 +1935,16 @@ public final class FileSystemMasterTest {
   @Test
   public void setNoTtlForFileWithTtl() throws Exception {
     mFileSystemMaster.createDirectory(NESTED_URI, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
-    CreateFileContext context = CreateFileContext.defaults(CreateFilePOptions.newBuilder()
+        .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
+    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))
         .setBlockSizeBytes(Constants.KB).setRecursive(true));
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setTtl(Constants.NO_TTL)));
+        .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
+            .newBuilder().setTtl(Constants.NO_TTL))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
   }
@@ -1942,15 +1956,16 @@ public final class FileSystemMasterTest {
   @Test
   public void setNoTtlForDirectoryWithTtl() throws Exception {
     mFileSystemMaster.createDirectory(new AlluxioURI("/nested"),
-        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)));
     mFileSystemMaster.createDirectory(NESTED_URI,
-        CreateDirectoryContext.defaults(CreateDirectoryPOptions.newBuilder()
+        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))
             .setRecursive(true)));
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
     mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext
-        .defaults(SetAttributePOptions.newBuilder().setTtl(Constants.NO_TTL)));
+        .mergeFrom(SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
+            .newBuilder().setTtl(Constants.NO_TTL))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     assertEquals(NESTED_URI.getName(),
         mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT).getName());
@@ -1975,20 +1990,24 @@ public final class FileSystemMasterTest {
 
     // Just set pinned flag.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPinned(true)));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(true)));
     fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT);
     assertTrue(fileInfo.isPinned());
     assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Both pinned flag and ttl value.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPinned(false).setTtl(1)));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(false)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+            .setTtl(1))));
     fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT);
     assertFalse(fileInfo.isPinned());
     assertEquals(1, fileInfo.getTtl());
 
     mFileSystemMaster.setAttribute(NESTED_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setTtl(1)));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+            .setTtl(1))));
   }
 
   /**
@@ -2080,7 +2099,7 @@ public final class FileSystemMasterTest {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/nested/test"));
     CreateFileContext context = CreateFileContext
-        .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB));
+        .mergeFrom(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB));
     mFileSystemMaster.createFile(TEST_URI, context);
 
     // nested dir
@@ -2089,7 +2108,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void renameToNonExistentParent() throws Exception {
-    CreateFileContext context = CreateFileContext.defaults(
+    CreateFileContext context = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true));
     mFileSystemMaster.createFile(NESTED_URI, context);
 
@@ -2124,7 +2143,7 @@ public final class FileSystemMasterTest {
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // free the file
-    mFileSystemMaster.free(NESTED_FILE_URI, FreeContext.defaults(FreePOptions.newBuilder()
+    mFileSystemMaster.free(NESTED_FILE_URI, FreeContext.mergeFrom(FreePOptions.newBuilder()
         .setForced(false).setRecursive(false)));
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat2 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
@@ -2156,7 +2175,7 @@ public final class FileSystemMasterTest {
     mNestedFileContext.setPersisted(true);
     createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPinned(true)));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(true)));
     mThrown.expect(UnexpectedAlluxioException.class);
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_PINNED_FILE
         .getMessage(NESTED_FILE_URI.getPath()));
@@ -2172,13 +2191,13 @@ public final class FileSystemMasterTest {
     mNestedFileContext.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPinned(true)));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(true)));
 
     assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // free the file
     mFileSystemMaster.free(NESTED_FILE_URI,
-        FreeContext.defaults(FreePOptions.newBuilder().setForced(true)));
+        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)));
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
@@ -2199,7 +2218,7 @@ public final class FileSystemMasterTest {
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(NESTED_URI));
     // cannot free directory with recursive argument to false
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeContext.defaults(FreePOptions.newBuilder().setRecursive(false)));
+        FreeContext.mergeFrom(FreePOptions.newBuilder().setRecursive(false)));
   }
 
   /**
@@ -2213,7 +2232,7 @@ public final class FileSystemMasterTest {
 
     // free the dir
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeContext.defaults(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
+        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat3 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
@@ -2234,7 +2253,7 @@ public final class FileSystemMasterTest {
         .getMessage(NESTED_FILE_URI.getPath()));
     // cannot free the parent dir of a non-persisted file
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeContext.defaults(FreePOptions.newBuilder().setForced(false).setRecursive(true)));
+        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(false).setRecursive(true)));
   }
 
   /**
@@ -2246,13 +2265,13 @@ public final class FileSystemMasterTest {
     mNestedFileContext.setPersisted(true);
     createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPinned(true)));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(true)));
     mThrown.expect(UnexpectedAlluxioException.class);
     mThrown.expectMessage(ExceptionMessage.CANNOT_FREE_PINNED_FILE
         .getMessage(NESTED_FILE_URI.getPath()));
     // cannot free the parent dir of a pinned file without "forced"
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeContext.defaults(FreePOptions.newBuilder().setForced(false).setRecursive(true)));
+        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(false).setRecursive(true)));
   }
 
   /**
@@ -2264,10 +2283,10 @@ public final class FileSystemMasterTest {
     mNestedFileContext.setPersisted(true);
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPinned(true)));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(true)));
     // free the parent dir of a pinned file with "forced"
     mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeContext.defaults(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
+        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
@@ -2318,7 +2337,7 @@ public final class FileSystemMasterTest {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
     mFileSystemMaster.mount(alluxioURI, ufsURI,
-        MountContext.defaults(MountPOptions.newBuilder().setReadOnly(true)));
+        MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)));
 
     mThrown.expect(AccessControlException.class);
     AlluxioURI path = new AlluxioURI("/hello/dir1");
@@ -2333,7 +2352,7 @@ public final class FileSystemMasterTest {
     AlluxioURI alluxioURI = new AlluxioURI("/hello");
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
     mFileSystemMaster.mount(alluxioURI, ufsURI,
-        MountContext.defaults(MountPOptions.newBuilder().setReadOnly(true)));
+        MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)));
 
     mThrown.expect(AccessControlException.class);
     AlluxioURI path = new AlluxioURI("/hello/file1");
@@ -2349,7 +2368,7 @@ public final class FileSystemMasterTest {
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
     createTempUfsFile("ufs/hello/file1");
     mFileSystemMaster.mount(alluxioURI, ufsURI,
-        MountContext.defaults(MountPOptions.newBuilder().setReadOnly(true)));
+        MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)));
 
     mThrown.expect(AccessControlException.class);
     AlluxioURI path = new AlluxioURI("/hello/file1");
@@ -2365,7 +2384,7 @@ public final class FileSystemMasterTest {
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
     createTempUfsFile("ufs/hello/file1");
     mFileSystemMaster.mount(alluxioURI, ufsURI,
-        MountContext.defaults(MountPOptions.newBuilder().setReadOnly(true)));
+        MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)));
 
     mThrown.expect(AccessControlException.class);
     AlluxioURI src = new AlluxioURI("/hello/file1");
@@ -2382,12 +2401,12 @@ public final class FileSystemMasterTest {
     AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
     createTempUfsFile("ufs/hello/file1");
     mFileSystemMaster.mount(alluxioURI, ufsURI,
-        MountContext.defaults(MountPOptions.newBuilder().setReadOnly(true)));
+        MountContext.mergeFrom(MountPOptions.newBuilder().setReadOnly(true)));
 
     mThrown.expect(AccessControlException.class);
     AlluxioURI path = new AlluxioURI("/hello/file1");
     mFileSystemMaster.setAttribute(path,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setOwner("owner")));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setOwner("owner")));
   }
 
   /**
@@ -2571,9 +2590,9 @@ public final class FileSystemMasterTest {
   public void testLoadMetadata() throws Exception {
     FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
+        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
+        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
 
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     try {
@@ -2590,11 +2609,11 @@ public final class FileSystemMasterTest {
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f2").toString());
 
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a/f1"),
-        LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
+        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
 
     // This should not throw file exists exception those a/f1 is loaded.
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)
+        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)
             .setLoadDescendantType(LoadDescendantPType.ONE)));
 
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
@@ -2608,7 +2627,7 @@ public final class FileSystemMasterTest {
     }
 
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)
+        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)
             .setLoadDescendantType(LoadDescendantPType.ONE)));
   }
 
@@ -2623,7 +2642,7 @@ public final class FileSystemMasterTest {
     FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
     AlluxioURI uri = new AlluxioURI("/a");
     mFileSystemMaster.loadMetadata(uri,
-        LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
+        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
     List<AclEntry> aclEntryList = new ArrayList<>();
     aclEntryList.add(AclEntry.fromCliString("default:user::r-x"));
     mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, aclEntryList,
@@ -2635,7 +2654,7 @@ public final class FileSystemMasterTest {
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/b/file1").toString());
     uri = new AlluxioURI("/a/b/file1");
     mFileSystemMaster.loadMetadata(uri,
-        LoadMetadataContext.defaults(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
+        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
     FileInfo info = mFileSystemMaster.getFileInfo(uri,
         GetStatusContext.defaults());
     Assert.assertTrue(info.convertAclToStringEntries().contains("user::r-x"));
@@ -2692,7 +2711,7 @@ public final class FileSystemMasterTest {
     FileUtils.createFile(Paths.get(mUnderFS, "test", "a?b=C").toString());
     FileUtils.createFile(Paths.get(mUnderFS, "test", "valid").toString());
     List<FileInfo> listing = mFileSystemMaster.listStatus(new AlluxioURI("/test"),
-        ListStatusContext.defaults(ListStatusPOptions.newBuilder()
+        ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder()
             .setLoadMetadataType(LoadMetadataPType.ALWAYS).setRecursive(true)));
     assertEquals(1, listing.size());
     assertEquals("valid", listing.get(0).getName());
@@ -2719,7 +2738,7 @@ public final class FileSystemMasterTest {
 
     // Persist the file.
     mFileSystemMaster.setAttribute(nestedFile,
-        SetAttributeContext.defaults(SetAttributePOptions.newBuilder().setPersisted(true)));
+        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPersisted(true)));
 
     // Everything component should be persisted.
     assertEquals(PersistenceState.PERSISTED.toString(),
@@ -2753,7 +2772,7 @@ public final class FileSystemMasterTest {
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
     CompleteFileContext context =
-        CompleteFileContext.defaults(CompleteFilePOptions.newBuilder().setUfsLength(Constants.KB));
+        CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(Constants.KB));
     mFileSystemMaster.completeFile(uri, context);
     return blockId;
   }

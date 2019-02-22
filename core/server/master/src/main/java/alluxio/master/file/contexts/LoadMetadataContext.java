@@ -11,9 +11,10 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.LoadMetadataPOptions;
-import alluxio.master.file.FileSystemMasterOptions;
 import alluxio.underfs.UfsStatus;
+import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
@@ -34,24 +35,33 @@ public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.B
   }
 
   /**
+   * @param optionsBuilder Builder for proto {@link LoadMetadataPOptions}
+   * @return the instance of {@link LoadMetadataContext} with the given options
+   */
+  public static LoadMetadataContext create(LoadMetadataPOptions.Builder optionsBuilder) {
+    return new LoadMetadataContext(optionsBuilder);
+  }
+
+  /**
    * Merges and embeds the given {@link LoadMetadataPOptions} with the corresponding master options.
    *
    * @param optionsBuilder Builder for proto {@link LoadMetadataPOptions} to embed
    * @return the instance of {@link LoadMetadataContext} with default values for master
    */
-  public static LoadMetadataContext defaults(LoadMetadataPOptions.Builder optionsBuilder) {
-    LoadMetadataPOptions masterOptions = FileSystemMasterOptions.loadMetadataDefaults();
+  public static LoadMetadataContext mergeFrom(LoadMetadataPOptions.Builder optionsBuilder) {
+    LoadMetadataPOptions masterOptions =
+        FileSystemOptions.loadMetadataDefaults(ServerConfiguration.global());
     LoadMetadataPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
-    return new LoadMetadataContext(mergedOptionsBuilder);
+    return create(mergedOptionsBuilder);
   }
 
   /**
    * @return the instance of {@link LoadMetadataContext} with default values for master
    */
   public static LoadMetadataContext defaults() {
-    LoadMetadataPOptions masterOptions = FileSystemMasterOptions.loadMetadataDefaults();
-    return new LoadMetadataContext(masterOptions.toBuilder());
+    return create(FileSystemOptions
+        .loadMetadataDefaults(ServerConfiguration.global()).toBuilder());
   }
 
   /**
