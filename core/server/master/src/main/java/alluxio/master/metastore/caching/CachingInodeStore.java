@@ -88,7 +88,8 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   private final InodeLockManager mLockManager;
 
   // Cache recently-accessed inodes.
-  private final InodeCache mInodeCache;
+  @VisibleForTesting
+  final InodeCache mInodeCache;
 
   // Cache recently-accessed inode tree edges.
   @VisibleForTesting
@@ -238,7 +239,8 @@ public final class CachingInodeStore implements InodeStore, Closeable {
    * least an mLockManager read lock on the modified inode. This allows the cache to flush inodes
    * asynchronously by acquiring a write lock before serializing the inode.
    */
-  private class InodeCache extends Cache<Long, MutableInode<?>> {
+  @VisibleForTesting
+  class InodeCache extends Cache<Long, MutableInode<?>> {
     public InodeCache(CacheConfiguration conf) {
       super(conf, "inode-cache");
     }
