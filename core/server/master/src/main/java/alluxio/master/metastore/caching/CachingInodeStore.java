@@ -270,6 +270,9 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       boolean useBatch = entries.size() > 0 && mBackingStore.supportsBatchWrite();
       WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null;
       for (Entry entry : entries) {
+        if (!entry.mDirty) {
+          continue;
+        }
         Long inodeId = entry.mKey;
         Optional<LockResource> lockOpt = mLockManager.tryLockInode(inodeId, LockMode.WRITE);
         if (!lockOpt.isPresent()) {
@@ -399,6 +402,9 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       boolean useBatch = entries.size() > 0 && mBackingStore.supportsBatchWrite();
       WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null;
       for (Entry entry : entries) {
+        if (!entry.mDirty) {
+          continue;
+        }
         Edge edge = entry.mKey;
         Optional<LockResource> lockOpt = mLockManager.tryLockEdge(edge, LockMode.WRITE);
         if (!lockOpt.isPresent()) {
