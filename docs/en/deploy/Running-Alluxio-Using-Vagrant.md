@@ -174,6 +174,20 @@ Note: the keypair is associated with a specific region. For example, if you crea
 
 ### Access the cluster
 
+For AWS EC2, the default underfs is S3. You need to sign into your [Amazon S3
+console](http://aws.amazon.com/s3/), create a S3 bucket and write the bucket's name to the field
+`S3:Bucket` in `conf/ufs.yml`. To use other under storage systems, configure the field `Type` and
+the corresponding configurations in `conf/ufs.yml`.
+
+Now you can launch the Alluxio cluster with your chosen under storage in your chosen availability zone by running
+the script under `deploy/vagrant`:
+
+```bash
+$ ./create <number of machines> aws
+```
+
+Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
+
 **Access through Web UI**
 
 After the command `./create <number of machines> aws` succeeds, you can see two green lines like
@@ -259,20 +273,6 @@ By default, the deploy scripts DO NOT use spot instances. Therefore, you have to
 In order to enable spot instances, you have to modify the file: `deploy/vagrant/conf/ec2.yml`:
 
     Spot_Price: “X.XX”
-
-For AWS EC2, the default underfs is S3. You need to sign into your [Amazon S3
-console](http://aws.amazon.com/s3/), create a S3 bucket and write the bucket's name to the field
-`S3:Bucket` in `conf/ufs.yml`. To use other under storage systems, configure the field `Type` and
-the corresponding configurations in `conf/ufs.yml`.
-
-Now you can launch the Alluxio cluster with your chosen under storage in your chosen availability zone by running
-the script under `deploy/vagrant`:
-
-```bash
-$ ./create <number of machines> aws
-```
-
-Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
 
 ## Deploy on Google Compute Engine (GCE)
 

@@ -23,7 +23,7 @@ Hadoop:
 S3:
   # The bucket should be the name of an existing bucket (e.g. alluxiodata, not
   # s3://alluxiodata, s3n://alluxiodata, etc.)
-  Bucket:
+  Bucket: cc-playground
 
 # Doc on accessKeyID and secretAccessKey:
 # https://cloud.google.com/storage/docs/migrating#keys
