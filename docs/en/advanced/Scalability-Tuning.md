@@ -111,8 +111,7 @@ when a client attempts to communicate with the Alluxio master.
 
 On a single client, the number of threads connecting to the master is configured by the
 `alluxio.user.block.master.client.threads` and `alluxio.user.file.master.client.threads` properties,
-each with a default value of `10`. Does this apply now that all sync RPC calls will be handled on the
-calling thread?
+each with a default value of `10`.
 The size of the master thread pool that serves connections to clients should be tuned to match
 the maximum number of concurrrent client connections.
 For example, if the master expects up to 100 clients, each with the default number of connections,
