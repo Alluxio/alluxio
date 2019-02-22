@@ -788,27 +788,7 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                           data={
                             Object {
                               "fatalError": "",
-                              "fileInfos": Array [
-                                Object {
-                                  "absolutePath": "",
-                                  "blockSizeBytes": "",
-                                  "blocksOnTier": Object {},
-                                  "creationTime": "",
-                                  "fileLocations": Array [],
-                                  "group": "",
-                                  "id": 0,
-                                  "inAlluxio": false,
-                                  "inAlluxioPercentage": 0,
-                                  "isDirectory": false,
-                                  "mode": "",
-                                  "modificationTime": "",
-                                  "name": "LICENSE",
-                                  "owner": "William",
-                                  "persistenceState": "",
-                                  "pinned": false,
-                                  "size": "",
-                                },
-                              ],
+                              "fileInfos": Array [],
                               "inAlluxioFileNum": 0,
                               "masterNodeAddress": "",
                               "permissionError": "",
@@ -906,31 +886,7 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                                           </th>
                                         </tr>
                                       </thead>
-                                      <tbody>
-                                        <tr
-                                          key=""
-                                        >
-                                          <td />
-                                          <td />
-                                          <td />
-                                          <td>
-                                            <pre
-                                              className="mb-0"
-                                            >
-                                              <code />
-                                            </pre>
-                                          </td>
-                                          <td>
-                                            William
-                                          </td>
-                                          <td />
-                                          <td>
-                                            NO
-                                          </td>
-                                          <td />
-                                          <td />
-                                        </tr>
-                                      </tbody>
+                                      <tbody />
                                     </table>
                                   </Table>
                                   <Paginator
@@ -1155,31 +1111,7 @@ exports[`Data Shallow component Matches snapshot 1`] = `
               </th>
             </tr>
           </thead>
-          <tbody>
-            <tr
-              key=""
-            >
-              <td />
-              <td />
-              <td />
-              <td>
-                <pre
-                  className="mb-0"
-                >
-                  <code />
-                </pre>
-              </td>
-              <td>
-                William
-              </td>
-              <td />
-              <td>
-                NO
-              </td>
-              <td />
-              <td />
-            </tr>
-          </tbody>
+          <tbody />
         </Table>
         <Paginator
           baseUrl="/data"
