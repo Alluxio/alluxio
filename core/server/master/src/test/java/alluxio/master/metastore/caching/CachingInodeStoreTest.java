@@ -105,7 +105,7 @@ public class CachingInodeStoreTest {
     }
     // The workload is read-only, so we shouldn't need to write each inode to the backing store more
     // than once.
-    verify(mBackingStore, atMost((int) CACHE_SIZE * 2)).writeInode(any());
+    verify(mBackingStore, atMost((int) CACHE_SIZE * 2 + 1)).writeInode(any());
   }
 
   @Test
