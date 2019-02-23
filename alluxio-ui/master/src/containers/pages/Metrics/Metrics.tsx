@@ -61,37 +61,13 @@ export class Metrics extends React.Component<AllProps> {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12">
-              <h5>Master Gauges</h5>
-              <Table hover={true}>
-                <tbody>
-                <tr>
-                  <th scope="row">Master Capacity</th>
-                  <td>
-                    <Progress className="h-50 mt-1" multi={true}>
-                      <Progress bar={true} color="dark"
-                                value={`${data.masterCapacityFreePercentage}`}>{data.masterCapacityFreePercentage}%
-                        Free</Progress>
-                      <Progress bar={true} color="secondary"
-                                value={`${data.masterCapacityUsedPercentage}`}>{data.masterCapacityUsedPercentage}%
-                        Used</Progress>
-                    </Progress>
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row">Master UnderFS Capacity</th>
-                  <td>
-                    <Progress className="h-50 mt-1" multi={true}>
-                      <Progress bar={true} color="dark"
-                                value={`${data.masterUnderfsCapacityFreePercentage}`}>{data.masterUnderfsCapacityFreePercentage}%
-                        Free</Progress>
-                      <Progress bar={true} color="secondary"
-                                value={`${data.masterUnderfsCapacityUsedPercentage}`}>{data.masterUnderfsCapacityUsedPercentage}%
-                        Used</Progress>
-                    </Progress>
-                  </td>
-                </tr>
-                </tbody>
-              </Table>
+              <div className="row">
+                {data.timeSeriesMetrics.map((metric: LineSerieData) => (
+                  metric.data.length && <LineGraph key={metric.id} data={[metric]} xAxisLabel={metric.xAxisLabel}
+                                                   xAxisUnits={metric.xAxisUnits} yAxisLabel={metric.yAxisLabel}
+                                                   yAxisUnits={metric.yAxisUnits}/>
+                ))}
+              </div>
             </div>
             <div className="col-12">
               <h5>Total IO Size</h5>
@@ -301,15 +277,6 @@ export class Metrics extends React.Component<AllProps> {
                 </Table>
               </div>
             ))}
-            <div className="col-12">
-              <div className="row">
-                {data.timeSeriesMetrics.map((metric: LineSerieData) => (
-                  metric.data.length && <LineGraph key={metric.id} data={[metric]} xAxisLabel={metric.xAxisLabel}
-                                                   xAxisUnits={metric.xAxisUnits} yAxisLabel={metric.yAxisLabel}
-                                                   yAxisUnits={metric.yAxisUnits}/>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </div>

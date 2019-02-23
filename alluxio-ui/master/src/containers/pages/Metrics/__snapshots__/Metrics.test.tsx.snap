@@ -864,155 +864,9 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                                 <div
                                   className="col-12"
                                 >
-                                  <h5>
-                                    Master Gauges
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th
-                                            scope="row"
-                                          >
-                                            Master Capacity
-                                          </th>
-                                          <td>
-                                            <Progress
-                                              className="h-50 mt-1"
-                                              max={100}
-                                              multi={true}
-                                              tag="div"
-                                              value={0}
-                                            >
-                                              <div
-                                                className="h-50 mt-1 progress"
-                                              >
-                                                <Progress
-                                                  bar={true}
-                                                  color="dark"
-                                                  max={100}
-                                                  tag="div"
-                                                  value="0"
-                                                >
-                                                  <div
-                                                    aria-valuemax={100}
-                                                    aria-valuemin="0"
-                                                    aria-valuenow="0"
-                                                    className="progress-bar bg-dark"
-                                                    role="progressbar"
-                                                    style={
-                                                      Object {
-                                                        "width": "0%",
-                                                      }
-                                                    }
-                                                  >
-                                                    0
-                                                    % Free
-                                                  </div>
-                                                </Progress>
-                                                <Progress
-                                                  bar={true}
-                                                  color="secondary"
-                                                  max={100}
-                                                  tag="div"
-                                                  value="0"
-                                                >
-                                                  <div
-                                                    aria-valuemax={100}
-                                                    aria-valuemin="0"
-                                                    aria-valuenow="0"
-                                                    className="progress-bar bg-secondary"
-                                                    role="progressbar"
-                                                    style={
-                                                      Object {
-                                                        "width": "0%",
-                                                      }
-                                                    }
-                                                  >
-                                                    0
-                                                    % Used
-                                                  </div>
-                                                </Progress>
-                                              </div>
-                                            </Progress>
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <th
-                                            scope="row"
-                                          >
-                                            Master UnderFS Capacity
-                                          </th>
-                                          <td>
-                                            <Progress
-                                              className="h-50 mt-1"
-                                              max={100}
-                                              multi={true}
-                                              tag="div"
-                                              value={0}
-                                            >
-                                              <div
-                                                className="h-50 mt-1 progress"
-                                              >
-                                                <Progress
-                                                  bar={true}
-                                                  color="dark"
-                                                  max={100}
-                                                  tag="div"
-                                                  value="0"
-                                                >
-                                                  <div
-                                                    aria-valuemax={100}
-                                                    aria-valuemin="0"
-                                                    aria-valuenow="0"
-                                                    className="progress-bar bg-dark"
-                                                    role="progressbar"
-                                                    style={
-                                                      Object {
-                                                        "width": "0%",
-                                                      }
-                                                    }
-                                                  >
-                                                    0
-                                                    % Free
-                                                  </div>
-                                                </Progress>
-                                                <Progress
-                                                  bar={true}
-                                                  color="secondary"
-                                                  max={100}
-                                                  tag="div"
-                                                  value="0"
-                                                >
-                                                  <div
-                                                    aria-valuemax={100}
-                                                    aria-valuemin="0"
-                                                    aria-valuenow="0"
-                                                    className="progress-bar bg-secondary"
-                                                    role="progressbar"
-                                                    style={
-                                                      Object {
-                                                        "width": "0%",
-                                                      }
-                                                    }
-                                                  >
-                                                    0
-                                                    % Used
-                                                  </div>
-                                                </Progress>
-                                              </div>
-                                            </Progress>
-                                          </td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
+                                  <div
+                                    className="row"
+                                  />
                                 </div>
                                 <div
                                   className="col-12"
@@ -1367,13 +1221,6 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                                     </table>
                                   </Table>
                                 </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <div
-                                    className="row"
-                                  />
-                                </div>
                               </div>
                             </div>
                           </div>
@@ -1545,91 +1392,9 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
       <div
         className="col-12"
       >
-        <h5>
-          Master Gauges
-        </h5>
-        <Table
-          hover={true}
-          responsiveTag="div"
-          tag="table"
-        >
-          <tbody>
-            <tr>
-              <th
-                scope="row"
-              >
-                Master Capacity
-              </th>
-              <td>
-                <Progress
-                  className="h-50 mt-1"
-                  max={100}
-                  multi={true}
-                  tag="div"
-                  value={0}
-                >
-                  <Progress
-                    bar={true}
-                    color="dark"
-                    max={100}
-                    tag="div"
-                    value="0"
-                  >
-                    0
-                    % Free
-                  </Progress>
-                  <Progress
-                    bar={true}
-                    color="secondary"
-                    max={100}
-                    tag="div"
-                    value="0"
-                  >
-                    0
-                    % Used
-                  </Progress>
-                </Progress>
-              </td>
-            </tr>
-            <tr>
-              <th
-                scope="row"
-              >
-                Master UnderFS Capacity
-              </th>
-              <td>
-                <Progress
-                  className="h-50 mt-1"
-                  max={100}
-                  multi={true}
-                  tag="div"
-                  value={0}
-                >
-                  <Progress
-                    bar={true}
-                    color="dark"
-                    max={100}
-                    tag="div"
-                    value="0"
-                  >
-                    0
-                    % Free
-                  </Progress>
-                  <Progress
-                    bar={true}
-                    color="secondary"
-                    max={100}
-                    tag="div"
-                    value="0"
-                  >
-                    0
-                    % Used
-                  </Progress>
-                </Progress>
-              </td>
-            </tr>
-          </tbody>
-        </Table>
+        <div
+          className="row"
+        />
       </div>
       <div
         className="col-12"
@@ -1955,13 +1720,6 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
             </tr>
           </tbody>
         </Table>
-      </div>
-      <div
-        className="col-12"
-      >
-        <div
-          className="row"
-        />
       </div>
     </div>
   </div>
