@@ -15,7 +15,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.TieredIdentityUtils;
 import alluxio.wire.TieredIdentity;
@@ -41,7 +40,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private final TieredIdentity mTieredIdentity;
-  private final boolean mCompareNodeIps;
+  private final AlluxioConfiguration mConf;
 
   /**
    * Constructs a {@link LocalFirstPolicy}.
@@ -49,21 +48,20 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
    * @param alluxioConf Alluxio configuration
    */
   public LocalFirstPolicy(AlluxioConfiguration alluxioConf) {
-    this(TieredIdentityFactory.localIdentity(alluxioConf),
-        alluxioConf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP));
+    this(TieredIdentityFactory.localIdentity(alluxioConf), alluxioConf);
   }
 
   /**
    * @param localTieredIdentity the local tiered identity
    */
-  private LocalFirstPolicy(TieredIdentity localTieredIdentity, boolean compareNodeIp) {
+  private LocalFirstPolicy(TieredIdentity localTieredIdentity, AlluxioConfiguration conf) {
     mTieredIdentity = localTieredIdentity;
-    mCompareNodeIps = compareNodeIp;
+    mConf = conf;
   }
 
   @VisibleForTesting
-  static LocalFirstPolicy create(TieredIdentity localTieredIdentity, boolean compareNodeIps) {
-    return new LocalFirstPolicy(localTieredIdentity, compareNodeIps);
+  static LocalFirstPolicy create(TieredIdentity localTieredIdentity, AlluxioConfiguration conf) {
+    return new LocalFirstPolicy(localTieredIdentity, conf);
   }
 
   @Override
@@ -83,7 +81,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
     Optional<TieredIdentity> nearest = TieredIdentityUtils.nearest(mTieredIdentity, identities,
-        mCompareNodeIps);
+        mConf);
     if (!nearest.isPresent()) {
       return null;
     }

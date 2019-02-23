@@ -245,13 +245,13 @@ public abstract class Cache<K, V> implements Closeable {
     private Iterator<Entry> mEvictionHead = Collections.emptyIterator();
     private final Logger mCacheFullLogger = new SamplingLogger(LOG, 10 * Constants.SECOND_MS);
 
-    // This is used temporarily in each call to evictEntries. We store it as a field to avoid
-    // re-allocating the array on each eviction.
-    private List<Entry> mEvictionCandidates;
+    // These are used temporarily in each call to evictEntries. We store them as fields to avoid
+    // re-allocating arrays on each eviction batch.
+    private final List<Entry> mEvictionCandidates = new ArrayList<>(mEvictBatchSize);
+    private final List<Entry> mDirtyEvictionCandidates = new ArrayList<>(mEvictBatchSize);
 
     private EvictionThread() {
       super(mName + "-eviction-thread");
-      mEvictionCandidates = new ArrayList<>(mEvictBatchSize);
     }
 
     @Override
@@ -302,6 +302,7 @@ public abstract class Cache<K, V> implements Closeable {
     private int evictBatch(int batchSize) {
       int evictionCount = 0;
       mEvictionCandidates.clear();
+      mDirtyEvictionCandidates.clear();
       while (mEvictionCandidates.size() < batchSize) {
         // Every iteration either sets a referenced bit from true to false or adds a new candidate.
         if (!mEvictionHead.hasNext()) {
@@ -316,11 +317,14 @@ public abstract class Cache<K, V> implements Closeable {
           continue;
         }
         mEvictionCandidates.add(candidate);
+        if (candidate.mDirty) {
+          mDirtyEvictionCandidates.add(candidate);
+        }
       }
       if (mEvictionCandidates.isEmpty()) {
         return 0;
       }
-      flushEntries(mEvictionCandidates);
+      flushEntries(mDirtyEvictionCandidates);
       for (Entry candidate : mEvictionCandidates) {
         if (null == mMap.computeIfPresent(candidate.mKey, (key, entry) -> {
           if (entry.mDirty) {
