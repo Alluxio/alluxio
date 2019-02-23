@@ -324,7 +324,8 @@ $ cp deploy/vagrant/conf/gce.yml.template deploy/vagrant/conf/gce.yml
 ```
 
 In the configuration file `deploy/vagrant/conf/gce.yml`, set the project id, service account,
-location to JSON key and SSH username you've just created.
+location to JSON key and SSH username you've just created, if you follow the steps to set up
+SSH, the SSH username is the username of your local machine where you run `gcloud compute config-ssh`.
 
 For GCE, the default under storage is Google Cloud Storage (GCS). Visit the
 [Storage page](https://console.cloud.google.com/storage/) of the Google Cloud console, create a GCS
