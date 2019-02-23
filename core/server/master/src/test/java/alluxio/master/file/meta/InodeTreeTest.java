@@ -142,17 +142,17 @@ public final class InodeTreeTest {
   public static void beforeClass() throws Exception {
     sFileContext =
         CreateFileContext
-            .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
+            .mergeFrom(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
                 .setMode(TEST_FILE_MODE.toProto()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     sDirectoryContext = CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()))
+        .mergeFrom(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()))
         .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
     sNestedFileContext = CreateFileContext
-        .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
+        .mergeFrom(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
             .setMode(TEST_FILE_MODE.toProto()).setRecursive(true))
         .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
-    sNestedDirectoryContext = CreateDirectoryContext.defaults(
+    sNestedDirectoryContext = CreateDirectoryContext.mergeFrom(
         CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()).setRecursive(true))
         .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
   }
@@ -209,13 +209,13 @@ public final class InodeTreeTest {
 
     // create again with allowExists true
     createPath(mTree, TEST_URI, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setAllowExists(true)));
+        .mergeFrom(CreateDirectoryPOptions.newBuilder().setAllowExists(true)));
 
     // create again with allowExists false
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(TEST_URI));
     createPath(mTree, TEST_URI, CreateDirectoryContext
-        .defaults(CreateDirectoryPOptions.newBuilder().setAllowExists(false)));
+        .mergeFrom(CreateDirectoryPOptions.newBuilder().setAllowExists(false)));
   }
 
   /**
@@ -268,7 +268,7 @@ public final class InodeTreeTest {
     CommonUtils.sleepMs(10);
 
     // Need to use updated options to set the correct last mod time.
-    CreateDirectoryContext dirContext = CreateDirectoryContext.defaults(
+    CreateDirectoryContext dirContext = CreateDirectoryContext.mergeFrom(
         CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toProto()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
 
@@ -296,7 +296,7 @@ public final class InodeTreeTest {
     }
 
     // create a file
-    CreateFileContext options = CreateFileContext.defaults(
+    CreateFileContext options = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true));
     created = createPath(mTree, NESTED_FILE_URI, options);
 
@@ -327,7 +327,7 @@ public final class InodeTreeTest {
     mThrown.expectMessage("Invalid block size 0");
 
     CreateFileContext context =
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(0));
+        CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder().setBlockSizeBytes(0));
     createPath(mTree, TEST_URI, context);
   }
 
@@ -340,7 +340,7 @@ public final class InodeTreeTest {
     mThrown.expectMessage("Invalid block size -1");
 
     CreateFileContext context =
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(-1));
+        CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder().setBlockSizeBytes(-1));
     createPath(mTree, TEST_URI, context);
   }
 

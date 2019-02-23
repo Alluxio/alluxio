@@ -20,6 +20,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.util.FileSystemOptions;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -84,7 +85,6 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
    * directories in a given subtree.
    *
    * @param path the root of the subtree to check
-   * @param options method options
    * @return a list of inconsistent files and directories
    */
   List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
@@ -109,7 +109,7 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   private void runConsistencyCheck(AlluxioURI path, boolean repairConsistency) throws
       AlluxioException, IOException {
     List<AlluxioURI> inconsistentUris =
-        checkConsistency(path, CheckConsistencyPOptions.getDefaultInstance());
+        checkConsistency(path, FileSystemOptions.checkConsistencyDefaults(mFsContext.getConf()));
     if (inconsistentUris.isEmpty()) {
       System.out.println(path + " is consistent with the under storage system.");
       return;

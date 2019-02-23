@@ -172,28 +172,34 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     checkGetStatus("/mnt/dir1/dirA/dirB/file", options, false, false);
   }
 
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.USER_FILE_METADATA_LOAD_TYPE, "ALWAYS"
+      })
   @Test
   public void loadAlwaysConfiguration() throws Exception {
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
-        LoadMetadataType.Always.toString());
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
   }
 
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.USER_FILE_METADATA_LOAD_TYPE, "ONCE"
+      })
   @Test
   public void loadOnceConfiguration() throws Exception {
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
-        LoadMetadataType.Once.toString());
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, true);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
   }
 
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.USER_FILE_METADATA_LOAD_TYPE, "NEVER"
+      })
   @Test
   public void loadNeverConfiguration() throws Exception {
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
-        LoadMetadataType.Never.toString());
     GetStatusPOptions options = GetStatusPOptions.getDefaultInstance();
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
     checkGetStatus("/mnt/dir1/dirA/fileDNE1", options, false, false);
@@ -202,7 +208,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadRecursive() throws Exception {
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
-        LoadMetadataType.Once.toString());
+        LoadMetadataType.ONCE.toString());
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {

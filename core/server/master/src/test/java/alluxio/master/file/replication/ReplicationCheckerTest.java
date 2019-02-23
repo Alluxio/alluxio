@@ -116,7 +116,7 @@ public final class ReplicationCheckerTest {
   private ReplicationChecker mReplicationChecker;
   private MockHandler mMockReplicationHandler;
   private CreateFileContext mFileContext =
-      CreateFileContext.defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
+      CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
           .setMode(TEST_MODE.toProto())).setOwner(TEST_OWNER).setGroup(TEST_GROUP);
   private Set<Long> mKnownWorkers = Sets.newHashSet();
 
