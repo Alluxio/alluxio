@@ -107,24 +107,6 @@ alluxio.user.rpc.retry.base.sleep=1s
 The retry duration and sleep duration should be increased if frequent timeouts are observed
 when a client attempts to communicate with the Alluxio master.
 
-### Thread Pool Size
-
-On a single client, the number of threads connecting to the master is configured by the
-`alluxio.user.block.master.client.threads` and `alluxio.user.file.master.client.threads` properties,
-each with a default value of `10`.
-The size of the master thread pool that serves connections to clients should be tuned to match
-the maximum number of concurrent client connections.
-For example, if the master expects up to 100 clients, each with the default number of connections,
-the master's thread pool should be configured to be at least `100 * 10 * 2 = 2000`.
-
-Consider reducing these values if the master is not responsive
-as it is possible that the master thread pool is completely drained:
-
-```properties
-alluxio.user.block.master.client.threads=5
-alluxio.user.file.master.client.threads=5
-```
-
 ### Keepalive Time and Timeout
 
 Alluxio client can also be configured to check the health of connected workers using keepalive pings.
