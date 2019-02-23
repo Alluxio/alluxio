@@ -22,9 +22,6 @@ import alluxio.util.ConfigurationUtils;
 
 import com.google.common.base.Preconditions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -82,7 +79,8 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
       // are supported this is not an option and we have to continue to use this method.
       for (final String prefix : alluxioConf.getList(PropertyKey.UNDERFS_HDFS_PREFIXES, ",")) {
         if (path.startsWith(prefix)) {
-          if (conf == null || HdfsVersion.matches(conf.get(PropertyKey.UNDERFS_VERSION), getVersion())) {
+          if (conf == null
+              || HdfsVersion.matches(conf.get(PropertyKey.UNDERFS_VERSION), getVersion())) {
             return true;
           }
         }
