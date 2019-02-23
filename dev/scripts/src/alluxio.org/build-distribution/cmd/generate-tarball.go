@@ -147,8 +147,19 @@ func buildModules(srcPath, name, ufsType, moduleFlag, version string, modules ma
 		for _, arg := range strings.Split(moduleEntry.mavenArgs, " ") {
 			moduleMvnArgs = append(moduleMvnArgs, arg)
 		}
+		var versionMvnArg = "2.2.0"
+		for _, arg := range moduleMvnArgs {
+			if strings.Contains(arg, "ufs.hadoop.version") {
+				versionMvnArg = strings.Split(arg, "=")[1]
+			}
+		}
 		run(fmt.Sprintf("compiling %v module %v", name, moduleName), "mvn", moduleMvnArgs...)
-		srcJar := fmt.Sprintf("alluxio-%v-%v-%v.jar", name, ufsType, version)
+		var srcJar string
+		if ufsType == "hdfs" {
+			srcJar = fmt.Sprintf("alluxio-%v-%v-%v-%v.jar", name, ufsType, versionMvnArg, version)
+		} else {
+			srcJar = fmt.Sprintf("alluxio-%v-%v-%v.jar", name, ufsType, version)
+		}
 		dstJar := fmt.Sprintf("alluxio-%v-%v-%v.jar", name, moduleEntry.name, version)
 		run(fmt.Sprintf("saving %v module %v", name, moduleName), "mv", filepath.Join(srcPath, "lib", srcJar), filepath.Join(srcPath, "lib", dstJar))
 	}
