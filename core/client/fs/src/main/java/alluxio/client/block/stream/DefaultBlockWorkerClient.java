@@ -181,6 +181,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
             .getClientChannelClass(!(address instanceof InetSocketAddress), alluxioConf))
         .setPoolingStrategy(poolingStrategy)
         .setEventLoopGroup(workerGroup)
+        .setKeepAliveTime(alluxioConf.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIME_MS),
+            TimeUnit.MILLISECONDS)
         .setKeepAliveTimeout(alluxioConf.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIMEOUT_MS),
             TimeUnit.MILLISECONDS)
         .setMaxInboundMessageSize(
