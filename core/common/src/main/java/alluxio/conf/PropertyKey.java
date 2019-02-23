@@ -1711,12 +1711,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_RPC_THREAD_POOL_SIZE =
-      new Builder(Name.MASTER_RPC_THREAD_POOL_SIZE)
-          .setDefaultValue(500)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_WHITELIST =
       new Builder(Name.MASTER_WHITELIST)
           .setDefaultValue("/")
@@ -3789,8 +3783,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
 
-    public static final String MASTER_RPC_THREAD_POOL_SIZE =
-        "alluxio.master.rpc.threadpool.size";
     //
     // Worker related properties
     //
