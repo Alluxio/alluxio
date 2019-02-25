@@ -41,6 +41,12 @@ $ sudo pip install -r pip-req.txt
 
 * Download and Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 
+For newer versions of macOS and VirtualBox, you might need to grant permission to VirtualBox
+under `System Preferences > Security & Privacy > General`, and then run
+`sudo "/Library/Application Support/VirtualBox/LaunchDaemons/VirtualBoxStartup.sh" restart`,
+otherwise, you might encounter errors like `failed to open /dev/vboxnetctl: No such file or directory`
+when launching cluster.
+
 ### Launch Cluster
 
 Now you can launch the Alluxio cluster with Hadoop as under storage by running the script under deploy/vagrant:
@@ -168,6 +174,20 @@ Note: the keypair is associated with a specific region. For example, if you crea
 
 ### Access the cluster
 
+For AWS EC2, the default underfs is S3. You need to sign into your [Amazon S3
+console](http://aws.amazon.com/s3/), create a S3 bucket and write the bucket's name to the field
+`S3:Bucket` in `conf/ufs.yml`. To use other under storage systems, configure the field `Type` and
+the corresponding configurations in `conf/ufs.yml`.
+
+Now you can launch the Alluxio cluster with your chosen under storage in your chosen availability zone by running
+the script under `deploy/vagrant`:
+
+```bash
+$ ./create <number of machines> aws
+```
+
+Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
+
 **Access through Web UI**
 
 After the command `./create <number of machines> aws` succeeds, you can see two green lines like
@@ -254,20 +274,6 @@ In order to enable spot instances, you have to modify the file: `deploy/vagrant/
 
     Spot_Price: “X.XX”
 
-For AWS EC2, the default underfs is S3. You need to sign into your [Amazon S3
-console](http://aws.amazon.com/s3/), create a S3 bucket and write the bucket's name to the field
-`S3:Bucket` in `conf/ufs.yml`. To use other under storage systems, configure the field `Type` and
-the corresponding configurations in `conf/ufs.yml`.
-
-Now you can launch the Alluxio cluster with your chosen under storage in your chosen availability zone by running
-the script under `deploy/vagrant`:
-
-```bash
-$ ./create <number of machines> aws
-```
-
-Each node of the cluster runs an Alluxio worker, and the `AlluxioMaster` runs the Alluxio master.
-
 ## Deploy on Google Compute Engine (GCE)
 
 ### Additional Prerequisites
@@ -318,7 +324,8 @@ $ cp deploy/vagrant/conf/gce.yml.template deploy/vagrant/conf/gce.yml
 ```
 
 In the configuration file `deploy/vagrant/conf/gce.yml`, set the project id, service account,
-location to JSON key and SSH username you've just created.
+location to JSON key and SSH username you've just created, if you follow the steps to set up
+SSH, the SSH username is the username of your local machine where you run `gcloud compute config-ssh`.
 
 For GCE, the default under storage is Google Cloud Storage (GCS). Visit the
 [Storage page](https://console.cloud.google.com/storage/) of the Google Cloud console, create a GCS
