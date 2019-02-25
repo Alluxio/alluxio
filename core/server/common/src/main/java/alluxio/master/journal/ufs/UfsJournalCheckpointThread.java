@@ -13,9 +13,9 @@ package alluxio.master.journal.ufs;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.Journaled;
+import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
@@ -133,23 +133,27 @@ public final class UfsJournalCheckpointThread extends Thread {
     // no new journal entries.
 
     LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
-    alluxio.proto.journal.Journal.JournalEntry entry;
     // Set to true if it has waited for a quiet period. Reset if a valid journal entry is read.
     boolean quietPeriodWaited = false;
     while (true) {
+      JournalEntry entry = null;
       try {
-        entry = mJournalReader.read();
-        if (entry != null) {
-          if (entry.getSequenceNumber() == 0) {
-            mMaster.resetState();
-          }
-          mMaster.processJournalEntry(entry);
-          if (quietPeriodWaited) {
-            LOG.info("Quiet period interrupted by new journal entry");
-            quietPeriodWaited = false;
-          }
+        switch (mJournalReader.advance()) {
+          case CHECKPOINT:
+            mMaster.restoreFromCheckpoint(mJournalReader.getCheckpoint());
+            break;
+          case LOG:
+            entry = mJournalReader.read();
+            mMaster.processJournalEntry(entry);
+            if (quietPeriodWaited) {
+              LOG.info("Quiet period interrupted by new journal entry");
+              quietPeriodWaited = false;
+            }
+            break;
+          default:
+            break;
         }
-      } catch (IOException | InvalidJournalEntryException e) {
+      } catch (IOException e) {
         LOG.warn("{}: Failed to read or process the journal entry with error {}.",
             mMaster.getName(), e.getMessage());
         try {

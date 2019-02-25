@@ -44,6 +44,9 @@ import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
@@ -652,6 +655,17 @@ public class InodeTreePersistentState implements Journaled {
     mInodeStore.clear();
     mReplicationLimitedFileIds.clear();
     mPinnedInodeFileIds.clear();
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    mInodeStore.writeToCheckpoint(output);
+  }
+
+  @Override
+  public void restoreFromCheckpoint(InputStream input) throws IOException {
+    resetState();
+    mInodeStore.restoreFromCheckpoint(input);
   }
 
   @Override

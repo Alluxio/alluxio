@@ -11,9 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.InvalidJournalEntryException;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.AsyncJournalWriter;
@@ -367,27 +366,24 @@ public class UfsJournal implements Journal {
             .withMaxDuration(Duration.ofDays(365))
             .build();
     while (true) {
-      JournalEntry entry;
       try {
-        entry = journalReader.read();
+        switch (journalReader.advance()) {
+          case CHECKPOINT:
+            mMaster.restoreFromCheckpoint(journalReader.getCheckpoint());
+            break;
+          case LOG:
+            mMaster.processJournalEntry(journalReader.read());
+            break;
+          default:
+            return journalReader.getNextSequenceNumber();
+        }
       } catch (IOException e) {
         LOG.warn("{}: Failed to read from journal: {}", mMaster.getName(), e);
         if (retry.attempt()) {
           continue;
         }
         throw new RuntimeException(e);
-      } catch (InvalidJournalEntryException e) {
-        LOG.error("{}: Invalid journal entry detected.", mMaster.getName(), e);
-        // We found an invalid journal entry, nothing we can do but crash.
-        throw new RuntimeException(e);
       }
-      if (entry == null) {
-        return journalReader.getNextSequenceNumber();
-      }
-      if (entry.getSequenceNumber() == 0) {
-        mMaster.resetState();
-      }
-      mMaster.processJournalEntry(entry);
     }
   }
 

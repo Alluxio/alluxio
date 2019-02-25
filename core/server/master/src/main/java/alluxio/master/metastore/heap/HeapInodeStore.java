@@ -19,7 +19,11 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.metastore.InodeStore;
+import alluxio.proto.meta.InodeMeta;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -34,6 +38,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class HeapInodeStore implements InodeStore {
+  private static final String NAME = "HeapInodeStore";
+
   private final Map<Long, MutableInode<?>> mInodes = new ConcurrentHashMap<>();
   // Map from inode id to ids of children of that inode. The inner maps are ordered by child name.
   private final TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>> mEdges =
@@ -43,6 +49,11 @@ public class HeapInodeStore implements InodeStore {
    * @param args inode store arguments
    */
   public HeapInodeStore(InodeStoreArgs args) {}
+
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
   @Override
   public void remove(Long inodeId) {
@@ -124,5 +135,25 @@ public class HeapInodeStore implements InodeStore {
 
   private Map<String, Long> children(long id) {
     return mEdges.getOrDefault(id, Collections.emptyMap());
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    for (MutableInode<?> inode : mInodes.values()) {
+      if (Thread.interrupted()) {
+        throw new InterruptedException();
+      }
+      inode.toProto().writeDelimitedTo(output);
+    }
+  }
+
+  @Override
+  public void restoreFromCheckpoint(InputStream input) throws IOException {
+    InodeMeta.Inode inodeProto;
+    while ((inodeProto = InodeMeta.Inode.parseDelimitedFrom(input)) != null) {
+      MutableInode<?> inode = MutableInode.fromProto(inodeProto);
+      mInodes.put(inode.getId(), inode);
+      mEdges.addInnerValue(inode.getParentId(), inode.getName(), inode.getId());
+    }
   }
 }

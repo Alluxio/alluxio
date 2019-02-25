@@ -38,6 +38,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -83,6 +85,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class CachingInodeStore implements InodeStore, Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(CachingInodeStore.class);
+  private static final String NAME = "CachingInodeStore";
 
   private final InodeStore mBackingStore;
   private final InodeLockManager mLockManager;
@@ -229,6 +232,24 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public String getName() {
+    return NAME;
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    mInodeCache.flush();
+    mEdgeCache.flush();
+    mBackingStore.writeToCheckpoint(output);
+  }
+
+  @Override
+  public void restoreFromCheckpoint(InputStream input) throws IOException {
+    mBackingStore.restoreFromCheckpoint(input);
+    mBackingStoreEmpty = false;
   }
 
   /**

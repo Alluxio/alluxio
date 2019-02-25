@@ -17,6 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.StreamUtils;
 
+import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.InputChunked;
 import com.esotericsoftware.kryo.io.OutputChunked;
 
@@ -82,11 +83,10 @@ public final class JournalUtils {
   public static void restoreJournalEntryCheckpoint(InputStream input, Journaled journaled)
       throws IOException {
     journaled.resetState();
-    try (JournalEntryStreamReader reader = new JournalEntryStreamReader(input)) {
-      JournalEntry entry;
-      while ((entry = reader.readEntry()) != null) {
-        journaled.processJournalEntry(entry);
-      }
+    JournalEntryStreamReader reader = new JournalEntryStreamReader(input);
+    JournalEntry entry;
+    while ((entry = reader.readEntry()) != null) {
+      journaled.processJournalEntry(entry);
     }
   }
 
@@ -100,13 +100,13 @@ public final class JournalUtils {
    */
   public static void writeToCheckpoint(OutputStream output, List<? extends Checkpointed> components)
       throws IOException, InterruptedException {
-    try (OutputChunked chunked = new OutputChunked(output)) {
-      for (Checkpointed component : components) {
-        chunked.writeString(component.getName());
-        component.writeToCheckpoint(chunked);
-        chunked.endChunks();
-      }
+    OutputChunked chunked = new OutputChunked(output);
+    for (Checkpointed component : components) {
+      chunked.writeString(component.getName());
+      component.writeToCheckpoint(chunked);
+      chunked.endChunks();
     }
+    chunked.flush();
   }
 
   /**
@@ -119,18 +119,42 @@ public final class JournalUtils {
    */
   public static void restoreFromCheckpoint(InputStream input,
       List<? extends Checkpointed> components) throws IOException {
-    try (InputChunked chunked = new InputChunked(input)) {
+    InputChunked chunked = new InputChunked(input);
+    while (!eof(chunked)) {
       String name = chunked.readString();
+      boolean found = false;
       for (Checkpointed component : components) {
         if (component.getName().equals(name)) {
           component.restoreFromCheckpoint(chunked);
           chunked.nextChunks();
-          continue;
+          found = true;
         }
       }
-      throw new RuntimeException(
-          String.format("Unrecognized component name: %s. Existing components: %s", name,
-              Arrays.toString(StreamUtils.map(Checkpointed::getName, components).toArray())));
+      if (!found) {
+        throw new RuntimeException(
+            String.format("Unrecognized component name: %s. Existing components: %s", name,
+                Arrays.toString(StreamUtils.map(Checkpointed::getName, components).toArray())));
+      }
+    }
+  }
+
+  /**
+   * Checks whether the given input is at eof.
+   *
+   * We use this method instead of calling eof directly to work around a bug in InputChunked#eof.
+   * See https://github.com/EsotericSoftware/kryo/issues/651.
+   *
+   * @param chunked the chunked input to check for eof
+   * @return whether the chunked input has reached eof
+   */
+  public static boolean eof(InputChunked chunked) {
+    try {
+      return chunked.eof();
+    } catch (KryoException e) {
+      if (e.getMessage().equals("Buffer underflow.")) {
+        return true;
+      }
+      throw e;
     }
   }
 

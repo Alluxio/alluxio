@@ -11,11 +11,11 @@
 
 package alluxio.master.journal;
 
-import alluxio.exception.InvalidJournalEntryException;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -28,9 +28,19 @@ public interface JournalReader extends Closeable {
    * Reads an entry from the journal. Return null if there is no more entry left.
    *
    * @return the journal entry, null if no more entry left
-   * @throws InvalidJournalEntryException if the journal entry is invalid (e.g. corrupted entry)
    */
-  JournalEntry read() throws IOException, InvalidJournalEntryException;
+  JournalEntry read();
+
+  /**
+   * Returns an input stream for reading a checkpoint.
+   *
+   * Users should always call getCheckpoint() before calling read() to make sure there isn't a
+   * checkpoint available.
+   *
+   * @return the input stream for reading the checkpoint, or empty if there is no available
+   *         checkpoint
+   */
+  InputStream getCheckpoint();
 
   /**
    * Gets the the sequence number of the next journal log entry to read. This method is valid
@@ -39,4 +49,31 @@ public interface JournalReader extends Closeable {
    * @return the next sequence number
    */
   long getNextSequenceNumber();
+
+  /**
+   * Advances the reader to the next element, and returns what's next.
+   *
+   * @return the next element, see {@link State}
+   */
+  State advance() throws IOException;
+
+  /**
+   * States that the reader can be after calling {@link #advance()}.
+   */
+  enum State {
+    /**
+     * Indicates that the next item to process is a checkpoint. The caller should call
+     * {@link #getCheckpoint()}.
+     */
+    CHECKPOINT,
+    /**
+     * Indicates that the next item to process is an edit log. The caller should call
+     * {@link #read()}.
+     */
+    LOG,
+    /**
+     * Indicates that there is nothing left to read.
+     */
+    DONE
+  }
 }
