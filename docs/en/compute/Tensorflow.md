@@ -6,7 +6,7 @@ group: Data Applications
 priority: 6
 ---
 
-This guide describes how to run [Tensorflow](https://www.tensorflow.org/) on top of Alluxio-Fuse.
+This guide describes how to run [Tensorflow](https://www.tensorflow.org/) on top of Alluxio POSIX API.
 
 * Table of Contents
 {:toc}
@@ -16,7 +16,7 @@ This guide describes how to run [Tensorflow](https://www.tensorflow.org/) on top
 Tensorflow enables developers to quickly and easily get started with deep learning. 
 The [deep learning]({{ '/en/compute/Deep-Learning.html' | relativize_url }}) section illustrates the data challenges of deep learning 
 and how Alluxio helps to solve those challenges. This tutorial aims to provide some hands-on examples and tips for running Tensorflow
-on top of Alluxio-FUSE.
+on top of Alluxio POSIX API.
 
 ## Prerequisites
 
@@ -24,7 +24,7 @@ on top of Alluxio-FUSE.
 * Alluxio has been set up and is running.
 * [Tensorflow](https://www.tensorflow.org/install/pip) installed. 
 
-## Setting up Alluxio-FUSE
+## Setting up Alluxio POSIX API
 
 Run the following command to install FUSE on Linux:
 
@@ -140,7 +140,7 @@ assuming the data is at the S3 path `s3a://alluxio-tensorflow-imagenet/`.
 $ ./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
 ```
 
-To access the training data in S3 via Alluxio, with the Alluxio FUSE,
+To access the training data in S3 via Alluxio, with the Alluxio POSIX API,
 we can pass the path `/mnt/fuse/imagenet` to the parameter `data_dir` of the benchmark
 script [tf_cnn_benchmarsk.py](https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py).
 
@@ -149,7 +149,7 @@ script [tf_cnn_benchmarsk.py](https://github.com/tensorflow/benchmarks/blob/mast
 ### Write Tensorflow applications with data location parameter
 
 When running Tensorflow on top of HDFS, S3, and other under storages, it requires to 
-configure Tensorflow and modify tensorflow applications. Through Alluxio-FUSE,
+configure Tensorflow and modify tensorflow applications. Through Alluxio POSIX API,
 users only need to mount their various under storages to Alluxio once and mount the 
 parent folder of those under storages that containing training data to the local filesystem.
 After mounting, data in various under storages become immediately available through Alluxio
@@ -165,9 +165,9 @@ system as well as the configurations of the credentials.
 By co-locating Tensorflow applications with Alluxio worker, Alluxio caches the remote data
 locally for the future access, providing data locality. Without Alluxio, slow remote
 storage may result in bottleneck on I/O and leave GPU resources underutilized. 
-When concurrently writing or reading big files, Alluxio-FUSE can provide significantly better
+When concurrently writing or reading big files, Alluxio POSIX API can provide significantly better
 performance when running on Alluxio worker node. When the worker node has big enough memory space to 
-host all the training data, Alluxio-FUSE on worker node can provide nearly 2X performance improvement.
+host all the training data, Alluxio POSIX API on worker node can provide nearly 2X performance improvement.
 
 ### Configure Alluxio write type and read type
 
