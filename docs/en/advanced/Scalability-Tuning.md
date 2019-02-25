@@ -35,12 +35,11 @@ For example, spawning `4000` threads with a default thread stack size of `1MB` r
 ### Thread Pool Size
 
 An executor pool is used on the master to handle concurrent client requests. You can tune the thread pool size
-by modifying the following properties. The actual thread count depends on number of cores available on the master.
+by modifying the following property. The actual thread count depends on number of cores available on the master.
 For example, if the master has 64 cores, set the master thread pool max to greater than `512`.
 
 ```properties
 alluxio.master.worker.threads.max=512
-alluxio.master.worker.threads.min=256
 ```
 
 * You may need to set OS limits, as defined in the following section, to allow the above number of
