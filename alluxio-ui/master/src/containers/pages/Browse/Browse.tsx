@@ -18,7 +18,7 @@ import {Link} from 'react-router-dom';
 import {Alert, Button, Form, FormGroup, Input, Label, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {FileView, Paginator} from '@alluxio/common-ui/src/components';
+import {FileView, LoadingMessage, Paginator} from '@alluxio/common-ui/src/components';
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 import {
   disableFormSubmit,
@@ -105,7 +105,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
   }
 
   public render() {
-    const {browseErrors, browseData, initData, initErrors} = this.props;
+    const {browseErrors, browseData, browseLoading, initData, initLoading, initErrors} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
@@ -122,6 +122,12 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
           {browseData.invalidPathError && <div>{browseData.invalidPathError}</div>}
           {browseData.invalidPathException && <div>{browseData.invalidPathException}</div>}
         </Alert>
+      );
+    }
+
+    if (initLoading || browseLoading) {
+      return (
+        <LoadingMessage/>
       );
     }
 

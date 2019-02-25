@@ -15,6 +15,7 @@ import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
+import {LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/metrics/actions';
 import {IMetrics} from '../../../store/metrics/types';
@@ -44,13 +45,19 @@ export class Metrics extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, data} = this.props;
+    const {errors, data, loading} = this.props;
 
     if (errors) {
       return (
         <Alert color="danger">
           Unable to reach the api endpoint for this page.
         </Alert>
+      );
+    }
+
+    if (loading) {
+      return (
+        <LoadingMessage/>
       );
     }
 

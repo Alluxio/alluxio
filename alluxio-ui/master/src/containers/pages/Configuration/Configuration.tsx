@@ -15,6 +15,7 @@ import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
+import {LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IConfigTriple} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/config/actions';
@@ -45,13 +46,19 @@ export class Configuration extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, data} = this.props;
+    const {errors, data, loading} = this.props;
 
     if (errors) {
       return (
         <Alert color="danger">
           Unable to reach the api endpoint for this page.
         </Alert>
+      );
+    }
+
+    if (loading) {
+      return (
+        <LoadingMessage/>
       );
     }
 

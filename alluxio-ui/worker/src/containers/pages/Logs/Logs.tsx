@@ -15,7 +15,7 @@ import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {FileView} from '@alluxio/common-ui/src/components';
+import {FileView, LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
 import {getDebouncedFunction, parseQuerystring, renderFileNameLink} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
@@ -92,7 +92,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
   }
 
   public render() {
-    const {errors, data} = this.props;
+    const {errors, data, loading} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
@@ -105,6 +105,12 @@ export class Logs extends React.Component<AllProps, ILogsState> {
           {data.invalidPathError && <div>{data.invalidPathError}</div>}
           {data.fatalError && <div>{data.fatalError}</div>}
         </Alert>
+      );
+    }
+
+    if (loading) {
+      return (
+        <LoadingMessage/>
       );
     }
 

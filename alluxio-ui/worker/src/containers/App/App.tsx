@@ -85,13 +85,13 @@ export class App extends React.Component<AllProps> {
 
     return (
       <ConnectedRouter history={history}>
-        <div className="App pt-5 pb-4">
+        <div className="App h-100 pt-5 pb-4">
           <div className="w-100 sticky-top header-wrapper">
             <Header history={history} data={headerNavigationData}
                     callbackParameters={{masterHostname: init.masterHostname, masterPort: init.masterPort}}
                     autoRefreshCallback={this.setAutoRefresh}/>
           </div>
-          <div className="w-100 mt-3">
+          <div className="h-100 w-100 pt-3">
             <Switch>
               <Route exact={true} path="/" render={this.redirectToOverview}/>
               <Route path="/overview" exact={true} component={Overview}/>

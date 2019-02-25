@@ -15,6 +15,7 @@ import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
+import {LoadingMessage} from '@alluxio/common-ui/src/components';
 import {INodeInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/workers/actions';
@@ -49,13 +50,19 @@ export class Workers extends React.Component<AllProps> {
   }
 
   public render() {
-    const {initData, initErrors, workersErrors, workersData} = this.props;
+    const {initData, initErrors, initLoading, workersErrors, workersLoading, workersData} = this.props;
 
     if (initErrors || workersErrors) {
       return (
         <Alert color="danger">
           Unable to reach the api endpoint for this page.
         </Alert>
+      );
+    }
+
+    if (initLoading || workersLoading) {
+      return (
+        <LoadingMessage/>
       );
     }
 
