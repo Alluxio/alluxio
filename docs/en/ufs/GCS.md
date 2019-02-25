@@ -80,7 +80,7 @@ $ ./bin/alluxio fs mount --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> --optio
 
 Directories are represented in GCS as zero-byte objects named with a specified suffix. The
 directory suffix can be updated with the configuration parameter
-`alluxio.underfs.gcs.directory.suffix`.
+[alluxio.underfs.gcs.directory.suffix]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.underfs.gcs.directory.suffix).
 
 ### Configuring Application Dependency
 
