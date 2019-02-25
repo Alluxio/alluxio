@@ -401,9 +401,7 @@ public final class ConfigurationUtils {
     List<alluxio.grpc.ConfigProperty> clusterConfig;
 
     try {
-      channel = GrpcChannelBuilder.newBuilder(address, conf).disableAuthentication()
-          .setExecutor(ForkJoinPool.commonPool())
-          .build();
+      channel = GrpcChannelBuilder.newBuilder(address, conf).disableAuthentication().build();
       MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
           MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
       clusterConfig =

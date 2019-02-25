@@ -216,7 +216,6 @@ public abstract class AbstractClient implements Client {
         mChannel = GrpcChannelBuilder
             .newBuilder(mAddress, mContext.getConf())
             .setSubject(mContext.getSubject())
-            .setExecutor(ForkJoinPool.commonPool())
             .build();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);

@@ -647,9 +647,7 @@ public final class NetworkAddressUtils {
       throws AlluxioStatusException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
-    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, conf)
-        .setExecutor(ForkJoinPool.commonPool())
-        .build();
+    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, conf).build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
     versionClient.getServiceVersion(
