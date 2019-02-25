@@ -14,7 +14,7 @@ This document describes the following security related features in Alluxio.
 1. [User Authentication](#authentication): 
 Alluxio filesystem will differentiate users accessing the service
 when the authentication mode is `SIMPLE` (i.e., `alluxio.security.authentication.type=SIMPLE`).
-Alluxio also supports other authentication modes like `NOSASL` which ignores the difference among users.
+Alluxio also supports other the mode `NOSASL` which ignores authentication.
 Having authentication mode to be `SIMPLE` is required for authorization.
 1. [User Authorization](#authorization): 
 Alluxio filesystem will grant or deny user access based on the requesting user and
@@ -24,10 +24,10 @@ Note that, authentication cannot be `NOSASL` as authorization requires user info
 1. [Access Control Lists](#Access-Control-Lists): In addition to the POSIX permission model, Alluxio
 implements an Access Control List (ACL) model similar to those found in Linux and HDFS. The ACL model
 is more flexible and allows administrators to manage any user or group's permissions to any file
-system object. 
-1. [Impersonation](#impersonation): Alluxio supports user impersonation so one user can access
-Alluxio on the behalf of another user. This can be useful if an Alluxio client is part of a service
-which provides access to Alluxio for many different users.
+system object.
+1. [Client-Side Hadoop Impersonation](#client-side-hadoop-impersonation): Alluxio supports
+client-side Hadoop impersonation so the Alluxio client can access Alluxio on the behalf of the
+Hadoop user. This can be useful if the Alluxio client is part of an exising Hadoop service.
 1. [Auditing](#auditing): If `alluxio.master.audit.logging.enabled=true`, Alluxio file system
 maintains an audit log for user accesses to file metadata.
 
@@ -219,54 +219,77 @@ ACLs can be managed by two ways:
 
 The ACL of a file or directory can only be changed by super user or its owner.
 
-## Impersonation
+## Client-Side Hadoop Impersonation
 
-Alluxio supports user impersonation in order for a user to access Alluxio on the behalf of another user.
-This can be useful if an Alluxio client is part of a service which provides access to Alluxio for different users.
-In this scenario, the Alluxio client is configured to connect to Alluxio servers as a connection user, but act on behalf of, or impersonate, other users.
-In order to configure Alluxio for impersonation, both client and master configurations are required.
+When Alluxio is used in a Hadoop environment, a user, or identity, can be specified for both the
+Hadoop client and the Alluxio client. Since the Hadoop client user and the Alluxio client user can
+specified independently, the users could be different from each other. The Hadoop client user may
+even be in a separate namespace from the Alluxio client user.
+
+Alluxio client-side Hadoop impersonation solves the issues when the Hadoop client user is different
+from the Alluxio client user. With this feature, the Alluxio client examines the Hadoop client user,
+and then attempts to impersonate as that Hadoop client user.
+
+For example, a Hadoop appliction can be configured to run as the Hadoop client user `foo`, but the Alluxio client user is configured to be `yarn`. This means any data interactions will be attributed
+to user `yarn`. With client-side Hadoop impersonation, the Alluxio client will detect the Hadoop
+client user is `foo`, and then connect to Alluxio servers as user `yarn` impersonating as user
+`foo`. With this impersonation, the data interactions will be attributed to user ‘foo’.
+
+In order to configure Alluxio for client-side Hadoop impersonation, both client and master
+configurations are required.
 
 ### Master Configuration
 
-To enable a particular user to impersonate other users, set the
+To enable a particular Alluxio client user to impersonate other users, set the
 `alluxio.master.security.impersonation.<USERNAME>.users` property, where `<USERNAME>` is the name
-of the connection user.
+of the Alluxio client user.
 
 The property value is a comma-separated list of users that `<USERNAME>` is allowed to impersonate.
 The wildcard value `*` can be used to indicate the user can impersonate any other user.
 Some examples:
 
 - `alluxio.master.security.impersonation.alluxio_user.users=user1,user2`
-means the connection user `alluxio_user` is allowed to impersonate `user1` and `user2`.
+means the Alluxio client user `alluxio_user` is allowed to impersonate `user1` and `user2`.
 - `alluxio.master.security.impersonation.client.users=*`
-means the connection user `client` is allowed to impersonate any user.
+means the Alluxio client user `client` is allowed to impersonate any user.
 
 To enable a particular user to impersonate other groups, set the
 `alluxio.master.security.impersonation.<USERNAME>.groups` property, where again `<USERNAME>` is
-the name of the connection user.
+the name of the Alluxio client user.
 
 Similar to the above, the value is a comma-separated list of groups and the wildcard value `*`
 can be used to indicate all groups.
 Some examples:
 
 - `alluxio.master.security.impersonation.alluxio_user.groups=group1,group2`
-means the connection user `alluxio_user` is allowed to impersonate any users from groups `group1` and `group2`.
+means the Alluxio client user `alluxio_user` is allowed to impersonate any users from groups `group1` and `group2`.
 - `alluxio.master.security.impersonation.client.groups=*`
-means the connection user `client` is allowed to impersonate users from any group.
+means the Alluxio client user `client` is allowed to impersonate users from any group.
 
-In summary, impersonation of a given user is only enabled if at least one of the two impersonation
-properties are be set; setting both are allowed for the same user.
+In summary, to enable an Alluxio client to impersonate other users, at least one of the two
+impersonation properties must be set on servers; setting both are allowed for the same Alluxio
+client user.
 
 ### Client Configuration
 
-After enabling impersonation on the master for a given user,
+After enabling impersonation on the master for a given Alluxio client user,
 the client must indicate which user it wants to impersonate.
 This is configured by the `alluxio.security.login.impersonation.username` property.
 
-If the property is set to an empty string or `_NONE_`, impersonation is disabled.
-If the property is set to `_HDFS_USER_`, the Alluxio client will impersonate as the same user as
-the HDFS client when using the Hadoop compatible client.
-This property can also be set to a particular string to indicate a user name.
+If the property is set to an empty string or `_NONE_`, impersonation is disabled, and the Alluxio
+client will interact with Alluxio servers as the Alluxio client user.
+If the property is set to `_HDFS_USER_`, the Alluxio client will connect to Alluxio servers as the
+Alluxio client user, but impersonate as the Hadoop client user when using the Hadoop compatible
+client.
+
+### Exceptions
+
+The most common impersonation error applications may see is something like
+`User yarn is not configured for any impersonation. impersonationUser: foo`. This is most likely
+due to the fact that the Alluxio servers have not been configured to enable impersonation for that
+user. To fix this, the Alluxio servers must be configured to enable impersonation for the user in question (yarn in the example error message).
+
+Please read this [blog post](http://www.alluxio.com/blog/alluxio-developer-tip-why-am-i-seeing-the-error-user-yarn-is-not-configured-for-any-impersonation-impersonationuser-foo) for more tips.
 
 ## Auditing
 
