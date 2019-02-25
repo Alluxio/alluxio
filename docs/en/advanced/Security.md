@@ -14,7 +14,7 @@ This document describes the following security related features in Alluxio.
 1. [User Authentication](#authentication): 
 Alluxio filesystem will differentiate users accessing the service
 when the authentication mode is `SIMPLE` (i.e., `alluxio.security.authentication.type=SIMPLE`).
-Alluxio also supports other the mode `NOSASL` which ignores authentication.
+Alluxio also supports `NOSASL` mode which ignores authentication.
 Having authentication mode to be `SIMPLE` is required for authorization.
 1. [User Authorization](#authorization): 
 Alluxio filesystem will grant or deny user access based on the requesting user and
@@ -230,7 +230,8 @@ Alluxio client-side Hadoop impersonation solves the issues when the Hadoop clien
 from the Alluxio client user. With this feature, the Alluxio client examines the Hadoop client user,
 and then attempts to impersonate as that Hadoop client user.
 
-For example, a Hadoop appliction can be configured to run as the Hadoop client user `foo`, but the Alluxio client user is configured to be `yarn`. This means any data interactions will be attributed
+For example, a Hadoop application can be configured to run as the Hadoop client user `foo`, but the
+Alluxio client user is configured to be `yarn`. This means any data interactions will be attributed
 to user `yarn`. With client-side Hadoop impersonation, the Alluxio client will detect the Hadoop
 client user is `foo`, and then connect to Alluxio servers as user `yarn` impersonating as user
 `foo`. With this impersonation, the data interactions will be attributed to user ‘foo’.
