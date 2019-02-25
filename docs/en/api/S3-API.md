@@ -9,7 +9,7 @@ priority: 1
 * Table of Contents
 {:toc}
 
-Alluxio supports a RESTFul API that is compatible with the basic operations of the Amazon
+Alluxio supports a RESTful API that is compatible with the basic operations of the Amazon
 [S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html).
 
 The [REST API documentation](http://www.alluxio.org/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
@@ -47,7 +47,7 @@ In this documentation, we use curl REST calls and python S3 client as usage exam
 ## Example Usage
 
 ### REST API
-For example, you can run the following RESTFul API calls to an Alluxio cluster running on localhost.
+For example, you can run the following RESTful API calls to an Alluxio cluster running on localhost.
 The Alluxio proxy is listening at port 39999 by default.
 
 #### Create a bucket
@@ -178,6 +178,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
   <UploadId>2</UploadId>
 </InitiateMultipartUploadResult>
 ```
+
+Note that the commands below related to multipart upload need the upload ID shown above, it's not necessarily 2.
 
 #### Upload part
 
@@ -334,7 +336,7 @@ bucket.delete_key(largeObjectKey)
 #### Initiate a multipart upload
 
 ```python
-mp = bucket.initiate_multipart_upload(largeObjectFile)
+mp = bucket.initiate_multipart_upload(largeObjectKey)
 ```
 
 #### Upload parts
