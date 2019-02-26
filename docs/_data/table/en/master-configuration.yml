@@ -7,25 +7,49 @@ alluxio.master.activesync.interval:
 alluxio.master.activesync.maxactivity:
   'Max number of changes in a directory to be considered for active syncing'
 alluxio.master.activesync.maxage:
-  'Number of intervals before force syncing a directory as part of actively syncing UFS'
+  'The maximum number of intervals we will wait to find a quiet period before we have to sync the directories'
 alluxio.master.activesync.polltimeout:
   'Max time to wait before timing out a polling operation'
 alluxio.master.activesync.retry.timeout:
-  'Retry period before workers give up on connecting to master'
+  'Retry period before active ufs syncer gives up on connecting to the ufs'
+alluxio.master.activesync.threadpoolsize:
+  'Max number of threads used to perform active sync'
 alluxio.master.audit.logging.enabled:
   'Set to true to enable file system master audit. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.master.audit.logging.queue.capacity:
   'Capacity of the queue used by audit logging.'
 alluxio.master.backup.directory:
-  'Default directory for writing master metadata backups. This path is relative to the root directory of the root UFS. For example, if the root ufs directory is hdfs://cluster/alluxio/data, the default backup directory will be hdfs://cluster/alluxio_backups'
+  'Default directory for writing master metadata backups. This path is an absolute path of the root UFS. For example, if the root ufs directory is hdfs://host:port/alluxio/data, the default backup directory will be hdfs://host:port/alluxio_backups.'
 alluxio.master.bind.host:
   'The hostname that Alluxio master binds to.'
 alluxio.master.connection.timeout:
   'Timeout of connections between master and client. A value of 0 means never timeout'
+alluxio.master.daily.backup.enabled:
+  'Whether or not to enable daily primary master metadata backup.'
+alluxio.master.daily.backup.files.retained:
+  'The maximum number of backup files to keep in the backup directory.'
+alluxio.master.daily.backup.time:
+  'Default UTC time for writing daily master metadata backups. The accepted time format is hour:minute which is based on a 24-hour clock (E.g., 05:30, 06:00, and 22:04). Backing up metadata requires a pause in master metadata changes, so please set this value to an off-peak time to avoid interfering with other users of the system.'
+alluxio.master.embedded.journal.addresses:
+  'A comma-separated list of journal addresses for all masters in the cluster. The format is ''hostname1:port1,hostname2:port2,...''. Required when using the embedded journal'
+alluxio.master.embedded.journal.election.timeout:
+  'The election timeout for the embedded journal. When this period elapses without a master receiving any messages, the master will attempt to become the primary.'
+alluxio.master.embedded.journal.heartbeat.interval:
+  'The period between sending heartbeats from the embedded journal primary to followers. This should be less than half of the election timeout (alluxio.master.embedded.journal.election.timeout).'
+alluxio.master.embedded.journal.port:
+  'The port to use for embedded journal communication with other masters.'
+alluxio.master.embedded.journal.storage.level:
+  'The storage level for storing embedded journal logs. Use DISK for maximum durability. Use MAPPED for better performance, but some risk of losing state in case of power loss or host failure. Use MEMORY for optimal performance, but no state persistence across cluster restarts.'
 alluxio.master.file.async.persist.handler:
   'The handler for processing the async persistence requests.'
 alluxio.master.format.file_prefix:
   'The file prefix of the file generated in the journal directory when the journal is formatted. The master will search for a file with this prefix when determining if the journal is formatted.'
+alluxio.master.grpc.channel.auth.timeout:
+  'Maximum time to wait for gRPC channel to attempt to receive an authentication response.'
+alluxio.master.grpc.channel.shutdown.timeout:
+  'Maximum time to wait for gRPC channel to stop on shutdown'
+alluxio.master.grpc.server.shutdown.timeout:
+  'Maximum time to wait for gRPC server to stop on shutdown'
 alluxio.master.heartbeat.timeout:
   'Timeout between leader master and standby master indicating a lost master.'
 alluxio.master.hostname:
@@ -37,7 +61,7 @@ alluxio.master.journal.flush.batch.time:
 alluxio.master.journal.flush.timeout:
   'The amount of time to keep retrying journal writes before giving up and shutting down the master.'
 alluxio.master.journal.folder:
-  'The path to store master journal logs.'
+  'The path to store master journal logs. When using the UFS journal this could be a URI like hdfs://namenode:port/alluxio/journal. When using the embedded journal this must be a local path'
 alluxio.master.journal.formatter.class:
   'The class to serialize the journal in a specified format.'
 alluxio.master.journal.gc.period:
@@ -57,17 +81,37 @@ alluxio.master.journal.tailer.sleep.time:
 alluxio.master.journal.temporary.file.gc.threshold:
   'Minimum age for garbage collecting temporary checkpoint files.'
 alluxio.master.journal.type:
-  'The type of journal to use. Valid options are UFS (store journal in UFS) and NOOP (do not use a journal).'
+  'The type of journal to use. Valid options are UFS (store journal in UFS), EMBEDDED (use a journal embedded in the masters), and NOOP (do not use a journal)'
 alluxio.master.journal.ufs.option:
   'The configuration to use for the journal operations.'
 alluxio.master.jvm.monitor.enabled:
   'Whether to enable start JVM monitor thread on master.'
 alluxio.master.keytab.file:
   'Kerberos keytab file for Alluxio master.'
+alluxio.master.lockcache.concurrency.level:
+  'Maximum concurrency level for the inodelock cache'
+alluxio.master.lockcache.initsize:
+  'Initial inodelock cache size'
+alluxio.master.lockcache.maxsize:
+  'Maximum inodelock cache size'
 alluxio.master.log.config.report.heartbeat.interval:
   'The interval for periodically logging the configuration check report.'
 alluxio.master.master.heartbeat.interval:
   'The interval between Alluxio masters'' heartbeats.'
+alluxio.master.metastore:
+  'The type of metastore to use, either HEAP or ROCKS. The heap metastore keeps all metadata on-heap, while the rocks metastore stores some metadata on heap and some metadata on disk. The rocks metastore has the advantage of being able to support a large namespace (1 billion plus files) without needing a massive heap size.'
+alluxio.master.metastore.dir:
+  'The metastore work directory. Only some metastores need disk.'
+alluxio.master.metastore.inode.cache.evict.batch.size:
+  'The batch size for evicting entries from the inode cache.'
+alluxio.master.metastore.inode.cache.high.water.mark.ratio:
+  'The high water mark for the inode cache, as a ratio from high water mark to total cache size. If this is 0.85 and the max size is 10 million, the high water mark value is 8.5 million. When the cache reaches the high water mark, the eviction process will evict down to the low water mark.'
+alluxio.master.metastore.inode.cache.low.water.mark.ratio:
+  'The low water mark for the inode cache, as a ratio from low water mark to total cache size. If this is 0.7 and the max size is 10 million, the low water mark value is 7 million. When the cache reaches the high water mark, the eviction process will evict down to the low water mark.'
+alluxio.master.metastore.inode.cache.max.size:
+  'The number of inodes to cache on-heap. This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable the on-heap inode cache'
+alluxio.master.metrics.time.series.interval:
+  'Interval for which the master records metrics information. This affects the granularity of the metrics graphed in the UI.'
 alluxio.master.mount.table.root.alluxio:
   'Alluxio root mount point.'
 alluxio.master.mount.table.root.option:
@@ -100,12 +144,12 @@ alluxio.master.principal:
   'Kerberos principal for Alluxio master.'
 alluxio.master.replication.check.interval.ms:
   'N/A'
+alluxio.master.rpc.addresses:
+  'A list of comma-separated host:port RPC addresses where the client should look for masters when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses.'
 alluxio.master.startup.block.integrity.check.enabled:
   'Whether the system should be checked on startup for orphaned blocks (blocks having no corresponding files but still taking system resource due to various system failures). Orphaned blocks will be deleted during master startup if this property is true. This property is available since 1.7.1'
 alluxio.master.startup.consistency.check.enabled:
   'Whether the system should be checked for consistency with the underlying storage on startup. During the time the check is running, Alluxio will be in read only mode. Enabled by default.'
-alluxio.master.thrift.shutdown.timeout:
-  'Maximum time to wait for thrift servers to stop on shutdown'
 alluxio.master.tieredstore.global.level0.alias:
   'The name of the highest storage tier in the entire system.'
 alluxio.master.tieredstore.global.level1.alias:
@@ -119,9 +163,9 @@ alluxio.master.ttl.checker.interval:
 alluxio.master.ufs.block.location.cache.capacity:
   'The capacity of the UFS block locations cache. This cache caches UFS block locations for files that are persisted but not in Alluxio space, so that listing status of these files do not need to repeatedly ask UFS for their block locations. If this is set to 0, the cache will be disabled.'
 alluxio.master.ufs.path.cache.capacity:
-  'The capacity of the UFS path cache. This cache is used to approximate the `Once` metadata load behavior (see `alluxio.user.file.metadata.load.type`). Larger caches will consume more memory, but will better approximate the `Once` behavior.'
+  'The capacity of the UFS path cache. This cache is used to approximate the `ONCE` metadata load behavior (see `alluxio.user.file.metadata.load.type`). Larger caches will consume more memory, but will better approximate the `ONCE` behavior.'
 alluxio.master.ufs.path.cache.threads:
-  'The maximum size of the thread pool for asynchronously processing paths for the UFS path cache. Greater number of threads will decrease the amount of staleness in the async cache, but may impact performance. If this is set to 0, the cache will be disabled, and `alluxio.user.file.metadata.load.type=Once` will behave like `Always`.'
+  'The maximum size of the thread pool for asynchronously processing paths for the UFS path cache. Greater number of threads will decrease the amount of staleness in the async cache, but may impact performance. If this is set to 0, the cache will be disabled, and `alluxio.user.file.metadata.load.type=ONCE` will behave like `ALWAYS`.'
 alluxio.master.web.bind.host:
   'The hostname Alluxio master web UI binds to.'
 alluxio.master.web.hostname:
@@ -135,8 +179,8 @@ alluxio.master.worker.connect.wait.time:
 alluxio.master.worker.heartbeat.interval:
   'The interval between Alluxio master and worker heartbeats.'
 alluxio.master.worker.threads.max:
-  'The maximum number of incoming RPC requests to master that can be handled. This value is used to configure maximum number of threads in Thrift thread pool with master.'
+  'The maximum number of incoming RPC requests to master that can be handled. This value is used to configure maximum number of threads in gRPC thread pool with master.'
 alluxio.master.worker.threads.min:
-  'The minimum number of threads used to handle incoming RPC requests to master. This value is used to configure minimum number of threads in Thrift thread pool with master.'
+  'The minimum number of threads used to handle incoming RPC requests to master. This value is used to configure minimum number of threads in gRPC thread pool with master.'
 alluxio.master.worker.timeout:
   'Timeout between master and worker indicating a lost worker.'
