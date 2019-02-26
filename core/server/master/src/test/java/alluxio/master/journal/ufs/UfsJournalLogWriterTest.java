@@ -13,13 +13,14 @@ package alluxio.master.journal.ufs;
 
 import static org.hamcrest.CoreMatchers.containsString;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalReader.State;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
@@ -391,10 +392,9 @@ public final class UfsJournalLogWriterTest {
   private void checkJournalEntries(long startSN, long endSN)
       throws IOException, InvalidJournalEntryException {
     try (JournalReader reader = new UfsJournalReader(mJournal, startSN, true)) {
-      Journal.JournalEntry entry;
       long seq = startSN;
-      while ((entry = reader.read()) != null) {
-        Assert.assertEquals(seq, entry.getSequenceNumber());
+      while (reader.advance() != State.DONE) {
+        Assert.assertEquals(seq, reader.read().getSequenceNumber());
         seq++;
       }
       Assert.assertEquals(endSN, seq);
