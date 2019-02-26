@@ -30,7 +30,7 @@ public class PatchedInputChunked extends InputChunked {
   }
 
   @Override
-  protected int fill (byte[] buffer, int offset, int count) throws KryoException {
+  protected int fill(byte[] buffer, int offset, int count) throws KryoException {
     try {
       return super.fill(buffer, offset, count);
     } catch (KryoException e) {
