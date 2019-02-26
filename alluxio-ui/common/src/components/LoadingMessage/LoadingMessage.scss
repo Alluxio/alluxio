@@ -9,34 +9,46 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-.loadingMessage {
-  padding: 1em;
-  color: #156fdb;
+@import '../../constants/scss/themeVariables';
 
-  img.loadingMessageSpin {
-    height: 100px;
-    width: 100px;
-    -webkit-animation: loadingMessageSpin 4s linear infinite;
-    -moz-animation: loadingMessageSpin 4s linear infinite;
-    animation: loadingMessageSpin 4s linear infinite;
+.loadingMessageWrapper {
+  position: fixed;
+  top: 33%;
+  left: 50%;
+
+  .loadingMessage {
+    position: relative;
+    left: -50%;
+    padding: 1em 1.5em;
+    color: $gray-400;
+    background-color: $light;
+    border-radius: 1em;
+
+    img.loadingMessageSpin {
+      height: 100px;
+      width: 100px;
+      -webkit-animation: loadingMessageSpin 4s linear infinite;
+      -moz-animation: loadingMessageSpin 4s linear infinite;
+      animation: loadingMessageSpin 4s linear infinite;
+    }
   }
-}
 
-@-moz-keyframes loadingMessageSpin {
-  100% {
-    -moz-transform: rotateY(360deg);
+  @-moz-keyframes loadingMessageSpin {
+    100% {
+      -moz-transform: rotateY(360deg);
+    }
   }
-}
 
-@-webkit-keyframes loadingMessageSpin {
-  100% {
-    -webkit-transform: rotateY(360deg);
+  @-webkit-keyframes loadingMessageSpin {
+    100% {
+      -webkit-transform: rotateY(360deg);
+    }
   }
-}
 
-@keyframes loadingMessageSpin {
-  100% {
-    -webkit-transform: rotateY(360deg);
-    transform: rotateY(360deg);
+  @keyframes loadingMessageSpin {
+    100% {
+      -webkit-transform: rotateY(360deg);
+      transform: rotateY(360deg);
+    }
   }
 }

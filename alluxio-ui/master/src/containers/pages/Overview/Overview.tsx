@@ -15,6 +15,7 @@ import {connect} from 'react-redux';
 import {Alert, Progress, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
+import {LoadingMessage} from '@alluxio/common-ui/src/components';
 import {IScopedPropertyInfo, IStorageTierInfo} from '../../../constants';
 import {IApplicationState} from '../../../store';
 import {fetchRequest} from '../../../store/overview/actions';
@@ -45,13 +46,21 @@ export class Overview extends React.Component<AllProps> {
   }
 
   public render() {
-    const {errors, data} = this.props;
+    const {errors, data, loading} = this.props;
 
     if (errors) {
       return (
         <Alert color="danger">
           Unable to reach the api endpoint for this page.
         </Alert>
+      );
+    }
+
+    if (loading) {
+      return (
+        <div className="h-100 w-100 overview-page">
+          <LoadingMessage/>
+        </div>
       );
     }
 
@@ -143,7 +152,8 @@ export class Overview extends React.Component<AllProps> {
                       <Progress className="h-50 mt-1" multi={true}>
                         <Progress bar={true} color="dark" value={`${info.freeSpacePercent}`}>{info.freeSpacePercent}%
                           Free</Progress>
-                        <Progress bar={true} color="secondary" value={`${info.usedSpacePercent}`}>{info.usedSpacePercent}%
+                        <Progress bar={true} color="secondary"
+                                  value={`${info.usedSpacePercent}`}>{info.usedSpacePercent}%
                           Used</Progress>
                       </Progress>
                     </td>

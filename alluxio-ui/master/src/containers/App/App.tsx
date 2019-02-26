@@ -81,24 +81,26 @@ export class App extends React.Component<AllProps> {
 
     if (!init && loading) {
       return (
-        <LoadingMessage/>
+        <div className="h-100 w-100 App">
+          <LoadingMessage/>
+        </div>
       );
     }
 
     return (
       <ConnectedRouter history={history}>
-        <div className="App pt-5 pb-4">
+        <div className="App h-100 pt-5 pb-4">
           <div className="w-100 sticky-top header-wrapper">
             <Header history={history} data={headerNavigationData} autoRefreshCallback={this.setAutoRefresh}/>
           </div>
-          <div className="w-100 mt-3">
+          <div className="h-100 w-100 pt-3">
             <Switch>
               <Route exact={true} path="/" render={this.redirectToOverview}/>
               <Route path="/overview" exact={true} component={Overview}/>
-              <Route path="/browse" exact={true} component={Browse}/>
+              <Route path="/browse" exact={true} render={this.renderView(Browse, {history})}/>
               <Route path="/config" exact={true} component={Configuration}/>
               <Route path="/data" exact={true} component={Data}/>
-              <Route path="/logs" exact={true} component={Logs}/>
+              <Route path="/logs" exact={true} render={this.renderView(Logs, {history})}/>
               <Route path="/metrics" exact={true} component={Metrics}/>
               <Route path="/workers" exact={true} component={Workers}/>
               <Route render={this.redirectToOverview}/>
@@ -110,6 +112,14 @@ export class App extends React.Component<AllProps> {
         </div>
       </ConnectedRouter>
     );
+  }
+
+  private renderView(Container: typeof React.Component, props: any) {
+    return (routerProps: RouteComponentProps<any, StaticContext, any>) => {
+      return (
+        <Container {...routerProps} {...props}/>
+      );
+    }
   }
 
   private redirectToOverview(routerProps: RouteComponentProps<any, StaticContext, any>) {
