@@ -9,6 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+import {LineSerieData} from '@nivo/line';
 import {AxiosResponse} from 'axios';
 
 import {ICounter} from '@alluxio/common-ui/src/constants';
@@ -21,6 +22,10 @@ export interface IMetrics {
   masterCapacityUsedPercentage: number;
   masterUnderfsCapacityFreePercentage: number;
   masterUnderfsCapacityUsedPercentage: number;
+  rpcInvocationMetrics: {
+    [key: string]: ICounter;
+  };
+  timeSeriesMetrics: LineSerieData[];
   totalBytesReadLocal: string;
   totalBytesReadLocalThroughput: string;
   totalBytesReadRemote: string;
@@ -44,9 +49,6 @@ export interface IMetrics {
   },
   operationMetrics: {
     [key: string]: ICounter;
-  },
-  rpcInvocationMetrics: {
-    [key:string]: ICounter;
   }
 }
 
