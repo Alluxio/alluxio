@@ -1738,15 +1738,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_WORKER_THREADS_MIN =
-      new Builder(Name.MASTER_WORKER_THREADS_MIN)
-          .setDefaultValue(256)
-          .setDescription("The minimum number of threads used to handle incoming RPC requests "
-              + "to master. This value is used to configure minimum number of threads in "
-              + "gRPC thread pool with master.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
       new Builder(Name.MASTER_WORKER_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.master.worker.timeout.ms"})
@@ -3773,7 +3764,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
         "alluxio.master.worker.connect.wait.time";
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
-    public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
     public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
         "alluxio.master.journal.checkpoint.period.entries";
