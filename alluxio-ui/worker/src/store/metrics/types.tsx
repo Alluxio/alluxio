@@ -21,6 +21,11 @@ export interface IMetrics {
   };
   rpcInvocationMetrics: {
     [key: string]: ICounter;
+  },
+  timeSeriesMetrics: {
+    [key: string]: {
+      [key: string]: number;
+    }
   }
 }
 

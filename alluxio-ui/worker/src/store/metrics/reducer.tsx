@@ -17,6 +17,7 @@ export const initialMetricsState: IMetricsState = {
   data: {
     'operationMetrics': {},
     'rpcInvocationMetrics': {},
+    'timeSeriesMetrics': {},
     'workerCapacityFreePercentage': 0,
     'workerCapacityUsedPercentage': 0
   },
