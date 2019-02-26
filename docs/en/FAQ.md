@@ -50,7 +50,7 @@ interact with. Alluxio supports other language bindings including
 [Python]({{ '/en/api/FS-API.html' | relativize_url }}#python) and
 [Golang]({{ '/en/api/FS-API.html' | relativize_url }}#go).
 
-Alluxio can be run as a FUSE mount exposing a [POSIX API]({{ '/en/api/FUSE-API.html' | relativize_url }}).
+Alluxio can be run as a FUSE mount exposing a [POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url }}).
 This enables any program which normally accesses a local file system to access data from Alluxio without
 modification. This is a common way for applications written in non-Java languages or non-Hadoop APIs
 to access Alluxio data without needing to rewrite the application.
