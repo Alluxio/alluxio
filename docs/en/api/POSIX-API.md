@@ -9,10 +9,10 @@ priority: 3
 * Table of Contents
 {:toc}
 
-Alluxio-FUSE is a feature that allows mounting the distributed Alluxio File System as a standard
+Alluxio POSIX API is a feature that allows mounting the distributed Alluxio File System as a standard
 file system on most flavors of Unix. By using this feature, standard bash tools (for example, `ls`,
 `cat` or `mkdir`) will have basic access to the distributed Alluxio data store. More importantly,
-with FUSE, applications which can interact with the local filesystem, no matter what languages 
+with this POSIX API, applications which can interact with the local filesystem, no matter what languages 
 (C, C++, Python, Ruby, Perl, or Java) they are written in, can interact with Alluxio and its under storages
 without any Alluxio client integration or set up. 
 
@@ -22,10 +22,10 @@ is a generic solution for all storage systems supported by Alluxio. The rich dat
 and caching service inherited from Alluxio speeds up the I/O access to frequently used data in Alluxio worker memory space.
 
 <p align="center">
-<img src="{{ '/img/stack-fuse.png' | relativize_url }}" alt="Alluxio stack with FUSE"/>
+<img src="{{ '/img/stack-posix.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
 </p>
 
-Alluxio-FUSE is based on the project [Filesystem in Userspace](http://fuse.sourceforge.net/) (FUSE),
+Alluxio POSIX API is based on the project [Filesystem in Userspace](http://fuse.sourceforge.net/) (FUSE),
 and most basic file system operations are supported. However, given the intrinsic characteristics of
 Alluxio, like its write-once/read-many-times file data model, the mounted file system will not have
 full POSIX semantics and will have specific limitations.  Please read the [section of limitations
@@ -71,7 +71,7 @@ troubleshooting when errors happen on operations under the mounting point.
 
 ### Unmount Alluxio-FUSE
 
-To unmount a previously mounted Alluxio-FUSE file sytem, on the node where the file system is
+To unmount a previously mounted Alluxio-FUSE file system, on the node where the file system is
 mounted, point a shell to your `$ALLUXIO_HOME` and run:
 
 ```bash
@@ -86,7 +86,7 @@ $ integration/fuse/bin/alluxio-fuse unmount /mnt/people
 Unmount fuse at /mnt/people (PID:97626).
 ```
 
-### Check the Alluxio-FUSE mounting status
+### Check the Alluxio POSIX API mounting status
 
 To list the mounting points, on the node where the file system is mounted, point a shell to your
 `$ALLUXIO_HOME` and run:
@@ -95,7 +95,7 @@ To list the mounting points, on the node where the file system is mounted, point
 $ integration/fuse/bin/alluxio-fuse stat
 ```
 
-This outputs the `pid, mount_point, alluxio_path` of all the running alluxio-fuse processes.
+This outputs the `pid, mount_point, alluxio_path` of all the running Alluxio-FUSE processes.
 
 For example, the output will be like:
 
@@ -109,12 +109,12 @@ pid	mount_point	alluxio_path
 
 ### Configure Alluxio client options
 
-Alluxio-FUSE is based on the standard Java client API `alluxio-core-client-fs` to perform its
-operations. You might want to customize the behaviour of the Alluxio client used by Alluxio-FUSE the
+Alluxio POSIX API is based on the standard Java client API `alluxio-core-client-fs` to perform its
+operations. You might want to customize the behaviour of the Alluxio client used by Alluxio POSIX API the
 same way you would for any other client application.
 
 One possibility, for example, is to edit `$ALLUXIO_HOME/conf/alluxio-site.properties` and set your
-specific Alluxio client options. Note that these changes should be before Alluxio-FUSE starts.
+specific Alluxio client options. Note that these changes should be done before the mounting steps.
 
 ### Configure mount point options
 
@@ -174,10 +174,10 @@ characteristics, please be aware that:
   `cp` command will fail when the destination file exists.
 * Alluxio does not have hard-link and soft-link concepts, so the commands like `ln` are not supported,
   neither the hardlinks number is displayed in `ll` output.
-* The user and group are mapped to the Unix user and group only when Alluxio Fuse is configured to use
+* The user and group are mapped to the Unix user and group only when Alluxio POSIX API is configured to use
   shell user group translation service, by setting `alluxio.fuse.user.group.translation.enabled` to `true`
   in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the
-  user and group of the user who started the alluxio-fuse process. The translation service
+  user and group of the user who started the Alluxio-FUSE process. The translation service
   does not change the actual file permission when running `ll`.
 
 ## Performance considerations
@@ -191,9 +191,9 @@ on `read` or `write` operations, and that FUSE caps the maximum granularity of w
 could be probably improved by a large extent by leveraging the FUSE cache write-backs feature
 introduced in kernel 3.15 (supported by libfuse 3.x userspace libs but not supported in jnr-fuse yet).
 
-## Configuration Parameters For Alluxio-FUSE
+## Configuration Parameters For Alluxio POSIX API
 
-These are the configuration parameters for Alluxio-FUSE.
+These are the configuration parameters for Alluxio POSIX API.
 
 <table class="table table-striped">
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
