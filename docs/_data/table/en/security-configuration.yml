@@ -16,3 +16,5 @@ alluxio.security.login.impersonation.username:
   'When alluxio.security.authentication.type is set to SIMPLE or CUSTOM, user application uses this property to indicate the IMPERSONATED user requesting Alluxio service. If it is not set explicitly, or set to _NONE_, impersonation will not be used. A special value of ''_HDFS_USER_'' can be specified to impersonate the hadoop client user.'
 alluxio.security.login.username:
   'When alluxio.security.authentication.type is set to SIMPLE or CUSTOM, user application uses this property to indicate the user requesting Alluxio service. If it is not set explicitly, the OS login user will be used.'
+alluxio.security.stale.channel.purge.interval:
+  'Interval for which client channels that have been inactive will be regarded as unauthenticated. Such channels will reauthenticate with their target master upon being used for new RPCs.'
