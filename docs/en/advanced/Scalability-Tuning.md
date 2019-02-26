@@ -111,9 +111,11 @@ when a client attempts to communicate with the Alluxio master.
 Alluxio client can also be configured to check the health of connected workers using keepalive pings.
 This is controlled by the following properties
 ```properties
-alluxio.user.network.keepalive.time=Integer.MAX_VALUE
+alluxio.user.network.keepalive.time=2147483647ms
 alluxio.user.network.keepalive.timeout=30s
 ```
 The first one controls the maximum wait time since a worker sent the last message before client issues a
 keepalive request. The second one controls the maximum wait time after a keepalive request is sent before the client
-determines the worker is no longer alive and closes the connection. This is disabled by default.
+determines the worker is no longer alive and closes the connection. This is disabled by default to minimize unintended
+performance impact to workers. You might want to enable it if you find that Alluxio client is waiting a long time on
+dead workers. To enable it, set the property `alluxio.user.network.keepalive.time` to a desired interval.
