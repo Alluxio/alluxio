@@ -95,6 +95,7 @@ public final class UfsJournalCheckpointThread extends Thread {
     try {
       // Wait for the thread to finish.
       join();
+      mStopped = true;
       LOG.info("{}: Journal shutdown complete", mMaster.getName());
     } catch (InterruptedException e) {
       LOG.error("{}: journal checkpointer shutdown is interrupted.", mMaster.getName(), e);
@@ -177,7 +178,6 @@ public final class UfsJournalCheckpointThread extends Thread {
           if (quietPeriodWaited || !mWaitQuietPeriod) {
             LOG.info("{}: Journal checkpoint thread has been shutdown. No new logs have been found "
                 + "during the quiet period.", mMaster.getName());
-            mStopped = true;
 
             if (mJournalReader != null) {
               try {
@@ -232,14 +232,18 @@ public final class UfsJournalCheckpointThread extends Thread {
   private void writeCheckpoint(long nextSequenceNumber) {
     LOG.info("{}: Writing checkpoint [sequence number {}].", mMaster.getName(), nextSequenceNumber);
     try {
-      try (UfsJournalCheckpointWriter journalWriter =
-          mJournal.getCheckpointWriter(nextSequenceNumber)) {
+      UfsJournalCheckpointWriter journalWriter =
+          mJournal.getCheckpointWriter(nextSequenceNumber);
+      try {
         mMaster.writeToCheckpoint(journalWriter);
       } catch (InterruptedException e) {
+        journalWriter.cancel();
         LOG.info("{}: Cancelled checkpoint [sequence number {}].", mMaster.getName(),
             nextSequenceNumber);
         Thread.currentThread().interrupt();
         return;
+      } finally {
+        journalWriter.close();
       }
       LOG.info("{}: Finished checkpoint [sequence number {}].", mMaster.getName(),
           nextSequenceNumber);
