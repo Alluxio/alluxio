@@ -58,7 +58,7 @@ public final class JournalUtilsTest {
 
   @Test
   public void testEof() {
-    assertTrue(JournalUtils.eof(new InputChunked(new ByteArrayInputStream(new byte[]{}))));
+    assertTrue(new PatchedInputChunked(new ByteArrayInputStream(new byte[]{})).eof());
   }
 
   @Test
@@ -69,7 +69,7 @@ public final class JournalUtilsTest {
     output.endChunks();
     output.flush();
 
-    assertFalse(JournalUtils.eof(new InputChunked(new ByteArrayInputStream(baos.toByteArray()))));
+    assertFalse(new InputChunked(new ByteArrayInputStream(baos.toByteArray())).eof());
   }
 
   private static class TestJournaled implements Journaled {
