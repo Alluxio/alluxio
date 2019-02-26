@@ -58,7 +58,7 @@ export class LineGraph extends React.PureComponent<ILineGraphProps> {
           data={data}
           margin={{top: 25, right: 50, bottom: 200, left: 75}}
           xScale={{type: 'time', format: '%Q', precision: 'minute'}}
-          yScale={{type: 'linear', stacked: false}}
+          yScale={{type: 'linear', stacked: false, min: 0, max: 100}}
           axisTop={null}
           axisRight={null}
           axisBottom={{
