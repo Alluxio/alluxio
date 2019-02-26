@@ -188,11 +188,6 @@ public final class GrpcChannelBuilder {
     return this;
   }
 
-  public GrpcChannelBuilder setExecutor(Executor executor) {
-    mChannelKey.setExecutor(executor);
-    return this;
-  }
-
   /**
    * Creates an authenticated channel of type {@link GrpcChannel}.
    *

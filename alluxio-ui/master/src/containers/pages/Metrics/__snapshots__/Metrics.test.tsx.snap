@@ -796,6 +796,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                               "masterUnderfsCapacityUsedPercentage": 0,
                               "operationMetrics": Object {},
                               "rpcInvocationMetrics": Object {},
+                              "timeSeriesMetrics": Array [],
                               "totalBytesReadLocal": "",
                               "totalBytesReadLocalThroughput": "",
                               "totalBytesReadRemote": "",
@@ -1043,91 +1044,9 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
       <div
         className="col-12"
       >
-        <h5>
-          Master Gauges
-        </h5>
-        <Table
-          hover={true}
-          responsiveTag="div"
-          tag="table"
-        >
-          <tbody>
-            <tr>
-              <th
-                scope="row"
-              >
-                Master Capacity
-              </th>
-              <td>
-                <Progress
-                  className="h-50 mt-2"
-                  max={100}
-                  multi={true}
-                  tag="div"
-                  value={0}
-                >
-                  <Progress
-                    bar={true}
-                    color="dark"
-                    max={100}
-                    tag="div"
-                    value="0"
-                  >
-                    0
-                    % Free
-                  </Progress>
-                  <Progress
-                    bar={true}
-                    color="secondary"
-                    max={100}
-                    tag="div"
-                    value="0"
-                  >
-                    0
-                    % Used
-                  </Progress>
-                </Progress>
-              </td>
-            </tr>
-            <tr>
-              <th
-                scope="row"
-              >
-                Master UnderFS Capacity
-              </th>
-              <td>
-                <Progress
-                  className="h-50 mt-2"
-                  max={100}
-                  multi={true}
-                  tag="div"
-                  value={0}
-                >
-                  <Progress
-                    bar={true}
-                    color="dark"
-                    max={100}
-                    tag="div"
-                    value="0"
-                  >
-                    0
-                    % Free
-                  </Progress>
-                  <Progress
-                    bar={true}
-                    color="secondary"
-                    max={100}
-                    tag="div"
-                    value="0"
-                  >
-                    0
-                    % Used
-                  </Progress>
-                </Progress>
-              </td>
-            </tr>
-          </tbody>
-        </Table>
+        <div
+          className="row"
+        />
       </div>
       <div
         className="col-12"

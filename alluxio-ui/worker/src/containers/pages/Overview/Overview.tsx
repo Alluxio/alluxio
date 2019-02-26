@@ -132,7 +132,7 @@ export class Overview extends React.Component<AllProps> {
                       <td>{bytesToString(info.capacityBytes)}</td>
                       <td>{bytesToString(info.usedBytes)}</td>
                       <td>
-                        <Progress className="h-50 mt-2" multi={true}>
+                        <Progress className="h-50 mt-1" multi={true}>
                           <Progress bar={true} color="dark" value={`${free}`}>{free}%
                             Free</Progress>
                           <Progress bar={true} color="secondary" value={`${used}`}>{used}%

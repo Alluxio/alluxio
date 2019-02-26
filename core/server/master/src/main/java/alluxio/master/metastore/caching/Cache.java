@@ -185,6 +185,27 @@ public abstract class Cache<K, V> implements Closeable {
   }
 
   /**
+   * Flushes all data to the backing store.
+   */
+  public void flush() throws InterruptedException {
+    List<Entry> toFlush = new ArrayList<>(mEvictBatchSize);
+    Iterator<Entry> it = mMap.values().iterator();
+    while (it.hasNext()) {
+      if (Thread.interrupted()) {
+        throw new InterruptedException();
+      }
+      while (toFlush.size() < mEvictBatchSize && it.hasNext()) {
+        Entry candidate = it.next();
+        if (candidate.mDirty) {
+          toFlush.add(candidate);
+        }
+      }
+      flushEntries(toFlush);
+      toFlush.clear();
+    }
+  }
+
+  /**
    * Clears all entries from the map. This is not threadsafe, and requires external synchronization
    * to prevent concurrent modifications to the cache.
    */

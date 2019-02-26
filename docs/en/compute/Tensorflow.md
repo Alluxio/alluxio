@@ -24,11 +24,11 @@ on top of Alluxio-FUSE.
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
 * Alluxio has been set up and is running.
 
-## Setting up Alluxio-FUSE
+## Setting up Alluxio POSIX API
 
 In this section, we will follow the instructions in the
-[FUSE section]({{ '/en/api/FUSE-API.html' | relativize_url }}) to set up FUSE 
-and allow Tensorflow applications to access the data through FUSE.
+[POSIX API section]({{ '/en/api/POSIX-API.html' | relativize_url }}) to set up Alluxio POSIX API
+and allow Tensorflow applications to access the data through Alluxio POSIX API.
 
 Create a folder at the root in Alluxio
 

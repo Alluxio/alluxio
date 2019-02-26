@@ -17,3 +17,5 @@ export * from './misc/isExternalLink';
 export * from './misc/bytesToString';
 export * from './misc/disableFormSubmit';
 export * from './misc/renderFileNameLink';
+
+export * from './nivo/transformToNivoFormat';
