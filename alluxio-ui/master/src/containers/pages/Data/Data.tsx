@@ -15,7 +15,7 @@ import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {Paginator} from '@alluxio/common-ui/src/components';
+import {LoadingMessage, Paginator} from '@alluxio/common-ui/src/components';
 import {IFileInfo} from '@alluxio/common-ui/src/constants';
 import {parseQuerystring} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
@@ -75,7 +75,7 @@ export class Data extends React.Component<AllProps, IDataState> {
 
   public render() {
     const {offset, limit} = this.state;
-    const {data, errors} = this.props;
+    const {data, errors, loading} = this.props;
 
     if (errors || data.permissionError || data.fatalError) {
       return (
@@ -84,6 +84,14 @@ export class Data extends React.Component<AllProps, IDataState> {
           {data.permissionError && <div>{data.permissionError}</div>}
           {data.fatalError && <div>{data.fatalError}</div>}
         </Alert>
+      );
+    }
+
+    if (loading) {
+      return (
+        <div className="h-100 w-100 data-page">
+          <LoadingMessage/>
+        </div>
       );
     }
 
