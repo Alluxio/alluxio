@@ -10,6 +10,7 @@
  */
 
 import {AxiosResponse} from 'axios';
+import {History, LocationState} from 'history';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
@@ -50,7 +51,11 @@ interface ILogsState {
   textAreaHeight?: number;
 }
 
-export type AllProps = IPropsFromState & IPropsFromDispatch;
+interface ILogsProps {
+  history: History<LocationState>;
+}
+
+export type AllProps = IPropsFromState & IPropsFromDispatch & ILogsProps;
 
 export class Logs extends React.Component<AllProps, ILogsState> {
   private readonly textAreaResizeMs = 100;
@@ -110,7 +115,9 @@ export class Logs extends React.Component<AllProps, ILogsState> {
 
     if (loading) {
       return (
-        <LoadingMessage/>
+        <div className="h-100 w-100 logs-page">
+          <LoadingMessage/>
+        </div>
       );
     }
 
@@ -130,14 +137,15 @@ export class Logs extends React.Component<AllProps, ILogsState> {
 
   private renderFileView(logs: ILogs, queryStringSuffix: string) {
     const {textAreaHeight, path, offset, end, lastFetched} = this.state;
-    const offsetInputHandler = this.createInputHandler('offset', value => value).bind(this);
+    const {history} = this.props;
+    const offsetInputHandler = this.createInputChangeHandler('offset', value => value).bind(this);
     const beginInputHandler = this.createButtonHandler('end', value => undefined).bind(this);
     const endInputHandler = this.createButtonHandler('end', value => '1').bind(this);
     return (
       <FileView beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
-                lastFetched={lastFetched} offset={offset} offsetInputHandler={offsetInputHandler} path={path}
+                lastFetched={lastFetched} offset={offset || '0'} offsetInputHandler={offsetInputHandler} path={path}
                 queryStringPrefix="/logs" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
-                viewData={logs}/>
+                viewData={logs} history={history}/>
     );
   }
 
@@ -179,7 +187,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
     this.props.fetchRequest(path, offset, limit, end);
   }
 
-  private createInputHandler(stateKey: string, stateValueCallback: (value: string) => string | undefined) {
+  private createInputChangeHandler(stateKey: string, stateValueCallback: (value: string) => string | undefined) {
     return (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
       this.setState({...this.state, [stateKey]: stateValueCallback(value)});

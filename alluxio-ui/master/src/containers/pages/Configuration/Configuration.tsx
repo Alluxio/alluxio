@@ -58,7 +58,9 @@ export class Configuration extends React.Component<AllProps> {
 
     if (loading) {
       return (
-        <LoadingMessage/>
+        <div className="h-100 w-100 configuration-page">
+          <LoadingMessage/>
+        </div>
       );
     }
 
@@ -79,7 +81,9 @@ export class Configuration extends React.Component<AllProps> {
                 <tbody>
                 {data.configuration.map((configuration: IConfigTriple) => (
                   <tr key={configuration.left}>
-                    <td><pre className="mb-0"><code>{configuration.left}</code></pre></td>
+                    <td>
+                      <pre className="mb-0"><code>{configuration.left}</code></pre>
+                    </td>
                     <td>{configuration.middle}</td>
                     <td>{configuration.right}</td>
                   </tr>

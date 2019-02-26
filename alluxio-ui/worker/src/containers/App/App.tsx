@@ -79,7 +79,9 @@ export class App extends React.Component<AllProps> {
 
     if (!init && loading) {
       return (
-        <LoadingMessage/>
+        <div className="h-100 w-100 App">
+          <LoadingMessage/>
+        </div>
       );
     }
 
@@ -96,7 +98,7 @@ export class App extends React.Component<AllProps> {
               <Route exact={true} path="/" render={this.redirectToOverview}/>
               <Route path="/overview" exact={true} component={Overview}/>
               <Route path="/blockInfo" exact={true} component={BlockInfo}/>
-              <Route path="/logs" exact={true} component={Logs}/>
+              <Route path="/logs" exact={true} render={this.renderView(Logs, {history})}/>
               <Route path="/metrics" exact={true} component={Metrics}/>
               <Route render={this.redirectToOverview}/>
             </Switch>
@@ -108,6 +110,14 @@ export class App extends React.Component<AllProps> {
         </div>
       </ConnectedRouter>
     );
+  }
+
+  private renderView(Container: typeof React.Component, props: any) {
+    return (routerProps: RouteComponentProps<any, StaticContext, any>) => {
+      return (
+        <Container {...routerProps} {...props}/>
+      );
+    }
   }
 
   private redirectToOverview(routerProps: RouteComponentProps<any, StaticContext, any>) {

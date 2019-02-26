@@ -58,7 +58,9 @@ export class Overview extends React.Component<AllProps> {
 
     if (loading) {
       return (
-        <LoadingMessage/>
+        <div className="h-100 w-100 overview-page">
+          <LoadingMessage/>
+        </div>
       );
     }
 
@@ -150,7 +152,8 @@ export class Overview extends React.Component<AllProps> {
                       <Progress className="h-50 mt-2" multi={true}>
                         <Progress bar={true} color="dark" value={`${info.freeSpacePercent}`}>{info.freeSpacePercent}%
                           Free</Progress>
-                        <Progress bar={true} color="secondary" value={`${info.usedSpacePercent}`}>{info.usedSpacePercent}%
+                        <Progress bar={true} color="secondary"
+                                  value={`${info.usedSpacePercent}`}>{info.usedSpacePercent}%
                           Used</Progress>
                       </Progress>
                     </td>

@@ -30,6 +30,26 @@ exports[`FileView React component Matches snapshot 1`] = `
     <FileView
       beginInputHandler={[Function]}
       endInputHandler={[Function]}
+      history={
+        Object {
+          "action": "POP",
+          "block": [Function],
+          "createHref": [Function],
+          "go": [Function],
+          "goBack": [Function],
+          "goForward": [Function],
+          "length": 1,
+          "listen": [Function],
+          "location": Object {
+            "hash": "",
+            "pathname": "/",
+            "search": "",
+            "state": undefined,
+          },
+          "push": [Function],
+          "replace": [Function],
+        }
+      }
       lastFetched={Object {}}
       offsetInputHandler={[Function]}
       queryStringPrefix=""
@@ -145,17 +165,17 @@ exports[`FileView React component Matches snapshot 1`] = `
                 className="col-3"
                 id="viewDataFileOffset"
                 onChange={[Function]}
+                onKeyUp={[Function]}
                 placeholder="Enter an offset"
-                type="text"
-                value="0"
+                type="number"
               >
                 <input
                   className="col-3 form-control"
                   id="viewDataFileOffset"
                   onChange={[Function]}
+                  onKeyUp={[Function]}
                   placeholder="Enter an offset"
-                  type="text"
-                  value="0"
+                  type="number"
                 />
               </Input>
             </div>
@@ -438,9 +458,9 @@ exports[`FileView Shallow component Matches snapshot 1`] = `
         className="col-3"
         id="viewDataFileOffset"
         onChange={[Function]}
+        onKeyUp={[Function]}
         placeholder="Enter an offset"
-        type="text"
-        value="0"
+        type="number"
       />
     </FormGroup>
     <FormGroup

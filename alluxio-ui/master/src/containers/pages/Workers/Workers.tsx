@@ -62,7 +62,9 @@ export class Workers extends React.Component<AllProps> {
 
     if (initLoading || workersLoading) {
       return (
-        <LoadingMessage/>
+        <div className="h-100 w-100 workers-page">
+          <LoadingMessage/>
+        </div>
       );
     }
 

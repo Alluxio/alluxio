@@ -170,7 +170,7 @@ exports[`BlockInfo App with connected component Matches snapshot 1`] = `
               }
             >
               <div
-                className="App pt-5 pb-4"
+                className="App h-100 pt-5 pb-4"
               >
                 <div
                   className="w-100 sticky-top header-wrapper"
@@ -652,7 +652,7 @@ exports[`BlockInfo App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="w-100 mt-3"
+                  className="h-100 w-100 pt-3"
                 >
                   <Switch>
                     <Route
@@ -768,52 +768,28 @@ exports[`BlockInfo App with connected component Matches snapshot 1`] = `
                           refresh={false}
                         >
                           <div
-                            className="blockInfo-page"
+                            className="h-100 w-100 blockInfo-page"
                           >
-                            <div
-                              className="container-fluid"
-                            >
+                            <LoadingMessage>
                               <div
-                                className="row"
+                                className="loadingMessageWrapper"
                               >
                                 <div
-                                  className="col-12"
+                                  className="loadingMessage text-center"
                                 >
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <thead>
-                                        <tr>
-                                          <th>
-                                            File Path
-                                          </th>
-                                          <th>
-                                            Size
-                                          </th>
-                                          <th>
-                                            Creation Time
-                                          </th>
-                                          <th>
-                                            Modification Time
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody />
-                                    </table>
-                                  </Table>
-                                  <Paginator
-                                    baseUrl="/blockInfo"
-                                    path="/"
-                                    total={0}
+                                  <img
+                                    className="loadingMessageSpin"
+                                    src="alluxio-mark-tight-sm.svg"
                                   />
+                                  <br />
+                                  <h5
+                                    className=""
+                                  >
+                                    Please wait...
+                                  </h5>
                                 </div>
                               </div>
-                            </div>
+                            </LoadingMessage>
                           </div>
                         </BlockInfo>
                       </Connect(BlockInfo)>
