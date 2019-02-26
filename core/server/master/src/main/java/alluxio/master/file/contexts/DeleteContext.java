@@ -11,8 +11,9 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.DeletePOptions;
-import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
@@ -31,24 +32,31 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder> {
   }
 
   /**
+   * @param optionsBuilder Builder for proto {@link DeletePOptions}
+   * @return the instance of {@link DeleteContext} with given options
+   */
+  public static DeleteContext create(DeletePOptions.Builder optionsBuilder) {
+    return new DeleteContext(optionsBuilder);
+  }
+
+  /**
    * Merges and embeds the given {@link DeletePOptions} with the corresponding master options.
    *
    * @param optionsBuilder Builder for proto {@link DeletePOptions} to merge with defaults
    * @return the instance of {@link DeleteContext} with default values for master
    */
-  public static DeleteContext defaults(DeletePOptions.Builder optionsBuilder) {
-    DeletePOptions masterOptions = FileSystemMasterOptions.deleteDefaults();
+  public static DeleteContext mergeFrom(DeletePOptions.Builder optionsBuilder) {
+    DeletePOptions masterOptions = FileSystemOptions.deleteDefaults(ServerConfiguration.global());
     DeletePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
-    return new DeleteContext(mergedOptionsBuilder);
+    return create(mergedOptionsBuilder);
   }
 
   /**
    * @return the instance of {@link DeleteContext} with default values for master
    */
   public static DeleteContext defaults() {
-    DeletePOptions masterOptions = FileSystemMasterOptions.deleteDefaults();
-    return new DeleteContext(masterOptions.toBuilder());
+    return create(FileSystemOptions.deleteDefaults(ServerConfiguration.global()).toBuilder());
   }
 
   @Override

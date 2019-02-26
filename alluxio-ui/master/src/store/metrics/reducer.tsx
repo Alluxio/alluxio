@@ -11,7 +11,9 @@
 
 import {Reducer} from 'redux';
 
+import {transformToNivoFormat} from '@alluxio/common-ui/src/utilities';
 import {IMetricsState, MetricsActionTypes} from './types';
+import {LineSerieData} from '@nivo/line';
 
 export const initialMetricsState: IMetricsState = {
   data: {
@@ -24,6 +26,7 @@ export const initialMetricsState: IMetricsState = {
     'masterUnderfsCapacityUsedPercentage': 0,
     'operationMetrics': {},
     'rpcInvocationMetrics': {},
+    'timeSeriesMetrics': [],
     'totalBytesReadLocal': '',
     'totalBytesReadLocalThroughput': '',
     'totalBytesReadRemote': '',
@@ -47,6 +50,17 @@ export const metricsReducer: Reducer<IMetricsState> = (state = initialMetricsSta
     case MetricsActionTypes.FETCH_REQUEST:
       return {...state, loading: true};
     case MetricsActionTypes.FETCH_SUCCESS:
+      const timeSeriesMetrics: LineSerieData[] = [];
+      action.payload.data.timeSeriesMetrics.map((item: any) => {
+        // only push the latest 20 points of data
+        timeSeriesMetrics.push({
+          id: item.name,
+          xAxisLabel: 'Time Stamp',
+          yAxisLabel: 'Percent (%)',
+          data: transformToNivoFormat(item.dataPoints.splice(0,24), 'timeStamp', 'value')
+        });
+      });
+      action.payload.data.timeSeriesMetrics = timeSeriesMetrics;
       return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
     case MetricsActionTypes.FETCH_ERROR:
       return {...state, loading: false, errors: action.payload};

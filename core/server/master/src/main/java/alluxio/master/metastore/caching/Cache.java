@@ -185,6 +185,27 @@ public abstract class Cache<K, V> implements Closeable {
   }
 
   /**
+   * Flushes all data to the backing store.
+   */
+  public void flush() throws InterruptedException {
+    List<Entry> toFlush = new ArrayList<>(mEvictBatchSize);
+    Iterator<Entry> it = mMap.values().iterator();
+    while (it.hasNext()) {
+      if (Thread.interrupted()) {
+        throw new InterruptedException();
+      }
+      while (toFlush.size() < mEvictBatchSize && it.hasNext()) {
+        Entry candidate = it.next();
+        if (candidate.mDirty) {
+          toFlush.add(candidate);
+        }
+      }
+      flushEntries(toFlush);
+      toFlush.clear();
+    }
+  }
+
+  /**
    * Clears all entries from the map. This is not threadsafe, and requires external synchronization
    * to prevent concurrent modifications to the cache.
    */
@@ -241,6 +262,7 @@ public abstract class Cache<K, V> implements Closeable {
     // Populated with #fillBatch, cleared with #evictBatch. We keep it around so that we don't need
     // to keep re-allocating the list.
     private final List<Entry> mEvictionCandidates = new ArrayList<>(mEvictBatchSize);
+    private final List<Entry> mDirtyEvictionCandidates = new ArrayList<>(mEvictBatchSize);
     private final Logger mCacheFullLogger = new SamplingLogger(LOG, 10 * Constants.SECOND_MS);
 
     private Iterator<Entry> mEvictionHead = Collections.emptyIterator();
@@ -308,6 +330,9 @@ public abstract class Cache<K, V> implements Closeable {
           continue;
         }
         mEvictionCandidates.add(candidate);
+        if (candidate.mDirty) {
+          mDirtyEvictionCandidates.add(candidate);
+        }
       }
     }
 
@@ -321,13 +346,14 @@ public abstract class Cache<K, V> implements Closeable {
       if (mEvictionCandidates.isEmpty()) {
         return evicted;
       }
-      flushEntries(mEvictionCandidates);
+      flushEntries(mDirtyEvictionCandidates);
       for (Entry entry : mEvictionCandidates) {
         if (evictIfClean(entry)) {
           evicted++;
         }
       }
       mEvictionCandidates.clear();
+      mDirtyEvictionCandidates.clear();
       return evicted;
     }
 

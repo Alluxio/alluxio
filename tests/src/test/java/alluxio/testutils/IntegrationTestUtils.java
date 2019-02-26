@@ -20,7 +20,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.GetStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterClientContext;
@@ -30,6 +29,7 @@ import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
 import alluxio.util.CommonUtils;
+import alluxio.util.FileSystemOptions;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
@@ -74,7 +74,8 @@ public final class IntegrationTestUtils {
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       CommonUtils.waitFor(uri + " to be persisted", () -> {
         try {
-          return client.getStatus(uri, GetStatusPOptions.getDefaultInstance()).isPersisted();
+          return client.getStatus(uri,
+              FileSystemOptions.getStatusDefaults(ServerConfiguration.global())).isPersisted();
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }

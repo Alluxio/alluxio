@@ -13,8 +13,3 @@
 @import '~bootstrap/scss/bootstrap-grid';
 @import '~bootstrap/scss/bootstrap-reboot';
 @import '../../common/src/constants/scss/themeCustomization'; // using tilde here will break the node-sass watcher
-@import '~source-sans-pro/source-sans-pro.css';
-
-body {
-  font-family: 'Source Sans Pro', sans-serif;
-}

@@ -26,7 +26,6 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
@@ -245,8 +244,7 @@ public final class MigrateDefinition
    */
   private void migrateDirectory(String path, String source, String destination) throws Exception {
     String newDir = computeTargetPath(path, source, destination);
-    mFileSystem.createDirectory(new AlluxioURI(newDir),
-        CreateDirectoryPOptions.getDefaultInstance());
+    mFileSystem.createDirectory(new AlluxioURI(newDir));
   }
 
   /**

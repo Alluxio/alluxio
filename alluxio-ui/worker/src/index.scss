@@ -8,14 +8,8 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
-
-@import '../../common/src/constants/scss/themeVariables'; // using tilde here will break the note-sass watcher
+@import '../../common/src/constants/scss/themeVariables'; // using tilde here will break the node-sass watcher
 @import '~bootstrap/scss/bootstrap';
 @import '~bootstrap/scss/bootstrap-grid';
 @import '~bootstrap/scss/bootstrap-reboot';
 @import '../../common/src/constants/scss/themeCustomization'; // using tilde here will break the node-sass watcher
-@import '~source-sans-pro/source-sans-pro.css';
-
-body {
-  font-family: 'Source Sans Pro', sans-serif;
-}

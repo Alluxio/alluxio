@@ -48,7 +48,7 @@ public abstract class AbstractInodeTest {
   protected static MutableInodeDirectory createInodeDirectory() {
     return MutableInodeDirectory.create(1, 0, "test1",
         CreateDirectoryContext
-            .defaults(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()))
+            .mergeFrom(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP));
   }
 
@@ -59,7 +59,7 @@ public abstract class AbstractInodeTest {
   protected MutableInodeFile createInodeFile(long id) {
     return MutableInodeFile.create(id, 1, "testFile" + id, 0,
         CreateFileContext
-            .defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
+            .mergeFrom(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
                 .setMode(TEST_FILE_MODE.toProto()))
             .setOwner(TEST_OWNER).setGroup(TEST_GROUP));
   }

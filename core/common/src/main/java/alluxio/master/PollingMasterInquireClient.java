@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -107,9 +106,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   }
 
   private void pingMetaService(InetSocketAddress address) throws AlluxioStatusException {
-    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, mConfiguration)
-        .setExecutor(ForkJoinPool.commonPool())
-        .build();
+    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, mConfiguration).build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
     try {

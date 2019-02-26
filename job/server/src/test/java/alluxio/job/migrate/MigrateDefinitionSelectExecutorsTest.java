@@ -11,7 +11,6 @@
 
 package alluxio.job.migrate;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,7 +24,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.job.JobMasterContext;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.BlockInfo;
@@ -43,7 +41,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -151,8 +148,7 @@ public final class MigrateDefinitionSelectExecutorsTest {
     createDirectory("/dst");
     setPathToNotExist("/dst/src");
     assignMigrates("/src", "/dst/src");
-    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src")),
-        any(CreateDirectoryPOptions.class));
+    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src")));
   }
 
   @Test
@@ -163,8 +159,7 @@ public final class MigrateDefinitionSelectExecutorsTest {
     createDirectory("/dst");
     setPathToNotExist("/dst/src");
     assignMigrates("/src", "/dst/src");
-    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src/nested")),
-        Matchers.eq(CreateDirectoryPOptions.getDefaultInstance()));
+    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src/nested")));
   }
 
   @Test
