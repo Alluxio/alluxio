@@ -203,7 +203,7 @@ public final class GlusterFSUnderFileSystem extends BaseUnderFileSystem
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
     // If the user has hinted the underlying storage nodes are not co-located with Alluxio
-    // workers, short circuit without querying the locations
+    // workers, short circuit without querying the locations.
     if (Boolean.valueOf(mUfsConf.getValue(PropertyKey.UNDERFS_HDFS_REMOTE))) {
       return null;
     }
