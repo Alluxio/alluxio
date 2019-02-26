@@ -160,6 +160,8 @@ public final class UIFileInfo {
    * @param persistenceState the persistence state
    * @param fileLocations the file locations
    * @param blocksOnTier the blocks on tier
+   * @param alluxioConfiguration the alluxio configuration
+   * @param orderedTierAliases the ordered tier aliases
    */
   @JsonCreator
   public UIFileInfo(@JsonProperty("id") long id, @JsonProperty("name") String name,
