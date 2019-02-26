@@ -61,6 +61,7 @@ new remote that points to the Alluxio repository. In the directory of your newly
 $ git remote add upstream https://github.com/Alluxio/alluxio.git
 ```
 
+This will create a remote called `upstream` pointing to the Alluxio repository.
 You can view the urls for remote repositories with the following command.
 
 ```bash
@@ -124,7 +125,7 @@ If your issue number is 123,
 include "Fixes Alluxio/new-contributor-tasks#123", "Fixed Alluxio/new-contributor-tasks#123",
 "Fix Alluxio/new-contributor-tasks#123", "Closes Alluxio/new-contributor-tasks#123",
 "Closed Alluxio/new-contributor-tasks#123", or "Close Alluxio/new-contributor-tasks#123" in your
-pull request message.
+pull request description.
 
 ### Creating a Branch in your Clone
 
@@ -177,7 +178,10 @@ with:
 $ git commit -m "<concise but descriptive commit message>"
 ```
 
-If you want more details, please visit [instructions on how to create
+Please read the [Alluxio coding conventions]({{ '/en/deploy/Code-Conventions.html' | relativize_url }})
+for more details and tips on how to update the Alluxio source code.
+
+If you want more details for creating commits, please visit [instructions on how to create
 commits](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository).
 
 ### Sending a Pull Request
@@ -205,21 +209,42 @@ In the **Open a pull request** page, the base fork should be `Alluxio/alluxio`, 
 should be **master**. The head fork will be your fork, and the compare branch should be the branch
 you want to submit the pull request for.
 
-For the title of the pull request, the title should be something like **Awesome Feature** (In the title, please replace
-"Awesome Feature" with something more informative regarding your request, e.g., "Fix format in error message"
-or "Improve java doc of method Foo").
+#### Pull Request Title
 
-If this pull request is addressing a Github issue,
-please add a link back to the issue in the first line of the description box.
-For example, if this pull request aims to solve Github Issue 1234
-include "Fixes #1234", "Fixed #1234", "Fix #1234", "Closes #1234",
-"Closed #1234", or "Close #1234" in your pull request message.
-If the issue is from new contributor tasks, prefix the number "#1234" with repository name
-"Alluxio/new-contributor-tasks".
+It is important to use an effective title for the pull request. Here are some tips and conventions
+for a great PR title. These tips are adapted from
+[existing rules for great commit messages](https://chris.beams.io/posts/git-commit/#seven-rules).
 
-If you are submitting fixes to documentation, or fixing minor things which don't require a ticket
-(for example, small typos in code) you may prefix your pull request title with either **[DOCFIX]**
-or **[SMALLFIX]** respectively.
+* Title should be not too long (< ~50 characters) and not too short (descriptive enough)
+* Title should start with an imperative verb
+  * Examples: "Fix Alluxio UI bugs", "Refactor Inode caching logic"
+  * Incorrect: "~~Fixed Alluxio UI bugs~~", "~~Inode caching refactor~~"
+* The first word of the title should be capitalized
+* Title should not end with a period
+
+There are a few exceptions to these rules. Prefixes can be added to the beginning of the title.
+Prefixes are in all caps and is separated from the rest of the title with a space. Here are the
+possible prefixes.
+* **[DOCFIX]**: This is for PRs which updates documentation
+  * Examples: "[DOCFIX] Update the Getting Started guide", "[DOCFIX] Add GCS documentation"
+* **[SMALLFIX]**: This is for PRs for minor fixes which do not change any logic, like typos
+  * Examples: "[SMALLFIX] Fix typo in AlluxioProcess", "[SMALLFIX] Improve comment style in GlusterFSUnderFileSystem"
+
+#### Pull Request Description
+
+It is also important to write a good PR description. Here are some tips and conventions for a great
+PR description, adapted from
+[existing rules for great commit messages](https://chris.beams.io/posts/git-commit/#seven-rules).
+
+* Description should explain what this PR is changing and why this change is being made
+* Description should include any positive and negative implications of the change
+* Paragraphs in the description should be separated by a blank line
+* If this pull request is addressing a Github issue, please add a link back to the issue on the
+**last** line of the description box.
+  * Example: If this PR solves Github Issue 1234 include "Fixes #1234", "Fixed #1234", "Fix #1234", "Closes #1234",
+"Closed #1234", or "Close #1234" at the bottom of the pull request description.
+  * Example: If the issue is from new contributor tasks, prefix the issue number "#1234" with repository name
+`Alluxio/new-contributor-tasks`, like `Fixes Alluxio/new-contributor-tasks#1235`.
 
 Once everything is set, click on the **Create pull request** button. Congratulations! Your first
 pull request for Alluxio has been submitted!
@@ -231,6 +256,9 @@ After the pull request has been submitted, it can be found on the
 
 After it is submitted, other developers in the community will review your pull request. Others may
 add comments or questions to your pull request.
+
+During the code review, please reply to all comments left by reviewers, so reviewers know which
+comments have been addressed, and how each comment has been addressed.
 
 In the process, some may ask to modify parts of your pull request. In order to do that, you simply
 have to make the change in the branch you were using for that pull request, create a new local
