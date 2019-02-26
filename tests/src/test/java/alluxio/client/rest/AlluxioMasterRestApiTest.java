@@ -845,7 +845,6 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     assertEquals(expectedString, resultString);
   }
 
-
   private MasterWebUIOverview getWebUIOverviewData() throws Exception {
     String result =
         new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.WEBUI_OVERVIEW),
