@@ -4,20 +4,14 @@ alluxio.user.block.master.client.threads:
   'The number of threads used by a block master client pool to talk to the block master.'
 alluxio.user.block.remote.read.buffer.size.bytes:
   'The size of the file buffer to read data from remote Alluxio worker.'
-alluxio.user.block.remote.reader.class:
-  'Selects networking stack to run the client with. Currently only `alluxio.client.netty.NettyRemoteBlockReader` (read remote data using netty) is valid.'
-alluxio.user.block.remote.writer.class:
-  'Selects networking stack to run the client with for block writes.'
 alluxio.user.block.size.bytes.default:
   'Default block size for Alluxio files.'
 alluxio.user.block.worker.client.pool.gc.threshold:
   'A block worker client is closed if it has been idle for more than this threshold.'
-alluxio.user.block.worker.client.pool.size.max:
+alluxio.user.block.worker.client.pool.size:
   'The maximum number of block worker clients cached in the block worker client pool.'
 alluxio.user.block.worker.client.read.retry:
   'The maximum number of workers to retry before the client gives up on  reading a block'
-alluxio.user.block.worker.client.threads:
-  'The number of threads used by a block worker client pool for heartbeating to a worker. Increase this value if worker failures affect client connections to healthy workers.'
 alluxio.user.conf.cluster.default.enabled:
   'When this property is true, an Alluxio client will load the default values of configuration properties set by Alluxio master.'
 alluxio.user.date.format.pattern:
@@ -43,7 +37,7 @@ alluxio.user.file.load.ttl.action:
 alluxio.user.file.master.client.threads:
   'The number of threads used by a file master client to talk to the file master.'
 alluxio.user.file.metadata.load.type:
-  'The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist in Alluxio, metadata can be loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. `Always` will always access UFS to see if the path exists in the UFS. `Never` will never consult the UFS. `Once` will access the UFS the "first" time (according to a cache), but not after that. This parameter is ignored if a metadata sync is performed, via the parameter "alluxio.user.file.metadata.sync.interval"'
+  'The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist in Alluxio, metadata can be loaded from the UFS. Valid options are `ALWAYS`, `NEVER`, and `ONCE`. `ALWAYS` will always access UFS to see if the path exists in the UFS. `NEVER` will never consult the UFS. `ONCE` will access the UFS the "first" time (according to a cache), but not after that. This parameter is ignored if a metadata sync is performed, via the parameter "alluxio.user.file.metadata.sync.interval"'
 alluxio.user.file.metadata.sync.interval:
   'The interval for syncing UFS metadata before invoking an operation on a path. -1 means no sync will occur. 0 means Alluxio will always sync the metadata of the path before an operation. If you specify a time interval, Alluxio will (best effort) not re-sync a path within that time interval. Syncing the metadata for a path must interact with the UFS, so it is an expensive operation. If a sync is performed for an operation, the configuration of "alluxio.user.file.metadata.load.type" will be ignored.'
 alluxio.user.file.passive.cache.enabled:
@@ -74,40 +68,44 @@ alluxio.user.heartbeat.interval:
   'The interval between Alluxio workers'' heartbeats.'
 alluxio.user.hostname:
   'The hostname to use for the client. Note: this property is deprecated. set alluxio.locality.node instead'
-alluxio.user.local.reader.packet.size.bytes:
-  'When a client reads from a local worker, the maximum data packet size.'
-alluxio.user.local.writer.packet.size.bytes:
-  'When a client writes to a local worker, the maximum data packet size.'
+alluxio.user.local.reader.chunk.size.bytes:
+  'When a client reads from a local worker, the maximum data chunk size.'
+alluxio.user.local.writer.chunk.size.bytes:
+  'When a client writes to a local worker, the maximum data chunk size.'
 alluxio.user.metrics.collection.enabled:
   'Enable collecting the client-side metrics and hearbeat them to master'
 alluxio.user.metrics.heartbeat.interval:
   'The time period of client master hearbeat to send the client-side metrics.'
+alluxio.user.network.data.timeout:
+  'The maximum time for a data client (for block reads and block writes) to wait for a response from the data server.'
+alluxio.user.network.flowcontrol.window:
+  'The HTTP2 flow control window used by user gRPC connections. Larger value will allow more data to be buffered but will use more memory.'
+alluxio.user.network.keepalive.time:
+  'The amount of time for a gRPC client (for block reads and block writes) to wait for a response before pinging the server to see if it is still alive.'
+alluxio.user.network.keepalive.timeout:
+  'The maximum time for a gRPC client (for block reads and block writes) to wait for a keepalive response before closing the connection.'
+alluxio.user.network.max.inbound.message.size:
+  'The max inbound message size used by user gRPC connections.'
 alluxio.user.network.netty.channel:
   'Type of netty channels. If EPOLL is not available, this will automatically fall back to NIO.'
-alluxio.user.network.netty.channel.pool.disabled:
-  'Disable netty channel pool. This should be turned on if the client version is >= 1.3.0 but server version is <= 1.2.x.'
-alluxio.user.network.netty.channel.pool.gc.threshold:
-  'A netty channel is closed if it has been idle for more than this threshold.'
-alluxio.user.network.netty.channel.pool.size.max:
-  'The maximum number of netty channels cached in the netty channel pool.'
-alluxio.user.network.netty.reader.buffer.size.packets:
-  'When a client reads from a remote worker, the maximum number of packets to buffer by the client.'
-alluxio.user.network.netty.reader.packet.size.bytes:
-  'When a client reads from a remote worker, the maximum packet size.'
-alluxio.user.network.netty.timeout:
-  'The maximum time for a netty client (for block reads and block writes) to wait for a response from the data server.'
 alluxio.user.network.netty.worker.threads:
   'How many threads to use for remote block worker client to read from remote block workers.'
-alluxio.user.network.netty.writer.buffer.size.packets:
-  'When a client writes to a remote worker, the maximum number of packets to buffer by the client.'
-alluxio.user.network.netty.writer.close.timeout:
-  'The timeout to close a netty writer client.'
-alluxio.user.network.netty.writer.flush.timeout:
-  'The timeout to wait for flush to finish in a netty writer.'
-alluxio.user.network.netty.writer.packet.size.bytes:
-  'When a client writes to a remote worker, the maximum packet size.'
+alluxio.user.network.reader.buffer.size.messages:
+  'When a client reads from a remote worker, the maximum number of messages to buffer by the client. A message can be either a command response, a data chunk, or a gRPC stream event such as complete or error.'
+alluxio.user.network.reader.chunk.size.bytes:
+  'When a client reads from a remote worker, the maximum chunk size.'
 alluxio.user.network.socket.timeout:
   'The time out of a socket created by a user to connect to the master.'
+alluxio.user.network.writer.buffer.size.messages:
+  'When a client writes to a remote worker, the maximum number of messages to buffer by the client. A message can be either a command response, a data chunk, or a gRPC stream event such as complete or error.'
+alluxio.user.network.writer.chunk.size.bytes:
+  'When a client writes to a remote worker, the maximum chunk size.'
+alluxio.user.network.writer.close.timeout:
+  'The timeout to close a writer client.'
+alluxio.user.network.writer.flush.timeout:
+  'The timeout to wait for flush to finish in a data writer.'
+alluxio.user.network.zerocopy.enabled:
+  'Whether zero copy is enabled on client when processing data streams.'
 alluxio.user.rpc.retry.base.sleep:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the base time in the exponential backoff.'
 alluxio.user.rpc.retry.max.duration:
@@ -130,9 +128,5 @@ alluxio.user.ufs.delegation.read.buffer.size.bytes:
   'Size of the read buffer when reading from the UFS through the Alluxio worker. Each read request will fetch at least this many bytes, unless the read reaches the end of the file.'
 alluxio.user.ufs.delegation.write.buffer.size.bytes:
   'Size of the write buffer when writing to the UFS through the Alluxio worker. Each write request will write at least this many bytes, unless the write is at the end of the file.'
-alluxio.user.ufs.file.reader.class:
-  'Selects networking stack to run the client with for reading from under file system through a worker''s data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileReader` (remote read using netty) is valid.'
-alluxio.user.ufs.file.writer.class:
-  'Selects networking stack to run the client with for writing to under file system through a worker''s data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileWriter` (remote write using netty) is valid.'
 alluxio.user.worker.list.refresh.interval:
   'The interval used to refresh the live worker list on the client'
