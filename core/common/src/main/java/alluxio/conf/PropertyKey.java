@@ -27,8 +27,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
-import com.sun.management.UnixOperatingSystemMXBean;
 
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
@@ -40,9 +41,6 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Configuration property keys. This class provides a set of pre-defined property keys.
@@ -1275,6 +1273,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METRICS_TIME_SERIES_INTERVAL =
+      new Builder(Name.MASTER_METRICS_TIME_SERIES_INTERVAL)
+          .setDefaultValue("5min")
+          .setDescription("Interval for which the master records metrics information. This affects "
+              + "the granularity of the metrics graphed in the UI.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_WORKER_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_WORKER_HEARTBEAT_INTERVAL)
           .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms",
@@ -1670,9 +1676,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_UFS_PATH_CACHE_CAPACITY)
           .setDefaultValue(100000)
           .setDescription("The capacity of the UFS path cache. This cache is used to "
-              + "approximate the `Once` metadata load behavior (see "
+              + "approximate the `ONCE` metadata load behavior (see "
               + "`alluxio.user.file.metadata.load.type`). Larger caches will consume more "
-              + "memory, but will better approximate the `Once` behavior.")
+              + "memory, but will better approximate the `ONCE` behavior.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1683,7 +1689,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "paths for the UFS path cache. Greater number of threads will decrease the "
               + "amount of staleness in the async cache, but may impact performance. If this "
               + "is set to 0, the cache will be disabled, and "
-              + "`alluxio.user.file.metadata.load.type=Once` will behave like `Always`.")
+              + "`alluxio.user.file.metadata.load.type=ONCE` will behave like `ALWAYS`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1722,22 +1728,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "This property determines the wait time.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .build();
+              .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MAX =
       new Builder(Name.MASTER_WORKER_THREADS_MAX)
-          .setDefaultSupplier(() -> {
-            try {
-              java.lang.management.OperatingSystemMXBean os =
-                  ManagementFactory.getOperatingSystemMXBean();
-              if (os instanceof UnixOperatingSystemMXBean) {
-                return Math.min(32768, Math.max(2048,
-                    ((UnixOperatingSystemMXBean) os).getMaxFileDescriptorCount() / 3));
-              }
-            } catch (Exception e) {
-              // Set lower limit
-            }
-            return 2048;
-          }, "A third of the max file descriptors limit, if b/w 2048 and 32768")
+          .setDefaultValue(512)
           .setDescription("The maximum number of incoming RPC requests to master that can be "
               + "handled. This value is used to configure maximum number of threads in gRPC "
               + "thread pool with master.")
@@ -1746,7 +1740,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MIN =
       new Builder(Name.MASTER_WORKER_THREADS_MIN)
-          .setDefaultValue(512)
+          .setDefaultValue(256)
           .setDescription("The minimum number of threads used to handle incoming RPC requests "
               + "to master. This value is used to configure minimum number of threads in "
               + "gRPC thread pool with master.")
@@ -2022,9 +2016,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS =
       new Builder(Name.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS)
-          .setDefaultValue("10sec")
+          .setDefaultValue("30sec")
           .setDescription("The maximum time for a data server (for block reads and block writes) "
               + "to wait for a keepalive response before closing the connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+      new Builder(Name.WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("4MB")
+          .setDescription("The max inbound message size used by worker gRPC connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2089,6 +2090,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("15sec")
           .setDescription("Maximum amount of time to wait until the worker gRPC server "
               + "is shutdown (regardless of the quiet period).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_ZEROCOPY_ENABLED =
+      new Builder(Name.WORKER_NETWORK_ZEROCOPY_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether zero copy is enabled on worker when processing data streams.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2640,12 +2648,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_METADATA_LOAD_TYPE =
       new Builder(Name.USER_FILE_METADATA_LOAD_TYPE)
-          .setDefaultValue("Once")
+          .setDefaultValue("ONCE")
           .setDescription("The behavior of loading metadata from UFS. When information about "
               + "a path is requested and the path does not exist in Alluxio, metadata can be "
-              + "loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. "
-              + "`Always` will always access UFS to see if the path exists in the UFS. "
-              + "`Never` will never consult the UFS. `Once` will access the UFS the \"first\" "
+              + "loaded from the UFS. Valid options are `ALWAYS`, `NEVER`, and `ONCE`. "
+              + "`ALWAYS` will always access UFS to see if the path exists in the UFS. "
+              + "`NEVER` will never consult the UFS. `ONCE` will access the UFS the \"first\" "
               + "time (according to a cache), but not after that. This parameter is ignored if a "
               + "metadata sync is performed, via the parameter "
               + "\"alluxio.user.file.metadata.sync.interval\"")
@@ -2862,7 +2870,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
       new Builder(Name.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
-          .setDefaultValue("4MB")
+          .setDefaultValue("100MB")
           .setDescription("The max inbound message size used by user gRPC connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -2927,6 +2935,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_NETWORK_WRITER_FLUSH_TIMEOUT)
           .setDefaultValue("30min")
           .setDescription("The timeout to wait for flush to finish in a data writer.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_ZEROCOPY_ENABLED =
+      new Builder(Name.USER_NETWORK_ZEROCOPY_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether zero copy is enabled on client when processing data streams.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3682,6 +3697,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.cache.max.size";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval.ms";
+    public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
+        "alluxio.master.metrics.time.series.interval";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
         "alluxio.master.persistence.initial.interval.ms";
     public static final String MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS =
@@ -3820,6 +3837,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.keepalive.time";
     public static final String WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS =
         "alluxio.worker.network.keepalive.timeout";
+    public static final String WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+        "alluxio.worker.network.max.inbound.message.size";
     public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =
         "alluxio.worker.network.netty.boss.threads";
     public static final String WORKER_NETWORK_NETTY_CHANNEL =
@@ -3836,6 +3855,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.reader.max.chunk.size.bytes";
     public static final String WORKER_NETWORK_SHUTDOWN_TIMEOUT =
         "alluxio.worker.network.shutdown.timeout";
+    public static final String WORKER_NETWORK_ZEROCOPY_ENABLED =
+        "alluxio.worker.network.zerocopy.enabled";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
@@ -3992,6 +4013,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.writer.close.timeout";
     public static final String USER_NETWORK_WRITER_FLUSH_TIMEOUT =
         "alluxio.user.network.writer.flush.timeout";
+    public static final String USER_NETWORK_ZEROCOPY_ENABLED =
+        "alluxio.user.network.zerocopy.enabled";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =

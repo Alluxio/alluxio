@@ -11,12 +11,12 @@
 
 import {faCheckSquare, faSquare} from '@fortawesome/free-regular-svg-icons'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import axios, {AxiosRequestConfig} from 'axios';
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {Button, ButtonGroup, Form, FormGroup, Input, Label} from 'reactstrap';
 
 import {IFileInfo} from '../../constants';
+import {disableFormSubmit} from '../../utilities';
 
 export interface IFileViewProps {
   allowDownload?: boolean;
@@ -55,8 +55,10 @@ export interface IFileViewProps {
 
 export class FileView extends React.PureComponent<IFileViewProps> {
   public render(): JSX.Element {
-    const {beginInputHandler, end, endInputHandler, lastFetched, offset, offsetInputHandler, path, queryStringPrefix,
-      queryStringSuffix, textAreaHeight, viewData} = this.props;
+    const {
+      beginInputHandler, end, endInputHandler, lastFetched, offset, offsetInputHandler, path, queryStringPrefix,
+      queryStringSuffix, textAreaHeight, viewData
+    } = this.props;
 
     return (
       <React.Fragment>
@@ -64,14 +66,15 @@ export class FileView extends React.PureComponent<IFileViewProps> {
           {viewData.currentDirectory ? viewData.currentDirectory.absolutePath : viewData.currentPath}: <small>First 5KB
           from {viewData.viewingOffset} in ASCII</small>
         </h5>
-        <Form className="mb-3 viewData-file-form" id="viewDataFileForm" inline={true}>
+        <Form className="mb-3 viewData-file-form" id="viewDataFileForm" inline={true} onSubmit={disableFormSubmit}>
           <FormGroup className="mb-2 mr-sm-2 w-100">
             <Input className="w-100" type="textarea" value={viewData.fileData} style={{height: textAreaHeight}}
                    readOnly={true}/>
           </FormGroup>
         </Form>
         <hr/>
-        <Form className="mb-3 viewData-file-settings-form" id="viewDataFileSettingsForm" inline={true}>
+        <Form className="mb-3 viewData-file-settings-form" id="viewDataFileSettingsForm" inline={true}
+              onSubmit={disableFormSubmit}>
           <FormGroup className="col-5">
             <Label for="viewDataFileOffset" className="mr-sm-2">Display from byte offset</Label>
             <Input className="col-3" type="text" id="viewDataFileOffset" placeholder="Enter an offset"
@@ -90,7 +93,7 @@ export class FileView extends React.PureComponent<IFileViewProps> {
             </ButtonGroup>
           </FormGroup>
           <FormGroup className="col-2">
-            <Button tag={Link} to={`${queryStringPrefix}?path=${path}${queryStringSuffix}`} color="primary"
+            <Button tag={Link} to={`${queryStringPrefix}?path=${path}${queryStringSuffix}`} color="secondary"
                     disabled={offset === lastFetched.offset && end === lastFetched.end}>Go</Button>
           </FormGroup>
           {this.renderDownloadLink()}

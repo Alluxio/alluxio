@@ -18,13 +18,13 @@ import alluxio.master.file.contexts.CreateFileContext;
 public class TtlTestUtils {
   public static Inode createFileWithIdAndTtl(long id, long ttl) {
     return Inode.wrap(MutableInodeFile.create(id, 0, "ignored", 0,
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder()
+        CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)))));
   }
 
   public static Inode createDirectoryWithIdAndTtl(long id, long ttl) {
     return Inode.wrap(MutableInodeFile.create(id, 0, "ignored", 0,
-        CreateFileContext.defaults(CreateFilePOptions.newBuilder()
+        CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)))));
   }
 }

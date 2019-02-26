@@ -42,6 +42,7 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
+import alluxio.util.FileSystemOptions;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.collect.Sets;
@@ -347,7 +348,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // recursively sync (setAttribute enables recursive sync)
     mFileSystem.setAttribute(new AlluxioURI("/"), SetAttributePOptions.newBuilder()
-        .setCommonOptions(PSYNC_ALWAYS).setRecursive(true).setTtl(55555).build());
+        .setCommonOptions(PSYNC_ALWAYS.toBuilder().setTtl(55555)).setRecursive(true)
+        .build());
 
     // Verify /nested/mnt/ dir has 1 mount point
     ListStatusPOptions options = ListStatusPOptions.newBuilder()
@@ -364,7 +366,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // recursively sync (setAttribute enables recursive sync)
     mFileSystem.setAttribute(new AlluxioURI("/"), SetAttributePOptions.newBuilder()
-        .setCommonOptions(PSYNC_ALWAYS).setRecursive(true).setTtl(44444).build());
+        .setCommonOptions(PSYNC_ALWAYS.toBuilder().setTtl(44444)).setRecursive(true).build());
 
     // Verify /nested/mnt/ dir has 1 mount point
     listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/"), options);
@@ -378,7 +380,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // recursively sync (setAttribute enables recursive sync)
     mFileSystem.setAttribute(new AlluxioURI("/"), SetAttributePOptions.newBuilder()
-        .setCommonOptions(PSYNC_ALWAYS).setRecursive(true).setTtl(44444).build());
+        .setCommonOptions(PSYNC_ALWAYS.toBuilder().setTtl(44444)).setRecursive(true).build());
 
     // Verify /nested/mnt/ dir has 1 mount point
     listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/"), options);
@@ -390,7 +392,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // recursively sync (setAttribute enables recursive sync)
     mFileSystem.setAttribute(new AlluxioURI("/"), SetAttributePOptions.newBuilder()
-        .setCommonOptions(PSYNC_ALWAYS).setRecursive(true).setTtl(44444).build());
+        .setCommonOptions(PSYNC_ALWAYS.toBuilder().setTtl(44444)).setRecursive(true).build());
     // Verify /nested/mnt/ufs dir has 1 file
     listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/ufs"), options);
     Assert.assertEquals(1, listing.size());
@@ -541,10 +543,12 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertNotNull(mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE))));
   }
 
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.USER_FILE_METADATA_LOAD_TYPE, "NEVER"
+      })
   @Test
   public void recursiveSync() throws Exception {
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, "Never");
 
     // make nested directories/files in UFS
     new File(ufsPath("/dir1")).mkdirs();
@@ -557,40 +561,45 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     writeUfsFile(ufsPath(fileB), 1);
 
     // Should not exist, since no loading or syncing
-    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA))));
+    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA)), ExistsPOptions.newBuilder()
+        .setCommonOptions(FileSystemOptions.commonDefaults(mFileSystem.getConf()).toBuilder()
+            .setSyncIntervalMs(-1).build()).build()));
 
     try {
       mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
-          SetAttributePOptions.newBuilder().setRecursive(true).setTtl(55555).build());
+          SetAttributePOptions.newBuilder().setRecursive(true).setCommonOptions(
+              FileSystemMasterCommonPOptions.newBuilder().setTtl(55555).setSyncIntervalMs(-1))
+              .build());
     } catch (FileDoesNotExistException e) {
       // expected, continue
     }
 
     // Enable UFS sync, before next recursive setAttribute.
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
-    long ttl = 123456789;
+    FileSystemMasterCommonPOptions ttlOption = FileSystemMasterCommonPOptions.newBuilder()
+        .setTtl(123456789).setSyncIntervalMs(0).build();
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
-        SetAttributePOptions.newBuilder().setRecursive(true).setTtl(ttl).build());
+        SetAttributePOptions.newBuilder().setRecursive(true).setCommonOptions(ttlOption).build());
 
     // Verify recursive set TTL by getting info, without sync.
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
+    ttlOption = ttlOption.toBuilder().setSyncIntervalMs(-1).build();
     URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(fileA)));
-    Assert.assertEquals(ttl, status.getTtl());
+    Assert.assertEquals(ttlOption.getTtl(), status.getTtl());
 
     // Add UFS fileC and remove existing UFS fileA.
     writeUfsFile(ufsPath(fileC), 1);
     Assert.assertTrue(new File(ufsPath(fileA)).delete());
 
     // Enable UFS sync, before next recursive setAttribute.
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
-    ttl = 987654321;
+    ttlOption = FileSystemMasterCommonPOptions.newBuilder().setTtl(987654321)
+        .setSyncIntervalMs(0).build();
     mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
-        SetAttributePOptions.newBuilder().setRecursive(true).setTtl(ttl).build());
+        SetAttributePOptions.newBuilder().setRecursive(true).setCommonOptions(ttlOption).build());
 
     // Verify recursive set TTL by getting info, without sync.
-    ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
+    ttlOption =
+        FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).setTtl(987654321).build();
     status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(fileB)));
-    Assert.assertEquals(ttl, status.getTtl());
+    Assert.assertEquals(ttlOption.getTtl(), status.getTtl());
 
     // deleted UFS file should not exist.
     assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA))));

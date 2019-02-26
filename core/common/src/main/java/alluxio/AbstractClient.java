@@ -30,7 +30,6 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
 import alluxio.grpc.GrpcChannel;
 import alluxio.util.SecurityUtils;
-import alluxio.grpc.GrpcExceptionUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
@@ -40,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -216,6 +216,7 @@ public abstract class AbstractClient implements Client {
         mChannel = GrpcChannelBuilder
             .newBuilder(mAddress, mContext.getConf())
             .setSubject(mContext.getSubject())
+            .setExecutor(ForkJoinPool.commonPool())
             .build();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
@@ -348,7 +349,7 @@ public abstract class AbstractClient implements Client {
       try {
         return rpc.call();
       } catch (StatusRuntimeException e) {
-        AlluxioStatusException se = GrpcExceptionUtils.fromGrpcStatusException(e);
+        AlluxioStatusException se = AlluxioStatusException.fromStatusRuntimeException(e);
         if (se.getStatus() == Status.UNAVAILABLE
             || se.getStatus() == Status.CANCELED
             || se.getStatus() == Status.UNAUTHENTICATED) {

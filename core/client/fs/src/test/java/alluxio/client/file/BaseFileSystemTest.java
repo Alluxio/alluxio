@@ -42,6 +42,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.util.FileSystemOptions;
 import alluxio.wire.FileInfo;
 
 import org.junit.After;
@@ -124,7 +125,8 @@ public final class BaseFileSystemTest {
         GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
     FileOutStream out = mFileSystem.createFile(file, CreateFilePOptions.getDefaultInstance());
-    verify(mFileSystemMasterClient).createFile(file, CreateFilePOptions.getDefaultInstance());
+    verify(mFileSystemMasterClient).createFile(file, FileSystemOptions.createFileDefaults(mConf)
+            .toBuilder().mergeFrom(CreateFilePOptions.getDefaultInstance()).build());
     assertEquals(out.mUri, file);
 
     verifyFilesystemContextAcquiredAndReleased();
@@ -155,7 +157,8 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     DeletePOptions deleteOptions = DeletePOptions.newBuilder().setRecursive(true).build();
     mFileSystem.delete(file, deleteOptions);
-    verify(mFileSystemMasterClient).delete(file, deleteOptions);
+    verify(mFileSystemMasterClient).delete(file,
+        FileSystemOptions.deleteDefaults(mConf).toBuilder().mergeFrom(deleteOptions).build());
 
     verifyFilesystemContextAcquiredAndReleased();
   }
@@ -167,7 +170,9 @@ public final class BaseFileSystemTest {
   public void deleteException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     DeletePOptions deleteOptions = DeletePOptions.newBuilder().setRecursive(true).build();
-    doThrow(EXCEPTION).when(mFileSystemMasterClient).delete(file, deleteOptions);
+    doThrow(EXCEPTION).when(mFileSystemMasterClient).delete(file,
+        FileSystemOptions.deleteDefaults(mConf)
+            .toBuilder().mergeFrom(deleteOptions).build());
     try {
       mFileSystem.delete(file, deleteOptions);
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
@@ -186,7 +191,8 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     FreePOptions freeOptions = FreePOptions.newBuilder().setRecursive(true).build();
     mFileSystem.free(file, freeOptions);
-    verify(mFileSystemMasterClient).free(file, freeOptions);
+    verify(mFileSystemMasterClient).free(file, FileSystemOptions.freeDefaults(mConf)
+        .toBuilder().mergeFrom(freeOptions).build());
 
     verifyFilesystemContextAcquiredAndReleased();
   }
@@ -198,7 +204,8 @@ public final class BaseFileSystemTest {
   public void freeException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     FreePOptions freeOptions = FreePOptions.newBuilder().setRecursive(true).build();
-    doThrow(EXCEPTION).when(mFileSystemMasterClient).free(file, freeOptions);
+    doThrow(EXCEPTION).when(mFileSystemMasterClient).free(file,
+        FileSystemOptions.freeDefaults(mConf).toBuilder().mergeFrom(freeOptions).build());
     try {
       mFileSystem.free(file, freeOptions);
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
@@ -217,9 +224,11 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
     GetStatusPOptions getStatusOptions = GetStatusPOptions.getDefaultInstance();
-    when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
+    when(mFileSystemMasterClient.getStatus(file, FileSystemOptions.getStatusDefaults(mConf)
+        .toBuilder().mergeFrom(getStatusOptions).build())).thenReturn(status);
     assertSame(status, mFileSystem.getStatus(file, getStatusOptions));
-    verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
+    verify(mFileSystemMasterClient).getStatus(file, FileSystemOptions.getStatusDefaults(mConf)
+        .toBuilder().mergeFrom(getStatusOptions).build());
 
     verifyFilesystemContextAcquiredAndReleased();
   }
@@ -231,7 +240,8 @@ public final class BaseFileSystemTest {
   public void getStatusException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     GetStatusPOptions getStatusOptions = GetStatusPOptions.getDefaultInstance();
-    when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
+    when(mFileSystemMasterClient.getStatus(file, FileSystemOptions.getStatusDefaults(mConf)
+        .toBuilder().mergeFrom(getStatusOptions).build())).thenThrow(EXCEPTION);
     try {
       mFileSystem.getStatus(file, getStatusOptions);
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
@@ -251,9 +261,11 @@ public final class BaseFileSystemTest {
     List<URIStatus> infos = new ArrayList<>();
     infos.add(new URIStatus(new FileInfo()));
     ListStatusPOptions listStatusOptions = ListStatusPOptions.getDefaultInstance();
-    when(mFileSystemMasterClient.listStatus(file, listStatusOptions)).thenReturn(infos);
+    when(mFileSystemMasterClient.listStatus(file, FileSystemOptions.listStatusDefaults(mConf)
+        .toBuilder().mergeFrom(listStatusOptions).build())).thenReturn(infos);
     assertSame(infos, mFileSystem.listStatus(file, listStatusOptions));
-    verify(mFileSystemMasterClient).listStatus(file, listStatusOptions);
+    verify(mFileSystemMasterClient).listStatus(file, FileSystemOptions.listStatusDefaults(mConf)
+        .toBuilder().mergeFrom(listStatusOptions).build());
 
     verifyFilesystemContextAcquiredAndReleased();
   }
@@ -264,7 +276,8 @@ public final class BaseFileSystemTest {
   @Test
   public void listStatusException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    when(mFileSystemMasterClient.listStatus(file, ListStatusPOptions.getDefaultInstance()))
+    when(mFileSystemMasterClient.listStatus(file, FileSystemOptions.listStatusDefaults(mConf)
+        .toBuilder().mergeFrom(ListStatusPOptions.getDefaultInstance()).build()))
         .thenThrow(EXCEPTION);
     try {
       mFileSystem.listStatus(file, ListStatusPOptions.getDefaultInstance());
@@ -318,9 +331,13 @@ public final class BaseFileSystemTest {
   public void createDirectory() throws Exception {
     AlluxioURI dir = new AlluxioURI("/dir");
     CreateDirectoryPOptions createDirectoryOptions = CreateDirectoryPOptions.getDefaultInstance();
-    doNothing().when(mFileSystemMasterClient).createDirectory(dir, createDirectoryOptions);
+    doNothing().when(mFileSystemMasterClient).createDirectory(dir,
+        FileSystemOptions.createDirectoryDefaults(mConf)
+            .toBuilder().mergeFrom(createDirectoryOptions).build());
     mFileSystem.createDirectory(dir, createDirectoryOptions);
-    verify(mFileSystemMasterClient).createDirectory(dir, createDirectoryOptions);
+    verify(mFileSystemMasterClient).createDirectory(dir,
+        FileSystemOptions.createDirectoryDefaults(mConf)
+            .toBuilder().mergeFrom(createDirectoryOptions).build());
 
     verifyFilesystemContextAcquiredAndReleased();
   }
@@ -332,8 +349,9 @@ public final class BaseFileSystemTest {
   public void createDirectoryException() throws Exception {
     AlluxioURI dir = new AlluxioURI("/dir");
     CreateDirectoryPOptions createDirectoryOptions = CreateDirectoryPOptions.getDefaultInstance();
-    doThrow(EXCEPTION).when(mFileSystemMasterClient)
-        .createDirectory(dir, createDirectoryOptions);
+    doThrow(EXCEPTION).when(mFileSystemMasterClient).createDirectory(dir,
+        FileSystemOptions.createDirectoryDefaults(mConf)
+            .toBuilder().mergeFrom(createDirectoryOptions).build());
     try {
       mFileSystem.createDirectory(dir, createDirectoryOptions);
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
@@ -352,9 +370,11 @@ public final class BaseFileSystemTest {
     AlluxioURI alluxioPath = new AlluxioURI("/t");
     AlluxioURI ufsPath = new AlluxioURI("/u");
     MountPOptions mountOptions = MountPOptions.getDefaultInstance();
-    doNothing().when(mFileSystemMasterClient).mount(alluxioPath, ufsPath, mountOptions);
+    doNothing().when(mFileSystemMasterClient).mount(alluxioPath, ufsPath,
+        FileSystemOptions.mountDefaults(mConf).toBuilder().mergeFrom(mountOptions).build());
     mFileSystem.mount(alluxioPath, ufsPath, mountOptions);
-    verify(mFileSystemMasterClient).mount(alluxioPath, ufsPath, mountOptions);
+    verify(mFileSystemMasterClient).mount(alluxioPath, ufsPath,
+        FileSystemOptions.mountDefaults(mConf).toBuilder().mergeFrom(mountOptions).build());
 
     verifyFilesystemContextAcquiredAndReleased();
   }
@@ -368,7 +388,8 @@ public final class BaseFileSystemTest {
     AlluxioURI ufsPath = new AlluxioURI("/u");
     MountPOptions mountOptions = MountPOptions.getDefaultInstance();
     doThrow(EXCEPTION).when(mFileSystemMasterClient)
-        .mount(alluxioPath, ufsPath, mountOptions);
+        .mount(alluxioPath, ufsPath,
+            FileSystemOptions.mountDefaults(mConf).toBuilder().mergeFrom(mountOptions).build());
     try {
       mFileSystem.mount(alluxioPath, ufsPath, mountOptions);
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
@@ -388,9 +409,11 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
     GetStatusPOptions getStatusOptions = GetStatusPOptions.getDefaultInstance();
-    when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
+    when(mFileSystemMasterClient.getStatus(file, FileSystemOptions.getStatusDefaults(mConf)
+            .toBuilder().mergeFrom(getStatusOptions).build())).thenReturn(status);
     mFileSystem.openFile(file, OpenFilePOptions.getDefaultInstance());
-    verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
+    verify(mFileSystemMasterClient).getStatus(file,
+        FileSystemOptions.getStatusDefaults(mConf).toBuilder().mergeFrom(getStatusOptions).build());
 
     verifyFilesystemContextAcquiredAndReleased();
   }
@@ -402,7 +425,8 @@ public final class BaseFileSystemTest {
   public void openException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     GetStatusPOptions getStatusOptions = GetStatusPOptions.getDefaultInstance();
-    when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
+    when(mFileSystemMasterClient.getStatus(file, FileSystemOptions.getStatusDefaults(mConf)
+        .toBuilder().mergeFrom(getStatusOptions).build())).thenThrow(EXCEPTION);
     try {
       mFileSystem.openFile(file, OpenFilePOptions.getDefaultInstance());
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
@@ -422,9 +446,11 @@ public final class BaseFileSystemTest {
     AlluxioURI src = new AlluxioURI("/file");
     AlluxioURI dst = new AlluxioURI("/file2");
     RenamePOptions renameOptions = RenamePOptions.getDefaultInstance();
-    doNothing().when(mFileSystemMasterClient).rename(src, dst, renameOptions);
+    doNothing().when(mFileSystemMasterClient).rename(src, dst,
+        FileSystemOptions.renameDefaults(mConf).toBuilder().mergeFrom(renameOptions).build());
     mFileSystem.rename(src, dst, renameOptions);
-    verify(mFileSystemMasterClient).rename(src, dst, renameOptions);
+    verify(mFileSystemMasterClient).rename(src, dst,
+        FileSystemOptions.renameDefaults(mConf).toBuilder().mergeFrom(renameOptions).build());
   }
 
   /**
@@ -435,7 +461,9 @@ public final class BaseFileSystemTest {
     AlluxioURI src = new AlluxioURI("/file");
     AlluxioURI dst = new AlluxioURI("/file2");
     RenamePOptions renameOptions = RenamePOptions.getDefaultInstance();
-    doThrow(EXCEPTION).when(mFileSystemMasterClient).rename(src, dst, renameOptions);
+    doThrow(EXCEPTION).when(mFileSystemMasterClient).rename(src, dst,
+        FileSystemOptions.renameDefaults(mConf)
+        .toBuilder().mergeFrom(renameOptions).build());
     try {
       mFileSystem.rename(src, dst, renameOptions);
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
@@ -452,7 +480,8 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     SetAttributePOptions setAttributeOptions = SetAttributePOptions.getDefaultInstance();
     mFileSystem.setAttribute(file, setAttributeOptions);
-    verify(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
+    verify(mFileSystemMasterClient).setAttribute(file, FileSystemOptions.setAttributeDefaults(mConf)
+        .toBuilder().mergeFrom(setAttributeOptions).build());
   }
 
   /**
@@ -462,8 +491,9 @@ public final class BaseFileSystemTest {
   public void setStateException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     SetAttributePOptions setAttributeOptions = SetAttributePOptions.getDefaultInstance();
-    doThrow(EXCEPTION).when(mFileSystemMasterClient)
-        .setAttribute(file, setAttributeOptions);
+    doThrow(EXCEPTION).when(mFileSystemMasterClient).setAttribute(file,
+        FileSystemOptions.setAttributeDefaults(mConf)
+            .toBuilder().mergeFrom(setAttributeOptions).build());
     try {
       mFileSystem.setAttribute(file, setAttributeOptions);
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);

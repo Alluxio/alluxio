@@ -348,16 +348,14 @@ message RenamePRequest {
 message SetAttributePResponse {}
 message SetAttributePOptions {
   optional bool pinned = 1;
-  optional int64 ttl = 2;
-  optional TtlAction ttlAction = 3;
-  optional bool persisted = 4;
-  optional string owner = 5;
-  optional string group = 6;
-  optional PMode mode = 7;
-  optional bool recursive = 8;
-  optional int32 replicationMax = 9;
-  optional int32 replicationMin = 10;
-  optional FileSystemMasterCommonPOptions commonOptions = 11;
+  optional bool persisted = 2;
+  optional string owner = 3;
+  optional string group = 4;
+  optional PMode mode = 5;
+  optional bool recursive = 6;
+  optional int32 replicationMax = 7;
+  optional int32 replicationMin = 8;
+  optional FileSystemMasterCommonPOptions commonOptions = 9;
 }
 message SetAttributePRequest {
   /** the path of the file */

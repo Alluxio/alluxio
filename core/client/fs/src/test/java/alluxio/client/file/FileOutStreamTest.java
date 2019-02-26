@@ -43,6 +43,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -109,6 +110,7 @@ public class FileOutStreamTest {
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    when(mFileSystemContext.getConf()).thenReturn(sConf);
     mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
 
@@ -382,7 +384,8 @@ public class FileOutStreamTest {
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
     verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFilePOptions.class));
-    verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME));
+    verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME),
+        any(ScheduleAsyncPersistencePOptions.class));
   }
 
   /**

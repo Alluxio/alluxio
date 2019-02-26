@@ -47,6 +47,7 @@ set_java_opt() {
     -server
     -Xms1G
     -Xmx1G
+    -XX:MaxDirectMemorySize=4g
   "
 
   ALLUXIO_FUSE_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
@@ -71,19 +72,21 @@ mount_fuse() {
   # sleep: workaround to let the bg java process exit on errors, if any
   sleep 2s
   if kill -0 $! > /dev/null 2>&1 ; then
-    echo "Alluxio-fuse mounted at ${mount_point}. See ${ALLUXIO_LOGS_DIR}/fuse.log for logs"
+    echo "Successfully mounted Alluxio path \"${alluxio_root}\" to ${mount_point}."
+    echo "See ${ALLUXIO_LOGS_DIR}/fuse.log for logging messages"
     return 0
   else
-    echo "alluxio-fuse not started. See ${ALLUXIO_LOGS_DIR}/fuse.out for details" >&2
+    echo "Failed to mount Alluxio path \"${alluxio_root}\" to ${mount_point}."
+    echo "See ${ALLUXIO_LOGS_DIR}/fuse.out for more details"
     return 1
   fi
 }
 
 umount_fuse() {
-  local mount_point=$1  
-  local fuse_pid=$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')  
+  local mount_point=$1
+  local fuse_pid=$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')
   if [[ -z ${fuse_pid} ]]; then
-    echo "No fuse mounted at ${mount_point}" >&2
+    echo "${mount_point} not mounted" >&2
     return 1
   else
     echo "Unmount fuse at ${mount_point} (PID: ${fuse_pid})."
@@ -94,17 +97,17 @@ umount_fuse() {
 
 fuse_stat() {
   local fuse_info=$("${JAVA_HOME}/bin/jps" | grep AlluxioFuse)
-  if [[ -z ${fuse_info} ]]; then    
+  if [[ -z ${fuse_info} ]]; then
     echo "AlluxioFuse: not running"
     return 1
   else
     echo -e "pid\tmount_point\talluxio_path"
     echo -e "$(ps aux | grep [A]lluxioFuse | awk -F' ' '{print $2 "\t" $(NF-2) "\t" $NF}')"
-    return 0    
+    return 0
   fi
 }
 
-USAGE_MSG="Usage:\n\t$0 [mount|umount|stat]"
+USAGE_MSG="Usage:\n\talluxio-fuse [mount|umount|stat]"
 
 if [[ $# -lt 1 ]]; then
   echo -e "${USAGE_MSG}" >&2
@@ -127,12 +130,16 @@ case $1 in
           mount_option=${OPTARG}
           ;;
         *)
-          echo -e "${USAGE}" >&2
+          echo -e "${USAGE_MSG}" >&2
           exit 1
           ;;
       esac
     done
     shift $((${OPTIND} - 1))
+    if [[ $# -eq 0 ]]; then
+      fuse_stat
+      exit $?
+    fi
     if [[ $# -eq 1 ]]; then
       mount_fuse $1 /
       exit $?
@@ -141,22 +148,22 @@ case $1 in
       mount_fuse $1 $2
       exit $?
     fi
-    echo -e "Usage\n\t$0 mount mount_point [alluxio_path]\n\t alluxio_path is default to root" >&2
+    echo -e "Usage\n\talluxio-fuse mount mount_point [alluxio_path]\n\t alluxio_path is default to root" >&2
     exit 1
     ;;
-  umount)
+  umount|unmount)
     if [[ $# -eq 2 ]]; then
       umount_fuse $2
       exit $?
     fi
-    echo -e "Usage\n\t$0 umount mount_point\n\tuse mount stat to show mount points" >&2
+    echo -e "Usage\n\talluxio-fuse umount mount_point\n\tuse mount stat to show mount points" >&2
     exit 1
     ;;
   stat)
     fuse_stat
     ;;
   *)
-    echo "${USAGE_MSG}" >&2
+    echo -e "${USAGE_MSG}" >&2
     exit 1
     ;;
 esac

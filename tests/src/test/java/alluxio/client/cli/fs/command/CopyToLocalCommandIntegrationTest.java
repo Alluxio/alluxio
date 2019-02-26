@@ -134,4 +134,13 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
               + "/testFile" + "\n", mOutput.toString());
     }
   }
+
+  @Test
+  public void parseOption() {
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE,
+        10);
+    int ret = mFsShell.run("copyToLocal", "--buffersize", "1024", "/testFile",
+        mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
+    Assert.assertEquals(0, ret);
+  }
 }

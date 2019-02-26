@@ -20,6 +20,7 @@ import alluxio.network.RejectingServer;
 import alluxio.retry.CountingRetry;
 import alluxio.util.network.NetworkAddressUtils;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.net.InetSocketAddress;
@@ -30,9 +31,12 @@ import java.util.List;
  * Unit tests for {@link PollingMasterInquireClient}.
  */
 public class PollingMasterInquireClientTest {
+  @Rule
+  public PortReservationRule mPort = new PortReservationRule();
+
   @Test(timeout = 10000)
   public void pollRejectingDoesntHang() throws Exception {
-    int port = PortRegistry.INSTANCE.reservePort();
+    int port = mPort.getPort();
     RejectingServer s = new RejectingServer(port);
     s.start();
     List<InetSocketAddress> addrs = Arrays.asList(

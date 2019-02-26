@@ -18,7 +18,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.job.move.MoveConfig;
+import alluxio.job.migrate.MigrateConfig;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 
 /**
- * Renames a file or directory specified by args. Will fail if the new path name already exists.
+ * Moves a file or directory specified by args.
  */
 @ThreadSafe
 public final class DistributedMvCommand extends AbstractFileSystemCommand {
@@ -59,8 +59,8 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
     Thread thread = JobGrpcClientUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
     thread.start();
     try {
-      JobGrpcClientUtils.run(new MoveConfig(srcPath.getPath(), dstPath.getPath(), null, true),
-          3, mFsContext.getConf());
+      JobGrpcClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(), null, true,
+          true), 3, mFsContext.getConf());
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;
@@ -78,6 +78,6 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getDescription() {
-    return "Moves a file or directory.";
+    return "Moves a file or directory in parallel at file level.";
   }
 }

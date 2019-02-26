@@ -28,6 +28,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.FileSystemOptions;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
@@ -297,7 +298,8 @@ public class FileOutStream extends AbstractOutStream {
   protected void scheduleAsyncPersist() throws IOException {
     try (CloseableResource<FileSystemMasterClient> masterClient = mContext
         .acquireMasterClientResource()) {
-      masterClient.get().scheduleAsyncPersist(mUri);
+      masterClient.get().scheduleAsyncPersist(mUri,
+          FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getConf()));
     }
   }
 

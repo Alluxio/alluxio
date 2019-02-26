@@ -173,7 +173,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                 className="App pt-5 pb-4"
               >
                 <div
-                  className="container-fluid sticky-top header-wrapper"
+                  className="w-100 sticky-top header-wrapper"
                 >
                   <Header
                     autoRefreshCallback={[Function]}
@@ -229,16 +229,15 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                     }
                   >
                     <div
-                      className="header card bg-light"
+                      className="header"
                     >
                       <Navbar
-                        className="headerNavigation"
+                        className="headerNavigation navbar-dark bg-primary pb-0"
                         expand="lg"
-                        light={true}
                         tag="nav"
                       >
                         <nav
-                          className="headerNavigation navbar navbar-expand-lg navbar-light"
+                          className="headerNavigation navbar-dark bg-primary pb-0 navbar navbar-expand-lg"
                         >
                           <NavbarBrand
                             href="/"
@@ -298,7 +297,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                           </NavbarToggler>
                           <Collapse
                             appear={false}
-                            className="d-lg-inline-flex justify-content-lg-center tabs"
+                            className="mb-0 mt-2 d-lg-inline-flex justify-content-lg-center tabs"
                             enter={true}
                             exit={true}
                             in={false}
@@ -331,7 +330,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                               unmountOnExit={false}
                             >
                               <div
-                                className="d-lg-inline-flex justify-content-lg-center tabs collapse navbar-collapse"
+                                className="mb-0 mt-2 d-lg-inline-flex justify-content-lg-center tabs collapse navbar-collapse"
                                 style={Object {}}
                               >
                                 <Nav
@@ -351,20 +350,21 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={false}
+                                          className="text-white"
                                           href="/overview"
                                           onClick={[Function]}
                                           tag={[Function]}
                                           to="/overview"
                                         >
                                           <Link
-                                            className="nav-link"
+                                            className="text-white nav-link"
                                             href="/overview"
                                             onClick={[Function]}
                                             replace={false}
                                             to="/overview"
                                           >
                                             <a
-                                              className="nav-link"
+                                              className="text-white nav-link"
                                               href="/overview"
                                               onClick={[Function]}
                                             >
@@ -383,20 +383,21 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={false}
+                                          className="text-white"
                                           href="/blockInfo"
                                           onClick={[Function]}
                                           tag={[Function]}
                                           to="/blockInfo"
                                         >
                                           <Link
-                                            className="nav-link"
+                                            className="text-white nav-link"
                                             href="/blockInfo"
                                             onClick={[Function]}
                                             replace={false}
                                             to="/blockInfo"
                                           >
                                             <a
-                                              className="nav-link"
+                                              className="text-white nav-link"
                                               href="/blockInfo"
                                               onClick={[Function]}
                                             >
@@ -415,20 +416,21 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={true}
+                                          className="text-white"
                                           href="/logs"
                                           onClick={[Function]}
                                           tag={[Function]}
                                           to="/logs"
                                         >
                                           <Link
-                                            className="nav-link active"
+                                            className="text-white nav-link active"
                                             href="/logs"
                                             onClick={[Function]}
                                             replace={false}
                                             to="/logs"
                                           >
                                             <a
-                                              className="nav-link active"
+                                              className="text-white nav-link active"
                                               href="/logs"
                                               onClick={[Function]}
                                             >
@@ -447,20 +449,21 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={false}
+                                          className="text-white"
                                           href="/metrics"
                                           onClick={[Function]}
                                           tag={[Function]}
                                           to="/metrics"
                                         >
                                           <Link
-                                            className="nav-link"
+                                            className="text-white nav-link"
                                             href="/metrics"
                                             onClick={[Function]}
                                             replace={false}
                                             to="/metrics"
                                           >
                                             <a
-                                              className="nav-link"
+                                              className="text-white nav-link"
                                               href="/metrics"
                                               onClick={[Function]}
                                             >
@@ -479,20 +482,21 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                       >
                                         <NavLink
                                           active={false}
+                                          className="text-white"
                                           href="http://:19999"
                                           onClick={[Function]}
                                           tag={[Function]}
                                           to="http://:19999"
                                         >
                                           <NavLink
-                                            className="nav-link"
+                                            className="text-white nav-link"
                                             href="http://:19999"
                                             onClick={[Function]}
                                             tag="a"
                                             to="http://:19999"
                                           >
                                             <a
-                                              className="nav-link nav-link"
+                                              className="text-white nav-link nav-link"
                                               href="http://:19999"
                                               onClick={[Function]}
                                               to="http://:19999"
@@ -561,25 +565,24 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                         className="nav-item"
                                       >
                                         <ButtonGroup
-                                          className="auto-refresh-button"
+                                          className="auto-refresh-button mr-1"
                                           role="group"
                                           tag="div"
                                         >
                                           <div
-                                            className="auto-refresh-button btn-group"
+                                            className="auto-refresh-button mr-1 btn-group"
                                             role="group"
                                           >
                                             <Button
                                               active={false}
                                               color="secondary"
                                               onClick={[Function]}
-                                              outline={true}
                                               size="sm"
                                               tag="button"
                                             >
                                               <button
                                                 aria-label={null}
-                                                className="btn btn-outline-secondary btn-sm"
+                                                className="btn btn-secondary btn-sm"
                                                 onClick={[Function]}
                                                 type="button"
                                               >
@@ -649,7 +652,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="pages container-fluid mt-3"
+                  className="w-100 mt-3"
                 >
                   <Switch>
                     <Route
@@ -805,22 +808,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                                             Pin
                                           </th>
                                           <th>
-                                            Creation Time
-                                          </th>
-                                          <th>
                                             Modification Time
-                                          </th>
-                                          <th>
-                                            [D]DepID
-                                          </th>
-                                          <th>
-                                            [D]INumber
-                                          </th>
-                                          <th>
-                                            [D]UnderfsPath
-                                          </th>
-                                          <th>
-                                            [D]File Locations
                                           </th>
                                         </tr>
                                       </thead>
@@ -837,7 +825,7 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                   </Switch>
                 </div>
                 <div
-                  className="container-fluid footer-wrapper"
+                  className="w-100 footer-wrapper"
                 >
                   <Footer
                     callbackParameters={
@@ -849,149 +837,136 @@ exports[`Logs App with connected component Matches snapshot 1`] = `
                     data={
                       Array [
                         Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
                           "innerText": "Project Website",
                           "url": "https://alluxio.org/",
                         },
                         Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
                           "innerText": "User Mailing List",
                           "url": "https://groups.google.com/forum/#!forum/alluxio-users",
-                        },
-                        Object {
-                          "innerText": "User Survey",
-                          "url": "https://alluxio.org/resources/survey-users",
                         },
                         Object {
                           "innerText": "Workers",
                           "url": [Function],
                         },
                         Object {
-                          "innerText": "Resources",
-                          "url": "https://alluxio.org/alluxio-resources/",
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
+                          "innerText": "Slack Channel",
+                          "url": "https://www.alluxio.org/slack",
                         },
                       ]
                     }
                   >
                     <div
-                      className="footer mt-auto card bg-light"
+                      className="footer mt-auto navbar-dark bg-primary"
                     >
-                      <div
-                        className="mx-auto"
+                      <Nav
+                        className="justify-content-center"
+                        tag="ul"
+                        vertical={false}
                       >
-                        <Nav
-                          tag="ul"
-                          vertical={false}
+                        <ul
+                          className="justify-content-center nav"
                         >
-                          <ul
-                            className="nav"
+                          <NavItem
+                            key="https://alluxio.org/"
+                            tag="li"
                           >
-                            <NavItem
-                              key="https://alluxio.org/"
-                              tag="li"
+                            <li
+                              className="nav-item"
                             >
-                              <li
-                                className="nav-item"
+                              <NavLink
+                                href="https://alluxio.org/"
+                                tag="a"
+                                target="_blank"
                               >
-                                <NavLink
+                                <a
+                                  className="nav-link"
                                   href="https://alluxio.org/"
-                                  tag="a"
+                                  onClick={[Function]}
+                                  target="_blank"
                                 >
-                                  <a
-                                    className="nav-link"
-                                    href="https://alluxio.org/"
-                                    onClick={[Function]}
-                                  >
-                                    Project Website
-                                  </a>
-                                </NavLink>
-                              </li>
-                            </NavItem>
-                            <NavItem
-                              key="https://groups.google.com/forum/#!forum/alluxio-users"
-                              tag="li"
+                                  Project Website
+                                </a>
+                              </NavLink>
+                            </li>
+                          </NavItem>
+                          <NavItem
+                            key="https://groups.google.com/forum/#!forum/alluxio-users"
+                            tag="li"
+                          >
+                            <li
+                              className="nav-item"
                             >
-                              <li
-                                className="nav-item"
+                              <NavLink
+                                href="https://groups.google.com/forum/#!forum/alluxio-users"
+                                tag="a"
+                                target="_blank"
                               >
-                                <NavLink
+                                <a
+                                  className="nav-link"
                                   href="https://groups.google.com/forum/#!forum/alluxio-users"
-                                  tag="a"
+                                  onClick={[Function]}
+                                  target="_blank"
                                 >
-                                  <a
-                                    className="nav-link"
-                                    href="https://groups.google.com/forum/#!forum/alluxio-users"
-                                    onClick={[Function]}
-                                  >
-                                    User Mailing List
-                                  </a>
-                                </NavLink>
-                              </li>
-                            </NavItem>
-                            <NavItem
-                              key="https://alluxio.org/resources/survey-users"
-                              tag="li"
+                                  User Mailing List
+                                </a>
+                              </NavLink>
+                            </li>
+                          </NavItem>
+                          <NavItem
+                            key="http://:19999/workers"
+                            tag="li"
+                          >
+                            <li
+                              className="nav-item"
                             >
-                              <li
-                                className="nav-item"
+                              <NavLink
+                                href="http://:19999/workers"
+                                tag="a"
                               >
-                                <NavLink
-                                  href="https://alluxio.org/resources/survey-users"
-                                  tag="a"
-                                >
-                                  <a
-                                    className="nav-link"
-                                    href="https://alluxio.org/resources/survey-users"
-                                    onClick={[Function]}
-                                  >
-                                    User Survey
-                                  </a>
-                                </NavLink>
-                              </li>
-                            </NavItem>
-                            <NavItem
-                              key="http://:19999/workers"
-                              tag="li"
-                            >
-                              <li
-                                className="nav-item"
-                              >
-                                <NavLink
+                                <a
+                                  className="nav-link"
                                   href="http://:19999/workers"
-                                  tag="a"
+                                  onClick={[Function]}
                                 >
-                                  <a
-                                    className="nav-link"
-                                    href="http://:19999/workers"
-                                    onClick={[Function]}
-                                  >
-                                    Workers
-                                  </a>
-                                </NavLink>
-                              </li>
-                            </NavItem>
-                            <NavItem
-                              key="https://alluxio.org/alluxio-resources/"
-                              tag="li"
+                                  Workers
+                                </a>
+                              </NavLink>
+                            </li>
+                          </NavItem>
+                          <NavItem
+                            key="https://www.alluxio.org/slack"
+                            tag="li"
+                          >
+                            <li
+                              className="nav-item"
                             >
-                              <li
-                                className="nav-item"
+                              <NavLink
+                                href="https://www.alluxio.org/slack"
+                                tag="a"
+                                target="_blank"
                               >
-                                <NavLink
-                                  href="https://alluxio.org/alluxio-resources/"
-                                  tag="a"
+                                <a
+                                  className="nav-link"
+                                  href="https://www.alluxio.org/slack"
+                                  onClick={[Function]}
+                                  target="_blank"
                                 >
-                                  <a
-                                    className="nav-link"
-                                    href="https://alluxio.org/alluxio-resources/"
-                                    onClick={[Function]}
-                                  >
-                                    Resources
-                                  </a>
-                                </NavLink>
-                              </li>
-                            </NavItem>
-                          </ul>
-                        </Nav>
-                      </div>
+                                  Slack Channel
+                                </a>
+                              </NavLink>
+                            </li>
+                          </NavItem>
+                        </ul>
+                      </Nav>
                     </div>
                   </Footer>
                 </div>
@@ -1044,22 +1019,7 @@ exports[`Logs Shallow component Matches snapshot 1`] = `
                 Pin
               </th>
               <th>
-                Creation Time
-              </th>
-              <th>
                 Modification Time
-              </th>
-              <th>
-                [D]DepID
-              </th>
-              <th>
-                [D]INumber
-              </th>
-              <th>
-                [D]UnderfsPath
-              </th>
-              <th>
-                [D]File Locations
               </th>
             </tr>
           </thead>

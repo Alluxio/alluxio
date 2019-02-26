@@ -22,7 +22,6 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.SetAclAction;
-import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.security.authorization.AclEntry;
@@ -53,7 +52,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void lsNoAcl() throws IOException, AlluxioException {
+  public void lsNoAcl() {
     createFiles();
     mFsShell.run("ls", "/testRoot");
     checkOutput(
@@ -392,11 +391,9 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     mOutput.reset();
 
     mFileSystem.setAcl(new AlluxioURI("/testRoot/testDir"), SetAclAction.MODIFY,
-        Arrays.asList(AclEntry.fromCliString("default:user:nameduser:rwx")),
-        SetAclPOptions.getDefaultInstance());
+        Arrays.asList(AclEntry.fromCliString("default:user:nameduser:rwx")));
     mFileSystem.setAcl(new AlluxioURI("/testRoot/testFile"), SetAclAction.MODIFY,
-        Arrays.asList(AclEntry.fromCliString("user:nameduser:rwx")),
-        SetAclPOptions.getDefaultInstance());
+        Arrays.asList(AclEntry.fromCliString("user:nameduser:rwx")));
 
     mFsShell.run("ls", "--sort", "path", "/testRoot");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability

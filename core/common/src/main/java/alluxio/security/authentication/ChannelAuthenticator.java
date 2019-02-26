@@ -13,19 +13,26 @@ package alluxio.security.authentication;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.exception.status.UnavailableException;
+import alluxio.exception.status.UnknownException;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.util.SecurityUtils;
 import alluxio.grpc.GrpcChannelBuilder;
 
+import io.grpc.CallOptions;
 import io.grpc.Channel;
+import io.grpc.ClientCall;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
+import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
+import io.grpc.MethodDescriptor;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.security.auth.Subject;
 import javax.security.sasl.SaslClient;
@@ -38,7 +45,7 @@ import java.util.UUID;
  * Used to authenticate with the target host. Used internally by {@link GrpcChannelBuilder}.
  */
 public class ChannelAuthenticator {
-
+  private static final Logger LOG = LoggerFactory.getLogger(ChannelAuthenticator.class);
   /** Whether to use mParentSubject as authentication user. */
   protected boolean mUseSubject;
   /** Subject for authentication. */
@@ -105,39 +112,16 @@ public class ChannelAuthenticator {
    * @throws UnauthenticatedException
    */
   public Channel authenticate(ManagedChannel managedChannel, AlluxioConfiguration conf)
-      throws UnauthenticatedException, UnavailableException {
+      throws AlluxioStatusException {
+    LOG.debug("Channel authentication initiated. ChannelId:{}, AuthType:{}, Target:{}", mChannelId,
+        mAuthType, managedChannel.authority());
+
     if (mAuthType == AuthType.NOSASL) {
       return managedChannel;
     }
 
-    // Create a channel for talking with target host's authentication service.
-    // Create SaslClient for authentication based on provided credentials.
-    SaslClient saslClient;
-    if (mUseSubject) {
-      saslClient =
-          SaslParticipantProvider.Factory.create(mAuthType).createSaslClient(mParentSubject, conf);
-    } else {
-      saslClient = SaslParticipantProvider.Factory.create(mAuthType).createSaslClient(mUserName,
-          mPassword, mImpersonationUser);
-    }
-
-    // Create authentication scheme specific handshake handler.
-    SaslHandshakeClientHandler handshakeClient =
-        SaslHandshakeClientHandler.Factory.create(mAuthType, saslClient);
-    // Create driver for driving sasl traffic from client side.
-    SaslStreamClientDriver clientDriver =
-        new SaslStreamClientDriver(handshakeClient, mGrpcAuthTimeoutMs);
-    // Start authentication call with the service and update the client driver.
-    StreamObserver<SaslMessage> requestObserver =
-        SaslAuthenticationServiceGrpc.newStub(managedChannel).authenticate(clientDriver);
-    clientDriver.setServerObserver(requestObserver);
-    // Start authentication traffic with the target.
-    clientDriver.start(mChannelId.toString());
-    // Authentication succeeded!
-    // Attach scheme specific interceptors to the channel.
-
-    Channel authenticatedChannel =
-        ClientInterceptors.intercept(managedChannel, getInterceptors(saslClient));
+    AuthenticatedManagedChannel authenticatedChannel =
+        new AuthenticatedManagedChannel(managedChannel, conf);
     return authenticatedChannel;
   }
 
@@ -163,5 +147,80 @@ public class ChannelAuthenticator {
             String.format("Authentication type:%s not supported", mAuthType.name()));
     }
     return interceptorsList;
+  }
+
+  private class AuthenticatedManagedChannel extends Channel implements AuthenticatedChannel {
+    private final ManagedChannel mManagedChannel;
+    private final AlluxioConfiguration mConf;
+    private Channel mChannel;
+    private boolean mAuthenticated;
+
+    AuthenticatedManagedChannel(ManagedChannel managedChannel, AlluxioConfiguration conf)
+        throws AlluxioStatusException {
+      mManagedChannel = managedChannel;
+      mConf = conf;
+      authenticate();
+    }
+
+    public void authenticate() throws AlluxioStatusException {
+      try {
+        // Create a channel for talking with target host's authentication service.
+        // Create SaslClient for authentication based on provided credentials.
+        SaslClient saslClient;
+        if (mUseSubject) {
+          saslClient = SaslParticipantProvider.Factory.create(mAuthType)
+              .createSaslClient(mParentSubject, mConf);
+        } else {
+          saslClient = SaslParticipantProvider.Factory.create(mAuthType).createSaslClient(mUserName,
+              mPassword, mImpersonationUser);
+        }
+
+        // Create authentication scheme specific handshake handler.
+        SaslHandshakeClientHandler handshakeClient =
+            SaslHandshakeClientHandler.Factory.create(mAuthType, saslClient);
+        // Create driver for driving sasl traffic from client side.
+        SaslStreamClientDriver clientDriver =
+            new SaslStreamClientDriver(handshakeClient, mGrpcAuthTimeoutMs);
+        // Start authentication call with the service and update the client driver.
+        StreamObserver<SaslMessage> requestObserver =
+            SaslAuthenticationServiceGrpc.newStub(mManagedChannel).authenticate(clientDriver);
+        clientDriver.setServerObserver(requestObserver);
+        // Start authentication traffic with the target.
+        clientDriver.start(mChannelId.toString());
+        // Authentication succeeded!
+        mAuthenticated = true;
+        mManagedChannel.notifyWhenStateChanged(ConnectivityState.READY, () -> {
+          mAuthenticated = false;
+        });
+        // Attach scheme specific interceptors to the channel.
+        mChannel = ClientInterceptors.intercept(mManagedChannel, getInterceptors(saslClient));
+      } catch (Exception exc) {
+        String message = String.format(
+            "Channel authentication failed. ChannelId: %s, AuthType: %s, Target: %s, Error: %s",
+            mChannelId, mAuthType, mManagedChannel.authority(), exc.toString());
+        if (exc instanceof AlluxioStatusException) {
+          throw AlluxioStatusException.from(((AlluxioStatusException) exc).getStatus(), message,
+              exc);
+        } else {
+          throw new UnknownException(message, exc);
+        }
+      }
+    }
+
+    @Override
+    public <RequestT, ResponseT> ClientCall<RequestT, ResponseT> newCall(
+        MethodDescriptor<RequestT, ResponseT> methodDescriptor, CallOptions callOptions) {
+      return mChannel.newCall(methodDescriptor, callOptions);
+    }
+
+    @Override
+    public String authority() {
+      return mChannel.authority();
+    }
+
+    @Override
+    public boolean isAuthenticated() {
+      return mAuthenticated;
+    }
   }
 }

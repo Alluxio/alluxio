@@ -280,7 +280,8 @@ public final class AlluxioWorkerRestServiceHandler {
         // Display file block info
         try {
           URIStatus status = mFsClient.getStatus(new AlluxioURI(requestPath));
-          UIFileInfo uiFileInfo = new UIFileInfo(status);
+          UIFileInfo uiFileInfo = new UIFileInfo(status, ServerConfiguration.global(),
+              new WorkerStorageTierAssoc().getOrderedStorageAliases());
           for (long blockId : status.getBlockIds()) {
             if (mBlockWorker.hasBlockMeta(blockId)) {
               BlockMeta blockMeta = mBlockWorker.getVolatileBlockMeta(blockId);
@@ -326,14 +327,16 @@ public final class AlluxioWorkerRestServiceHandler {
       try {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
-        limit = limit > fileIds.size() ? fileIds.size() : limit;
+        limit = offset == 0 && limit > fileIds.size() ? fileIds.size() : limit;
+        limit = offset * limit > fileIds.size() ? fileIds.size() % offset : limit;
         int sum = Math.addExact(offset, limit);
         List<Long> subFileIds = fileIds.subList(offset, sum);
         List<UIFileInfo> uiFileInfos = new ArrayList<>(subFileIds.size());
         for (long fileId : subFileIds) {
           try {
             URIStatus status = new URIStatus(mBlockWorker.getFileInfo(fileId));
-            UIFileInfo uiFileInfo = new UIFileInfo(status);
+            UIFileInfo uiFileInfo = new UIFileInfo(status, ServerConfiguration.global(),
+                new WorkerStorageTierAssoc().getOrderedStorageAliases());
             for (long blockId : status.getBlockIds()) {
               if (mBlockWorker.hasBlockMeta(blockId)) {
                 BlockMeta blockMeta = mBlockWorker.getVolatileBlockMeta(blockId);
@@ -474,7 +477,8 @@ public final class AlluxioWorkerRestServiceHandler {
             fileInfos.add(new UIFileInfo(
                 new UIFileInfo.LocalFileInfo(logFileName, logFileName, logFile.length(),
                     UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME, logFile.lastModified(),
-                    logFile.isDirectory())));
+                    logFile.isDirectory()), ServerConfiguration.global(),
+                new WorkerStorageTierAssoc().getOrderedStorageAliases()));
           }
         }
         Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
@@ -483,7 +487,8 @@ public final class AlluxioWorkerRestServiceHandler {
         try {
           int offset = Integer.parseInt(requestOffset);
           int limit = Integer.parseInt(requestLimit);
-          limit = limit > fileInfos.size() ? fileInfos.size() : limit;
+          limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
+          limit = offset * limit > fileInfos.size() ? fileInfos.size() % offset : limit;
           int sum = Math.addExact(offset, limit);
           fileInfos = fileInfos.subList(offset, sum);
           response.setFileInfos(fileInfos);

@@ -20,12 +20,17 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.GetStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterClientContext;
+import alluxio.master.NoopMaster;
 import alluxio.master.PortRegistry;
+import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsJournalSnapshot;
 import alluxio.util.CommonUtils;
+import alluxio.util.FileSystemOptions;
+import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
 import alluxio.worker.block.BlockWorker;
@@ -69,7 +74,8 @@ public final class IntegrationTestUtils {
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       CommonUtils.waitFor(uri + " to be persisted", () -> {
         try {
-          return client.getStatus(uri, GetStatusPOptions.getDefaultInstance()).isPersisted();
+          return client.getStatus(uri,
+              FileSystemOptions.getStatusDefaults(ServerConfiguration.global())).isPersisted();
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }
@@ -128,18 +134,38 @@ public final class IntegrationTestUtils {
   }
 
   /**
+   * Waits for a checkpoint to be written in the specified master's journal.
+   *
+   * @param masterName the name of the master
+   */
+  public static void waitForCheckpoint(String masterName)
+      throws TimeoutException, InterruptedException {
+    UfsJournal journal = new UfsJournal(URIUtils.appendPathOrDie(JournalUtils.getJournalLocation(),
+        masterName), new NoopMaster(""), 0);
+    CommonUtils.waitFor("checkpoint to be written", () -> {
+      UfsJournalSnapshot snapshot;
+      try {
+        snapshot = UfsJournalSnapshot.getSnapshot(journal);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return !snapshot.getCheckpoints().isEmpty();
+    });
+  }
+
+  /**
    * Reserves ports for each master service and updates the server configuration.
    */
   public static void reserveMasterPorts() {
     for (ServiceType service : Arrays.asList(ServiceType.MASTER_RPC, ServiceType.MASTER_WEB,
         ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB)) {
       PropertyKey key = service.getPortKey();
-      ServerConfiguration.set(key, PortRegistry.INSTANCE.reservePort());
+      ServerConfiguration.set(key, PortRegistry.reservePort());
     }
   }
 
   public static void releaseMasterPorts() {
-    PortRegistry.INSTANCE.clear();
+    PortRegistry.clear();
   }
 
   private IntegrationTestUtils() {} // This is a utils class not intended for instantiation

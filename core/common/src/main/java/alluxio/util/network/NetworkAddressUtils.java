@@ -13,8 +13,8 @@ package alluxio.util.network;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
@@ -40,6 +40,7 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -643,10 +644,12 @@ public final class NetworkAddressUtils {
    */
   public static void pingService(InetSocketAddress address, alluxio.grpc.ServiceType serviceType,
       AlluxioConfiguration conf)
-      throws UnauthenticatedException, UnavailableException {
+      throws AlluxioStatusException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
-    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, conf).build();
+    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, conf)
+        .setExecutor(ForkJoinPool.commonPool())
+        .build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
     versionClient.getServiceVersion(

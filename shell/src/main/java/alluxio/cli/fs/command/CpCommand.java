@@ -28,7 +28,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.OpenFilePOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
@@ -69,6 +68,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CpCommand.class);
   private static final String COPY_SUCCEED_MESSAGE = "Copied %s to %s";
   private static final String COPY_FAIL_MESSAGE = "Failed to copy %s to %s";
+  private static final int COPY_FROM_LOCAL_BUFFER_SIZE_DEFAULT = 8 * Constants.MB;
+  private static final int COPY_TO_LOCAL_BUFFER_SIZE_DEFAULT = 64 * Constants.MB;
 
   private static final Option RECURSIVE_OPTION =
       Option.builder("R")
@@ -77,7 +78,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .desc("copy files in subdirectories recursively")
           .build();
   public static final Option THREAD_OPTION =
-      Option.builder("t")
+      Option.builder()
+          .longOpt("thread")
           .required(false)
           .hasArg(true)
           .numberOfArgs(1)
@@ -85,6 +87,22 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .type(Number.class)
           .desc("Number of threads used to copy files in parallel, default value is CPU cores * 2")
           .build();
+  public static final Option BUFFER_SIZE_OPTION =
+      Option.builder()
+          .longOpt("buffersize")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("buffer size")
+          .type(Number.class)
+          .desc("Read buffer size in bytes, "
+              + "default is 8MB when copying from local, "
+              + "and 64MB when copying to local")
+          .build();
+
+  private int mCopyFromLocalBufferSize = COPY_FROM_LOCAL_BUFFER_SIZE_DEFAULT;
+  private int mCopyToLocalBufferSize = COPY_TO_LOCAL_BUFFER_SIZE_DEFAULT;
+  private int mThread = Runtime.getRuntime().availableProcessors() * 2;
 
   /**
    * A thread pool executor for asynchronous copy.
@@ -275,6 +293,31 @@ public final class CpCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
+    if (cl.hasOption(BUFFER_SIZE_OPTION.getLongOpt())) {
+      try {
+        int bufSize = ((Number) cl.getParsedOptionValue(BUFFER_SIZE_OPTION.getLongOpt()))
+            .intValue();
+        if (bufSize < 0) {
+          throw new InvalidArgumentException(BUFFER_SIZE_OPTION.getLongOpt() + " must be > 0");
+        }
+        mCopyFromLocalBufferSize = bufSize;
+        mCopyToLocalBufferSize = bufSize;
+      } catch (ParseException e) {
+        throw new InvalidArgumentException("Failed to parse option "
+            + BUFFER_SIZE_OPTION.getLongOpt() + " into an integer", e);
+      }
+    }
+    if (cl.hasOption(THREAD_OPTION.getLongOpt())) {
+      try {
+        mThread = ((Number) cl.getParsedOptionValue(THREAD_OPTION.getLongOpt())).intValue();
+        if (mThread <= 0) {
+          throw new InvalidArgumentException(THREAD_OPTION.getLongOpt() + " must be > 0");
+        }
+      } catch (ParseException e) {
+        throw new InvalidArgumentException("Failed to parse option " + THREAD_OPTION.getLongOpt()
+            + " into an integer", e);
+      }
+    }
   }
 
   @Override
@@ -317,17 +360,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       if (srcPaths.size() == 1) {
         copyFromLocalFile(srcPaths.get(0), dstPath);
       } else {
-        int numThreads;
-        if (cl.hasOption("t")) {
-          try {
-            numThreads = ((Number) cl.getParsedOptionValue("t")).intValue();
-          } catch (ParseException e) {
-            throw new IOException("Failed to parse option -t into an integer", e);
-          }
-        } else {
-          numThreads = Runtime.getRuntime().availableProcessors() * 2;
-        }
-        CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(numThreads, System.out, System.err,
+        CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(mThread, System.out, System.err,
             mFileSystem, mFileSystem.exists(dstPath) ? null : dstPath);
         try {
           createDstDir(dstPath);
@@ -362,9 +395,9 @@ public final class CpCommand extends AbstractFileSystemCommand {
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath.getPath()));
       }
       if (srcPath.containsWildcard()) {
-        copyWildcard(srcPaths, dstPath, cl.hasOption("R"));
+        copyWildcard(srcPaths, dstPath, cl.hasOption(RECURSIVE_OPTION.getOpt()));
       } else {
-        copy(srcPath, dstPath, cl.hasOption("R"));
+        copy(srcPath, dstPath, cl.hasOption(RECURSIVE_OPTION.getOpt()));
       }
     } else {
       throw new InvalidPathException(
@@ -487,8 +520,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
   private void copyFile(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
     try (Closer closer = Closer.create()) {
-      OpenFilePOptions openFileOptions = OpenFilePOptions.getDefaultInstance();
-      FileInStream is = closer.register(mFileSystem.openFile(srcPath, openFileOptions));
+      FileInStream is = closer.register(mFileSystem.openFile(srcPath));
       FileOutStream os = closer.register(mFileSystem.createFile(dstPath));
       try {
         IOUtils.copy(is, os);
@@ -540,7 +572,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       os = closer.register(mFileSystem.createFile(dstPath, createOptions));
       FileInputStream in = closer.register(new FileInputStream(src));
       FileChannel channel = closer.register(in.getChannel());
-      ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);
+      ByteBuffer buf = ByteBuffer.allocate(mCopyFromLocalBufferSize);
       while (channel.read(buf) != -1) {
         buf.flip();
         os.write(buf.array(), 0, buf.limit());
@@ -704,10 +736,9 @@ public final class CpCommand extends AbstractFileSystemCommand {
     File tmpDst = new File(outputFile.getPath() + randomSuffix);
 
     try (Closer closer = Closer.create()) {
-      OpenFilePOptions options = OpenFilePOptions.getDefaultInstance();
-      FileInStream is = closer.register(mFileSystem.openFile(srcPath, options));
+      FileInStream is = closer.register(mFileSystem.openFile(srcPath));
       FileOutputStream out = closer.register(new FileOutputStream(tmpDst));
-      byte[] buf = new byte[64 * Constants.MB];
+      byte[] buf = new byte[mCopyToLocalBufferSize];
       int t = is.read(buf);
       while (t != -1) {
         out.write(buf, 0, t);
@@ -725,7 +756,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "cp [-R] <src> <dst>";
+    return "cp "
+        + "[-R] "
+        + "[--buffersize <read buffer size in bytes>] "
+        + "<src> <dst>";
   }
 
   @Override

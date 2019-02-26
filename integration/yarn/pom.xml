@@ -55,12 +55,6 @@
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-core-transport</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <!-- Internal test dependencies -->

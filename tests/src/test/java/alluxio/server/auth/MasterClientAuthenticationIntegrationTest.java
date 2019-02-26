@@ -14,8 +14,6 @@ package alluxio.server.auth;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.GetStatusPOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.conf.PropertyKey;
@@ -25,6 +23,7 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.FileSystemOptions;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -143,9 +142,11 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
-    masterClient.createFile(new AlluxioURI(filename), CreateFilePOptions.getDefaultInstance());
+    masterClient.createFile(new AlluxioURI(filename),
+        FileSystemOptions.createFileDefaults(ServerConfiguration.global()));
     Assert.assertNotNull(
-        masterClient.getStatus(new AlluxioURI(filename), GetStatusPOptions.getDefaultInstance()));
+        masterClient.getStatus(new AlluxioURI(filename),
+            FileSystemOptions.getStatusDefaults(ServerConfiguration.global())));
     masterClient.disconnect();
     masterClient.close();
   }

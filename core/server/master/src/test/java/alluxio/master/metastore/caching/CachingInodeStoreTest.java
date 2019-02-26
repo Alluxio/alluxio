@@ -14,8 +14,10 @@ package alluxio.master.metastore.caching;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -84,11 +86,26 @@ public class CachingInodeStoreTest {
   @Test
   public void cacheGet() {
     Inode testInode = Inode.wrap(TEST_INODE_DIR);
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < CACHE_SIZE / 2; i++) {
       assertEquals(testInode, mStore.get(TEST_INODE_ID).get());
     }
 
     verifyNoBackingStoreReads();
+  }
+
+  @Test
+  public void cacheGetMany() {
+    for (long inodeId = 1; inodeId < CACHE_SIZE * 2; inodeId++) {
+      createInodeDir(inodeId, 0);
+    }
+    for (int i = 0; i < 30; i++) {
+      for (long inodeId = 1; inodeId < CACHE_SIZE * 2; inodeId++) {
+        assertTrue(mStore.get(inodeId).isPresent());
+      }
+    }
+    // The workload is read-only, so we shouldn't need to write each inode to the backing store more
+    // than once.
+    verify(mBackingStore, atMost((int) CACHE_SIZE * 2 + 1)).writeInode(any());
   }
 
   @Test
@@ -118,6 +135,35 @@ public class CachingInodeStoreTest {
     }
 
     verifyNoBackingStoreReads();
+  }
+
+  @Test
+  public void listChildrenOverCacheSize() {
+    for (long inodeId = 10; inodeId < 10 + CACHE_SIZE * 2; inodeId++) {
+      MutableInodeDirectory dir = createInodeDir(inodeId, 0);
+      mStore.addChild(0, dir);
+    }
+
+    assertEquals(CACHE_SIZE * 2, Iterables.size(mStore.getChildren(0L)));
+  }
+
+  @Test
+  public void cacheGetChildMany() {
+    for (long inodeId = 1; inodeId < CACHE_SIZE * 2; inodeId++) {
+      MutableInodeFile child =
+          MutableInodeFile.create(0, 0, "child" + inodeId, 0, CreateFileContext.defaults());
+      mStore.writeInode(child);
+      mStore.addChild(0, child);
+    }
+    for (int i = 0; i < 1000; i++) {
+      for (long inodeId = 1; inodeId < CACHE_SIZE * 2; inodeId++) {
+        assertTrue(mStore.getChild(0L, "child" + inodeId).isPresent());
+      }
+    }
+
+    // The workload is read-only, so we shouldn't need to write each edge to the backing store more
+    // than once.
+    verify(mBackingStore, atMost((int) CACHE_SIZE * 2)).addChild(anyLong(), any(), anyLong());
   }
 
   @Test

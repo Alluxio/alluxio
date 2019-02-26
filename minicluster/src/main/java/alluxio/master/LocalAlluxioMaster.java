@@ -155,7 +155,6 @@ public final class LocalAlluxioMaster {
       mSecondaryMaster.stop();
       while (mSecondaryMasterThread.isAlive()) {
         LOG.info("Stopping thread {}.", mSecondaryMasterThread.getName());
-        mSecondaryMasterThread.interrupt();
         mSecondaryMasterThread.join(1000);
       }
       mSecondaryMasterThread = null;

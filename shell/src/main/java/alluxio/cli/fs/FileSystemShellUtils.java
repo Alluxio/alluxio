@@ -28,6 +28,8 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 
 import java.io.File;
 import java.io.IOException;
@@ -216,6 +218,23 @@ public final class FileSystemShellUtils {
       }
     }
     return res;
+  }
+
+  /**
+   * Gets the value of an option from the command line.
+   *
+   * @param cl command line object
+   * @param option the option to check for in the command line
+   * @param defaultValue default value for the option
+   * @return argument from command line or default if not present
+   */
+  public static int getIntArg(CommandLine cl, Option option, int defaultValue) {
+    int arg = defaultValue;
+    if (cl.hasOption(option.getLongOpt())) {
+      String argOption = cl.getOptionValue(option.getLongOpt());
+      arg = Integer.parseInt(argOption);
+    }
+    return arg;
   }
 
   /**

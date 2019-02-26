@@ -11,6 +11,8 @@
 
 package alluxio.grpc;
 
+import alluxio.security.authentication.AuthenticatedChannel;
+
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -22,25 +24,34 @@ import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 
+import java.util.function.Supplier;
+
 /**
  * An authenticated gRPC channel. This channel can communicate with servers of type
  * {@link GrpcServer}.
  */
 public final class GrpcChannel extends Channel {
   private final GrpcManagedChannelPool.ChannelKey mChannelKey;
-  private final Channel mChannel;
+  private final Supplier<Boolean> mChannelHealthState;
+  private Channel mChannel;
   private boolean mChannelReleased;
   private boolean mChannelHealthy = true;
+  private final long mShutdownTimeoutMs;
 
   /**
    * Create a new instance of {@link GrpcChannel}.
    *
    * @param channel the grpc channel to wrap
    */
-  public GrpcChannel(GrpcManagedChannelPool.ChannelKey channelKey, Channel channel) {
+  public GrpcChannel(GrpcManagedChannelPool.ChannelKey channelKey, Channel channel,
+      long shutdownTimeoutMs) {
     mChannelKey = channelKey;
+    mChannelHealthState = channel instanceof AuthenticatedChannel
+        ? () -> (((AuthenticatedChannel) channel).isAuthenticated() && mChannelHealthy)
+            : () -> mChannelHealthy;
     mChannel = ClientInterceptors.intercept(channel, new ChannelResponseTracker((this)));
     mChannelReleased = false;
+    mShutdownTimeoutMs = shutdownTimeoutMs;
   }
 
   @Override
@@ -54,12 +65,15 @@ public final class GrpcChannel extends Channel {
     return mChannel.authority();
   }
 
+  public void intercept(ClientInterceptor interceptor) {
+    mChannel = ClientInterceptors.intercept(mChannel, interceptor);
+  }
   /**
    * Shuts down the channel.
    */
   public void shutdown() {
     if(!mChannelReleased) {
-      GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey);
+      GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey, mShutdownTimeoutMs);
     }
     mChannelReleased = true;
   }
@@ -67,7 +81,7 @@ public final class GrpcChannel extends Channel {
   /**
    * @return {@code true} if the channel has been shut down
    */
-  public boolean isShutdown(){
+  public boolean isShutdown() {
     return mChannelReleased;
   }
 
@@ -75,7 +89,7 @@ public final class GrpcChannel extends Channel {
    * @return {@code true} if channel is healthy
    */
   public boolean isHealthy() {
-    return mChannelHealthy;
+    return mChannelHealthState.get();
   }
 
   /**

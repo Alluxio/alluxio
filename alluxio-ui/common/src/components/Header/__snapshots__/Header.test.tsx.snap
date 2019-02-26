@@ -58,16 +58,15 @@ exports[`Header React component Matches snapshot 1`] = `
       }
     >
       <div
-        className="header card bg-light"
+        className="header"
       >
         <Navbar
-          className="headerNavigation"
+          className="headerNavigation navbar-dark bg-primary pb-0"
           expand="lg"
-          light={true}
           tag="nav"
         >
           <nav
-            className="headerNavigation navbar navbar-expand-lg navbar-light"
+            className="headerNavigation navbar-dark bg-primary pb-0 navbar navbar-expand-lg"
           >
             <NavbarBrand
               href="/"
@@ -127,7 +126,7 @@ exports[`Header React component Matches snapshot 1`] = `
             </NavbarToggler>
             <Collapse
               appear={false}
-              className="d-lg-inline-flex justify-content-lg-center tabs"
+              className="mb-0 mt-2 d-lg-inline-flex justify-content-lg-center tabs"
               enter={true}
               exit={true}
               in={false}
@@ -160,7 +159,7 @@ exports[`Header React component Matches snapshot 1`] = `
                 unmountOnExit={false}
               >
                 <div
-                  className="d-lg-inline-flex justify-content-lg-center tabs collapse navbar-collapse"
+                  className="mb-0 mt-2 d-lg-inline-flex justify-content-lg-center tabs collapse navbar-collapse"
                   style={Object {}}
                 >
                   <Nav
@@ -228,25 +227,24 @@ exports[`Header React component Matches snapshot 1`] = `
                           className="nav-item"
                         >
                           <ButtonGroup
-                            className="auto-refresh-button"
+                            className="auto-refresh-button mr-1"
                             role="group"
                             tag="div"
                           >
                             <div
-                              className="auto-refresh-button btn-group"
+                              className="auto-refresh-button mr-1 btn-group"
                               role="group"
                             >
                               <Button
                                 active={false}
                                 color="secondary"
                                 onClick={[Function]}
-                                outline={true}
                                 size="sm"
                                 tag="button"
                               >
                                 <button
                                   aria-label={null}
-                                  className="btn btn-outline-secondary btn-sm"
+                                  className="btn btn-secondary btn-sm"
                                   onClick={[Function]}
                                   type="button"
                                 >
@@ -320,12 +318,11 @@ exports[`Header React component Matches snapshot 1`] = `
 
 exports[`Header Shallow component Matches snapshot 1`] = `
 <div
-  className="header card bg-light"
+  className="header"
 >
   <Navbar
-    className="headerNavigation"
+    className="headerNavigation navbar-dark bg-primary pb-0"
     expand="lg"
-    light={true}
     tag="nav"
   >
     <NavbarBrand
@@ -363,7 +360,7 @@ exports[`Header Shallow component Matches snapshot 1`] = `
     />
     <Collapse
       appear={false}
-      className="d-lg-inline-flex justify-content-lg-center tabs"
+      className="mb-0 mt-2 d-lg-inline-flex justify-content-lg-center tabs"
       enter={true}
       exit={true}
       in={false}
@@ -414,7 +411,7 @@ exports[`Header Shallow component Matches snapshot 1`] = `
           tag="li"
         >
           <ButtonGroup
-            className="auto-refresh-button"
+            className="auto-refresh-button mr-1"
             role="group"
             tag="div"
           >
@@ -422,7 +419,6 @@ exports[`Header Shallow component Matches snapshot 1`] = `
               active={false}
               color="secondary"
               onClick={[Function]}
-              outline={true}
               size="sm"
               tag="button"
             >

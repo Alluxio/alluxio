@@ -17,6 +17,7 @@ import org.apache.log4j.spi.LoggingEvent;
 import org.junit.After;
 import org.junit.Before;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -56,6 +57,17 @@ public class TestLoggerRule extends AbstractResourceRule {
    */
   public int logCount(String pattern) {
     return mAppender.logCount(Pattern.compile(".*" + pattern + ".*"));
+  }
+
+  /**
+   * Writes all log messages to the given stream, useful for debugging.
+   *
+   * @param stream the stream to write to
+   */
+  public void dumpLogs(PrintStream stream) {
+    for (LoggingEvent event : mAppender.mEvents) {
+      stream.println(event.getRenderedMessage());
+    }
   }
 
   public class TestAppender extends AppenderSkeleton {

@@ -11,6 +11,8 @@
 
 package alluxio.client.cli.fs;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -22,13 +24,18 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,7 +79,7 @@ public final class FileSystemShellUtilsTest {
     String expected = "/dir";
     for (String path : paths) {
       String result = FileSystemShellUtils.getFilePath(path, ConfigurationTestUtils.defaults());
-      Assert.assertEquals(expected, result);
+      assertEquals(expected, result);
     }
   }
 
@@ -119,9 +126,11 @@ public final class FileSystemShellUtilsTest {
     if (fs.exists(new AlluxioURI(TEST_DIR))) {
       fs.delete(new AlluxioURI(TEST_DIR), DeletePOptions.newBuilder().setRecursive(true).build());
     }
-    fs.createDirectory(new AlluxioURI(TEST_DIR));
-    fs.createDirectory(new AlluxioURI(TEST_DIR + "/foo"));
-    fs.createDirectory(new AlluxioURI(TEST_DIR + "/bar"));
+    CreateDirectoryPOptions dirOptions = CreateDirectoryPOptions.getDefaultInstance().toBuilder()
+        .setWriteType(writeType).build();
+    fs.createDirectory(new AlluxioURI(TEST_DIR), dirOptions);
+    fs.createDirectory(new AlluxioURI(TEST_DIR + "/foo"), dirOptions);
+    fs.createDirectory(new AlluxioURI(TEST_DIR + "/bar"), dirOptions);
 
     FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foo/foobar1", writeType, 10);
     FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foo/foobar2", writeType, 20);
@@ -219,53 +228,76 @@ public final class FileSystemShellUtilsTest {
       String rootDir = resetFsHierarchy(fsType);
 
       List<String> tl1 = getPaths(rootDir + "/foo", fsType);
-      Assert.assertEquals(tl1.size(), 1);
-      Assert.assertEquals(tl1.get(0), rootDir + "/foo");
+      assertEquals(tl1.size(), 1);
+      assertEquals(tl1.get(0), rootDir + "/foo");
 
       // Trailing slash
       List<String> tl2 = getPaths(rootDir + "/foo/", fsType);
-      Assert.assertEquals(tl2.size(), 1);
-      Assert.assertEquals(tl2.get(0), rootDir + "/foo");
+      assertEquals(tl2.size(), 1);
+      assertEquals(tl2.get(0), rootDir + "/foo");
 
       // Wildcard
       List<String> tl3 = getPaths(rootDir + "/foo/*", fsType);
-      Assert.assertEquals(tl3.size(), 2);
-      Assert.assertEquals(tl3.get(0), rootDir + "/foo/foobar1");
-      Assert.assertEquals(tl3.get(1), rootDir + "/foo/foobar2");
+      assertEquals(tl3.size(), 2);
+      assertEquals(tl3.get(0), rootDir + "/foo/foobar1");
+      assertEquals(tl3.get(1), rootDir + "/foo/foobar2");
 
       // Trailing slash + wildcard
       List<String> tl4 = getPaths(rootDir + "/foo/*/", fsType);
-      Assert.assertEquals(tl4.size(), 2);
-      Assert.assertEquals(tl4.get(0), rootDir + "/foo/foobar1");
-      Assert.assertEquals(tl4.get(1), rootDir + "/foo/foobar2");
+      assertEquals(tl4.size(), 2);
+      assertEquals(tl4.get(0), rootDir + "/foo/foobar1");
+      assertEquals(tl4.get(1), rootDir + "/foo/foobar2");
 
       // Multiple wildcards
       List<String> tl5 = getPaths(rootDir + "/*/foo*", fsType);
-      Assert.assertEquals(tl5.size(), 3);
-      Assert.assertEquals(tl5.get(0), rootDir + "/bar/foobar3");
-      Assert.assertEquals(tl5.get(1), rootDir + "/foo/foobar1");
-      Assert.assertEquals(tl5.get(2), rootDir + "/foo/foobar2");
+      assertEquals(tl5.size(), 3);
+      assertEquals(tl5.get(0), rootDir + "/bar/foobar3");
+      assertEquals(tl5.get(1), rootDir + "/foo/foobar1");
+      assertEquals(tl5.get(2), rootDir + "/foo/foobar2");
     }
   }
 
   @Test
   public void match() {
-    Assert.assertEquals(FileSystemShellUtils.match("/a/b/c", "/a/*"), true);
-    Assert.assertEquals(FileSystemShellUtils.match("/a/b/c", "/a/*/"), true);
-    Assert.assertEquals(FileSystemShellUtils.match("/a/b/c", "/a/*/c"), true);
-    Assert.assertEquals(FileSystemShellUtils.match("/a/b/c", "/a/*/*"), true);
-    Assert.assertEquals(FileSystemShellUtils.match("/a/b/c", "/a/*/*/"), true);
-    Assert.assertEquals(FileSystemShellUtils.match("/a/b/c/", "/a/*/*/"), true);
-    Assert.assertEquals(FileSystemShellUtils.match("/a/b/c/", "/a/*/*"), true);
+    assertEquals(FileSystemShellUtils.match("/a/b/c", "/a/*"), true);
+    assertEquals(FileSystemShellUtils.match("/a/b/c", "/a/*/"), true);
+    assertEquals(FileSystemShellUtils.match("/a/b/c", "/a/*/c"), true);
+    assertEquals(FileSystemShellUtils.match("/a/b/c", "/a/*/*"), true);
+    assertEquals(FileSystemShellUtils.match("/a/b/c", "/a/*/*/"), true);
+    assertEquals(FileSystemShellUtils.match("/a/b/c/", "/a/*/*/"), true);
+    assertEquals(FileSystemShellUtils.match("/a/b/c/", "/a/*/*"), true);
 
-    Assert.assertEquals(FileSystemShellUtils.match("/foo/bar/foobar/", "/foo*/*"), true);
-    Assert.assertEquals(FileSystemShellUtils.match("/foo/bar/foobar/", "/*/*/foobar"), true);
+    assertEquals(FileSystemShellUtils.match("/foo/bar/foobar/", "/foo*/*"), true);
+    assertEquals(FileSystemShellUtils.match("/foo/bar/foobar/", "/*/*/foobar"), true);
 
-    Assert.assertEquals(FileSystemShellUtils.match("/a/b/c/", "/b/*"), false);
-    Assert.assertEquals(FileSystemShellUtils.match("/", "/*/*"), false);
+    assertEquals(FileSystemShellUtils.match("/a/b/c/", "/b/*"), false);
+    assertEquals(FileSystemShellUtils.match("/", "/*/*"), false);
 
-    Assert.assertEquals(FileSystemShellUtils.match("/a/b/c", "*"), true);
-    Assert.assertEquals(FileSystemShellUtils.match("/", "/*"), true);
+    assertEquals(FileSystemShellUtils.match("/a/b/c", "*"), true);
+    assertEquals(FileSystemShellUtils.match("/", "/*"), true);
+  }
+
+  @Test
+  public void getIntArgTest() throws Exception {
+    Option opt = Option.builder("t")
+        .longOpt("test")
+        .numberOfArgs(1)
+        .required(false)
+        .build();
+
+    CommandLine cmdLine = getCmdLine(opt, "--test", "1");
+    assertEquals("Should get long form", 1, FileSystemShellUtils.getIntArg(cmdLine, opt, 0));
+
+    cmdLine = getCmdLine(opt, "-t", "5");
+    assertEquals("Should get short form", 5, FileSystemShellUtils.getIntArg(cmdLine, opt, 0));
+
+    cmdLine = getCmdLine(opt);
+    assertEquals("Should not get arg", 0, FileSystemShellUtils.getIntArg(cmdLine, opt, 0));
+  }
+
+  CommandLine getCmdLine(Option opt, String... args) throws Exception {
+    CommandLineParser parser = new DefaultParser();
+    return parser.parse(new Options().addOption(opt), args);
   }
 
   @Test
@@ -277,8 +309,8 @@ public final class FileSystemShellUtilsTest {
     Reflections reflections = new Reflections(pkgName);
     Set<Class<? extends Command>> cmdSet = reflections.getSubTypesOf(Command.class);
     for (Map.Entry<String, Command> entry : map.entrySet()) {
-      Assert.assertEquals(entry.getValue().getCommandName(), entry.getKey());
-      Assert.assertEquals(cmdSet.contains(entry.getValue().getClass()), true);
+      assertEquals(entry.getValue().getCommandName(), entry.getKey());
+      assertEquals(cmdSet.contains(entry.getValue().getClass()), true);
     }
 
     int expectSize = 0;
@@ -289,7 +321,7 @@ public final class FileSystemShellUtilsTest {
         expectSize++;
       }
     }
-    Assert.assertEquals(expectSize, map.size());
+    assertEquals(expectSize, map.size());
   }
 }
 

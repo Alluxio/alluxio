@@ -65,11 +65,11 @@ export class Metrics extends React.Component<AllProps> {
                 <tr>
                   <th scope="row">Worker Capacity</th>
                   <td>
-                    <Progress multi={true}>
-                      <Progress bar={true} color="success"
+                    <Progress className="h-50 mt-2" multi={true}>
+                      <Progress bar={true} color="dark"
                                 value={`${data.workerCapacityFreePercentage}`}>{data.workerCapacityFreePercentage}%
                         Free</Progress>
-                      <Progress bar={true} color="danger"
+                      <Progress bar={true} color="secondary"
                                 value={`${data.workerCapacityUsedPercentage}`}>{data.workerCapacityUsedPercentage}%
                         Used</Progress>
                     </Progress>

@@ -41,6 +41,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.DummyCloseableResource;
+import alluxio.util.FileSystemOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -311,7 +312,7 @@ public final class AlluxioBlockStoreTest {
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L)));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, OpenFilePOptions.getDefaultInstance(),
+        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(sConf),
             sConf);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mMasterClient.getWorkerInfoList()).thenReturn(Collections.emptyList());
@@ -326,7 +327,7 @@ public final class AlluxioBlockStoreTest {
     URIStatus dummyStatus = new URIStatus(
         new FileInfo().setPersisted(false).setBlockIds(Collections.singletonList(0L)));
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, OpenFilePOptions.getDefaultInstance(), sConf);
+        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(sConf), sConf);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mMasterClient.getWorkerInfoList()).thenReturn(Collections.emptyList());
 
@@ -466,7 +467,7 @@ public final class AlluxioBlockStoreTest {
         .getArgumentAt(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
         .getNetAddress());
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, OpenFilePOptions.getDefaultInstance(), sConf);
+        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(sConf), sConf);
     options.setUfsReadLocationPolicy(mockPolicy);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     when(mMasterClient.getWorkerInfoList()).thenReturn(Arrays.stream(workers)
@@ -504,7 +505,7 @@ public final class AlluxioBlockStoreTest {
         .getArgumentAt(0, GetWorkerOptions.class).getBlockWorkerInfos().iterator().next()
         .getNetAddress());
     InStreamOptions options =
-        new InStreamOptions(dummyStatus, OpenFilePOptions.getDefaultInstance(), sConf);
+        new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(sConf), sConf);
     options.setUfsReadLocationPolicy(mockPolicy);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     when(mMasterClient.getWorkerInfoList()).thenReturn(Arrays.stream(workers)

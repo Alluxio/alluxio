@@ -18,7 +18,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import alluxio.conf.ServerConfiguration;
@@ -75,11 +74,7 @@ public class AsyncJournalWriterTest {
     for (int i = 1; i <= entries; i++) {
       mAsyncJournalWriter.flush(i);
     }
-    if (batchingEnabled) {
-      verify(mMockJournalWriter, atLeastOnce()).flush();
-    } else {
-      verify(mMockJournalWriter, times(entries)).flush();
-    }
+    verify(mMockJournalWriter, atLeastOnce()).flush();
   }
 
   @Test(timeout = 10000)
@@ -99,6 +94,15 @@ public class AsyncJournalWriterTest {
    */
   public void failedWriteInternal(boolean batchingEnabled) throws Exception {
     setupAsyncJournalWriter(batchingEnabled);
+
+    // Start failing journal writes.
+    // PS: Need to stop the writer before mocking because mMockJournalWriter could be
+    // acceessed concurrently by the internal flush thread.
+    mAsyncJournalWriter.stop();
+    doThrow(new IOException("entry write failed")).when(mMockJournalWriter)
+            .write(any(JournalEntry.class));
+    mAsyncJournalWriter.start();
+
     int entries = 5;
 
     for (int i = 0; i < entries; i++) {
@@ -106,10 +110,6 @@ public class AsyncJournalWriterTest {
       // Assuming the flush counter starts from 0
       assertEquals(i + 1, flushCounter);
     }
-
-    // Start failing journal writes.
-    doThrow(new IOException("entry write failed")).when(mMockJournalWriter)
-        .write(any(JournalEntry.class));
 
     // Flushes should fail.
     for (int i = 1; i <= entries; i++) {
@@ -122,17 +122,17 @@ public class AsyncJournalWriterTest {
     }
 
     // Allow journal writes to succeed.
+    // PS: Need to stop the writer before mocking because mMockJournalWriter could be
+    // acceessed concurrently by the internal flush thread.
+    mAsyncJournalWriter.stop();
     doNothing().when(mMockJournalWriter).write(any(JournalEntry.class));
+    mAsyncJournalWriter.start();
 
     // Flushes should succeed.
     for (int i = 1; i <= entries; i++) {
       mAsyncJournalWriter.flush(i);
     }
-    if (batchingEnabled) {
-      verify(mMockJournalWriter, atLeastOnce()).flush();
-    } else {
-      verify(mMockJournalWriter, times(entries)).flush();
-    }
+    verify(mMockJournalWriter, atLeastOnce()).flush();
   }
 
   @Test(timeout = 10000)
@@ -154,14 +154,18 @@ public class AsyncJournalWriterTest {
     setupAsyncJournalWriter(batchingEnabled);
     int entries = 5;
 
+    // Start failing journal flushes.
+    // PS: Need to stop the writer before mocking because mMockJournalWriter could be
+    // acceessed concurrently by the internal flush thread.
+    mAsyncJournalWriter.stop();
+    doThrow(new IOException("flush failed")).when(mMockJournalWriter).flush();
+    mAsyncJournalWriter.start();
+
     for (int i = 0; i < entries; i++) {
       long flushCounter = mAsyncJournalWriter.appendEntry(JournalEntry.getDefaultInstance());
       // Assuming the flush counter starts from 0
       assertEquals(i + 1, flushCounter);
     }
-
-    // Start failing journal flushes.
-    doThrow(new IOException("flush failed")).when(mMockJournalWriter).flush();
 
     // Flushes should fail.
     for (int i = 1; i <= entries; i++) {
@@ -174,18 +178,17 @@ public class AsyncJournalWriterTest {
     }
 
     // Allow journal flushes to succeed.
+    // PS: Need to stop the writer before mocking because mMockJournalWriter could be
+    // acceessed concurrently by the internal flush thread.
+    mAsyncJournalWriter.stop();
     doNothing().when(mMockJournalWriter).flush();
+    mAsyncJournalWriter.start();
 
     // Flushes should succeed.
     for (int i = 1; i <= entries; i++) {
       mAsyncJournalWriter.flush(i);
     }
-    if (batchingEnabled) {
-      verify(mMockJournalWriter, atLeastOnce()).flush();
-    } else {
-      // The first half of the calls were the failed flush calls.
-      verify(mMockJournalWriter, times(2 * entries)).flush();
-    }
+    verify(mMockJournalWriter, atLeastOnce()).flush();
   }
 
   @Test(timeout = 10000)

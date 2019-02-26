@@ -46,6 +46,8 @@ public final class MasterWebServer extends WebServer {
   public static final String ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY =
       "Alluxio Master FileSystem client";
 
+  private final FileSystem mFileSystem;
+
   /**
    * Creates a new instance of {@link MasterWebServer}.
    *
@@ -61,6 +63,7 @@ public final class MasterWebServer extends WebServer {
     ResourceConfig config = new ResourceConfig()
         .packages("alluxio.master", "alluxio.master.block", "alluxio.master.file")
         .register(JacksonProtobufObjectMapperProvider.class);
+    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
     // Override the init method to inject a reference to AlluxioMaster into the servlet context.
     // ServletContext may not be modified until after super.init() is called.
     ServletContainer servlet = new ServletContainer(config) {
@@ -70,8 +73,7 @@ public final class MasterWebServer extends WebServer {
       public void init() throws ServletException {
         super.init();
         getServletContext().setAttribute(ALLUXIO_MASTER_SERVLET_RESOURCE_KEY, masterProcess);
-        getServletContext().setAttribute(ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY,
-            FileSystem.Factory.create(ServerConfiguration.global()));
+        getServletContext().setAttribute(ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY, mFileSystem);
       }
     };
 
@@ -95,5 +97,11 @@ public final class MasterWebServer extends WebServer {
     } catch (MalformedURLException e) {
       LOG.error("ERROR: resource path is malformed", e);
     }
+  }
+
+  @Override
+  public void stop() throws Exception {
+    mFileSystem.close();
+    super.stop();
   }
 }

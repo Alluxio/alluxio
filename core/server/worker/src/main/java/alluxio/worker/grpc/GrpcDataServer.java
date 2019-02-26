@@ -11,11 +11,13 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.network.ChannelType;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
@@ -52,9 +54,10 @@ public final class GrpcDataServer implements DataServer {
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIME_MS);
   private final long mKeepAliveTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS);
-
   private final long mFlowControlWindow =
       ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_FLOWCONTROL_WINDOW);
+  private final long mMaxInboundMessageSize =
+      ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE);
   private final long mQuietPeriodMs =
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
 
@@ -63,6 +66,9 @@ public final class GrpcDataServer implements DataServer {
   private GrpcServer mServer;
   /** non-null when the server is used with domain socket address.  */
   private DomainSocketAddress mDomainSocketAddress = null;
+
+  private final FileSystemContext mFsContext =
+      FileSystemContext.create(ServerConfiguration.global());
 
   /**
    * Creates a new instance of {@link GrpcDataServer}.
@@ -73,12 +79,17 @@ public final class GrpcDataServer implements DataServer {
   public GrpcDataServer(final SocketAddress address, final WorkerProcess workerProcess) {
     mSocketAddress = address;
     try {
+      BlockWorkerImpl blockWorkerService = new BlockWorkerImpl(workerProcess, mFsContext);
       mServer = createServerBuilder(address, NettyUtils.getWorkerChannel(
           ServerConfiguration.global()))
-          .addService(new GrpcService(new BlockWorkerImpl(workerProcess)))
+          .addService(new GrpcService(
+              GrpcSerializationUtils.overrideMethods(blockWorkerService.bindService(),
+                  blockWorkerService.getOverriddenMethodDescriptors())
+          ))
           .flowControlWindow((int) mFlowControlWindow)
           .keepAliveTime(mKeepAliveTimeMs, TimeUnit.MILLISECONDS)
           .keepAliveTimeout(mKeepAliveTimeoutMs, TimeUnit.MILLISECONDS)
+          .maxInboundMessageSize((int) mMaxInboundMessageSize)
           .build()
           .start();
       // There is no way to query domain socket address afterwards.
@@ -126,8 +137,10 @@ public final class GrpcDataServer implements DataServer {
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
+    mFsContext.close();
     if (mServer != null) {
+      LOG.info("Shutting down RPC Server at {}.", getBindAddress());
       boolean completed = mServer.shutdown();
       if (!completed) {
         LOG.warn("RPC Server shutdown timed out.");

@@ -55,7 +55,7 @@ final class MasterUtils {
       });
     }
     try {
-      CommonUtils.invokeAll(callables, 10 * Constants.SECOND_MS);
+      CommonUtils.invokeAll(callables, 10 * Constants.MINUTE_MS);
     } catch (Exception e) {
       throw new RuntimeException("Failed to start masters", e);
     }

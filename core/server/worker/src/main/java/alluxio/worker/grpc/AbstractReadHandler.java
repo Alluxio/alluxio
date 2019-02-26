@@ -16,10 +16,11 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
-import alluxio.grpc.GrpcExceptionUtils;
+import alluxio.grpc.DataMessage;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.resource.LockResource;
+import alluxio.util.LogUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -27,11 +28,13 @@ import com.google.common.base.Preconditions;
 import com.google.protobuf.UnsafeByteOperations;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.grpc.stub.ServerCallStreamObserver;
+import io.grpc.internal.SerializingExecutor;
+import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -69,6 +72,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
   /** The executor to run {@link DataReader}. */
   private final ExecutorService mDataReaderExecutor;
+  /** A serializing executor for sending responses. */
+  private Executor mSerializingExecutor;
 
   private final ReentrantLock mLock = new ReentrantLock();
 
@@ -89,6 +94,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   AbstractReadHandler(ExecutorService executorService,
       StreamObserver<ReadResponse> responseObserver) {
     mDataReaderExecutor = executorService;
+    mSerializingExecutor = new SerializingExecutor(executorService);
     mResponseObserver = responseObserver;
   }
 
@@ -97,6 +103,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     // Expected state: context equals null as this handler is new for request.
     // Otherwise, notify the client an illegal state. Note that, we reset the context before
     // validation msg as validation may require to update error in context.
+    LOG.debug("Received read request {}.", request);
     try (LockResource lr = new LockResource(mLock)) {
       Preconditions.checkState(mContext == null || !mContext.isDataReaderActive());
       mContext = createRequestContext(request);
@@ -105,13 +112,17 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
       mContext.setDataReaderActive(true);
     } catch (Exception e) {
-      mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
+      LogUtils.warnWithException(LOG, "Exception occurred while processing read request {}.",
+          request, e);
+      mSerializingExecutor.execute(() -> mResponseObserver
+          .onError(AlluxioStatusException.fromCheckedException(e).toGrpcStatusException()));
     }
   }
 
   @Override
   public void onError(Throwable cause) {
-    LOG.error("Exception caught in AbstractReadHandler:", cause);
+    LogUtils.warnWithException(LOG, "Exception occurred while processing read request {}",
+        mContext == null ? null : mContext.getRequest(), cause);
     setError(new Error(AlluxioStatusException.fromThrowable(cause), false));
   }
 
@@ -235,7 +246,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    * A runnable that reads data and writes them to the channel.
    */
   protected abstract class DataReader implements Runnable {
-    private final ServerCallStreamObserver<ReadResponse> mResponse;
+    private final CallStreamObserver<ReadResponse> mResponse;
     private final T mContext;
     private final ReadRequest mRequest;
     private final long mChunkSize;
@@ -250,7 +261,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mContext = context;
       mRequest = context.getRequest();
       mChunkSize = Math.min(mRequest.getChunkSize(), MAX_CHUNK_SIZE);
-      mResponse = (ServerCallStreamObserver<ReadResponse>) response;
+      mResponse = (CallStreamObserver<ReadResponse>) response;
     }
 
     @Override
@@ -302,20 +313,37 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
           }
 
           if (chunk != null) {
-            ReadResponse response = ReadResponse.newBuilder().setChunk(Chunk.newBuilder()
-                .setData(UnsafeByteOperations.unsafeWrap(chunk.getReadOnlyByteBuffer())).build())
-                .build();
-            mResponse.onNext(response);
-            incrementMetrics(chunk.getLength());
+            DataBuffer finalChunk = chunk;
+            mSerializingExecutor.execute(() -> {
+              try {
+                ReadResponse response = ReadResponse.newBuilder().setChunk(Chunk.newBuilder()
+                    .setData(UnsafeByteOperations.unsafeWrap(finalChunk.getReadOnlyByteBuffer()))
+                ).build();
+                if (mResponse instanceof DataMessageServerStreamObserver) {
+                  ((DataMessageServerStreamObserver<ReadResponse>) mResponse)
+                      .onNext(new DataMessage<>(response, finalChunk));
+                } else {
+                  mResponse.onNext(response);
+                }
+                incrementMetrics(finalChunk.getLength());
+              } catch (Exception e) {
+                LogUtils.warnWithException(LOG,
+                    "Exception occurred while sending data for read request {}.",
+                    mContext.getRequest(), e);
+                setError(new Error(AlluxioStatusException.fromThrowable(e), true));
+              } finally {
+                if (finalChunk != null) {
+                  finalChunk.release();
+                }
+              }
+            });
           }
         } catch (Exception e) {
-          LOG.error("Failed to read data.", e);
+          LogUtils.warnWithException(LOG,
+              "Exception occurred while reading data for read request {}.", mContext.getRequest(),
+              e);
           setError(new Error(AlluxioStatusException.fromThrowable(e), true));
           continue;
-        } finally {
-          if (chunk != null) {
-            chunk.release();
-          }
         }
       }
 
@@ -333,6 +361,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
         try {
           completeRequest(mContext);
         } catch (Exception e) {
+          LogUtils.warnWithException(LOG, "Exception occurred while completing read request {}.",
+              mContext.getRequest(), e);
           setError(new Error(AlluxioStatusException.fromThrowable(e), true));
         }
         if (eof) {
@@ -367,44 +397,50 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
      * Writes an error read response to the channel and closes the channel after that.
      */
     private void replyError(Error error) {
-      try {
-        mResponse.onError(GrpcExceptionUtils.toGrpcStatusException(error.getCause()));
-      } catch (StatusRuntimeException e) {
-        // Ignores the error when client already closed the stream.
-        if (e.getStatus().getCode() != Status.Code.CANCELLED) {
-          throw e;
+      mSerializingExecutor.execute(() -> {
+        try {
+          mResponse.onError(error.getCause().toGrpcStatusException());
+        } catch (StatusRuntimeException e) {
+          // Ignores the error when client already closed the stream.
+          if (e.getStatus().getCode() != Status.Code.CANCELLED) {
+            throw e;
+          }
         }
-      }
+      });
     }
 
     /**
      * Writes a success response.
      */
     private void replyEof() {
-      try {
-        Preconditions.checkState(!mContext.isDoneUnsafe());
-        mContext.setDoneUnsafe(true);
-        mResponse.onCompleted();
-      } catch (StatusRuntimeException e) {
-        if (e.getStatus().getCode() != Status.Code.CANCELLED) {
-          throw e;
+      mSerializingExecutor.execute(() -> {
+        try {
+          Preconditions.checkState(!mContext.isDoneUnsafe());
+          mContext.setDoneUnsafe(true);
+          mResponse.onCompleted();
+        } catch (StatusRuntimeException e) {
+          if (e.getStatus().getCode() != Status.Code.CANCELLED) {
+            throw e;
+          }
         }
-      }
+      });
     }
 
     /**
      * Writes a cancel response.
      */
     private void replyCancel() {
-      try {
-        Preconditions.checkState(!mContext.isDoneUnsafe());
-        mContext.setDoneUnsafe(true);
-        mResponse.onCompleted();
-      } catch (StatusRuntimeException e) {
-        if (e.getStatus().getCode() != Status.Code.CANCELLED) {
-          throw e;
+      mSerializingExecutor.execute(() -> {
+        try {
+          Preconditions.checkState(!mContext.isDoneUnsafe());
+          mContext.setDoneUnsafe(true);
+          mResponse.onCompleted();
+        } catch (StatusRuntimeException e) {
+          if (e.getStatus().getCode() != Status.Code.CANCELLED) {
+            throw e;
+          }
         }
-      }
+      });
     }
   }
 }

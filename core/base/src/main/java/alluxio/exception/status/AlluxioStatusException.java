@@ -30,6 +30,8 @@ import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 
 import com.google.common.base.Preconditions;
+import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -111,6 +113,14 @@ public class AlluxioStatusException extends IOException {
   }
 
   /**
+   * @return a gRPC status exception representation of this exception
+   */
+  public StatusException toGrpcStatusException() {
+    return io.grpc.Status.fromCode(mStatus.toGrpcCode()).withDescription(getMessage())
+        .asException();
+  }
+
+  /**
    * Converts an Alluxio exception from status and message representation to native representation.
    * The status must not be null or {@link Status#OK}.
    *
@@ -158,6 +168,54 @@ public class AlluxioStatusException extends IOException {
   }
 
   /**
+   * Converts an Alluxio exception from status and message representation to native representation.
+   * The status must not be null or {@link Status#OK}.
+   *
+   * @param status the status
+   * @param m the message
+   * @param cause the cause
+   * @return an {@link AlluxioStatusException} for the given status and message
+   */
+  public static AlluxioStatusException from(Status status, String m, Throwable cause) {
+    Preconditions.checkNotNull(status, "status");
+    Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
+    switch (status) {
+      case CANCELED:
+        return new CanceledException(m, cause);
+      case INVALID_ARGUMENT:
+        return new InvalidArgumentException(m, cause);
+      case DEADLINE_EXCEEDED:
+        return new DeadlineExceededException(m, cause);
+      case NOT_FOUND:
+        return new NotFoundException(m, cause);
+      case ALREADY_EXISTS:
+        return new AlreadyExistsException(m, cause);
+      case PERMISSION_DENIED:
+        return new PermissionDeniedException(m, cause);
+      case UNAUTHENTICATED:
+        return new UnauthenticatedException(m, cause);
+      case RESOURCE_EXHAUSTED:
+        return new ResourceExhaustedException(m, cause);
+      case FAILED_PRECONDITION:
+        return new FailedPreconditionException(m, cause);
+      case ABORTED:
+        return new AbortedException(m, cause);
+      case OUT_OF_RANGE:
+        return new OutOfRangeException(m, cause);
+      case UNIMPLEMENTED:
+        return new UnimplementedException(m, cause);
+      case INTERNAL:
+        return new InternalException(m, cause);
+      case UNAVAILABLE:
+        return new UnavailableException(m, cause);
+      case DATA_LOSS:
+        return new DataLossException(m, cause);
+      default:
+        return new UnknownException(m, cause);
+    }
+  }
+
+  /**
    * Converts checked throwables to Alluxio status exceptions. Unchecked throwables should not be
    * passed to this method. Use Throwables.propagateIfPossible before passing a Throwable to this
    * method.
@@ -192,10 +250,24 @@ public class AlluxioStatusException extends IOException {
    * @return the converted {@link AlluxioStatusException}
    */
   public static AlluxioStatusException fromThrowable(Throwable t) {
+    if (t instanceof StatusRuntimeException) {
+      return fromStatusRuntimeException((StatusRuntimeException) t);
+    }
     if (t instanceof Error || t instanceof RuntimeException) {
       return new InternalException(t);
     }
     return fromCheckedException(t);
+  }
+
+  /**
+   * Converts a gRPC StatusRuntimeException to an Alluxio status exception.
+   *
+   * @param e a gRPC StatusRuntimeException
+   * @return the converted {@link AlluxioStatusException}
+   */
+  public static AlluxioStatusException fromStatusRuntimeException(StatusRuntimeException e) {
+    return AlluxioStatusException.from(Status.from(e.getStatus().getCode()),
+        e.getStatus().getDescription(), e);
   }
 
   /**

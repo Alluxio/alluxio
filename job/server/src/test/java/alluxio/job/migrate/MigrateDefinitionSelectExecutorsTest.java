@@ -9,9 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job.move;
+package alluxio.job.migrate;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,7 +24,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.job.JobMasterContext;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.BlockInfo;
@@ -43,7 +41,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -56,11 +53,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Unit tests for {@link MoveDefinition#selectExecutors(MoveConfig, List, JobMasterContext)}.
+ * Unit tests for {@link MigrateDefinition#selectExecutors(MigrateConfig, List, JobMasterContext)}.
+ * No matter whether to delete source, selectExecutors should have the same behavior.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class})
-public final class MoveDefinitionSelectExecutorsTest {
+public final class MigrateDefinitionSelectExecutorsTest {
   private static final List<BlockWorkerInfo> BLOCK_WORKERS =
       new ImmutableList.Builder<BlockWorkerInfo>()
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host0"), 0, 0))
@@ -98,27 +96,27 @@ public final class MoveDefinitionSelectExecutorsTest {
   }
 
   @Test
-  public void moveToSelf() throws Exception {
+  public void migrateToSelf() throws Exception {
     createDirectory("/src");
-    Assert.assertEquals(Maps.newHashMap(), assignMoves("/src", "/src"));
+    Assert.assertEquals(Maps.newHashMap(), assignMigrates("/src", "/src"));
   }
 
   @Test
   public void assignToLocalWorker() throws Exception {
     createFileWithBlocksOnWorkers("/src", 0);
     setPathToNotExist("/dst");
-    Map<WorkerInfo, List<MoveCommand>> expected = ImmutableMap.of(JOB_WORKERS.get(0),
-        Collections.singletonList(new MoveCommand("/src", "/dst")));
-    Assert.assertEquals(expected, assignMoves("/src", "/dst"));
+    Map<WorkerInfo, List<MigrateCommand>> expected = ImmutableMap.of(JOB_WORKERS.get(0),
+        Collections.singletonList(new MigrateCommand("/src", "/dst")));
+    Assert.assertEquals(expected, assignMigrates("/src", "/dst"));
   }
 
   @Test
   public void assignToWorkerWithMostBlocks() throws Exception {
     createFileWithBlocksOnWorkers("/src", 3, 1, 1, 3, 1);
     setPathToNotExist("/dst");
-    Map<WorkerInfo, List<MoveCommand>> expected = ImmutableMap.of(JOB_WORKERS.get(1),
-        Collections.singletonList(new MoveCommand("/src", "/dst")));
-    Assert.assertEquals(expected, assignMoves("/src", "/dst"));
+    Map<WorkerInfo, List<MigrateCommand>> expected = ImmutableMap.of(JOB_WORKERS.get(1),
+        Collections.singletonList(new MigrateCommand("/src", "/dst")));
+    Assert.assertEquals(expected, assignMigrates("/src", "/dst"));
   }
 
   @Test
@@ -134,54 +132,52 @@ public final class MoveDefinitionSelectExecutorsTest {
     // Say the destination doesn't exist.
     setPathToNotExist("/dst");
 
-    List<MoveCommand> moveCommandsWorker0 = Lists.newArrayList(
-        new MoveCommand("/dir/src1", "/dst/src1"), new MoveCommand("/dir/src3", "/dst/src3"));
-    List<MoveCommand> moveCommandsWorker2 =
-        Lists.newArrayList(new MoveCommand("/dir/src2", "/dst/src2"));
-    ImmutableMap<WorkerInfo, List<MoveCommand>> expected =
-        ImmutableMap.of(JOB_WORKERS.get(0), moveCommandsWorker0, JOB_WORKERS.get(2),
-            moveCommandsWorker2);
-    Assert.assertEquals(expected, assignMoves("/dir", "/dst"));
+    List<MigrateCommand> migrateCommandsWorker0 = Lists.newArrayList(
+        new MigrateCommand("/dir/src1", "/dst/src1"), new MigrateCommand("/dir/src3", "/dst/src3"));
+    List<MigrateCommand> migrateCommandsWorker2 =
+        Lists.newArrayList(new MigrateCommand("/dir/src2", "/dst/src2"));
+    ImmutableMap<WorkerInfo, List<MigrateCommand>> expected =
+        ImmutableMap.of(JOB_WORKERS.get(0), migrateCommandsWorker0, JOB_WORKERS.get(2),
+                migrateCommandsWorker2);
+    Assert.assertEquals(expected, assignMigrates("/dir", "/dst"));
   }
 
   @Test
-  public void moveEmptyDirectory() throws Exception {
+  public void migrateEmptyDirectory() throws Exception {
     createDirectory("/src");
     createDirectory("/dst");
     setPathToNotExist("/dst/src");
-    assignMoves("/src", "/dst/src");
-    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src")),
-        any(CreateDirectoryPOptions.class));
+    assignMigrates("/src", "/dst/src");
+    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src")));
   }
 
   @Test
-  public void moveNestedEmptyDirectory() throws Exception {
+  public void migrateNestedEmptyDirectory() throws Exception {
     createDirectory("/src");
     FileInfo nested = createDirectory("/src/nested");
     setChildren("/src", nested);
     createDirectory("/dst");
     setPathToNotExist("/dst/src");
-    assignMoves("/src", "/dst/src");
-    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src/nested")),
-        Matchers.eq(CreateDirectoryPOptions.getDefaultInstance()));
+    assignMigrates("/src", "/dst/src");
+    verify(mMockFileSystem).createDirectory(eq(new AlluxioURI("/dst/src/nested")));
   }
 
   @Test
-  public void moveToSubpath() throws Exception {
+  public void migrateToSubpath() throws Exception {
     try {
-      assignMovesFail("/src", "/src/dst");
+      assignMigratesFail("/src", "/src/dst");
     } catch (RuntimeException e) {
       Assert.assertEquals(
-          ExceptionMessage.MOVE_CANNOT_BE_TO_SUBDIRECTORY.getMessage("/src", "/src/dst"),
+          ExceptionMessage.MIGRATE_CANNOT_BE_TO_SUBDIRECTORY.getMessage("/src", "/src/dst"),
           e.getMessage());
     }
   }
 
   @Test
-  public void moveMissingSource() throws Exception {
+  public void migrateMissingSource() throws Exception {
     setPathToNotExist("/notExist");
     try {
-      assignMovesFail("/notExist", "/dst");
+      assignMigratesFail("/notExist", "/dst");
     } catch (FileDoesNotExistException e) {
       Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/notExist"),
           e.getMessage());
@@ -189,91 +185,94 @@ public final class MoveDefinitionSelectExecutorsTest {
   }
 
   @Test
-  public void moveMissingDestinationParent() throws Exception {
+  public void migrateMissingDestinationParent() throws Exception {
     createDirectory("/src");
     setPathToNotExist("/dst");
     setPathToNotExist("/dst/missing");
     try {
-      assignMovesFail("/src", "/dst/missing");
+      assignMigratesFail("/src", "/dst/missing");
     } catch (Exception e) {
       Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/dst"), e.getMessage());
     }
   }
 
   @Test
-  public void moveIntoFile() throws Exception {
+  public void migrateIntoFile() throws Exception {
     createFile("/src");
     createFile("/dst");
     setPathToNotExist("/dst/src");
     try {
-      assignMovesFail("/src", "/dst/src");
+      assignMigratesFail("/src", "/dst/src");
     } catch (Exception e) {
-      Assert.assertEquals(ExceptionMessage.MOVE_TO_FILE_AS_DIRECTORY.getMessage("/dst/src", "/dst"),
-          e.getMessage());
+      Assert.assertEquals(ExceptionMessage.MIGRATE_TO_FILE_AS_DIRECTORY.getMessage("/dst/src",
+          "/dst"), e.getMessage());
     }
   }
 
   @Test
-  public void moveFileToDirectory() throws Exception {
+  public void migrateFileToDirectory() throws Exception {
     createFile("/src");
     createDirectory("/dst");
     try {
-      assignMovesFail("/src", "/dst");
+      assignMigratesFail("/src", "/dst");
     } catch (Exception e) {
-      Assert.assertEquals(ExceptionMessage.MOVE_FILE_TO_DIRECTORY.getMessage("/src", "/dst"),
+      Assert.assertEquals(ExceptionMessage.MIGRATE_FILE_TO_DIRECTORY.getMessage("/src", "/dst"),
           e.getMessage());
     }
   }
 
   @Test
-  public void moveDirectoryToFile() throws Exception {
+  public void migrateDirectoryToFile() throws Exception {
     createDirectory("/src");
     createFile("/dst");
     try {
-      assignMovesFail("/src", "/dst");
+      assignMigratesFail("/src", "/dst");
     } catch (Exception e) {
-      Assert.assertEquals(ExceptionMessage.MOVE_DIRECTORY_TO_FILE.getMessage("/src", "/dst"),
+      Assert.assertEquals(ExceptionMessage.MIGRATE_DIRECTORY_TO_FILE.getMessage("/src", "/dst"),
           e.getMessage());
     }
   }
 
   @Test
-  public void moveFileToExistingDestinationWithoutOverwrite() throws Exception {
+  public void migrateFileToExistingDestinationWithoutOverwrite() throws Exception {
     createFile("/src");
     createFile("/dst");
     // Test with source being a file.
     try {
-      assignMovesFail("/src", "/dst");
+      assignMigratesFail("/src", "/dst");
     } catch (FileAlreadyExistsException e) {
-      Assert.assertEquals(ExceptionMessage.MOVE_NEED_OVERWRITE.getMessage("/dst"), e.getMessage());
+      Assert.assertEquals(ExceptionMessage.MIGRATE_NEED_OVERWRITE.getMessage("/dst"),
+          e.getMessage());
     }
   }
 
   @Test
-  public void moveDirectoryToExistingDestinationWithoutOverwrite() throws Exception {
+  public void migrateDirectoryToExistingDestinationWithoutOverwrite() throws Exception {
     // Test with the source being a folder.
     createDirectory("/src");
     createDirectory("/dst");
     try {
-      assignMovesFail("/src", "/dst");
+      assignMigratesFail("/src", "/dst");
     } catch (FileAlreadyExistsException e) {
-      Assert.assertEquals(ExceptionMessage.MOVE_NEED_OVERWRITE.getMessage("/dst"), e.getMessage());
+      Assert.assertEquals(ExceptionMessage.MIGRATE_NEED_OVERWRITE.getMessage("/dst"),
+          e.getMessage());
     }
   }
 
   @Test
-  public void moveFileToExistingDestinationWithOverwrite() throws Exception {
+  public void migrateFileToExistingDestinationWithOverwrite() throws Exception {
     createFileWithBlocksOnWorkers("/src", 0);
     createFile("/dst");
 
-    Map<WorkerInfo, List<MoveCommand>> expected = ImmutableMap.of(JOB_WORKERS.get(0),
-        Collections.singletonList(new MoveCommand("/src", "/dst")));
+    Map<WorkerInfo, List<MigrateCommand>> expected = ImmutableMap.of(JOB_WORKERS.get(0),
+        Collections.singletonList(new MigrateCommand("/src", "/dst")));
     // Set overwrite to true.
-    Assert.assertEquals(expected, assignMoves(new MoveConfig("/src", "/dst", "THROUGH", true)));
+    Assert.assertEquals(expected, assignMigrates(new MigrateConfig("/src", "/dst", "THROUGH",
+        true, false)));
   }
 
   @Test
-  public void moveDirectoryIntoDirectoryWithOverwrite() throws Exception {
+  public void migrateDirectoryIntoDirectoryWithOverwrite() throws Exception {
     createDirectory("/src");
     FileInfo nested = createDirectory("/src/nested");
     FileInfo moreNested = createDirectory("/src/nested/moreNested");
@@ -285,69 +284,72 @@ public final class MoveDefinitionSelectExecutorsTest {
     setChildren("/src/nested/moreNested", file3);
     createDirectory("/dst");
 
-    List<MoveCommand> moveCommandsWorker1 =
-        Lists.newArrayList(new MoveCommand("/src/nested/file2", "/dst/nested/file2"),
-            new MoveCommand("/src/nested/moreNested/file3", "/dst/nested/moreNested/file3"));
-    List<MoveCommand> moveCommandsWorker2 =
-        Lists.newArrayList(new MoveCommand("/src/file1", "/dst/file1"));
-    ImmutableMap<WorkerInfo, List<MoveCommand>> expected =
-        ImmutableMap.of(JOB_WORKERS.get(1), moveCommandsWorker1, JOB_WORKERS.get(2),
-            moveCommandsWorker2);
-    Assert.assertEquals(expected, assignMoves(new MoveConfig("/src", "/dst", "THROUGH", true)));
+    List<MigrateCommand> migrateCommandsWorker1 =
+        Lists.newArrayList(new MigrateCommand("/src/nested/file2", "/dst/nested/file2"),
+            new MigrateCommand("/src/nested/moreNested/file3",
+                    "/dst/nested/moreNested/file3"));
+    List<MigrateCommand> migrateCommandsWorker2 =
+        Lists.newArrayList(new MigrateCommand("/src/file1", "/dst/file1"));
+    ImmutableMap<WorkerInfo, List<MigrateCommand>> expected =
+        ImmutableMap.of(JOB_WORKERS.get(1), migrateCommandsWorker1, JOB_WORKERS.get(2),
+                migrateCommandsWorker2);
+    Assert.assertEquals(expected, assignMigrates(new MigrateConfig(
+            "/src", "/dst", "THROUGH", true, false)));
   }
 
   @Test
-  public void moveUncachedFile() throws Exception {
+  public void migrateUncachedFile() throws Exception {
     createFileWithBlocksOnWorkers("/src");
     setPathToNotExist("/dst");
-    Assert.assertEquals(1, assignMoves("/src", "/dst").size());
+    Assert.assertEquals(1, assignMigrates("/src", "/dst").size());
   }
 
   @Test
-  public void moveNoLocalJobWorker() throws Exception {
+  public void migrateNoLocalJobWorker() throws Exception {
     createFileWithBlocksOnWorkers("/src", 0);
     setPathToNotExist("/dst");
 
-    Map<WorkerInfo, ArrayList<MoveCommand>> assignments =
-        new MoveDefinition(mMockFileSystemContext, mMockFileSystem).selectExecutors(
-            new MoveConfig("/src", "/dst", "THROUGH", true), ImmutableList.of(JOB_WORKER_3),
-            new JobMasterContext(1, mMockUfsManager));
+    Map<WorkerInfo, ArrayList<MigrateCommand>> assignments =
+        new MigrateDefinition(mMockFileSystemContext, mMockFileSystem).selectExecutors(
+            new MigrateConfig("/src", "/dst", "THROUGH", true, false),
+            ImmutableList.of(JOB_WORKER_3), new JobMasterContext(1, mMockUfsManager));
 
     Assert.assertEquals(ImmutableMap.of(JOB_WORKER_3,
-        new ArrayList<MoveCommand>(Arrays.asList(new MoveCommand("/src", "/dst")))), assignments);
+        new ArrayList<>(Arrays.asList(new MigrateCommand("/src", "/dst")))), assignments);
   }
 
   /**
-   * Runs selectExecutors for the move from source to destination.
+   * Runs selectExecutors for the migrate from source to destination.
    */
-  private Map<WorkerInfo, ArrayList<MoveCommand>> assignMoves(String source, String destination)
-      throws Exception {
-    return assignMoves(new MoveConfig(source, destination, "THROUGH", false));
+  private Map<WorkerInfo, ArrayList<MigrateCommand>> assignMigrates(String source,
+      String destination) throws Exception {
+    return assignMigrates(new MigrateConfig(source, destination, "THROUGH", false, false));
   }
 
   /**
-   * Runs selectExecutors for the move from source to destination with the given writeType and
+   * Runs selectExecutors for the migrate from source to destination with the given writeType and
    * overwrite value.
    */
-  private Map<WorkerInfo, ArrayList<MoveCommand>> assignMoves(MoveConfig config) throws Exception {
-    return new MoveDefinition(mMockFileSystemContext, mMockFileSystem).selectExecutors(config,
+  private Map<WorkerInfo, ArrayList<MigrateCommand>> assignMigrates(MigrateConfig config)
+      throws Exception {
+    return new MigrateDefinition(mMockFileSystemContext, mMockFileSystem).selectExecutors(config,
         JOB_WORKERS, new JobMasterContext(1, mMockUfsManager));
   }
 
   /**
    * Runs selectExecutors with the expectation that it will throw an exception.
    */
-  private void assignMovesFail(String source, String destination) throws Exception {
-    assignMovesFail(source, destination, "THROUGH", false);
+  private void assignMigratesFail(String source, String destination) throws Exception {
+    assignMigratesFail(source, destination, "THROUGH", false);
   }
 
   /**
    * Runs selectExecutors with the expectation that it will throw an exception.
    */
-  private void assignMovesFail(String source, String destination, String writeType,
+  private void assignMigratesFail(String source, String destination, String writeType,
       boolean overwrite) throws Exception {
-    Map<WorkerInfo, ArrayList<MoveCommand>> assignment =
-        assignMoves(new MoveConfig(source, destination, writeType, overwrite));
+    Map<WorkerInfo, ArrayList<MigrateCommand>> assignment =
+        assignMigrates(new MigrateConfig(source, destination, writeType, overwrite, false));
     Assert.fail(
         "Selecting executors should have failed, but it succeeded with assignment " + assignment);
   }

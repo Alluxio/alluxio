@@ -26,6 +26,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -229,8 +230,10 @@ public interface FileSystemMasterClient extends Client {
    * Schedules the async persistence of the given file.
    *
    * @param path the file path
+   * @param options options to use when scheduling the persist
    */
-  void scheduleAsyncPersist(AlluxioURI path) throws AlluxioStatusException;
+  void scheduleAsyncPersist(AlluxioURI path, ScheduleAsyncPersistencePOptions options)
+      throws AlluxioStatusException;
 
   /**
    * Unmounts the given Alluxio path.
