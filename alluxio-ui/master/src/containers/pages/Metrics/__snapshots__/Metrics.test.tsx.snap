@@ -173,7 +173,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
               }
             >
               <div
-                className="App pt-5 pb-4"
+                className="App h-100 pt-5 pb-4"
               >
                 <div
                   className="w-100 sticky-top header-wrapper"
@@ -722,7 +722,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="w-100 mt-3"
+                  className="h-100 w-100 pt-3"
                 >
                   <Switch>
                     <Route
@@ -853,376 +853,28 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                           refresh={false}
                         >
                           <div
-                            className="metrics-page"
+                            className="h-100 w-100 metrics-page"
                           >
-                            <div
-                              className="container-fluid"
-                            >
+                            <LoadingMessage>
                               <div
-                                className="row"
+                                className="loadingMessageWrapper"
                               >
                                 <div
-                                  className="col-12"
+                                  className="loadingMessage text-center"
                                 >
-                                  <div
-                                    className="row"
+                                  <img
+                                    className="loadingMessageSpin"
+                                    src="alluxio-mark-tight-sm.svg"
                                   />
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Total IO Size
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
+                                  <br />
+                                  <h5
+                                    className=""
                                   >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Short-circuit Read
-                                          </th>
-                                          <td />
-                                          <th>
-                                            From Remote Instances
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Under Filesystem Read
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Alluxio Write
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Under Filesystem Write
-                                          </th>
-                                          <td />
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Total IO Throughput (Last Minute)
+                                    Please wait...
                                   </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Short-circuit Read
-                                          </th>
-                                          <td />
-                                          <th>
-                                            From Remote Instances
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Under Filesystem Read
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Alluxio Write
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Under Filesystem Write
-                                          </th>
-                                          <td />
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Cache Hit Rate (Percentage)
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Alluxio Local
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Alluxio Remote
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Miss
-                                          </th>
-                                          <td>
-                                            0.00
-                                          </td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Mounted Under FileSystem Read
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Under FileSystem
-                                          </th>
-                                          <th>
-                                            Size
-                                          </th>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Mounted Under FileSystem Write
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Under FileSystem
-                                          </th>
-                                          <th>
-                                            Size
-                                          </th>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Logical Operations
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Directories Created
-                                          </th>
-                                          <td />
-                                          <th>
-                                            File Block Infos Got
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            File Infos Got
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Files Completed
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Files Created
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Files Freed
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Files Persisted
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Files Pinned
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            New Blocks Got
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Paths Deleted
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Paths Mounted
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Paths Renamed
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Paths Unmounted
-                                          </th>
-                                          <td />
-                                          <th />
-                                          <td />
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    RPC Invocations
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            CompleteFile Operations
-                                          </th>
-                                          <td />
-                                          <th>
-                                            CreateDirectory Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            CreateFile Operations
-                                          </th>
-                                          <td />
-                                          <th>
-                                            DeletePath Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            FreeFile Operations
-                                          </th>
-                                          <td />
-                                          <th>
-                                            GetFileBlockInfo Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            GetFileInfo Operations
-                                          </th>
-                                          <td />
-                                          <th>
-                                            GetNewBlock Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Mount Operations
-                                          </th>
-                                          <td />
-                                          <th>
-                                            RenamePath Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            SetAcl Operations
-                                          </th>
-                                          <td />
-                                          <th>
-                                            SetAttribute Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Unmount Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
                                 </div>
                               </div>
-                            </div>
+                            </LoadingMessage>
                           </div>
                         </Metrics>
                       </Connect(Metrics)>

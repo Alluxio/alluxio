@@ -10,12 +10,11 @@
  */
 
 import React from 'react';
-import {LoadingMessage} from './components';
 
 export class App extends React.Component {
   public render() {
     return (
-      <div className="App">
+      <div className="App h-100">
         <header className="App-header">
           <h1 className="App-title">Welcome to the Alluxio Shared Web Application</h1>
         </header>
