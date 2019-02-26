@@ -66,12 +66,12 @@ Presto can be configured to use customized Alluxio client-side properties for th
 See
 [examples]({{ '/en/compute/Presto.html' | relativize_url }}#customize-alluxio-user-properties).
 
-## Configure Alluxio Cluster
+## Configure an Alluxio Cluster
 
-### Use Site-Property Files (Recommended)
+### `alluxio-site.properties` Files (Recommended)
 
-Alluxio admins can create and customize the property file `alluxio-site.properties` to
-configure an Alluxio master or worker.
+Alluxio admins can create and customize the properties file `alluxio-site.properties` to
+configure an Alluxio masters or workers.
 If this file does not exist, it can be created from the template file under `${ALLUXIO_HOME}/conf`:
 
 ```bash
@@ -82,70 +82,19 @@ Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Allux
 and worker before starting the cluster.
 Any updates to the server configuration requires a restart of the process.
 
-### Use Environment Variables
+### Environment Variables
 
-Alluxio supports a few frequently used configuration settings via the environment
+Alluxio supports defining a few frequently used configuration settings through environment
 variables, including:
 
 <table class="table table-striped">
 <tr><th>Environment Variable</th><th>Description</th></tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_CONF_DIR</code></td>
-  <td>path to Alluxio configuration directory.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_LOGS_DIR</code></td>
-  <td>path to Alluxio logs directory.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_MASTER_HOSTNAME</code></td>
-  <td>hostname of Alluxio master, defaults to localhost.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_UNDERFS_ADDRESS</code></td>
-  <td>under storage system address, defaults to
-<code class="highlighter-rouge">${ALLUXIO_HOME}/underFSStorage</code> which is a local file system.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_RAM_FOLDER</code></td>
-  <td>the directory where a worker stores in-memory data, defaults to <code class="highlighter-rouge">/mnt/ramdisk</code>.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_JAVA_OPTS</code></td>
-  <td>Java VM options for both Master, Worker and Alluxio Shell configuration.
-  Note that, by default <code class="highlighter-rouge">ALLUXIO_JAVA_OPTS</code> is included in both
-<code class="highlighter-rouge">ALLUXIO_MASTER_JAVA_OPTS</code>,
-<code class="highlighter-rouge">ALLUXIO_WORKER_JAVA_OPTS</code> and
-<code class="highlighter-rouge">ALLUXIO_USER_JAVA_OPTS</code>.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_MASTER_JAVA_OPTS</code></td>
-  <td>additional Java VM options for Master configuration.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_WORKER_JAVA_OPTS</code></td>
-  <td>additional Java VM options for Worker configuration. </td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_USER_JAVA_OPTS</code></td>
-  <td>additional Java VM options for Alluxio shell configuration.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_CLASSPATH</code></td>
-  <td>additional classpath entries for Alluxio processes. This is empty by default.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_HOSTNAME</code></td>
-  <td>host name of the log server. This is empty by default.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_PORT</code></td>
-  <td>port number of the log server. This is 45600 by default.</td>
-</tr>
-<tr>
-  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_LOGS_DIR</code></td>
-  <td>path to the local directory where Alluxio log server stores logs received from Alluxio servers.</td>
-</tr>
+{% for env_var in site.data.table.en.env_vars %}
+  <tr>
+    <td markdown="span">`{{env_var.name}}`</td>
+    <td markdown="span">{{env_var.description}}</td>
+  </tr>
+{% endfor %}
 </table>
 
 For example, to setup the following:
@@ -167,10 +116,10 @@ If this file does not exist yet, create one by copying the template:
 $ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```
 
-### Specify Cluster-Wide Defaults
+### Cluster Defaults
 
-Since version 1.8, each Alluxio client or worker can initialize its configuration
-with the cluster-wide configuration values retrieved from masters.
+> Since version 1.8, each Alluxio client or worker can initialize its configuration
+with the cluster-wide configuration values retrieved from Alluxio masters.
 
 When different client applications (Alluxio Shell CLI, Spark jobs, MapReduce jobs)
 or Alluxio workers connect to an Alluxio master,
@@ -196,9 +145,9 @@ Clients can ignore or overwrite the cluster-wide default values by either specif
 or following the approaches described in [Configure Alluxio for Applications](#configure-applications)
 to overwrite the same properties.
 
-> Note that, before version 1.8, `${ALLUXIO_HOME}/conf/alluxio-site.properties` file is only loaded by
-> Alluxio server processes and will be ignored by applications interacting with Alluxio service
-> through Alluxio client, unless `${ALLUXIO_HOME}/conf` is on applications' classpath.
+> Note that, before version 1.8, `${ALLUXIO_HOME}/conf/alluxio-site.properties` file is only loaded
+by Alluxio server processes and will be ignored by applications interacting with Alluxio service
+through Alluxio client, unless `${ALLUXIO_HOME}/conf` is on applications' classpath.
 
 ## Configuration Sources
 
@@ -238,8 +187,8 @@ alluxio.debug=false (DEFAULT)
 
 Users can also specify the `--master` option to list all
 of the cluster-wide configuration properties served by the masters.
-Note that with the `--master` option, `getConf` will query the master,
-requiring the master nodes be running.
+Note that with the `--master` option, `getConf` will query the
+master which requires the master process to be running.
 Otherwise, without `--master` option, this command only checks the local configuration.
 
 ```bash
