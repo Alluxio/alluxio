@@ -23,7 +23,6 @@ function printUsage {
   echo -e "  fsadmin       \t Command line tool for use by Alluxio filesystem admins."
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
   echo -e "  job           \t Command line tool for interacting with the job service."
-  echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
   echo -e "  logLevel      \t Set or get log level of Alluxio servers."
   echo -e "  runClass      \t Run the main method of an Alluxio class."
   echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
@@ -296,11 +295,6 @@ function main {
     CLASS="alluxio.cli.job.JobShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
-  ;;
-  "loadufs")
-    echo "The \"alluxio loadufs <AlluxioURI> <UfsURI>\" command is deprecated since version 1.1." >&2
-    echo "Use the \"alluxio fs mount <AlluxioURI> <UfsURI>\" command followed by the \"alluxio fs ls -R <AlluxioURI>\" command instead." >&2
-    exit 1
   ;;
   "logLevel")
     CLASS="alluxio.cli.LogLevel"
