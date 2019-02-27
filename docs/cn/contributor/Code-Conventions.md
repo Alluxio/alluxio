@@ -204,14 +204,7 @@ $ bin/alluxio thriftGen
 Alluxio使用Protocol Buffer来读写日志消息。`servers/src/proto/journal/`目录下的`.proto`文件用于为Protocol Buffer消息自动生成Java定义。如果需要修改这些消息，首先要读取[更新消息类型](https://developers.google.com/protocol-buffers/docs/proto#updating)从而保证你的修改不会破坏向后兼容性。然后请[安装protoc](https://github.com/google/protobuf#protocol-buffers---googles-data-interchange-format)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
 
 ```bash
-$ brew install protobuf@2.5
-$ brew link --force protobuf@2.5
-```
-
-然后重新生成Java代码，运行
-
-```bash
-$ bin/alluxio protoGen
+$ mvn compile -Pgenerate
 ```
 
 ## bin/alluxio目录下的命令列表

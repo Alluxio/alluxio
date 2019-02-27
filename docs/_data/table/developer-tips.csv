@@ -17,8 +17,6 @@ killAll,&lt;WORD&gt;
 copyDir,&lt;PATH&gt;
 clearCache,None
 confDocGen,None
-thriftGen,None
-protoGen,None
 version,None
 validateConf,None
 validateEnv,&lt;TARGET&gt; [NAME]
