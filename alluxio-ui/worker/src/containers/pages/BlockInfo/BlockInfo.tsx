@@ -15,7 +15,7 @@ import {connect} from 'react-redux';
 import {Alert, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {Paginator} from '@alluxio/common-ui/src/components';
+import {LoadingMessage, Paginator} from '@alluxio/common-ui/src/components';
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 import {parseQuerystring, renderFileNameLink} from '@alluxio/common-ui/src/utilities';
 import {IApplicationState} from '../../../store';
@@ -78,7 +78,7 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
   }
 
   public render() {
-    const {errors, data} = this.props;
+    const {errors, data, loading} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
@@ -91,6 +91,14 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
           {data.invalidPathError && <div>{data.invalidPathError}</div>}
           {data.fatalError && <div>{data.fatalError}</div>}
         </Alert>
+      );
+    }
+
+    if (loading) {
+      return (
+        <div className="h-100 w-100 blockInfo-page">
+          <LoadingMessage/>
+        </div>
       );
     }
 

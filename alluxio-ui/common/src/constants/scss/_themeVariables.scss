@@ -8,5 +8,10 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
-
 @import '~bootswatch/dist/darkly/variables';
+
+$web-font-path: ''; // override default font download path
+$font-family-sans-serif: 'Source Sans Pro', sans-serif !default;
+$font-family-serif: 'Source Serif Pro', serif !default;
+$font-family-monospace: 'Source Code Pro', monospace !default;
+$font-family-base: $font-family-sans-serif !default;

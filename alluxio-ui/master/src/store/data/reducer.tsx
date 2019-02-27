@@ -16,25 +16,7 @@ import {DataActionTypes, IDataState} from './types';
 export const initialDataState: IDataState = {
   data: {
     'fatalError': '',
-    'fileInfos': [{
-      'absolutePath': '',
-      'blockSizeBytes': '',
-      'blocksOnTier': {},
-      'creationTime': '',
-      'fileLocations': [],
-      'group': '',
-      'id': 0,
-      'inAlluxio': false,
-      'inAlluxioPercentage': 0,
-      'isDirectory': false,
-      'mode': '',
-      'modificationTime': '',
-      'name': 'LICENSE',
-      'owner': 'William',
-      'persistenceState': '',
-      'pinned': false,
-      'size': ''
-    }],
+    'fileInfos': [],
     'inAlluxioFileNum': 0,
     'masterNodeAddress': '',
     'permissionError': '',

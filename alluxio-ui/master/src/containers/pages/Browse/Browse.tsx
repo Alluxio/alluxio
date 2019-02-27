@@ -12,13 +12,14 @@
 import {faFile, faFolder} from '@fortawesome/free-regular-svg-icons'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {AxiosResponse} from 'axios';
+import {History, LocationState} from 'history';
 import React from 'react';
 import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
 import {Alert, Button, Form, FormGroup, Input, Label, Table} from 'reactstrap';
 import {Dispatch} from 'redux';
 
-import {FileView, Paginator} from '@alluxio/common-ui/src/components';
+import {FileView, LoadingMessage, Paginator} from '@alluxio/common-ui/src/components';
 import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
 import {
   disableFormSubmit,
@@ -64,7 +65,11 @@ interface IBrowseState {
   textAreaHeight?: number;
 }
 
-export type AllProps = IPropsFromState & IPropsFromDispatch;
+interface IBrowseProps {
+  history: History<LocationState>;
+}
+
+export type AllProps = IPropsFromState & IPropsFromDispatch & IBrowseProps;
 
 export class Browse extends React.Component<AllProps, IBrowseState> {
   private readonly textAreaResizeMs = 100;
@@ -73,7 +78,8 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
   constructor(props: AllProps) {
     super(props);
 
-    const {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+    let {path, offset, limit, end} = parseQuerystring(this.props.location.search);
+    offset = offset || '0';
     this.state = {end, limit, offset, path: path || '/', lastFetched: {}};
   }
 
@@ -105,7 +111,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
   }
 
   public render() {
-    const {browseErrors, browseData, initData, initErrors} = this.props;
+    const {browseErrors, browseData, browseLoading, initData, initLoading, initErrors} = this.props;
     let queryStringSuffix = Object.entries(this.state)
       .filter((obj: any[]) => ['offset', 'limit', 'end'].includes(obj[0]) && obj[1] != undefined)
       .map((obj: any) => `${obj[0]}=${obj[1]}`).join('&');
@@ -125,6 +131,14 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
       );
     }
 
+    if (initLoading || browseLoading) {
+      return (
+        <div className="h-100 w-100 browse-page">
+          <LoadingMessage/>
+        </div>
+      );
+    }
+
     return (
       <div className="browse-page">
         <div className="container-fluid">
@@ -141,16 +155,16 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
 
   private renderFileView(browseData: IBrowse, queryStringSuffix: string, initData: IInit) {
     const {textAreaHeight, path, offset, end, lastFetched} = this.state;
-    const offsetInputHandler = this.createInputHandler('offset', value => value).bind(this);
+    const {history} = this.props;
+    const offsetInputHandler = this.createInputChangeHandler('offset', value => value).bind(this);
     const beginInputHandler = this.createButtonHandler('end', value => undefined).bind(this);
     const endInputHandler = this.createButtonHandler('end', value => '1').bind(this);
     return (
       <React.Fragment>
         <FileView allowDownload={true} beginInputHandler={beginInputHandler} end={end} endInputHandler={endInputHandler}
-                  lastFetched={lastFetched} offset={offset} offsetInputHandler={offsetInputHandler} path={path}
+                  lastFetched={lastFetched} offset={offset || '0'} offsetInputHandler={offsetInputHandler} path={path}
                   queryStringPrefix="/browse" queryStringSuffix={queryStringSuffix} textAreaHeight={textAreaHeight}
-                  viewData={browseData}
-                  proxyDownloadApiUrl={initData.proxyDownloadFileApiUrl}/>
+                  viewData={browseData} history={history} proxyDownloadApiUrl={initData.proxyDownloadFileApiUrl}/>
         <hr/>
         <h6>Detailed blocks information (block capacity is {browseData.blockSizeBytes} Bytes):</h6>
         <Table hover={true}>
@@ -185,8 +199,9 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
 
   private renderDirectoryListing(initData: IInit, browseData: IBrowse, queryStringSuffix: string) {
     const {path, lastFetched, offset, limit} = this.state;
+    const {history} = this.props;
     const fileInfos = browseData.fileInfos;
-    const pathInputHandler = this.createInputHandler('path', value => value).bind(this);
+    const pathInputHandler = this.createInputChangeHandler('path', value => value).bind(this);
     return (
       <React.Fragment>
         <Form className="mb-3 browse-directory-form" id="browseDirectoryForm" inline={true}
@@ -198,7 +213,8 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
           <FormGroup className="mb-2 mr-sm-2">
             <Label for="browsePath" className="mr-sm-2">Path</Label>
             <Input type="text" id="browsePath" placeholder="Enter a Path" value={path || '/'}
-                   onChange={pathInputHandler}/>
+                   onChange={pathInputHandler}
+                   onKeyUp={this.createInputEnterHandler(history, () => `/browse?path=${path}${queryStringSuffix}`)}/>
           </FormGroup>
           <FormGroup className="mb-2 mr-sm-2">
             <Button tag={Link} to={`/browse?path=${path}${queryStringSuffix}`} color="secondary"
@@ -286,10 +302,24 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
     this.props.fetchRequest(path, offset, limit, end);
   }
 
-  private createInputHandler(stateKey: string, stateValueCallback: (value: string) => string | undefined) {
+  private createInputChangeHandler(stateKey: string, stateValueCallback: (value: string) => string | undefined) {
     return (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
       this.setState({...this.state, [stateKey]: stateValueCallback(value)});
+    };
+  }
+
+  private createInputEnterHandler(history: History<LocationState>, stateValueCallback: (value: string) => string | undefined) {
+    return (event: React.KeyboardEvent<HTMLInputElement>) => {
+      const value = event.key;
+      if (event.key === 'Enter') {
+        const newPath = stateValueCallback(value);
+        if (newPath) {
+          if (history) {
+            history.push(newPath);
+          }
+        }
+      }
     };
   }
 

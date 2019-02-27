@@ -173,7 +173,7 @@ exports[`Data App with connected component Matches snapshot 1`] = `
               }
             >
               <div
-                className="App pt-5 pb-4"
+                className="App h-100 pt-5 pb-4"
               >
                 <div
                   className="w-100 sticky-top header-wrapper"
@@ -722,7 +722,7 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="w-100 mt-3"
+                  className="h-100 w-100 pt-3"
                 >
                   <Switch>
                     <Route
@@ -788,27 +788,7 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                           data={
                             Object {
                               "fatalError": "",
-                              "fileInfos": Array [
-                                Object {
-                                  "absolutePath": "",
-                                  "blockSizeBytes": "",
-                                  "blocksOnTier": Object {},
-                                  "creationTime": "",
-                                  "fileLocations": Array [],
-                                  "group": "",
-                                  "id": 0,
-                                  "inAlluxio": false,
-                                  "inAlluxioPercentage": 0,
-                                  "isDirectory": false,
-                                  "mode": "",
-                                  "modificationTime": "",
-                                  "name": "LICENSE",
-                                  "owner": "William",
-                                  "persistenceState": "",
-                                  "pinned": false,
-                                  "size": "",
-                                },
-                              ],
+                              "fileInfos": Array [],
                               "inAlluxioFileNum": 0,
                               "masterNodeAddress": "",
                               "permissionError": "",
@@ -856,90 +836,28 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                           refresh={false}
                         >
                           <div
-                            className="data-page"
+                            className="h-100 w-100 data-page"
                           >
-                            <div
-                              className="container-fluid"
-                            >
+                            <LoadingMessage>
                               <div
-                                className="row"
+                                className="loadingMessageWrapper"
                               >
                                 <div
-                                  className="col-12"
+                                  className="loadingMessage text-center"
                                 >
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <thead>
-                                        <tr>
-                                          <th>
-                                            File Path
-                                          </th>
-                                          <th>
-                                            Size
-                                          </th>
-                                          <th>
-                                            Block Size
-                                          </th>
-                                          <th>
-                                            Permission
-                                          </th>
-                                          <th>
-                                            Owner
-                                          </th>
-                                          <th>
-                                            Group
-                                          </th>
-                                          <th>
-                                            Pin
-                                          </th>
-                                          <th>
-                                            Creation Time
-                                          </th>
-                                          <th>
-                                            Modification Time
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        <tr
-                                          key=""
-                                        >
-                                          <td />
-                                          <td />
-                                          <td />
-                                          <td>
-                                            <pre
-                                              className="mb-0"
-                                            >
-                                              <code />
-                                            </pre>
-                                          </td>
-                                          <td>
-                                            William
-                                          </td>
-                                          <td />
-                                          <td>
-                                            NO
-                                          </td>
-                                          <td />
-                                          <td />
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                  <Paginator
-                                    baseUrl="/data"
-                                    total={0}
+                                  <img
+                                    className="loadingMessageSpin"
+                                    src="alluxio-mark-tight-sm.svg"
                                   />
+                                  <br />
+                                  <h5
+                                    className=""
+                                  >
+                                    Please wait...
+                                  </h5>
                                 </div>
                               </div>
-                            </div>
+                            </LoadingMessage>
                           </div>
                         </Data>
                       </Connect(Data)>
@@ -953,24 +871,29 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                     data={
                       Array [
                         Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
                           "innerText": "Project Website",
                           "url": "https://alluxio.org/",
                         },
                         Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
                           "innerText": "User Mailing List",
                           "url": "https://groups.google.com/forum/#!forum/alluxio-users",
-                        },
-                        Object {
-                          "innerText": "User Survey",
-                          "url": "https://alluxio.org/resources/survey-users",
                         },
                         Object {
                           "innerText": "Workers",
                           "url": "/workers",
                         },
                         Object {
-                          "innerText": "Resources",
-                          "url": "https://alluxio.org/alluxio-resources/",
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
+                          "innerText": "Slack Channel",
+                          "url": "https://www.alluxio.org/slack",
                         },
                       ]
                     }
@@ -996,11 +919,13 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                               <NavLink
                                 href="https://alluxio.org/"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
                                   href="https://alluxio.org/"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
                                   Project Website
                                 </a>
@@ -1017,34 +942,15 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                               <NavLink
                                 href="https://groups.google.com/forum/#!forum/alluxio-users"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
                                   href="https://groups.google.com/forum/#!forum/alluxio-users"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
                                   User Mailing List
-                                </a>
-                              </NavLink>
-                            </li>
-                          </NavItem>
-                          <NavItem
-                            key="https://alluxio.org/resources/survey-users"
-                            tag="li"
-                          >
-                            <li
-                              className="nav-item"
-                            >
-                              <NavLink
-                                href="https://alluxio.org/resources/survey-users"
-                                tag="a"
-                              >
-                                <a
-                                  className="nav-link"
-                                  href="https://alluxio.org/resources/survey-users"
-                                  onClick={[Function]}
-                                >
-                                  User Survey
                                 </a>
                               </NavLink>
                             </li>
@@ -1071,22 +977,24 @@ exports[`Data App with connected component Matches snapshot 1`] = `
                             </li>
                           </NavItem>
                           <NavItem
-                            key="https://alluxio.org/alluxio-resources/"
+                            key="https://www.alluxio.org/slack"
                             tag="li"
                           >
                             <li
                               className="nav-item"
                             >
                               <NavLink
-                                href="https://alluxio.org/alluxio-resources/"
+                                href="https://www.alluxio.org/slack"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
-                                  href="https://alluxio.org/alluxio-resources/"
+                                  href="https://www.alluxio.org/slack"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
-                                  Resources
+                                  Slack Channel
                                 </a>
                               </NavLink>
                             </li>
@@ -1155,31 +1063,7 @@ exports[`Data Shallow component Matches snapshot 1`] = `
               </th>
             </tr>
           </thead>
-          <tbody>
-            <tr
-              key=""
-            >
-              <td />
-              <td />
-              <td />
-              <td>
-                <pre
-                  className="mb-0"
-                >
-                  <code />
-                </pre>
-              </td>
-              <td>
-                William
-              </td>
-              <td />
-              <td>
-                NO
-              </td>
-              <td />
-              <td />
-            </tr>
-          </tbody>
+          <tbody />
         </Table>
         <Paginator
           baseUrl="/data"

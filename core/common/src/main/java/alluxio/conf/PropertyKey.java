@@ -27,7 +27,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
-import com.sun.management.UnixOperatingSystemMXBean;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -1677,9 +1676,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_UFS_PATH_CACHE_CAPACITY)
           .setDefaultValue(100000)
           .setDescription("The capacity of the UFS path cache. This cache is used to "
-              + "approximate the `Once` metadata load behavior (see "
+              + "approximate the `ONCE` metadata load behavior (see "
               + "`alluxio.user.file.metadata.load.type`). Larger caches will consume more "
-              + "memory, but will better approximate the `Once` behavior.")
+              + "memory, but will better approximate the `ONCE` behavior.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1690,7 +1689,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "paths for the UFS path cache. Greater number of threads will decrease the "
               + "amount of staleness in the async cache, but may impact performance. If this "
               + "is set to 0, the cache will be disabled, and "
-              + "`alluxio.user.file.metadata.load.type=Once` will behave like `Always`.")
+              + "`alluxio.user.file.metadata.load.type=ONCE` will behave like `ALWAYS`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1709,12 +1708,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_WEB_PORT)
           .setDefaultValue(19999)
           .setDescription("The port Alluxio web UI runs on.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_RPC_FORKJOIN_POOL_PARALLELISM =
-      new Builder(Name.MASTER_RPC_FORKJOIN_POOL_PARALLELISM)
-          .setDefaultValue(50)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1737,32 +1730,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
               .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MAX =
-          new Builder(Name.MASTER_WORKER_THREADS_MAX)
-          .setDefaultSupplier(() -> {
-            try {
-              java.lang.management.OperatingSystemMXBean os =
-                  ManagementFactory.getOperatingSystemMXBean();
-              if (os instanceof UnixOperatingSystemMXBean) {
-                return Math.min(32768, Math.max(2048,
-                    ((UnixOperatingSystemMXBean) os).getMaxFileDescriptorCount() / 3));
-              }
-            } catch (Exception e) {
-              // Set lower limit
-            }
-            return 2048;
-          }, "A third of the max file descriptors limit, if b/w 2048 and 32768")
+      new Builder(Name.MASTER_WORKER_THREADS_MAX)
+          .setDefaultValue(512)
           .setDescription("The maximum number of incoming RPC requests to master that can be "
               + "handled. This value is used to configure maximum number of threads in gRPC "
               + "thread pool with master.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_WORKER_THREADS_MIN =
-      new Builder(Name.MASTER_WORKER_THREADS_MIN)
-          .setDefaultValue(512)
-          .setDescription("The minimum number of threads used to handle incoming RPC requests "
-              + "to master. This value is used to configure minimum number of threads in "
-              + "gRPC thread pool with master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2035,7 +2007,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS =
       new Builder(Name.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS)
-          .setDefaultValue("10sec")
+          .setDefaultValue("30sec")
           .setDescription("The maximum time for a data server (for block reads and block writes) "
               + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2667,12 +2639,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_METADATA_LOAD_TYPE =
       new Builder(Name.USER_FILE_METADATA_LOAD_TYPE)
-          .setDefaultValue("Once")
+          .setDefaultValue("ONCE")
           .setDescription("The behavior of loading metadata from UFS. When information about "
               + "a path is requested and the path does not exist in Alluxio, metadata can be "
-              + "loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. "
-              + "`Always` will always access UFS to see if the path exists in the UFS. "
-              + "`Never` will never consult the UFS. `Once` will access the UFS the \"first\" "
+              + "loaded from the UFS. Valid options are `ALWAYS`, `NEVER`, and `ONCE`. "
+              + "`ALWAYS` will always access UFS to see if the path exists in the UFS. "
+              + "`NEVER` will never consult the UFS. `ONCE` will access the UFS the \"first\" "
               + "time (according to a cache), but not after that. This parameter is ignored if a "
               + "metadata sync is performed, via the parameter "
               + "\"alluxio.user.file.metadata.sync.interval\"")
@@ -2889,7 +2861,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
       new Builder(Name.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
-          .setDefaultValue("4MB")
+          .setDefaultValue("100MB")
           .setDescription("The max inbound message size used by user gRPC connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3792,7 +3764,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
         "alluxio.master.worker.connect.wait.time";
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
-    public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
     public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
         "alluxio.master.journal.checkpoint.period.entries";
@@ -3802,8 +3773,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
 
-    public static final String MASTER_RPC_FORKJOIN_POOL_PARALLELISM =
-        "alluxio.master.rpc.fork.parallelism";
     //
     // Worker related properties
     //

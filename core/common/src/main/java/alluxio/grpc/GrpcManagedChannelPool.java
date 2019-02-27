@@ -22,6 +22,7 @@ import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -232,7 +233,6 @@ public class GrpcManagedChannelPool {
     if (channelKey.mPlain) {
       channelBuilder.usePlaintext();
     }
-    channelBuilder.executor(ForkJoinPool.commonPool());
     return channelBuilder.build();
   }
 

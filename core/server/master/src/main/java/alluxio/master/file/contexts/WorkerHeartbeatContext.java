@@ -41,7 +41,7 @@ public class WorkerHeartbeatContext extends OperationContext<FileSystemHeartbeat
    *        defaults
    * @return the instance of {@link WorkerHeartbeatContext} with default values for master
    */
-  public static WorkerHeartbeatContext defaults(
+  public static WorkerHeartbeatContext create(
       FileSystemHeartbeatPOptions.Builder optionsBuilder) {
     return new WorkerHeartbeatContext(optionsBuilder);
   }

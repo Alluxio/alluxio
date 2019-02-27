@@ -3,7 +3,7 @@
 exports[`App React component Matches snapshot 1`] = `
 <App>
   <div
-    className="App"
+    className="App h-100"
   >
     <header
       className="App-header"
@@ -25,7 +25,7 @@ exports[`App React component Matches snapshot 1`] = `
 
 exports[`App Shallow component Matches snapshot 1`] = `
 <div
-  className="App"
+  className="App h-100"
 >
   <header
     className="App-header"

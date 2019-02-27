@@ -173,7 +173,7 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
               }
             >
               <div
-                className="App pt-5 pb-4"
+                className="App h-100 pt-5 pb-4"
               >
                 <div
                   className="w-100 sticky-top header-wrapper"
@@ -722,11 +722,10 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="w-100 mt-3"
+                  className="h-100 w-100 pt-3"
                 >
                   <Switch>
                     <Route
-                      component={[Function]}
                       computedMatch={
                         Object {
                           "isExact": true,
@@ -745,6 +744,7 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                         }
                       }
                       path="/browse"
+                      render={[Function]}
                     >
                       <Connect(Browse)
                         history={
@@ -880,203 +880,28 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                           refresh={false}
                         >
                           <div
-                            className="browse-page"
+                            className="h-100 w-100 browse-page"
                           >
-                            <div
-                              className="container-fluid"
-                            >
+                            <LoadingMessage>
                               <div
-                                className="row"
+                                className="loadingMessageWrapper"
                               >
                                 <div
-                                  className="col-12"
+                                  className="loadingMessage text-center"
                                 >
-                                  <Form
-                                    className="mb-3 browse-directory-form"
-                                    id="browseDirectoryForm"
-                                    inline={true}
-                                    onSubmit={[Function]}
-                                    tag="form"
-                                  >
-                                    <form
-                                      className="mb-3 browse-directory-form form-inline"
-                                      id="browseDirectoryForm"
-                                      onSubmit={[Function]}
-                                    >
-                                      <FormGroup
-                                        className="mb-2 mr-sm-2"
-                                        tag="div"
-                                      >
-                                        <div
-                                          className="mb-2 mr-sm-2 form-group"
-                                        >
-                                          <Button
-                                            color="secondary"
-                                            disabled={true}
-                                            outline={true}
-                                            tag={[Function]}
-                                            to="/browse?path=/"
-                                          >
-                                            <Link
-                                              aria-label={null}
-                                              className="btn btn-outline-secondary disabled"
-                                              disabled={true}
-                                              onClick={[Function]}
-                                              replace={false}
-                                              to="/browse?path=/"
-                                            >
-                                              <a
-                                                aria-label={null}
-                                                className="btn btn-outline-secondary disabled"
-                                                disabled={true}
-                                                href="/browse?path=/"
-                                                onClick={[Function]}
-                                              >
-                                                Root
-                                              </a>
-                                            </Link>
-                                          </Button>
-                                        </div>
-                                      </FormGroup>
-                                      <FormGroup
-                                        className="mb-2 mr-sm-2"
-                                        tag="div"
-                                      >
-                                        <div
-                                          className="mb-2 mr-sm-2 form-group"
-                                        >
-                                          <Label
-                                            className="mr-sm-2"
-                                            for="browsePath"
-                                            tag="label"
-                                            widths={
-                                              Array [
-                                                "xs",
-                                                "sm",
-                                                "md",
-                                                "lg",
-                                                "xl",
-                                              ]
-                                            }
-                                          >
-                                            <label
-                                              className="mr-sm-2"
-                                              htmlFor="browsePath"
-                                            >
-                                              Path
-                                            </label>
-                                          </Label>
-                                          <Input
-                                            id="browsePath"
-                                            onChange={[Function]}
-                                            placeholder="Enter a Path"
-                                            type="text"
-                                            value="/"
-                                          >
-                                            <input
-                                              className="form-control"
-                                              id="browsePath"
-                                              onChange={[Function]}
-                                              placeholder="Enter a Path"
-                                              type="text"
-                                              value="/"
-                                            />
-                                          </Input>
-                                        </div>
-                                      </FormGroup>
-                                      <FormGroup
-                                        className="mb-2 mr-sm-2"
-                                        tag="div"
-                                      >
-                                        <div
-                                          className="mb-2 mr-sm-2 form-group"
-                                        >
-                                          <Button
-                                            color="secondary"
-                                            disabled={true}
-                                            tag={[Function]}
-                                            to="/browse?path=/"
-                                          >
-                                            <Link
-                                              aria-label={null}
-                                              className="btn btn-secondary disabled"
-                                              disabled={true}
-                                              onClick={[Function]}
-                                              replace={false}
-                                              to="/browse?path=/"
-                                            >
-                                              <a
-                                                aria-label={null}
-                                                className="btn btn-secondary disabled"
-                                                disabled={true}
-                                                href="/browse?path=/"
-                                                onClick={[Function]}
-                                              >
-                                                Go
-                                              </a>
-                                            </Link>
-                                          </Button>
-                                        </div>
-                                      </FormGroup>
-                                    </form>
-                                  </Form>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <thead>
-                                        <tr>
-                                          <th />
-                                          <th>
-                                            File Name
-                                          </th>
-                                          <th>
-                                            Size
-                                          </th>
-                                          <th>
-                                            Block Size
-                                          </th>
-                                          <th>
-                                            In-Alluxio
-                                          </th>
-                                          <th>
-                                            Mode
-                                          </th>
-                                          <th>
-                                            Owner
-                                          </th>
-                                          <th>
-                                            Group
-                                          </th>
-                                          <th>
-                                            Persistence State
-                                          </th>
-                                          <th>
-                                            Pin
-                                          </th>
-                                          <th>
-                                            Creation Time
-                                          </th>
-                                          <th>
-                                            Modification Time
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody />
-                                    </table>
-                                  </Table>
-                                  <Paginator
-                                    baseUrl="/browse"
-                                    path="/"
-                                    total={0}
+                                  <img
+                                    className="loadingMessageSpin"
+                                    src="alluxio-mark-tight-sm.svg"
                                   />
+                                  <br />
+                                  <h5
+                                    className=""
+                                  >
+                                    Please wait...
+                                  </h5>
                                 </div>
                               </div>
-                            </div>
+                            </LoadingMessage>
                           </div>
                         </Browse>
                       </Connect(Browse)>
@@ -1090,24 +915,29 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                     data={
                       Array [
                         Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
                           "innerText": "Project Website",
                           "url": "https://alluxio.org/",
                         },
                         Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
                           "innerText": "User Mailing List",
                           "url": "https://groups.google.com/forum/#!forum/alluxio-users",
-                        },
-                        Object {
-                          "innerText": "User Survey",
-                          "url": "https://alluxio.org/resources/survey-users",
                         },
                         Object {
                           "innerText": "Workers",
                           "url": "/workers",
                         },
                         Object {
-                          "innerText": "Resources",
-                          "url": "https://alluxio.org/alluxio-resources/",
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
+                          "innerText": "Slack Channel",
+                          "url": "https://www.alluxio.org/slack",
                         },
                       ]
                     }
@@ -1133,11 +963,13 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                               <NavLink
                                 href="https://alluxio.org/"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
                                   href="https://alluxio.org/"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
                                   Project Website
                                 </a>
@@ -1154,34 +986,15 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                               <NavLink
                                 href="https://groups.google.com/forum/#!forum/alluxio-users"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
                                   href="https://groups.google.com/forum/#!forum/alluxio-users"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
                                   User Mailing List
-                                </a>
-                              </NavLink>
-                            </li>
-                          </NavItem>
-                          <NavItem
-                            key="https://alluxio.org/resources/survey-users"
-                            tag="li"
-                          >
-                            <li
-                              className="nav-item"
-                            >
-                              <NavLink
-                                href="https://alluxio.org/resources/survey-users"
-                                tag="a"
-                              >
-                                <a
-                                  className="nav-link"
-                                  href="https://alluxio.org/resources/survey-users"
-                                  onClick={[Function]}
-                                >
-                                  User Survey
                                 </a>
                               </NavLink>
                             </li>
@@ -1208,22 +1021,24 @@ exports[`Browse App with connected component Matches snapshot 1`] = `
                             </li>
                           </NavItem>
                           <NavItem
-                            key="https://alluxio.org/alluxio-resources/"
+                            key="https://www.alluxio.org/slack"
                             tag="li"
                           >
                             <li
                               className="nav-item"
                             >
                               <NavLink
-                                href="https://alluxio.org/alluxio-resources/"
+                                href="https://www.alluxio.org/slack"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
-                                  href="https://alluxio.org/alluxio-resources/"
+                                  href="https://www.alluxio.org/slack"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
-                                  Resources
+                                  Slack Channel
                                 </a>
                               </NavLink>
                             </li>
@@ -1272,7 +1087,7 @@ exports[`Browse Shallow component Matches snapshot 1`] = `
               disabled={true}
               outline={true}
               tag={[Function]}
-              to="/browse?path=/"
+              to="/browse?path=/&offset=0"
             >
               Root
             </Button>
@@ -1300,6 +1115,7 @@ exports[`Browse Shallow component Matches snapshot 1`] = `
             <Input
               id="browsePath"
               onChange={[Function]}
+              onKeyUp={[Function]}
               placeholder="Enter a Path"
               type="text"
               value="/"
@@ -1313,7 +1129,7 @@ exports[`Browse Shallow component Matches snapshot 1`] = `
               color="secondary"
               disabled={true}
               tag={[Function]}
-              to="/browse?path=/"
+              to="/browse?path=/&offset=0"
             >
               Go
             </Button>
@@ -1366,6 +1182,7 @@ exports[`Browse Shallow component Matches snapshot 1`] = `
         </Table>
         <Paginator
           baseUrl="/browse"
+          offset="0"
           path="/"
           total={0}
         />

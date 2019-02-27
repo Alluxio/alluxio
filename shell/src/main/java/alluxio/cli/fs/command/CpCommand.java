@@ -28,7 +28,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.OpenFilePOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
@@ -521,8 +520,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
   private void copyFile(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
     try (Closer closer = Closer.create()) {
-      OpenFilePOptions openFileOptions = OpenFilePOptions.getDefaultInstance();
-      FileInStream is = closer.register(mFileSystem.openFile(srcPath, openFileOptions));
+      FileInStream is = closer.register(mFileSystem.openFile(srcPath));
       FileOutStream os = closer.register(mFileSystem.createFile(dstPath));
       try {
         IOUtils.copy(is, os);
@@ -738,8 +736,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
     File tmpDst = new File(outputFile.getPath() + randomSuffix);
 
     try (Closer closer = Closer.create()) {
-      OpenFilePOptions options = OpenFilePOptions.getDefaultInstance();
-      FileInStream is = closer.register(mFileSystem.openFile(srcPath, options));
+      FileInStream is = closer.register(mFileSystem.openFile(srcPath));
       FileOutputStream out = closer.register(new FileOutputStream(tmpDst));
       byte[] buf = new byte[mCopyToLocalBufferSize];
       int t = is.read(buf);

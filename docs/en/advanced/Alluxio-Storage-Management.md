@@ -126,7 +126,7 @@ space in the top tier, the write will fail. If the file size exceeds the size of
 write will also fail.
 
 The user can also specify the tier that the data will be written to via
-[configuration settings](#configure-tiered-storage).
+[configuration settings](#configuring-tiered-storage).
 
 When reading data with the `ReadType.CACHE` or `ReadType.CACHE_PROMOTE`,
 the data written into Alluxio is always written to the top tier.

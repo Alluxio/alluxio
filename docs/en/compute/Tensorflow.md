@@ -26,7 +26,13 @@ on top of Alluxio POSIX API.
 
 ## Setting up Alluxio POSIX API
 
+<<<<<<< HEAD
 Run the following command to install FUSE on Linux:
+=======
+In this section, we will follow the instructions in the
+[POSIX API section]({{ '/en/api/POSIX-API.html' | relativize_url }}) to set up Alluxio POSIX API
+and allow Tensorflow applications to access the data through Alluxio POSIX API.
+>>>>>>> 57ff10dbc519bb59a31f290a9e51108f1057d0cb
 
 ```
 $ yum install fuse fuse-devel

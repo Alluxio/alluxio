@@ -29,18 +29,22 @@ exports[`LoadingMessage React component Matches snapshot 1`] = `
   >
     <LoadingMessage>
       <div
-        className="loadingMessage text-center"
+        className="loadingMessageWrapper"
       >
-        <img
-          className="loadingMessageSpin"
-          src="alluxio-mark-tight-sm.svg"
-        />
-        <br />
-        <h5
-          className=""
+        <div
+          className="loadingMessage text-center"
         >
-          Please wait...
-        </h5>
+          <img
+            className="loadingMessageSpin"
+            src="alluxio-mark-tight-sm.svg"
+          />
+          <br />
+          <h5
+            className=""
+          >
+            Please wait...
+          </h5>
+        </div>
       </div>
     </LoadingMessage>
   </Router>
@@ -49,17 +53,21 @@ exports[`LoadingMessage React component Matches snapshot 1`] = `
 
 exports[`LoadingMessage Shallow component Matches snapshot 1`] = `
 <div
-  className="loadingMessage text-center"
+  className="loadingMessageWrapper"
 >
-  <img
-    className="loadingMessageSpin"
-    src="alluxio-mark-tight-sm.svg"
-  />
-  <br />
-  <h5
-    className=""
+  <div
+    className="loadingMessage text-center"
   >
-    Please wait...
-  </h5>
+    <img
+      className="loadingMessageSpin"
+      src="alluxio-mark-tight-sm.svg"
+    />
+    <br />
+    <h5
+      className=""
+    >
+      Please wait...
+    </h5>
+  </div>
 </div>
 `;
