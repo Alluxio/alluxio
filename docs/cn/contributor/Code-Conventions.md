@@ -220,11 +220,11 @@ $ bin/alluxio protoGen
 
 <table class="table table-striped">
 <tr><th>命令</th><th>参数</th><th>介绍</th></tr>
-{% for dscp in site.data.table.Developer-Tips %}
+{% for dscp in site.data.table.developer-tips %}
 <tr>
   <td>{{dscp.command}}</td>
   <td>{{dscp.args}}</td>
-  <td>{{site.data.table.cn.Developer-Tips[dscp.command]}}</td>
+  <td>{{site.data.table.cn.developer-tips[dscp.command]}}</td>
 </tr>
 {% endfor %}
 </table>
