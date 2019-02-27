@@ -37,9 +37,6 @@ public final class FileSystemShell extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemShell.class);
 
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
-      .put("lsr", new String[] {"ls", "-R"})
-      .put("rmr", new String[] {"rm", "-R"})
-      .put("umount", new String[] {"unmount"})
       .build();
 
   /**
