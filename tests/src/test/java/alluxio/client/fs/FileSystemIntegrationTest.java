@@ -41,8 +41,6 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
-import alluxio.wire.FileBlockInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -52,7 +50,6 @@ import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).

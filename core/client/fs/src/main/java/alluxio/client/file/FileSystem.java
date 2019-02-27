@@ -44,7 +44,6 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
-import alluxio.wire.FileBlockInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerNetAddress;
