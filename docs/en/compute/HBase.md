@@ -122,8 +122,17 @@ After this mapreduce job finishes, you can see a result like this:
 
 ### Alluxio in HA mode
 
-When Alluxio is running in fault tolerant mode, change the `hbase.rootdir` property in `conf/hbase-site.xml`
-to include Zookeeper information.
+When Alluxio is running in HA mode with Embedded Journal, change the `hbase.rootdir` property
+in `conf/hbase-site.xml` to include the Alluxio master addresses.
+
+```xml
+<property>
+  <name>hbase.rootdir</name>
+  <value>alluxio://master_hostname1:19998,master_hostname2:19998,master_hostname3:19998/hbase</value>
+</property>
+```
+
+When running with Zookeeper, include the Zookeeper information instead.
 
 ```xml
 <property>

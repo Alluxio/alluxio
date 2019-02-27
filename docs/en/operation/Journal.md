@@ -68,29 +68,28 @@ alluxio.master.journal.folder=/opt/alluxio/journal
 
 The configuration specified below should be applied to both Alluxio servers and Alluxio clients.
 
-Set the journal type to "EMBEDDED":
+Set the addresses of all masters in the cluster. The default rpc port is `19998`.
+
 ```
-alluxio.master.journal.type=EMBEDDED
+alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
-Set the addresses of all masters in the cluster. The default embedded journal port is `19200`.
-```
-alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200
-```
+The input value is a list of comma-separated `host:port` RPC addresses where the client
+should look for masters when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled,
+since Zookeeper already stores the master addresses. If this is not set, clients will look for masters using the hostnames
+from `alluxio.master.embedded.journal.addresses` and the master rpc port.
 
 ### Optional configuration
 
 * `alluxio.master.embedded.journal.port`: The port masters use for embedded journal communication. Default: `19200`.
 * `alluxio.master.port`: The port masters use for RPCs. Default: `19998`.
-* `alluxio.master.rpc.addresses`: A list of comma-separated `host:port` RPC addresses where the client 
-should look for masters when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, 
-since Zookeeper already stores the master addresses. If this is not set, clients will look for masters using the hostnames 
-from `alluxio.master.embedded.journal.addresses` and the master rpc port.
+* `alluxio.master.embedded.journal.addresses`: A list of comma-separated embedded journal addresses
+like `alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200`.
 
 ### Job service configuration
 
 It is usually best not to set any of these - by default the job master will use the same hostnames as the Alluxio master, 
-so it is enough to set only `alluxio.master.embedded.journal.addresses`. These properties only need to be set 
+so it is enough to set only `alluxio.master.rpc.addresses`. These properties only need to be set 
 when the job service is being run independent from the rest of the system or using a non-standard port.
 
 * `alluxio.job.master.embedded.journal.port`: the port job masters use for embedded journal communications. Default: `20003`.

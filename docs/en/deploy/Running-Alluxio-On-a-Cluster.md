@@ -167,6 +167,9 @@ The configuration parameters which must be set are:
   - This is set to the URI of the shared storage system to mount to the Alluxio root. This shared
   shared storage system must be accessible by all master nodes and all worker nodes.
   - Examples: `alluxio.underfs.address=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.underfs.address=s3a://bucket/dir/`
+- `alluxio.master.journal.type=UFS`
+  - This uses UFS as the journal place. Note that Zookeeper cannot work 
+  with journal type `EMBEDDED` (use a journal embedded in the masters).
 - `alluxio.master.journal.folder=<JOURNAL_URI>`
   - This is set to the URI of the shared journal location for the Alluxio leader master to write the journal to,
   and for standby masters to replay journal entries from. This shared shared storage system must be
@@ -234,22 +237,26 @@ configure the client for Alluxio HA.
 #### HA Client URI for Alluxio Client
 
 Users can use the Alluxio URI to connect to an Alluxio HA cluster, by fully specifying the HA cluster information.
-To specify the ZooKeeper information within the Alluxio URI, use `alluxio://zk@<ZOOKEEPER_ADDRESS>`.
 To specify the multi-master information within the Alluxio URI, 
 use `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
+To specify the ZooKeeper information within the Alluxio URI, use `alluxio://zk@<ZOOKEEPER_ADDRESS>`.
 
 For example, for many applications (e.g., Hadoop, HBase, Hive and Flink), you can use a comma as the
-delimiter for multiple addresses in the URI, like `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path` 
-and `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`.
+delimiter for multiple addresses in the URI, like `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998` 
+and `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`.
 
 For some other applications (e.g., Spark), you need to use semicolons as the delimiter for multiple
-addresses, like `alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path` 
-and `alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998`.
+addresses, like `alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998` 
+and `alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path`.
 
 If you use the URI to specify the HA cluster information, the URI will take precedence, and ignore the
-related Zookeeper or embedded journal configuration parameters.
+related Embedded Journal or Zookeeper configuration parameters.
 
 #### HA Configuration Parameters for Alluxio Client
+
+Users can configure the following parameter to connect to Alluxio cluster with embedded journal.
+
+- `alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
 
 Users can configure the Alluxio applications to use ZooKeeper by specifying the following parameters
 for the application.
@@ -258,10 +265,6 @@ for the application.
 - `alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>`
   - The ZooKeeper address must be specified when `alluxio.zookeeper.enabled` is enabled.
   - Multiple ZooKeeper addresses can be specified by delimiting with commas
-  
-If using embedded journal, users can configure the following parameter.
-
-- `alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
 
 When the application is configured with these parameters, the Alluxio URI can be simplified to
 `alluxio:///path`, since the HA cluster information is already configured.

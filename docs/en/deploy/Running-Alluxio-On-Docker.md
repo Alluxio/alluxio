@@ -106,18 +106,17 @@ contents with
 $ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-site.properties
 ```
 
-### Run in High-Availability Mode
+### Run in High-Availability Mode with Zookeeper
 
 A lone Alluxio master is a single point of failure. To guard against this, a production
-cluster should run multiple Alluxio masters and use Zookeeper for leader election. One
-of the masters will be elected leader and serve client requests. If it dies, one of the
-remaining masters will become leader and pick up where the previous master left off.
+cluster should run multiple Alluxio masters and use Embedded Journal or Zookeeper 
+for leader election. One of the masters will be elected leader and serve client requests. 
+If it dies, one of the remaining masters will become leader and pick up where the previous master left off.
 
-With multiple masters, Alluxio needs a shared journal directory that all masters have
-access to, usually either NFS or HDFS.
+To run in HA mode with Zookeeper, Alluxio needs a shared journal directory 
+that all masters have access to, usually either NFS or HDFS.
 
-To run in HA mode, launch multiple Alluxio masters, point them to a shared journal,
-and set their Zookeeper configuration.
+Point them to a shared journal and set their Zookeeper configuration.
 
 ```bash
 $ docker run -d --net=host \
@@ -146,6 +145,7 @@ local Alluxio worker without going over the loopback network. Instead, they will
 read and write using [domain sockets](https://en.wikipedia.org/wiki/Unix_domain_socket).
 
 On worker host machines, create a directory for the shared domain socket.
+
 ```bash
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
