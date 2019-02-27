@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
@@ -39,6 +40,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -306,10 +308,16 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     AlluxioURI testFile = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.THROUGH).setBlockSizeBytes(4).build(), 100);
-    Map<FileBlockInfo, List<WorkerNetAddress>> locations = mFileSystem.getBlockLocations(testFile);
+    List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(testFile);
     assertEquals("should have 25 blocks", 25, locations.size());
-    locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) ->
-            assertEquals("block " + info + " should have single worker", 1, workers.size()));
+    long lastOffset = -1;
+    for (BlockLocationInfo location : locations) {
+      assertEquals("block " + location.getBlockInfo() + " should have single worker",
+          1, location.getLocations().size());
+      assertTrue("block " + location.getBlockInfo() + " should have offset larger than "
+              + lastOffset, location.getBlockInfo().getOffset() > lastOffset);
+      lastOffset = location.getBlockInfo().getOffset();
+    }
 
     // Test in alluxio
     testFile = new AlluxioURI("/test2");
@@ -317,8 +325,14 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
             .setWriteType(WritePType.CACHE_THROUGH).setBlockSizeBytes(100).build(), 500);
     locations = mFileSystem.getBlockLocations(testFile);
     assertEquals("Should have 5 blocks", 5, locations.size());
-    locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) ->
-        assertEquals("block " + info + " should have single worker", 1, workers.size()));
+    lastOffset = -1;
+    for (BlockLocationInfo location : locations) {
+      assertEquals("block " + location.getBlockInfo() + " should have single worker",
+          1, location.getLocations().size());
+      assertTrue("block " + location.getBlockInfo() + " should have offset larger than "
+          + lastOffset, location.getBlockInfo().getOffset() > lastOffset);
+      lastOffset = location.getBlockInfo().getOffset();
+    }
   }
 
 // Test exception cases for all FileSystem RPCs

@@ -41,6 +41,7 @@ import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.ConfigurationUtils;
+import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -63,6 +64,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -270,7 +272,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)
       throws IOException {
+    LOG.debug("getFileBlockLocations({}, {}, {})", file.getPath().getName(), start, len);
     if (file == null) {
+      LOG.debug("getFileBlockLocations({}, {}, {}) returned null",
+          file.getPath().getName(), start, len);
       return null;
     }
     if (mStatistics != null) {
@@ -280,9 +285,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     List<BlockLocation> blockLocations = new ArrayList<>();
     AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
     try {
-      Map<FileBlockInfo, List<WorkerNetAddress>> locations = mFileSystem.getBlockLocations(path);
-      locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) -> {
-        long offset = info.getOffset();
+      List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(path);
+      locations.forEach(location -> {
+        FileBlockInfo info = location.getBlockInfo();
+        List<WorkerNetAddress> workers = location.getLocations();
+        long offset = location.getBlockInfo().getOffset();
         long end = offset + info.getBlockInfo().getLength();
         if (end >= start && offset <= start + len) {
           List<HostAndPort> addresses = workers.stream()
@@ -294,8 +301,12 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
               info.getBlockInfo().getLength()));
         }
       });
-      BlockLocation[] ret = new BlockLocation[blockLocations.size()];
-      return blockLocations.toArray(ret);
+      BlockLocation[] ret = blockLocations.toArray(new BlockLocation[0]);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("getFileBlockLocations({}, {}, {}) returned {}",
+            file.getPath().getName(), start, len, Arrays.toString(ret));
+      }
+      return ret;
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
