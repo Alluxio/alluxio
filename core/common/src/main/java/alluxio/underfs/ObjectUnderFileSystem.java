@@ -869,7 +869,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
             if (!objectName.isEmpty()) {
               // include the separator with the prefix, to conform to what object stores return
               // as common prefixes.
-              prefixes.add(objectName + PATH_SEPARATOR);
+              prefixes.add(PathUtils.normalizePath(objectName, PATH_SEPARATOR));
             }
           }
         }
