@@ -121,8 +121,8 @@ public final class BaseFileSystemTest {
         .createFile(any(AlluxioURI.class), any(CreateFilePOptions.class));
     URIStatus status = new URIStatus(new FileInfo());
     AlluxioURI file = new AlluxioURI("/file");
-    GetStatusPOptions getStatusOptions =
-        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
+    GetStatusPOptions getStatusOptions = FileSystemOptions.getStatusDefaults(mConf)
+        .toBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
     FileOutStream out = mFileSystem.createFile(file, CreateFilePOptions.getDefaultInstance());
     verify(mFileSystemMasterClient).createFile(file, FileSystemOptions.createFileDefaults(mConf)

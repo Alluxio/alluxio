@@ -170,7 +170,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
               }
             >
               <div
-                className="App pt-5 pb-4"
+                className="App h-100 pt-5 pb-4"
               >
                 <div
                   className="w-100 sticky-top header-wrapper"
@@ -652,7 +652,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="w-100 mt-3"
+                  className="h-100 w-100 pt-3"
                 >
                   <Switch>
                     <Route
@@ -765,177 +765,28 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                           refresh={false}
                         >
                           <div
-                            className="metrics-page"
+                            className="h-100 w-100 metrics-page"
                           >
-                            <div
-                              className="container-fluid"
-                            >
+                            <LoadingMessage>
                               <div
-                                className="row"
+                                className="loadingMessageWrapper"
                               >
                                 <div
-                                  className="col-12"
+                                  className="loadingMessage text-center"
                                 >
-                                  <h5>
-                                    Worker Gauges
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
+                                  <img
+                                    className="loadingMessageSpin"
+                                    src="alluxio-mark-tight-sm.svg"
+                                  />
+                                  <br />
+                                  <h5
+                                    className=""
                                   >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th
-                                            scope="row"
-                                          >
-                                            Worker Capacity
-                                          </th>
-                                          <td>
-                                            <Progress
-                                              className="h-50 mt-1"
-                                              max={100}
-                                              multi={true}
-                                              tag="div"
-                                              value={0}
-                                            >
-                                              <div
-                                                className="h-50 mt-1 progress"
-                                              >
-                                                <Progress
-                                                  bar={true}
-                                                  color="dark"
-                                                  max={100}
-                                                  tag="div"
-                                                  value="0"
-                                                >
-                                                  <div
-                                                    aria-valuemax={100}
-                                                    aria-valuemin="0"
-                                                    aria-valuenow="0"
-                                                    className="progress-bar bg-dark"
-                                                    role="progressbar"
-                                                    style={
-                                                      Object {
-                                                        "width": "0%",
-                                                      }
-                                                    }
-                                                  >
-                                                    0
-                                                    % Free
-                                                  </div>
-                                                </Progress>
-                                                <Progress
-                                                  bar={true}
-                                                  color="secondary"
-                                                  max={100}
-                                                  tag="div"
-                                                  value="0"
-                                                >
-                                                  <div
-                                                    aria-valuemax={100}
-                                                    aria-valuemin="0"
-                                                    aria-valuenow="0"
-                                                    className="progress-bar bg-secondary"
-                                                    role="progressbar"
-                                                    style={
-                                                      Object {
-                                                        "width": "0%",
-                                                      }
-                                                    }
-                                                  >
-                                                    0
-                                                    % Used
-                                                  </div>
-                                                </Progress>
-                                              </div>
-                                            </Progress>
-                                          </td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Logical Operations
+                                    Please wait...
                                   </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Blocks Accessed
-                                          </th>
-                                          <td>
-                                            0
-                                          </td>
-                                          <th>
-                                            Blocks Cached
-                                          </th>
-                                          <td>
-                                            0
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Blocks Canceled
-                                          </th>
-                                          <td>
-                                            0
-                                          </td>
-                                          <th>
-                                            Blocks Deleted
-                                          </th>
-                                          <td>
-                                            0
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Blocks Evicted
-                                          </th>
-                                          <td>
-                                            0
-                                          </td>
-                                          <th>
-                                            Blocks Promoted
-                                          </th>
-                                          <td>
-                                            0
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Bytes Read Remotely
-                                          </th>
-                                          <td>
-                                            0
-                                          </td>
-                                          <th>
-                                            Bytes Written Remotely
-                                          </th>
-                                          <td>
-                                            0
-                                          </td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
                                 </div>
                               </div>
-                            </div>
+                            </LoadingMessage>
                           </div>
                         </Metrics>
                       </Connect(Metrics)>

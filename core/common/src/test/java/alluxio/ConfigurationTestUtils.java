@@ -83,7 +83,6 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
     conf.put(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64");
     conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
-    conf.put(PropertyKey.MASTER_WORKER_THREADS_MIN, "1");
     conf.put(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
     conf.put(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, "false");
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");

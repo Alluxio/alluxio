@@ -36,6 +36,7 @@ describe('Browse', () => {
     props = {
       location: {search: ''},
       fetchRequest: sinon.spy(),
+      history: history,
       browseData: initialState.browse.data,
       browseLoading: initialState.browse.loading,
       initData: initialState.init.data,

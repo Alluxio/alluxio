@@ -191,8 +191,8 @@ public class BaseFileSystem implements FileSystem {
     try {
       masterClient.createFile(path, options);
       // Do not sync before this getStatus, since the UFS file is expected to not exist.
-      GetStatusPOptions gsOptions =
-          GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
+      GetStatusPOptions gsOptions = FileSystemOptions.getStatusDefaults(mFsContext.getConf())
+          .toBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
       status = masterClient.getStatus(path, gsOptions);
       LOG.debug("Created file {}, options: {}", path.getPath(), options);
     } catch (AlreadyExistsException e) {
