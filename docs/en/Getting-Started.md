@@ -22,24 +22,15 @@ The guide will cover the following tasks:
 [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html).
 The optional sections will be labeled with **[Bonus]**.
 
-**Note**  This guide is designed to start an Alluxio system with minimal setup. Alluxio
-performs best in a distributed environment for big data workloads, but this scenario is difficult
-to simulate on a single machine. The performance benefits of Alluxio are illustrated in
-the following whitepapers, which include further instructions for running Alluxio in a scaled-up
-environment:
-* [Accelerating on-demand data analytics with Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-with-alluxio)
-* [Accelerating data analytics on Ceph object storage with Alluxio](https://www.alluxio.com/blog/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
+**Note**  This guide is designed to start an Alluxio system with minimal setup on a single machine.
+To try Alluxio a distributed environment for big data workloads, request [a sandbox cluster](https://www.alluxio.org/sandbox/request) with Alluxio and Spark installed on AWS for free.
 
 ## Prerequisites
 
-* Mac OS X or Linux
+* MacOS X or Linux
 * [Java 8 or newer](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+* Enable remote login: see [instructions for MacOS users](http://osxdaily.com/2011/09/30/remote-login-ssh-server-mac-os-x/)
 * **[Bonus]** AWS account and keys
-
-### Setup SSH (Mac OS X only)
-
-For Mac OS X, enable remote login to SSH into localhost. The setting is found in
-**System Preferences**, under **Sharing**. Check that **Remote Login** is enabled.
 
 ## Downloading Alluxio
 
@@ -82,7 +73,7 @@ $ echo "aws.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
 $ echo "aws.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
 ```
 
-Replace **`<AWS_ACCESS_KEY_ID>`** and **`<AWS_SECRET_ACCESS_KEY>`** with 
+Replace **`<AWS_ACCESS_KEY_ID>`** and **`<AWS_SECRET_ACCESS_KEY>`** with
 a valid AWS access key ID and AWS secret access key respectively.
 
 ## Validating Alluxio environment
@@ -296,7 +287,7 @@ sys	0m0.243s
 ```
 
 Subsequent reads of the same file are noticeably faster since the data is stored in Alluxio
-memory. 
+memory.
 
 Now count how many tweets mention the word "bunny".
 
@@ -321,13 +312,15 @@ $ ./bin/alluxio-stop.sh local
 
 ## Conclusion
 
-Congratulations on completing the quick start guide for Alluxio! This guide covered how to 
+Congratulations on completing the quick start guide for Alluxio! This guide covered how to
 download and install Alluxio locally with examples of basic interactions via the Alluxio
 shell. This was a simple example on how to get started with Alluxio.
 
 There are several next steps available. Learn more about the various features of Alluxio in
 our documentation. The resources below detail deploying Alluxio in various ways,
 mounting existing storage systems, and configuring existing applications to interact with Alluxio.
+
+## Next Step
 
 ### Deploying Alluxio
 
