@@ -528,7 +528,7 @@ public final class NetworkAddressUtils {
   /**
    * Resolves a given hostname by a canonical hostname. When a hostname alias (e.g., those specified
    * in /etc/hosts) is given, the alias may not be resolvable on other hosts in a cluster unless the
-   * same alias is defined there. In this situation, loadufs would break.
+   * same alias is defined there.
    *
    * @param hostname the input hostname, which could be an alias
    * @return the canonical form of the hostname, or null if it is null or empty
