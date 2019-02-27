@@ -573,6 +573,34 @@ public abstract class AbstractUnderFileSystemContractTest {
   }
 
   @Test
+  public void objectNestedDirsListStatusRecursive() throws IOException {
+    // Only run test for an object store
+    Assume.assumeTrue(mUfs.isObjectStorage());
+
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+
+    String root = mUnderfsAddress;
+
+    String dir1 = PathUtils.concatPath(root, "dir1");
+    String dir2 = PathUtils.concatPath(dir1, "dir2");
+    String file1 = PathUtils.concatPath(dir2, "file.txt");
+
+    // Empty lsr should be empty
+    assertEquals(0, mUfs.listStatus(root, ListOptions.defaults().setRecursive(true)).length);
+
+    String fileKey = file1.substring(PathUtils.normalizePath(ufs.getRootKey(), "/").length());
+    assertTrue(ufs.createEmptyObject(fileKey));
+
+    String[] expectedStatus = { "dir1", "dir1/dir2", "dir1/dir2/file.txt" };
+    String[] actualStatus =
+        UfsStatus.convertToNames(mUfs.listStatus(root, ListOptions.defaults().setRecursive(true)));
+    assertEquals(expectedStatus.length, actualStatus.length);
+    Arrays.sort(expectedStatus);
+    Arrays.sort(actualStatus);
+    assertArrayEquals(expectedStatus, actualStatus);
+  }
+
+  @Test
   public void renameFile() throws IOException {
     String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "renameFileSrc");
     String testFileDst = PathUtils.concatPath(mUnderfsAddress, "renameFileDst");
