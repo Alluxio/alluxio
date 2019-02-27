@@ -68,7 +68,7 @@ to allow for recovery of master state information; the set of records is referre
 ### Standby Masters
 
 Standby masters are launched on different servers to provide fault-tolerance when running Alluxio
-master in HA (high available) mode. Standby masters read journals written by the leading master to
+in HA mode. Standby masters read journals written by the leading master to
 keep their own copies of the master state up-to-date. They also write journal checkpoints for
 faster recovery in the future. However, they do not process any requests from other
 Alluxio components. After leading master fail-over, the standby masters will re-elect the new
@@ -76,11 +76,10 @@ leading master after.
 
 ### Secondary Masters
 
-When running Alluxio master locally without HA mode, one can start a secondary master on the same
-server as the leading master to write journal checkpoints for faster recovery in the future. Note
-that, a secondary master is not designed to provide high availability but to offload work from
-leading master for fast recovery. Different from standby masters, a secondary master can never
-upgrade to a leading master.
+When running a single Alluxio master without HA mode, one can start a secondary master on
+the same server as the leading master to write journal checkpoints. Note that, the secondary master
+is not designed to provide high availability but offload the work from the leading master for fast
+recovery. Different from standby masters, a secondary master can never upgrade to a leading master.
 
 ## Worker
 

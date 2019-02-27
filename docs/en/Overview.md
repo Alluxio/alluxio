@@ -44,7 +44,7 @@ and [Yahoo](https://www.yahoo.com/).
 
 Today, Alluxio is deployed in production by
 [hundreds of organizations](https://www.alluxio.org/community/powered-by-alluxio)
-with largest deployment exceeding 1,000 nodes.
+with the largest deployment exceeding 1,000 nodes.
 
 <p align="center">
 <img src="{{ "/img/stack.png" | relativize_url }}" width="800" alt="Ecosystem"/>

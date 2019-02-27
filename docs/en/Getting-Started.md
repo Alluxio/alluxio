@@ -12,7 +12,7 @@ This quick start guide goes over how to run Alluxio on a local machine.
 The guide will cover the following tasks:
 
 * Download and configure Alluxio
-* Validating Alluxio environment
+* Validate Alluxio environment
 * Start Alluxio locally
 * Perform basic tasks via Alluxio Shell
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
@@ -23,18 +23,18 @@ The guide will cover the following tasks:
 The optional sections will be labeled with **[Bonus]**.
 
 **Note**  This guide is designed to start an Alluxio system with minimal setup on a single machine.
-To try Alluxio a distributed environment for big data workloads, request [a sandbox cluster](https://www.alluxio.org/sandbox/request) with Alluxio and Spark installed on AWS for free.
+To try Alluxio in a distributed environment for more realistic workloads, request [a sandbox cluster](https://www.alluxio.org/sandbox/request) with Alluxio and Spark installed on AWS for free.
 
 ## Prerequisites
 
-* MacOS X or Linux
+* MacOS or Linux
 * [Java 8 or newer](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 * Enable remote login: see [instructions for MacOS users](http://osxdaily.com/2011/09/30/remote-login-ssh-server-mac-os-x/)
 * **[Bonus]** AWS account and keys
 
 ## Downloading Alluxio
 
-Download Alluxio from [this page](http://www.alluxio.org/download). Select the
+Download Alluxio from [this page](https://www.alluxio.org/download). Select the
 {{site.ALLUXIO_RELEASED_VERSION}} release followed by the distribution built for default Hadoop.
 Unpack the downloaded file with the following commands.
 
@@ -187,7 +187,7 @@ shows the file as **PERSISTED**.
 ## [Bonus] Mounting in Alluxio
 
 Alluxio unifies access to storage systems with the unified namespace feature. Read the [Unified
-Namespace blog post](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
+Namespace blog post](https://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
 and the [unified namespace documentation]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) for more detailed
 explanations of the feature.
 
@@ -320,7 +320,7 @@ There are several next steps available. Learn more about the various features of
 our documentation. The resources below detail deploying Alluxio in various ways,
 mounting existing storage systems, and configuring existing applications to interact with Alluxio.
 
-## Next Step
+## Next Steps
 
 ### Deploying Alluxio
 
