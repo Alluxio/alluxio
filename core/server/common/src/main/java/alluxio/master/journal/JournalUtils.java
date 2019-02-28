@@ -12,6 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -61,13 +62,16 @@ public final class JournalUtils {
    */
   public static void writeJournalEntryCheckpoint(OutputStream output, JournalEntryIterable iterable)
       throws IOException, InterruptedException {
+    CheckpointOutputStream cos =
+        new CheckpointOutputStream(output, Constants.JOURNAL_ENTRY_CHECKPOINT_VERSION);
     Iterator<JournalEntry> it = iterable.getJournalEntryIterator();
     while (it.hasNext()) {
       if (Thread.interrupted()) {
         throw new InterruptedException();
       }
-      it.next().writeDelimitedTo(output);
+      it.next().writeDelimitedTo(cos);
     }
+    cos.flush();
   }
 
   /**
@@ -81,8 +85,14 @@ public final class JournalUtils {
    */
   public static void restoreJournalEntryCheckpoint(InputStream input, Journaled journaled)
       throws IOException {
+    CheckpointInputStream cis = new CheckpointInputStream(input);
+    if (cis.getVersion() != Constants.JOURNAL_ENTRY_CHECKPOINT_VERSION) {
+      throw new IllegalStateException(
+          String.format("Unrecognized checkpoint version when restoring %s: %s",
+              journaled.getName(), cis.getVersion()));
+    }
     journaled.resetState();
-    JournalEntryStreamReader reader = new JournalEntryStreamReader(input);
+    JournalEntryStreamReader reader = new JournalEntryStreamReader(cis);
     JournalEntry entry;
     while ((entry = reader.readEntry()) != null) {
       journaled.processJournalEntry(entry);
