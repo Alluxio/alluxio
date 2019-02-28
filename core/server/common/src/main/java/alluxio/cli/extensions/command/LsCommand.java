@@ -37,8 +37,6 @@ public final class LsCommand implements Command {
 
   /**
    * Constructs a new instance of {@link LsCommand}.
-   *
-   * @param extensionsDir the path to the directory containing the extensions
    */
   public LsCommand() {
     mExtensionsDir = ServerConfiguration.get(PropertyKey.EXTENSIONS_DIR);
