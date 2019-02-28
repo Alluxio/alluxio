@@ -17,7 +17,6 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.NoopMaster;
-import alluxio.master.journal.CheckpointOutputStream;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalReader.State;
 import alluxio.proto.journal.Journal;
@@ -271,11 +270,9 @@ public final class UfsJournalReaderTest {
    */
   private byte[] buildCheckpoint(long sequenceNumber) throws Exception {
     byte[] bytes = CommonUtils.randomAlphaNumString(10).getBytes();
-    try (
-        UfsJournalCheckpointWriter writer =
-            UfsJournalCheckpointWriter.create(mJournal, sequenceNumber);
-        CheckpointOutputStream cos = new CheckpointOutputStream(writer, 100)) {
-      cos.write(bytes);
+    try (UfsJournalCheckpointWriter writer =
+        UfsJournalCheckpointWriter.create(mJournal, sequenceNumber)) {
+      writer.write(bytes);
     }
     return bytes;
   }
