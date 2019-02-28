@@ -179,6 +179,7 @@ public final class MultiProcessCluster {
               .add(String.format("%s:%d", address.getHostname(), address.getEmbeddedJournalPort()));
           rpcAddresses.add(String.format("%s:%d", address.getHostname(), address.getRpcPort()));
         }
+        mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString());
         mProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
             com.google.common.base.Joiner.on(",").join(journalAddresses));
         mProperties.put(PropertyKey.MASTER_RPC_ADDRESSES,
