@@ -867,7 +867,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           while (objectName.startsWith(keyPrefix)) {
             objectName = objectName.substring(0, objectName.lastIndexOf(PATH_SEPARATOR));
             if (!objectName.isEmpty()) {
-              prefixes.add(objectName);
+              // include the separator with the prefix, to conform to what object stores return
+              // as common prefixes.
+              prefixes.add(PathUtils.normalizePath(objectName, PATH_SEPARATOR));
             }
           }
         }
