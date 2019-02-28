@@ -48,7 +48,7 @@ public final class FileSystemAdminShell extends AbstractShell {
    * @param alluxioConf Alluxio configuration
    */
   public FileSystemAdminShell(InstancedConfiguration alluxioConf) {
-    super(null, alluxioConf);
+    super(null, null, alluxioConf);
   }
 
   /**

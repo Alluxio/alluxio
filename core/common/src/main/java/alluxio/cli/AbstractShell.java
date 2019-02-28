@@ -85,7 +85,7 @@ public abstract class AbstractShell implements Closeable {
         return -1;
       } else {
         // Handle command alias
-        if (mUnstableAlias.contains(cmd)) {
+        if (mUnstableAlias != null && mUnstableAlias.contains(cmd)) {
           String deprecatedMsg =
               String.format("WARNING: %s is not a stable CLI command. It may be removed in the "
                       + "future. Use with caution in scripts. You may use '%s' instead.",
