@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -562,6 +563,48 @@ public abstract class AbstractUnderFileSystemContractTest {
         assertTrue(results[fileIndex].isFile());
       }
     }
+  }
+
+  @Test
+  public void objectNestedDirsListStatusRecursive() throws IOException {
+    // Only run test for an object store
+    Assume.assumeTrue(mUfs.isObjectStorage());
+    ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
+    String root = mUnderfsAddress;
+    int nesting = 5;
+
+    String path = root;
+    for (int i = 0; i < nesting; i++) {
+      path = PathUtils.concatPath(path, "dir" + i);
+    }
+    String file1 = PathUtils.concatPath(path, "file.txt");
+
+    // Empty lsr should be empty
+    assertEquals(0, mUfs.listStatus(root, ListOptions.defaults().setRecursive(true)).length);
+
+    String fileKey = file1.substring(PathUtils.normalizePath(ufs.getRootKey(), "/").length());
+    assertTrue(ufs.createEmptyObject(fileKey));
+
+    path = "";
+    ArrayList<String> paths = new ArrayList<>();
+    for (int i = 0; i < nesting; i++) {
+      if (i == 0) {
+        path = "dir" + i;
+      } else {
+        path = PathUtils.concatPath(path, "dir" + i);
+      }
+      paths.add(path);
+    }
+    path = PathUtils.concatPath(path, "file.txt");
+    paths.add(path);
+
+    String[] expectedStatus = paths.toArray(new String[paths.size()]);
+    String[] actualStatus =
+        UfsStatus.convertToNames(mUfs.listStatus(root, ListOptions.defaults().setRecursive(true)));
+    assertEquals(expectedStatus.length, actualStatus.length);
+    Arrays.sort(expectedStatus);
+    Arrays.sort(actualStatus);
+    assertArrayEquals(expectedStatus, actualStatus);
   }
 
   @Test
