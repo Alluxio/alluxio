@@ -24,8 +24,8 @@ HDFS, IBM Cleversafe, EMC ECS, Ceph, NFS, and Alibaba OSS.
 Alluxio unifes the data stored in these different storage systems, presenting unified client
 APIs and a global namespace to its upper layer data driven applications.
 
-The Alluxio project originated from [AMPLab at UC Berkeley](https://amplab.cs.berkeley.edu/software/) (see [papers](https://www.alluxio.org/resources/white-papers)) as
-the data layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)).
+The Alluxio project originated from [the UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/software/) (see [papers](https://www.alluxio.org/resources/white-papers)) as
+the data access layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)).
 It is open source under [Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE).
 Alluxio is one of the fastest growing open source projects that has attracted more than [900 contributors](https://github.com/alluxio/alluxio/graphs/contributors)
 from over 200 institutions including
@@ -105,7 +105,7 @@ To quickly get Alluxio up and running, take a look at our
 [Getting Started]({{ '/en/Getting-Started.html' | relativize_url }}) page,
 which explains how to deploy Alluxio and run examples in a local environment.
 
-## Downloads and More Useful Resources
+## Downloads and Useful Resources
 
 Released versions of Alluxio are available from the [Project Downloads Page](https://alluxio.org/download).
 Each release comes with prebuilt binaries compatible with various Hadoop versions.
