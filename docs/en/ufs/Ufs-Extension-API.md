@@ -86,6 +86,21 @@ public class DummyUnderFileSystemFactory implements UnderFileSystemFactory {
 }
 ```
 
+Step 3: Define any properties required to configure the `UnderFileSystem`.
+```java
+public class DummyUnderFileSystemPropertyKey {
+  public static final PropertyKey DUMMY_UFS_PROPERTY =
+      new PropertyKey.Builder(Name.DUMMY_UFS_PROPERTY)
+          .setDescription("...")
+          .setDefaultValue("...")
+          .build();
+
+  public static final class Name {
+    public static final String DUMMY_UFS_PROPERTY = "fs.dummy.property";
+  }
+}
+```
+
 ### Declare the Service
 
 Create a file at `src/main/resources/META-INF/services/alluxio.underfs.UnderFileSystemFactory`
