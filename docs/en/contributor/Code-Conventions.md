@@ -114,15 +114,15 @@ solution. This is important for quick diagnosis or fixes of errors.
 
 ```java
 // Recommended: error messages with context
-LOG.error("Client {} failed to register to {}. error: {}", mClient, mHostname, exception);
+LOG.error("Client {} failed to register to {}", mClient, mHostname, exception);
 
 // Not Recommended: There is no information on which client failed, or what the issue was 
 LOG.error("Client failed to register");
 ```
 
-### Logging Messages Should Be Readable
+### Log Messages Should Be Readable
 
-Log messages should be written with readability in mind. Here are some tips for writing good logging
+Log messages should be written with readability in mind. Here are some tips for writing good log
 messages.
 
 * Log levels INFO and above should be easily human readable 
@@ -131,6 +131,8 @@ messages.
 * Clearly indicate if a variable reference is being printed by formatting the output as `variable: value`
 * Ensure objects being logged have appropriate `toString()` implementations
 * Use appropriate logger names
+  * Provides a key based on class name which can easily be grepped on
+  * Example: `private static final Logger LOG = LoggerFactory.getLogger(AlluxioMaster.class);`
 
 ### Log Level Guidelines
 
@@ -284,6 +286,7 @@ Require callers to validate inputs so that invalid arguments can be unchecked ex
 Try to find an appropriate existing exception before inventing a new one.
 
 #### Selectively javadoc exceptions
+
 Only write exception javadoc when you think it will be useful to the developer using the method.
 There are so many sources of IOException that it's almost never useful to include javadoc for it.
 
@@ -298,7 +301,7 @@ superclass for these Java exceptions.
 
 #### Never swallow an unchecked exception.
 
-Either log it, propagate it, or log it and kill the system
+Either log the exception or propagate it.
 
 It is usually wrong to both log and propagate. If every method did this, the same exception would
 be logged dozens of times, polluting the logs. The responsibility for logging lies with whatever
@@ -327,6 +330,7 @@ class MyRunnable implements Runnable {
       }
     }
   }
+}
 ```
 
 **Directly propagate the exception**
