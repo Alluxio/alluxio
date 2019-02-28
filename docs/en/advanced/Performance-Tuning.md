@@ -207,7 +207,7 @@ If this is set to 0, the cache is disabled and the `Once` setting will behave li
 ### Block reading thread pool size
 
 The `alluxio.worker.network.block.reader.threads.max` property configures the maximum number of threads used to
-handle block read request. This value should be increased if you are getting connection refused error while
+handle block read requests. This value should be increased if you are getting connection refused error while
 reading files.
 
 ### Async block caching
