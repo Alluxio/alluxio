@@ -43,7 +43,7 @@ import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.util.ConfigurationUtils;
-import alluxio.wire.FileBlockInfo;
+import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -351,10 +351,11 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Builds a mapping of {@link FileBlockInfo} to a list of {@link WorkerNetAddress} which allows a
-   * user to determine the physical location of a file stored within Alluxio. In the case where
-   * data is stored in a UFS, but not in Alluxio this function will only include a
-   * {@link WorkerNetAddress} if the block stored in the UFS is co-located with an Alluxio worker.
+   * Builds a list of {@link BlockLocationInfo} for the given file. Each list item contains a list
+   * of {@link WorkerNetAddress} which allows a user to determine the physical location of a block
+   * of the given file stored within Alluxio. In the case where data is stored in a UFS, but not in
+   * Alluxio this function will only include a {@link WorkerNetAddress} if the block stored in the
+   * UFS is co-located with an Alluxio worker.
    * However if there are no co-located Alluxio workers for the block, then the behavior is
    * controlled by the {@link PropertyKey#USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED} . If
    * this property is set to {@code true} then every Alluxio worker will be returned.
@@ -363,11 +364,12 @@ public interface FileSystem extends Closeable {
    * Alluxio workers which currently store the block.
    *
    * @param path the path to get block info for
-   * @return a map of blocks to the workers whose hosts have the blocks. The blocks may not
-   *         necessarily be stored in Alluxio
+   * @return a list of blocks with the workers whose hosts have the blocks. The blocks may not
+   *         necessarily be stored in Alluxio. The blocks are returned in the order of their
+   *         sequences in file.
    * @throws FileDoesNotExistException if the given path does not exist
    */
-  Map<FileBlockInfo, List<WorkerNetAddress>> getBlockLocations(AlluxioURI path)
+  List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

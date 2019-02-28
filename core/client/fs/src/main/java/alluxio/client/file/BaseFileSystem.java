@@ -58,18 +58,20 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.net.HostAndPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -310,11 +312,11 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public Map<FileBlockInfo, List<WorkerNetAddress>> getBlockLocations(AlluxioURI path)
+  public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws IOException, AlluxioException {
     // Don't need to checkUri here because we call other client operations
     List<FileBlockInfo> blocks = getStatus(path).getFileBlockInfos();
-    Map<FileBlockInfo, List<WorkerNetAddress>> blockLocations = new HashMap<>();
+    List<BlockLocationInfo> blockLocations = new ArrayList<>();
     for (FileBlockInfo fileBlockInfo : blocks) {
       // add the existing in-Alluxio block locations
       List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
@@ -324,8 +326,9 @@ public class BaseFileSystem implements FileSystem {
           // Case 1: Fallback to use under file system locations with co-located workers.
           // This maps UFS locations to a worker which is co-located.
           Map<String, WorkerNetAddress> finalWorkerHosts = getHostWorkerMap();
-          locations = fileBlockInfo.getUfsLocations().stream()
-              .map(finalWorkerHosts::get).filter(Objects::nonNull).collect(toList());
+          locations = fileBlockInfo.getUfsLocations().stream().map(
+              location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHost()))
+                .filter(Objects::nonNull).collect(toList());
         }
         if (locations.isEmpty() && mFsContext.getConf()
             .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
@@ -334,7 +337,7 @@ public class BaseFileSystem implements FileSystem {
           Collections.shuffle(locations);
         }
       }
-      blockLocations.put(fileBlockInfo, locations);
+      blockLocations.add(new BlockLocationInfo(fileBlockInfo, locations));
     }
     return blockLocations;
   }
