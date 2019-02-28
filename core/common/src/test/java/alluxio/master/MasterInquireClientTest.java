@@ -73,6 +73,7 @@ public final class MasterInquireClientTest {
     String leaderPath = "/my/leader/path";
     try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
+        put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
         put(PropertyKey.ZOOKEEPER_ADDRESS, zkAddr);
         put(PropertyKey.ZOOKEEPER_LEADER_PATH, leaderPath);
       }
