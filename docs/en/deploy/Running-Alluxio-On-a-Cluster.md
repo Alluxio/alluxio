@@ -115,31 +115,16 @@ new leader. Once the new leader starts serving, Alluxio clients and workers proc
 that during the failover to a standby master, clients may experience brief delays or transient errors.
 
 Alluxio can either use an embedded journal or UFS-based journal for maintaining state across restarts. 
-The embedded journal comes with its own leader election, while UFS journaling relies on Zookeeper for leader election. 
-The next section discusses how to configure Alluxio with a UFS-based journal and Zookeeper. 
-See [this doc]({{ '/en/operation/Journal.html' | relativize_url }}#Embedded-Journal-Configuration) 
-for documentation on how to configure Alluxio HA cluster with embedded journal. The embedded journal is appropriate when no fast, 
-non-object storage such as HDFS or NFS is available, or no Zookeeper cluster is available.
+The embedded journal comes with its own leader election, while UFS journaling relies on Zookeeper for leader election.
+See [journal management documentation]({{ '/en/operation/Journal.html' | relativize_url }}) for more information about choosing
+and configuring Alluxio journal system. 
 
-### Setting up Zookeeper HA Cluster
+### Common Configurations
 
-The prerequisites of setting up Zookeeper HA cluster is:
+The common prerequisites of setting up HA cluster is:
 * Multiple master nodes, and 1 or more worker nodes
 * SSH login without password to all nodes. You can add a public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
-* A shared storage system to mount to Alluxio (accessible by all Alluxio nodes). For example, HDFS or Amazon S3.
-* A [ZooKeeper](http://zookeeper.apache.org/) instance. Alluxio masters use ZooKeeper for leader election,
-and Alluxio clients and workers use ZooKeeper to inquire about the identity of the current leader master.
-* A shared storage system on which to place the journal (accessible by all Alluxio nodes). The leader
-master writes to the journal on this shared storage system, while the standby masters continually
-replay the journal entries to stay up-to-date. The journal storage system is recommended to be:
-  - Highly available. All metadata modifications on the master requires writing to the journal, so any
-  downtime of the journal storage system will directly impact the Alluxio master availability.
-  - Filesystem, not an object store. The Alluxio master writes to journal files to this storage
-  system, and utilizes filesystem operations such as rename and flush. Object stores do not support
-  these operations, and/or perform them slowly, so when the journal is stored on an object store,
-  the Alluxio master operation throughput is significantly reduced.
-
 To deploy Alluxio in a cluster, first [download](https://alluxio.org/download) the Alluxio tar file,
 and copy it to every node (master nodes, worker nodes). Extract the tarball to the same path on
 every node.
@@ -151,14 +136,7 @@ create the `conf/alluxio-site.properties` configuration file from the template.
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-The configuration parameters which must be set are:
-- `alluxio.zookeeper.enabled=true`
-  - This enables the HA mode for the masters, and informs workers that HA mode is enabled.
-- `alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>`
-  - The ZooKeeper address must be specified when `alluxio.zookeeper.enabled` is enabled.
-  - The HA masters use ZooKeeper for leader election, and the workers use ZooKeeper to discover the leader master.
-  - Multiple ZooKeeper addresses can be specified by delimiting with commas
-  - Examples: `alluxio.zookeeper.address=1.2.3.4:2181`, `alluxio.zookeeper.address=zk1:2181,zk2:2181,zk3:2181`
+The configuration parameters which must be set in HA mode are:
 - `alluxio.master.hostname=<MASTER_HOSTNAME>`
   - This must be set to the correct externally visible hostname for each master node.
   (Workers ignore this parameter when `alluxio.zookeeper.enabled` is enabled)
@@ -167,6 +145,48 @@ The configuration parameters which must be set are:
   - This is set to the URI of the shared storage system to mount to the Alluxio root. This shared
   shared storage system must be accessible by all master nodes and all worker nodes.
   - Examples: `alluxio.underfs.address=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.underfs.address=s3a://bucket/dir/`
+  
+### Setting up HA cluster with internal leader election
+
+The minimal configuration to set up a HA cluster is to give the master rpc addresses to all nodes inside the cluster.
+Alluxio's internal leader election will determine the leader master.
+
+```
+alluxio.master.rpc.addresses=<MASTER_HOSTNAME_1>:19998,<MASTER_HOSTNAME_2>:19998,<MASTER_HOSTNAME_3>:19998
+```
+
+Note that embedded journal feature relies on [Copycat](https://github.com/atomix/copycat) which has built-in leader election. 
+The built-in leader election cannot work with Zookeeper since we cannot have two leaders which might not match. 
+Enabling embedded journal is enabling Alluxio's internal leader election. 
+See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#Embedded-Journal-Configuration) 
+for other ways to configure Alluxio HA cluster with internal leader election. The embedded journal is appropriate when no fast, 
+non-object storage such as HDFS or NFS is available, or no Zookeeper cluster is available.
+
+### Setting up HA cluster with Zookeeper-based leader election
+
+The additional prerequisites of setting up Zookeeper HA cluster is:
+* A shared storage system to mount to Alluxio (accessible by all Alluxio nodes). For example, HDFS or Amazon S3. 
+* A [ZooKeeper](http://zookeeper.apache.org/) instance. Alluxio masters use ZooKeeper for leader election,
+and Alluxio clients and workers use ZooKeeper to inquire about the identity of the current leader master.
+* A shared storage system on which to place the journal (accessible by all Alluxio nodes). The leader
+master writes to the journal on this shared storage system, while the standby masters continually
+replay the journal entries to stay up-to-date. 
+The journal storage system is recommended to be:
+  - Highly available. All metadata modifications on the master requires writing to the journal, so any
+  downtime of the journal storage system will directly impact the Alluxio master availability.
+  - Filesystem, not an object store. The Alluxio master writes to journal files to this storage
+  system, and utilizes filesystem operations such as rename and flush. Object stores do not support
+  these operations, and/or perform them slowly, so when the journal is stored on an object store,
+  the Alluxio master operation throughput is significantly reduced.
+
+The configuration parameters which must be set are:
+- `alluxio.zookeeper.enabled=true`
+  - This enables the HA mode for the masters, and informs workers that HA mode is enabled.
+- `alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>`
+  - The ZooKeeper address must be specified when `alluxio.zookeeper.enabled` is enabled.
+  - The HA masters use ZooKeeper for leader election, and the workers use ZooKeeper to discover the leader master.
+  - Multiple ZooKeeper addresses can be specified by delimiting with commas
+  - Examples: `alluxio.zookeeper.address=1.2.3.4:2181`, `alluxio.zookeeper.address=zk1:2181,zk2:2181,zk3:2181`
 - `alluxio.master.journal.type=UFS`
   - This uses UFS as the journal place. Note that Zookeeper cannot work 
   with journal type `EMBEDDED` (use a journal embedded in the masters).
@@ -176,12 +196,12 @@ The configuration parameters which must be set are:
   accessible by all master nodes.
   - Examples: `alluxio.master.journal.folder=hdfs://1.2.3.4:9000/alluxio/journal/`
 
-This is the minimal configuration to start Alluxio with HA.
+This is the minimal configuration to start Alluxio with Zookeeper-based leader election.
 
 Make sure all master nodes and all worker nodes have configured their respective
 `conf/alluxio-site.properties` configuration file appropriately.
 
-Once all the Alluxio masters and workers are configured in this way, Alluxio in HA mode is ready to
+Once all the Alluxio masters and workers are configured in this way, Alluxio is ready to
 be formatted started.
 
 ### Format Alluxio

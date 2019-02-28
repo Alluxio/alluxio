@@ -106,12 +106,39 @@ contents with
 $ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-site.properties
 ```
 
-### Run in High-Availability Mode with Zookeeper
+### Run in High-Availability Mode
 
 A lone Alluxio master is a single point of failure. To guard against this, a production
-cluster should run multiple Alluxio masters and use Embedded Journal or Zookeeper 
-for leader election. One of the masters will be elected leader and serve client requests. 
+cluster should run multiple Alluxio masters and use internal leader election or Zookeeper-based leader election. 
+One of the masters will be elected leader and serve client requests. 
 If it dies, one of the remaining masters will become leader and pick up where the previous master left off.
+
+#### Internal leader election
+
+Alluxio by default using internal leader election. 
+
+Provide the master rpc addresses include the hostname for all masters 
+and set the hostname of the current master:
+
+```bash
+$ docker run -d --net=host \
+             ...
+             -e ALLUXIO_MASTER_RPC_ADDRESSES=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998 \
+             -e ALLUXIO_MASTER_HOSTNAME=master_hostname_1 \
+             alluxio master
+```
+
+Set the master rpc addresses for all the workers so that they can ping all the Alluxio masters
+to find out the leader master.
+
+```bash
+$ docker run -d --net=host \
+             ...
+             -e ALLUXIO_MASTER_RPC_ADDRESSES=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998 \
+             alluxio worker
+```
+
+#### Zookeeper-based leader election
 
 To run in HA mode with Zookeeper, Alluxio needs a shared journal directory 
 that all masters have access to, usually either NFS or HDFS.
@@ -121,7 +148,8 @@ Point them to a shared journal and set their Zookeeper configuration.
 ```bash
 $ docker run -d --net=host \
              ...
-             -e ALLUXIO_MASTER_JOURNAL_FOLDER=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
+             -e ALLUXIO_MASTER_JOURNAL_TYPE=UFS \
+             -e ALLUXIO_MASTER_JOURNAL_FOLDER=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal \
              -e ALLUXIO_ZOOKEEPER_ENABLED=true -e ALLUXIO_ZOOKEEPER_ADDRESS=zkhost1:2181,zkhost2:2181,zkhost3:2181 \
              alluxio master
 ```
