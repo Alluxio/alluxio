@@ -110,12 +110,10 @@ which explains how to deploy Alluxio and run examples in a local environment.
 Released versions of Alluxio are available from the [Project Downloads Page](https://alluxio.org/download).
 Each release comes with prebuilt binaries compatible with various Hadoop versions.
 [Building From Master Branch Documentation]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
-explains how to build the project from source
-code. Questions can be directed to our
+explains how to build the project from source code. Questions can be directed to our
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
+(users who can not access the Google Group may use its [mirror](http://alluxio-users.85194.x6.nabble.com/))
 or our [Community Slack Channel](https://alluxio.org/slack).
-Users who
-can not access the Google Group may use its [mirror](http://alluxio-users.85194.x6.nabble.com/).
 
 - [Downloads](https://alluxio.org/download/)
 - [User Guide]({{ '/en/Getting-Started.html' | relativize_url }})
