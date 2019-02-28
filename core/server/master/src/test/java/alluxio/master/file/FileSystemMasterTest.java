@@ -187,6 +187,7 @@ public final class FileSystemMasterTest {
   @Rule
   public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
     {
+      put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
       put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
       put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "20");
       put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0");
