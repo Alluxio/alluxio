@@ -64,7 +64,6 @@ import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
-import alluxio.master.block.DefaultBlockMaster.Metrics;
 import alluxio.master.file.activesync.ActiveSyncManager;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -99,6 +98,7 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.journal.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.JournalUtils;
@@ -180,7 +180,6 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang.StringUtils;
-import org.apache.curator.framework.api.transaction.OperationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -434,8 +433,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mUfsSyncPathCache = new UfsSyncPathCache();
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
+    // The mount table should come after the inode tree because restoring the mount table requires
+    // that the inode tree is already restored.
     mJournaledComponents =
-        Arrays.asList(mInodeTree, mDirectoryIdGenerator, mSyncManager, mMountTable, mUfsManager);
+        Arrays.asList(mInodeTree, mDirectoryIdGenerator, mMountTable, mUfsManager, mSyncManager);
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -491,6 +492,11 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   @Override
   public void resetState() {
     mJournaledComponents.forEach(Journaled::resetState);
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.FILE_SYSTEM_MASTER;
   }
 
   @Override

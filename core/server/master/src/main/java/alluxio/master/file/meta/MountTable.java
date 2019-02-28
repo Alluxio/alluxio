@@ -20,6 +20,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MountPOptions;
+import alluxio.master.journal.CheckpointName;
 import alluxio.master.journal.Journaled;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.JournalContext;
@@ -90,11 +91,6 @@ public final class MountTable implements Journaled {
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
     mUfsManager = ufsManager;
-  }
-
-  @Override
-  public String getName() {
-    return mState.getName();
   }
 
   /**
@@ -394,6 +390,11 @@ public final class MountTable implements Journaled {
   }
 
   @Override
+  public CheckpointName getCheckpointName() {
+    return mState.getCheckpointName();
+  }
+
+  @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
     mState.writeToCheckpoint(output);
   }
@@ -460,8 +461,6 @@ public final class MountTable implements Journaled {
    * applyAndJournal methods.
    */
   public static final class State implements Journaled {
-    private static final String NAME = "MountTable";
-
     /**
      * Map from Alluxio path string to mount info.
      */
@@ -473,11 +472,6 @@ public final class MountTable implements Journaled {
     public State(MountInfo mountInfo) {
       mMountTable = new HashMap<>(10);
       mMountTable.put(MountTable.ROOT, mountInfo);
-    }
-
-    @Override
-    public String getName() {
-      return NAME;
     }
 
     /**
@@ -591,6 +585,11 @@ public final class MountTable implements Journaled {
           throw new UnsupportedOperationException("Mountable#Iterator#remove is not supported.");
         }
       };
+    }
+
+    @Override
+    public CheckpointName getCheckpointName() {
+      return CheckpointName.MOUNT_TABLE;
     }
   }
 }

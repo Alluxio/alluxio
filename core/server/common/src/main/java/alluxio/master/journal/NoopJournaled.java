@@ -32,6 +32,11 @@ public interface NoopJournaled extends Journaled {
   }
 
   @Override
+  default CheckpointName getCheckpointName() {
+    return CheckpointName.NOOP;
+  }
+
+  @Override
   default void writeToCheckpoint(OutputStream output) {
   }
 

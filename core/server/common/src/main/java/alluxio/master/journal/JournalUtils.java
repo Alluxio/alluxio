@@ -89,7 +89,7 @@ public final class JournalUtils {
     if (cis.getVersion() != Constants.JOURNAL_ENTRY_CHECKPOINT_VERSION) {
       throw new IllegalStateException(
           String.format("Unrecognized checkpoint version when restoring %s: %s",
-              journaled.getName(), cis.getVersion()));
+              journaled.getCheckpointName(), cis.getVersion()));
     }
     journaled.resetState();
     JournalEntryStreamReader reader = new JournalEntryStreamReader(cis);
@@ -109,9 +109,11 @@ public final class JournalUtils {
    */
   public static void writeToCheckpoint(OutputStream output, List<? extends Checkpointed> components)
       throws IOException, InterruptedException {
-    OutputChunked chunked = new OutputChunked(output);
+    CheckpointOutputStream cos =
+        new CheckpointOutputStream(output, Constants.COMPOUND_CHECKPOINT_VERSION);
+    OutputChunked chunked = new OutputChunked(cos);
     for (Checkpointed component : components) {
-      chunked.writeString(component.getName());
+      chunked.writeString(component.getCheckpointName().toString());
       component.writeToCheckpoint(chunked);
       chunked.endChunks();
     }
@@ -128,21 +130,26 @@ public final class JournalUtils {
    */
   public static void restoreFromCheckpoint(InputStream input,
       List<? extends Checkpointed> components) throws IOException {
+    CheckpointInputStream cis = new CheckpointInputStream(input);
     InputChunked chunked = new PatchedInputChunked(input);
+    if (cis.getVersion() != Constants.COMPOUND_CHECKPOINT_VERSION) {
+      throw new IllegalStateException("Unexpected checkpoint version: " + cis.getVersion());
+    }
     while (!chunked.eof()) {
-      String name = chunked.readString();
+      CheckpointName name = CheckpointName.valueOf(chunked.readString());
       boolean found = false;
       for (Checkpointed component : components) {
-        if (component.getName().equals(name)) {
+        if (component.getCheckpointName().equals(name)) {
           component.restoreFromCheckpoint(chunked);
           chunked.nextChunks();
           found = true;
+          break;
         }
       }
       if (!found) {
         throw new RuntimeException(
-            String.format("Unrecognized component name: %s. Existing components: %s", name,
-                Arrays.toString(StreamUtils.map(Checkpointed::getName, components).toArray())));
+            String.format("Unrecognized checkpoint name: %s. Existing components: %s", name, Arrays
+                .toString(StreamUtils.map(Checkpointed::getCheckpointName, components).toArray())));
       }
     }
   }

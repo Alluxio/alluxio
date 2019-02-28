@@ -20,6 +20,8 @@ import java.io.InputStream;
  * A replacement for Kryo's {@link InputChunked} which properly handles eof.
  *
  * See https://github.com/EsotericSoftware/kryo/issues/651.
+ *
+ * Once kryo releases 4.0.3, we can upgrade and remove this class.
  */
 public class PatchedInputChunked extends InputChunked {
   /**

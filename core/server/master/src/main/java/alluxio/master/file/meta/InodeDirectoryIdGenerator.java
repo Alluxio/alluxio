@@ -15,6 +15,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.state.DirectoryId;
+import alluxio.master.journal.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
@@ -34,8 +35,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class InodeDirectoryIdGenerator implements Journaled {
-  private static final String NAME = "InodeDirectoryIdGenerator";
-
   private final ContainerIdGenerable mContainerIdGenerator;
 
   private final DirectoryId mNextDirectoryId;
@@ -48,11 +47,6 @@ public class InodeDirectoryIdGenerator implements Journaled {
     mContainerIdGenerator =
         Preconditions.checkNotNull(containerIdGenerator, "containerIdGenerator");
     mNextDirectoryId = new DirectoryId();
-  }
-
-  @Override
-  public String getName() {
-    return NAME;
   }
 
   /**
@@ -120,5 +114,10 @@ public class InodeDirectoryIdGenerator implements Journaled {
             .setContainerId(mNextDirectoryId.getContainerId())
             .setSequenceNumber(mNextDirectoryId.getSequenceNumber()))
         .build());
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.INODE_DIRECTORY_ID_GENERATOR;
   }
 }

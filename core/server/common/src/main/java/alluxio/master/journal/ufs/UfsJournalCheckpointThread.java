@@ -13,8 +13,8 @@ package alluxio.master.journal.ufs;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.master.Master;
 import alluxio.master.journal.JournalReader;
-import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 
@@ -37,7 +37,7 @@ public final class UfsJournalCheckpointThread extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalCheckpointThread.class);
 
   /** The master to apply the journal entries to. */
-  private final Journaled mMaster;
+  private final Master mMaster;
   /** The journal. */
   private final UfsJournal mJournal;
   /** Make sure no new journal logs are found for this amount of time before shutting down. */
@@ -69,7 +69,7 @@ public final class UfsJournalCheckpointThread extends Thread {
    * @param master the master to apply the journal entries to
    * @param journal the journal
    */
-  public UfsJournalCheckpointThread(Journaled master, UfsJournal journal) {
+  public UfsJournalCheckpointThread(Master master, UfsJournal journal) {
     mMaster = Preconditions.checkNotNull(master, "master");
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mShutdownQuietWaitTimeMs = journal.getQuietPeriodMs();

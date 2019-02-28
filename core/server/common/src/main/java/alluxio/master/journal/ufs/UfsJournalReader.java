@@ -60,7 +60,7 @@ public final class UfsJournalReader implements JournalReader {
   /** Whether the reader is closed. */
   private boolean mClosed;
 
-  /** The next snapshot to install. */
+  /** The next checkpoint to install. */
   private InputStream mCheckpointStream;
 
   /** The next entry to apply. */
@@ -143,7 +143,7 @@ public final class UfsJournalReader implements JournalReader {
   @Override
   public Journal.JournalEntry getEntry() {
     Preconditions.checkState(mCheckpointStream == null,
-        "Should not call read() when a checkpoint is available");
+        "Should not call getEntry() when a checkpoint is available");
     Preconditions.checkNotNull(mNextEntry);
     return mNextEntry;
   }
@@ -258,18 +258,14 @@ public final class UfsJournalReader implements JournalReader {
   public State advance() throws IOException {
     mCheckpointStream = null;
     mNextEntry = null;
-    while (true) {
-      updateInputStream();
-      if (mCheckpointStream != null) {
-        return State.CHECKPOINT;
-      }
-      advanceEntry();
-      if (mNextEntry != null) {
-        return State.LOG;
-      }
-      if (mInputStream == null || mInputStream.isDone() || mInputStream.mFile.isIncompleteLog()) {
-        return State.DONE;
-      }
+    updateInputStream();
+    if (mCheckpointStream != null) {
+      return State.CHECKPOINT;
     }
+    advanceEntry();
+    if (mNextEntry != null) {
+      return State.LOG;
+    }
+    return State.DONE;
   }
 }

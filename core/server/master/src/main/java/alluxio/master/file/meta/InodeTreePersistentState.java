@@ -13,6 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.ProcessUtils;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.master.journal.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.metastore.InodeStore;
@@ -65,7 +66,6 @@ import java.util.function.Supplier;
  */
 public class InodeTreePersistentState implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTreePersistentState.class);
-  private static final String NAME = "InodeTree";
 
   private final InodeStore mInodeStore;
   private final InodeLockManager mInodeLockManager;
@@ -110,11 +110,6 @@ public class InodeTreePersistentState implements Journaled {
     mInodeStore = inodeStore;
     mInodeLockManager = lockManager;
     mTtlBuckets = ttlBucketList;
-  }
-
-  @Override
-  public String getName() {
-    return NAME;
   }
 
   /**
@@ -685,5 +680,10 @@ public class InodeTreePersistentState implements Journaled {
         throw new UnsupportedOperationException("remove is not supported in inode tree iterator");
       }
     };
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.INODE_TREE;
   }
 }

@@ -24,6 +24,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.master.journal.CheckpointName;
 import alluxio.master.journal.Journaled;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.RpcContext;
@@ -213,11 +214,6 @@ public class InodeTree implements Journaled {
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = directoryIdGenerator;
     mMountTable = mountTable;
-  }
-
-  @Override
-  public String getName() {
-    return mState.getName();
   }
 
   /**
@@ -990,6 +986,11 @@ public class InodeTree implements Journaled {
   @Override
   public void resetState() {
     mState.resetState();
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return mState.getCheckpointName();
   }
 
   @Override

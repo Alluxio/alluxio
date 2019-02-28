@@ -37,7 +37,7 @@ public final class JournalUtilsTest {
 
   @Test
   public void checkpointAndRestore() throws IOException, InterruptedException {
-    Journaled journaled = new TestJournaled("Test");
+    Journaled journaled = new TestJournaled(0);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     JournalUtils.writeJournalEntryCheckpoint(baos, journaled);
     JournalUtils.restoreJournalEntryCheckpoint(new ByteArrayInputStream(baos.toByteArray()),
@@ -46,7 +46,7 @@ public final class JournalUtilsTest {
 
   @Test
   public void restoreInvalidJournalEntryCheckpoint() throws IOException, InterruptedException {
-    Journaled journaled = new TestJournaled("Test");
+    Journaled journaled = new TestJournaled(0);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     // Checkpoint version doesn't match Constants.JOURNAL_ENTRY_CHECKPOINT_VERSION.
     CheckpointOutputStream cos = new CheckpointOutputStream(baos, 1);
@@ -60,8 +60,8 @@ public final class JournalUtilsTest {
   @Test
   public void checkpointAndRestoreComponents() throws Exception {
     List<TestJournaled> components = new ArrayList<>();
-    for (int i = 0; i < 0; i++) {
-      components.add(new TestJournaled("Test" + i));
+    for (int i = 0; i < 5; i++) {
+      components.add(new TestJournaled(i));
     }
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     JournalUtils.writeToCheckpoint(baos, components);
@@ -71,16 +71,11 @@ public final class JournalUtilsTest {
   }
 
   private static class TestJournaled implements Journaled {
-    private final String mName;
+    private final CheckpointName mName;
     private int mNumEntriesProcessed;
 
-    public TestJournaled(String name) {
-      mName = name;
-    }
-
-    @Override
-    public String getName() {
-      return mName;
+    public TestJournaled(int i) {
+      mName = CheckpointName.values()[i];
     }
 
     @Override
@@ -101,6 +96,11 @@ public final class JournalUtilsTest {
     public Iterator<JournalEntry> getJournalEntryIterator() {
       return Arrays.asList(JournalEntry.newBuilder()
           .setAddMountPoint(AddMountPointEntry.getDefaultInstance()).build()).iterator();
+    }
+
+    @Override
+    public CheckpointName getCheckpointName() {
+      return mName;
     }
   }
 }

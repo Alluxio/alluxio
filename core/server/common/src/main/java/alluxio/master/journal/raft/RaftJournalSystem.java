@@ -14,11 +14,11 @@ package alluxio.master.journal.raft;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -252,7 +252,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public synchronized Journal createJournal(Journaled master) {
+  public synchronized Journal createJournal(Master master) {
     RaftJournal journal = new RaftJournal(master, mConf.getPath().toURI(), mAsyncJournalWriter,
         mJournalStateLock.readLock());
     mJournals.put(master.getName(), journal);

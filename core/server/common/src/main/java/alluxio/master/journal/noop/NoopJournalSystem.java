@@ -11,9 +11,9 @@
 
 package alluxio.master.journal.noop;
 
+import alluxio.master.Master;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.Journaled;
 
 /**
  * Journal system which doesn't do anything.
@@ -25,7 +25,7 @@ public final class NoopJournalSystem implements JournalSystem {
   public NoopJournalSystem() {}
 
   @Override
-  public Journal createJournal(Journaled master) {
+  public Journal createJournal(Master master) {
     return new NoopJournal();
   }
 

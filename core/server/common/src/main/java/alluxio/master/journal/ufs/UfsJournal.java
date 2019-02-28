@@ -15,11 +15,11 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.Master;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalReader;
-import alluxio.master.journal.Journaled;
 import alluxio.master.journal.MasterJournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.ExponentialTimeBoundedRetry;
@@ -83,8 +83,8 @@ public class UfsJournal implements Journal {
 
   /** The location where this journal is stored. */
   private final URI mLocation;
-  /** The state machine managed by this journal. */
-  private final Journaled mMaster;
+  /** The master managed by this journal. */
+  private final Master mMaster;
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
   /** The amount of time to wait to pass without seeing a new journal entry when gaining primacy. */
@@ -119,28 +119,28 @@ public class UfsJournal implements Journal {
    * Creates a new instance of {@link UfsJournal}.
    *
    * @param location the location for this journal
-   * @param stateMachine the state machine to manage
+   * @param master the master to manage
    * @param quietPeriodMs the amount of time to wait to pass without seeing a new journal entry when
    *        gaining primacy
    */
-  public UfsJournal(URI location, Journaled stateMachine, long quietPeriodMs) {
-    this(location, stateMachine,
-        UnderFileSystem.Factory.create(location.toString(), getJournalUfsConf()), quietPeriodMs);
+  public UfsJournal(URI location, Master master, long quietPeriodMs) {
+    this(location, master, UnderFileSystem.Factory.create(location.toString(), getJournalUfsConf()),
+        quietPeriodMs);
   }
 
   /**
    * Creates a new instance of {@link UfsJournal}.
    *
    * @param location the location for this journal
-   * @param stateMachine the state machine to manage
+   * @param master the state machine to manage
    * @param ufs the under file system
    * @param quietPeriodMs the amount of time to wait to pass without seeing a new journal entry when
    *        gaining primacy
    */
-  UfsJournal(URI location, Journaled stateMachine, UnderFileSystem ufs,
+  UfsJournal(URI location, Master master, UnderFileSystem ufs,
       long quietPeriodMs) {
     mLocation = URIUtils.appendPathOrDie(location, VERSION);
-    mMaster = stateMachine;
+    mMaster = master;
     mUfs = ufs;
     mQuietPeriodMs = quietPeriodMs;
 

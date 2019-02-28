@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.journal.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File;
@@ -125,8 +126,8 @@ public final class MasterUfsManager extends AbstractUfsManager implements Journa
   }
 
   @Override
-  public String getName() {
-    return mState.getName();
+  public CheckpointName getCheckpointName() {
+    return mState.getCheckpointName();
   }
 
   @Override
@@ -145,16 +146,9 @@ public final class MasterUfsManager extends AbstractUfsManager implements Journa
   }
 
   private static class State implements Journaled {
-    private static final String NAME = "UfsManager";
-
     // The physical ufs state for all managed mounts. The keys are URIs normalized to set the path
     // to "/", e.g. "hdfs://namenode/" or just "/" for local filesystem.
     private final Map<String, UfsMode> mUfsModes = new HashMap<>();
-
-    @Override
-    public String getName() {
-      return NAME;
-    }
 
     /**
      * @param key a root ufs path
@@ -199,6 +193,11 @@ public final class MasterUfsManager extends AbstractUfsManager implements Journa
               .setUfsMode(File.UfsMode.valueOf(e.getValue().name())))
               .build())
           .iterator();
+    }
+
+    @Override
+    public CheckpointName getCheckpointName() {
+      return CheckpointName.MASTER_UFS_MANAGER;
     }
   }
 }

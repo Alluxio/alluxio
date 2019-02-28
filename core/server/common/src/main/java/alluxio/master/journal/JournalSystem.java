@@ -11,8 +11,9 @@
 
 package alluxio.master.journal;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.master.Master;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -31,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A journal system for storing and applying journal entries.
  *
  * To use the journal system, first create per-state-machine journals with the
- * {@link #createJournal(Journaled)} method. Once all state machines are added,
+ * {@link #createJournal(Master)} method. Once all state machines are added,
  * {@link #start()} the journal system. The journal system starts in secondary mode, meaning it will
  * not accept writes, but will apply journal entries to keep state machine states up to date with
  * previously written journal entries.
@@ -106,10 +107,10 @@ public interface JournalSystem {
    * {@link Journaled#resetState()} to keep the state machine's state in sync with
    * the entries written to the journal.
    *
-   * @param stateMachine the state machine to create the journal for
+   * @param master the master to create the journal for
    * @return a new instance of {@link Journal}
    */
-  Journal createJournal(Journaled stateMachine);
+  Journal createJournal(Master master);
 
   /**
    * Starts the journal system.

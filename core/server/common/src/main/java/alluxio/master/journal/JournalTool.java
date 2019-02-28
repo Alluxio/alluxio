@@ -12,6 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -137,8 +138,20 @@ public final class JournalTool {
         State state = reader.advance();
         switch (state) {
           case CHECKPOINT:
-            // ignore checkpoints.
-            reader.getCheckpoint().close();
+            CheckpointInputStream checkpoint = new CheckpointInputStream(reader.getCheckpoint());
+            System.out.printf("Checkpoint version %d, endId: %s%n", checkpoint.getVersion(),
+                reader.getNextSequenceNumber());
+            if (checkpoint.getVersion() == Constants.JOURNAL_ENTRY_CHECKPOINT_VERSION) {
+              System.out.println("START_CHECKPOINT");
+              JournalEntryStreamReader checkpointReader = new JournalEntryStreamReader(checkpoint);
+              JournalEntry entry;
+              while ((entry = checkpointReader.readEntry()) != null) {
+                System.out.println(ENTRY_SEPARATOR);
+                System.out.print(entry);
+              }
+              System.out.println("END_CHECKPOINT");
+            }
+            checkpoint.close();
             break;
           case LOG:
             JournalEntry entry = reader.getEntry();

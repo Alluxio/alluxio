@@ -20,10 +20,9 @@ import java.io.OutputStream;
  */
 public interface Checkpointed {
   /**
-   * @return a name for this checkpointed class. The name is used in checkpoints, so it must not
-   *         change
+   * @return a name for this checkpointed class
    */
-  String getName();
+  CheckpointName getCheckpointName();
 
   /**
    * Writes a checkpoint of all state to the given output stream.

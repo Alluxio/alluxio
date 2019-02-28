@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Server;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
+import alluxio.master.journal.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -76,6 +77,11 @@ public final class MockMaster implements Master {
   @Override
   public JournalContext createJournalContext() {
     throw new IllegalStateException("Cannot create journal contexts for MockMaster");
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.NOOP;
   }
 }
 
