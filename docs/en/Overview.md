@@ -24,13 +24,10 @@ HDFS, IBM Cleversafe, EMC ECS, Ceph, NFS, and Alibaba OSS.
 Alluxio unifes the data stored in these different storage systems, presenting unified client
 APIs and a global namespace to its upper layer data driven applications.
 
-The Alluxio project originated from [AMPLab](https://amplab.cs.berkeley.edu/software/),
-UC Berkeley (see [papers](https://www.alluxio.org/resources/white-papers)).
-It is open source under [Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE)
-and is deployed at a
-[wide range of leading companies in the world](https://www.alluxio.org/community/powered-by-alluxio).
-It is one of the fastest growing open source projects.
-In a span of five years, Alluxio has attracted more than [800 contributors](https://github.com/alluxio/alluxio/graphs/contributors)
+The Alluxio project originated from [the UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/software/) (see [papers](https://www.alluxio.org/resources/white-papers)) as
+the data access layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)).
+It is open source under [Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE).
+Alluxio is one of the fastest growing open source projects that has attracted more than [900 contributors](https://github.com/alluxio/alluxio/graphs/contributors)
 from over 200 institutions including
 [Alibaba](http://www.alibaba.com),
 [Alluxio](http://www.alluxio.com/),
@@ -44,26 +41,14 @@ from over 200 institutions including
 [Tencent](https://www.tencent.com),
 [UC Berkeley](https://amplab.cs.berkeley.edu/),
 and [Yahoo](https://www.yahoo.com/).
-The project is the data layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/))
-and is also part of the [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
+
 Today, Alluxio is deployed in production by
 [hundreds of organizations](https://www.alluxio.org/community/powered-by-alluxio)
-and runs on clusters exceeding 1,000 nodes.
+with the largest deployment exceeding 1,000 nodes.
 
 <p align="center">
 <img src="{{ "/img/stack.png" | relativize_url }}" width="800" alt="Ecosystem"/>
 </p>
-
-[Downloads](https://alluxio.org/download/)
-| [User Guide]({{ '/en/Getting-Started.html' | relativize_url }})
-| [Developer Guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }})
-| [Meetup Group](https://www.meetup.com/Alluxio/)
-| [Issue Tracking](https://github.com/Alluxio/alluxio/issues)
-| [Community Slack Channel](https://alluxio.org/slack)
-| [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
-| [Videos](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA)
-| [Github](https://github.com/alluxio/alluxio/)
-| [Releases](https://www.alluxio.org/download/releases)
 
 ## Benefits
 
@@ -120,13 +105,23 @@ To quickly get Alluxio up and running, take a look at our
 [Getting Started]({{ '/en/Getting-Started.html' | relativize_url }}) page,
 which explains how to deploy Alluxio and run examples in a local environment.
 
-## Downloads and More
+## Downloads and Useful Resources
 
-Released versions of Alluxio are available from the [Project Downloads Page](http://alluxio.org/download).
+Released versions of Alluxio are available from the [Project Downloads Page](https://alluxio.org/download).
 Each release comes with prebuilt binaries compatible with various Hadoop versions.
 [Building From Master Branch Documentation]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
-explains how to build the project from source
-code. Questions can be directed to our
-[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users). Users who
-can not access the Google Group may use its [mirror](http://alluxio-users.85194.x6.nabble.com/)
-Note that the mirror does not have information before May 2016.
+explains how to build the project from source code. Questions can be directed to our
+[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
+(users who can not access the Google Group may use its [mirror](http://alluxio-users.85194.x6.nabble.com/))
+or our [Community Slack Channel](https://alluxio.org/slack).
+
+- [Downloads](https://alluxio.org/download/)
+- [User Guide]({{ '/en/Getting-Started.html' | relativize_url }})
+- [Developer Guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }})
+- [Meetup Group](https://www.meetup.com/Alluxio/)
+- [Issue Tracking](https://github.com/Alluxio/alluxio/issues)
+- [Community Slack Channel](https://alluxio.org/slack)
+- [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
+- [Videos](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA)
+- [Github](https://github.com/alluxio/alluxio/)
+- [Releases](https://www.alluxio.org/download/releases)
