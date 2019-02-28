@@ -11,11 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.Constants;
 import alluxio.cli.profiler.ProfilerClient;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.JvmHeapDumper;
 
@@ -23,7 +19,6 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
 import java.io.IOException;
-
 
 /**
  * Class to help profile clients with heapdumps. Combine with flamegraphs for full exploitabillty
@@ -33,12 +28,13 @@ public class ClientProfiler {
   private static final String DEFAULT_DIR = "/alluxio-profiling";
 
   enum ClientType {
+    abstractfs,
     alluxio,
     hadoop,
   }
 
   @Parameter(names = {"-c", "--client"},
-      description = "The type of client to profile. Must be one of [alluxio, hadoop].",
+      description = "The type of client to profile.",
       required = true)
   private ClientType mClientType;
 
@@ -79,15 +75,12 @@ public class ClientProfiler {
   public void profile() throws IOException, InterruptedException {
     ProfilerClient.sDryRun = mDryRun;
     ProfilerClient client = ProfilerClient.Factory.create(mClientType.toString());
-    System.out.println(System.getProperty("user.dir"));
-    mDumpInterval = "1s";
     JvmHeapDumper dumper = new JvmHeapDumper(FormatUtils.parseTimeSize(mDumpInterval), "dumps",
         "dump-" + mClientType.toString());
-    client.cleanup(mDataDir);
     dumper.start();
+    client.cleanup(mDataDir);
     client.createFiles(mDataDir, mNumFiles, 50, mDataSize / mNumFiles);
     dumper.stopDumps();
-    System.exit(0);
   }
 
   private int parseArgs(String[] args) {
@@ -103,7 +96,6 @@ public class ClientProfiler {
     }
     return 0;
   }
-
 
   /**
    * Run main.

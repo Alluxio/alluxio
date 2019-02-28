@@ -17,8 +17,11 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ConfigurationUtils;
 
+import org.apache.hadoop.conf.Configuration;
+
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 /**
  * Profiles operations.
@@ -44,10 +47,15 @@ public abstract class ProfilerClient {
      */
     public static ProfilerClient create(String type) {
       switch (type) {
-        case "hadoop":
-          return new HadoopProfilerClient(CONF.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
+        case "abstractfs":
+          Configuration conf = new Configuration();
+          conf.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem");
+          return new HadoopProfilerClient("alluxio:///", conf);
         case "alluxio":
           return new AlluxioProfilerClient();
+        case "hadoop":
+          return new HadoopProfilerClient(CONF.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS),
+              new Configuration());
         default:
           throw new IllegalArgumentException(String.format("No profiler for %s", type));
       }
@@ -66,7 +74,8 @@ public abstract class ProfilerClient {
     for (int k = 0; k < fileSize / CHUNK_SIZE; k++) {
       os.write(DATA);
     }
-    os.write(DATA, 0, (int)(fileSize % CHUNK_SIZE)); // Write any remaining data
+
+    os.write(Arrays.copyOf(DATA, (int)(fileSize % CHUNK_SIZE))); // Write any remaining data
   }
 
   /**

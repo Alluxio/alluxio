@@ -26,9 +26,9 @@ public class HadoopProfilerClient extends ProfilerClient {
 
   private final FileSystem mClient;
 
-  public HadoopProfilerClient(String hadoopUri) {
+  public HadoopProfilerClient(String hadoopUri, Configuration conf) {
     try {
-      mClient = FileSystem.get(new URI(hadoopUri), new Configuration());
+      mClient = FileSystem.get(new URI(hadoopUri), conf);
     } catch (URISyntaxException | IOException e) {
       throw new RuntimeException(e);
     }
@@ -56,7 +56,8 @@ public class HadoopProfilerClient extends ProfilerClient {
     while (createdFiles < numFiles) {
       String subDir = PathUtils.concatPath(dir, createdFiles);
       if (!sDryRun) {
-        mClient.create(new Path(subDir));
+        mClient.mkdirs(new Path(subDir));
+
       } else {
         System.out.println("create: " + subDir);
       }
