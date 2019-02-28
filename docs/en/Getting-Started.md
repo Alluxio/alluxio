@@ -12,7 +12,7 @@ This quick start guide goes over how to run Alluxio on a local machine.
 The guide will cover the following tasks:
 
 * Download and configure Alluxio
-* Validate Alluxio environment
+* Validate the Alluxio environment
 * Start Alluxio locally
 * Perform basic tasks via Alluxio Shell
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
@@ -23,7 +23,7 @@ The guide will cover the following tasks:
 The optional sections will be labeled with **[Bonus]**.
 
 **Note**  This guide is designed to start an Alluxio system with minimal setup on a single machine.
-To try Alluxio in a distributed environment for more realistic workloads, request [a sandbox cluster](https://www.alluxio.org/sandbox/request) with Alluxio and Spark installed on AWS for free.
+To try Alluxio in a distributed environment with more realistic workloads, request [a sandbox cluster](https://www.alluxio.org/sandbox/request) with Alluxio and Spark installed on AWS for free.
 
 ## Prerequisites
 
