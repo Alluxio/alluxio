@@ -80,7 +80,13 @@ $ bin/alluxio format
 $ bin/alluxio-start.sh local
 ```
 
-You may need to adjust the mount option if your ramdisk is not mounted. Check `bin/alluxio -h` for the different mount options. This will start one Alluxio master and one Alluxio worker locally. You can see the master UI at
+If your ramdisk is not mounted, likely because this is the first time you are running Alluxio, you may need to start Alluxio with the `SudoMount` option.
+
+```bash
+$ bin/alluxio-start.sh local SudoMount
+```
+
+This will start one Alluxio master and one Alluxio worker locally. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Run a simple example program:
