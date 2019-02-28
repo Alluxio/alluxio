@@ -21,11 +21,13 @@ import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -37,6 +39,12 @@ public final class FileSystemShell extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemShell.class);
 
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
+      .put("umount", new String[]{"unmount"})
+      .build();
+
+   // In order for a warning to be displayed for an unstable alias, it must also exist within the
+   // CMD_ALIAS map.
+  private static final Set<String> UNSTABLE_ALIAS = ImmutableSet.<String>builder()
       .build();
 
   /**
@@ -72,7 +80,7 @@ public final class FileSystemShell extends AbstractShell {
    * @param alluxioConf Alluxio configuration
    */
   public FileSystemShell(InstancedConfiguration alluxioConf) {
-    super(CMD_ALIAS, alluxioConf);
+    super(CMD_ALIAS, UNSTABLE_ALIAS, alluxioConf);
   }
 
   @Override

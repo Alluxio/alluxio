@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -39,6 +40,7 @@ public abstract class AbstractShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractShell.class);
 
   private Map<String, String[]> mCommandAlias;
+  private Set<String> mUnstableAlias;
   private Map<String, Command> mCommands;
   protected InstancedConfiguration mConfiguration;
 
@@ -46,11 +48,14 @@ public abstract class AbstractShell implements Closeable {
    * Creates a new instance of {@link AbstractShell}.
    *
    * @param commandAlias replacements for commands
+   * @param unstableAlias set of unstable aliases which may be removed in the future
    * @param conf Alluxio configuration
    */
-  public AbstractShell(Map<String, String[]> commandAlias, InstancedConfiguration conf) {
+  public AbstractShell(Map<String, String[]> commandAlias,
+      Set<String> unstableAlias, InstancedConfiguration conf) {
     mConfiguration = conf; // This needs to go first in case loadCommands() uses the reference to
     // the configuration
+    mUnstableAlias = unstableAlias;
     mCommandAlias = commandAlias;
     mCommands = loadCommands();
   }
@@ -79,10 +84,14 @@ public abstract class AbstractShell implements Closeable {
         printUsage();
         return -1;
       } else {
-        // Handle command alias, and print out WARNING message for deprecated cmd.
-        String deprecatedMsg = "WARNING: " + cmd + " is deprecated. Please use "
-            + StringUtils.join(replacementCmd, " ") + " instead.";
-        System.out.println(deprecatedMsg);
+        // Handle command alias
+        if (mUnstableAlias.contains(cmd)) {
+          String deprecatedMsg =
+              String.format("WARNING: %s is not a stable CLI command. It may be removed in the "
+                      + "future. Use with caution in scripts. You may use '%s' instead.",
+                  cmd, StringUtils.join(replacementCmd, " "));
+          System.out.println(deprecatedMsg);
+        }
 
         String[] replacementArgv =
             (String[]) ArrayUtils.addAll(replacementCmd, ArrayUtils.subarray(argv, 1, argv.length));
