@@ -44,7 +44,6 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
-import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -191,11 +190,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     URIStatus status;
     try {
-      masterClient.createFile(path, options);
-      // Do not sync before this getStatus, since the UFS file is expected to not exist.
-      GetStatusPOptions gsOptions = FileSystemOptions.getStatusDefaults(mFsContext.getConf())
-          .toBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
-      status = masterClient.getStatus(path, gsOptions);
+      status = masterClient.createFile(path, options);
       LOG.debug("Created file {}, options: {}", path.getPath(), options);
     } catch (AlreadyExistsException e) {
       throw new FileAlreadyExistsException(e.getMessage());
