@@ -44,6 +44,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.journal.JournalType;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -98,6 +99,7 @@ public final class PersistenceTest {
     TemporaryFolder tmpFolder = new TemporaryFolder();
     tmpFolder.create();
     File ufsRoot = tmpFolder.newFolder();
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsRoot.getAbsolutePath());
     ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, 0);
     ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS, 1000);
