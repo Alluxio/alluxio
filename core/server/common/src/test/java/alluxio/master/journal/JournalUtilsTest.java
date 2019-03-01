@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.master.CheckpointType;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 
@@ -49,10 +50,10 @@ public final class JournalUtilsTest {
     Journaled journaled = new TestJournaled(0);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     // Checkpoint version doesn't match Constants.JOURNAL_ENTRY_CHECKPOINT_VERSION.
-    CheckpointOutputStream cos = new CheckpointOutputStream(baos, 1);
+    CheckpointOutputStream cos = new CheckpointOutputStream(baos, CheckpointType.COMPOUND);
     cos.flush();
     mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage("checkpoint version");
+    mThrown.expectMessage("Unrecognized checkpoint type");
     JournalUtils.restoreJournalEntryCheckpoint(new ByteArrayInputStream(baos.toByteArray()),
         journaled);
   }
