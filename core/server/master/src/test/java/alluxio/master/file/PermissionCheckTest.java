@@ -296,9 +296,7 @@ public final class PermissionCheckTest {
           .setGroup(SecurityUtils.getGroupFromGrpcClient(ServerConfiguration.global()))
           .setPersisted(true);
 
-      long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), context);
-
-      FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+      FileInfo fileInfo = mFileSystemMaster.createFile(new AlluxioURI(path), context);
       String[] pathComponents = path.split("/");
       assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
       assertEquals(user.getUser(), fileInfo.getOwner());

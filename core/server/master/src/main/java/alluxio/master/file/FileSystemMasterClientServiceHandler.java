@@ -169,13 +169,11 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<CreateFilePResponse> responseObserver) {
     String path = request.getPath();
     CreateFilePOptions options = request.getOptions();
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CreateFilePResponse>) () -> {
-      // TODO(calvin): Consider making createFile return the FileInfo directly
-      long fileId = mFileSystemMaster.createFile(new AlluxioURI(path),
-          CreateFileContext.create(options.toBuilder()));
-      return CreateFilePResponse.newBuilder()
-          .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId))).build();
-    }, "CreateFile", "path=%s, options=%s", responseObserver, path, options);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CreateFilePResponse>)
+        () -> CreateFilePResponse.newBuilder().setFileInfo(GrpcUtils.toProto(
+            mFileSystemMaster.createFile(new AlluxioURI(path),
+                CreateFileContext.create(options.toBuilder())))).build(),
+        "CreateFile", "path=%s, options=%s", responseObserver, path, options);
   }
 
   @Override
