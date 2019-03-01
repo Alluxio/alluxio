@@ -158,7 +158,7 @@ that are compatible with the HDFS API and the Amazon S3 API.
 Note that Alluxio clients never directly access the under storage systems. 
 Data is transmitted through Alluxio workers.
 
-### Data flow: Read
+## Data flow: Read
 
 This and the next section describe the behavior of common read and write scenarios based on
 a typical Alluxio configuration:
