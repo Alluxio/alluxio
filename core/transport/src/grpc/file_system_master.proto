@@ -81,7 +81,9 @@ message CreateDirectoryPRequest {
   optional CreateDirectoryPOptions options = 2;
 }
 
-message CreateFilePResponse {}
+message CreateFilePResponse {
+  optional FileInfo fileInfo = 1;
+}
 message CreateFilePOptions {
   optional int64 blockSizeBytes = 1;
   optional bool recursive = 2;
