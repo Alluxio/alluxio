@@ -11,8 +11,9 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.master.file.FileSystemMasterOptions;
+import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
@@ -30,24 +31,32 @@ public class GetStatusContext extends OperationContext<GetStatusPOptions.Builder
   }
 
   /**
+   * @param optionsBuilder Builder for proto {@link GetStatusPOptions}
+   * @return the instance of {@link GetStatusContext} with the given options
+   */
+  public static GetStatusContext create(GetStatusPOptions.Builder optionsBuilder) {
+    return new GetStatusContext(optionsBuilder);
+  }
+
+  /**
    * Merges and embeds the given {@link GetStatusPOptions} with the corresponding master options.
    *
    * @param optionsBuilder Builder for proto {@link GetStatusPOptions} to merge with defaults
    * @return the instance of {@link GetStatusContext} with default values for master
    */
-  public static GetStatusContext defaults(GetStatusPOptions.Builder optionsBuilder) {
-    GetStatusPOptions masterOptions = FileSystemMasterOptions.getStatusDefaults();
+  public static GetStatusContext mergeFrom(GetStatusPOptions.Builder optionsBuilder) {
+    GetStatusPOptions masterOptions =
+        FileSystemOptions.getStatusDefaults(ServerConfiguration.global());
     GetStatusPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
-    return new GetStatusContext(mergedOptionsBuilder);
+    return create(mergedOptionsBuilder);
   }
 
   /**
    * @return the instance of {@link GetStatusContext} with default values for master
    */
   public static GetStatusContext defaults() {
-    GetStatusPOptions masterOptions = FileSystemMasterOptions.getStatusDefaults();
-    return new GetStatusContext(masterOptions.toBuilder());
+    return create(FileSystemOptions.getStatusDefaults(ServerConfiguration.global()).toBuilder());
   }
 
   @Override

@@ -173,7 +173,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
               }
             >
               <div
-                className="App pt-5 pb-4"
+                className="App h-100 pt-5 pb-4"
               >
                 <div
                   className="w-100 sticky-top header-wrapper"
@@ -722,7 +722,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="w-100 mt-3"
+                  className="h-100 w-100 pt-3"
                 >
                   <Switch>
                     <Route
@@ -796,6 +796,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                               "masterUnderfsCapacityUsedPercentage": 0,
                               "operationMetrics": Object {},
                               "rpcInvocationMetrics": Object {},
+                              "timeSeriesMetrics": Array [],
                               "totalBytesReadLocal": "",
                               "totalBytesReadLocalThroughput": "",
                               "totalBytesReadRemote": "",
@@ -852,522 +853,28 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                           refresh={false}
                         >
                           <div
-                            className="metrics-page"
+                            className="h-100 w-100 metrics-page"
                           >
-                            <div
-                              className="container-fluid"
-                            >
+                            <LoadingMessage>
                               <div
-                                className="row"
+                                className="loadingMessageWrapper"
                               >
                                 <div
-                                  className="col-12"
+                                  className="loadingMessage text-center"
                                 >
-                                  <h5>
-                                    Master Gauges
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
+                                  <img
+                                    className="loadingMessageSpin"
+                                    src="alluxio-mark-tight-sm.svg"
+                                  />
+                                  <br />
+                                  <h5
+                                    className=""
                                   >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th
-                                            scope="row"
-                                          >
-                                            Master Capacity
-                                          </th>
-                                          <td>
-                                            <Progress
-                                              className="h-50 mt-2"
-                                              max={100}
-                                              multi={true}
-                                              tag="div"
-                                              value={0}
-                                            >
-                                              <div
-                                                className="h-50 mt-2 progress"
-                                              >
-                                                <Progress
-                                                  bar={true}
-                                                  color="dark"
-                                                  max={100}
-                                                  tag="div"
-                                                  value="0"
-                                                >
-                                                  <div
-                                                    aria-valuemax={100}
-                                                    aria-valuemin="0"
-                                                    aria-valuenow="0"
-                                                    className="progress-bar bg-dark"
-                                                    role="progressbar"
-                                                    style={
-                                                      Object {
-                                                        "width": "0%",
-                                                      }
-                                                    }
-                                                  >
-                                                    0
-                                                    % Free
-                                                  </div>
-                                                </Progress>
-                                                <Progress
-                                                  bar={true}
-                                                  color="secondary"
-                                                  max={100}
-                                                  tag="div"
-                                                  value="0"
-                                                >
-                                                  <div
-                                                    aria-valuemax={100}
-                                                    aria-valuemin="0"
-                                                    aria-valuenow="0"
-                                                    className="progress-bar bg-secondary"
-                                                    role="progressbar"
-                                                    style={
-                                                      Object {
-                                                        "width": "0%",
-                                                      }
-                                                    }
-                                                  >
-                                                    0
-                                                    % Used
-                                                  </div>
-                                                </Progress>
-                                              </div>
-                                            </Progress>
-                                          </td>
-                                        </tr>
-                                        <tr>
-                                          <th
-                                            scope="row"
-                                          >
-                                            Master UnderFS Capacity
-                                          </th>
-                                          <td>
-                                            <Progress
-                                              className="h-50 mt-2"
-                                              max={100}
-                                              multi={true}
-                                              tag="div"
-                                              value={0}
-                                            >
-                                              <div
-                                                className="h-50 mt-2 progress"
-                                              >
-                                                <Progress
-                                                  bar={true}
-                                                  color="dark"
-                                                  max={100}
-                                                  tag="div"
-                                                  value="0"
-                                                >
-                                                  <div
-                                                    aria-valuemax={100}
-                                                    aria-valuemin="0"
-                                                    aria-valuenow="0"
-                                                    className="progress-bar bg-dark"
-                                                    role="progressbar"
-                                                    style={
-                                                      Object {
-                                                        "width": "0%",
-                                                      }
-                                                    }
-                                                  >
-                                                    0
-                                                    % Free
-                                                  </div>
-                                                </Progress>
-                                                <Progress
-                                                  bar={true}
-                                                  color="secondary"
-                                                  max={100}
-                                                  tag="div"
-                                                  value="0"
-                                                >
-                                                  <div
-                                                    aria-valuemax={100}
-                                                    aria-valuemin="0"
-                                                    aria-valuenow="0"
-                                                    className="progress-bar bg-secondary"
-                                                    role="progressbar"
-                                                    style={
-                                                      Object {
-                                                        "width": "0%",
-                                                      }
-                                                    }
-                                                  >
-                                                    0
-                                                    % Used
-                                                  </div>
-                                                </Progress>
-                                              </div>
-                                            </Progress>
-                                          </td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Total IO Size
+                                    Please wait...
                                   </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Short-circuit Read
-                                          </th>
-                                          <td />
-                                          <th>
-                                            From Remote Instances
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Under Filesystem Read
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Alluxio Write
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Under Filesystem Write
-                                          </th>
-                                          <td />
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Total IO Throughput (Last Minute)
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Short-circuit Read
-                                          </th>
-                                          <td />
-                                          <th>
-                                            From Remote Instances
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Under Filesystem Read
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Alluxio Write
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Under Filesystem Write
-                                          </th>
-                                          <td />
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Cache Hit Rate (Percentage)
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Alluxio Local
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Alluxio Remote
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Miss
-                                          </th>
-                                          <td>
-                                            0.00
-                                          </td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Mounted Under FileSystem Read
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Under FileSystem
-                                          </th>
-                                          <th>
-                                            Size
-                                          </th>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Mounted Under FileSystem Write
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Under FileSystem
-                                          </th>
-                                          <th>
-                                            Size
-                                          </th>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Logical Operations
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            Directories Created
-                                          </th>
-                                          <td />
-                                          <th>
-                                            File Block Infos Got
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            File Infos Got
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Files Completed
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Files Created
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Files Freed
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Files Persisted
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Files Pinned
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            New Blocks Got
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Paths Deleted
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Paths Mounted
-                                          </th>
-                                          <td />
-                                          <th>
-                                            Paths Renamed
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Paths Unmounted
-                                          </th>
-                                          <td />
-                                          <th />
-                                          <td />
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    RPC Invocations
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th>
-                                            CompleteFile Operations
-                                          </th>
-                                          <td />
-                                          <th>
-                                            CreateDirectory Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            CreateFile Operations
-                                          </th>
-                                          <td />
-                                          <th>
-                                            DeletePath Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            FreeFile Operations
-                                          </th>
-                                          <td />
-                                          <th>
-                                            GetFileBlockInfo Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            GetFileInfo Operations
-                                          </th>
-                                          <td />
-                                          <th>
-                                            GetNewBlock Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Mount Operations
-                                          </th>
-                                          <td />
-                                          <th>
-                                            RenamePath Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            SetAcl Operations
-                                          </th>
-                                          <td />
-                                          <th>
-                                            SetAttribute Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th>
-                                            Unmount Operations
-                                          </th>
-                                          <td />
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
                                 </div>
                               </div>
-                            </div>
+                            </LoadingMessage>
                           </div>
                         </Metrics>
                       </Connect(Metrics)>
@@ -1381,24 +888,29 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                     data={
                       Array [
                         Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
                           "innerText": "Project Website",
                           "url": "https://alluxio.org/",
                         },
                         Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
                           "innerText": "User Mailing List",
                           "url": "https://groups.google.com/forum/#!forum/alluxio-users",
-                        },
-                        Object {
-                          "innerText": "User Survey",
-                          "url": "https://alluxio.org/resources/survey-users",
                         },
                         Object {
                           "innerText": "Workers",
                           "url": "/workers",
                         },
                         Object {
-                          "innerText": "Resources",
-                          "url": "https://alluxio.org/alluxio-resources/",
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
+                          "innerText": "Slack Channel",
+                          "url": "https://www.alluxio.org/slack",
                         },
                       ]
                     }
@@ -1424,11 +936,13 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                               <NavLink
                                 href="https://alluxio.org/"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
                                   href="https://alluxio.org/"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
                                   Project Website
                                 </a>
@@ -1445,34 +959,15 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                               <NavLink
                                 href="https://groups.google.com/forum/#!forum/alluxio-users"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
                                   href="https://groups.google.com/forum/#!forum/alluxio-users"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
                                   User Mailing List
-                                </a>
-                              </NavLink>
-                            </li>
-                          </NavItem>
-                          <NavItem
-                            key="https://alluxio.org/resources/survey-users"
-                            tag="li"
-                          >
-                            <li
-                              className="nav-item"
-                            >
-                              <NavLink
-                                href="https://alluxio.org/resources/survey-users"
-                                tag="a"
-                              >
-                                <a
-                                  className="nav-link"
-                                  href="https://alluxio.org/resources/survey-users"
-                                  onClick={[Function]}
-                                >
-                                  User Survey
                                 </a>
                               </NavLink>
                             </li>
@@ -1499,22 +994,24 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                             </li>
                           </NavItem>
                           <NavItem
-                            key="https://alluxio.org/alluxio-resources/"
+                            key="https://www.alluxio.org/slack"
                             tag="li"
                           >
                             <li
                               className="nav-item"
                             >
                               <NavLink
-                                href="https://alluxio.org/alluxio-resources/"
+                                href="https://www.alluxio.org/slack"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
-                                  href="https://alluxio.org/alluxio-resources/"
+                                  href="https://www.alluxio.org/slack"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
-                                  Resources
+                                  Slack Channel
                                 </a>
                               </NavLink>
                             </li>
@@ -1547,91 +1044,9 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
       <div
         className="col-12"
       >
-        <h5>
-          Master Gauges
-        </h5>
-        <Table
-          hover={true}
-          responsiveTag="div"
-          tag="table"
-        >
-          <tbody>
-            <tr>
-              <th
-                scope="row"
-              >
-                Master Capacity
-              </th>
-              <td>
-                <Progress
-                  className="h-50 mt-2"
-                  max={100}
-                  multi={true}
-                  tag="div"
-                  value={0}
-                >
-                  <Progress
-                    bar={true}
-                    color="dark"
-                    max={100}
-                    tag="div"
-                    value="0"
-                  >
-                    0
-                    % Free
-                  </Progress>
-                  <Progress
-                    bar={true}
-                    color="secondary"
-                    max={100}
-                    tag="div"
-                    value="0"
-                  >
-                    0
-                    % Used
-                  </Progress>
-                </Progress>
-              </td>
-            </tr>
-            <tr>
-              <th
-                scope="row"
-              >
-                Master UnderFS Capacity
-              </th>
-              <td>
-                <Progress
-                  className="h-50 mt-2"
-                  max={100}
-                  multi={true}
-                  tag="div"
-                  value={0}
-                >
-                  <Progress
-                    bar={true}
-                    color="dark"
-                    max={100}
-                    tag="div"
-                    value="0"
-                  >
-                    0
-                    % Free
-                  </Progress>
-                  <Progress
-                    bar={true}
-                    color="secondary"
-                    max={100}
-                    tag="div"
-                    value="0"
-                  >
-                    0
-                    % Used
-                  </Progress>
-                </Progress>
-              </td>
-            </tr>
-          </tbody>
-        </Table>
+        <div
+          className="row"
+        />
       </div>
       <div
         className="col-12"

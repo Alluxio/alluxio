@@ -11,11 +11,14 @@ can either use the [Alluxio Java Client](#Java-Client), or the
 [Hadoop-Compatible Java Client](#Hadoop-Compatible-Java-Client), which
 wraps the Alluxio Java Client to implement the Hadoop API.
 
-By setting up an Alluxio Proxy, users can also interact with Alluxio through a REST
-API similar to the Filesystem API. The REST API currently has language bindings for
-Go and Python.
+Alluxio also provides a [POSIX API]({{ '/en/api/FUSE-API.html' | relativize_url }}) after mounting
+Alluxio as a local FUSE volume.
 
-A third option is to interact with Alluxio through its S3 API. Users can interact
+By setting up an Alluxio Proxy, users can also interact with Alluxio through a REST
+API similar to the Filesystem API. The REST API is currently used for the Go and Python language
+bindings.
+
+A fourth option is to interact with Alluxio through its S3 API. Users can interact
 using the same S3 clients used for AWS S3 operations. This makes it easy to change
 existing S3 workloads to use Alluxio.
 
@@ -31,10 +34,12 @@ compatible API. The Alluxio API provides additional functionality, while the Had
 gives users the flexibility of leveraging Alluxio without having to modify existing code written
 using Hadoop's API.
 
+### Alluxio Java API
+
 All resources with the Alluxio Java API are specified through a `AlluxioURI` which represents the
 path to the resource.
 
-### Getting a Filesystem Client
+#### Getting a Filesystem Client
 
 To obtain an Alluxio filesystem client in Java code, use:
 
@@ -42,7 +47,7 @@ To obtain an Alluxio filesystem client in Java code, use:
 FileSystem fs = FileSystem.Factory.get();
 ```
 
-### Creating a File
+#### Creating a File
 
 All metadata operations as well as opening a file for reading or creating a file for writing are
 executed through the FileSystem object. Since Alluxio files are immutable once written, the
@@ -60,7 +65,7 @@ out.write(...);
 out.close();
 ```
 
-### Specifying Operation Options
+#### Specifying Operation Options
 
 For all FileSystem operations, an additional `options` field may be specified, which allows
 users to specify non-default settings for the operation. For example:
@@ -68,12 +73,12 @@ users to specify non-default settings for the operation. For example:
 ```java
 FileSystem fs = FileSystem.Factory.get();
 AlluxioURI path = new AlluxioURI("/myFile");
-// Generate options to set a custom blocksize of 128 MB
-CreateFileOptions options = CreateFileOptions.defaults().setBlockSize(128 * Constants.MB);
+// Generate options to set a custom blocksize of 64 MB
+CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(64 * Constants.MB).build();
 FileOutStream out = fs.createFile(path, options);
 ```
 
-### IO Options
+#### IO Options
 
 Alluxio uses two different storage types: Alluxio managed storage and under storage. Alluxio managed
 storage is the memory, SSD, and/or HDD allocated to Alluxio workers. Under storage is the storage
@@ -109,12 +114,12 @@ Below is a table of the expected behaviors of `WriteType`
 {% endfor %}
 </table>
 
-### Location policy
+#### Location policy
 
 Alluxio provides location policy to choose which workers to store the blocks of a file.
 
-Using Alluxio's Java API, users can set the policy in `CreateFileOptions` for writing files and
-`OpenFileOptions` for reading files into Alluxio.
+Using Alluxio's Java API, users can set the policy in `CreateFilePOptions` for writing files and
+`OpenFilePOptions` for reading files into Alluxio.
 
 Users can override the default policy class in the
 [configuration file]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) at property
@@ -143,7 +148,7 @@ workload by implementing interface `alluxio.client.file.policy.FileWriteLocation
 default policy must have an empty constructor. And to use `ASYNC_THROUGH` write type, all the blocks
 of a file must be written to the same worker.
 
-### Write Tier
+#### Write Tier
 
 Alluxio allows a client to select a tier preference when writing blocks to a local worker. Currently
 this policy preference exists only for local workers, not remote workers; remote workers will write
@@ -153,12 +158,12 @@ By default, data is written to the top tier. Users can modify the default settin
 `alluxio.user.file.write.tier.default` [configuration]({{ '/en/basic/Configuration-Settings.html' | relativize_url }})
 property or override it through an option to the `FileSystem#createFile(AlluxioURI)` API call.
 
-### Accessing an existing file in Alluxio
+#### Accessing an existing file in Alluxio
 
 All operations on existing files or directories require the user to specify the `AlluxioURI`.
 With the AlluxioURI, the user may use any of the methods of `FileSystem` to access the resource.
 
-### Reading Data
+#### Reading Data
 
 A `AlluxioURI` can be used to perform Alluxio FileSystem operations, such as modifying the file
 metadata, ie. TTL or pin state, or getting an input stream to read the file.
@@ -176,12 +181,12 @@ in.read(...);
 in.close();
 ```
 
-### Javadoc
+#### Javadoc
 
 For additional API information, please refer to the
 [Alluxio javadocs](http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html).
 
-## Hadoop-Compatible Java Client
+### Hadoop-Compatible Java Client
 
 Alluxio provides access to data through a filesystem interface. Files in Alluxio offer write-once
 semantics: they become immutable after they have been written in their entirety and cannot be read

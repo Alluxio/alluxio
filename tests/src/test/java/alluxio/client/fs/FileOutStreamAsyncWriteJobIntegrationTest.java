@@ -14,6 +14,7 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
@@ -43,9 +44,14 @@ import org.junit.Test;
 public final class FileOutStreamAsyncWriteJobIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
   private static final int LEN = 1024;
+  private static final FileSystemMasterCommonPOptions COMMON_OPTIONS =
+      FileSystemMasterCommonPOptions.newBuilder().setTtl(12345678L).setTtlAction(TtlAction.DELETE)
+          .build();
+
   private static final SetAttributePOptions TEST_OPTIONS =
-      SetAttributePOptions.newBuilder().setMode(new Mode((short) 0555).toProto()).setTtl(12345678L)
-          .setTtlAction(TtlAction.DELETE).build();
+      SetAttributePOptions.newBuilder().setMode(new Mode((short) 0555).toProto())
+          .setCommonOptions(COMMON_OPTIONS)
+          .build();
 
   private AlluxioURI mUri = new AlluxioURI(PathUtils.uniqPath());
 
@@ -302,8 +308,8 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileNotInUnderStorage(status.getUfsPath());
     status = mFileSystem.getStatus(mUri);
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
-    Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
+    Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
+    Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
 
     PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
     IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
@@ -311,8 +317,8 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInUnderStorage(mUri, LEN);
     status = mFileSystem.getStatus(mUri);
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
-    Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
+    Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
+    Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
     // Skip checking mode for object stores
     Assume.assumeFalse(ufs.isObjectStorage());
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()),
@@ -331,8 +337,8 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileNotInUnderStorage(status.getUfsPath());
     status = mFileSystem.getStatus(mUri);
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
-    Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
+    Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
+    Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
 
     PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
     IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
@@ -340,8 +346,8 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInUnderStorage(mUri, LEN);
     status = mFileSystem.getStatus(mUri);
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
-    Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
+    Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
+    Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
     // Skip checking mode for object stores
     Assume.assumeFalse(ufs.isObjectStorage());
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()),
@@ -359,8 +365,8 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     String ufsPath = status.getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
-    Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
+    Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
+    Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
     // Skip checking mode for object stores
     Assume.assumeFalse(ufs.isObjectStorage());
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()),
@@ -471,8 +477,8 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileNotInUnderStorage(newUfsPath);
     status = mFileSystem.getStatus(newUri);
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
-    Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
+    Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
+    Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
 
     PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
     IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, newUri);
@@ -482,8 +488,8 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     checkFileInUnderStorage(newUri, LEN);
     status = mFileSystem.getStatus(newUri);
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
-    Assert.assertEquals(TEST_OPTIONS.getTtl(), status.getTtl());
-    Assert.assertEquals(TEST_OPTIONS.getTtlAction(), status.getTtlAction());
+    Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
+    Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
     // Skip checking mode for object stores
     Assume.assumeFalse(ufs.isObjectStorage());
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()),

@@ -173,7 +173,7 @@ exports[`Configuration App with connected component Matches snapshot 1`] = `
               }
             >
               <div
-                className="App pt-5 pb-4"
+                className="App h-100 pt-5 pb-4"
               >
                 <div
                   className="w-100 sticky-top header-wrapper"
@@ -722,7 +722,7 @@ exports[`Configuration App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="w-100 mt-3"
+                  className="h-100 w-100 pt-3"
                 >
                   <Switch>
                     <Route
@@ -832,65 +832,28 @@ exports[`Configuration App with connected component Matches snapshot 1`] = `
                           refresh={false}
                         >
                           <div
-                            className="configuration-page"
+                            className="h-100 w-100 configuration-page"
                           >
-                            <div
-                              className="container-fluid"
-                            >
+                            <LoadingMessage>
                               <div
-                                className="row"
+                                className="loadingMessageWrapper"
                               >
                                 <div
-                                  className="col-12"
+                                  className="loadingMessage text-center"
                                 >
-                                  <h5>
-                                    Alluxio Configuration
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
+                                  <img
+                                    className="loadingMessageSpin"
+                                    src="alluxio-mark-tight-sm.svg"
+                                  />
+                                  <br />
+                                  <h5
+                                    className=""
                                   >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <thead>
-                                        <tr>
-                                          <th>
-                                            Property
-                                          </th>
-                                          <th>
-                                            Value
-                                          </th>
-                                          <th>
-                                            Source
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody />
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-12"
-                                >
-                                  <h5>
-                                    Whitelist
+                                    Please wait...
                                   </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody />
-                                    </table>
-                                  </Table>
                                 </div>
                               </div>
-                            </div>
+                            </LoadingMessage>
                           </div>
                         </Configuration>
                       </Connect(Configuration)>
@@ -904,24 +867,29 @@ exports[`Configuration App with connected component Matches snapshot 1`] = `
                     data={
                       Array [
                         Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
                           "innerText": "Project Website",
                           "url": "https://alluxio.org/",
                         },
                         Object {
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
                           "innerText": "User Mailing List",
                           "url": "https://groups.google.com/forum/#!forum/alluxio-users",
-                        },
-                        Object {
-                          "innerText": "User Survey",
-                          "url": "https://alluxio.org/resources/survey-users",
                         },
                         Object {
                           "innerText": "Workers",
                           "url": "/workers",
                         },
                         Object {
-                          "innerText": "Resources",
-                          "url": "https://alluxio.org/alluxio-resources/",
+                          "attributes": Object {
+                            "target": "_blank",
+                          },
+                          "innerText": "Slack Channel",
+                          "url": "https://www.alluxio.org/slack",
                         },
                       ]
                     }
@@ -947,11 +915,13 @@ exports[`Configuration App with connected component Matches snapshot 1`] = `
                               <NavLink
                                 href="https://alluxio.org/"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
                                   href="https://alluxio.org/"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
                                   Project Website
                                 </a>
@@ -968,34 +938,15 @@ exports[`Configuration App with connected component Matches snapshot 1`] = `
                               <NavLink
                                 href="https://groups.google.com/forum/#!forum/alluxio-users"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
                                   href="https://groups.google.com/forum/#!forum/alluxio-users"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
                                   User Mailing List
-                                </a>
-                              </NavLink>
-                            </li>
-                          </NavItem>
-                          <NavItem
-                            key="https://alluxio.org/resources/survey-users"
-                            tag="li"
-                          >
-                            <li
-                              className="nav-item"
-                            >
-                              <NavLink
-                                href="https://alluxio.org/resources/survey-users"
-                                tag="a"
-                              >
-                                <a
-                                  className="nav-link"
-                                  href="https://alluxio.org/resources/survey-users"
-                                  onClick={[Function]}
-                                >
-                                  User Survey
                                 </a>
                               </NavLink>
                             </li>
@@ -1022,22 +973,24 @@ exports[`Configuration App with connected component Matches snapshot 1`] = `
                             </li>
                           </NavItem>
                           <NavItem
-                            key="https://alluxio.org/alluxio-resources/"
+                            key="https://www.alluxio.org/slack"
                             tag="li"
                           >
                             <li
                               className="nav-item"
                             >
                               <NavLink
-                                href="https://alluxio.org/alluxio-resources/"
+                                href="https://www.alluxio.org/slack"
                                 tag="a"
+                                target="_blank"
                               >
                                 <a
                                   className="nav-link"
-                                  href="https://alluxio.org/alluxio-resources/"
+                                  href="https://www.alluxio.org/slack"
                                   onClick={[Function]}
+                                  target="_blank"
                                 >
-                                  Resources
+                                  Slack Channel
                                 </a>
                               </NavLink>
                             </li>

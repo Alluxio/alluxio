@@ -11,24 +11,27 @@
 
 import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
+import {createBrowserHistory, History, LocationState} from 'history';
 import React from 'react';
 import {StaticRouter} from 'react-router';
 import sinon from 'sinon';
 
 import {FileView, IFileViewProps} from './FileView';
-import {IFileBlockInfo, IFileInfo} from '../../constants';
 
 configure({adapter: new Adapter()});
 
 describe('FileView', () => {
   let props: IFileViewProps;
+  let history: History<LocationState>;
 
   beforeAll(() => {
+    history = createBrowserHistory({keyLength: 0});
     props = {
       beginInputHandler: sinon.spy(() => {
       }),
       endInputHandler: sinon.spy(() => {
       }),
+      history: history,
       lastFetched: {},
       offsetInputHandler: sinon.spy(() => {
       }),

@@ -68,7 +68,7 @@ public final class FileSystemMasterWorkerServiceHandler
         () -> FileSystemHeartbeatPResponse
             .newBuilder()
             .setCommand(GrpcUtils.toProto(mFileSystemMaster.workerHeartbeat(workerId,
-                persistedFiles, WorkerHeartbeatContext.defaults(options.toBuilder()))))
+                persistedFiles, WorkerHeartbeatContext.create(options.toBuilder()))))
             .build(),
         "workerHeartbeat", "workerId=%s, persistedFiles=%s, options=%s", responseObserver, workerId,
         persistedFiles, options);

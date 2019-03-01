@@ -24,6 +24,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
@@ -125,9 +126,11 @@ public final class FileSystemShellUtilsTest {
     if (fs.exists(new AlluxioURI(TEST_DIR))) {
       fs.delete(new AlluxioURI(TEST_DIR), DeletePOptions.newBuilder().setRecursive(true).build());
     }
-    fs.createDirectory(new AlluxioURI(TEST_DIR));
-    fs.createDirectory(new AlluxioURI(TEST_DIR + "/foo"));
-    fs.createDirectory(new AlluxioURI(TEST_DIR + "/bar"));
+    CreateDirectoryPOptions dirOptions = CreateDirectoryPOptions.getDefaultInstance().toBuilder()
+        .setWriteType(writeType).build();
+    fs.createDirectory(new AlluxioURI(TEST_DIR), dirOptions);
+    fs.createDirectory(new AlluxioURI(TEST_DIR + "/foo"), dirOptions);
+    fs.createDirectory(new AlluxioURI(TEST_DIR + "/bar"), dirOptions);
 
     FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foo/foobar1", writeType, 10);
     FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foo/foobar2", writeType, 20);

@@ -116,7 +116,7 @@ public final class ReplicationCheckerTest {
   private ReplicationChecker mReplicationChecker;
   private MockHandler mMockReplicationHandler;
   private CreateFileContext mFileContext =
-      CreateFileContext.defaults(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
+      CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
           .setMode(TEST_MODE.toProto())).setOwner(TEST_OWNER).setGroup(TEST_GROUP);
   private Set<Long> mKnownWorkers = Sets.newHashSet();
 
@@ -126,6 +126,7 @@ public final class ReplicationCheckerTest {
 
   @Before
   public void before() throws Exception {
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
     MasterRegistry registry = new MasterRegistry();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
     CoreMasterContext context = MasterTestUtils.testMasterContext(journalSystem);
