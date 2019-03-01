@@ -35,6 +35,8 @@ import java.util.Set;
 
 /**
  * Class for responding to Mesos offers to launch Alluxio on Mesos.
+ *
+ * @deprecated since version 2.0
  */
 @Deprecated
 public class AlluxioScheduler implements Scheduler {
