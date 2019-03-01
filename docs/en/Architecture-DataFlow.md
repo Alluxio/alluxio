@@ -10,14 +10,15 @@ priority: 2
 
 ## Architecture Overview
 
-Alluxio serves as a new data access layer in the big data and machine learning ecosystem,
-residing between any persistent storage systems, such as Amazon S3, Microsoft Azure
+Alluxio serves as a new data access layer in the big data and machine learning ecosystem.
+It resides between any persistent storage systems such as Amazon S3, Microsoft Azure
 Object Store, Apache HDFS, or OpenStack Swift, and computation frameworks such as
 Apache Spark, Presto, or Hadoop MapReduce. Note that Alluxio itself is not a
 persistent storage system. Using Alluxio as the data access layer provides multiple benefits:
 
 - For user applications and computation frameworks, Alluxio provides fast storage,
-facilitating data sharing and locality between jobs, regardless of the computation engine used.
+facilitating data sharing and locality between applications, regardless of the computation engine
+used.
 As a result, Alluxio can serve data at memory speed when it is local or at the speed of the
 computation cluster network when data is in Alluxio. Data is only read once from the
 under storage system when accessed for the first time. Data access is significantly
@@ -32,23 +33,40 @@ When mounting multiple under storage systems simultaneously, Alluxio serves as a
 layer for any number of varied data sources.
 
 Alluxio can be divided into three components: masters, workers, and clients.
-A typical setup consists of a single leading master, multiple standby masters,
-and multiple workers. The master and worker processes constitute the Alluxio servers,
-which are the components a system administrator would maintain. The clients are used to
-communicate with the Alluxio servers by applications such as Spark or MapReduce jobs,
-Alluxio command-line, or the FUSE layer.
+A typical setup consists of a single leading master, multiple standby masters, a job master,
+workers, and job workers.
+The master and worker processes constitute the Alluxio servers, which are the components a system
+administrator would maintain.
+Clients are used to communicate with the Alluxio servers by applications such as Spark or
+MapReduce jobs, the Alluxio CLI, or the Alluxio FUSE layer.
+
+Alluxio Job Masters and Job Workers can be separated into a separate function which is termed the
+**Job Service**.
+The Alluxio Job Service is a lightweight scheduling framework responsible for assigning a number of
+different types of tasks to Job Workers. Those tasks include
+
+- Loading data into Alluxio from a UFS
+- Persisting data to a UFS
+- Replicating files within Alluxio
+- Moving or copying data between UFS or Alluxio locations
+
 
 <p align="center">
 <img src="{{ '/img/architecture-overview.png' | relativize_url }}" alt="Architecture overview"/>
 </p>
 
-## Master
+## Masters
 
 <p align="center">
 <img src="{{ '/img/architecture-master.png' | relativize_url }}" alt="Alluxio master"/>
 </p>
 
-The Alluxio master service can be deployed as one leading master and several standby
+Alluxio contains of two separate types of master processes. One is the **Alluxio Master**.
+The Alluxio Master serves all user requests and journals file system metadata changes.
+The **Alluxio Job Master** is the process which serves as a lightweight scheduler for file system
+operations which are then executed on **Alluxio Job Workers**
+
+The **Alluxio Master** can be deployed as one leading master and several standby
 masters for fault tolerance. When the leading master goes down, a standby master
 is elected to become the new leading master.
 
@@ -81,7 +99,22 @@ the same server as the leading master to write journal checkpoints. Note that, t
 is not designed to provide high availability but offload the work from the leading master for fast
 recovery. Different from standby masters, a secondary master can never upgrade to a leading master.
 
-## Worker
+### Job Masters
+
+The Alluxio Job Master is a standalone process which is responsible for scheduling a number of
+more heavyweight file system operations asynchronously within Alluxio.
+By separating the need for the leading Alluxio Master to execute these operations within the same
+process the Alluxio Master utilizes less resources and is able to serve more clients within a
+shorter period.
+Additionally, it provides an extensible framework for more complicated operations to be added in the
+future.
+
+The Alluxio Job Master accepts requests to perform the above operations and schedules the operations
+to be executed on **Alluxio Job Workers** which act as clients to the Alluxio file system.
+
+## Workers
+
+### Alluxio Workers
 
 <p align="center">
 <img src="{{ '/img/architecture-worker.png' | relativize_url }}" alt="Alluxio worker"/>
@@ -104,23 +137,32 @@ when space is full. Workers employ eviction policies to decide which data to
 keep in the Alluxio space. For more on this topic, check out the
 documentation for [Tiered Storage]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}#multiple-tier-storage).
 
+### Alluxio Job Workers
+
+<!-- Architecture of Job Service here -->
+
+Alluxio Job Workers are clients of the Alluxio file system.
+They are responsible for running tasks given to them by the Alluxio Job Master.
+Job Workers receive instructions to run load, persist, replicate, move, or copy operations on any
+given file system locations.
+
 ## Client
 
 The Alluxio client provides users a gateway to interact with the Alluxio
 servers. It initiates communication with the leading master to carry out
 metadata operations and with workers to read and write data that is stored in
-Alluxio. Alluxio supports a native filesystem API in Java and bindings in
+Alluxio. Alluxio supports a native file system API in Java and bindings in
 multiple languages including REST, Go, and Python. Alluxio also supports APIs
 that are compatible with the HDFS API and the Amazon S3 API.
 
 Note that Alluxio clients never directly access the under storage systems. 
 Data is transmitted through Alluxio workers.
 
-## Data flow: Read
+### Data flow: Read
 
 This and the next section describe the behavior of common read and write scenarios based on
-a typical Alluxio configuration as described above: Alluxio is co-located with
-the compute framework and and applications and the persistent storage system is
+a typical Alluxio configuration:
+Alluxio is co-located with a compute framework and applications and the persistent storage system is
 either a remote storage cluster or cloud-based storage.
 
 Residing between the under storage and computation framework, Alluxio serves
@@ -132,12 +174,12 @@ scenarios and their implications on performance.
 A local cache hit occurs when the requested data resides on the local Alluxio worker.
 For example, if an application requests data access through the Alluxio client,
 the client asks the Alluxio master for the worker location of the data.
-If the data is locally available, the Alluxio client uses a “short-circuit” read
-to bypass the Alluxio worker and read the file directly via the local filesystem.
+If the data is locally available, the Alluxio client uses a "short-circuit" read
+to bypass the Alluxio worker and read the file directly via the local file system.
 Short-circuit reads avoid data transfer over a TCP socket and provide the data access
-directly. Short-circuit reads are the most performant way of reading data out of Alluxio.
+directly. Short-circuit reads are fastest way of reading data out of Alluxio.
 
-By default, short-circuit reads use local filesystem operations which require
+By default, short-circuit reads use local file system operations which require
 permissive permissions. This is sometimes impossible when the worker and client
 are containerized due to incorrect resource accounting. In cases where the default
 short-circuit is not feasible, Alluxio provides domain socket based short-circuit
@@ -146,7 +188,7 @@ predesignated domain socket path. For more information on this topic, please
 check out the instructions on
 [running Alluxio on Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }}).
 
-Also note that Alluxio can manage other storage media (e.g. SSD, HDD) in
+Also, note that Alluxio can manage other storage media (e.g. SSD, HDD) in
 addition to memory, so local data access speed may vary depending on the local
 storage media. To learn more about this topic, please refer to the
 [tiered storage document]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}#multiple-tier-storage).
@@ -174,17 +216,17 @@ workers and the under storage.
 
 If the data is not available within the Alluxio space, a cache miss occurs and
 the application will have to read the data from the under storage. The Alluxio
-client delegates the read from UFS to a worker, preferably a local worker.
+client delegates the read from a UFS to a worker, preferably a local worker.
 This worker reads and caches the data from the under storage.
 Cache misses generally cause the largest delay because data must be fetched from the
 under storage. A cache miss is expected when reading data for the first time.
 
 When the client reads only a portion of a block or
 reads the block non-sequentially, the client will instruct the worker to cache the
-full block asynchronously. This is called async caching.
-Async caching does not block the client, but may still impact
+full block asynchronously. This is called asynchronous caching.
+Asynchronous caching does not block the client, but may still impact
 performance if the network bandwidth between Alluxio and the under storage
-system is a bottleneck. You can tune the impact of async caching by setting
+system is a bottleneck. You can tune the impact of asynchronous caching by setting
 `alluxio.worker.network.async.cache.manager.threads.max` on your workers.
 The default value is `8`.
 
