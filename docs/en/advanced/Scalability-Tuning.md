@@ -32,20 +32,6 @@ When setting the heap size, ensure that there is enough memory allocated for off
 For example, spawning `4000` threads with a default thread stack size of `1MB` requires at least
 `4 GB` of off-heap space available.
 
-### Thread Pool Size
-
-A thread pool is used on the master to handle concurrent client requests. The actual thread count depends on number
-of cores available on the master. For example, if the master has 64 cores, set the master thread pool max to greater
-than `512` by modifying the following property:
-
-```properties
-alluxio.master.worker.threads.max=512
-```
-
-* You may need to set OS limits, as defined in the following section, to allow the above number of
-threads to be spawned.
-* Check that the amount of off heap storage available allows for the count thread.
-
 ### Operating System Limits
 
 An exception message like `java.lang.OutOfMemoryError: unable to create new native thread`
