@@ -35,7 +35,7 @@ public interface JournalReader extends Closeable {
   JournalEntry getEntry();
 
   /**
-   * Returns an input stream for reading a checkpoint.
+   * Returns the input stream for reading a checkpoint.
    *
    * This will be null unless the last call to {@link #advance()} returned {@link State#CHECKPOINT}.
    * Multiple calls to getCheckpoint without calling advance will return the same stream.
