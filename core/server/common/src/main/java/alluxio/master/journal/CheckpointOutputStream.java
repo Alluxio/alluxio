@@ -11,6 +11,8 @@
 
 package alluxio.master.journal;
 
+import alluxio.master.CheckpointType;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -18,17 +20,17 @@ import java.io.OutputStream;
 /**
  * Output stream for writing checkpoints.
  *
- * The stream begins with a version number.
+ * The stream begins with a type id.
  *
  * @see CheckpointInputStream
  */
 public final class CheckpointOutputStream extends DataOutputStream {
   /**
    * @param out the underlying stream to write to
-   * @param version the checkpoint version
+   * @param type the checkpoint type
    */
-  public CheckpointOutputStream(OutputStream out, long version) throws IOException {
+  public CheckpointOutputStream(OutputStream out, CheckpointType type) throws IOException {
     super(out);
-    writeLong(version);
+    writeLong(type.getId());
   }
 }

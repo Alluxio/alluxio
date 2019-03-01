@@ -12,9 +12,9 @@
 package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.master.CheckpointType;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.StreamUtils;
 
@@ -62,8 +62,7 @@ public final class JournalUtils {
    */
   public static void writeJournalEntryCheckpoint(OutputStream output, JournalEntryIterable iterable)
       throws IOException, InterruptedException {
-    CheckpointOutputStream cos =
-        new CheckpointOutputStream(output, Constants.JOURNAL_ENTRY_CHECKPOINT_VERSION);
+    CheckpointOutputStream cos = new CheckpointOutputStream(output, CheckpointType.JOURNAL_ENTRY);
     Iterator<JournalEntry> it = iterable.getJournalEntryIterator();
     while (it.hasNext()) {
       if (Thread.interrupted()) {
@@ -86,10 +85,10 @@ public final class JournalUtils {
   public static void restoreJournalEntryCheckpoint(InputStream input, Journaled journaled)
       throws IOException {
     CheckpointInputStream cis = new CheckpointInputStream(input);
-    if (cis.getVersion() != Constants.JOURNAL_ENTRY_CHECKPOINT_VERSION) {
+    if (cis.getType() != CheckpointType.JOURNAL_ENTRY) {
       throw new IllegalStateException(
-          String.format("Unrecognized checkpoint version when restoring %s: %s",
-              journaled.getCheckpointName(), cis.getVersion()));
+          String.format("Unrecognized checkpoint type when restoring %s: %s",
+              journaled.getCheckpointName(), cis.getType()));
     }
     journaled.resetState();
     JournalEntryStreamReader reader = new JournalEntryStreamReader(cis);
@@ -109,8 +108,7 @@ public final class JournalUtils {
    */
   public static void writeToCheckpoint(OutputStream output, List<? extends Checkpointed> components)
       throws IOException, InterruptedException {
-    CheckpointOutputStream cos =
-        new CheckpointOutputStream(output, Constants.COMPOUND_CHECKPOINT_VERSION);
+    CheckpointOutputStream cos = new CheckpointOutputStream(output, CheckpointType.COMPOUND);
     OutputChunked chunked = new OutputChunked(cos);
     for (Checkpointed component : components) {
       chunked.writeString(component.getCheckpointName().toString());
@@ -132,8 +130,8 @@ public final class JournalUtils {
       List<? extends Checkpointed> components) throws IOException {
     CheckpointInputStream cis = new CheckpointInputStream(input);
     InputChunked chunked = new PatchedInputChunked(input);
-    if (cis.getVersion() != Constants.COMPOUND_CHECKPOINT_VERSION) {
-      throw new IllegalStateException("Unexpected checkpoint version: " + cis.getVersion());
+    if (cis.getType() != CheckpointType.COMPOUND) {
+      throw new IllegalStateException("Unexpected checkpoint type: " + cis.getType());
     }
     while (!chunked.eof()) {
       CheckpointName name = CheckpointName.valueOf(chunked.readString());

@@ -11,6 +11,8 @@
 
 package alluxio.master.journal;
 
+import alluxio.master.CheckpointType;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,20 +25,20 @@ import java.io.InputStream;
  * @see CheckpointOutputStream
  */
 public final class CheckpointInputStream extends DataInputStream {
-  private final long mVersion;
+  private final CheckpointType mType;
 
   /**
    * @param in the underlying stream to read from
    */
   public CheckpointInputStream(InputStream in) throws IOException {
     super(in);
-    mVersion = readLong();
+    mType = CheckpointType.fromLong(readLong());
   }
 
   /**
-   * @return the checkpoint version
+   * @return the checkpoint type
    */
-  public long getVersion() {
-    return mVersion;
+  public CheckpointType getType() {
+    return mType;
   }
 }
