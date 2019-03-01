@@ -189,7 +189,7 @@ public interface FileSystemMaster extends Master {
    *
    * @param path the file to create
    * @param context the method context
-   * @return the id of the created file
+   * @return the file info of the created file
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileAlreadyExistsException if the file already exists
    * @throws BlockInfoException if an invalid block information is encountered
@@ -197,7 +197,7 @@ public interface FileSystemMaster extends Master {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  long createFile(AlluxioURI path, CreateFileContext context)
+  FileInfo createFile(AlluxioURI path, CreateFileContext context)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException;
 

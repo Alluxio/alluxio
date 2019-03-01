@@ -1337,13 +1337,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public long createFile(AlluxioURI path, CreateFileContext context)
+  public FileInfo createFile(AlluxioURI path, CreateFileContext context)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException {
     Metrics.CREATE_FILES_OPS.inc();
     LockingScheme lockingScheme = createLockingScheme(path, context.getOptions().getCommonOptions(),
             LockPattern.WRITE_EDGE);
-    long id;
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
@@ -1368,7 +1367,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
       createFileInternal(rpcContext, inodePath, context);
       auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
-      return inodePath.getInode().getId();
+      return getFileInfoInternal(inodePath);
     }
   }
 

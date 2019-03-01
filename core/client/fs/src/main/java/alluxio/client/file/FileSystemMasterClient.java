@@ -89,8 +89,9 @@ public interface FileSystemMasterClient extends Client {
    * @param path the file path
    * @param options method options
    * @throws AlreadyExistsException if the file already exists
+   * @return the uri status of the newly created file
    */
-  void createFile(AlluxioURI path, CreateFilePOptions options) throws AlluxioStatusException;
+  URIStatus createFile(AlluxioURI path, CreateFilePOptions options) throws AlluxioStatusException;
 
   /**
    * Marks a file as completed.
