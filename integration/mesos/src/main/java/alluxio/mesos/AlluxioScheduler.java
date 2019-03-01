@@ -36,6 +36,7 @@ import java.util.Set;
 /**
  * Class for responding to Mesos offers to launch Alluxio on Mesos.
  */
+@Deprecated
 public class AlluxioScheduler implements Scheduler {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioScheduler.class);
 

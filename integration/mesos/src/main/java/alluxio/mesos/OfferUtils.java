@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Mesos framework offer utils.
  */
+@Deprecated
 public final class OfferUtils {
   private static final Logger LOG = LoggerFactory.getLogger(OfferUtils.class);
 

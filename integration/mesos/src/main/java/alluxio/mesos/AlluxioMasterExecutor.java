@@ -32,6 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * starting the Alluxio master.
  */
 @ThreadSafe
+@Deprecated
 public class AlluxioMasterExecutor implements Executor {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterExecutor.class);
 

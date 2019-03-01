@@ -39,6 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * workers use the maximum available allocation.
  */
 @NotThreadSafe
+@Deprecated
 public class AlluxioFramework {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFramework.class);
 
