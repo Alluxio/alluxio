@@ -313,10 +313,9 @@ public final class PersistenceTest {
     mFileSystemMaster.createDirectory(alluxioDirSrc,
         CreateDirectoryContext.defaults().setPersisted(true));
     AlluxioURI alluxioFileSrc = new AlluxioURI("/src/in_alluxio");
-    long fileId = mFileSystemMaster.createFile(alluxioFileSrc,
+    FileInfo info = mFileSystemMaster.createFile(alluxioFileSrc,
         CreateFileContext.defaults().setPersisted(false));
-    Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(fileId).getPersistenceState());
+    Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), info.getPersistenceState());
     mFileSystemMaster.completeFile(alluxioFileSrc, CompleteFileContext.defaults());
 
     // Schedule the async persistence, checking the internal state.
@@ -350,7 +349,7 @@ public final class PersistenceTest {
     // Create the temporary UFS file.
     {
       Map<Long, PersistJob> persistJobs = getPersistJobs();
-      PersistJob job = persistJobs.get(fileId);
+      PersistJob job = persistJobs.get(info.getFileId());
       UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath(),
           ServerConfiguration.global());
       UnderFileSystemUtils.touch(ufs, job.getTempUfsPath());

@@ -191,10 +191,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void clientFileInfoEmptyFile() throws Exception {
-    long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults());
-    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+    FileInfo fileInfo =
+        mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults());
     Assert.assertEquals("testFile", fileInfo.getName());
-    Assert.assertEquals(fileId, fileInfo.getFileId());
     Assert.assertEquals(0, fileInfo.getLength());
     Assert.assertTrue(fileInfo.isCacheable());
     assertFalse(fileInfo.isCompleted());
@@ -382,10 +381,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
     mFsMaster.createDirectory(new AlluxioURI("/testFolder/testFolder2"),
         CreateDirectoryContext.defaults());
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileContext.defaults());
+    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"),
+        CreateFileContext.defaults()).getFileId();
     long fileId2 = mFsMaster.createFile(new AlluxioURI("/testFolder/testFolder2/testFile2"),
-        CreateFileContext.defaults());
+        CreateFileContext.defaults()).getFileId();
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(2, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
@@ -402,10 +401,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
     mFsMaster.createDirectory(new AlluxioURI("/testFolder/testFolder2"),
         CreateDirectoryContext.defaults());
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileContext.defaults());
+    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"),
+        CreateFileContext.defaults()).getFileId();
     long fileId2 = mFsMaster.createFile(new AlluxioURI("/testFolder/testFolder2/testFile2"),
-        CreateFileContext.defaults());
+        CreateFileContext.defaults()).getFileId();
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(2, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
@@ -430,8 +429,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void deleteDirectoryWithFiles() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileContext.defaults());
+    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"),
+        CreateFileContext.defaults()).getFileId();
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     mFsMaster.delete(new AlluxioURI("/testFolder"),
@@ -443,8 +442,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void deleteDirectoryWithFilesTest2() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileContext.defaults());
+    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"),
+        CreateFileContext.defaults()).getFileId();
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     try {
@@ -513,7 +512,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void deleteFile() throws Exception {
-    long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults());
+    long fileId =
+        mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults()).getFileId();
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFile")));
     mFsMaster.delete(new AlluxioURI("/testFile"),
         DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
@@ -538,7 +538,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void lastModificationTimeCompleteFile() throws Exception {
-    long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults());
+    long fileId =
+        mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults()).getFileId();
     long opTimeMs = TEST_TIME_MS;
     mFsMaster.completeFile(new AlluxioURI("/testFile"), CompleteFileContext
         .mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0)).setOperationTimeMs(opTimeMs));
@@ -595,7 +596,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       mFsMaster.createDirectory(dir, CreateDirectoryContext.defaults());
       dirIds.add(mFsMaster.getFileId(dir));
       for (int j = 0; j < 10; j++) {
-        ids.add(mFsMaster.createFile(dir.join("j" + j), options));
+        ids.add(mFsMaster.createFile(dir.join("j" + j), options).getFileId());
       }
     }
     HashSet<Long> listedIds = new HashSet<>();
@@ -700,7 +701,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     long ttl = 1;
     CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)));
-    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context);
+    long fileId =
+        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context).getFileId();
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
     Assert.assertEquals(fileId, folderInfo.getFileId());
@@ -720,7 +722,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         .mergeFrom(CreateFilePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
             .newBuilder().setTtl(ttl).setTtlAction(alluxio.grpc.TtlAction.FREE)))
         .setPersisted(true);
-    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context);
+    long fileId =
+        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context).getFileId();
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
     Assert.assertEquals(fileId, folderInfo.getFileId());
@@ -1388,7 +1391,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       if (depth < 1) {
         return;
       } else if (depth == 1) {
-        long fileId = mFsMaster.createFile(path, mCreateFileContext);
+        long fileId = mFsMaster.createFile(path, mCreateFileContext).getFileId();
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
         // verify the user permission for file
         FileInfo fileInfo = mFsMaster.getFileInfo(fileId);

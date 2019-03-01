@@ -6,4 +6,17 @@ package alluxio.grpc;
 public interface CreateFilePResponseOrBuilder extends
     // @@protoc_insertion_point(interface_extends:alluxio.grpc.file.CreateFilePResponse)
     com.google.protobuf.MessageOrBuilder {
+
+  /**
+   * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+   */
+  boolean hasFileInfo();
+  /**
+   * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+   */
+  alluxio.grpc.FileInfo getFileInfo();
+  /**
+   * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+   */
+  alluxio.grpc.FileInfoOrBuilder getFileInfoOrBuilder();
 }
