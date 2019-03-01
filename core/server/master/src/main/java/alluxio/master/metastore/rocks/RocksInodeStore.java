@@ -17,17 +17,22 @@ import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.journal.CheckpointName;
 import alluxio.master.metastore.InodeStore;
 import alluxio.proto.meta.InodeMeta;
+import alluxio.util.TarUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
+import org.rocksdb.BackupEngine;
+import org.rocksdb.BackupableDBOptions;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
 import org.rocksdb.DBOptions;
+import org.rocksdb.Env;
 import org.rocksdb.HashLinkedListMemTableConfig;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
@@ -38,6 +43,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,6 +67,7 @@ public class RocksInodeStore implements InodeStore {
   private static final String INODES_DB_NAME = "inodes";
   private static final String INODES_COLUMN = "inodes";
   private static final String EDGES_COLUMN = "edges";
+  private static final String NAME = "RocksInodeStore";
 
   // These are fields instead of constants because they depend on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
@@ -67,11 +75,13 @@ public class RocksInodeStore implements InodeStore {
 
   private final AlluxioConfiguration mConf;
   private final String mDbPath;
+  private final String mDbBackupPath;
 
   private RocksDB mDb;
   private ColumnFamilyHandle mDefaultColumn;
   private ColumnFamilyHandle mInodesColumn;
   private ColumnFamilyHandle mEdgesColumn;
+  private BackupEngine mBackupEngine;
 
   /**
    * Creates and initializes a rocks block store.
@@ -81,6 +91,7 @@ public class RocksInodeStore implements InodeStore {
   public RocksInodeStore(InodeStoreArgs args) {
     mConf = args.getConf();
     mDbPath = PathUtils.concatPath(mConf.get(PropertyKey.MASTER_METASTORE_DIR), INODES_DB_NAME);
+    mDbBackupPath = PathUtils.concatPath(mDbPath, "backups");
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
@@ -259,6 +270,28 @@ public class RocksInodeStore implements InodeStore {
     return true;
   }
 
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.ROCKS_INODE_STORE;
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    try {
+      BackupEngine backupEngine = getBackupEngine();
+      backupEngine.createNewBackup(mDb);
+    } catch (RocksDBException e) {
+      throw new IOException(e);
+    }
+    TarUtils.writeTarGz(Paths.get(mDbBackupPath), output);
+  }
+
+  @Override
+  public void restoreFromCheckpoint(InputStream input) throws IOException {
+    FileUtils.deletePathRecursively(mDbBackupPath);
+    TarUtils.readTarGz(Paths.get(mDbBackupPath), input);
+  }
+
   private class RocksWriteBatch implements WriteBatch {
     private final org.rocksdb.WriteBatch mBatch = new org.rocksdb.WriteBatch();
 
@@ -364,6 +397,14 @@ public class RocksInodeStore implements InodeStore {
     mEdgesColumn = columns.get(2);
 
     LOG.info("Created new rocks database under path {}", mDbPath);
+  }
+
+  private synchronized BackupEngine getBackupEngine() throws RocksDBException {
+    if (mBackupEngine == null) {
+      mBackupEngine = BackupEngine.open(Env.getDefault(), new BackupableDBOptions(mDbBackupPath)
+          .setMaxBackgroundOperations(4).setDestroyOldData(true));
+    }
+    return mBackupEngine;
   }
 
   @Override

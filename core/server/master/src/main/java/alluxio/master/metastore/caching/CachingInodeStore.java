@@ -23,6 +23,7 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.journal.CheckpointName;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.metrics.MetricsSystem;
@@ -38,6 +39,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -229,6 +232,24 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.CACHING_INODE_STORE;
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    mInodeCache.flush();
+    mEdgeCache.flush();
+    mBackingStore.writeToCheckpoint(output);
+  }
+
+  @Override
+  public void restoreFromCheckpoint(InputStream input) throws IOException {
+    mBackingStore.restoreFromCheckpoint(input);
+    mBackingStoreEmpty = false;
   }
 
   /**

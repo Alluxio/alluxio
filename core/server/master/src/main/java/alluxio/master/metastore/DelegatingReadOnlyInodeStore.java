@@ -15,9 +15,13 @@ import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.journal.CheckpointName;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Optional;
 import java.util.Set;
 
@@ -99,5 +103,20 @@ public class DelegatingReadOnlyInodeStore implements ReadOnlyInodeStore {
   @VisibleForTesting
   public Set<MutableInode<?>> allInodes() {
     return mDelegate.allInodes();
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return mDelegate.getCheckpointName();
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    mDelegate.writeToCheckpoint(output);
+  }
+
+  @Override
+  public void restoreFromCheckpoint(InputStream input) throws IOException {
+    mDelegate.restoreFromCheckpoint(input);
   }
 }

@@ -15,6 +15,7 @@ import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.journal.Checkpointed;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -27,7 +28,7 @@ import java.util.Set;
 /**
  * Read-only access to the inode store.
  */
-public interface ReadOnlyInodeStore extends Closeable {
+public interface ReadOnlyInodeStore extends Closeable, Checkpointed {
   /**
    * @return an estimate for the number of inodes in the inode store
    */

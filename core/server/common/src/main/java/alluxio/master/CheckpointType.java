@@ -24,7 +24,11 @@ public enum CheckpointType {
    * This format uses kryo's chunked encoding to write multiple [checkpoint_name, checkpoint_bytes]
    * entries to the output stream.
    */
-  COMPOUND(1);
+  COMPOUND(1),
+  /**
+   * A series of longs written by {@link java.io.DataOutputStream}.
+   */
+  LONGS(2);
 
   private final long mId;
 
