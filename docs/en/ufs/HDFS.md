@@ -207,13 +207,14 @@ ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.sec
 
 There are multiple ways for a user to mount an HDFS cluster with a specified version as an under storage into Alluxio namespace.
 Before mounting HDFS with a specific version, make sure you have built a client with that specific version of HDFS.
+You can check the existence of this client by going to the `lib` directory under the Alluxio directory.
 
-If you have built Alluxio from source, you can build additional client jar files by running `mvn` command under the `underfs` directory in the Alluxio source tree. For example, issuing the following command would build the client jar for the 2.7.0 version.
+If you have built Alluxio from source, you can build additional client jar files by running `mvn` command under the `underfs` directory in the Alluxio source tree. For example, issuing the following command would build the client jar for the 2.8.0 version.
 
 ```bash
 $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
 -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true \
--Pufs-hadoop-2 -Dufs.hadoop.version=2.7.0
+-Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0
 ```
 
 #### Using Mount Command-line
