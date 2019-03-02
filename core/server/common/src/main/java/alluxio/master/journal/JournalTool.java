@@ -159,7 +159,6 @@ public final class JournalTool {
             System.out.print(entry);
             if (entry.getSequenceNumber() >= sEnd) {
               done = true;
-              break;
             }
             break;
           case DONE:

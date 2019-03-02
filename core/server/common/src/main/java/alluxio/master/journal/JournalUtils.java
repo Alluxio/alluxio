@@ -20,6 +20,7 @@ import alluxio.util.StreamUtils;
 
 import com.esotericsoftware.kryo.io.InputChunked;
 import com.esotericsoftware.kryo.io.OutputChunked;
+import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,11 +86,9 @@ public final class JournalUtils {
   public static void restoreJournalEntryCheckpoint(InputStream input, Journaled journaled)
       throws IOException {
     CheckpointInputStream cis = new CheckpointInputStream(input);
-    if (cis.getType() != CheckpointType.JOURNAL_ENTRY) {
-      throw new IllegalStateException(
-          String.format("Unrecognized checkpoint type when restoring %s: %s",
-              journaled.getCheckpointName(), cis.getType()));
-    }
+    Preconditions.checkState(cis.getType() == CheckpointType.JOURNAL_ENTRY,
+        "Unrecognized checkpoint type when restoring %s: %s", journaled.getCheckpointName(),
+        cis.getType());
     journaled.resetState();
     JournalEntryStreamReader reader = new JournalEntryStreamReader(cis);
     JournalEntry entry;
@@ -130,9 +129,8 @@ public final class JournalUtils {
       List<? extends Checkpointed> components) throws IOException {
     CheckpointInputStream cis = new CheckpointInputStream(input);
     InputChunked chunked = new PatchedInputChunked(input);
-    if (cis.getType() != CheckpointType.COMPOUND) {
-      throw new IllegalStateException("Unexpected checkpoint type: " + cis.getType());
-    }
+    Preconditions.checkState(cis.getType() != CheckpointType.COMPOUND,
+        "Unexpected checkpoint type: %s", cis.getType());
     while (!chunked.eof()) {
       CheckpointName name = CheckpointName.valueOf(chunked.readString());
       boolean found = false;

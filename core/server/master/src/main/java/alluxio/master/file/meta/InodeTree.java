@@ -24,14 +24,14 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.master.journal.CheckpointName;
-import alluxio.master.journal.Journaled;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.CreatePathContext;
+import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.Journaled;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -42,7 +42,6 @@ import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
-import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -60,11 +59,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -78,7 +74,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 // TODO(jiri): Make this class thread-safe.
-public class InodeTree implements Journaled {
+public class InodeTree implements DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTree.class);
   /** The base amount (exponential backoff) to sleep before retrying persisting an inode. */
   private static final int PERSIST_WAIT_BASE_SLEEP_MS = 2;
@@ -979,33 +975,8 @@ public class InodeTree implements Journaled {
   }
 
   @Override
-  public boolean processJournalEntry(JournalEntry entry) {
-    return mState.processJournalEntry(entry);
-  }
-
-  @Override
-  public void resetState() {
-    mState.resetState();
-  }
-
-  @Override
-  public CheckpointName getCheckpointName() {
-    return mState.getCheckpointName();
-  }
-
-  @Override
-  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    mState.writeToCheckpoint(output);
-  }
-
-  @Override
-  public void restoreFromCheckpoint(InputStream input) throws IOException {
-    mState.restoreFromCheckpoint(input);
-  }
-
-  @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    return mState.getJournalEntryIterator();
+  public Journaled getDelegate() {
+    return mState;
   }
 
   /**

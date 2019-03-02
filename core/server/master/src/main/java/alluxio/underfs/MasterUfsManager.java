@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.CheckpointName;
+import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File;
@@ -23,9 +24,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -40,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A class that manages the UFS for master servers.
  */
 @ThreadSafe
-public final class MasterUfsManager extends AbstractUfsManager implements Journaled {
+public final class MasterUfsManager extends AbstractUfsManager implements DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(MasterUfsManager.class);
 
   private final State mState;
@@ -116,28 +114,8 @@ public final class MasterUfsManager extends AbstractUfsManager implements Journa
   }
 
   @Override
-  public boolean processJournalEntry(JournalEntry entry) {
-    return mState.processJournalEntry(entry);
-  }
-
-  @Override
-  public void resetState() {
-    mState.resetState();
-  }
-
-  @Override
-  public CheckpointName getCheckpointName() {
-    return mState.getCheckpointName();
-  }
-
-  @Override
-  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    mState.writeToCheckpoint(output);
-  }
-
-  @Override
-  public void restoreFromCheckpoint(InputStream input) throws IOException {
-    mState.restoreFromCheckpoint(input);
+  public Journaled getDelegate() {
+    return mState;
   }
 
   @Override

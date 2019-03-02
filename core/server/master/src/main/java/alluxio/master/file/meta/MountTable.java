@@ -20,10 +20,11 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MountPOptions;
-import alluxio.master.journal.CheckpointName;
-import alluxio.master.journal.Journaled;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.journal.CheckpointName;
+import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.DeleteMountPointEntry;
@@ -41,9 +42,6 @@ import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -64,7 +62,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class is used for keeping track of Alluxio mount points.
  */
 @ThreadSafe
-public final class MountTable implements Journaled {
+public final class MountTable implements DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(MountTable.class);
 
   public static final String ROOT = "/";
@@ -380,33 +378,8 @@ public final class MountTable implements Journaled {
   }
 
   @Override
-  public boolean processJournalEntry(JournalEntry entry) {
-    return mState.processJournalEntry(entry);
-  }
-
-  @Override
-  public void resetState() {
-    mState.resetState();
-  }
-
-  @Override
-  public CheckpointName getCheckpointName() {
-    return mState.getCheckpointName();
-  }
-
-  @Override
-  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    mState.writeToCheckpoint(output);
-  }
-
-  @Override
-  public void restoreFromCheckpoint(InputStream input) throws IOException {
-    mState.restoreFromCheckpoint(input);
-  }
-
-  @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    return mState.getJournalEntryIterator();
+  public Journaled getDelegate() {
+    return mState;
   }
 
   /**
