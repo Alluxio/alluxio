@@ -129,7 +129,7 @@ public final class JournalUtils {
       List<? extends Checkpointed> components) throws IOException {
     CheckpointInputStream cis = new CheckpointInputStream(input);
     InputChunked chunked = new PatchedInputChunked(input);
-    Preconditions.checkState(cis.getType() != CheckpointType.COMPOUND,
+    Preconditions.checkState(cis.getType() == CheckpointType.COMPOUND,
         "Unexpected checkpoint type: %s", cis.getType());
     while (!chunked.eof()) {
       CheckpointName name = CheckpointName.valueOf(chunked.readString());
