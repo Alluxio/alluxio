@@ -30,6 +30,8 @@ import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
@@ -319,6 +321,25 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     assertEquals("Should have 5 blocks", 5, locations.size());
     locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) ->
         assertEquals("block " + info + " should have single worker", 1, workers.size()));
+  }
+
+  @Test
+  public void testMultiSetAttribute() throws Exception {
+    AlluxioURI testFile = new AlluxioURI("/test1");
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
+    long expectedTtl = ServerConfiguration.getMs(PropertyKey.USER_FILE_CREATE_TTL);
+    URIStatus stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be same", expectedTtl, stat.getTtl());
+    long newTtl = 14402478;
+    mFileSystem.setAttribute(testFile,
+        SetAttributePOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtl(newTtl).build()).build());
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be same", newTtl, stat.getTtl());
+    mFileSystem.setAttribute(testFile,
+        SetAttributePOptions.newBuilder().setOwner("testOwner").build());
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be same", newTtl, stat.getTtl());
   }
 
 // Test exception cases for all FileSystem RPCs
