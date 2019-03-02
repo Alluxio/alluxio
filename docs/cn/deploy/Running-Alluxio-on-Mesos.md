@@ -25,7 +25,7 @@ Alluxio兼容Mesos 0.23.0及之后的版本。
 启动Mesos slave时，可以指定要管理的端口资源。
 
 ```bash
-$ /usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
+/usr/local/sbin/mesos-slave --resources='ports:[19998-19999,29998-30000]'
 ```
 
 #### 更改Alluxio端口

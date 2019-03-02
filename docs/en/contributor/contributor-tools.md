@@ -39,7 +39,7 @@ For these maven commands we'll assume that your command terminal is located in t
 of your locally cloned copy of the Alluxio repository.
 
 ```bash
-$ cd ${ALLUXIO_HOME}
+cd ${ALLUXIO_HOME}
 ```
 
 ### Checkstyle
@@ -62,7 +62,7 @@ introduced.
 To simply compile the code you can run the following command:
 
 ```bash
-$ mvn clean compile -DskipTests
+mvn clean compile -DskipTests
 ```
 
 This will not execute any unit tests but _will_ execute maven plugins such as `checkstyle` and
@@ -71,7 +71,7 @@ This will not execute any unit tests but _will_ execute maven plugins such as `c
 To speed up compilation you may use the following command:
 
 ```bash
-$ mvn -T 2C compile -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip -pl '!alluxio-ui'
+mvn -T 2C compile -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip -pl '!alluxio-ui'
 ```
 
 This command will skip many of our checks that are in place to help keep our code neat.
@@ -108,9 +108,9 @@ with the following commands:
 a local installation.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
-$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
-$ ./bin/alluxio format
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
+./bin/alluxio format
 ```
 
 Once you've run those commands steps you can start a local Alluxio instance with
@@ -124,8 +124,8 @@ Once you've run those commands steps you can start a local Alluxio instance with
 - Run all unit and integration tests
 
 ```bash
-$ cd ${ALLUXIO_HOME}
-$ mvn test
+cd ${ALLUXIO_HOME}
+mvn test
 ```
 
 This will use the local filesystem as the under storage.
@@ -133,30 +133,30 @@ This will use the local filesystem as the under storage.
 - Run a single unit test:
 
 ```bash
-$ mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
+mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
 ```
 
 - To run unit tests for a specific module, execute the `maven test` command targeting
 the desired submodule directory. For example, to run tests for HDFS UFS module you would run
 
 ```bash
-$ mvn test -pl underfs/hdfs
+mvn test -pl underfs/hdfs
 ```
 
 Run unit tests for HDFS UFS module with a different Hadoop version:
 
 ```bash
 # build and run test on HDFS under storage module for Hadoop 2.7.0
-$ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
+mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
 # build and run test on HDFS under storage module for Hadoop 3.0.0
-$ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
+mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 ```
 
 The above unit tests will create a simulated HDFS service with the specific version.
 To run more comprehensive tests on HDFS under storage using a real and running HDFS deployment:
 
 ```bash
-$ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
+mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
 ```
 
 - To have the logs output to STDOUT, append the following arguments to the `mvn` command
@@ -181,7 +181,7 @@ RPCs on clients and implementing the RPCs on servers. To regenerate Java code af
 a gRPC definition, you must rebuild `alluxio-core-transport` module with `'generate'` maven profile.
 
 ```bash
-$ mvn clean install -Pgenerate
+mvn clean install -Pgenerate
 ```
 
 ## Modifying a Protocol Buffer Message
@@ -194,7 +194,7 @@ to make sure your change will not break backwards compatibility. To regenerate J
 a definition, you must rebuild `alluxio-core-transport` module with `'generate'` maven profile.
 
 ```bash
-$ mvn clean install -Pgenerate
+mvn clean install -Pgenerate
 ```
 
 ## Usage of `./bin/alluxio`

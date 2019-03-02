@@ -61,7 +61,7 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 - 在`HADOOP_CLASSPATH`环境变量中指定该jar文件的路径（要保证该路径对集群中的所有节点都有效）。例如：
 
 ```bash
-$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}
+export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
 ### 将Alluxio额外属性转化为Flink属性
@@ -88,13 +88,13 @@ Flink中使用Alluxio，指定路径时使用`alluxio://`前缀。
 将`LICENSE`文件放入Alluxio中，假定当前目录为Alluxio工程的根目录：
 
 ```bash
-$ bin/alluxio fs copyFromLocal LICENSE alluxio://localhost:19998/LICENSE
+./bin/alluxio fs copyFromLocal LICENSE alluxio://localhost:19998/LICENSE
 ```
 
 在Flink工程的根目录下运行以下命令：
 
 ```bash
-$ bin/flink run examples/batch/WordCount.jar --input alluxio://localhost:19998/LICENSE --output alluxio://localhost:19998/output
+./bin/flink run examples/batch/WordCount.jar --input alluxio://localhost:19998/LICENSE --output alluxio://localhost:19998/output
 ```
 
 接着打开浏览器，进入[http://localhost:19999/browse](http://localhost:19999/browse)，其中应存在一个`output`文件，该文件即为对`LICENSE`文件进行word count的结果。
