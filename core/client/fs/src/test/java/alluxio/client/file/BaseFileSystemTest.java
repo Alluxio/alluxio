@@ -480,8 +480,7 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     SetAttributePOptions setAttributeOptions = SetAttributePOptions.getDefaultInstance();
     mFileSystem.setAttribute(file, setAttributeOptions);
-    verify(mFileSystemMasterClient).setAttribute(file, FileSystemOptions.setAttributeDefaults(mConf)
-        .toBuilder().mergeFrom(setAttributeOptions).build());
+    verify(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
   }
 
   /**
@@ -491,9 +490,7 @@ public final class BaseFileSystemTest {
   public void setStateException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     SetAttributePOptions setAttributeOptions = SetAttributePOptions.getDefaultInstance();
-    doThrow(EXCEPTION).when(mFileSystemMasterClient).setAttribute(file,
-        FileSystemOptions.setAttributeDefaults(mConf)
-            .toBuilder().mergeFrom(setAttributeOptions).build());
+    doThrow(EXCEPTION).when(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
     try {
       mFileSystem.setAttribute(file, setAttributeOptions);
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
