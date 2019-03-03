@@ -17,7 +17,7 @@ img {
     height: auto;
 }
 
-.language-bash > .highlight > .highlight > code > span.nv:before {
+.language-bash > .highlight > .highlight > code > span.line::before {
     content: "~ $";
     font-style: inherit;
     padding-right: .5rem;
@@ -27,6 +27,15 @@ img {
 .language-bash > .highlight > .highlight > code {
     content: "$";
 } 
+
+.highlighter-rouge > .highlight {
+    background-color: #DCDCDC;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    padding-left: 5px;
+    border-radius: 5px;
+
+}
 
 .navbar {
     padding-bottom: 2rem;
