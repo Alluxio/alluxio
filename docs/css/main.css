@@ -17,6 +17,10 @@ img {
     height: auto;
 }
 
+.sticky-top {
+    padding-top: 1rem;
+}
+
 .language-bash > .highlight > .highlight > code > span.line::before {
     content: "~ $";
     font-style: inherit;
@@ -24,9 +28,6 @@ img {
     padding-left: .5rem;
 
 }
-.language-bash > .highlight > .highlight > code {
-    content: "$";
-} 
 
 .highlighter-rouge > .highlight {
     background-color: #DCDCDC;
