@@ -54,6 +54,7 @@ import alluxio.grpc.MountPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
@@ -3597,16 +3598,21 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           protoOptions.hasReplicationMin() ? protoOptions.getReplicationMin() : null;
       mInodeTree.setReplication(rpcContext, inodePath, replicationMax, replicationMin, opTimeMs);
     }
-    if (protoOptions.hasCommonOptions() && protoOptions.getCommonOptions().hasTtl()
-        && protoOptions.getCommonOptions().hasTtlAction()) {
-      long ttl = protoOptions.getCommonOptions().getTtl();
-      if (inode.getTtl() != ttl
-          || inode.getTtlAction() != protoOptions.getCommonOptions().getTtlAction()) {
+    // protoOptions may not have both fields set
+    if (protoOptions.hasCommonOptions()) {
+      FileSystemMasterCommonPOptions commonOpts = protoOptions.getCommonOptions();
+      TtlAction action = commonOpts.hasTtlAction() ? commonOpts.getTtlAction() : null;
+      Long ttl = commonOpts.hasTtl() ? commonOpts.getTtl() : null;
 
+      if (ttl != null && inode.getTtl() != ttl) {
         entry.setTtl(ttl);
+      }
+      if (inode.getTtlAction() != action) {
+        entry.setTtlAction(ProtobufUtils.toProtobuf(action));
+      }
+      // We've set at least one if they are both non-null
+      if (ttl != null && action != null) {
         entry.setLastModificationTimeMs(opTimeMs);
-        entry.setTtlAction(ProtobufUtils.toProtobuf(
-            protoOptions.getCommonOptions().getTtlAction()));
       }
     }
     if (protoOptions.hasPersisted()) {
