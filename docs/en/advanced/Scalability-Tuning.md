@@ -29,7 +29,7 @@ ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xms128g -Xmx256g "
 * As a rule of thumb set the min heap size to half the max heap size.
 * Each thread spawned by the master JVM requires off heap space determined by the thread stack size.
 When setting the heap size, ensure that there is enough memory allocated for off heap storage.
-For example, spawning `4000` threads with a default thread stack size of `1MB` requires at least
+For example, spawning `4000` threads with a default thread stack size of `1 MB` requires at least
 `4 GB` of off-heap space available.
 
 ### Operating System Limits
@@ -62,8 +62,8 @@ The frequency in which a worker checks in with the master is set by the followin
 alluxio.worker.block.heartbeat.interval=60s
 alluxio.worker.filesystem.heartbeat.interval=60s
 ```
-`alluxio.worker.block.heartbeat.interval` controls the heartbeat intervals for block service in Alluxio and
-`alluxio.worker.filesystem.heartbeat.interval` for filesystem service.
+`alluxio.worker.block.heartbeat.interval` controls the heartbeat intervals for the block service in Alluxio and
+`alluxio.worker.filesystem.heartbeat.interval` for the filesystem service.
 Again, increase the interval to reduce the number of heartbeat checks.
 
 ### Keepalive Time and Timeout
@@ -94,7 +94,7 @@ when a client attempts to communicate with the Alluxio master.
 
 ### Keepalive Time and Timeout
 
-Alluxio client can also be configured to check the health of connected workers using keepalive pings.
+The Alluxio client can also be configured to check the health of connected workers using keepalive pings.
 This is controlled by the following properties
 ```properties
 alluxio.user.network.keepalive.time=2147483647ms
@@ -104,5 +104,5 @@ alluxio.user.network.keepalive.timeout=30s
 issues a keepalive request. `alluxio.user.network.keepalive.timeout` controls the maximum wait time after a keepalive
 request is sent before the client determines the worker is no longer alive and closes the connection. This
 is disabled by default to minimize unintended performance impact to workers. You might want to enable it if you find
-that Alluxio client is waiting a long time on dead workers. To enable it, set the property
+that the Alluxio client is waiting a long time on dead workers. To enable it, set the property
 `alluxio.user.network.keepalive.time` to a desired interval.

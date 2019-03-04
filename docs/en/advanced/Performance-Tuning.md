@@ -47,7 +47,7 @@ The following is a checklist to run through to address common problems when tuni
 1. Are there warnings or errors in the master or worker logs related to thread pool exhaustion?
 
    Alluxio clients maintain a connection to the master to avoid using a new connection each time.
-   Each client will occupy a server thread while the RPC is pending.
+   Each client will occupy a server thread while an RPC request is pending.
    This may deplete the master's thread pool; its size can be increased by setting
    `alluxio.master.worker.threads.max`, which has a default value of 512.
    The file descriptor limit may also need to be increased to allow the desired number of open connections.
@@ -207,7 +207,7 @@ If this is set to 0, the cache is disabled and the `Once` setting will behave li
 ### Block reading thread pool size
 
 The `alluxio.worker.network.block.reader.threads.max` property configures the maximum number of threads used to
-handle block read requests. This value should be increased if you are getting connection refused error while
+handle block read requests. This value should be increased if you are getting connection refused errors while
 reading files.
 
 ### Async block caching
