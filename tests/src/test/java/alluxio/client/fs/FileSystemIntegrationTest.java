@@ -354,30 +354,10 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     assertEquals("TTL should be same", newTtl, stat.getTtl());
   }
 
-  @Test
-  public void testMultiSetAttribute() throws Exception {
-    AlluxioURI testFile = new AlluxioURI("/test1");
-    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
-    long expectedTtl = ServerConfiguration.getMs(PropertyKey.USER_FILE_CREATE_TTL);
-    URIStatus stat = mFileSystem.getStatus(testFile);
-    assertEquals("TTL should be same", expectedTtl, stat.getTtl());
-    long newTtl = 14402478;
-    mFileSystem.setAttribute(testFile,
-        SetAttributePOptions.newBuilder().setCommonOptions(
-            FileSystemMasterCommonPOptions.newBuilder().setTtl(newTtl).build()).build());
-    stat = mFileSystem.getStatus(testFile);
-    assertEquals("TTL should be same", newTtl, stat.getTtl());
-    mFileSystem.setAttribute(testFile,
-        SetAttributePOptions.newBuilder().setOwner("testOwner").build());
-    stat = mFileSystem.getStatus(testFile);
-    assertEquals("TTL should be same", newTtl, stat.getTtl());
-  }
-
   @LocalAlluxioClusterResource.Config(
       confParams = {
           PropertyKey.Name.USER_FILE_CREATE_TTL_ACTION, "FREE"
-      }
-  )
+      })
   @Test
   public void testTtlActionSetAttribute() throws Exception {
     AlluxioURI testFile = new AlluxioURI("/test1");
@@ -389,15 +369,14 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
 
     TtlAction newTtlAction = TtlAction.DELETE;
     long newTtl = 123400000;
-    mFileSystem.setAttribute(testFile,
-        SetAttributePOptions.newBuilder().setCommonOptions(
+    mFileSystem.setAttribute(testFile, SetAttributePOptions.newBuilder().setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder().setTtl(newTtl).build()).build());
     stat = mFileSystem.getStatus(testFile);
     assertEquals("TTL should be same", newTtl, stat.getTtl());
     assertEquals("TTL action should be same", expectedAction, stat.getTtlAction());
-    mFileSystem.setAttribute(testFile,
-        SetAttributePOptions.newBuilder().setCommonOptions(
-            FileSystemMasterCommonPOptions.newBuilder().setTtlAction(newTtlAction).build()).build());
+    mFileSystem.setAttribute(testFile, SetAttributePOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtlAction(newTtlAction).build())
+        .build());
     stat = mFileSystem.getStatus(testFile);
     assertEquals("TTL should be same", newTtl, stat.getTtl());
     assertEquals("TTL action should be same", newTtlAction, stat.getTtlAction());
