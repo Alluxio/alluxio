@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
@@ -42,8 +43,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.FileBlockInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.BlockLocationInfo;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -53,7 +53,6 @@ import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
@@ -309,10 +308,16 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     AlluxioURI testFile = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.THROUGH).setBlockSizeBytes(4).build(), 100);
-    Map<FileBlockInfo, List<WorkerNetAddress>> locations = mFileSystem.getBlockLocations(testFile);
+    List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(testFile);
     assertEquals("should have 25 blocks", 25, locations.size());
-    locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) ->
-            assertEquals("block " + info + " should have single worker", 1, workers.size()));
+    long lastOffset = -1;
+    for (BlockLocationInfo location : locations) {
+      assertEquals("block " + location.getBlockInfo() + " should have single worker",
+          1, location.getLocations().size());
+      assertTrue("block " + location.getBlockInfo() + " should have offset larger than "
+              + lastOffset, location.getBlockInfo().getOffset() > lastOffset);
+      lastOffset = location.getBlockInfo().getOffset();
+    }
 
     // Test in alluxio
     testFile = new AlluxioURI("/test2");
@@ -320,8 +325,33 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
             .setWriteType(WritePType.CACHE_THROUGH).setBlockSizeBytes(100).build(), 500);
     locations = mFileSystem.getBlockLocations(testFile);
     assertEquals("Should have 5 blocks", 5, locations.size());
-    locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) ->
-        assertEquals("block " + info + " should have single worker", 1, workers.size()));
+    lastOffset = -1;
+    for (BlockLocationInfo location : locations) {
+      assertEquals("block " + location.getBlockInfo() + " should have single worker",
+          1, location.getLocations().size());
+      assertTrue("block " + location.getBlockInfo() + " should have offset larger than "
+          + lastOffset, location.getBlockInfo().getOffset() > lastOffset);
+      lastOffset = location.getBlockInfo().getOffset();
+    }
+  }
+
+  @Test
+  public void testMultiSetAttribute() throws Exception {
+    AlluxioURI testFile = new AlluxioURI("/test1");
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
+    long expectedTtl = ServerConfiguration.getMs(PropertyKey.USER_FILE_CREATE_TTL);
+    URIStatus stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be same", expectedTtl, stat.getTtl());
+    long newTtl = 14402478;
+    mFileSystem.setAttribute(testFile,
+        SetAttributePOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtl(newTtl).build()).build());
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be same", newTtl, stat.getTtl());
+    mFileSystem.setAttribute(testFile,
+        SetAttributePOptions.newBuilder().setOwner("testOwner").build());
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be same", newTtl, stat.getTtl());
   }
 
   @Test

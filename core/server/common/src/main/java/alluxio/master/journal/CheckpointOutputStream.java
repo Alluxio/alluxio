@@ -11,28 +11,26 @@
 
 package alluxio.master.journal;
 
-import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.master.CheckpointType;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
- * Interface for a state machine which operates on {@link JournalEntry}s.
+ * Output stream for writing checkpoints.
+ *
+ * The stream begins with a type id.
+ *
+ * @see CheckpointInputStream
  */
-public interface JournalEntryStateMachine extends JournalEntryIterable {
+public final class CheckpointOutputStream extends DataOutputStream {
   /**
-   * @return the name of this journal entry state machine
+   * @param out the underlying stream to write to
+   * @param type the checkpoint type
    */
-  String getName();
-
-  /**
-   * Applies a journal entry to the state machine.
-   *
-   * @param entry the entry to process to update the state of the state machine
-   */
-  void processJournalEntry(JournalEntry entry) throws IOException;
-
-  /**
-   * Resets the journaled internal state of the state machine.
-   */
-  void resetState();
+  public CheckpointOutputStream(OutputStream out, CheckpointType type) throws IOException {
+    super(out);
+    writeLong(type.getId());
+  }
 }

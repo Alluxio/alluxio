@@ -37,8 +37,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * The current resource allocation policy uses a configurable Alluxio master allocation, while the
  * workers use the maximum available allocation.
+ *
+ * @deprecated since version 2.0
  */
 @NotThreadSafe
+@Deprecated
 public class AlluxioFramework {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFramework.class);
 

@@ -9,6 +9,8 @@ priority: 4
 * Table of Contents
 {:toc}
 
+Note: This legacy scheduler is DEPRECATED and is no longer maintained. Please expect a new scheduler in Alluxio 2.0.
+
 Alluxio can be deployed through Mesos. This allows Mesos to manage the resources used by Alluxio. For the Alluxio
 master the managed resources are the CPU and memory needed by the JVM process. For the worker, the additional resources
 include the ramdisk memory (if configuring memory as a storage tier) and other optional tiered storage such as SSD or HDD.

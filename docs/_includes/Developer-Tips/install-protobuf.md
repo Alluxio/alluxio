@@ -1,3 +1,0 @@
-```bash
-$ brew install protobuf
-```

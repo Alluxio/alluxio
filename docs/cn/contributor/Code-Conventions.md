@@ -204,14 +204,7 @@ $ bin/alluxio thriftGen
 Alluxio使用Protocol Buffer来读写日志消息。`servers/src/proto/journal/`目录下的`.proto`文件用于为Protocol Buffer消息自动生成Java定义。如果需要修改这些消息，首先要读取[更新消息类型](https://developers.google.com/protocol-buffers/docs/proto#updating)从而保证你的修改不会破坏向后兼容性。然后请[安装protoc](https://github.com/google/protobuf#protocol-buffers---googles-data-interchange-format)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
 
 ```bash
-$ brew install protobuf@2.5
-$ brew link --force protobuf@2.5
-```
-
-然后重新生成Java代码，运行
-
-```bash
-$ bin/alluxio protoGen
+$ mvn compile -Pgenerate
 ```
 
 ## bin/alluxio目录下的命令列表
@@ -220,13 +213,13 @@ $ bin/alluxio protoGen
 
 <table class="table table-striped">
 <tr><th>命令</th><th>参数</th><th>介绍</th></tr>
-{% for dscp in site.data.table.Developer-Tips %}
+{% for dscp in site.data.table.developer-tips %}
 <tr>
   <td>{{dscp.command}}</td>
   <td>{{dscp.args}}</td>
-  <td>{{site.data.table.cn.Developer-Tips[dscp.command]}}</td>
+  <td>{{site.data.table.cn.developer-tips[dscp.command]}}</td>
 </tr>
 {% endfor %}
 </table>
 
-此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`，`validateConf`和`validateEnv`命令的先决条件是你已经编译了Alluxio（见[编译Alluxio源代码](Building-Alluxio-From-Source.html)其介绍了如何手动构建Alluxio)。而`fs`，`loadufs`，`logLevel`, `runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。
+此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`，`validateConf`和`validateEnv`命令的先决条件是你已经编译了Alluxio（见[编译Alluxio源代码](Building-Alluxio-From-Source.html)其介绍了如何手动构建Alluxio)。而`fs`，`logLevel`, `runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。

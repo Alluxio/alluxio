@@ -11,21 +11,24 @@ priority: 3
 
 ## IDE
 
+### Eclipse
+
 We recommend using either Eclipse or IntelliJ IDEA to contribute to Alluxio. You can generate an
 Eclipse configuration file by running:
 
 {% include Contributing-to-Alluxio/eclipse-configuration.md %}
 
 Then import the folder into Eclipse.
-
-You may also have to add the classpath variable M2_REPO by running:
+You may also have to add the classpath variable `M2_REPO` by running:
 
 {% include Contributing-to-Alluxio/M2_REPO.md %}
+
+### IntelliJ IDEA
 
 If you are using IntelliJ IDEA, you may need to change the Maven profile to 'developer' in order
 to avoid import errors. You can do this by going to
 
-View > Tool Windows > Maven Projects
+> `View > Tool Windows > Maven Projects`
 
 ## Maven Targets and Plugins
 
@@ -62,35 +65,47 @@ To simply compile the code you can run the following command:
 $ mvn clean compile -DskipTests
 ```
 
-This will not execute any unit tests but will execute the `checkstyle`, `findbugs`, and other
-plugins.
+This will not execute any unit tests but _will_ execute maven plugins such as `checkstyle` and
+`findbugs`.
 
-To speed up compilation you may use the command:
+To speed up compilation you may use the following command:
 
 ```bash
-$ mvn -T 2C compile -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
+$ mvn -T 2C compile -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip -pl '!alluxio-ui'
 ```
 
-This command will skip many of our checks that are in place to help keep our code neat. We
-recommend running all checks before committing.
+This command will skip many of our checks that are in place to help keep our code neat.
+We recommend running all checks before committing.
 
-You may replace the `compile` target in the above command with any other valid target to skip checks
-as well. The targets `install`, `verify`, and `compile` will be most useful.
+- `-T 2C` runs maven with [up to 2 threads per CPU core](https://cwiki.apache.org/confluence/display/MAVEN/Parallel+builds+in+Maven+3)
+- `-DskipTests` skips running unit and integration tests
+- `-Dmaven.javadoc.skip` skips javadoc generation
+- `-Dfindbugs.skip` skips findbugs execution
+- `-Dcheckstyle.skip` skips code-style checking
+- `-Dlicense.skip` skips checking files for license headers
+- `-pl '!alluxio-ui'` skips building the Alluxio UI module.
+If this module isn't compiled then the UI cannot be accessed locally.
 
+You may replace the `compile` target in the above command with any other valid maven target to skip
+checks as well.
+The targets `compile`, `verify`, and `install` are typically the most useful.
 
 ### Creating a Local Install
 
 If you want to test your changes with a compiled version of the repository, you may generate the
 jars with the Maven `install` target.
+The first time Maven executes it will likely need to download many dependencies.
+Please be patient as the first build may take a while.
 
 ```bash
-mvn install -DskipTests
+mvn -T 2C install -DskipTests
 ```
 
 After the install target executes, you may configure and start a local cluster
 with the following commands:
 
-> If you haven't configured or set up a local cluster yet, run the following commands
+> If you haven't configured or set up a local cluster yet, run the following commands to configure
+a local installation.
 
 ```bash
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
@@ -98,7 +113,7 @@ $ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
 $ ./bin/alluxio format
 ```
 
-Once you've run those configuration steps you can start a local Alluxio instance with
+Once you've run those commands steps you can start a local Alluxio instance with
 
 ```bash
 ./bin/alluxio-start.sh local SudoMount
@@ -154,8 +169,9 @@ $ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/a
 leverage the Scala shell, as discussed in this
 [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
 
-- The fuse tests are ignored if the libfuse library is missing. To run those tests, please install the correct libraries
-mentioned in [this page]({{ '/en/api/POSIX-API.html' | relativize_url }}#requirements).
+- The fuse tests are ignored if the `libfuse` library is missing.
+To run those tests, please install the correct libraries mentioned in
+[the Alluxio FUSE documentation]({{ '/en/api/FUSE-API.html' | relativize_url }}#requirements).
 
 ## Modifying a gRPC definition
 
@@ -188,11 +204,11 @@ the syntax of each command.
 
 <table class="table table-striped">
     <tr><th>Command</th><th>Args</th><th>Description</th></tr>
-    {% for dscp in site.data.table.Developer-Tips %}
+    {% for dscp in site.data.table.developer-tips %}
         <tr>
             <td>{{dscp.command}}</td>
             <td>{{dscp.args}}</td>
-            <td>{{site.data.table.en.Developer-Tips[dscp.command]}}</td>
+            <td>{{site.data.table.en.developer-tips[dscp.command]}}</td>
         </tr>
     {% endfor %}
 </table>
@@ -201,5 +217,5 @@ In addition, these commands have different prerequisites. The prerequisite for t
 `formatWorker`, `journalCrashTest`, `readJournal`, `version`, `validateConf` and `validateEnv` commands is that you
 have already built Alluxio (see
 [Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) about how to build Alluxio manually).
-Further, the prerequisite for the `fs`, `loadufs`, `logLevel`, `runTest` and `runTests` commands is that you
+Further, the prerequisite for the `fs`, `logLevel`, `runTest` and `runTests` commands is that you
 have a running Alluxio system.
