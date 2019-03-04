@@ -13,15 +13,15 @@ package alluxio.hadoop;
 
 import static java.util.stream.Collectors.toList;
 
-import alluxio.ClientContext;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioProperties;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -455,8 +455,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
         PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
-    Preconditions.checkArgument(mInitialized.compareAndSet(false, true), "Cannot invoke "
-        + "initialize() more than once");
+    if (!mInitialized.compareAndSet(false, true)) {
+      return;
+    }
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
     HadoopUtils.addSwiftCredentials(conf);
