@@ -32,6 +32,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
@@ -340,6 +341,36 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
         SetAttributePOptions.newBuilder().setOwner("testOwner").build());
     stat = mFileSystem.getStatus(testFile);
     assertEquals("TTL should be same", newTtl, stat.getTtl());
+  }
+
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.USER_FILE_CREATE_TTL_ACTION, "FREE"
+      }
+  )
+  @Test
+  public void testTtlActionSetAttribute() throws Exception {
+    AlluxioURI testFile = new AlluxioURI("/test1");
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
+    TtlAction expectedAction =
+        ServerConfiguration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class);
+    URIStatus stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL action should be same", expectedAction, stat.getTtlAction());
+
+    TtlAction newTtlAction = TtlAction.DELETE;
+    long newTtl = 123400000;
+    mFileSystem.setAttribute(testFile,
+        SetAttributePOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtl(newTtl).build()).build());
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be same", newTtl, stat.getTtl());
+    assertEquals("TTL action should be same", expectedAction, stat.getTtlAction());
+    mFileSystem.setAttribute(testFile,
+        SetAttributePOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtlAction(newTtlAction).build()).build());
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be same", newTtl, stat.getTtl());
+    assertEquals("TTL action should be same", newTtlAction, stat.getTtlAction());
   }
 
 // Test exception cases for all FileSystem RPCs

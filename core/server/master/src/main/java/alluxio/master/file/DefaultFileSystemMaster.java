@@ -3594,7 +3594,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       if (ttl != null && inode.getTtl() != ttl) {
         entry.setTtl(ttl);
       }
-      if (inode.getTtlAction() != action) {
+      if (action != null && inode.getTtlAction() != action) {
         entry.setTtlAction(ProtobufUtils.toProtobuf(action));
       }
       // We've set at least one if they are both non-null
