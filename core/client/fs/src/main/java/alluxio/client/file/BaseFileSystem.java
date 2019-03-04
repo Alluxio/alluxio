@@ -608,8 +608,6 @@ public class BaseFileSystem implements FileSystem {
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.setAttributeDefaults(mFsContext.getConf())
-        .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
       masterClient.setAttribute(path, options);
