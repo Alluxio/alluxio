@@ -13,9 +13,10 @@ package alluxio.master.journal.raft;
 
 import alluxio.ProcessUtils;
 import alluxio.master.journal.JournalEntryAssociation;
-import alluxio.master.journal.JournalEntryStateMachine;
-import alluxio.master.journal.JournalEntryStreamReader;
+import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.StreamUtils;
 
 import com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -28,16 +29,15 @@ import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.concurrent.GuardedBy;
 
 /**
- * A state machine representing the state of this journal system. Entries applied to this state
+ * A state machine for managing all of Alluxio's journaled state. Entries applied to this state
  * machine will be forwarded to the appropriate internal master.
  *
  * The state machine starts by resetting all state, then applying the entries offered by copycat.
@@ -45,10 +45,6 @@ import javax.annotation.concurrent.GuardedBy;
  * other primary master is serving, then call {@link #upgrade}. Once the state machine is upgraded,
  * it will ignore all entries appended by copycat because those entries are applied to primary
  * master state before being written to copycat.
- *
- * When the state machine takes a snapshot, every entry in the snapshot uses the largest sequence
- * number of all compacted entries. This way, installing the snapshot puts us at the same sequence
- * number as applying all of the individual entries represented by the snapshot.
  */
 @ThreadSafe
 public class JournalStateMachine extends StateMachine implements Snapshottable {
@@ -166,7 +162,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       throw new IllegalStateException();
     }
     try {
-      JournalEntryStateMachine master = mJournals.get(masterName).getStateMachine();
+      Journaled master = mJournals.get(masterName).getStateMachine();
       LOG.trace("Applying entry to master {}: {} ", masterName, entry);
       master.processJournalEntry(entry);
     } catch (Throwable t) {
@@ -177,6 +173,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
 
   @Override
   public synchronized void snapshot(SnapshotWriter writer) {
+    // Snapshot format is [snapshotId, name1, bytes1, name2, bytes2, ...].
     if (mClosed) {
       return;
     }
@@ -184,40 +181,16 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
     Preconditions.checkState(!mSnapshotting, "Cannot call snapshot multiple times concurrently");
     mSnapshotting = true;
     long start = System.currentTimeMillis();
-    long snapshotSN = mNextSequenceNumberToRead - 1;
-    try {
-      for (RaftJournal journal : mJournals.values()) {
-        for (Iterator<JournalEntry> it = journal.getStateMachine().getJournalEntryIterator(); it
-            .hasNext();) {
-          // All entries in a snapshot use the sequence number of the last entry included in the
-          // snapshot
-          JournalEntry entry = it.next().toBuilder().setSequenceNumber(snapshotSN).build();
-
-          LOG.trace("Writing entry to snapshot: {}", entry);
-          try {
-            entry.writeDelimitedTo(new OutputStream() {
-              @Override
-              public void write(int b) throws IOException {
-                writer.writeByte(b);
-              }
-
-              @Override
-              public void write(byte[] b, int off, int len) {
-                writer.write(b, off, len);
-              }
-            });
-          } catch (IOException e) {
-            ProcessUtils.fatalError(LOG, e,
-                "Failed to take snapshot for master {}. Failed to write entry {}",
-                journal.getStateMachine().getName(), entry);
-          }
-        }
-      }
-      LOG.info("Completed snapshot up to SN {} in {}ms", snapshotSN,
-          System.currentTimeMillis() - start);
+    long snapshotId = mNextSequenceNumberToRead - 1;
+    try (SnapshotWriterStream sws = new SnapshotWriterStream(writer)) {
+      writer.writeLong(snapshotId);
+      JournalUtils.writeToCheckpoint(sws, getStateMachines());
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to snapshot");
+      throw new RuntimeException(t);
     }
+    LOG.info("Completed snapshot up to SN {} in {}ms", snapshotId,
+        System.currentTimeMillis() - start);
     mSnapshotting = false;
   }
 
@@ -230,26 +203,26 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       LOG.warn("Unexpected request to install a snapshot on a read-only journal state machine");
       return;
     }
-    resetState();
-    JournalEntryStreamReader reader =
-        new JournalEntryStreamReader(new SnapshotReaderStream(snapshotReader));
 
-    JournalEntry entry = null;
-    while (snapshotReader.hasRemaining()) {
-      try {
-        entry = reader.readEntry();
-      } catch (IOException e) {
-        ProcessUtils.fatalError(LOG, e, "Failed to install snapshot");
-      }
-      applyToMaster(entry);
+    long snapshotId;
+    try (InputStream srs = new SnapshotReaderStream(snapshotReader)) {
+      snapshotId = snapshotReader.readLong();
+      JournalUtils.restoreFromCheckpoint(srs, getStateMachines());
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to install snapshot");
+      throw new RuntimeException(t);
     }
-    long snapshotSN = entry != null ? entry.getSequenceNumber() : -1;
-    if (snapshotSN < mNextSequenceNumberToRead - 1) {
-      LOG.warn("Installed snapshot for SN {} but next SN to read is {}", snapshotSN,
+
+    if (snapshotId < mNextSequenceNumberToRead - 1) {
+      LOG.warn("Installed snapshot for SN {} but next SN to read is {}", snapshotId,
           mNextSequenceNumberToRead);
     }
-    mNextSequenceNumberToRead = snapshotSN + 1;
-    LOG.info("Successfully installed snapshot up to SN {}", snapshotSN);
+    mNextSequenceNumberToRead = snapshotId + 1;
+    LOG.info("Successfully installed snapshot up to SN {}", snapshotId);
+  }
+
+  private List<Journaled> getStateMachines() {
+    return StreamUtils.map(RaftJournal::getStateMachine, mJournals.values());
   }
 
   private synchronized void resetState() {

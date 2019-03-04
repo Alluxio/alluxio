@@ -9,19 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
-
-import alluxio.Server;
-import alluxio.exception.status.UnavailableException;
-import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.Journaled;
+package alluxio.master.journal;
 
 /**
- * This interface contains common operations for all masters.
+ * Names for associating checkpoint data with the classes they represent. To support
+ * reading checkpoint written by older versions, these names should never change.
  */
-public interface Master extends Journaled, Server<Boolean> {
-  /**
-   * @return a journal context for writing journal entries to the master
-   */
-  JournalContext createJournalContext() throws UnavailableException;
+public enum CheckpointName {
+  ACTIVE_SYNC_MANAGER,
+  BLOCK_MASTER,
+  FILE_SYSTEM_MASTER,
+  INODE_DIRECTORY_ID_GENERATOR,
+  INODE_TREE,
+  MASTER_UFS_MANAGER,
+  MOUNT_TABLE,
+  NOOP,
 }

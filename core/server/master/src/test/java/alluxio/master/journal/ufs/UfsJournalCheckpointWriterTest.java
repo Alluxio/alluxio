@@ -58,7 +58,7 @@ public final class UfsJournalCheckpointWriterTest {
     long endSN = 0x20;
     UfsJournalCheckpointWriter writer = mJournal.getCheckpointWriter(endSN);
     for (int i = 0; i < 5; i++) {
-      writer.write(newEntry(i));
+      newEntry(i).writeDelimitedTo(writer);
     }
     writer.close();
 
@@ -83,7 +83,7 @@ public final class UfsJournalCheckpointWriterTest {
     long endSN = 0x20;
     UfsJournalCheckpointWriter writer = mJournal.getCheckpointWriter(endSN);
     for (int i = 0; i < endSN + 10; i++) {
-      writer.write(newEntry(i));
+      newEntry(i).writeDelimitedTo(writer);
     }
     writer.close();
 
@@ -105,7 +105,7 @@ public final class UfsJournalCheckpointWriterTest {
     long endSN = 0x20;
     UfsJournalCheckpointWriter writer = mJournal.getCheckpointWriter(endSN);
     for (int i = 0; i < 5; i++) {
-      writer.write(newEntry(i));
+      newEntry(i).writeDelimitedTo(writer);
     }
     writer.cancel();
 
@@ -126,7 +126,7 @@ public final class UfsJournalCheckpointWriterTest {
             .toString();
     mJournal.getUfs().create(expectedCheckpoint).close();
     for (int i = 0; i < 5; i++) {
-      writer.write(newEntry(i));
+      newEntry(i).writeDelimitedTo(writer);
     }
     writer.close();
 
@@ -152,7 +152,7 @@ public final class UfsJournalCheckpointWriterTest {
         URIUtils.appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN))
             .toString();
     for (int i = 0; i < 5; i++) {
-      writer.write(newEntry(i));
+      newEntry(i).writeDelimitedTo(writer);
     }
     writer.close();
 
@@ -176,7 +176,7 @@ public final class UfsJournalCheckpointWriterTest {
         .toString();
     mJournal.getUfs().create(newerCheckpoint).close();
     for (int i = 0; i < 5; i++) {
-      writer.write(newEntry(i));
+      newEntry(i).writeDelimitedTo(writer);
     }
     writer.close();
 

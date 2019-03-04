@@ -12,10 +12,12 @@
 package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.master.CheckpointType;
 import alluxio.master.NoopMaster;
+import alluxio.master.journal.JournalReader.State;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalReader;
 import alluxio.master.journal.ufs.UfsJournalSystem;
@@ -131,13 +133,40 @@ public final class JournalTool {
     UfsJournal journal =
         new UfsJournalSystem(getJournalLocation(), 0).createJournal(new NoopMaster(sMaster));
     try (JournalReader reader = new UfsJournalReader(journal, sStart, true)) {
-      JournalEntry entry;
-      while ((entry = reader.read()) != null) {
-        if (entry.getSequenceNumber() >= sEnd) {
-          break;
+      boolean done = false;
+      while (!done) {
+        State state = reader.advance();
+        switch (state) {
+          case CHECKPOINT:
+            CheckpointInputStream checkpoint = new CheckpointInputStream(reader.getCheckpoint());
+            System.out.printf("Checkpoint type %s, endId: %s%n", checkpoint.getType(),
+                reader.getNextSequenceNumber());
+            if (checkpoint.getType() == CheckpointType.JOURNAL_ENTRY) {
+              System.out.println("START_CHECKPOINT");
+              JournalEntryStreamReader checkpointReader = new JournalEntryStreamReader(checkpoint);
+              JournalEntry entry;
+              while ((entry = checkpointReader.readEntry()) != null) {
+                System.out.println(ENTRY_SEPARATOR);
+                System.out.print(entry);
+              }
+              System.out.println("END_CHECKPOINT");
+            }
+            checkpoint.close();
+            break;
+          case LOG:
+            JournalEntry entry = reader.getEntry();
+            System.out.println(ENTRY_SEPARATOR);
+            System.out.print(entry);
+            if (entry.getSequenceNumber() >= sEnd) {
+              done = true;
+            }
+            break;
+          case DONE:
+            done = true;
+            break;
+          default:
+            throw new RuntimeException("Unknown state: " + state);
         }
-        System.out.println(ENTRY_SEPARATOR);
-        System.out.print(entry);
       }
     } catch (Exception e) {
       LOG.error("Failed to read next journal entry.", e);
