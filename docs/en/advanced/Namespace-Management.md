@@ -286,6 +286,43 @@ $ ls /tmp/alluxio-demo
 hello
 ```
 
+### Metadata Active Sync for HDFS
+In version 2.0, we introduced a new feature for maintaining synchronization between Alluxio space and the UFS when the UFS is HDFS.
+The feature, called active sync, listens for HDFS events and periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task.
+
+To designate a directory to be actively synchonized, issue the following Alluxio command.
+
+```bash
+$ bin/alluxio fs mkdir /syncdir
+$ bin/alluxio fs startSync /syncdir
+```
+
+You can control the synchronization interval by changing the `alluxio.master.activesync.interval` option, the default is 30 seconds.
+
+When you no longer need a directory to be actively synchronized, simply remove it from the syncing list.
+
+```bash
+$ bin/alluxio fs stopSync /syncdir
+```
+
+You can also examine which directories are currently under active synchronization.
+
+```bash
+$ bin/alluxio fs getSyncPathList
+```
+
+#### Quiet period for Active Sync
+
+Active Sync also tries to avoid synchronization when the target directory is being heavily used.
+It tries to look for a quiet period in UFS activity to start syncing between the UFS and the Alluxio space, to avoid overloading the UFS when it is busy.
+There are two configuration options that control this behavior.
+
+`alluxio.master.activesync.maxactivity` is the maximum number of changes in the UFS directory to be considered "quiet".
+`alluxio.master.activesync.maxage` is the maximum number of intervals we will wait before synchronizing the UFS and the Alluxio space.
+
+The system guarantees that we will start syncing a directory if it is "quiet", or it has not been synced for a long period (period longer than the max age).
+
+
 ### Unified Namespace
 
 This example will mount multiple under storages of different types to showcase the unified
