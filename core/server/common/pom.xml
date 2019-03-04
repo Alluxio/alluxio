@@ -35,6 +35,10 @@
       <artifactId>jcommander</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.esotericsoftware</groupId>
+      <artifactId>kryo</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.atomix.copycat.alluxio</groupId>
       <artifactId>copycat-server</artifactId>
     </dependency>

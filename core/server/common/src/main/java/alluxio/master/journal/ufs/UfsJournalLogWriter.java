@@ -11,18 +11,18 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidJournalEntryException;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.JournalClosedException.IOJournalClosedException;
-import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.OpenOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -160,7 +160,7 @@ final class UfsJournalLogWriter implements JournalWriter {
 
     long lastPersistSeq = recoverLastPersistedJournalEntry();
 
-    createNewLogFile();
+    createNewLogFile(lastPersistSeq + 1);
     if (!mEntriesToFlush.isEmpty()) {
       JournalEntry firstEntryToFlush = mEntriesToFlush.peek();
       if (firstEntryToFlush.getSequenceNumber() > lastPersistSeq + 1) {
@@ -210,18 +210,17 @@ final class UfsJournalLogWriter implements JournalWriter {
     long lastPersistSeq = -1;
     UfsJournalFile currentLog = snapshot.getCurrentLog(mJournal);
     if (currentLog != null) {
-      long startSeq = currentLog.getStart();
       LOG.info("Recovering from previous UFS journal write failure."
           + " Scanning for the last persisted journal entry.");
-      try (JournalReader reader = new UfsJournalReader(mJournal, startSeq, true)) {
+      try (JournalEntryStreamReader reader =
+          new JournalEntryStreamReader(mUfs.open(currentLog.getLocation().toString(),
+              OpenOptions.defaults().setRecoverFailedOpen(true)))) {
         JournalEntry entry;
-        while ((entry = reader.read()) != null) {
+        while ((entry = reader.readEntry()) != null) {
           if (entry.getSequenceNumber() > lastPersistSeq) {
             lastPersistSeq = entry.getSequenceNumber();
           }
         }
-      } catch (InvalidJournalEntryException e) {
-        LOG.info("Found last persisted journal entry with seq={}.", lastPersistSeq);
       } catch (IOException e) {
         throw e;
       }
@@ -258,14 +257,14 @@ final class UfsJournalLogWriter implements JournalWriter {
       mJournalOutputStream = null;
     }
 
-    createNewLogFile();
+    createNewLogFile(mNextSequenceNumber);
     mRotateLogForNextWrite = false;
   }
 
-  private void createNewLogFile() throws IOException {
+  private void createNewLogFile(long startSequenceNumber) throws IOException {
     URI newLog = UfsJournalFile
-        .encodeLogFileLocation(mJournal, mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
-    UfsJournalFile currentLog = UfsJournalFile.createLogFile(newLog, mNextSequenceNumber,
+        .encodeLogFileLocation(mJournal, startSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
+    UfsJournalFile currentLog = UfsJournalFile.createLogFile(newLog, startSequenceNumber,
         UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
     OutputStream outputStream = mUfs.create(currentLog.getLocation().toString(),
         CreateOptions.defaults(ServerConfiguration.global()).setEnsureAtomic(false)

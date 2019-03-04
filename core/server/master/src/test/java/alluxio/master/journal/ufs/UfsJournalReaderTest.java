@@ -11,15 +11,21 @@
 
 package alluxio.master.journal.ufs;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalReader.State;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,17 +64,24 @@ public final class UfsJournalReaderTest {
   @Test
   public void readCheckpoint() throws Exception {
     long endSN = CHECKPOINT_SIZE;
-    buildCheckpoint(endSN);
+    byte[] checkpointBytes = buildCheckpoint(endSN);
     try (JournalReader reader = mJournal.getReader(true)) {
-      Journal.JournalEntry entry;
-      int sn = 0;
-      while ((entry = reader.read()) != null) {
-        Assert.assertEquals(sn, entry.getSequenceNumber());
-        sn++;
+      State state;
+      boolean foundCheckpoint = false;
+      while ((state = reader.advance()) != State.DONE) {
+        switch (state) {
+          case CHECKPOINT:
+            foundCheckpoint = true;
+            assertArrayEquals(checkpointBytes, IOUtils.toByteArray(reader.getCheckpoint()));
+            break;
+          case LOG:
+          case DONE:
+          default:
+            throw new IllegalStateException("Unexpected state: " + state);
+        }
       }
-
-      Assert.assertEquals(CHECKPOINT_SIZE, sn);
-      Assert.assertEquals(endSN, reader.getNextSequenceNumber());
+      assertTrue(foundCheckpoint);
+      assertEquals(endSN, reader.getNextSequenceNumber());
     }
   }
 
@@ -83,18 +96,17 @@ public final class UfsJournalReaderTest {
       buildCompletedLog(i * fileSize, i * fileSize + fileSize);
     }
     try (JournalReader reader = mJournal.getReader(true)) {
-      Journal.JournalEntry entry;
       int sn = 0;
-      while ((entry = reader.read()) != null) {
-        Assert.assertEquals(sn, entry.getSequenceNumber());
+      while (reader.advance() != State.DONE) {
+        assertEquals(sn, reader.getEntry().getSequenceNumber());
         sn++;
       }
 
-      Assert.assertEquals(endSN, sn);
-      Assert.assertEquals(sn, reader.getNextSequenceNumber());
+      assertEquals(endSN, sn);
+      assertEquals(sn, reader.getNextSequenceNumber());
 
-      // Further reads should return null.
-      Assert.assertTrue(reader.read() == null);
+      // Further advances should return State.DONE
+      assertEquals(State.DONE, reader.advance());
     }
   }
 
@@ -107,15 +119,14 @@ public final class UfsJournalReaderTest {
     buildCompletedLog(0, endSN);
     buildIncompleteLog(endSN, endSN + 1);
     try (JournalReader reader = mJournal.getReader(true)) {
-      Journal.JournalEntry entry;
       int sn = 0;
-      while ((entry = reader.read()) != null) {
-        Assert.assertEquals(sn, entry.getSequenceNumber());
+      while (reader.advance() != State.DONE) {
+        assertEquals(sn, reader.getEntry().getSequenceNumber());
         sn++;
       }
 
-      Assert.assertEquals(endSN + 1, sn);
-      Assert.assertEquals(sn, reader.getNextSequenceNumber());
+      assertEquals(endSN + 1, sn);
+      assertEquals(sn, reader.getNextSequenceNumber());
     }
   }
 
@@ -128,15 +139,14 @@ public final class UfsJournalReaderTest {
     buildCompletedLog(0, endSN);
     buildIncompleteLog(endSN, endSN + 1);
     try (JournalReader reader = mJournal.getReader(false)) {
-      Journal.JournalEntry entry;
       int sn = 0;
-      while ((entry = reader.read()) != null) {
-        Assert.assertEquals(sn, entry.getSequenceNumber());
+      while (reader.advance() != State.DONE) {
+        assertEquals(sn, reader.getEntry().getSequenceNumber());
         sn++;
       }
 
-      Assert.assertEquals(endSN, sn);
-      Assert.assertEquals(sn, reader.getNextSequenceNumber());
+      assertEquals(endSN, sn);
+      assertEquals(sn, reader.getNextSequenceNumber());
     }
   }
 
@@ -149,27 +159,26 @@ public final class UfsJournalReaderTest {
     buildCompletedLog(0, endSN);
 
     try (JournalReader reader = mJournal.getReader(true)) {
-      Journal.JournalEntry entry;
       int sn = 0;
-      while ((entry = reader.read()) != null) {
-        Assert.assertEquals(sn, entry.getSequenceNumber());
+      while (reader.advance() != State.DONE) {
+        assertEquals(sn, reader.getEntry().getSequenceNumber());
         sn++;
       }
 
-      Assert.assertEquals(endSN, sn);
-      Assert.assertEquals(sn, reader.getNextSequenceNumber());
+      assertEquals(endSN, sn);
+      assertEquals(sn, reader.getNextSequenceNumber());
 
       // Write another two logs.
       buildCompletedLog(endSN, endSN * 2);
       buildIncompleteLog(endSN * 2, endSN * 2 + 1);
 
-      while ((entry = reader.read()) != null) {
-        Assert.assertEquals(sn, entry.getSequenceNumber());
+      while (reader.advance() != State.DONE) {
+        assertEquals(sn, reader.getEntry().getSequenceNumber());
         sn++;
       }
 
-      Assert.assertEquals(endSN * 2 + 1, sn);
-      Assert.assertEquals(sn, reader.getNextSequenceNumber());
+      assertEquals(endSN * 2 + 1, sn);
+      assertEquals(sn, reader.getNextSequenceNumber());
     }
   }
 
@@ -187,9 +196,9 @@ public final class UfsJournalReaderTest {
     }
 
     try (JournalReader reader = mJournal.getReader(true)) {
-      while ((reader.read()) != null) {
+      while (reader.advance() != State.DONE) {
       }
-      Assert.assertEquals(10 * fileSize, reader.getNextSequenceNumber());
+      assertEquals(10 * fileSize, reader.getNextSequenceNumber());
     }
   }
 
@@ -207,9 +216,9 @@ public final class UfsJournalReaderTest {
     }
 
     try (JournalReader reader = mJournal.getReader(true)) {
-      while ((reader.read()) != null) {
+      while (reader.advance() != State.DONE) {
       }
-      Assert.assertEquals(10 * fileSize, reader.getNextSequenceNumber());
+      assertEquals(10 * fileSize, reader.getNextSequenceNumber());
     }
   }
 
@@ -227,9 +236,9 @@ public final class UfsJournalReaderTest {
     }
 
     try (JournalReader reader = new UfsJournalReader(mJournal, fileSize * 2, true)) {
-      while ((reader.read()) != null) {
+      while (reader.advance() != State.DONE) {
       }
-      Assert.assertEquals(10 * fileSize, reader.getNextSequenceNumber());
+      assertEquals(10 * fileSize, reader.getNextSequenceNumber());
     }
   }
 
@@ -247,9 +256,9 @@ public final class UfsJournalReaderTest {
     }
 
     try (JournalReader reader = new UfsJournalReader(mJournal, fileSize * 3 + 1, true)) {
-      while ((reader.read()) != null) {
+      while (reader.advance() != State.DONE) {
       }
-      Assert.assertEquals(10 * fileSize, reader.getNextSequenceNumber());
+      assertEquals(10 * fileSize, reader.getNextSequenceNumber());
     }
   }
 
@@ -257,13 +266,15 @@ public final class UfsJournalReaderTest {
    * Builds checkpoint.
    *
    * @param sequenceNumber the sequence number after the checkpoint
+   * @return the checkpoint data
    */
-  private void buildCheckpoint(long sequenceNumber) throws Exception {
-    UfsJournalCheckpointWriter writer = new UfsJournalCheckpointWriter(mJournal, sequenceNumber);
-    for (int i = 0; i < CHECKPOINT_SIZE; i++) {
-      writer.write(newEntry(i));
+  private byte[] buildCheckpoint(long sequenceNumber) throws Exception {
+    byte[] bytes = CommonUtils.randomAlphaNumString(10).getBytes();
+    try (UfsJournalCheckpointWriter writer =
+        UfsJournalCheckpointWriter.create(mJournal, sequenceNumber)) {
+      writer.write(bytes);
     }
-    writer.close();
+    return bytes;
   }
 
   /**
@@ -290,7 +301,7 @@ public final class UfsJournalReaderTest {
   private void buildIncompleteLog(long start, long end) throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     buildCompletedLog(start, end);
-    Assert.assertTrue(
+    assertTrue(
         mUfs.renameFile(UfsJournalFile.encodeLogFileLocation(mJournal, start, end).toString(),
             UfsJournalFile
                 .encodeLogFileLocation(mJournal, start, UfsJournal.UNKNOWN_SEQUENCE_NUMBER)
