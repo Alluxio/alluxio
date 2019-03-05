@@ -193,7 +193,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return Short.parseShort(rawValue);
     } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_SHORT.getMessage(key));
     }
   }
 
