@@ -825,11 +825,8 @@ public final class FileSystemMasterTest {
     assertEquals(4, countPaths());
   }
 
-  private int countPaths() throws Exception {
-    return 1 + mFileSystemMaster
-            .listStatus(new AlluxioURI("/"),
-                ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder().setRecursive(true)))
-            .size();
+  private long countPaths() throws Exception {
+    return mFileSystemMaster.getInodeCount();
   }
 
   @Test

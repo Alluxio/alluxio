@@ -230,9 +230,9 @@ public interface FileSystemMaster extends Master {
   MountPointInfo getMountPointInfo(AlluxioURI path) throws InvalidPathException;
 
   /**
-   * @return an estimate of the number of files and directories
+   * @return the number of files and directories
    */
-  long estimateNumberOfPaths();
+  long getInodeCount();
 
   /**
    * @return the number of pinned files and directories

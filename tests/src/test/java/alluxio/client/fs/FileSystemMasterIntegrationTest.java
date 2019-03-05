@@ -17,14 +17,14 @@ import static org.junit.Assume.assumeFalse;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ClientContext;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.PropertyKey.Name;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.PropertyKey.Name;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -43,6 +43,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -51,7 +52,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -62,6 +62,7 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
@@ -79,7 +80,6 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
-import alluxio.grpc.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -101,6 +101,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -780,6 +781,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       for (Future<?> future : futures) {
         future.get();
       }
+      Assert.assertEquals(countPaths(), mFsMaster.getInodeCount());
 
       // Stop Alluxio.
       mLocalAlluxioClusterResource.get().stopFS();
@@ -789,6 +791,23 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       threadPool.shutdownNow();
       threadPool.awaitTermination(SHUTDOWN_TIME_MS, TimeUnit.MILLISECONDS);
     }
+  }
+
+  private long countPaths() throws Exception {
+    long count = 1;
+    Stack<AlluxioURI> dirs = new Stack();
+    dirs.push(new AlluxioURI("/"));
+    while (!dirs.isEmpty()) {
+      AlluxioURI uri = dirs.pop();
+      for (FileInfo child : mFsMaster.listStatus(uri, ListStatusContext.defaults())) {
+        count++;
+        AlluxioURI childUri = new AlluxioURI(PathUtils.concatPath(uri, child.getName()));
+        if (mFsMaster.getFileInfo(childUri, GetStatusContext.defaults()).isFolder()) {
+          dirs.push(childUri);
+        }
+      }
+    }
+    return count;
   }
 
   @Test

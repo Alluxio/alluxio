@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 /**
@@ -83,6 +84,9 @@ public class InodeTreePersistentState implements Journaled {
 
   /** A set of inode ids whose persistence state is {@link PersistenceState#TO_BE_PERSISTED}. */
   private final Set<Long> mToBePersistedIds = new ConcurrentHashSet<>(64, 0.90f, 64);
+
+  /** Counter for tracking how many inodes we have. */
+  private final AtomicLong mInodeCounter = new AtomicLong();
 
   /**
    * @return an unmodifiable view of the files with persistence state
@@ -131,6 +135,13 @@ public class InodeTreePersistentState implements Journaled {
    */
   public Set<Long> getPinnedInodeFileIds() {
     return Collections.unmodifiableSet(mPinnedInodeFileIds);
+  }
+
+  /**
+   * @return the number of inodes in the tree
+   */
+  public long getInodeCount() {
+    return mInodeCounter.get();
   }
 
   /**
@@ -280,14 +291,7 @@ public class InodeTreePersistentState implements Journaled {
 
   private void applyDelete(DeleteFileEntry entry) {
     long id = entry.getId();
-
     Inode inode = mInodeStore.get(id).get();
-
-    mInodeStore.removeInodeAndParentEdge(inode);
-    updateLastModifiedAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
-    mPinnedInodeFileIds.remove(id);
-    mReplicationLimitedFileIds.remove(id);
-    mToBePersistedIds.remove(id);
 
     // The recursive option is only used by old versions.
     if (inode.isDirectory() && entry.getRecursive()) {
@@ -295,16 +299,26 @@ public class InodeTreePersistentState implements Journaled {
       dirsToDelete.add(inode.asDirectory());
       while (!dirsToDelete.isEmpty()) {
         InodeDirectory dir = dirsToDelete.poll();
-        mInodeStore.remove(inode);
+        mInodeStore.removeInodeAndParentEdge(inode);
+        mInodeCounter.decrementAndGet();
         for (Inode child : mInodeStore.getChildren(dir)) {
           if (child.isDirectory()) {
             dirsToDelete.add(child.asDirectory());
           } else {
-            mInodeStore.remove(inode);
+            mInodeStore.removeInodeAndParentEdge(inode);
+            mInodeCounter.decrementAndGet();
           }
         }
       }
+    } else {
+      mInodeStore.removeInodeAndParentEdge(inode);
+      mInodeCounter.decrementAndGet();
     }
+
+    updateLastModifiedAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
+    mPinnedInodeFileIds.remove(id);
+    mReplicationLimitedFileIds.remove(id);
+    mToBePersistedIds.remove(id);
   }
 
   private void applyCreateDirectory(InodeDirectoryEntry entry) {
@@ -491,6 +505,7 @@ public class InodeTreePersistentState implements Journaled {
       // This is the root inode. Clear all the state, and set the root.
       mInodeStore.clear();
       mInodeStore.writeNewInode(inode);
+      mInodeCounter.set(1);
       mPinnedInodeFileIds.clear();
       mReplicationLimitedFileIds.clear();
       mToBePersistedIds.clear();
@@ -501,6 +516,7 @@ public class InodeTreePersistentState implements Journaled {
     // inode should be added to the inode store before getting added to its parent list, because it
     // becomes visible at this point.
     mInodeStore.writeNewInode(inode);
+    mInodeCounter.incrementAndGet();
     mInodeStore.addChild(inode.getParentId(), inode);
     // Only update size, last modified time is updated separately.
     updateLastModifiedAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);

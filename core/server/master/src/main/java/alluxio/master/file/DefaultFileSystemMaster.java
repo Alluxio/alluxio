@@ -1486,8 +1486,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public long estimateNumberOfPaths() {
-    return mInodeTree.estimateSize();
+  public long getInodeCount() {
+    return mInodeTree.getInodeCount();
   }
 
   @Override
@@ -4405,8 +4405,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           master::getNumberOfPinnedFiles);
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-              .getMetricName(MasterMetrics.TOTAL_PATHS_ESTIMATE),
-          () -> master.estimateNumberOfPaths());
+              .getMetricName(MasterMetrics.TOTAL_PATHS),
+          () -> master.getInodeCount());
 
       final String ufsDataFolder = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 

@@ -145,15 +145,6 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public long estimateSize() {
-    try {
-      return Long.parseLong(mDb.getProperty(mInodesColumn, "rocksdb.estimate-num-keys"));
-    } catch (RocksDBException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Override
   public Optional<MutableInode<?>> getMutable(long id) {
     byte[] inode;
     try {
