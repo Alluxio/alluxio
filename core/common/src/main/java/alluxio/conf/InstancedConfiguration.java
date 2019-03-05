@@ -187,6 +187,17 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
+  public short getShort(PropertyKey key) {
+    String rawValue = get(key);
+
+    try {
+      return Short.parseShort(rawValue);
+    } catch (NumberFormatException e) {
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(key));
+    }
+  }
+
+  @Override
   public int getInt(PropertyKey key) {
     String rawValue = get(key);
 
