@@ -33,6 +33,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.Factory;
+import alluxio.resource.LockResource;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.uri.Authority;
@@ -69,7 +70,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -91,9 +93,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
 
   /** Flag for if the client has been initialized. */
-  private final AtomicBoolean mInitialized = new AtomicBoolean(false);
+  private final ReadWriteLock mInitializationLock = new ReentrantReadWriteLock();
 
-  protected FileSystem mFileSystem = null;
+  protected volatile FileSystem mFileSystem = null;
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
@@ -109,7 +111,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   AbstractFileSystem(FileSystem fileSystem) {
     mFileSystem = fileSystem;
-    mInitialized.set(true);
   }
 
   /**
@@ -449,15 +450,31 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * Sets up a lazy connection to Alluxio through mFileSystem. This must be called before client
    * operations.
    *
-   * If it is called twice on the same object an exception will be thrown.
+   * If it is called twice on the same object concurrently, one of the thread will do the
+   * initialization work, the other will wait until initialization is done.
+   * If it is called after initialized, then this is a noop.
    */
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
         PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
-    if (!mInitialized.compareAndSet(false, true)) {
+
+    if (mFileSystem != null) {
       return;
     }
+
+    if (mInitializationLock.writeLock().tryLock()) {
+      initializeInternal(uri, conf);
+      mInitializationLock.writeLock().unlock();
+    } else {
+      try (LockResource r = new LockResource(mInitializationLock.readLock())) {
+        Preconditions.checkState(mFileSystem != null, PreconditionMessage.FILESYSTEM_UNINITIALIZED);
+      }
+    }
+  }
+
+  private void initializeInternal(URI uri, org.apache.hadoop.conf.Configuration conf)
+      throws IOException {
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
     HadoopUtils.addSwiftCredentials(conf);
