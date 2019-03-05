@@ -688,7 +688,7 @@ public class InodeTree implements DelegatingJournaled {
 
       newDir.setPinned(currentInodeDirectory.isPinned());
 
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER)
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
           && newDir.getOwner().isEmpty() && newDir.getGroup().isEmpty()) {
         // Inherit owner / group if empty
         newDir.setOwner(currentInodeDirectory.getOwner());
@@ -786,7 +786,7 @@ public class InodeTree implements DelegatingJournaled {
     }
     newInode.setPinned(currentInodeDirectory.isPinned());
 
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER)
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
         && newInode.getOwner().isEmpty() && newInode.getGroup().isEmpty()) {
       // Inherit owner / group if empty
       newInode.setOwner(currentInodeDirectory.getOwner());
