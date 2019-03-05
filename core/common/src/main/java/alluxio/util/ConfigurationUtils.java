@@ -33,6 +33,7 @@ import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -45,6 +46,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -67,18 +69,63 @@ public final class ConfigurationUtils {
   private ConfigurationUtils() {} // prevent instantiation
 
   /**
+   * Gets the embedded journal addresses to use for the given service type (either master-raft or
+   * job-master-raft).
+   *
+   * @param conf configuration
+   * @param serviceType the service to get addresses for
+   * @return the addresses
+   */
+  public static List<InetSocketAddress> getEmbeddedJournalAddresses(AlluxioConfiguration conf,
+      ServiceType serviceType) {
+    Preconditions.checkState(
+        serviceType == ServiceType.MASTER_RAFT || serviceType == ServiceType.JOB_MASTER_RAFT);
+    PropertyKey addressKey = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
+    if (serviceType == ServiceType.JOB_MASTER_RAFT
+        && conf.isSet(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)) {
+      addressKey = PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES;
+    }
+    List<InetSocketAddress> inetAddresses = new ArrayList<>();
+    if (conf.isSet(addressKey)) {
+      List<String> addresses = conf.getList(addressKey, ",");
+      for (String address : addresses) {
+        try {
+          InetSocketAddress addr = NetworkAddressUtils.parseInetSocketAddress(address);
+          // When the user configures the master embedded journal addresses but not the job master
+          // embedded journal addresses, we derive the job master embedded journal addresses by
+          // combining the master hostnames with the job master embedded journal port.
+          if (serviceType == ServiceType.JOB_MASTER_RAFT
+              && addressKey == PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES) {
+            addr = new InetSocketAddress(addr.getHostString(),
+                conf.getInt(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT));
+          }
+          inetAddresses.add(addr);
+        } catch (IOException e) {
+          throw new IllegalArgumentException(
+              String.format("Failed to parse address %s for property %s", address, addressKey), e);
+        }
+      }
+    } else {
+      inetAddresses = Arrays.asList(NetworkAddressUtils.getConnectAddress(serviceType, conf));
+    }
+    return inetAddresses;
+  }
+
+  /**
    * Gets the RPC addresses of all masters based on the configuration.
    *
    * @param conf the configuration to use
    * @return the master rpc addresses
    */
   public static List<InetSocketAddress> getMasterRpcAddresses(AlluxioConfiguration conf) {
+    // First check whether rpc addresses are explicitly configured.
     if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
       return parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES, ","));
-    } else {
-      int rpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.MASTER_RPC, conf);
-      return getRpcAddresses(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, rpcPort, conf);
     }
+
+    // Fall back on server-side journal configuration.
+    int rpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.MASTER_RPC, conf);
+    return overridePort(getEmbeddedJournalAddresses(conf, ServiceType.MASTER_RAFT), rpcPort);
   }
 
   /**
@@ -88,36 +135,27 @@ public final class ConfigurationUtils {
    * @return the job master rpc addresses
    */
   public static List<InetSocketAddress> getJobMasterRpcAddresses(AlluxioConfiguration conf) {
-    int jobRpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC,
-        conf);
+    // First check whether job rpc addresses are explicitly configured.
     if (conf.isSet(PropertyKey.JOB_MASTER_RPC_ADDRESSES)) {
       return parseInetSocketAddresses(
           conf.getList(PropertyKey.JOB_MASTER_RPC_ADDRESSES, ","));
-    } else if (conf.isSet(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)) {
-      return getRpcAddresses(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, jobRpcPort, conf);
-    } else if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
-      return getRpcAddresses(PropertyKey.MASTER_RPC_ADDRESSES, jobRpcPort, conf);
-    } else {
-      return getRpcAddresses(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, jobRpcPort, conf);
     }
+
+    int jobRpcPort =
+        NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, conf);
+    // Fall back on explicitly configured regular master rpc addresses.
+    if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
+      List<InetSocketAddress> addrs =
+          parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES, ","));
+      return overridePort(addrs, jobRpcPort);
+    }
+
+    // Fall back on server-side journal configuration.
+    return overridePort(getEmbeddedJournalAddresses(conf, ServiceType.JOB_MASTER_RAFT), jobRpcPort);
   }
 
-  /**
-   * @param addressesKey configuration key for a list of addresses
-   * @param overridePort the port to use
-   * @param conf the configuration to use
-   * @return a list of inet addresses using the hostnames from addressesKey with the port
-   *         overridePort
-   */
-  private static List<InetSocketAddress> getRpcAddresses(
-      PropertyKey addressesKey, int overridePort, AlluxioConfiguration conf) {
-    List<InetSocketAddress> addresses =
-        parseInetSocketAddresses(conf.getList(addressesKey, ","));
-    List<InetSocketAddress> newAddresses = new ArrayList<>(addresses.size());
-    for (InetSocketAddress addr : addresses) {
-      newAddresses.add(new InetSocketAddress(addr.getHostName(), overridePort));
-    }
-    return newAddresses;
+  private static List<InetSocketAddress> overridePort(List<InetSocketAddress> addrs, int port) {
+    return StreamUtils.map(addr -> new InetSocketAddress(addr.getHostString(), port), addrs);
   }
 
   /**

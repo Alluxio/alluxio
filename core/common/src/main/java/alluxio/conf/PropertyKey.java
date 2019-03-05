@@ -28,8 +28,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
@@ -41,6 +39,9 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Configuration property keys. This class provides a set of pre-defined property keys.
@@ -1154,10 +1155,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
-          .setDescription("A comma-separated list of journal addresses for all masters in the "
-              + "cluster. The format is 'hostname1:port1,hostname2:port2,...'. Required when using "
-              + "the embedded journal")
-          .setDefaultValue(String.format("localhost:${%s}", Name.MASTER_EMBEDDED_JOURNAL_PORT))
+          .setDescription(String.format("A comma-separated list of journal addresses for all "
+              + "masters in the cluster. The format is 'hostname1:port1,hostname2:port2,...'. When "
+              + "left unset, Alluxio uses ${%s}:${%s} by default", Name.MASTER_HOSTNAME,
+              Name.MASTER_EMBEDDED_JOURNAL_PORT))
+          // We intentionally don't set a default value here. That way, we can use isSet() to check
+          // whether the user explicitly set these addresses. If they did, we determine job master
+          // embedded journal addresses using the same hostnames the user set here. Otherwise, we
+          // use jobMasterHostname:jobMasterEmbeddedJournalPort by default.
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
@@ -3365,10 +3370,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JOB_MASTER_RPC_ADDRESSES).build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)
-          .setDescription("A comma-separated list of journal addresses for all job masters in the "
-              + "cluster. The format is 'hostname1:port1,hostname2:port2,...'. Defaults to the "
-              + "journal addresses set for the Alluxio masters, but with the job master embedded "
-              + "journal port.")
+          .setDescription(String.format("A comma-separated list of journal addresses for all job "
+              + "masters in the cluster. The format is 'hostname1:port1,hostname2:port2,...'. "
+              + "Defaults to the journal addresses set for the Alluxio masters (%s), but with the "
+              + "job master embedded journal port.", Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES))
           .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_PORT =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_PORT)
