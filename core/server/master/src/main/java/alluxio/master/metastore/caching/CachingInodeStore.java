@@ -178,11 +178,6 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   }
 
   @Override
-  public long estimateSize() {
-    return mBackingStore.estimateSize();
-  }
-
-  @Override
   public Iterable<Long> getChildIds(Long inodeId) {
     return () -> mListingCache.getChildIds(inodeId).iterator();
   }
