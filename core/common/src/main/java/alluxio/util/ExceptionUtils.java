@@ -23,7 +23,7 @@ public final class ExceptionUtils {
   /**
    * @param t a throwable to check
    * @return whether the given throwable contains a type of interrupted exception in its causal
-   *         chain
+   *         chain (the causal chain includes the throwable itself)
    */
   public static boolean containsInterruptedException(Throwable t) {
     return !Iterables

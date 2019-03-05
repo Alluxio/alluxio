@@ -24,8 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -52,8 +52,11 @@ public final class UfsJournalCheckpointThread extends Thread {
   private final int mJournalCheckpointSleepTimeMs;
   /** Writes a new checkpoint after processing this many journal entries. */
   private final long mCheckpointPeriodEntries;
+  /** Object for sycnhronizing accesses to mCheckpointing. */
+  private final Object mCheckpointingLock = new Object();
   /** Whether we are currently creating a checkpoint. */
-  private AtomicBoolean mCheckpointing = new AtomicBoolean(false);
+  @GuardedBy("mCheckpointingLock")
+  private boolean mCheckpointing = false;
   /** This becomes true when the master initiates the shutdown. */
   private volatile boolean mShutdownInitiated = false;
 
@@ -98,8 +101,8 @@ public final class UfsJournalCheckpointThread extends Thread {
     mWaitQuietPeriod = waitQuietPeriod;
     mShutdownInitiated = true;
     // Actively interrupt to cancel slow checkpoints.
-    synchronized (mCheckpointing) {
-      if (mCheckpointing.get()) {
+    synchronized (mCheckpointingLock) {
+      if (mCheckpointing) {
         interrupt();
       }
     }
@@ -244,11 +247,11 @@ public final class UfsJournalCheckpointThread extends Thread {
       UfsJournalCheckpointWriter journalWriter =
           mJournal.getCheckpointWriter(nextSequenceNumber);
       try {
-        synchronized (mCheckpointing) {
+        synchronized (mCheckpointingLock) {
           if (mShutdownInitiated) {
             return;
           }
-          mCheckpointing.set(true);
+          mCheckpointing = true;
         }
         mMaster.writeToCheckpoint(journalWriter);
       } catch (Throwable t) {
@@ -262,8 +265,8 @@ public final class UfsJournalCheckpointThread extends Thread {
             nextSequenceNumber);
         return;
       } finally {
-        synchronized (mCheckpointing) {
-          mCheckpointing.set(false);
+        synchronized (mCheckpointingLock) {
+          mCheckpointing = false;
         }
         // If shutdown has been initiated, we assume that the interrupt was just intended to break
         // out of writeToCheckpoint early. We complete an orderly shutdown instead of stopping the

@@ -33,10 +33,12 @@ public final class ExceptionUtilsTest {
   @Test
   public void containsInterruptedException() {
     Throwable t1 = new IOException(new RuntimeException(new InterruptedException()));
-    Throwable t2 = new IOException(new RuntimeException(new InterruptedIOException()));
-    Throwable t3 = new IOException(new RuntimeException(new IOException()));
+    Throwable t2 = new IOException(new InterruptedIOException());
+    Throwable t3 = new InterruptedException();
+    Throwable t4 = new IOException(new RuntimeException(new IOException()));
     assertTrue(ExceptionUtils.containsInterruptedException(t1));
     assertTrue(ExceptionUtils.containsInterruptedException(t2));
-    assertFalse(ExceptionUtils.containsInterruptedException(t3));
+    assertTrue(ExceptionUtils.containsInterruptedException(t3));
+    assertFalse(ExceptionUtils.containsInterruptedException(t4));
   }
 }
