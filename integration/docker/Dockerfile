@@ -13,7 +13,7 @@ FROM openjdk:8-jdk-alpine
 
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.8.1/alluxio-1.8.1-bin.tar.gz
 
-RUN apk add --update bash && \
+RUN apk add --update bash libc6-compat && \
     rm -rf /var/cache/apk/*
 
 ADD ${ALLUXIO_TARBALL} /opt/
