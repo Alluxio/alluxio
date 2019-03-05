@@ -562,7 +562,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @return the permissions associated with this under storage system
    */
   private ObjectPermissions getPermissionsInternal() {
-    short bucketMode = mUfsConf.getShort(PropertyKey.UNDERFS_OBJECT_STORE_DEFAULT_MODE);
+    short bucketMode = mUfsConf.getShort(PropertyKey.UNDERFS_S3A_DEFAULT_MODE);
     String accountOwner = DEFAULT_OWNER;
 
     // if ACL enabled try to inherit bucket acl for all the objects.
