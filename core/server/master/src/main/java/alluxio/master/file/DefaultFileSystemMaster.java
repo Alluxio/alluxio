@@ -3603,15 +3603,18 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       FileSystemMasterCommonPOptions commonOpts = protoOptions.getCommonOptions();
       TtlAction action = commonOpts.hasTtlAction() ? commonOpts.getTtlAction() : null;
       Long ttl = commonOpts.hasTtl() ? commonOpts.getTtl() : null;
+      boolean modified = false;
 
       if (ttl != null && inode.getTtl() != ttl) {
         entry.setTtl(ttl);
+        modified = true;
       }
       if (action != null && inode.getTtlAction() != action) {
         entry.setTtlAction(ProtobufUtils.toProtobuf(action));
+        modified = true;
       }
-      // We've set at least one if they are both non-null
-      if (ttl != null && action != null) {
+
+      if (modified) {
         entry.setLastModificationTimeMs(opTimeMs);
       }
     }
