@@ -341,17 +341,33 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
     long expectedTtl = ServerConfiguration.getMs(PropertyKey.USER_FILE_CREATE_TTL);
     URIStatus stat = mFileSystem.getStatus(testFile);
-    assertEquals("TTL should be same", expectedTtl, stat.getTtl());
+    assertEquals("TTL should be equal to configuration", expectedTtl, stat.getTtl());
+
+    // Ttl should be updated to newTtl
     long newTtl = 14402478;
     mFileSystem.setAttribute(testFile,
         SetAttributePOptions.newBuilder().setCommonOptions(
             FileSystemMasterCommonPOptions.newBuilder().setTtl(newTtl).build()).build());
     stat = mFileSystem.getStatus(testFile);
-    assertEquals("TTL should be same", newTtl, stat.getTtl());
+    assertEquals("Ttl should be the updated", newTtl, stat.getTtl());
+
+    // SetAttribute with same ttl should not modify the lastModifiedTime
+    long lastModifiedTime = stat.getLastModificationTimeMs();
     mFileSystem.setAttribute(testFile,
-        SetAttributePOptions.newBuilder().setOwner("testOwner").build());
+        SetAttributePOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtl(newTtl).build()).build());
     stat = mFileSystem.getStatus(testFile);
-    assertEquals("TTL should be same", newTtl, stat.getTtl());
+    assertEquals("Ttl should not change", newTtl, stat.getTtl());
+    assertEquals("LastModifiedTime should not change", lastModifiedTime,
+        stat.getLastModificationTimeMs());
+
+    // Owner should get updated and Ttl should not change
+    String newOwner = "testOwner";
+    mFileSystem.setAttribute(testFile,
+        SetAttributePOptions.newBuilder().setOwner(newOwner).build());
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should not change", newTtl, stat.getTtl());
+    assertEquals("Owner should be updated", newOwner, stat.getOwner());
   }
 
   @LocalAlluxioClusterResource.Config(
