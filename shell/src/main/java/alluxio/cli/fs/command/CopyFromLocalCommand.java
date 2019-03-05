@@ -18,9 +18,10 @@ import alluxio.exception.status.InvalidArgumentException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Copies the specified file specified by "source path" to the path specified by "remote path".
@@ -67,8 +68,8 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
   @Override
   public String getUsage() {
     return "copyFromLocal "
-        + "[--thread <number of threads for copying>] "
-        + "[--buffersize <read buffer size in bytes>] "
+        + "[--thread <num>] "
+        + "[--buffersize <bytes>] "
         + "<src> <remoteDst>";
   }
 

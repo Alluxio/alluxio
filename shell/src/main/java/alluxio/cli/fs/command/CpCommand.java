@@ -41,7 +41,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -59,6 +58,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Copies a file or a directory in the Alluxio filesystem.
@@ -758,7 +759,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
   public String getUsage() {
     return "cp "
         + "[-R] "
-        + "[--buffersize <read buffer size in bytes>] "
+        + "[--buffersize <bytes>] "
         + "<src> <dst>";
   }
 
