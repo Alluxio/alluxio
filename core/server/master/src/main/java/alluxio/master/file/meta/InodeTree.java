@@ -241,6 +241,13 @@ public class InodeTree implements DelegatingJournaled {
   }
 
   /**
+   * @return the number of inodes in the inode tree
+   */
+  public long getInodeCount() {
+    return mState.getInodeCount();
+  }
+
+  /**
    * Marks an inode directory as having its direct children loaded.
    *
    * @param context journal context supplier
@@ -303,13 +310,6 @@ public class InodeTree implements DelegatingJournaled {
       return null;
     }
     return mState.getRoot().getOwner();
-  }
-
-  /**
-   * @return an estimate for the total number of inodes
-   */
-  public long estimateSize() {
-    return mInodeStore.estimateSize();
   }
 
   /**
