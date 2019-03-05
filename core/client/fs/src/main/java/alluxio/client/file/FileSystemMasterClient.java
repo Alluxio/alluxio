@@ -14,8 +14,6 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.AlreadyExistsException;
-import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -78,7 +76,7 @@ public interface FileSystemMasterClient extends Client {
    *
    * @param path the directory path
    * @param options method options
-   * @throws AlreadyExistsException if the directory already exists
+   * @throws AlluxioStatusException if the directory already exists
    */
   void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws AlluxioStatusException;
@@ -88,7 +86,7 @@ public interface FileSystemMasterClient extends Client {
    *
    * @param path the file path
    * @param options method options
-   * @throws AlreadyExistsException if the file already exists
+   * @throws AlluxioStatusException if the file already exists
    * @return the uri status of the newly created file
    */
   URIStatus createFile(AlluxioURI path, CreateFilePOptions options) throws AlluxioStatusException;
@@ -114,7 +112,7 @@ public interface FileSystemMasterClient extends Client {
    *
    * @param path the path to free
    * @param options method options
-   * @throws NotFoundException if the path does not exist
+   * @throws AlluxioStatusException if the path does not exist
    */
   void free(AlluxioURI path, FreePOptions options) throws AlluxioStatusException;
 
@@ -128,7 +126,7 @@ public interface FileSystemMasterClient extends Client {
    * @param path the file path
    * @param options the getStatus options
    * @return the file info for the given file id
-   * @throws NotFoundException if the path does not exist
+   * @throws AlluxioStatusException if the path does not exist
    */
   URIStatus getStatus(AlluxioURI path, GetStatusPOptions options) throws AlluxioStatusException;
 
@@ -149,7 +147,7 @@ public interface FileSystemMasterClient extends Client {
    * @param path the path to list
    * @param options the listStatus options
    * @return the list of file information for the given path
-   * @throws NotFoundException if the path does not exist
+   * @throws AlluxioStatusException if the path does not exist
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws AlluxioStatusException;
@@ -176,7 +174,7 @@ public interface FileSystemMasterClient extends Client {
    *
    * @param src the path to rename
    * @param dst new file path
-   * @throws NotFoundException if the path does not exist
+   * @throws AlluxioStatusException if the path does not exist
    */
   void rename(AlluxioURI src, AlluxioURI dst) throws AlluxioStatusException;
 
@@ -186,7 +184,7 @@ public interface FileSystemMasterClient extends Client {
    * @param src the path to rename
    * @param dst new file path
    * @param options rename options
-   * @throws NotFoundException if the path does not exist
+   * @throws AlluxioStatusException if the path does not exist
    */
   void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options) throws AlluxioStatusException;
 
@@ -197,7 +195,7 @@ public interface FileSystemMasterClient extends Client {
    * @param action the set action to perform
    * @param entries the ACL entries to use
    * @param options the options for setting ACL
-   * @throws NotFoundException if the path does not exist
+   * @throws AlluxioStatusException if the path does not exist
    */
   void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclPOptions options)
       throws AlluxioStatusException;
@@ -207,7 +205,7 @@ public interface FileSystemMasterClient extends Client {
    *
    * @param path the file or directory path
    * @param options the file or directory attribute options to be set
-   * @throws NotFoundException if the path does not exist
+   * @throws AlluxioStatusException if the path does not exist
    */
   void setAttribute(AlluxioURI path, SetAttributePOptions options) throws AlluxioStatusException;
 
