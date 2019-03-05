@@ -14,6 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.concurrent.LockMode;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -687,6 +688,13 @@ public class InodeTree implements DelegatingJournaled {
 
       newDir.setPinned(currentInodeDirectory.isPinned());
 
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER)
+          && newDir.getOwner().isEmpty() && newDir.getGroup().isEmpty()) {
+        // Inherit owner / group if empty
+        newDir.setOwner(currentInodeDirectory.getOwner());
+        newDir.setGroup(currentInodeDirectory.getGroup());
+      }
+
       // if the parent has default ACL, copy that default ACL as the new directory's default
       // and access acl, ANDed with the umask
       // if it is part of a metadata load operation, we ignore the umask and simply inherit
@@ -777,6 +785,13 @@ public class InodeTree implements DelegatingJournaled {
       throw new IllegalStateException(String.format("Unrecognized create options: %s", context));
     }
     newInode.setPinned(currentInodeDirectory.isPinned());
+
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER)
+        && newInode.getOwner().isEmpty() && newInode.getGroup().isEmpty()) {
+      // Inherit owner / group if empty
+      newInode.setOwner(currentInodeDirectory.getOwner());
+      newInode.setGroup(currentInodeDirectory.getGroup());
+    }
 
     mState.applyAndJournal(rpcContext, newInode);
     Inode inode = Inode.wrap(newInode);
