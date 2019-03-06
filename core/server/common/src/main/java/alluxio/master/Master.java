@@ -14,12 +14,12 @@ package alluxio.master;
 import alluxio.Server;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryStateMachine;
+import alluxio.master.journal.Journaled;
 
 /**
  * This interface contains common operations for all masters.
  */
-public interface Master extends JournalEntryStateMachine, Server<Boolean> {
+public interface Master extends Journaled, Server<Boolean> {
   /**
    * @return a journal context for writing journal entries to the master
    */

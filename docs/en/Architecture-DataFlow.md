@@ -8,9 +8,7 @@ priority: 2
 * Table of Contents
 {:toc}
 
-## Architecture
-
-### Overview
+## Architecture Overview
 
 Alluxio serves as a new data access layer in the big data and machine learning ecosystem,
 residing between any persistent storage systems, such as Amazon S3, Microsoft Azure
@@ -44,7 +42,7 @@ Alluxio command-line, or the FUSE layer.
 <img src="{{ '/img/architecture-overview.png' | relativize_url }}" alt="Architecture overview"/>
 </p>
 
-### Master
+## Master
 
 <p align="center">
 <img src="{{ '/img/architecture-master.png' | relativize_url }}" alt="Alluxio master"/>
@@ -54,7 +52,7 @@ The Alluxio master service can be deployed as one leading master and several sta
 masters for fault tolerance. When the leading master goes down, a standby master
 is elected to become the new leading master.
 
-#### Leading Master
+### Leading Master
 
 Only one master process can be the leading master in an Alluxio cluster.
 The leading master is responsible for managing the global metadata of the system.
@@ -67,14 +65,23 @@ with other components; it only responds to requests via RPC services.
 The leading master records all file system transactions to a distributed persistent storage
 to allow for recovery of master state information; the set of records is referred to as the journal.
 
-#### Standby Masters
+### Standby Masters
 
-Standby masters read journals written by the leading master to keep their own
-copies of the master state up-to-date. They also write journal checkpoints for
-faster recovery in the future. They do not process any requests from other
-Alluxio components.
+Standby masters are launched on different servers to provide fault-tolerance when running Alluxio
+in HA mode. Standby masters read journals written by the leading master to
+keep their own copies of the master state up-to-date. They also write journal checkpoints for
+faster recovery in the future. However, they do not process any requests from other
+Alluxio components. After leading master fail-over, the standby masters will re-elect the new
+leading master after.
 
-### Worker
+### Secondary Masters
+
+When running a single Alluxio master without HA mode, one can start a secondary master on
+the same server as the leading master to write journal checkpoints. Note that, the secondary master
+is not designed to provide high availability but offload the work from the leading master for fast
+recovery. Different from standby masters, a secondary master can never upgrade to a leading master.
+
+## Worker
 
 <p align="center">
 <img src="{{ '/img/architecture-worker.png' | relativize_url }}" alt="Alluxio worker"/>
@@ -97,7 +104,7 @@ when space is full. Workers employ eviction policies to decide which data to
 keep in the Alluxio space. For more on this topic, check out the
 documentation for [Tiered Storage]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}#multiple-tier-storage).
 
-### Client
+## Client
 
 The Alluxio client provides users a gateway to interact with the Alluxio
 servers. It initiates communication with the leading master to carry out
@@ -109,20 +116,18 @@ that are compatible with the HDFS API and the Amazon S3 API.
 Note that Alluxio clients never directly access the under storage systems. 
 Data is transmitted through Alluxio workers.
 
-## Data flow
+## Data flow: Read
 
-This section describes the behavior of common read and write scenarios based on
+This and the next section describe the behavior of common read and write scenarios based on
 a typical Alluxio configuration as described above: Alluxio is co-located with
 the compute framework and and applications and the persistent storage system is
 either a remote storage cluster or cloud-based storage.
-
-### Read
 
 Residing between the under storage and computation framework, Alluxio serves
 as a caching layer for data reads. This subsection introduces different caching
 scenarios and their implications on performance.
 
-#### Local Cache Hit
+### Local Cache Hit
 
 A local cache hit occurs when the requested data resides on the local Alluxio worker.
 For example, if an application requests data access through the Alluxio client,
@@ -150,7 +155,7 @@ storage media. To learn more about this topic, please refer to the
 <img src="{{ '/img/dataflow-local-cache-hit.gif' | relativize_url }}" alt="Data Flow of Read from a Local Worker"/>
 </p>
 
-#### Remote Cache Hit
+### Remote Cache Hit
 
 When requested data is stored in Alluxio, but not on a client's local worker,
 the client will perform a remote read from a worker that does have the data. After the client finishes
@@ -165,7 +170,7 @@ workers and the under storage.
 <img src="{{ '/img/dataflow-remote-cache-hit.gif' | relativize_url }}" alt="Data Flow of Read from a Remote Worker"/>
 </p>
 
-#### Cache Miss
+### Cache Miss
 
 If the data is not available within the Alluxio space, a cache miss occurs and
 the application will have to read the data from the under storage. The Alluxio
@@ -180,20 +185,20 @@ full block asynchronously. This is called async caching.
 Async caching does not block the client, but may still impact
 performance if the network bandwidth between Alluxio and the under storage
 system is a bottleneck. You can tune the impact of async caching by setting
-`alluxio.worker.network.netty.async.cache.manager.threads.max` on your workers.
+`alluxio.worker.network.async.cache.manager.threads.max` on your workers.
 The default value is `8`.
 
 <p align="center">
 <img src="{{ '/img/dataflow-cache-miss.gif' | relativize_url }}" alt="Cache Miss data flow"/>
 </p>
 
-#### Cache Skip
+### Cache Skip
 
 It is possible to turn off caching in Alluxio by setting the property
 [`alluxio.user.file.readtype.default`]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.user.file.cache.partially.read.block)
 in the client to `NO_CACHE`.
 
-### Write
+## Data flow: Write
 
 Users can configure how data should be written by choosing from different write
 types. The write type can be set either through the Alluxio API or by
@@ -202,7 +207,7 @@ configuring the property
 in the client. This section describes the behaviors of different write types as
 well as the performance implications to the applications.
 
-#### Write to Alluxio only (`MUST_CACHE`)
+### Write to Alluxio only (`MUST_CACHE`)
 
 With a write type of MUST_CACHE, the Alluxio client only writes to the local
 Alluxio worker and no data will be written to the under storage. During the
@@ -216,7 +221,7 @@ The `MUST_CACHE` setting is useful for writing temporary data when data loss can
 <img src="{{ '/img/dataflow-must-cache.gif' | relativize_url }}" alt="MUST_CACHE data flow"/>
 </p>
 
-#### Write through to UFS (`CACHE_THROUGH`)
+### Write through to UFS (`CACHE_THROUGH`)
 
 With the write type of `CACHE_THROUGH`, data is written synchronously to an
 Alluxio worker and the under storage system. The Alluxio client delegates the
@@ -231,7 +236,7 @@ any future reads of the data can be served from local memory directly.
 <img src="{{ '/img/dataflow-cache-through.gif' | relativize_url }}" alt="CACHE_THROUGH data flow"/>
 </p>
 
-#### Write back to UFS (`ASYNC_THROUGH`)
+### Write back to UFS (`ASYNC_THROUGH`)
 
 Alluxio provides a write type of `ASYNC_THROUGH`. With `ASYNC_THROUGH`,
 data is written synchronously to an Alluxio worker and asynchronously to the

@@ -126,6 +126,7 @@ public final class ReplicationCheckerTest {
 
   @Before
   public void before() throws Exception {
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
     MasterRegistry registry = new MasterRegistry();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
     CoreMasterContext context = MasterTestUtils.testMasterContext(journalSystem);

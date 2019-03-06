@@ -187,6 +187,7 @@ public final class FileSystemMasterTest {
   @Rule
   public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
     {
+      put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
       put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
       put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "20");
       put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0");
@@ -244,8 +245,8 @@ public final class FileSystemMasterTest {
     };
     for (String path : paths) {
       AlluxioURI uri = new AlluxioURI(path);
-      long id = mFileSystemMaster.createFile(uri,
-          CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder().setRecursive(true)));
+      long id = mFileSystemMaster.createFile(uri, CreateFileContext.mergeFrom(
+          CreateFilePOptions.newBuilder().setRecursive(true))).getFileId();
       Assert.assertEquals(id, mFileSystemMaster.getFileId(uri));
       mFileSystemMaster.delete(uri, DeleteContext.defaults());
       id = mFileSystemMaster.createDirectory(uri, CreateDirectoryContext
@@ -824,11 +825,8 @@ public final class FileSystemMasterTest {
     assertEquals(4, countPaths());
   }
 
-  private int countPaths() throws Exception {
-    return 1 + mFileSystemMaster
-            .listStatus(new AlluxioURI("/"),
-                ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder().setRecursive(true)))
-            .size();
+  private long countPaths() throws Exception {
+    return mFileSystemMaster.getInodeCount();
   }
 
   @Test
@@ -1623,7 +1621,7 @@ public final class FileSystemMasterTest {
     context.getOptions().setBlockSizeBytes(Constants.KB);
     context.getOptions().setRecursive(true);
     context.getOptions().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     assertEquals(fileInfo.getFileId(), fileId);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
@@ -1640,7 +1638,7 @@ public final class FileSystemMasterTest {
     context.getOptions().setBlockSizeBytes(Constants.KB);
     context.getOptions().setRecursive(true);
     context.getOptions().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
 
     // Simulate restart.
     stopServices();
@@ -1796,7 +1794,7 @@ public final class FileSystemMasterTest {
   public void setTtlForFileWithNoTtl() throws Exception {
     CreateFileContext context = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since no TTL is set, the file should not be deleted.
     assertEquals(fileId,
@@ -1823,7 +1821,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryContext);
     CreateFileContext createFileContext = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, createFileContext);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, createFileContext).getFileId();
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since no TTL is set, the file should not be deleted.
     assertEquals(fileId,
@@ -1849,7 +1847,7 @@ public final class FileSystemMasterTest {
     CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(Constants.HOUR_MS))
         .setBlockSizeBytes(Constants.KB).setRecursive(true));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
     assertEquals(fileId,
@@ -1897,7 +1895,7 @@ public final class FileSystemMasterTest {
     CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))
         .setBlockSizeBytes(Constants.KB).setRecursive(true));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
     assertEquals(fileId,
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getFileId());
 
@@ -1939,7 +1937,7 @@ public final class FileSystemMasterTest {
     CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))
         .setBlockSizeBytes(Constants.KB).setRecursive(true));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext

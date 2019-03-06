@@ -1,3 +1,0 @@
-propertyName,defaultValue
-alluxio.keyvalue.enabled,"false"
-alluxio.keyvalue.partition.size.bytes.max,"512MB"

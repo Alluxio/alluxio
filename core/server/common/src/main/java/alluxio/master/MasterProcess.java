@@ -54,9 +54,6 @@ public abstract class MasterProcess implements Process {
   /** Maximum number of threads to serve the rpc server. */
   final int mMaxWorkerThreads;
 
-  /** Minimum number of threads to serve the rpc server. */
-  final int mMinWorkerThreads;
-
   /** Rpc server bind address. **/
   final InetSocketAddress mRpcBindAddress;
 
@@ -88,13 +85,9 @@ public abstract class MasterProcess implements Process {
   public MasterProcess(JournalSystem journalSystem, ServiceType rpcService,
       ServiceType webService) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
-    mMinWorkerThreads = ServerConfiguration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
     mMaxWorkerThreads = ServerConfiguration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
     mRpcBindAddress = configureAddress(rpcService);
     mWebBindAddress = configureAddress(webService);
-    Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
-        PropertyKey.MASTER_WORKER_THREADS_MAX + " can not be less than "
-            + PropertyKey.MASTER_WORKER_THREADS_MIN);
   }
 
   private static InetSocketAddress configureAddress(ServiceType service) {

@@ -756,6 +756,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_S3A_DEFAULT_MODE =
+      new Builder(Name.UNDERFS_S3A_DEFAULT_MODE)
+          .setDefaultValue("0700")
+          .setDescription("Mode (in octal notation) for S3 objects if mode cannot be discovered.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3A_DIRECTORY_SUFFIX =
       new Builder(Name.UNDERFS_S3A_DIRECTORY_SUFFIX)
           .setDefaultValue("/")
@@ -1273,6 +1280,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
+      new Builder(Name.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
+          .setDefaultValue("true")
+          .setDescription("Whether to inherit the owner/group from the parent when creating a new "
+              + "inode path if empty")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METRICS_TIME_SERIES_INTERVAL =
       new Builder(Name.MASTER_METRICS_TIME_SERIES_INTERVAL)
           .setDefaultValue("5min")
@@ -1365,7 +1380,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =
       new Builder(Name.MASTER_JOURNAL_TYPE)
-          .setDefaultValue("UFS")
+          .setDefaultValue("EMBEDDED")
           .setDescription("The type of journal to use. Valid options are UFS (store journal in "
               + "UFS), EMBEDDED (use a journal embedded in the masters), and NOOP (do not use a "
               + "journal)")
@@ -1711,12 +1726,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_RPC_THREAD_POOL_SIZE =
-      new Builder(Name.MASTER_RPC_THREAD_POOL_SIZE)
-          .setDefaultValue(500)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_WHITELIST =
       new Builder(Name.MASTER_WHITELIST)
           .setDefaultValue("/")
@@ -1741,15 +1750,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum number of incoming RPC requests to master that can be "
               + "handled. This value is used to configure maximum number of threads in gRPC "
               + "thread pool with master.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_WORKER_THREADS_MIN =
-      new Builder(Name.MASTER_WORKER_THREADS_MIN)
-          .setDefaultValue(256)
-          .setDescription("The minimum number of threads used to handle incoming RPC requests "
-              + "to master. This value is used to configure minimum number of threads in "
-              + "gRPC thread pool with master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3551,6 +3551,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.s3a.bulk.delete.enabled";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout";
+    public static final String UNDERFS_S3A_DEFAULT_MODE = "alluxio.underfs.s3a.default.mode";
     public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
         "alluxio.underfs.s3a.directory.suffix";
     public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
@@ -3701,6 +3702,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.cache.low.water.mark.ratio";
     public static final String MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
         "alluxio.master.metastore.inode.cache.max.size";
+    public static final String MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
+        "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval.ms";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
@@ -3779,7 +3782,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
         "alluxio.master.worker.connect.wait.time";
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
-    public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
     public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
         "alluxio.master.journal.checkpoint.period.entries";
@@ -3789,8 +3791,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
 
-    public static final String MASTER_RPC_THREAD_POOL_SIZE =
-        "alluxio.master.rpc.threadpool.size";
     //
     // Worker related properties
     //

@@ -7,7 +7,6 @@ bootstrapConf,&lt;ALLUXIO_MASTER_HOSTNAME&gt;
 fs,[fs-commands]
 fsadmin,[fsadmin-commands]
 getConf,[key]
-loadufs,&lt;AlluxioPath&gt; &lt;UfsPath&gt; [ExcludePathPrefixes]
 logLevel,[--level &lt;arg&gt;] --logName &lt;arg&gt; [--target &lt;arg&gt;]
 runTest,&lt;Example&gt; &lt;ReadType&gt; &lt;WriteType&gt;
 runTests,None
@@ -18,8 +17,6 @@ killAll,&lt;WORD&gt;
 copyDir,&lt;PATH&gt;
 clearCache,None
 confDocGen,None
-thriftGen,None
-protoGen,None
 version,None
 validateConf,None
 validateEnv,&lt;TARGET&gt; [NAME]

@@ -28,8 +28,11 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * {@link AlluxioWorkerExecutor} is an implementation of a Mesos executor responsible for
  * starting the Alluxio worker.
+ *
+ * @deprecated since version 2.0
  */
 @ThreadSafe
+@Deprecated
 public class AlluxioWorkerExecutor implements Executor {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerExecutor.class);
 

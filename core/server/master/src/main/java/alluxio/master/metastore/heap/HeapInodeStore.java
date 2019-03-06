@@ -65,11 +65,6 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public long estimateSize() {
-    return mInodes.size();
-  }
-
-  @Override
   public Optional<MutableInode<?>> getMutable(long id) {
     return Optional.ofNullable(mInodes.get(id));
   }

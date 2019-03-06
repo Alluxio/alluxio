@@ -69,6 +69,9 @@ alluxio.worker.data.server.domain.socket.address=/tmp/domain
 Alluxio master can be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 for storing the journal. The volume, once claimed, is persisted across restarts of the master process.
 
+Note: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
+configuration is not supported on Kubernetes.
+
 Create the persistent volume spec from the template. The access mode `ReadWriteMany` is used to allow
 multiple Alluxio master nodes to access the shared volume.
 
@@ -100,7 +103,7 @@ $ cp conf/alluxio.properties.template conf/alluxio.properties
 
 Create a ConfigMap.
 ```bash
-$ kubectl create configmap alluxio-config --from-env-file=ALLUXIO_CONFIG=conf/alluxio.properties
+$ kubectl create configmap alluxio-config --from-env-file=conf/alluxio.properties
 ```
 
 ### Deploy

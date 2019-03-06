@@ -44,7 +44,6 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPOptions;
-import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -58,18 +57,20 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.net.HostAndPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -189,11 +190,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     URIStatus status;
     try {
-      masterClient.createFile(path, options);
-      // Do not sync before this getStatus, since the UFS file is expected to not exist.
-      GetStatusPOptions gsOptions =
-          GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
-      status = masterClient.getStatus(path, gsOptions);
+      status = masterClient.createFile(path, options);
       LOG.debug("Created file {}, options: {}", path.getPath(), options);
     } catch (AlreadyExistsException e) {
       throw new FileAlreadyExistsException(e.getMessage());
@@ -310,11 +307,11 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public Map<FileBlockInfo, List<WorkerNetAddress>> getBlockLocations(AlluxioURI path)
+  public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws IOException, AlluxioException {
     // Don't need to checkUri here because we call other client operations
     List<FileBlockInfo> blocks = getStatus(path).getFileBlockInfos();
-    Map<FileBlockInfo, List<WorkerNetAddress>> blockLocations = new HashMap<>();
+    List<BlockLocationInfo> blockLocations = new ArrayList<>();
     for (FileBlockInfo fileBlockInfo : blocks) {
       // add the existing in-Alluxio block locations
       List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
@@ -324,8 +321,9 @@ public class BaseFileSystem implements FileSystem {
           // Case 1: Fallback to use under file system locations with co-located workers.
           // This maps UFS locations to a worker which is co-located.
           Map<String, WorkerNetAddress> finalWorkerHosts = getHostWorkerMap();
-          locations = fileBlockInfo.getUfsLocations().stream()
-              .map(finalWorkerHosts::get).filter(Objects::nonNull).collect(toList());
+          locations = fileBlockInfo.getUfsLocations().stream().map(
+              location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHost()))
+                .filter(Objects::nonNull).collect(toList());
         }
         if (locations.isEmpty() && mFsContext.getConf()
             .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
@@ -334,7 +332,7 @@ public class BaseFileSystem implements FileSystem {
           Collections.shuffle(locations);
         }
       }
-      blockLocations.put(fileBlockInfo, locations);
+      blockLocations.add(new BlockLocationInfo(fileBlockInfo, locations));
     }
     return blockLocations;
   }
@@ -610,8 +608,6 @@ public class BaseFileSystem implements FileSystem {
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.setAttributeDefaults(mFsContext.getConf())
-        .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
       masterClient.setAttribute(path, options);

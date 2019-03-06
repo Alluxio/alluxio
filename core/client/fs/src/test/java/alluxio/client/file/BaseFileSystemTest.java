@@ -36,7 +36,6 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -117,13 +116,10 @@ public final class BaseFileSystemTest {
    */
   @Test
   public void createFile() throws Exception {
-    doNothing().when(mFileSystemMasterClient)
-        .createFile(any(AlluxioURI.class), any(CreateFilePOptions.class));
     URIStatus status = new URIStatus(new FileInfo());
     AlluxioURI file = new AlluxioURI("/file");
-    GetStatusPOptions getStatusOptions =
-        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
-    when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
+    when(mFileSystemMasterClient.createFile(any(AlluxioURI.class), any(CreateFilePOptions.class)))
+        .thenReturn(status);
     FileOutStream out = mFileSystem.createFile(file, CreateFilePOptions.getDefaultInstance());
     verify(mFileSystemMasterClient).createFile(file, FileSystemOptions.createFileDefaults(mConf)
             .toBuilder().mergeFrom(CreateFilePOptions.getDefaultInstance()).build());
@@ -480,8 +476,7 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     SetAttributePOptions setAttributeOptions = SetAttributePOptions.getDefaultInstance();
     mFileSystem.setAttribute(file, setAttributeOptions);
-    verify(mFileSystemMasterClient).setAttribute(file, FileSystemOptions.setAttributeDefaults(mConf)
-        .toBuilder().mergeFrom(setAttributeOptions).build());
+    verify(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
   }
 
   /**
@@ -491,9 +486,7 @@ public final class BaseFileSystemTest {
   public void setStateException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     SetAttributePOptions setAttributeOptions = SetAttributePOptions.getDefaultInstance();
-    doThrow(EXCEPTION).when(mFileSystemMasterClient).setAttribute(file,
-        FileSystemOptions.setAttributeDefaults(mConf)
-            .toBuilder().mergeFrom(setAttributeOptions).build());
+    doThrow(EXCEPTION).when(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
     try {
       mFileSystem.setAttribute(file, setAttributeOptions);
       fail(SHOULD_HAVE_PROPAGATED_MESSAGE);

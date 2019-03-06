@@ -32,11 +32,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class SetReplicationCommand extends AbstractFileSystemCommand {
 
-  private static final Option REPLICATION_MAX_OPTION =
-      Option.builder("max").required(false).numberOfArgs(1).desc("the maximum number of replicas")
+  private static final Option MAX_OPTION =
+      Option.builder().longOpt("max").required(false).numberOfArgs(1)
+          .desc("the maximum number of replicas")
           .build();
-  private static final Option REPLICATION_MIN_OPTION =
-      Option.builder("min").required(false).numberOfArgs(1).desc("the minimum number of replicas")
+  private static final Option MIN_OPTION =
+      Option.builder().longOpt("min").required(false).numberOfArgs(1)
+          .desc("the minimum number of replicas")
           .build();
   private static final Option RECURSIVE_OPTION =
       Option.builder("R").required(false).hasArg(false).desc("set replication recursively")
@@ -56,8 +58,8 @@ public final class SetReplicationCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(RECURSIVE_OPTION).addOption(REPLICATION_MAX_OPTION)
-        .addOption(REPLICATION_MIN_OPTION);
+    return new Options().addOption(RECURSIVE_OPTION).addOption(MAX_OPTION)
+        .addOption(MIN_OPTION);
   }
 
   @Override
@@ -96,15 +98,17 @@ public final class SetReplicationCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-    Integer replicationMax = cl.hasOption("max") ? Integer.valueOf(cl.getOptionValue("max")) : null;
-    Integer replicationMin = cl.hasOption("min") ? Integer.valueOf(cl.getOptionValue("min")) : null;
-    boolean recursive = cl.hasOption("R");
+    Integer replicationMax = cl.hasOption(MAX_OPTION.getLongOpt())
+        ? Integer.valueOf(cl.getOptionValue(MAX_OPTION.getLongOpt())) : null;
+    Integer replicationMin = cl.hasOption(MIN_OPTION.getLongOpt())
+        ? Integer.valueOf(cl.getOptionValue(MIN_OPTION.getLongOpt())) : null;
+    boolean recursive = cl.hasOption(RECURSIVE_OPTION.getOpt());
     if (replicationMax == null && replicationMin == null) {
-      throw new IOException("At least one option of '-max' or '-min' must be specified");
+      throw new IOException("At least one option of '--max' or '--min' must be specified");
     }
     if (replicationMax != null && replicationMin != null && replicationMax >= 0
         && replicationMax < replicationMin) {
-      throw new IOException("Invalid values for '-max' and '-min' options");
+      throw new IOException("Invalid values for '--max' and '--min' options");
     }
     setReplication(path, replicationMax, replicationMin, recursive);
     return 0;
@@ -112,13 +116,13 @@ public final class SetReplicationCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "setReplication [-R] [-max <num> | -min <num>] <path>";
+    return "setReplication [-R] [--max <num> | --min <num>] <path>";
   }
 
   @Override
   public String getDescription() {
     return "Sets the minimum/maximum number of replicas for the file or directory at given path. "
-        + "Specify '-1' as the argument of '-max' option to indicate no limit of the maximum "
+        + "Specify '-1' as the argument of '--max' option to indicate no limit of the maximum "
         + "number of replicas. If 'path' is a directory and '-R' is specified, it will recursively "
         + "set all files in this directory.";
   }

@@ -184,7 +184,7 @@ exports[`App Connected component Matches snapshot 1`] = `
               }
             >
               <div
-                className="App pt-5 pb-4"
+                className="App h-100 pt-5 pb-4"
               >
                 <div
                   className="w-100 sticky-top header-wrapper"
@@ -666,7 +666,7 @@ exports[`App Connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="w-100 mt-3"
+                  className="h-100 w-100 pt-3"
                 >
                   <Switch>
                     <Route
@@ -784,133 +784,28 @@ exports[`App Connected component Matches snapshot 1`] = `
                           refresh={false}
                         >
                           <div
-                            className="overview-page"
+                            className="h-100 w-100 overview-page"
                           >
-                            <div
-                              className="container-fluid"
-                            >
+                            <LoadingMessage>
                               <div
-                                className="row"
+                                className="loadingMessageWrapper"
                               >
                                 <div
-                                  className="col-md-6"
+                                  className="loadingMessage text-center"
                                 >
-                                  <h5>
-                                    Alluxio Summary
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
+                                  <img
+                                    className="loadingMessageSpin"
+                                    src="alluxio-mark-tight-sm.svg"
+                                  />
+                                  <br />
+                                  <h5
+                                    className=""
                                   >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th
-                                            scope="row"
-                                          >
-                                            Worker Address
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th
-                                            scope="row"
-                                          >
-                                            Started
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th
-                                            scope="row"
-                                          >
-                                            Uptime
-                                          </th>
-                                          <td />
-                                        </tr>
-                                        <tr>
-                                          <th
-                                            scope="row"
-                                          >
-                                            Version
-                                          </th>
-                                          <td />
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-md-6"
-                                >
-                                  <h5>
-                                    Cluster Usage Summary
+                                    Please wait...
                                   </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <tbody>
-                                        <tr>
-                                          <th
-                                            scope="row"
-                                          >
-                                            Total Capacity / Used
-                                          </th>
-                                          <td>
-                                             / 
-                                          </td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </Table>
-                                </div>
-                                <div
-                                  className="col-md-12"
-                                >
-                                  <h5>
-                                    Storage Usage Summary
-                                  </h5>
-                                  <Table
-                                    hover={true}
-                                    responsiveTag="div"
-                                    tag="table"
-                                  >
-                                    <table
-                                      className="table table-hover"
-                                    >
-                                      <thead>
-                                        <tr>
-                                          <th>
-                                            Alias
-                                          </th>
-                                          <th>
-                                            Path
-                                          </th>
-                                          <th>
-                                            Capacity
-                                          </th>
-                                          <th>
-                                            Space Used
-                                          </th>
-                                          <th>
-                                            Space Usage
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody />
-                                    </table>
-                                  </Table>
                                 </div>
                               </div>
-                            </div>
+                            </LoadingMessage>
                           </div>
                         </Overview>
                       </Connect(Overview)>
@@ -1097,7 +992,7 @@ exports[`App Shallow component Matches snapshot 1`] = `
   }
 >
   <div
-    className="App pt-5 pb-4"
+    className="App h-100 pt-5 pb-4"
   >
     <div
       className="w-100 sticky-top header-wrapper"
@@ -1157,7 +1052,7 @@ exports[`App Shallow component Matches snapshot 1`] = `
       />
     </div>
     <div
-      className="w-100 mt-3"
+      className="h-100 w-100 pt-3"
     >
       <Switch>
         <Route
@@ -1176,9 +1071,9 @@ exports[`App Shallow component Matches snapshot 1`] = `
           path="/blockInfo"
         />
         <Route
-          component={[Function]}
           exact={true}
           path="/logs"
+          render={[Function]}
         />
         <Route
           component={[Function]}

@@ -9,11 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export const isNotEmpty = (name: string, value: string) => {
-  if (!name) {
-    return 'element name cannot be empty';
-  }
+package alluxio.master.journal;
 
-  const text = value.trim();
-  return !!text ? '' : `"${name}" cannot be empty.`;
-};
+/**
+ * Names for associating checkpoint data with the classes they represent. To support
+ * reading checkpoint written by older versions, these names should never change.
+ */
+public enum CheckpointName {
+  ACTIVE_SYNC_MANAGER,
+  BLOCK_MASTER,
+  FILE_SYSTEM_MASTER,
+  INODE_DIRECTORY_ID_GENERATOR,
+  INODE_TREE,
+  MASTER_UFS_MANAGER,
+  MOUNT_TABLE,
+  NOOP,
+}
