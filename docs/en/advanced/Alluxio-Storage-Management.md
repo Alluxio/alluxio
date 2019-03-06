@@ -264,7 +264,7 @@ For Alluxio to use the custom evictor, the fully qualified class name must be sp
 `alluxio.worker.evictor.class` property. After compiling the class to a JAR file, the JAR file
 needs to be accessible and added to the Alluxio worker's java classpath.
 
-## Managing Data in Alluxio
+## Managing Data Lifetime in Alluxio
 
 Users should understanding the following concepts to properly utilize available resources:
 
@@ -305,8 +305,9 @@ If the data is already in a UFS, use
 $ ./bin/alluxio fs load ${PATH_TO_FILE}
 ```
 
-To load data from the local file system, use the
-[command `copyFromLocal`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#copyfromlocal).
+To load data from the local file system, use the command
+[`alluxio fs copyFromLocal`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url
+}}#copyfromlocal).
 This will only load the file into Alluxio storage, but may not persist the data to a UFS.
 Setting the write type to `MUST_CACHE` write type will _not_ persist data to a UFS,
 whereas `CACHE` and `CACHE_THROUGH` will. Manually loading data is not recommended as Alluxio
@@ -314,7 +315,8 @@ will automatically load data into the Alluxio cache when a file is used for the 
 
 ### Persisting Data in Alluxio
 
-[The `alluxio fs persist`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#persist)
+The command [`alluxio fs persist`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url
+}}#persist)
 command allows a user to push data from the Alluxio cache to a UFS.
 
 ```bash
@@ -411,6 +413,76 @@ $ bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m -Dalluxio.user.file.cre
 
 For this example, ensure the `alluxio.master.ttl.checker.interval` is set to a short
 duration, such as a minute, in order for the the master to quickly identify the expired files.
+
+## Managing Data Replication in Alluxio
+
+### Passive Replication
+
+Like many distributed file systems, each file in Alluxio consists of one or multiple blocks store
+across the cluster. By default, Alluxio may adjust the replication level of different blocks
+dynamically and automatically based on the workload and storage capacity. For example, Alluxio may
+create more replicas of a particular block when more clients request to read this block with read
+type `CACHE` or `CACHE_PROMOTE`; Alluxio may also remove existing replicas when they are less often
+used to reclaim the space for data that is more often accessed ([Evictor in Alluxio Storage]
+(#eviction-policies). It is possible that in the same file different blocks have different number
+of replicas according to the popularity.
+
+By default, this replication or eviction decision and the corresponding data transfer is completely
+transparent to users and applications accessing Alluxio data.
+
+### Active Replication
+
+In addition to the dynamic replication adjustment, Alluxio also provides APIs and command-line
+interfaces for users to maintain a target range of replication level for a file explicitly.
+Particularly, user can configure the following two properties for a file in Alluxio:
+
+1. `alluxio.user.file.replication.min` is the minimum possible number of replicas of this file. Its
+default value is 0, so in the default case Alluxio may completely evict this file from Alluxio
+managed space after the file becomes cold. By setting this property to a positive integer, Alluxio
+will check the replication levels of all the blocks in this file periodically. When some blocks
+become under-replicated, Alluxio ensures no more eviction on these blocks and will actively create
+more replicas to restore the replication level.
+1. `alluxio.user.file.replication.max` is the maximum number of replicas. Once the property of this
+file is set to a positive integer, Alluxio will check replication level and remove the excessive
+replicas. Set this property to -1 to make no upper limit (the default case), and to 0 to prevent
+storing any data of this file in Alluxio. Note that, the value of `alluxio.user.file.replication.max`
+must be no less than `alluxio.user.file.replication.min`.
+
+For example, users can copy a local file `/path/to/file` to Alluxio with at least two replicas nitially:
+
+```bash
+$ ./bin/alluxio fs -Dalluxio.user.file.replication.min=2 copyFromLocal /path/to/file /file
+```
+
+Next, set the replication level range of `/file` between 3 and 5. Note that, this command will
+return right after setting the new replication level range in a background process and achieving
+the target asynchronously.
+
+```bash
+$ ./bin/alluxio fs setReplication --min 3 --max 5 /file
+```
+
+Set the `alluxio.user.file.replication.max` to unlimited.
+
+```bash
+$ ./bin/alluxio fs setRepliation --max -1 /file
+```
+
+Recursirvely set replication level of all files inside a directory `/dir` (including its
+sub-directories) using `-R`:
+
+```bash
+$ ./bin/alluxio fs setRepliation --min 3 --max -5 -R /dir
+```
+
+To check the target replication level of a file, run
+
+```bash
+$ bin/alluxio fs stat /foo
+```
+
+and look for the `replicationMin` and `replicationMax` fields in the output.
+
 
 ## Checking Alluxio Cache Capacity and Usage
 
