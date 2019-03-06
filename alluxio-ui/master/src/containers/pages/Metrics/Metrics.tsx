@@ -82,18 +82,18 @@ export class Metrics extends React.Component<AllProps> {
               <Table hover={true}>
                 <tbody>
                 <tr>
-                  <th>Short-circuit Read</th>
-                  <td>{data.totalBytesReadLocal}</td>
-                  <th>From Remote Instances</th>
+                  <th>Remote Alluxio Read</th>
                   <td>{data.totalBytesReadRemote}</td>
+                </tr>
+                <tr>
+                  <th>Remote Alluxio Write</th>
+                  <td>{data.totalBytesWrittenAlluxio}</td>
                 </tr>
                 <tr>
                   <th>Under Filesystem Read</th>
                   <td>{data.totalBytesReadUfs}</td>
                 </tr>
                 <tr>
-                  <th>Alluxio Write</th>
-                  <td>{data.totalBytesWrittenAlluxio}</td>
                   <th>Under Filesystem Write</th>
                   <td>{data.totalBytesWrittenUfs}</td>
                 </tr>
@@ -105,9 +105,7 @@ export class Metrics extends React.Component<AllProps> {
               <Table hover={true}>
                 <tbody>
                 <tr>
-                  <th>Short-circuit Read</th>
-                  <td>{data.totalBytesReadLocalThroughput}</td>
-                  <th>From Remote Instances</th>
+                  <th>Remote Alluxio Read</th>
                   <td>{data.totalBytesReadRemoteThroughput}</td>
                 </tr>
                 <tr>
@@ -115,27 +113,12 @@ export class Metrics extends React.Component<AllProps> {
                   <td>{data.totalBytesReadUfsThroughput}</td>
                 </tr>
                 <tr>
-                  <th>Alluxio Write</th>
+                  <th>Remote Alluxio Write</th>
                   <td>{data.totalBytesWrittenAlluxioThroughput}</td>
+                </tr>
+                <tr>
                   <th>Under Filesystem Write</th>
                   <td>{data.totalBytesWrittenUfsThroughput}</td>
-                </tr>
-                </tbody>
-              </Table>
-            </div>
-            <div className="col-12">
-              <h5>Cache Hit Rate (Percentage)</h5>
-              <Table hover={true}>
-                <tbody>
-                <tr>
-                  <th>Alluxio Local</th>
-                  <td>{data.cacheHitLocal}</td>
-                  <th>Alluxio Remote</th>
-                  <td>{data.cacheHitRemote}</td>
-                </tr>
-                <tr>
-                  <th>Miss</th>
-                  <td>{data.cacheMiss}</td>
                 </tr>
                 </tbody>
               </Table>
