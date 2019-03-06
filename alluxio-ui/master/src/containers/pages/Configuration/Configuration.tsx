@@ -58,7 +58,7 @@ export class Configuration extends React.Component<AllProps> {
 
     if (loading) {
       return (
-        <div className="h-100 w-100 configuration-page">
+        <div className="configuration-page">
           <LoadingMessage/>
         </div>
       );

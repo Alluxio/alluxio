@@ -115,7 +115,7 @@ export class Logs extends React.Component<AllProps, ILogsState> {
 
     if (loading) {
       return (
-        <div className="h-100 w-100 logs-page">
+        <div className="logs-page">
           <LoadingMessage/>
         </div>
       );

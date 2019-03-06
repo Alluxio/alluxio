@@ -173,7 +173,7 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
               }
             >
               <div
-                className="App h-100 pt-5 pb-4"
+                className="App h-100"
               >
                 <div
                   className="w-100 sticky-top header-wrapper"
@@ -722,7 +722,7 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="h-100 w-100 pt-3"
+                  className="w-100 pt-5 mt-3 pb-4 mb-2"
                 >
                   <Switch>
                     <Route
@@ -847,7 +847,7 @@ exports[`Workers App with connected component Matches snapshot 1`] = `
                           workersLoading={true}
                         >
                           <div
-                            className="h-100 w-100 workers-page"
+                            className="workers-page"
                           >
                             <LoadingMessage>
                               <div
