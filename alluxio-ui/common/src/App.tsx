@@ -14,7 +14,7 @@ import React from 'react';
 export class App extends React.Component {
   public render() {
     return (
-      <div className="App h-100">
+      <div className="App">
         <header className="App-header">
           <h1 className="App-title">Welcome to the Alluxio Shared Web Application</h1>
         </header>

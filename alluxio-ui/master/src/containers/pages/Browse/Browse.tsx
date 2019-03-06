@@ -133,7 +133,7 @@ export class Browse extends React.Component<AllProps, IBrowseState> {
 
     if (initLoading || browseLoading) {
       return (
-        <div className="h-100 w-100 browse-page">
+        <div className="browse-page">
           <LoadingMessage/>
         </div>
       );

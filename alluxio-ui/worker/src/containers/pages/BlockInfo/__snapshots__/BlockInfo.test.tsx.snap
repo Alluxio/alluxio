@@ -170,7 +170,7 @@ exports[`BlockInfo App with connected component Matches snapshot 1`] = `
               }
             >
               <div
-                className="App h-100 pt-5 pb-4"
+                className="App h-100"
               >
                 <div
                   className="w-100 sticky-top header-wrapper"
@@ -652,7 +652,7 @@ exports[`BlockInfo App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="h-100 w-100 pt-3"
+                  className="w-100 pt-5 mt-3 pb-4 mb-2"
                 >
                   <Switch>
                     <Route
@@ -768,7 +768,7 @@ exports[`BlockInfo App with connected component Matches snapshot 1`] = `
                           refresh={false}
                         >
                           <div
-                            className="h-100 w-100 blockInfo-page"
+                            className="blockInfo-page"
                           >
                             <LoadingMessage>
                               <div

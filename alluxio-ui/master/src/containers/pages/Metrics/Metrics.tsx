@@ -58,7 +58,7 @@ export class Metrics extends React.Component<AllProps> {
 
     if (loading) {
       return (
-        <div className="h-100 w-100 metrics-page">
+        <div className="metrics-page">
           <LoadingMessage/>
         </div>
       );

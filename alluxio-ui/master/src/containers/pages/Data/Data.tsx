@@ -89,7 +89,7 @@ export class Data extends React.Component<AllProps, IDataState> {
 
     if (loading) {
       return (
-        <div className="h-100 w-100 data-page">
+        <div className="data-page">
           <LoadingMessage/>
         </div>
       );
