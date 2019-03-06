@@ -12,11 +12,22 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+<<<<<<< HEAD
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
 import alluxio.exception.AccessControlException;
+||||||| parent of ab9733096a... Inherit owner/group if not discovered from ufs (#8520)
+import alluxio.collections.Pair;
+import alluxio.concurrent.LockMode;
+import alluxio.conf.ServerConfiguration;
+=======
+import alluxio.collections.Pair;
+import alluxio.concurrent.LockMode;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+>>>>>>> ab9733096a... Inherit owner/group if not discovered from ufs (#8520)
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -584,6 +595,7 @@ public class InodeTree implements JournalEntryIterable {
         .setOwner(options.getOwner())
         .setGroup(options.getGroup());
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
+<<<<<<< HEAD
       InodeDirectory dir = null;
       while (dir == null) {
         dir = InodeDirectory.create(
@@ -629,6 +641,55 @@ public class InodeTree implements JournalEntryIterable {
           // Journal the new inode.
           rpcContext.getJournalContext().append(dir.toJournalEntry());
           mInodes.add(dir);
+||||||| parent of ab9733096a... Inherit owner/group if not discovered from ufs (#8520)
+      MutableInodeDirectory newDir = MutableInodeDirectory.create(
+          mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
+          currentInodeDirectory.getId(), pathComponents[k], missingDirContext);
+
+      newDir.setPinned(currentInodeDirectory.isPinned());
+
+      // if the parent has default ACL, copy that default ACL as the new directory's default
+      // and access acl, ANDed with the umask
+      // if it is part of a metadata load operation, we ignore the umask and simply inherit
+      // the default ACL as the directory's new default and access ACL
+      short mode = context.isMetadataLoad() ? Mode.createFullAccess().toShort()
+          : newDir.getMode();
+      DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+      if (!dAcl.isEmpty()) {
+        Pair<AccessControlList, DefaultAccessControlList> pair =
+            dAcl.generateChildDirACL(mode);
+        newDir.setInternalAcl(pair.getFirst());
+        newDir.setDefaultACL(pair.getSecond());
+      }
+      mState.applyAndJournal(rpcContext, newDir);
+
+      inodePath.addNextInode(Inode.wrap(newDir));
+=======
+      MutableInodeDirectory newDir = MutableInodeDirectory.create(
+          mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
+          currentInodeDirectory.getId(), pathComponents[k], missingDirContext);
+
+      newDir.setPinned(currentInodeDirectory.isPinned());
+
+      inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
+
+      // if the parent has default ACL, copy that default ACL as the new directory's default
+      // and access acl, ANDed with the umask
+      // if it is part of a metadata load operation, we ignore the umask and simply inherit
+      // the default ACL as the directory's new default and access ACL
+      short mode = context.isMetadataLoad() ? Mode.createFullAccess().toShort()
+          : newDir.getMode();
+      DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+      if (!dAcl.isEmpty()) {
+        Pair<AccessControlList, DefaultAccessControlList> pair =
+            dAcl.generateChildDirACL(mode);
+        newDir.setInternalAcl(pair.getFirst());
+        newDir.setDefaultACL(pair.getSecond());
+      }
+      mState.applyAndJournal(rpcContext, newDir);
+
+      inodePath.addNextInode(Inode.wrap(newDir));
+>>>>>>> ab9733096a... Inherit owner/group if not discovered from ufs (#8520)
 
           // After creation and journaling, downgrade to a read lock.
           extensibleInodePath.getLockList().downgradeLast();
@@ -639,6 +700,7 @@ public class InodeTree implements JournalEntryIterable {
       currentInodeDirectory = dir;
     }
 
+<<<<<<< HEAD
     // Create the final path component. First we need to make sure that there isn't already a file
     // here with that name. If there is an existing file that is a directory and we're creating a
     // directory, update persistence property of the directories if needed, otherwise, throw
@@ -659,6 +721,51 @@ public class InodeTree implements JournalEntryIterable {
         default:
           // This should not be reachable.
           LOG.warn("Unexpected lock mode encountered: {}", extensibleInodePath.getLockMode());
+||||||| parent of ab9733096a... Inherit owner/group if not discovered from ufs (#8520)
+    // Create the final path component.
+    MutableInode<?> newInode;
+    // create the new inode, with a write lock
+    if (context instanceof CreateDirectoryContext) {
+      CreateDirectoryContext directoryContext = (CreateDirectoryContext) context;
+      MutableInodeDirectory newDir = MutableInodeDirectory.create(
+          mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
+          currentInodeDirectory.getId(), name, directoryContext);
+
+      // if the parent has default ACL, take the default ACL ANDed with the umask as the new
+      // directory's default and access acl
+      // When it is a metadata load operation, do not take the umask into account
+      short mode = context.isMetadataLoad() ? Mode.createFullAccess().toShort()
+          : newDir.getMode();
+      DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+      if (!dAcl.isEmpty()) {
+        Pair<AccessControlList, DefaultAccessControlList> pair =
+            dAcl.generateChildDirACL(mode);
+        newDir.setInternalAcl(pair.getFirst());
+        newDir.setDefaultACL(pair.getSecond());
+=======
+    // Create the final path component.
+    MutableInode<?> newInode;
+    // create the new inode, with a write lock
+    if (context instanceof CreateDirectoryContext) {
+      CreateDirectoryContext directoryContext = (CreateDirectoryContext) context;
+      MutableInodeDirectory newDir = MutableInodeDirectory.create(
+          mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
+          currentInodeDirectory.getId(), name, directoryContext);
+
+      inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
+
+      // if the parent has default ACL, take the default ACL ANDed with the umask as the new
+      // directory's default and access acl
+      // When it is a metadata load operation, do not take the umask into account
+      short mode = context.isMetadataLoad() ? Mode.createFullAccess().toShort()
+          : newDir.getMode();
+      DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+      if (!dAcl.isEmpty()) {
+        Pair<AccessControlList, DefaultAccessControlList> pair =
+            dAcl.generateChildDirACL(mode);
+        newDir.setInternalAcl(pair.getFirst());
+        newDir.setDefaultACL(pair.getSecond());
+>>>>>>> ab9733096a... Inherit owner/group if not discovered from ufs (#8520)
       }
       if (lastInode != null) {
         // inode to create already exists
@@ -718,6 +825,7 @@ public class InodeTree implements JournalEntryIterable {
             ((InodeFile) lastInode).setCacheable(true);
           }
         }
+<<<<<<< HEAD
         lastInode.setPinned(currentInodeDirectory.isPinned());
 
         // Update state while holding the write lock.
@@ -737,6 +845,42 @@ public class InodeTree implements JournalEntryIterable {
           lastInode = null;
           continue;
         }
+||||||| parent of ab9733096a... Inherit owner/group if not discovered from ufs (#8520)
+      }
+      newInode = newDir;
+    } else if (context instanceof CreateFileContext) {
+      CreateFileContext fileContext = (CreateFileContext) context;
+      MutableInodeFile newFile = MutableInodeFile.create(mContainerIdGenerator.getNewContainerId(),
+          currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileContext);
+      // if the parent has a default ACL, copy that default ACL ANDed with the umask as the new
+      // file's access ACL.
+      // If it is a metadata load operation, do not consider the umask.
+      DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+      short mode = context.isMetadataLoad() ? Mode.createFullAccess().toShort() : newFile.getMode();
+      if (!dAcl.isEmpty()) {
+        AccessControlList acl = dAcl.generateChildFileACL(mode);
+        newFile.setInternalAcl(acl);
+      }
+=======
+      }
+      newInode = newDir;
+    } else if (context instanceof CreateFileContext) {
+      CreateFileContext fileContext = (CreateFileContext) context;
+      MutableInodeFile newFile = MutableInodeFile.create(mContainerIdGenerator.getNewContainerId(),
+          currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileContext);
+
+      inheritOwnerAndGroupIfEmpty(newFile, currentInodeDirectory);
+
+      // if the parent has a default ACL, copy that default ACL ANDed with the umask as the new
+      // file's access ACL.
+      // If it is a metadata load operation, do not consider the umask.
+      DefaultAccessControlList dAcl = currentInodeDirectory.getDefaultACL();
+      short mode = context.isMetadataLoad() ? Mode.createFullAccess().toShort() : newFile.getMode();
+      if (!dAcl.isEmpty()) {
+        AccessControlList acl = dAcl.generateChildFileACL(mode);
+        newFile.setInternalAcl(acl);
+      }
+>>>>>>> ab9733096a... Inherit owner/group if not discovered from ufs (#8520)
 
         if (lastInode instanceof InodeFile) {
           if (currentInodeDirectory.isPinned()) {
@@ -791,6 +935,17 @@ public class InodeTree implements JournalEntryIterable {
     InodeLockList descendantLockList = lockDescendant(inodePath, lockMode, descendantUri);
     return new MutableLockedInodePath(descendantUri,
         new CompositeInodeLockList(inodePath.mLockList, descendantLockList), lockMode);
+  }
+
+  // Inherit owner and group from ancestor if both are empty
+  private static void inheritOwnerAndGroupIfEmpty(MutableInode<?> newInode,
+      InodeDirectoryView ancestorInode) {
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
+        && newInode.getOwner().isEmpty() && newInode.getGroup().isEmpty()) {
+      // Inherit owner / group if empty
+      newInode.setOwner(ancestorInode.getOwner());
+      newInode.setGroup(ancestorInode.getGroup());
+    }
   }
 
   /**
