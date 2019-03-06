@@ -14,6 +14,7 @@ package alluxio.master;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.noop.NoopJournalSystem;
@@ -21,6 +22,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,6 +54,13 @@ public final class AlluxioMasterProcessTest {
     mWebPort = mWebPortRule.getPort();
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, mRpcPort);
     ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, mWebPort);
+    ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR,
+        AlluxioTestDirectory.createTemporaryDirectory("alluxio-master-process-test"));
+  }
+
+  @After
+  public void after() {
+    ServerConfiguration.reset();
   }
 
   @Test

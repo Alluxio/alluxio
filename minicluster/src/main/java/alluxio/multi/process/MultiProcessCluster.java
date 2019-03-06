@@ -536,11 +536,13 @@ public final class MultiProcessCluster {
     MasterNetAddress address = mMasterAddresses.get(i);
     File confDir = new File(mWorkDir, "conf-master" + i);
     File logsDir = new File(mWorkDir, "logs-master" + i);
+    File metastoreDir = new File(mWorkDir, "metastore-master" + i);
     logsDir.mkdirs();
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.LOGGER_TYPE, "MASTER_LOGGER");
     conf.put(PropertyKey.CONF_DIR, confDir.getAbsolutePath());
     conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
+    conf.put(PropertyKey.MASTER_METASTORE_DIR, metastoreDir.getAbsolutePath());
     conf.put(PropertyKey.MASTER_HOSTNAME, address.getHostname());
     conf.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(address.getRpcPort()));
     conf.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(address.getWebPort()));
