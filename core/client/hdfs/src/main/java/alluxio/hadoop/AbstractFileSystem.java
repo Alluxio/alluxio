@@ -69,8 +69,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -91,10 +89,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   // Always tell Hadoop that we have 3x replication.
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
 
-  /** Flag for if the client has been initialized. */
-  private final ReadWriteLock mInitializationLock = new ReentrantReadWriteLock();
-
-  protected volatile FileSystem mFileSystem = null;
+  protected FileSystem mFileSystem = null;
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
