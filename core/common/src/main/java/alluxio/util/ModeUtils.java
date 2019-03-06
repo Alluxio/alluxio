@@ -17,6 +17,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.PMode;
 import alluxio.security.authorization.Mode;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -81,7 +82,7 @@ public final class ModeUtils {
    *
    * @return the umask {@link Mode}
    */
-  private static Mode getUMask(String confUmask) {
+  public static Mode getUMask(@Nullable String confUmask) {
     int umask = Constants.DEFAULT_FILE_SYSTEM_UMASK;
     if (confUmask != null) {
       if ((confUmask.length() > 4) || !isValid(confUmask)) {

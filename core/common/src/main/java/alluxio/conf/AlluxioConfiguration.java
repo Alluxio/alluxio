@@ -75,14 +75,6 @@ public interface AlluxioConfiguration {
   Set<PropertyKey> keySet();
 
   /**
-   * Gets the short representation of the value for the given key.
-   *
-   * @param key the key to get the value for
-   * @return the value for the given key as an {@code short}
-   */
-  short getShort(PropertyKey key);
-
-  /**
    * Gets the integer representation of the value for the given key.
    *
    * @param key the key to get the value for

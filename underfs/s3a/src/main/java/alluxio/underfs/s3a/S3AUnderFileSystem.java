@@ -17,12 +17,14 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+import alluxio.util.ModeUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -562,7 +564,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @return the permissions associated with this under storage system
    */
   private ObjectPermissions getPermissionsInternal() {
-    short bucketMode = mUfsConf.getShort(PropertyKey.UNDERFS_S3A_DEFAULT_MODE);
+    short bucketMode =
+        ModeUtils.getUMask(mUfsConf.get(PropertyKey.UNDERFS_S3A_DEFAULT_MODE)).toShort();
     String accountOwner = DEFAULT_OWNER;
 
     // if ACL enabled try to inherit bucket acl for all the objects.
