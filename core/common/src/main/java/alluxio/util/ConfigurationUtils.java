@@ -120,19 +120,6 @@ public final class ConfigurationUtils {
     return Arrays.asList(NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RAFT, conf));
   }
 
-  private List<InetSocketAddress> parseAddresses(List<String> addresses) {
-    List<InetSocketAddress> inetAddresses = new ArrayList<>();
-    for (String address : addresses) {
-      try {
-        InetSocketAddress addr = NetworkAddressUtils.parseInetSocketAddress(address);
-        inetAddresses.add(addr);
-      } catch (IOException e) {
-        throw new IllegalArgumentException(String.format("Failed to parse address %s", address), e);
-      }
-    }
-    return inetAddresses;
-  }
-
   /**
    * Gets the RPC addresses of all masters based on the configuration.
    *
@@ -185,8 +172,7 @@ public final class ConfigurationUtils {
    * @return a list of InetSocketAddresses representing the given address strings
    */
   private static List<InetSocketAddress> parseInetSocketAddresses(List<String> addresses) {
-    List<InetSocketAddress> inetSocketAddresses =
-        new ArrayList<>(addresses.size());
+    List<InetSocketAddress> inetSocketAddresses = new ArrayList<>(addresses.size());
     for (String address : addresses) {
       try {
         inetSocketAddresses.add(NetworkAddressUtils.parseInetSocketAddress(address));
