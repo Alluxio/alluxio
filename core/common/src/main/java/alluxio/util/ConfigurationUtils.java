@@ -113,7 +113,7 @@ public final class ConfigurationUtils {
     // Fall back on using the master embedded journal addresses, with the job master port.
     PropertyKey masterProperty = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
     int jobRaftPort = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_RAFT, conf);
-    if (conf.isSet(jobMasterProperty)) {
+    if (conf.isSet(masterProperty)) {
       return overridePort(getMasterEmbeddedJournalAddresses(conf), jobRaftPort);
     }
     // Fall back on job_master_hostname:job_master_raft_port.
