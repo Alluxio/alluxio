@@ -70,7 +70,7 @@ public final class JobShell extends AbstractShell {
    * @param alluxioConf Alluxio configuration
    */
   public JobShell(InstancedConfiguration alluxioConf) {
-    super(CMD_ALIAS, alluxioConf);
+    super(CMD_ALIAS, null, alluxioConf);
   }
 
   @Override

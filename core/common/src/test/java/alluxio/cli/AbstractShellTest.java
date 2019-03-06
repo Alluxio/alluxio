@@ -12,19 +12,23 @@
 package alluxio.cli;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
 
 import alluxio.ConfigurationTestUtils;
+import alluxio.SystemOutRule;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.cli.CommandLine;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Map;
 
 /**
@@ -34,6 +38,11 @@ public final class AbstractShellTest {
 
   private static final String SHELL_NAME = "TestShell";
 
+  public ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
+
+  @Rule
+  public SystemOutRule mSystemOutRule = new SystemOutRule(mOutput);
+
   @Rule
   public ExpectedException mExpectedException = ExpectedException.none();
 
@@ -41,7 +50,9 @@ public final class AbstractShellTest {
 
     public TestShell() {
       super(ImmutableMap.<String, String[]>builder().put("cmdAlias", new String[] {"cmd", "-O"})
-          .build(), ConfigurationTestUtils.defaults());
+          .put("stableAlias", new String[]{"cmd", "-O"})
+          .build(), ImmutableSet.<String>builder().add("cmdAlias").build(),
+          ConfigurationTestUtils.defaults());
     }
 
     @Override
@@ -70,9 +81,21 @@ public final class AbstractShellTest {
   }
 
   @Test
+  public void stableAliasNoWarning() throws Exception {
+    TestShell shell = new TestShell();
+    assertEquals(0, shell.run("stableAlias"));
+    assertFalse(mOutput.toString().contains("WARNING: stableAlias"));
+  }
+
+  @Test
   public void commandAliasExists() throws Exception {
     TestShell shell = new TestShell();
     assertEquals(0, shell.run("cmdAlias"));
+    String warningMsg = "WARNING: cmdAlias is not a stable CLI command. It may be removed in the"
+        + " future. Use with caution in scripts. You may use 'cmd -O' instead.";
+    String output = mOutput.toString();
+    assertTrue(String.format("Output should contain proper warning.\nActual:   %s\nExpected: %s",
+        output, warningMsg), output.contains(warningMsg));
   }
 
   @Test
