@@ -237,6 +237,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public ObjectListingChunk getNextChunk() throws IOException {
       if (mResult.isTruncated()) {
+        mRequest.setMarker(mResult.getNextMarker());
         ObjectListing nextResult = mClient.listObjects(mRequest);
         if (nextResult != null) {
           return new COSObjectListingChunk(mRequest, nextResult);
