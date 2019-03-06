@@ -327,7 +327,7 @@ public final class AlluxioWorkerRestServiceHandler {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
         limit = offset == 0 && limit > fileIds.size() ? fileIds.size() : limit;
-        limit = offset * limit > fileIds.size() ? fileIds.size() % offset : limit;
+        limit = offset + limit > fileIds.size() ? fileIds.size() - offset : limit;
         int sum = Math.addExact(offset, limit);
         List<Long> subFileIds = fileIds.subList(offset, sum);
         List<UIFileInfo> uiFileInfos = new ArrayList<>(subFileIds.size());
@@ -484,7 +484,7 @@ public final class AlluxioWorkerRestServiceHandler {
           int offset = Integer.parseInt(requestOffset);
           int limit = Integer.parseInt(requestLimit);
           limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
-          limit = offset + limit > fileInfos.size() ? fileInfos.size() % offset : limit;
+          limit = offset + limit > fileInfos.size() ? fileInfos.size() - offset : limit;
           int sum = Math.addExact(offset, limit);
           fileInfos = fileInfos.subList(offset, sum);
           response.setFileInfos(fileInfos);
