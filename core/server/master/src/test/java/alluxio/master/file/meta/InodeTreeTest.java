@@ -306,13 +306,19 @@ public final class InodeTreeTest {
     // file was created
     assertEquals(1, created.size());
     assertEquals("file", created.get(0).getName());
+  }
 
-    // Test inheritance
+  /**
+   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)} method
+   * for inheriting owner and group when empty.
+   */
+  @Test
+  public void createPathInheritanceTest() throws Exception {
     // 1. create a nested directory with empty owner and group
     CreateDirectoryContext nestedDirContext = CreateDirectoryContext.mergeFrom(
         CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toProto()))
         .setOwner("").setGroup("");
-    created = createPath(mTree, NESTED_DIR_URI, nestedDirContext);
+    List<Inode> created = createPath(mTree, NESTED_DIR_URI, nestedDirContext);
     assertEquals(1, created.size());
     assertEquals("dir", created.get(0).getName());
     assertEquals(TEST_OWNER, created.get(0).getOwner());

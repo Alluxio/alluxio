@@ -759,7 +759,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_S3A_DEFAULT_MODE =
       new Builder(Name.UNDERFS_S3A_DEFAULT_MODE)
           .setDefaultValue("0700")
-          .setDescription("Default mode for objects if mode cannot be discovered from S3.")
+          .setDescription("Mode (in octal notation) for S3 objects if mode cannot be discovered.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
