@@ -33,6 +33,15 @@ import java.util.Map;
  */
 public final class ConfigurationUtilsTest {
   @Test
+  public void getSingleMasterRpcAddress() {
+    AlluxioConfiguration conf = createConf(ImmutableMap.of(
+        PropertyKey.MASTER_HOSTNAME, "testhost",
+        PropertyKey.MASTER_RPC_PORT, "1000"));
+    assertEquals(Arrays.asList(new InetSocketAddress("testhost", 1000)),
+        ConfigurationUtils.getMasterRpcAddresses(conf));
+  }
+
+  @Test
   public void getMasterRpcAddresses() {
     AlluxioConfiguration conf =
         createConf(ImmutableMap.of(PropertyKey.MASTER_RPC_ADDRESSES, "host1:99,host2:100"));
@@ -58,6 +67,15 @@ public final class ConfigurationUtilsTest {
     String host = NetworkAddressUtils.getLocalHostName(5 * Constants.SECOND_MS);
     assertEquals(Arrays.asList(new InetSocketAddress(host, 19998)),
         ConfigurationUtils.getMasterRpcAddresses(conf));
+  }
+
+  @Test
+  public void getSingleJobMasterRpcAddress() {
+    AlluxioConfiguration conf = createConf(ImmutableMap.of(
+        PropertyKey.JOB_MASTER_HOSTNAME, "testhost",
+        PropertyKey.JOB_MASTER_RPC_PORT, "1000"));
+    assertEquals(Arrays.asList(new InetSocketAddress("testhost", 1000)),
+        ConfigurationUtils.getJobMasterRpcAddresses(conf));
   }
 
   @Test
