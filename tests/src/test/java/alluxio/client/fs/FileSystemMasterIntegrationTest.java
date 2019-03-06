@@ -170,7 +170,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(fileInfo.isFolder());
     assertFalse(fileInfo.isPersisted());
     assertFalse(fileInfo.isPinned());
-    Assert.assertEquals("", fileInfo.getOwner());
+    Assert.assertEquals(TEST_USER, fileInfo.getOwner());
     Assert.assertEquals(0755, (short) fileInfo.getMode());
   }
 
@@ -191,7 +191,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
     Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
-    Assert.assertEquals("", fileInfo.getOwner());
+    Assert.assertEquals(TEST_USER, fileInfo.getOwner());
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
 
@@ -301,7 +301,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertTrue(fileInfo.isFolder());
-    Assert.assertEquals("", fileInfo.getOwner());
+    Assert.assertEquals(TEST_USER, fileInfo.getOwner());
     Assert.assertEquals(0755, (short) fileInfo.getMode());
   }
 
@@ -343,7 +343,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFile")));
     assertFalse(fileInfo.isFolder());
-    Assert.assertEquals("", fileInfo.getOwner());
+    Assert.assertEquals(TEST_USER, fileInfo.getOwner());
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
 
@@ -1367,7 +1367,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
         // verify the user permission for file
         FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-        Assert.assertEquals("", fileInfo.getOwner());
+        Assert.assertEquals(TEST_USER, fileInfo.getOwner());
         Assert.assertEquals(0644, (short) fileInfo.getMode());
       } else {
         mFsMaster.createDirectory(path, CreateDirectoryOptions.defaults());
@@ -1375,7 +1375,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         long dirId = mFsMaster.getFileId(path);
         Assert.assertNotEquals(-1, dirId);
         FileInfo dirInfo = mFsMaster.getFileInfo(dirId);
-        Assert.assertEquals("", dirInfo.getOwner());
+        Assert.assertEquals(TEST_USER, dirInfo.getOwner());
         Assert.assertEquals(0755, (short) dirInfo.getMode());
       }
 
