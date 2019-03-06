@@ -88,6 +88,8 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     }
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, 0);
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
+    // TODO(calvin): Add lifecycle management to enable integration tests to use HEAP and ROCKS
+    // currently, only HEAP metastore can be reused in the same JVM
     ServerConfiguration.set(PropertyKey.MASTER_METASTORE, MetastoreType.HEAP);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, 0);
