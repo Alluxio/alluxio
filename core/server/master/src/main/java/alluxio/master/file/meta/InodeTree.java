@@ -688,12 +688,7 @@ public class InodeTree implements DelegatingJournaled {
 
       newDir.setPinned(currentInodeDirectory.isPinned());
 
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
-          && newDir.getOwner().isEmpty() && newDir.getGroup().isEmpty()) {
-        // Inherit owner / group if empty
-        newDir.setOwner(currentInodeDirectory.getOwner());
-        newDir.setGroup(currentInodeDirectory.getGroup());
-      }
+      inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
 
       // if the parent has default ACL, copy that default ACL as the new directory's default
       // and access acl, ANDed with the umask
@@ -731,6 +726,8 @@ public class InodeTree implements DelegatingJournaled {
           mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
           currentInodeDirectory.getId(), name, directoryContext);
 
+      inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
+
       // if the parent has default ACL, take the default ACL ANDed with the umask as the new
       // directory's default and access acl
       // When it is a metadata load operation, do not take the umask into account
@@ -767,6 +764,9 @@ public class InodeTree implements DelegatingJournaled {
       CreateFileContext fileContext = (CreateFileContext) context;
       MutableInodeFile newFile = MutableInodeFile.create(mContainerIdGenerator.getNewContainerId(),
           currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileContext);
+
+      inheritOwnerAndGroupIfEmpty(newFile, currentInodeDirectory);
+
       // if the parent has a default ACL, copy that default ACL ANDed with the umask as the new
       // file's access ACL.
       // If it is a metadata load operation, do not consider the umask.
@@ -786,19 +786,23 @@ public class InodeTree implements DelegatingJournaled {
     }
     newInode.setPinned(currentInodeDirectory.isPinned());
 
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
-        && newInode.getOwner().isEmpty() && newInode.getGroup().isEmpty()) {
-      // Inherit owner / group if empty
-      newInode.setOwner(currentInodeDirectory.getOwner());
-      newInode.setGroup(currentInodeDirectory.getGroup());
-    }
-
     mState.applyAndJournal(rpcContext, newInode);
     Inode inode = Inode.wrap(newInode);
     inodePath.addNextInode(inode);
     createdInodes.add(inode);
     LOG.debug("createFile: File Created: {} parent: {}", newInode, currentInodeDirectory);
     return createdInodes;
+  }
+
+  // Inherit owner and group from ancestor if both are empty
+  private static void inheritOwnerAndGroupIfEmpty(MutableInode<?> newInode,
+      InodeDirectoryView ancestorInode) {
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
+        && newInode.getOwner().isEmpty() && newInode.getGroup().isEmpty()) {
+      // Inherit owner / group if empty
+      newInode.setOwner(ancestorInode.getOwner());
+      newInode.setGroup(ancestorInode.getGroup());
+    }
   }
 
   /**
