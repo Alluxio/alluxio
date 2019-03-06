@@ -27,28 +27,21 @@
     img.loadingMessageSpin {
       height: 100px;
       width: 100px;
-      -webkit-animation: loadingMessageSpin 4s linear infinite;
-      -moz-animation: loadingMessageSpin 4s linear infinite;
-      animation: loadingMessageSpin 4s linear infinite;
-    }
-  }
-
-  @-moz-keyframes loadingMessageSpin {
-    100% {
-      -moz-transform: rotateY(360deg);
-    }
-  }
-
-  @-webkit-keyframes loadingMessageSpin {
-    100% {
-      -webkit-transform: rotateY(360deg);
+      -webkit-animation: loadingMessageSpin 2s ease-in-out infinite;
+      -moz-animation: loadingMessageSpin 2s ease-in-out infinite;
+      animation: loadingMessageSpin 2s ease-in-out infinite;
     }
   }
 
   @keyframes loadingMessageSpin {
+    0%, 50% {
+      transform: rotateY(0deg);
+    }
+    50% {
+      transform: rotateY(90deg);
+    }
     100% {
-      -webkit-transform: rotateY(360deg);
-      transform: rotateY(360deg);
+      transform: rotateY(0deg);
     }
   }
 }
