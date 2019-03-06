@@ -314,11 +314,18 @@ public final class InodeTreeTest {
    */
   @Test
   public void createPathInheritanceTest() throws Exception {
+    // create nested directory
+    CreateDirectoryContext dirContext = CreateDirectoryContext.mergeFrom(
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toProto()))
+            .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
+    List<Inode> created = createPath(mTree, NESTED_URI, dirContext);
+    assertEquals(2, created.size());
+
     // 1. create a nested directory with empty owner and group
     CreateDirectoryContext nestedDirContext = CreateDirectoryContext.mergeFrom(
         CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toProto()))
         .setOwner("").setGroup("");
-    List<Inode> created = createPath(mTree, NESTED_DIR_URI, nestedDirContext);
+    created = createPath(mTree, NESTED_DIR_URI, nestedDirContext);
     assertEquals(1, created.size());
     assertEquals("dir", created.get(0).getName());
     assertEquals(TEST_OWNER, created.get(0).getOwner());
