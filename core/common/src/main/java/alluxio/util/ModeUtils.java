@@ -80,6 +80,7 @@ public final class ModeUtils {
   /**
    * Gets the file / directory creation umask.
    *
+   * @param confUmask the string representation of umask
    * @return the umask {@link Mode}
    */
   public static Mode getUMask(@Nullable String confUmask) {
