@@ -161,7 +161,8 @@ public final class BOSOutputStream extends OutputStream {
     } catch (BceClientException e) {
       LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
       throw new IOException(e);
+    } finally {
+      mFile.delete();
     }
-    mFile.delete();
   }
 }
