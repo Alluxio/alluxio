@@ -35,6 +35,7 @@ import alluxio.grpc.WriteResponse;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.util.network.NettyUtils;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -114,14 +115,29 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public StreamObserver<WriteRequest> writeBlock(StreamObserver<WriteResponse> responseObserver) {
-    return mStreamingAsyncStub.writeBlock(responseObserver);
+    if (responseObserver instanceof DataMessageMarshallerProvider) {
+      DataMessageMarshaller<WriteRequest> marshaller =
+          ((DataMessageMarshallerProvider<WriteRequest, WriteResponse>) responseObserver)
+              .getRequestMarshaller();
+      Preconditions.checkNotNull(marshaller);
+      return mStreamingAsyncStub
+          .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
+              BlockWorkerGrpc.getWriteBlockMethod().toBuilder()
+                  .setRequestMarshaller(marshaller)
+                  .build())
+          .writeBlock(responseObserver);
+    } else {
+      return mStreamingAsyncStub.writeBlock(responseObserver);
+    }
   }
 
   @Override
   public StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver) {
     if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<ReadResponse> marshaller =
-          ((DataMessageMarshallerProvider<ReadResponse>) responseObserver).getMarshaller();
+          ((DataMessageMarshallerProvider<ReadRequest, ReadResponse>) responseObserver)
+              .getResponseMarshaller();
+      Preconditions.checkNotNull(marshaller);
       return mStreamingAsyncStub
           .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
               BlockWorkerGrpc.getReadBlockMethod().toBuilder()

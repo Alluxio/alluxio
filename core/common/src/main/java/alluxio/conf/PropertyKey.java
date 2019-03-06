@@ -1989,6 +1989,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
+      new Builder(Name.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX)
+          .setDefaultValue(1024)
+          .setDescription("The maximum number of threads used to write blocks in the data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
+      new Builder(Name.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
+          .setDefaultValue(8)
+          .setDescription("When a client writes to a remote worker, the maximum number of "
+              + "data messages to buffer by the server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_NETWORK_FLOWCONTROL_WINDOW =
       new Builder(Name.WORKER_NETWORK_FLOWCONTROL_WINDOW)
           .setDefaultValue("2MB")
@@ -3821,6 +3836,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.async.cache.manager.threads.max";
     public static final String WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
         "alluxio.worker.network.block.reader.threads.max";
+    public static final String WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
+        "alluxio.worker.network.block.writer.threads.max";
+    public static final String WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
+        "alluxio.worker.network.writer.buffer.size.messages";
     public static final String WORKER_NETWORK_FLOWCONTROL_WINDOW =
         "alluxio.worker.network.flowcontrol.window";
     public static final String WORKER_NETWORK_KEEPALIVE_TIME_MS =

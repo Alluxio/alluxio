@@ -9,13 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.block.stream;
+package alluxio.worker.grpc;
 
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
 
-import io.grpc.stub.ClientCallStreamObserver;
-import io.grpc.stub.ClientResponseObserver;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,32 +23,31 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * A {@link StreamObserver} that handles raw data buffers.
  *
- * @param <RespT> type of the response message
+ * @param <ResT> type of the response message
  * @param <ReqT> type of the request message
  */
 @NotThreadSafe
-public class DataMessageClientResponseObserver<ReqT, RespT>
-    extends DataMessageMarshallerProvider<ReqT, RespT>
-    implements ClientResponseObserver<ReqT, RespT> {
+public class DataMessageServerRequestObserver<ReqT, ResT>
+    extends DataMessageMarshallerProvider<ReqT, ResT> implements StreamObserver<ResT> {
   private static final Logger LOG =
-      LoggerFactory.getLogger(DataMessageClientResponseObserver.class);
+      LoggerFactory.getLogger(DataMessageServerRequestObserver.class);
 
-  private final StreamObserver<RespT> mObserver;
+  private final StreamObserver<ResT> mObserver;
 
   /**
    * @param observer the original response observer
    * @param requestMarshaller the marshaller for the request
    * @param responseMarshaller the marshaller for the response
    */
-  public DataMessageClientResponseObserver(StreamObserver<RespT> observer,
+  public DataMessageServerRequestObserver(StreamObserver<ResT> observer,
       DataMessageMarshaller<ReqT> requestMarshaller,
-      DataMessageMarshaller<RespT> responseMarshaller) {
+      DataMessageMarshaller<ResT> responseMarshaller) {
     super(requestMarshaller, responseMarshaller);
     mObserver = observer;
   }
 
   @Override
-  public void onNext(RespT value) {
+  public void onNext(ResT value) {
     mObserver.onNext(value);
   }
 
@@ -62,14 +59,5 @@ public class DataMessageClientResponseObserver<ReqT, RespT>
   @Override
   public void onCompleted() {
     mObserver.onCompleted();
-  }
-
-  @Override
-  public void beforeStart(ClientCallStreamObserver<ReqT> requestStream) {
-    if (mObserver instanceof ClientResponseObserver) {
-      ((ClientResponseObserver<ReqT, RespT>) mObserver).beforeStart(requestStream);
-    } else {
-      LOG.warn("{} does not implement ClientResponseObserver:beforeStart", mObserver);
-    }
   }
 }

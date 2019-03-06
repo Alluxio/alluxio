@@ -14,6 +14,7 @@ package alluxio.network.protocol.databuffer;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.Unpooled;
 
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 /**
@@ -52,6 +53,16 @@ public final class ByteArrayDataBuffer implements DataBuffer {
 
   @Override
   public void readBytes(byte[] dst, int dstIndex, int length) {
+    throw new UnsupportedOperationException("ByteArrayDataBuffer#readBytes is not implemented.");
+  }
+
+  @Override
+  public void readBytes(OutputStream outputStream, int length) {
+    throw new UnsupportedOperationException("ByteArrayDataBuffer#readBytes is not implemented.");
+  }
+
+  @Override
+  public void readBytes(ByteBuffer outputBuf) {
     throw new UnsupportedOperationException("ByteArrayDataBuffer#readBytes is not implemented.");
   }
 
