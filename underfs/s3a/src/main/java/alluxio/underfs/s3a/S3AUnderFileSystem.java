@@ -15,18 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
-<<<<<<< HEAD
-||||||| parent of ab9733096a... Inherit owner/group if not discovered from ufs (#8520)
-import alluxio.util.FormatUtils;
-=======
-import alluxio.util.FormatUtils;
-import alluxio.util.ModeUtils;
->>>>>>> ab9733096a... Inherit owner/group if not discovered from ufs (#8520)
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -516,7 +510,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    */
   private ObjectPermissions getPermissionsInternal() {
     short bucketMode =
-        ModeUtils.getUMask(mUfsConf.get(PropertyKey.UNDERFS_S3A_DEFAULT_MODE)).toShort();
+        Mode.getUMask(mUfsConf.getValue(PropertyKey.UNDERFS_S3A_DEFAULT_MODE)).toShort();
     String accountOwner = DEFAULT_OWNER;
 
     // if ACL enabled try to inherit bucket acl for all the objects.

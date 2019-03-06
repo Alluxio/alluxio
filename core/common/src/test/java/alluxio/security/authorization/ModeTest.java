@@ -151,9 +151,9 @@ public final class ModeTest {
    */
   @Test
   public void umask() {
-    assertEquals(0700, ModeUtils.getUMask("0700").toShort());
-    assertEquals(0755, ModeUtils.getUMask("0755").toShort());
-    assertEquals(0644, ModeUtils.getUMask("0644").toShort());
+    assertEquals(0700, Mode.getUMask("0700").toShort());
+    assertEquals(0755, Mode.getUMask("0755").toShort());
+    assertEquals(0644, Mode.getUMask("0644").toShort());
   }
 
   /**

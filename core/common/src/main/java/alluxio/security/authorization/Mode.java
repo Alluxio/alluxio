@@ -225,7 +225,8 @@ public final class Mode {
    * @return the updated object
    */
   public Mode applyFileUMask() {
-    return applyUMask(Mode.getUMask()).applyUMask(FILE_UMASK);
+    String confUmask = Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    return applyUMask(Mode.getUMask(confUmask)).applyUMask(FILE_UMASK);
   }
 
   /**
@@ -234,7 +235,8 @@ public final class Mode {
    * @return the updated object
    */
   public Mode applyDirectoryUMask() {
-    return applyUMask(Mode.getUMask());
+    String confUmask = Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    return applyUMask(Mode.getUMask(confUmask));
   }
 
   /**
@@ -253,11 +255,11 @@ public final class Mode {
   /**
    * Gets the file / directory creation umask.
    *
+   * @param confUmask the string representation of umask
    * @return the umask {@link Mode}
    */
-  private static Mode getUMask() {
+  public static Mode getUMask(String confUmask) {
     int umask = Constants.DEFAULT_FILE_SYSTEM_UMASK;
-    String confUmask = Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
     if (confUmask != null) {
       if ((confUmask.length() > 4) || !isValid(confUmask)) {
         throw new IllegalArgumentException(ExceptionMessage.INVALID_CONFIGURATION_VALUE
