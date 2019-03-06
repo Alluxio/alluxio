@@ -1062,23 +1062,17 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
           <tbody>
             <tr>
               <th>
-                Short-circuit Read
+                Remote Alluxio Read
               </th>
               <td />
               <th>
-                From Remote Instances
+                Remote Alluxio Write
               </th>
               <td />
             </tr>
             <tr>
               <th>
                 Under Filesystem Read
-              </th>
-              <td />
-            </tr>
-            <tr>
-              <th>
-                Alluxio Write
               </th>
               <td />
               <th>
@@ -1103,11 +1097,11 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
           <tbody>
             <tr>
               <th>
-                Short-circuit Read
+                Remote Alluxio Read
               </th>
               <td />
               <th>
-                From Remote Instances
+                Remote Alluxio Write
               </th>
               <td />
             </tr>
@@ -1116,49 +1110,10 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
                 Under Filesystem Read
               </th>
               <td />
-            </tr>
-            <tr>
-              <th>
-                Alluxio Write
-              </th>
-              <td />
               <th>
                 Under Filesystem Write
               </th>
               <td />
-            </tr>
-          </tbody>
-        </Table>
-      </div>
-      <div
-        className="col-12"
-      >
-        <h5>
-          Cache Hit Rate (Percentage)
-        </h5>
-        <Table
-          hover={true}
-          responsiveTag="div"
-          tag="table"
-        >
-          <tbody>
-            <tr>
-              <th>
-                Alluxio Local
-              </th>
-              <td />
-              <th>
-                Alluxio Remote
-              </th>
-              <td />
-            </tr>
-            <tr>
-              <th>
-                Miss
-              </th>
-              <td>
-                0.00
-              </td>
             </tr>
           </tbody>
         </Table>
