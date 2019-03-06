@@ -33,7 +33,6 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.Factory;
-import alluxio.resource.LockResource;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.uri.Authority;
@@ -455,7 +454,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * If it is called after initialized, then this is a noop.
    */
   @Override
-  public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
+  public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf)
+      throws IOException {
     Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
         PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
 
@@ -463,18 +463,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       return;
     }
 
-    if (mInitializationLock.writeLock().tryLock()) {
-      initializeInternal(uri, conf);
-      mInitializationLock.writeLock().unlock();
-    } else {
-      try (LockResource r = new LockResource(mInitializationLock.readLock())) {
-        Preconditions.checkState(mFileSystem != null, PreconditionMessage.FILESYSTEM_UNINITIALIZED);
-      }
-    }
-  }
-
-  private void initializeInternal(URI uri, org.apache.hadoop.conf.Configuration conf)
-      throws IOException {
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
     HadoopUtils.addSwiftCredentials(conf);

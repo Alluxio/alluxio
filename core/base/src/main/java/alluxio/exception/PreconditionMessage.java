@@ -48,7 +48,6 @@ public enum PreconditionMessage {
   ERR_UNEXPECTED_EOF("Reached EOF unexpectedly."),
   ERR_WRITE_BUFFER_NULL("Cannot write a null input buffer"),
   ERR_ZK_ADDRESS_NOT_SET("Cannot get leader address from zookeeper; %s is not set"),
-  FILESYSTEM_UNINITIALIZED("FileSystem is not initialized"),
   FILE_TO_PERSIST_MUST_BE_COMPLETE("File being persisted must be complete"),
   FILE_WRITE_LOCATION_POLICY_UNSPECIFIED("The location policy is not specified"),
   UFS_READ_LOCATION_POLICY_UNSPECIFIED("The UFS read location policy is not specified"),
