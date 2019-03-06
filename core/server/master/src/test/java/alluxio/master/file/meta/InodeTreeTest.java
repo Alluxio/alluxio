@@ -75,6 +75,7 @@ public final class InodeTreeTest {
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
+  private static final AlluxioURI NESTED_DIR_FILE_URI = new AlluxioURI("/nested/test/dir/file1");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   private static final AlluxioURI NESTED_MULTIDIR_FILE_URI
       = new AlluxioURI("/nested/test/dira/dirb/file");
@@ -305,6 +306,28 @@ public final class InodeTreeTest {
     // file was created
     assertEquals(1, created.size());
     assertEquals("file", created.get(0).getName());
+
+    // Test inheritance
+    // 1. create a nested directory with empty owner and group
+    CreateDirectoryContext nestedDirContext = CreateDirectoryContext.mergeFrom(
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).setMode(TEST_DIR_MODE.toProto()))
+        .setOwner("").setGroup("");
+    created = createPath(mTree, NESTED_DIR_URI, nestedDirContext);
+    assertEquals(1, created.size());
+    assertEquals("dir", created.get(0).getName());
+    assertEquals(TEST_OWNER, created.get(0).getOwner());
+    assertEquals(TEST_GROUP, created.get(0).getGroup());
+
+    // 2. create a file with empty owner and group
+    CreateFileContext nestedDirFileContext = CreateFileContext
+        .mergeFrom(
+            CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true))
+        .setOwner("").setGroup("");
+    created = createPath(mTree, NESTED_DIR_FILE_URI, nestedDirFileContext);
+    assertEquals(1, created.size());
+    assertEquals("file1", created.get(0).getName());
+    assertEquals(TEST_OWNER, created.get(0).getOwner());
+    assertEquals(TEST_GROUP, created.get(0).getGroup());
   }
 
   /**
