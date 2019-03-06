@@ -7,7 +7,7 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/alluxio.svg?label=Follow&style=social)](https://twitter.com/intent/follow?screen_name=alluxio)
 [![License](https://img.shields.io/github/license/alluxio/alluxio.svg)](https://github.com/Alluxio/alluxio/blob/master/LICENSE)
 
-## What is Alluxio
+## What is Alluxio?
 [Alluxio](https://www.alluxio.org) (formerly known as Tachyon)
 is a virtual distributed storage system. It bridges the gap between
 computation frameworks and storage systems, enabling computation applications to connect to
