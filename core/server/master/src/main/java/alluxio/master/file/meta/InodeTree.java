@@ -12,6 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
@@ -613,6 +615,7 @@ public class InodeTree implements JournalEntryIterable {
           try {
             // Successfully added the child, while holding the write lock.
             dir.setPinned(currentInodeDirectory.isPinned());
+            inheritOwnerAndGroupIfEmpty(dir, currentInodeDirectory);
             if (options.isPersisted()) {
               // Do not journal the persist entry, since a creation entry will be journaled instead.
               syncPersistDirectory(RpcContext.NOOP, dir);
@@ -719,6 +722,7 @@ public class InodeTree implements JournalEntryIterable {
           }
         }
         lastInode.setPinned(currentInodeDirectory.isPinned());
+        inheritOwnerAndGroupIfEmpty(lastInode, currentInodeDirectory);
 
         // Update state while holding the write lock.
         // lastInode should be added to mInodes before getting added to its parent list, because it
@@ -791,6 +795,16 @@ public class InodeTree implements JournalEntryIterable {
     InodeLockList descendantLockList = lockDescendant(inodePath, lockMode, descendantUri);
     return new MutableLockedInodePath(descendantUri,
         new CompositeInodeLockList(inodePath.mLockList, descendantLockList), lockMode);
+  }
+
+  // Inherit owner and group from ancestor if both are empty
+  private static void inheritOwnerAndGroupIfEmpty(Inode<?> newInode, InodeDirectory ancestorInode) {
+    if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
+        && newInode.getOwner().isEmpty() && newInode.getGroup().isEmpty()) {
+      // Inherit owner / group if empty
+      newInode.setOwner(ancestorInode.getOwner());
+      newInode.setGroup(ancestorInode.getGroup());
+    }
   }
 
   /**

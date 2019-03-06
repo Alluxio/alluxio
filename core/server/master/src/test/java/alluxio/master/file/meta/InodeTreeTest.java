@@ -68,6 +68,8 @@ public final class InodeTreeTest {
   private static final String TEST_PATH = "test";
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
+  private static final AlluxioURI NESTED_DIR_URI = new AlluxioURI("/nested/test/dir");
+  private static final AlluxioURI NESTED_DIR_FILE_URI = new AlluxioURI("/nested/test/dir/file1");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   public static final String TEST_OWNER = "user1";
   public static final String TEST_GROUP = "group1";
@@ -289,6 +291,37 @@ public final class InodeTreeTest {
     // file was created
     assertEquals(1, created.size());
     assertEquals("file", created.get(0).getName());
+  }
+
+  /**
+   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)} method
+   * for inheriting owner and group when empty.
+   */
+  @Test
+  public void createPathInheritanceTest() throws Exception {
+    // create nested directory
+    CreateDirectoryOptions dirOptions = CreateDirectoryOptions.defaults().setRecursive(true)
+        .setMode(TEST_DIR_MODE).setOwner(TEST_OWNER).setGroup(TEST_GROUP);
+    List<Inode<?>> created = createPath(mTree, NESTED_URI, dirOptions).getCreated();
+    assertEquals(2, created.size());
+
+    // 1. create a nested directory with empty owner and group
+    CreateDirectoryOptions nestedDirOptions = CreateDirectoryOptions.defaults().setRecursive(true)
+        .setMode(TEST_DIR_MODE).setOwner("").setGroup("");
+    created = createPath(mTree, NESTED_DIR_URI, nestedDirOptions).getCreated();
+    assertEquals(1, created.size());
+    assertEquals("dir", created.get(0).getName());
+    assertEquals(TEST_OWNER, created.get(0).getOwner());
+    assertEquals(TEST_GROUP, created.get(0).getGroup());
+
+    // 2. create a file with empty owner and group
+    CreateFileOptions nestedDirFileContext = CreateFileOptions.defaults()
+        .setBlockSizeBytes(Constants.KB).setRecursive(true).setOwner("").setGroup("");
+    created = createPath(mTree, NESTED_DIR_FILE_URI, nestedDirFileContext).getCreated();
+    assertEquals(1, created.size());
+    assertEquals("file1", created.get(0).getName());
+    assertEquals(TEST_OWNER, created.get(0).getOwner());
+    assertEquals(TEST_GROUP, created.get(0).getGroup());
   }
 
   /**

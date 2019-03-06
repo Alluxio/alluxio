@@ -719,6 +719,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_S3A_DEFAULT_MODE =
+      new Builder(Name.UNDERFS_S3A_DEFAULT_MODE)
+          .setDefaultValue("0700")
+          .setDescription("Mode (in octal notation) for S3 objects if mode cannot be discovered.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3A_DIRECTORY_SUFFIX =
       new Builder(Name.UNDERFS_S3A_DIRECTORY_SUFFIX)
           .setDefaultValue("/")
@@ -1070,6 +1077,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("2min")
           .setDescription("The interval between Alluxio masters' heartbeats.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
+      new Builder(Name.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
+          .setDefaultValue("true")
+          .setDescription("Whether to inherit the owner/group from the parent when creating a new "
+              + "inode path if empty")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WORKER_HEARTBEAT_INTERVAL =
@@ -3266,6 +3281,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout";
+    public static final String UNDERFS_S3A_DEFAULT_MODE = "alluxio.underfs.s3a.default.mode";
     public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
         "alluxio.underfs.s3a.directory.suffix";
     public static final String UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
@@ -3379,6 +3395,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lineage.recompute.interval";
     public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
         "alluxio.master.lineage.recompute.log.path";
+    public static final String MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
+        "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
