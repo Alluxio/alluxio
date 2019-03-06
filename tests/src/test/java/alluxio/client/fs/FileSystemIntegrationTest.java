@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
@@ -25,6 +26,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
+import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -39,6 +41,7 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
+import alluxio.wire.TtlAction;
 import com.google.common.base.Function;
 import org.junit.Assert;
 import org.junit.Before;
@@ -294,6 +297,54 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     } finally {
       destroyAlternateUfs(alternateUfsRoot);
     }
+  }
+
+  @Test
+  public void testMultiSetAttribute() throws Exception {
+    AlluxioURI testFile = new AlluxioURI("/test1");
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 512);
+
+    // Ttl should be updated to newTtl
+    long newTtl = 14402478;
+    mFileSystem.setAttribute(testFile,
+        SetAttributeOptions.defaults().setTtl(newTtl));
+    URIStatus stat = mFileSystem.getStatus(testFile);
+    assertEquals("Ttl should be the updated", newTtl, stat.getTtl());
+
+    // SetAttribute with same ttl should not modify the lastModifiedTime
+    long lastModifiedTime = stat.getLastModificationTimeMs();
+    mFileSystem.setAttribute(testFile,
+        SetAttributeOptions.defaults().setTtl(newTtl));
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("Ttl should not change", newTtl, stat.getTtl());
+    assertEquals("LastModifiedTime should not change", lastModifiedTime,
+        stat.getLastModificationTimeMs());
+
+    // Owner should get updated and Ttl should not change
+    String newOwner = "testOwner";
+    mFileSystem.setAttribute(testFile,
+        SetAttributeOptions.defaults().setOwner(newOwner));
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should not change", newTtl, stat.getTtl());
+    assertEquals("Owner should be updated", newOwner, stat.getOwner());
+  }
+
+  @Test
+  public void testTtlActionSetAttribute() throws Exception {
+    AlluxioURI testFile = new AlluxioURI("/test1");
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WriteType.MUST_CACHE, 512);
+    mFileSystem.setAttribute(testFile, SetAttributeOptions.defaults().setTtl(0).setTtlAction(TtlAction.FREE));
+    TtlAction expectedAction = TtlAction.FREE;
+    TtlAction newTtlAction = TtlAction.DELETE;
+    long newTtl = 123400000;
+    mFileSystem.setAttribute(testFile, SetAttributeOptions.defaults().setTtl(newTtl));
+    URIStatus stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be same", newTtl, stat.getTtl());
+    assertEquals("TTL action should be same", expectedAction, stat.getTtlAction());
+    mFileSystem.setAttribute(testFile, SetAttributeOptions.defaults().setTtlAction(newTtlAction));
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be same", newTtl, stat.getTtl());
+    assertEquals("TTL action should be same", newTtlAction, stat.getTtlAction());
   }
 
 // Test exception cases for all FileSystem RPCs
