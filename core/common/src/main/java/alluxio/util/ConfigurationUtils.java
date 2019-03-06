@@ -80,33 +80,55 @@ public final class ConfigurationUtils {
       ServiceType serviceType) {
     Preconditions.checkState(
         serviceType == ServiceType.MASTER_RAFT || serviceType == ServiceType.JOB_MASTER_RAFT);
-    PropertyKey addressKey = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
-    if (serviceType == ServiceType.JOB_MASTER_RAFT
-        && conf.isSet(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)) {
-      addressKey = PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES;
+    if (serviceType == ServiceType.MASTER_RAFT) {
+      return getMasterEmbeddedJournalAddresses(conf);
     }
+    return getJobMasterEmbeddedJournalAddresses(conf);
+  }
+
+  /**
+   * @param conf configuration
+   * @return the embedded journal addresses to use for the master
+   */
+  public static List<InetSocketAddress> getMasterEmbeddedJournalAddresses(
+      AlluxioConfiguration conf) {
+    PropertyKey property = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
+    if (conf.isSet(property)) {
+      return parseInetSocketAddresses(conf.getList(property, ","));
+    }
+    // Fall back on master_hostname:master_raft_port
+    return Arrays.asList(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RAFT, conf));
+  }
+
+  /**
+   * @param conf configuration
+   * @return the embedded journal addresses to use for the job master
+   */
+  public static List<InetSocketAddress> getJobMasterEmbeddedJournalAddresses(
+      AlluxioConfiguration conf) {
+    PropertyKey jobMasterProperty = PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES;
+    if (conf.isSet(jobMasterProperty)) {
+      return parseInetSocketAddresses(conf.getList(jobMasterProperty, ","));
+    }
+    // Fall back on using the master embedded journal addresses, with the job master port.
+    PropertyKey masterProperty = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
+    int jobRaftPort = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_RAFT, conf);
+    if (conf.isSet(jobMasterProperty)) {
+      return overridePort(getMasterEmbeddedJournalAddresses(conf), jobRaftPort);
+    }
+    // Fall back on job_master_hostname:job_master_raft_port.
+    return Arrays.asList(NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RAFT, conf));
+  }
+
+  private List<InetSocketAddress> parseAddresses(List<String> addresses) {
     List<InetSocketAddress> inetAddresses = new ArrayList<>();
-    if (conf.isSet(addressKey)) {
-      List<String> addresses = conf.getList(addressKey, ",");
-      for (String address : addresses) {
-        try {
-          InetSocketAddress addr = NetworkAddressUtils.parseInetSocketAddress(address);
-          // When the user configures the master embedded journal addresses but not the job master
-          // embedded journal addresses, we derive the job master embedded journal addresses by
-          // combining the master hostnames with the job master embedded journal port.
-          if (serviceType == ServiceType.JOB_MASTER_RAFT
-              && addressKey == PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES) {
-            addr = new InetSocketAddress(addr.getHostString(),
-                conf.getInt(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT));
-          }
-          inetAddresses.add(addr);
-        } catch (IOException e) {
-          throw new IllegalArgumentException(
-              String.format("Failed to parse address %s for property %s", address, addressKey), e);
-        }
+    for (String address : addresses) {
+      try {
+        InetSocketAddress addr = NetworkAddressUtils.parseInetSocketAddress(address);
+        inetAddresses.add(addr);
+      } catch (IOException e) {
+        throw new IllegalArgumentException(String.format("Failed to parse address %s", address), e);
       }
-    } else {
-      inetAddresses = Arrays.asList(NetworkAddressUtils.getConnectAddress(serviceType, conf));
     }
     return inetAddresses;
   }
