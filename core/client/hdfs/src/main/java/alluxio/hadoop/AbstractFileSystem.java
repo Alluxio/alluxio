@@ -535,8 +535,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
       // Unset the embedded journal related configuration
       // to support alluxio URI has the highest priority
-      alluxioConfProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES.getName(),
-          PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES.getDefaultValue());
+      alluxioConfProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES.getName(), null);
       alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof MultiMasterAuthority) {
       MultiMasterAuthority authority = (MultiMasterAuthority) alluxioUri.getAuthority();
