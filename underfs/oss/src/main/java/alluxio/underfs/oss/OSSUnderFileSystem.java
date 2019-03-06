@@ -226,8 +226,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public ObjectListingChunk getNextChunk() throws IOException {
       if (mResult.isTruncated()) {
-        String nextMarker = mResult.getNextMarker();
-        mRequest.setMarker(nextMarker);
+        mRequest.setMarker(mResult.getNextMarker());
         ObjectListing nextResult = mClient.listObjects(mRequest);
         if (nextResult != null) {
           return new OSSObjectListingChunk(mRequest, nextResult);
