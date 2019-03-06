@@ -219,7 +219,7 @@ for a great PR title. These tips are adapted from
 * Title should start with an imperative verb
   * Examples: "Fix Alluxio UI bugs", "Refactor Inode caching logic"
   * Incorrect: "~~Fixed Alluxio UI bugs~~", "~~Inode caching refactor~~"
-  * [List of possible words to start the title](https://github.com/Alluxio/alluxio/blob/master/dev/pr/pr_title_words.txt)
+  * [List of possible words to start the title](https://github.com/Alluxio/alluxio/blob/master/docs/resources/pr/pr_title_words.md)
 * The first word of the title should be capitalized
 * Title should not end with a period
 
