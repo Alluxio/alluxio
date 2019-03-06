@@ -84,16 +84,12 @@ export class Metrics extends React.Component<AllProps> {
                 <tr>
                   <th>Remote Alluxio Read</th>
                   <td>{data.totalBytesReadRemote}</td>
-                </tr>
-                <tr>
                   <th>Remote Alluxio Write</th>
                   <td>{data.totalBytesWrittenAlluxio}</td>
                 </tr>
                 <tr>
                   <th>Under Filesystem Read</th>
                   <td>{data.totalBytesReadUfs}</td>
-                </tr>
-                <tr>
                   <th>Under Filesystem Write</th>
                   <td>{data.totalBytesWrittenUfs}</td>
                 </tr>
@@ -107,16 +103,12 @@ export class Metrics extends React.Component<AllProps> {
                 <tr>
                   <th>Remote Alluxio Read</th>
                   <td>{data.totalBytesReadRemoteThroughput}</td>
-                </tr>
-                <tr>
-                  <th>Under Filesystem Read</th>
-                  <td>{data.totalBytesReadUfsThroughput}</td>
-                </tr>
-                <tr>
                   <th>Remote Alluxio Write</th>
                   <td>{data.totalBytesWrittenAlluxioThroughput}</td>
                 </tr>
                 <tr>
+                  <th>Under Filesystem Read</th>
+                  <td>{data.totalBytesReadUfsThroughput}</td>
                   <th>Under Filesystem Write</th>
                   <td>{data.totalBytesWrittenUfsThroughput}</td>
                 </tr>
