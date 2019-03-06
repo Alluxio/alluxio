@@ -264,7 +264,7 @@ For Alluxio to use the custom evictor, the fully qualified class name must be sp
 `alluxio.worker.evictor.class` property. After compiling the class to a JAR file, the JAR file
 needs to be accessible and added to the Alluxio worker's java classpath.
 
-## Managing Data Lifetime in Alluxio
+## Managing Data Lifecycle in Alluxio
 
 Users should understanding the following concepts to properly utilize available resources:
 
@@ -423,8 +423,8 @@ across the cluster. By default, Alluxio may adjust the replication level of diff
 dynamically and automatically based on the workload and storage capacity. For example, Alluxio may
 create more replicas of a particular block when more clients request to read this block with read
 type `CACHE` or `CACHE_PROMOTE`; Alluxio may also remove existing replicas when they are less often
-used to reclaim the space for data that is more often accessed ([Evictor in Alluxio Storage]
-(#eviction-policies). It is possible that in the same file different blocks have different number
+used to reclaim the space for data that is more often accessed ([Evictor in Alluxio Storage](#eviction-policies)).
+It is possible that in the same file different blocks have different number
 of replicas according to the popularity.
 
 By default, this replication or eviction decision and the corresponding data transfer is completely
@@ -480,9 +480,7 @@ To check the target replication level of a file, run
 ```bash
 $ bin/alluxio fs stat /foo
 ```
-
 and look for the `replicationMin` and `replicationMax` fields in the output.
-
 
 ## Checking Alluxio Cache Capacity and Usage
 
