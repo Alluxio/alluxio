@@ -70,7 +70,8 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
    * @param resource an AlluxioClusterResource builder
    */
   protected void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
-    resource.setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
+    resource.setProperty(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0")
+        .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
         .setProperty(PropertyKey.USER_FILE_REPLICATION_DURABLE, 1)
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES);
   }
