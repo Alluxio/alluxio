@@ -1268,10 +1268,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO =
       new Builder(Name.MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO)
-          .setDefaultValue("0.7")
+          .setDefaultValue("0.8")
           .setDescription("The low water mark for the inode cache, as a ratio from low water mark "
-              + "to total cache size. If this is 0.7 and the max size is 10 million, the low "
-              + "water mark value is 7 million. When the cache reaches the high "
+              + "to total cache size. If this is 0.8 and the max size is 10 million, the low "
+              + "water mark value is 8 million. When the cache reaches the high "
               + "water mark, the eviction process will evict down to the low water mark.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
