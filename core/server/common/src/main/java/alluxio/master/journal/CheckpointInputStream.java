@@ -39,8 +39,8 @@ public final class CheckpointInputStream extends DataInputStream {
       id = readLong();
     } catch (EOFException e) {
       throw new IllegalStateException(String.format(
-          "EOF while parsing checkpoint type. Was your checkpoint written by alluxio-1.x? See %s" +
-              " for instructions on how to upgrade from alluxio-1.x to alluxio-2.x",
+          "EOF while parsing checkpoint type. Was your checkpoint written by alluxio-1.x? See %s"
+              + " for instructions on how to upgrade from alluxio-1.x to alluxio-2.x",
           RuntimeConstants.ALLUXIO_2X_UPGRADE_DOC_URL, e));
     }
     mType = CheckpointType.fromLong(id);
