@@ -29,25 +29,8 @@ ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xms128g -Xmx256g "
 * As a rule of thumb set the min heap size to half the max heap size.
 * Each thread spawned by the master JVM requires off heap space determined by the thread stack size.
 When setting the heap size, ensure that there is enough memory allocated for off heap storage.
-For example, spawning `50000` threads with a default thread stack size of `1MB` requires at least
-`50 GB` of off-heap space available.
-
-### Thread Pool Size
-
-An executor pool is used on the master to handle concurrent client requests. If you expect a large
-number of concurrent clients communicating with the master, tune the thread pool size by modifying
-the following properties. The actual thread count depends on the maximum concurrency expected on the
-cluster. For example, if spawning `10000` concurrent tasks (clients) each with a client thread
-pool size of `4`, set the master thread pool max to greater than `40000`.
-
-```properties
-alluxio.master.worker.threads.max=51200
-alluxio.master.worker.threads.min=25600
-```
-
-* You may need to set OS limits, as defined in the following section, to allow the above number of
-threads to be spawned.
-* Check that the amount of off heap storage available allows for the count thread.
+For example, spawning `4000` threads with a default thread stack size of `1 MB` requires at least
+`4 GB` of off-heap space available.
 
 ### Operating System Limits
 
@@ -79,9 +62,21 @@ The frequency in which a worker checks in with the master is set by the followin
 alluxio.worker.block.heartbeat.interval=60s
 alluxio.worker.filesystem.heartbeat.interval=60s
 ```
-The first one controls the heartbeat intervals for block service in Alluxio and the second one for 
-filesystem service.
+`alluxio.worker.block.heartbeat.interval` controls the heartbeat intervals for the block service in Alluxio and
+`alluxio.worker.filesystem.heartbeat.interval` for the filesystem service.
 Again, increase the interval to reduce the number of heartbeat checks.
+
+### Keepalive Time and Timeout
+
+Alluxio workers are configured to check the health of connected clients by sending keepalive pings.
+This is controlled by the following properties
+```properties
+alluxio.worker.network.keepalive.time=30s
+alluxio.worker.network.keepalive.timeout=30s
+```
+`alluxio.worker.network.keepalive.time` controls the maximum wait time since a client sent the last message before
+worker issues a keepalive request. `alluxio.worker.network.keepalive.timeout` controls the maximum wait time after a
+keepalive request is sent before the worker determines the client is no longer alive and closes the connection.
 
 ## Alluxio Client Configuration
 
@@ -97,20 +92,18 @@ alluxio.user.rpc.retry.base.sleep=1s
 The retry duration and sleep duration should be increased if frequent timeouts are observed
 when a client attempts to communicate with the Alluxio master.
 
-### Thread Pool Size
+### Keepalive Time and Timeout
 
-On a single client, the number of threads connecting to the master is configured by the
-`alluxio.user.block.master.client.threads` and `alluxio.user.file.master.client.threads` properties,
-each with a default value of `10`.
-The size of the master thread pool that serves connections to clients should be tuned to match
-the maximum number of concurrrent client connections.
-For example, if the master expects up to 100 clients, each with the default number of connections,
-the master's thread pool should be configured to be at least `100 * 10 * 2 = 2000`.
-
-Consider reducing these values if the master is not responsive
-as it is possible that the master thread pool is completely drained:
-
+The Alluxio client can also be configured to check the health of connected workers using keepalive pings.
+This is controlled by the following properties
 ```properties
-alluxio.user.block.master.client.threads=5
-alluxio.user.file.master.client.threads=5
+alluxio.user.network.keepalive.time=2h
+alluxio.user.network.keepalive.timeout=30s
 ```
+`alluxio.user.network.keepalive.time` controls the maximum wait time since a worker sent the last message before client
+issues a keepalive request. `alluxio.user.network.keepalive.timeout` controls the maximum wait time after a keepalive
+request is sent before the client determines the worker is no longer alive and closes the connection. This
+is disabled by default (the default value for `alluxio.user.network.keepalive.time` is `Long.MAX_VALUE` which
+effectively disables the keepalive) to minimize unintended performance impact to workers. You might want to enable it if
+you find that the Alluxio client is waiting a long time on dead workers. To enable it, set the property
+`alluxio.user.network.keepalive.time` to a desired interval.
