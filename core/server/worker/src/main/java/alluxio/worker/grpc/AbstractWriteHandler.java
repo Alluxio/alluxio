@@ -93,12 +93,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * @param writeRequest the request from the client
    */
   public void write(WriteRequest writeRequest) {
-    try {
-      mSemaphore.acquire();
-    } catch (InterruptedException e) {
-      LOG.warn("write data request {} is interrupted: {}", writeRequest, e.getMessage());
-      abort(new Error(AlluxioStatusException.fromThrowable(e), true));
-      Thread.currentThread().interrupt();
+    if (!tryAcquireSemaphore()) {
       return;
     }
     mSerializingExecutor.execute(() -> {
@@ -154,17 +149,15 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
         "write request command should not come with data buffer");
     Preconditions.checkState(buffer.readableBytes() > 0,
         "invalid data size from write request message");
-    try {
-      mSemaphore.acquire();
-    } catch (InterruptedException e) {
-      LOG.warn("write data request {} is interrupted: {}", request, e.getMessage());
-      abort(new Error(AlluxioStatusException.fromThrowable(e), true));
-      Thread.currentThread().interrupt();
+    if (!tryAcquireSemaphore()) {
       return;
     }
     mSerializingExecutor.execute(() -> {
-      writeData(buffer);
-      mSemaphore.release();
+      try {
+        writeData(buffer);
+      } finally {
+        mSemaphore.release();
+      }
     });
   }
 
@@ -219,6 +212,19 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
           mContext == null ? "unknown" : mContext.getRequest(), cause);
       abort(new Error(AlluxioStatusException.fromThrowable(cause), false));
     });
+  }
+
+  private boolean tryAcquireSemaphore() {
+    try {
+      mSemaphore.acquire();
+    } catch (InterruptedException e) {
+      LOG.warn("write data request {} is interrupted: {}",
+          mContext == null ? "unknown" : mContext.getRequest(), e.getMessage());
+      abort(new Error(AlluxioStatusException.fromThrowable(e), true));
+      Thread.currentThread().interrupt();
+      return false;
+    }
+    return true;
   }
 
   /**
