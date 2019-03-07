@@ -21,7 +21,7 @@ alluxio.job.master.bind.host:
 alluxio.job.master.client.threads:
   'N/A'
 alluxio.job.master.embedded.journal.addresses:
-  'A comma-separated list of journal addresses for all job masters in the cluster. The format is ''hostname1:port1,hostname2:port2,...''. Defaults to the journal addresses set for the Alluxio masters, but with the job master embedded journal port.'
+  'A comma-separated list of journal addresses for all job masters in the cluster. The format is ''hostname1:port1,hostname2:port2,...''. Defaults to the journal addresses set for the Alluxio masters (alluxio.master.embedded.journal.addresses), but with the job master embedded journal port.'
 alluxio.job.master.embedded.journal.port:
   'The port to use for embedded journal communication with other job masters.'
 alluxio.job.master.finished.job.retention.ms:
@@ -182,6 +182,8 @@ alluxio.underfs.s3.upload.threads.max:
   'The maximum number of threads to use for uploading data to S3 for multipart uploads. These operations can be fairly expensive, so multiple threads are encouraged. However, this also splits the bandwidth between threads, meaning the overall latency for completing an upload will be higher for more threads.'
 alluxio.underfs.s3a.consistency.timeout:
   'The duration to wait for metadata consistency from the under storage. This is only used by internal Alluxio operations which should be successful, but may appear unsuccessful due to eventual consistency.'
+alluxio.underfs.s3a.default.mode:
+  'Mode (in octal notation) for S3 objects if mode cannot be discovered.'
 alluxio.underfs.s3a.directory.suffix:
   'Directories are represented in S3 as zero-byte objects named with the specified suffix.'
 alluxio.underfs.s3a.inherit_acl:
