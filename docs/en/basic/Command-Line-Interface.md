@@ -414,6 +414,14 @@ For example, `cp` can be used to copy files between under storage systems.
 
 {% include Command-Line-Interface/cp.md %}
 
+### distributedCp
+
+The `distributedCp` command is similar to the `cp` command, the difference is
+that when copying a directory, `distributedCp` instructs job workers to
+recursively copy all files under the directory in parallel at file level.
+
+{% include Command-Line-Interface/distributedCp.md %}
+
 ### du
 
 The `du` command outputs the total size and in Alluxio size of files and folders.
@@ -530,6 +538,14 @@ For example, `load` can be used to prefetch data for analytics jobs.
 
 {% include Command-Line-Interface/load.md %}
 
+### distributedLoad
+
+The `distributedLoad` command is similar to the `load` command, the difference is
+that when loading a directory, `distributedLoad` instructs job workers to
+recursively load all files under the directory in parallel at file level.
+
+{% include Command-Line-Interface/distributedLoad.md %}
+
 ### loadMetadata
 
 The `loadMetadata` command is deprecated since Alluxio version 1.1.
@@ -636,6 +652,14 @@ If it is a directory, the file or directory will be placed as a child of the dir
 For example, `mv` can be used to re-organize your files.
 
 {% include Command-Line-Interface/mv.md %}
+
+### distributedMv
+
+The `distributedMv` command is similar to the `mv` command, the difference is
+that when moving a directory, `distributedMv` instructs job workers to
+recursively move all files under the directory in parallel at file level.
+
+{% include Command-Line-Interface/distributedMv.md %}
 
 ### persist
 
