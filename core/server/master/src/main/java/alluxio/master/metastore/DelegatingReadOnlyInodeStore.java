@@ -40,11 +40,6 @@ public class DelegatingReadOnlyInodeStore implements ReadOnlyInodeStore {
   }
 
   @Override
-  public long estimateSize() {
-    return mDelegate.estimateSize();
-  }
-
-  @Override
   public Iterable<Long> getChildIds(Long inodeId) {
     return mDelegate.getChildIds(inodeId);
   }

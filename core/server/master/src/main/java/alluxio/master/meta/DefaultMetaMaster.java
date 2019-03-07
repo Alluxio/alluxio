@@ -13,14 +13,14 @@ package alluxio.master.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.ConfigurationValueOptions;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.ConfigProperty;
@@ -38,9 +38,9 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientContext;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.journal.NoopJournaled;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
-import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -59,7 +59,6 @@ import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,9 +70,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,7 +82,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The default meta master.
  */
 @NotThreadSafe
-public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
+public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, NoopJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
@@ -202,19 +199,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   @Override
   public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
-  }
-
-  @Override
-  public void processJournalEntry(JournalEntry entry) throws IOException {
-    throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
-  }
-
-  @Override
-  public void resetState() {}
-
-  @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    return Iterators.unmodifiableIterator(Collections.emptyIterator());
   }
 
   @Override

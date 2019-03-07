@@ -11,12 +11,12 @@
 
 package alluxio.master.job;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
@@ -33,9 +33,10 @@ import alluxio.job.meta.JobInfo;
 import alluxio.job.meta.MasterWorkerInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
-import alluxio.master.AbstractNonJournaledMaster;
+import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
+import alluxio.master.journal.NoopJournaled;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -45,9 +46,9 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import net.jcip.annotations.GuardedBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.jcip.annotations.GuardedBy;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -68,7 +69,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The master that handles all job managing operations.
  */
 @ThreadSafe
-public final class JobMaster extends AbstractNonJournaledMaster {
+public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(JobMaster.class);
   private static final long RETENTION_MS =
       ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_MS);

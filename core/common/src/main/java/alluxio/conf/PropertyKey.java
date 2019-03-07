@@ -28,8 +28,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
@@ -41,6 +39,9 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Configuration property keys. This class provides a set of pre-defined property keys.
@@ -756,6 +757,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_S3A_DEFAULT_MODE =
+      new Builder(Name.UNDERFS_S3A_DEFAULT_MODE)
+          .setDefaultValue("0700")
+          .setDescription("Mode (in octal notation) for S3 objects if mode cannot be discovered.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3A_DIRECTORY_SUFFIX =
       new Builder(Name.UNDERFS_S3A_DIRECTORY_SUFFIX)
           .setDefaultValue("/")
@@ -1154,10 +1162,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
-          .setDescription("A comma-separated list of journal addresses for all masters in the "
-              + "cluster. The format is 'hostname1:port1,hostname2:port2,...'. Required when using "
-              + "the embedded journal")
-          .setDefaultValue(String.format("localhost:${%s}", Name.MASTER_EMBEDDED_JOURNAL_PORT))
+          .setDescription(String.format("A comma-separated list of journal addresses for all "
+              + "masters in the cluster. The format is 'hostname1:port1,hostname2:port2,...'. When "
+              + "left unset, Alluxio uses ${%s}:${%s} by default", Name.MASTER_HOSTNAME,
+              Name.MASTER_EMBEDDED_JOURNAL_PORT))
+          // We intentionally don't set a default value here. That way, we can use isSet() to check
+          // whether the user explicitly set these addresses. If they did, we determine job master
+          // embedded journal addresses using the same hostnames the user set here. Otherwise, we
+          // use jobMasterHostname:jobMasterEmbeddedJournalPort by default.
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
@@ -1273,6 +1285,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
+      new Builder(Name.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
+          .setDefaultValue("true")
+          .setDescription("Whether to inherit the owner/group from the parent when creating a new "
+              + "inode path if empty")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METRICS_TIME_SERIES_INTERVAL =
       new Builder(Name.MASTER_METRICS_TIME_SERIES_INTERVAL)
           .setDefaultValue("5min")
@@ -1365,7 +1385,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =
       new Builder(Name.MASTER_JOURNAL_TYPE)
-          .setDefaultValue("UFS")
+          .setDefaultValue("EMBEDDED")
           .setDescription("The type of journal to use. Valid options are UFS (store journal in "
               + "UFS), EMBEDDED (use a journal embedded in the masters), and NOOP (do not use a "
               + "journal)")
@@ -3365,10 +3385,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JOB_MASTER_RPC_ADDRESSES).build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)
-          .setDescription("A comma-separated list of journal addresses for all job masters in the "
-              + "cluster. The format is 'hostname1:port1,hostname2:port2,...'. Defaults to the "
-              + "journal addresses set for the Alluxio masters, but with the job master embedded "
-              + "journal port.")
+          .setDescription(String.format("A comma-separated list of journal addresses for all job "
+              + "masters in the cluster. The format is 'hostname1:port1,hostname2:port2,...'. "
+              + "Defaults to the journal addresses set for the Alluxio masters (%s), but with the "
+              + "job master embedded journal port.", Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES))
           .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_PORT =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_PORT)
@@ -3536,6 +3556,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.s3a.bulk.delete.enabled";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout";
+    public static final String UNDERFS_S3A_DEFAULT_MODE = "alluxio.underfs.s3a.default.mode";
     public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
         "alluxio.underfs.s3a.directory.suffix";
     public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
@@ -3686,6 +3707,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.cache.low.water.mark.ratio";
     public static final String MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
         "alluxio.master.metastore.inode.cache.max.size";
+    public static final String MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
+        "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval.ms";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =

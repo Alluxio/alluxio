@@ -548,7 +548,7 @@ public final class AlluxioMasterRestServiceHandler {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
         limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
-        limit = offset * limit > fileInfos.size() ? fileInfos.size() % offset : limit;
+        limit = offset + limit > fileInfos.size() ? fileInfos.size() - offset : limit;
         int sum = Math.addExact(offset, limit);
         fileInfos = fileInfos.subList(offset, sum);
         response.setFileInfos(fileInfos);
@@ -622,7 +622,7 @@ public final class AlluxioMasterRestServiceHandler {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
         limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
-        limit = offset * limit > fileInfos.size() ? fileInfos.size() % offset : limit;
+        limit = offset + limit > fileInfos.size() ? fileInfos.size() - offset : limit;
         int sum = Math.addExact(offset, limit);
         fileInfos = fileInfos.subList(offset, sum);
         response.setFileInfos(fileInfos);
@@ -697,7 +697,7 @@ public final class AlluxioMasterRestServiceHandler {
           int offset = Integer.parseInt(requestOffset);
           int limit = Integer.parseInt(requestLimit);
           limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
-          limit = offset * limit > fileInfos.size() ? fileInfos.size() % offset : limit;
+          limit = offset + limit > fileInfos.size() ? fileInfos.size() - offset : limit;
           int sum = Math.addExact(offset, limit);
           fileInfos = fileInfos.subList(offset, sum);
           response.setFileInfos(fileInfos);

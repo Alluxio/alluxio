@@ -23,6 +23,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+import alluxio.util.ModeUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -85,9 +86,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   /** Threshold to do multipart copy. */
   private static final long MULTIPART_COPY_THRESHOLD = 100 * Constants.MB;
-
-  /** Default mode of objects if mode cannot be determined. */
-  private static final short DEFAULT_MODE = 0700;
 
   /** Default owner of objects if owner cannot be determined. */
   private static final String DEFAULT_OWNER = "";
@@ -565,7 +563,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @return the permissions associated with this under storage system
    */
   private ObjectPermissions getPermissionsInternal() {
-    short bucketMode = DEFAULT_MODE;
+    short bucketMode =
+        ModeUtils.getUMask(mUfsConf.get(PropertyKey.UNDERFS_S3A_DEFAULT_MODE)).toShort();
     String accountOwner = DEFAULT_OWNER;
 
     // if ACL enabled try to inherit bucket acl for all the objects.

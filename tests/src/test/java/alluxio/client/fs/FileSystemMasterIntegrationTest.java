@@ -17,14 +17,14 @@ import static org.junit.Assume.assumeFalse;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ClientContext;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.PropertyKey.Name;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.PropertyKey.Name;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -43,6 +43,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -51,7 +52,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -62,6 +62,7 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
@@ -79,7 +80,6 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
-import alluxio.grpc.TtlAction;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -101,6 +101,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -191,10 +192,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void clientFileInfoEmptyFile() throws Exception {
-    long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults());
-    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+    FileInfo fileInfo =
+        mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults());
     Assert.assertEquals("testFile", fileInfo.getName());
-    Assert.assertEquals(fileId, fileInfo.getFileId());
     Assert.assertEquals(0, fileInfo.getLength());
     Assert.assertTrue(fileInfo.isCacheable());
     assertFalse(fileInfo.isCompleted());
@@ -382,10 +382,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
     mFsMaster.createDirectory(new AlluxioURI("/testFolder/testFolder2"),
         CreateDirectoryContext.defaults());
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileContext.defaults());
+    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"),
+        CreateFileContext.defaults()).getFileId();
     long fileId2 = mFsMaster.createFile(new AlluxioURI("/testFolder/testFolder2/testFile2"),
-        CreateFileContext.defaults());
+        CreateFileContext.defaults()).getFileId();
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(2, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
@@ -402,10 +402,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
     mFsMaster.createDirectory(new AlluxioURI("/testFolder/testFolder2"),
         CreateDirectoryContext.defaults());
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileContext.defaults());
+    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"),
+        CreateFileContext.defaults()).getFileId();
     long fileId2 = mFsMaster.createFile(new AlluxioURI("/testFolder/testFolder2/testFile2"),
-        CreateFileContext.defaults());
+        CreateFileContext.defaults()).getFileId();
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(2, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
@@ -430,8 +430,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void deleteDirectoryWithFiles() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileContext.defaults());
+    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"),
+        CreateFileContext.defaults()).getFileId();
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     mFsMaster.delete(new AlluxioURI("/testFolder"),
@@ -443,8 +443,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void deleteDirectoryWithFilesTest2() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileContext.defaults());
+    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"),
+        CreateFileContext.defaults()).getFileId();
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     try {
@@ -513,7 +513,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void deleteFile() throws Exception {
-    long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults());
+    long fileId =
+        mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults()).getFileId();
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFile")));
     mFsMaster.delete(new AlluxioURI("/testFile"),
         DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
@@ -538,7 +539,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void lastModificationTimeCompleteFile() throws Exception {
-    long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults());
+    long fileId =
+        mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults()).getFileId();
     long opTimeMs = TEST_TIME_MS;
     mFsMaster.completeFile(new AlluxioURI("/testFile"), CompleteFileContext
         .mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0)).setOperationTimeMs(opTimeMs));
@@ -595,7 +597,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       mFsMaster.createDirectory(dir, CreateDirectoryContext.defaults());
       dirIds.add(mFsMaster.getFileId(dir));
       for (int j = 0; j < 10; j++) {
-        ids.add(mFsMaster.createFile(dir.join("j" + j), options));
+        ids.add(mFsMaster.createFile(dir.join("j" + j), options).getFileId());
       }
     }
     HashSet<Long> listedIds = new HashSet<>();
@@ -700,7 +702,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     long ttl = 1;
     CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)));
-    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context);
+    long fileId =
+        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context).getFileId();
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
     Assert.assertEquals(fileId, folderInfo.getFileId());
@@ -720,7 +723,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         .mergeFrom(CreateFilePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
             .newBuilder().setTtl(ttl).setTtlAction(alluxio.grpc.TtlAction.FREE)))
         .setPersisted(true);
-    long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context);
+    long fileId =
+        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context).getFileId();
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
     Assert.assertEquals(fileId, folderInfo.getFileId());
@@ -777,6 +781,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       for (Future<?> future : futures) {
         future.get();
       }
+      Assert.assertEquals(countPaths(), mFsMaster.getInodeCount());
 
       // Stop Alluxio.
       mLocalAlluxioClusterResource.get().stopFS();
@@ -786,6 +791,23 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       threadPool.shutdownNow();
       threadPool.awaitTermination(SHUTDOWN_TIME_MS, TimeUnit.MILLISECONDS);
     }
+  }
+
+  private long countPaths() throws Exception {
+    long count = 1;
+    Stack<AlluxioURI> dirs = new Stack();
+    dirs.push(new AlluxioURI("/"));
+    while (!dirs.isEmpty()) {
+      AlluxioURI uri = dirs.pop();
+      for (FileInfo child : mFsMaster.listStatus(uri, ListStatusContext.defaults())) {
+        count++;
+        AlluxioURI childUri = new AlluxioURI(PathUtils.concatPath(uri, child.getName()));
+        if (mFsMaster.getFileInfo(childUri, GetStatusContext.defaults()).isFolder()) {
+          dirs.push(childUri);
+        }
+      }
+    }
+    return count;
   }
 
   @Test
@@ -1388,7 +1410,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       if (depth < 1) {
         return;
       } else if (depth == 1) {
-        long fileId = mFsMaster.createFile(path, mCreateFileContext);
+        long fileId = mFsMaster.createFile(path, mCreateFileContext).getFileId();
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
         // verify the user permission for file
         FileInfo fileInfo = mFsMaster.getFileInfo(fileId);

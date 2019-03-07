@@ -162,7 +162,11 @@ Alternatively you can add the properties to the Hadoop configuration file
 </configuration>
 ```
 
+<<<<<<< HEAD
 Since Alluxio 2.0, users can encode the connection details
+=======
+As of Alluxio version 2.0, users can encode the Zookeeper service address
+>>>>>>> 7085ec262d2066f28779c4cd579eed6a7886f2ef
 inside an Alluxio URI (see [details](#access-data-from-alluxio-in-ha-mode)).
 In this way, it requires no extra setup for Spark configuration.
 
@@ -221,10 +225,14 @@ Connect to Alluxio HA cluster using Zookeeper-based leader election:
 > double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/Output")
 ```
 
+<<<<<<< HEAD
 This feature of encoding fault tolerant connection details into Alluxio URIs is not available in versions
 1.8 and earlier.
 
 > Note that you must use semicolons rather than commas to separate different Alluxio master or Zookeeper addresses to
+=======
+> Note that you must use semicolons rather than commas to separate different Zookeeper addresses to
+>>>>>>> 7085ec262d2066f28779c4cd579eed6a7886f2ef
 refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
 Please refer to the instructions in [HDFS API to connect to Alluxio with high
 availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
@@ -282,7 +290,7 @@ If you are using YARN then there is a separate section which explains
 ### Check Spark is Correctly Set Up
 
 To ensure that your Spark can correctly work with Alluxio
-before running Spark, a tool that comes with Alluxio v1.8 can help check the configuration.
+before running Spark, a tool that comes with Alluxio can help check the configuration.
 
 When you have a running Spark cluster (or Spark standalone) of version 2.x, you can run the
 following command in the Alluxio project directory:

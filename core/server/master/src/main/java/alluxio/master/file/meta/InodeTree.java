@@ -14,6 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.concurrent.LockMode;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -29,9 +30,9 @@ import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.CreatePathContext;
+import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryIterable;
-import alluxio.master.journal.JournalEntryReplayable;
+import alluxio.master.journal.Journaled;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -42,8 +43,6 @@ import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
-import alluxio.proto.journal.Journal;
-import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -57,19 +56,14 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.interfaces.Scoped;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -81,7 +75,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 // TODO(jiri): Make this class thread-safe.
-public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
+public class InodeTree implements DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(InodeTree.class);
   /** The base amount (exponential backoff) to sleep before retrying persisting an inode. */
   private static final int PERSIST_WAIT_BASE_SLEEP_MS = 2;
@@ -241,21 +235,17 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   }
 
   /**
-   * Applies a journal entry to the inode tree state. This method should only be used during journal
-   * replay.
-   *
-   * @param entry an entry to apply to the inode tree
-   * @return whether the journal entry was of a type recognized by the inode tree
-   */
-  public boolean replayJournalEntryFromJournal(JournalEntry entry) {
-    return mState.replayJournalEntryFromJournal(entry);
-  }
-
-  /**
    * @return the list of TTL buckets for tracking inode TTLs
    */
   public TtlBucketList getTtlBuckets() {
     return mTtlBuckets;
+  }
+
+  /**
+   * @return the number of inodes in the inode tree
+   */
+  public long getInodeCount() {
+    return mState.getInodeCount();
   }
 
   /**
@@ -321,13 +311,6 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       return null;
     }
     return mState.getRoot().getOwner();
-  }
-
-  /**
-   * @return an estimate for the total number of inodes
-   */
-  public long estimateSize() {
-    return mInodeStore.estimateSize();
   }
 
   /**
@@ -705,6 +688,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
 
       newDir.setPinned(currentInodeDirectory.isPinned());
 
+      inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
+
       // if the parent has default ACL, copy that default ACL as the new directory's default
       // and access acl, ANDed with the umask
       // if it is part of a metadata load operation, we ignore the umask and simply inherit
@@ -740,6 +725,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       MutableInodeDirectory newDir = MutableInodeDirectory.create(
           mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
           currentInodeDirectory.getId(), name, directoryContext);
+
+      inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
 
       // if the parent has default ACL, take the default ACL ANDed with the umask as the new
       // directory's default and access acl
@@ -777,6 +764,9 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
       CreateFileContext fileContext = (CreateFileContext) context;
       MutableInodeFile newFile = MutableInodeFile.create(mContainerIdGenerator.getNewContainerId(),
           currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileContext);
+
+      inheritOwnerAndGroupIfEmpty(newFile, currentInodeDirectory);
+
       // if the parent has a default ACL, copy that default ACL ANDed with the umask as the new
       // file's access ACL.
       // If it is a metadata load operation, do not consider the umask.
@@ -802,6 +792,17 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
     createdInodes.add(inode);
     LOG.debug("createFile: File Created: {} parent: {}", newInode, currentInodeDirectory);
     return createdInodes;
+  }
+
+  // Inherit owner and group from ancestor if both are empty
+  private static void inheritOwnerAndGroupIfEmpty(MutableInode<?> newInode,
+      InodeDirectoryView ancestorInode) {
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
+        && newInode.getOwner().isEmpty() && newInode.getGroup().isEmpty()) {
+      // Inherit owner / group if empty
+      newInode.setOwner(ancestorInode.getOwner());
+      newInode.setGroup(ancestorInode.getGroup());
+    }
   }
 
   /**
@@ -993,43 +994,8 @@ public class InodeTree implements JournalEntryIterable, JournalEntryReplayable {
   }
 
   @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    // Write tree via breadth-first traversal, so that during deserialization, it may be more
-    // efficient than depth-first during deserialization due to parent directory's locality.
-    Queue<Inode> inodes = new LinkedList<>();
-    if (mState.getRoot() != null) {
-      inodes.add(mState.getRoot());
-    }
-    return new Iterator<Journal.JournalEntry>() {
-      @Override
-      public boolean hasNext() {
-        return !inodes.isEmpty();
-      }
-
-      @Override
-      public Journal.JournalEntry next() {
-        if (!hasNext()) {
-          throw new NoSuchElementException();
-        }
-        Inode inode = inodes.poll();
-        if (inode.isDirectory()) {
-          Iterables.addAll(inodes, mInodeStore.getChildren(inode.asDirectory()));
-        }
-        return inode.toJournalEntry();
-      }
-
-      @Override
-      public void remove() {
-        throw new UnsupportedOperationException("remove is not supported in inode tree iterator");
-      }
-    };
-  }
-
-  /**
-   * Resets the inode tree state.
-   */
-  public void reset() {
-    mState.reset();
+  public Journaled getDelegate() {
+    return mState;
   }
 
   /**

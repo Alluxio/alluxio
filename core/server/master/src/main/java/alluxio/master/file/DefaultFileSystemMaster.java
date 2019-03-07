@@ -54,6 +54,7 @@ import alluxio.grpc.MountPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
@@ -98,7 +99,11 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.master.journal.CheckpointName;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.JournalEntryIterable;
+import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.Journaled;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.InodeStore.InodeStoreArgs;
@@ -143,6 +148,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
+import alluxio.util.StreamUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.interfaces.Scoped;
@@ -180,6 +186,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -363,6 +371,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /** This caches paths which have been synced with UFS. */
   private final UfsSyncPathCache mUfsSyncPathCache;
 
+  /** List of all master subcomponents which require journaling. */
+  private final List<Journaled> mJournaledComponents;
+
   /** Thread pool which asynchronously handles the completion of persist jobs. */
   private java.util.concurrent.ThreadPoolExecutor mPersistCheckerPool;
 
@@ -423,6 +434,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mUfsSyncPathCache = new UfsSyncPathCache();
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
+    // The mount table should come after the inode tree because restoring the mount table requires
+    // that the inode tree is already restored.
+    mJournaledComponents =
+        Arrays.asList(mInodeTree, mDirectoryIdGenerator, mMountTable, mUfsManager, mSyncManager);
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -466,40 +481,40 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public void processJournalEntry(JournalEntry entry) throws IOException {
-    if (mDirectoryIdGenerator.replayJournalEntryFromJournal(entry)
-        || mInodeTree.replayJournalEntryFromJournal(entry)
-        || mMountTable.replayJournalEntryFromJournal(entry)
-        || mUfsManager.replayJournalEntryFromJournal(entry)
-        || mSyncManager.replayJournalEntryFromJournal(entry)) {
-      return;
-    } else {
-      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
+  public boolean processJournalEntry(JournalEntry entry) {
+    for (Journaled journaled : mJournaledComponents) {
+      if (journaled.processJournalEntry(entry)) {
+        return true;
+      }
     }
-  }
-
-  private void updateTxIdFromJournalEntry(File.ActiveSyncTxIdEntry activeSyncTxId) {
-    mSyncManager.setTxId(activeSyncTxId.getMountId(), activeSyncTxId.getTxId());
+    return false;
   }
 
   @Override
   public void resetState() {
-    mInodeTree.reset();
-    mMountTable.reset();
-    mSyncManager.reset();
+    mJournaledComponents.forEach(Journaled::resetState);
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.FILE_SYSTEM_MASTER;
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    JournalUtils.writeToCheckpoint(output, mJournaledComponents);
+  }
+
+  @Override
+  public void restoreFromCheckpoint(InputStream input) throws IOException {
+    JournalUtils.restoreFromCheckpoint(input, mJournaledComponents);
   }
 
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
-    return Iterators.concat(mInodeTree.getJournalEntryIterator(),
-        mDirectoryIdGenerator.getJournalEntryIterator(),
-        // The mount table should be written to the checkpoint after the inodes are written, so that
-        // when replaying the checkpoint, the inodes exist before mount entries. Replaying a mount
-        // entry traverses the inode tree.
-        mMountTable.getJournalEntryIterator(),
-        mUfsManager.getJournalEntryIterator(),
-        mSyncManager.getJournalEntryIterator()
-    );
+    List<Iterator<JournalEntry>> componentIters = StreamUtils
+        .map(JournalEntryIterable::getJournalEntryIterator, mJournaledComponents);
+    return Iterators.concat(componentIters.iterator());
   }
 
   @Override
@@ -1337,13 +1352,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public long createFile(AlluxioURI path, CreateFileContext context)
+  public FileInfo createFile(AlluxioURI path, CreateFileContext context)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException {
     Metrics.CREATE_FILES_OPS.inc();
     LockingScheme lockingScheme = createLockingScheme(path, context.getOptions().getCommonOptions(),
             LockPattern.WRITE_EDGE);
-    long id;
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
@@ -1368,7 +1382,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       }
       createFileInternal(rpcContext, inodePath, context);
       auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
-      return inodePath.getInode().getId();
+      return getFileInfoInternal(inodePath);
     }
   }
 
@@ -1472,8 +1486,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public long estimateNumberOfPaths() {
-    return mInodeTree.estimateSize();
+  public long getInodeCount() {
+    return mInodeTree.getInodeCount();
   }
 
   @Override
@@ -3584,16 +3598,24 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           protoOptions.hasReplicationMin() ? protoOptions.getReplicationMin() : null;
       mInodeTree.setReplication(rpcContext, inodePath, replicationMax, replicationMin, opTimeMs);
     }
-    if (protoOptions.hasCommonOptions() && protoOptions.getCommonOptions().hasTtl()
-        && protoOptions.getCommonOptions().hasTtlAction()) {
-      long ttl = protoOptions.getCommonOptions().getTtl();
-      if (inode.getTtl() != ttl
-          || inode.getTtlAction() != protoOptions.getCommonOptions().getTtlAction()) {
+    // protoOptions may not have both fields set
+    if (protoOptions.hasCommonOptions()) {
+      FileSystemMasterCommonPOptions commonOpts = protoOptions.getCommonOptions();
+      TtlAction action = commonOpts.hasTtlAction() ? commonOpts.getTtlAction() : null;
+      Long ttl = commonOpts.hasTtl() ? commonOpts.getTtl() : null;
+      boolean modified = false;
 
+      if (ttl != null && inode.getTtl() != ttl) {
         entry.setTtl(ttl);
+        modified = true;
+      }
+      if (action != null && inode.getTtlAction() != action) {
+        entry.setTtlAction(ProtobufUtils.toProtobuf(action));
+        modified = true;
+      }
+
+      if (modified) {
         entry.setLastModificationTimeMs(opTimeMs);
-        entry.setTtlAction(ProtobufUtils.toProtobuf(
-            protoOptions.getCommonOptions().getTtlAction()));
       }
     }
     if (protoOptions.hasPersisted()) {
@@ -4386,8 +4408,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           master::getNumberOfPinnedFiles);
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-              .getMetricName(MasterMetrics.TOTAL_PATHS_ESTIMATE),
-          () -> master.estimateNumberOfPaths());
+              .getMetricName(MasterMetrics.TOTAL_PATHS),
+          () -> master.getInodeCount());
 
       final String ufsDataFolder = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 

@@ -206,7 +206,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   }
 
   /**
-   * Tests lsr command with wildcard when security is not enabled.
+   * Tests ls -R command with wildcard when security is not enabled.
    */
   @Test
   @LocalAlluxioClusterResource.Config(
@@ -214,9 +214,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsrNoAcl() throws IOException, AlluxioException {
     createFiles();
-    mFsShell.run("lsr", "/testRoot");
+    mFsShell.run("ls", "-R", "/testRoot");
     checkOutput(
-        "WARNING: lsr is deprecated. Please use ls -R instead.",
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "             20   NOT_PERSISTED .+ .+ 100% /testRoot/testDir/testFileB",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
@@ -224,7 +223,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   }
 
   /**
-   * Tests lsr command with wildcard when security is enabled.
+   * Tests ls -R command with wildcard when security is enabled.
    */
   @Test
   @LocalAlluxioClusterResource.Config(
@@ -239,10 +238,9 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     clearAndLogin(testUser);
 
     createFiles();
-    mFsShell.run("lsr", "/testRoot");
+    mFsShell.run("ls", "-R", "/testRoot");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput(
-        "WARNING: lsr is deprecated. Please use ls -R instead.",
         "drwxr-xr-x  test_user_lsr  test_user_lsr                1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "-rw-r--r--  test_user_lsr  test_user_lsr               20   NOT_PERSISTED .+ .+ 100% /testRoot/testDir/testFileB",
         "-rw-r--r--  test_user_lsr  test_user_lsr               10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",

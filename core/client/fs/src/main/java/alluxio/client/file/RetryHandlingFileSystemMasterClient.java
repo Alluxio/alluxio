@@ -133,10 +133,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public void createFile(final AlluxioURI path, final CreateFilePOptions options)
+  public URIStatus createFile(final AlluxioURI path, final CreateFilePOptions options)
       throws AlluxioStatusException {
-    retryRPC(() -> mClient.createFile(CreateFilePRequest.newBuilder().setPath(path.getPath())
-        .setOptions(options).build()), "CreateFile");
+    return retryRPC(
+        () -> new URIStatus(GrpcUtils.fromProto(mClient.createFile(
+            CreateFilePRequest.newBuilder().setPath(path.getPath()).setOptions(options).build())
+            .getFileInfo())), "CreateFile");
   }
 
   @Override

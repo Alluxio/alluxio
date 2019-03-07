@@ -44,6 +44,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.journal.JournalType;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -98,6 +99,7 @@ public final class PersistenceTest {
     TemporaryFolder tmpFolder = new TemporaryFolder();
     tmpFolder.create();
     File ufsRoot = tmpFolder.newFolder();
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsRoot.getAbsolutePath());
     ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, 0);
     ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS, 1000);
@@ -311,10 +313,9 @@ public final class PersistenceTest {
     mFileSystemMaster.createDirectory(alluxioDirSrc,
         CreateDirectoryContext.defaults().setPersisted(true));
     AlluxioURI alluxioFileSrc = new AlluxioURI("/src/in_alluxio");
-    long fileId = mFileSystemMaster.createFile(alluxioFileSrc,
+    FileInfo info = mFileSystemMaster.createFile(alluxioFileSrc,
         CreateFileContext.defaults().setPersisted(false));
-    Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
-        mFileSystemMaster.getFileInfo(fileId).getPersistenceState());
+    Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), info.getPersistenceState());
     mFileSystemMaster.completeFile(alluxioFileSrc, CompleteFileContext.defaults());
 
     // Schedule the async persistence, checking the internal state.
@@ -348,7 +349,7 @@ public final class PersistenceTest {
     // Create the temporary UFS file.
     {
       Map<Long, PersistJob> persistJobs = getPersistJobs();
-      PersistJob job = persistJobs.get(fileId);
+      PersistJob job = persistJobs.get(info.getFileId());
       UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath(),
           ServerConfiguration.global());
       UnderFileSystemUtils.touch(ufs, job.getTempUfsPath());

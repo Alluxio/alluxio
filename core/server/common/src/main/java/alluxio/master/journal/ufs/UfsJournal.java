@@ -11,15 +11,14 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.InvalidJournalEntryException;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.Master;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryStateMachine;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.MasterJournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -84,8 +83,8 @@ public class UfsJournal implements Journal {
 
   /** The location where this journal is stored. */
   private final URI mLocation;
-  /** The state machine managed by this journal. */
-  private final JournalEntryStateMachine mMaster;
+  /** The master managed by this journal. */
+  private final Master mMaster;
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
   /** The amount of time to wait to pass without seeing a new journal entry when gaining primacy. */
@@ -120,28 +119,28 @@ public class UfsJournal implements Journal {
    * Creates a new instance of {@link UfsJournal}.
    *
    * @param location the location for this journal
-   * @param stateMachine the state machine to manage
+   * @param master the master to manage
    * @param quietPeriodMs the amount of time to wait to pass without seeing a new journal entry when
    *        gaining primacy
    */
-  public UfsJournal(URI location, JournalEntryStateMachine stateMachine, long quietPeriodMs) {
-    this(location, stateMachine,
-        UnderFileSystem.Factory.create(location.toString(), getJournalUfsConf()), quietPeriodMs);
+  public UfsJournal(URI location, Master master, long quietPeriodMs) {
+    this(location, master, UnderFileSystem.Factory.create(location.toString(), getJournalUfsConf()),
+        quietPeriodMs);
   }
 
   /**
    * Creates a new instance of {@link UfsJournal}.
    *
    * @param location the location for this journal
-   * @param stateMachine the state machine to manage
+   * @param master the state machine to manage
    * @param ufs the under file system
    * @param quietPeriodMs the amount of time to wait to pass without seeing a new journal entry when
    *        gaining primacy
    */
-  UfsJournal(URI location, JournalEntryStateMachine stateMachine, UnderFileSystem ufs,
+  UfsJournal(URI location, Master master, UnderFileSystem ufs,
       long quietPeriodMs) {
     mLocation = URIUtils.appendPathOrDie(location, VERSION);
-    mMaster = stateMachine;
+    mMaster = master;
     mUfs = ufs;
     mQuietPeriodMs = quietPeriodMs;
 
@@ -251,7 +250,7 @@ public class UfsJournal implements Journal {
    */
   public UfsJournalCheckpointWriter getCheckpointWriter(long checkpointSequenceNumber)
       throws IOException {
-    return new UfsJournalCheckpointWriter(this, checkpointSequenceNumber);
+    return UfsJournalCheckpointWriter.create(this, checkpointSequenceNumber);
   }
 
   /**
@@ -367,30 +366,23 @@ public class UfsJournal implements Journal {
             .withMaxDuration(Duration.ofDays(365))
             .build();
     while (true) {
-      JournalEntry entry;
       try {
-        entry = journalReader.read();
+        switch (journalReader.advance()) {
+          case CHECKPOINT:
+            mMaster.restoreFromCheckpoint(journalReader.getCheckpoint());
+            break;
+          case LOG:
+            mMaster.processJournalEntry(journalReader.getEntry());
+            break;
+          default:
+            return journalReader.getNextSequenceNumber();
+        }
       } catch (IOException e) {
         LOG.warn("{}: Failed to read from journal: {}", mMaster.getName(), e);
         if (retry.attempt()) {
           continue;
         }
         throw new RuntimeException(e);
-      } catch (InvalidJournalEntryException e) {
-        LOG.error("{}: Invalid journal entry detected.", mMaster.getName(), e);
-        // We found an invalid journal entry, nothing we can do but crash.
-        throw new RuntimeException(e);
-      }
-      if (entry == null) {
-        return journalReader.getNextSequenceNumber();
-      }
-      if (entry.getSequenceNumber() == 0) {
-        mMaster.resetState();
-      }
-      try {
-        mMaster.processJournalEntry(entry);
-      } catch (IOException e) {
-        throw new RuntimeException(String.format("Failed to process journal entry %s", entry), e);
       }
     }
   }

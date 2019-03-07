@@ -9,34 +9,33 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.noop;
+package alluxio.master.journal.raft;
 
-import alluxio.exception.InvalidJournalEntryException;
-import alluxio.master.journal.JournalReader;
-import alluxio.proto.journal.Journal;
+import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
- * Implementation of {@link JournalReader} that does nothing.
+ * A wrapper for giving an {@link OutputStream} API on top of Copycat's {@link SnapshotWriter}.
  */
-public class NoopJournalReader implements JournalReader {
+public class SnapshotWriterStream extends OutputStream {
+  private final SnapshotWriter mWriter;
 
   /**
-   * Creates a new instance of {@link NoopJournalReader}.
+   * @param writer the writer to wrap
    */
-  public NoopJournalReader() {}
-
-  @Override
-  public Journal.JournalEntry read() throws IOException, InvalidJournalEntryException {
-    return null;
+  public SnapshotWriterStream(SnapshotWriter writer) {
+    mWriter = writer;
   }
 
   @Override
-  public long getNextSequenceNumber() {
-    return 0;
+  public void write(int b) throws IOException {
+    mWriter.writeByte(b);
   }
 
   @Override
-  public void close() throws IOException {}
+  public void write(byte[] b, int off, int len) {
+    mWriter.write(b, off, len);
+  }
 }
