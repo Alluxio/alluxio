@@ -2000,7 +2000,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
           .setDefaultValue(8)
           .setDescription("When a client writes to a remote worker, the maximum number of "
-              + "data messages to buffer by the server.")
+              + "data messages to buffer by the server for each request.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();

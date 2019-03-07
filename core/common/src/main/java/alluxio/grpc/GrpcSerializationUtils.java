@@ -137,7 +137,7 @@ public class GrpcSerializationUtils {
    * Gets a Netty buffer directly from a gRPC ReadableBuffer.
    *
    * @param buffer the input buffer
-   * @return the raw ByteBuf
+   * @return the raw ByteBuf, or null if the ByteBuf cannot be extracted
    */
   public static ByteBuf getByteBufFromReadableBuffer(ReadableBuffer buffer) {
     if (!sZeroCopyReceiveSupported) {

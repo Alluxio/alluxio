@@ -37,7 +37,7 @@ public interface BlockWriter extends Closeable {
   /**
    * Appends buf.readableBytes() bytes to the end of this block writer from the given buf.
    *
-   * @param buf the byte buffer to hold the data
+   * @param buf the byte buffer that holds the data
    * @return the size of data that was appended in bytes
    */
   long append(ByteBuf buf) throws IOException;
@@ -45,7 +45,7 @@ public interface BlockWriter extends Closeable {
   /**
    * Appends buffer.readableBytes() bytes to the end of this block writer from the given buffer.
    *
-   * @param buffer the byte buffer to hold the data
+   * @param buffer the byte buffer that holds the data
    * @return the size of data that was appended in bytes
    */
   long append(DataBuffer buffer) throws IOException;

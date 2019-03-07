@@ -53,23 +53,26 @@ public final class ByteArrayDataBuffer implements DataBuffer {
 
   @Override
   public void readBytes(byte[] dst, int dstIndex, int length) {
-    throw new UnsupportedOperationException("ByteArrayDataBuffer#readBytes is not implemented.");
+    throw new UnsupportedOperationException(
+        "ByteArrayDataBuffer#readBytes(byte[] dst, int dstIndex, int length) is not implemented.");
   }
 
   @Override
   public void readBytes(OutputStream outputStream, int length) {
-    throw new UnsupportedOperationException("ByteArrayDataBuffer#readBytes is not implemented.");
+    throw new UnsupportedOperationException(
+        "ByteArrayDataBuffer#readBytes(OutputStream outputStream, int length) is not implemented.");
   }
 
   @Override
   public void readBytes(ByteBuffer outputBuf) {
-    throw new UnsupportedOperationException("ByteArrayDataBuffer#readBytes is not implemented.");
+    throw new UnsupportedOperationException(
+        "ByteArrayDataBuffer#readBytes(ByteBuffer outputBuf) is not implemented.");
   }
 
   @Override
   public int readableBytes() {
     throw new UnsupportedOperationException(
-        "ByteArrayDataBuffer#readableBytes is not implemented.");
+        "ByteArrayDataBuffer#readableBytes() is not implemented.");
   }
 
   @Override

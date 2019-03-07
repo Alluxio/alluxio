@@ -16,6 +16,7 @@ import alluxio.grpc.DataMessage;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
+import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
@@ -78,6 +79,8 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
    * @throws IOException if any error occurs
    */
   public DataMessage<ResT, DataBuffer> receiveDataMessage(long timeoutMs) throws IOException {
+    Preconditions.checkNotNull(mResponseMarshaller,
+        "Cannot retrieve data message without a response marshaller.");
     ResT response = super.receive(timeoutMs);
     if (response == null) {
       return null;

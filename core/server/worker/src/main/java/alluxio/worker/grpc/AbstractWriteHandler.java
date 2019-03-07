@@ -59,8 +59,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWriteHandler.class);
 
+  /** The observer for sending response messages. */
   private final StreamObserver<WriteResponse> mResponseObserver;
+  /** The executor for running write tasks asynchronously in the submission order. */
   private final SerializingExecutor mSerializingExecutor;
+  /** The semaphore to control the number of write tasks queued up in the executor.*/
   private final Semaphore mSemaphore = new Semaphore(
       ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES), true);
 

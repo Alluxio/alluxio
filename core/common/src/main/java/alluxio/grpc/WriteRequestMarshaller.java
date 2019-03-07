@@ -61,8 +61,8 @@ public class WriteRequestMarshaller extends DataMessageMarshaller<WriteRequest> 
       chunkBuffer = new NettyDataBuffer(
           Unpooled.wrappedBuffer(message.getChunk().getData().asReadOnlyByteBuffer()));
     }
-    int size = message.getSerializedSize() - chunkBuffer.readableBytes();
-    byte[] header = new byte[size];
+    int headerSize = message.getSerializedSize() - chunkBuffer.readableBytes();
+    byte[] header = new byte[headerSize];
     CodedOutputStream stream = CodedOutputStream.newInstance(header);
     stream.writeTag(WriteRequest.CHUNK_FIELD_NUMBER, WireFormat.WIRETYPE_LENGTH_DELIMITED);
     stream.writeUInt32NoTag(message.getChunk().getSerializedSize());
