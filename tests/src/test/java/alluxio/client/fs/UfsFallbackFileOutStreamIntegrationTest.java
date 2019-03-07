@@ -49,7 +49,7 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
 
   @Override
   protected void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
-    resource
+    resource.setProperty(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0")
         .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, BUFFER_BYTES) // initial buffer for worker
         .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE)
         .setProperty(PropertyKey.USER_FILE_UFS_TIER_ENABLED, true)
