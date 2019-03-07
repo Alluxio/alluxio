@@ -17,6 +17,7 @@ import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.Scope;
+import alluxio.grpc.WritePType;
 import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
 
@@ -1493,7 +1494,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS =
       new Builder(Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS)
-          .setDefaultValue(0)
+          .setDefaultValue("5min")
+          .setDescription(String.format("Time to wait before starting the persistence job. "
+              + "When %s is set to %s, set to a big enough value "
+              + "to avoid conflicts between cache and through job.",
+              Name.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.ASYNC_THROUGH))
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_MAX_INTERVAL_MS =
       new Builder(Name.MASTER_PERSISTENCE_MAX_INTERVAL_MS)
