@@ -12,11 +12,11 @@
 is a virtual distributed storage system. It bridges the gap between
 computation frameworks and storage systems, enabling computation applications to connect to
 numerous storage systems through a common interface. Read more about
-[Alluxio Overview](https://www.alluxio.org/docs/1.8/en/Overview.html).
+[Alluxio Overview](https://www.alluxio.org/docs/2.0-preview/en/Overview.html).
 
 The Alluxio project originated from a research project called Tachyon at AMPLab, UC Berkeley,
 which was the data layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)).
-For more details, please refer to Haoyuan Li's PhD dissertation 
+For more details, please refer to Haoyuan Li's PhD dissertation
 [Alluxio: A Virtual Distributed File System](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2018/EECS-2018-29.html).
 
 ## Who Uses Alluxio
@@ -33,7 +33,7 @@ Prebuilt binaries are available to download at https://www.alluxio.org/download 
 
 ### Docker
 
-Download and start an Alluxio master and a worker. More details can be found in [documentation](https://www.alluxio.org/docs/1.8/en/deploy/Running-Alluxio-On-Docker.html).
+Download and start an Alluxio master and a worker. More details can be found in [documentation](https://www.alluxio.org/docs/2.0-preview/en/deploy/Running-Alluxio-On-Docker.html).
 
 ```bash
 # launch a master
@@ -56,7 +56,7 @@ $ brew install alluxio
 
 ## Quick Start
 
-Please follow the [Guide to Get Started](http://www.alluxio.org/docs/1.8/en/Getting-Started.html)
+Please follow the [Guide to Get Started](http://www.alluxio.org/docs/2.0-preview/en/Getting-Started.html)
 to run a simple example with Alluxio.
 
 ## Report a Bug
@@ -87,13 +87,13 @@ implementing HDFS's file system API.
 <dependency>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-core-client-fs</artifactId>
-  <version>1.8.1</version>
+  <version>2.0.0-preview</version>
 </dependency>
 ```
 
 ### SBT
 ```
-libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "1.8.1"
+libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "2.0.0-preview"
 ```
 
 ## Contributing
@@ -105,7 +105,7 @@ explicitly, by submitting any copyrighted material via pull request, email, or o
 to license the material under the project's open source license and warrant that you have the legal
 authority to do so.
 For a more detailed step-by-step guide, please read
-[how to contribute to Alluxio](https://www.alluxio.org/docs/1.8/en/contributor/Contributor-Getting-Started.html).
+[how to contribute to Alluxio](https://www.alluxio.org/docs/2.0-preview/en/contributor/Contributor-Getting-Started.html).
 For new contributor, please take 2 [new contributor tasks](https://github.com/Alluxio/new-contributor-tasks).
 
 ## Useful Links
