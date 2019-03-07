@@ -136,7 +136,7 @@ create the `conf/alluxio-site.properties` configuration file from the template.
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-The configuration parameters which must be set in HA mode are:
+Add the following properties to the `conf/alluxio-site.properties` file:
 - `alluxio.master.hostname=<MASTER_HOSTNAME>`
   - This must be set to the correct externally visible hostname for each master node.
   (Workers ignore this parameter when `alluxio.zookeeper.enabled` is enabled)
@@ -270,16 +270,15 @@ addresses, like `alluxio://master_hostname_1:19998;master_hostname_2:19998;maste
 and `alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path`.
 
 If you use the URI to specify the HA cluster information, the URI will take precedence, and ignore the
-related Embedded Journal or Zookeeper configuration parameters.
+related Alluxio HA mode configuration.
 
 #### HA Configuration Parameters for Alluxio Client
 
-Users can configure the following parameter to connect to Alluxio cluster with embedded journal.
+Users can configure the following parameter to connect to Alluxio cluster with internal leader election:
 
 - `alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
 
-Users can configure the Alluxio applications to use ZooKeeper by specifying the following parameters
-for the application.
+Users can configure the following parameters to connect to Alluxio cluster with ZooKeeper leader election: 
 
 - `alluxio.zookeeper.enabled=true`
 - `alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>`
@@ -380,6 +379,14 @@ will consider the worker as "lost", and no longer consider it as part of the clu
 In order to add a master, the Alluxio cluster must be in HA mode. If you are running the cluster as
 a single master cluster, you must configure it to be an HA cluster to be able to have more than 1
 master.
+
+#### Alluxio HA cluster with internal leader election
+
+When internal leader election is used, Alluxio masters are determined. Adding or Removing master nodes
+require modify the `alluxio.master.rpc.addresses` or `alluxio.master.embedded.journal.addresses` (depends
+on which parameter you set to enable the internal leader election).
+
+#### Alluxio HA cluster with Zookeeper election
 
 To add a master to an HA Alluxio cluster, you can simply start a new Alluxio master process, with
 the appropriate configuration. The configuration for the new master should be the same as other masters,

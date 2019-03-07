@@ -142,8 +142,8 @@ If you are running multiple Alluxio masters with a Zookeeper service running at
 add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf`:
 
 ```bash
-spark.driver.extraJavaOptions   -Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
-spark.executor.extraJavaOptions  -Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
+spark.driver.extraJavaOptions -Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
+spark.executor.extraJavaOptions -Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
 ```
 
 Alternatively you can add the properties to the Hadoop configuration file
@@ -162,7 +162,7 @@ Alternatively you can add the properties to the Hadoop configuration file
 </configuration>
 ```
 
-After Alluxio 1.8 (not included), users can encode the connection details
+Since Alluxio 2.0, users can encode the connection details
 inside an Alluxio URI (see [details](#access-data-from-alluxio-in-ha-mode)).
 In this way, it requires no extra setup for Spark configuration.
 
@@ -189,7 +189,7 @@ Note that, in client mode you need set `--driver-java-options "-Dalluxio.user.fi
 
 ## Advanced Usage
 
-### Access Data from Alluxio in HA Mode with Zookeeper-based leader election
+### Access Data from Alluxio in HA Mode
 
 If Spark is set up by the instructions in [configuring Spark when Alluxio is in HA mode](#customize-alluxio-user-properties-for-all-spark-jobs),
 you can write URIs using the "`alluxio://`" scheme without specifying an Alluxio master in the authority.
