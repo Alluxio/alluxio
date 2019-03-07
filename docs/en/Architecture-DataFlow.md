@@ -17,7 +17,7 @@ Apache Spark, Presto, or Hadoop MapReduce. Note that Alluxio itself is not a
 persistent storage system. Using Alluxio as the data access layer provides multiple benefits:
 
 - For user applications and computation frameworks, Alluxio provides fast storage,
-facilitating data sharing and locality between applications, regardless of the computation engine
+and facilitates data sharing and locality between applications, regardless of the computation engine
 used.
 As a result, Alluxio can serve data at memory speed when it is local or at the speed of the
 computation cluster network when data is in Alluxio. Data is only read once from the
@@ -33,8 +33,8 @@ When mounting multiple under storage systems simultaneously, Alluxio serves as a
 layer for any number of varied data sources.
 
 Alluxio can be divided into three components: masters, workers, and clients.
-A typical setup consists of a single leading master, multiple standby masters, a job master,
-workers, and job workers.
+A typical cluster consists of a single leading master, standby masters, a job master, workers, and
+job workers.
 The master and worker processes constitute the Alluxio servers, which are the components a system
 administrator would maintain.
 Clients are used to communicate with the Alluxio servers by applications such as Spark or
