@@ -11,9 +11,11 @@
 
 package alluxio.master.journal;
 
+import alluxio.RuntimeConstants;
 import alluxio.master.CheckpointType;
 
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -32,7 +34,16 @@ public final class CheckpointInputStream extends DataInputStream {
    */
   public CheckpointInputStream(InputStream in) throws IOException {
     super(in);
-    mType = CheckpointType.fromLong(readLong());
+    long id;
+    try {
+      id = readLong();
+    } catch (EOFException e) {
+      throw new IllegalStateException(String.format(
+          "EOF while parsing checkpoint type. Was your checkpoint written by alluxio-1.x? See %s" +
+              " for instructions on how to upgrade from alluxio-1.x to alluxio-2.x",
+          RuntimeConstants.ALLUXIO_2X_UPGRADE_DOC_URL, e));
+    }
+    mType = CheckpointType.fromLong(id);
   }
 
   /**
