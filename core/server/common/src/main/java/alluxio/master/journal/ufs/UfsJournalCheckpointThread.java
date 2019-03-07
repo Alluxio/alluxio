@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.Master;
@@ -138,7 +139,8 @@ public final class UfsJournalCheckpointThread extends Thread {
     try {
       runInternal();
     } catch (Throwable e) {
-      LOG.error("{}: Failed to run journal checkpoint thread, crashing.", mMaster.getName(), e);
+      ProcessUtils.fatalError(LOG, e, "%s: Failed to run journal checkpoint thread, crashing.",
+          mMaster.getName());
       throw e;
     }
   }
