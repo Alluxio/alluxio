@@ -2865,7 +2865,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_KEEPALIVE_TIME_MS =
       new Builder(Name.USER_NETWORK_KEEPALIVE_TIME_MS)
-          .setDefaultValue(Integer.MAX_VALUE)
+          .setDefaultValue(Long.MAX_VALUE)
           .setDescription("The amount of time for a gRPC client (for block reads and block writes) "
               + "to wait for a response before pinging the server to see if it is still alive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
