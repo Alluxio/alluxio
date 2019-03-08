@@ -420,6 +420,10 @@ The `distributedCp` command is similar to the `cp` command, the difference is
 that when copying a directory, `distributedCp` instructs job workers to
 recursively copy all files under the directory in parallel at file level.
 
+This is preferred than `cp` if you need to copy a large dataset, but
+it will consume more CPU and network resources in both worker and job worker nodes,
+so it might affect other Alluxio applications' performance.
+
 {% include Command-Line-Interface/distributedCp.md %}
 
 ### du
@@ -544,6 +548,10 @@ The `distributedLoad` command is similar to the `load` command, the difference i
 that when loading a directory, `distributedLoad` instructs job workers to
 recursively load all files under the directory in parallel at file level.
 
+This is preferred than `load` if you need to load a large dataset, but
+it will consume more CPU and network resources in both worker and job worker nodes,
+so it might affect other Alluxio applications' performance.
+
 {% include Command-Line-Interface/distributedLoad.md %}
 
 ### loadMetadata
@@ -658,6 +666,10 @@ For example, `mv` can be used to re-organize your files.
 The `distributedMv` command is similar to the `mv` command, the difference is
 that when moving a directory, `distributedMv` instructs job workers to
 recursively move all files under the directory in parallel at file level.
+
+This is preferred than `mv` if you need to move a large dataset, but
+it will consume more CPU and network resources in both worker and job worker nodes,
+so it might affect other Alluxio applications' performance.
 
 {% include Command-Line-Interface/distributedMv.md %}
 
