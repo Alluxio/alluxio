@@ -3344,50 +3344,109 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Job service
   //
   public static final PropertyKey JOB_MASTER_CLIENT_THREADS =
-      new Builder(Name.JOB_MASTER_CLIENT_THREADS).setDefaultValue(1024).build();
-  public static final PropertyKey JOB_MASTER_FINISHED_JOB_RETENTION_MS =
-      new Builder(Name.JOB_MASTER_FINISHED_JOB_RETENTION_MS).setDefaultValue(300000).build();
+      new Builder(Name.JOB_MASTER_CLIENT_THREADS)
+          .setDescription("The number of threads the Alluxio master uses to make requests to the "
+              + "job master.")
+          .setDefaultValue(1024)
+          .build();
+  public static final PropertyKey JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
+      new Builder(Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME)
+          .setDescription("The length of time the Alluxio Job Master should save information about "
+              + "completed jobs before they are discarded.")
+          .setDefaultValue("300sec")
+          .build();
   public static final PropertyKey JOB_MASTER_JOB_CAPACITY =
-      new Builder(Name.JOB_MASTER_JOB_CAPACITY).setDefaultValue(100000).build();
-  public static final PropertyKey JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS =
-      new Builder(Name.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS).setDefaultValue(1000).build();
-  public static final PropertyKey JOB_MASTER_WORKER_TIMEOUT_MS =
-      new Builder(Name.JOB_MASTER_WORKER_TIMEOUT_MS).setDefaultValue(60000).build();
+      new Builder(Name.JOB_MASTER_JOB_CAPACITY)
+          .setDescription("The total number of jobs that the ALluxio Job Master can run at any one "
+              + "moment.")
+          .setDefaultValue(100000)
+          .build();
+  public static final PropertyKey JOB_MASTER_WORKER_HEARTBEAT_INTERVAL =
+      new Builder(Name.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL)
+          .setDescription("The amount of time that the Alluxio job worker should wait in between "
+              + "heartbeats to the Job Master.")
+          .setDefaultValue("1sec")
+          .build();
+  public static final PropertyKey JOB_MASTER_WORKER_TIMEOUT =
+      new Builder(Name.JOB_MASTER_WORKER_TIMEOUT)
+          .setDescription("The time length after a job worker heartbeat that the job master "
+              + "will mark a worker as lost without a subsequent heartbeat.")
+          .setDefaultValue("60sec")
+          .build();
   public static final PropertyKey JOB_MASTER_BIND_HOST =
       new Builder(Name.JOB_MASTER_BIND_HOST)
+          .setDescription("The host that the Alluxio job master will bind to.")
           .setDefaultValue("0.0.0.0")
           .build();
   public static final PropertyKey JOB_MASTER_HOSTNAME =
-      new Builder(Name.JOB_MASTER_HOSTNAME).setDefaultValue("${alluxio.master.hostname}").build();
-  public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL_MS =
-      new Builder(Name.JOB_MASTER_LOST_WORKER_INTERVAL_MS).setDefaultValue(1000).build();
+      new Builder(Name.JOB_MASTER_HOSTNAME)
+          .setDescription("The hostname of the Alluxio job master.")
+          .setDefaultValue("${alluxio.master.hostname}")
+          .build();
+  public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL =
+      new Builder(Name.JOB_MASTER_LOST_WORKER_INTERVAL)
+          .setDescription("The time interval the job master waits between checks for lost workers.")
+          .setDefaultValue("1sec")
+          .build();
   public static final PropertyKey JOB_MASTER_RPC_PORT =
-      new Builder(Name.JOB_MASTER_RPC_PORT).setDefaultValue(20001).build();
+      new Builder(Name.JOB_MASTER_RPC_PORT)
+          .setDescription("The RPC port that the job master uses.")
+          .setDefaultValue(20001)
+          .build();
   public static final PropertyKey JOB_MASTER_WEB_BIND_HOST =
-      new Builder(Name.JOB_MASTER_WEB_BIND_HOST).setDefaultValue("0.0.0.0").build();
+      new Builder(Name.JOB_MASTER_WEB_BIND_HOST)
+          .setDescription("The host that the job master web server binds to.")
+          .setDefaultValue("0.0.0.0")
+          .build();
   public static final PropertyKey JOB_MASTER_WEB_HOSTNAME =
       new Builder(Name.JOB_MASTER_WEB_HOSTNAME)
+          .setDescription("The hostname of the job master web server.")
           .setDefaultValue("${alluxio.job.master.hostname}")
           .build();
   public static final PropertyKey JOB_MASTER_WEB_PORT =
-      new Builder(Name.JOB_MASTER_WEB_PORT).setDefaultValue(20002).build();
+      new Builder(Name.JOB_MASTER_WEB_PORT)
+          .setDescription("The port the job master web server uses.")
+          .setDefaultValue(20002)
+          .build();
   public static final PropertyKey JOB_WORKER_BIND_HOST =
-      new Builder(Name.JOB_WORKER_BIND_HOST).setDefaultValue("0.0.0.0").build();
+      new Builder(Name.JOB_WORKER_BIND_HOST)
+          .setDescription("The host that the Alluxio job worker will bind to.")
+          .setDefaultValue("0.0.0.0")
+          .build();
   public static final PropertyKey JOB_WORKER_DATA_PORT =
-      new Builder(Name.JOB_WORKER_DATA_PORT).setDefaultValue(30002).build();
-  public static final PropertyKey JOB_WORKER_HOSTNAME = new Builder(Name.JOB_WORKER_HOSTNAME)
-      .setDescription("The hostname of Alluxio job worker.")
-      .setScope(Scope.WORKER)
-      .build();
+      new Builder(Name.JOB_WORKER_DATA_PORT)
+          .setDescription("The port the Alluxio Job worker uses to send data.")
+          .setDefaultValue(30002)
+          .build();
+  public static final PropertyKey JOB_WORKER_HOSTNAME =
+      new Builder(Name.JOB_WORKER_HOSTNAME)
+          .setDescription("The hostname of the Alluxio job worker.")
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey JOB_WORKER_RPC_PORT =
-      new Builder(Name.JOB_WORKER_RPC_PORT).setDefaultValue(30001).build();
+      new Builder(Name.JOB_WORKER_RPC_PORT)
+          .setDescription("The port the job worker uses to send RPCs")
+          .setDefaultValue(30001)
+          .build();
   public static final PropertyKey JOB_WORKER_WEB_BIND_HOST =
-      new Builder(Name.JOB_WORKER_WEB_BIND_HOST).setDefaultValue("0.0.0.0").build();
+      new Builder(Name.JOB_WORKER_WEB_BIND_HOST)
+          .setDescription("The host the job worker web server binds to.")
+          .setDefaultValue("0.0.0.0")
+          .build();
   public static final PropertyKey JOB_WORKER_WEB_PORT =
-      new Builder(Name.JOB_WORKER_WEB_PORT).setDefaultValue(30003).build();
-
+      new Builder(Name.JOB_WORKER_WEB_PORT)
+          .setDescription("The port the Alluxio job worker web server uses.")
+          .setDefaultValue(30003)
+          .build();
   public static final PropertyKey JOB_MASTER_RPC_ADDRESSES =
-      new Builder(Name.JOB_MASTER_RPC_ADDRESSES).build();
+      new Builder(Name.JOB_MASTER_RPC_ADDRESSES)
+          .setDescription("The list of RPC addresses to use for the job service configured in "
+              + "non-zookeeper HA mode. If this property is not specifically defined, it will "
+              + "first fall back to using the alluxio.master.rpc.addresses replacing those "
+              + "address ports with the port defined by alluxio.job.master.port. Otherwise the "
+              + "addresses are then inherited from alluxio.job.master.embedded.journal.addresses "
+              + "using the port defined in alluxio.job.master.port")
+          .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(String.format("A comma-separated list of journal addresses for all job "
@@ -4094,18 +4153,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String JOB_MASTER_CLIENT_THREADS =
         "alluxio.job.master.client.threads";
-    public static final String JOB_MASTER_FINISHED_JOB_RETENTION_MS =
-        "alluxio.job.master.finished.job.retention.ms";
+    public static final String JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
+        "alluxio.job.master.finished.job.retention.time";
     public static final String JOB_MASTER_JOB_CAPACITY = "alluxio.job.master.job.capacity";
-    public static final String JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS =
-        "alluxio.job.master.worker.heartbeat.interval.ms";
-    public static final String JOB_MASTER_WORKER_TIMEOUT_MS =
-        "alluxio.job.master.worker.timeout.ms";
+    public static final String JOB_MASTER_WORKER_HEARTBEAT_INTERVAL =
+        "alluxio.job.master.worker.heartbeat.interval";
+    public static final String JOB_MASTER_WORKER_TIMEOUT =
+        "alluxio.job.master.worker.timeout";
 
     public static final String JOB_MASTER_BIND_HOST = "alluxio.job.master.bind.host";
     public static final String JOB_MASTER_HOSTNAME = "alluxio.job.master.hostname";
-    public static final String JOB_MASTER_LOST_WORKER_INTERVAL_MS =
-        "alluxio.job.master.lost.worker.interval.ms";
+    public static final String JOB_MASTER_LOST_WORKER_INTERVAL =
+        "alluxio.job.master.lost.worker.interval";
     public static final String JOB_MASTER_RPC_PORT = "alluxio.job.master.rpc.port";
     public static final String JOB_MASTER_WEB_BIND_HOST = "alluxio.job.master.web.bind.host";
     public static final String JOB_MASTER_WEB_HOSTNAME = "alluxio.job.master.web.hostname";
