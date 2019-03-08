@@ -32,9 +32,13 @@ any under storage can support any of the applications and frameworks running on 
 When mounting multiple under storage systems simultaneously, Alluxio serves as a unifying
 layer for any number of varied data sources.
 
+<p align="center">
+<img style="text-align: center" src="{{ '/img/architecture-overview-simple-docs.png' | relativize_url }}" alt="Architecture overview"/>
+</p>
+
 Alluxio can be divided into three components: masters, workers, and clients.
-A typical cluster consists of a single leading master, standby masters, a job master, workers, and
-job workers.
+A typical cluster consists of a single leading master, standby masters, a job master, standby job
+masters, workers, and job workers.
 The master and worker processes constitute the Alluxio servers, which are the components a system
 administrator would maintain.
 Clients are used to communicate with the Alluxio servers by applications such as Spark or
@@ -42,23 +46,23 @@ MapReduce jobs, the Alluxio CLI, or the Alluxio FUSE layer.
 
 Alluxio Job Masters and Job Workers can be separated into a separate function which is termed the
 **Job Service**.
-The Alluxio Job Service is a lightweight scheduling framework responsible for assigning a number of
-different types of tasks to Job Workers. Those tasks include
+The Alluxio Job Service is a lightweight task scheduling framework responsible for assigning a
+number of different types of operations to Job Workers. Those tasks include
 
 - Loading data into Alluxio from a UFS
 - Persisting data to a UFS
 - Replicating files within Alluxio
 - Moving or copying data between UFS or Alluxio locations
 
-
-<p align="center">
-<img src="{{ '/img/architecture-overview.png' | relativize_url }}" alt="Architecture overview"/>
-</p>
+The job service is designed so that all job related processes don't necessarily need to be located
+with the rest of the Alluxio cluster.
+However, we do recommend that job workers are co-located with a corresponding Alluxio worker as it
+provides lower latency for RPCs and data transfer.
 
 ## Masters
 
 <p align="center">
-<img src="{{ '/img/architecture-master.png' | relativize_url }}" alt="Alluxio master"/>
+<img style="width: 85%; text-align:center;" src="{{ '/img/architecture-master-docs.png' | relativize_url }}" alt="Alluxio masters"/>
 </p>
 
 Alluxio contains of two separate types of master processes. One is the **Alluxio Master**.
@@ -76,11 +80,13 @@ Only one master process can be the leading master in an Alluxio cluster.
 The leading master is responsible for managing the global metadata of the system.
 This includes file system metadata (e.g. the file system inode tree), block metadata
 (e.g. block locations), and worker capacity metadata (free and used space).
+The leading master will only ever query under storage for metadata.
+Application data will never be routed through the master.
 Alluxio clients interact with the leading master to read or modify this metadata.
 All workers periodically send heartbeat information to the leading master to maintain their
 participation in the cluster. The leading master does not initiate communication
 with other components; it only responds to requests via RPC services.
-The leading master records all file system transactions to a distributed persistent storage
+The leading master records all file system transactions to a distributed persistent storage location
 to allow for recovery of master state information; the set of records is referred to as the journal.
 
 ### Standby Masters
@@ -111,14 +117,16 @@ future.
 
 The Alluxio Job Master accepts requests to perform the above operations and schedules the operations
 to be executed on **Alluxio Job Workers** which act as clients to the Alluxio file system.
+The job workers are discussed more in the following section.
 
 ## Workers
 
+<p align="center">
+<img style=" width: 75%;" src="{{ '/img/architecture-worker-docs.png' | relativize_url }}" alt="Alluxio workers"/>
+</p>
+
 ### Alluxio Workers
 
-<p align="center">
-<img src="{{ '/img/architecture-worker.png' | relativize_url }}" alt="Alluxio worker"/>
-</p>
 
 Alluxio workers are responsible for managing user-configurable local resources
 allocated to Alluxio (e.g. memory, SSDs, HDDs). Alluxio workers store data
@@ -139,12 +147,13 @@ documentation for [Tiered Storage]({{ '/en/advanced/Alluxio-Storage-Management.h
 
 ### Alluxio Job Workers
 
-<!-- Architecture of Job Service here -->
-
 Alluxio Job Workers are clients of the Alluxio file system.
 They are responsible for running tasks given to them by the Alluxio Job Master.
 Job Workers receive instructions to run load, persist, replicate, move, or copy operations on any
 given file system locations.
+
+Alluxio job workers don't necessarily have to be co-located with normal workers, but it is
+recommended to have both on the same physical node.
 
 ## Client
 
