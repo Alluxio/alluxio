@@ -11,8 +11,8 @@ priority: 0
 
 Alluxio stores most of its metadata on the master node. The metadata includes the
 filesystem tree, file permissions, and block locations. Alluxio provides two ways
-to store the metadata: (1) with an on-disk, RocksDB-based or (2) with an on-heap metastore
-metastore.
+to store the metadata: (1) with an on-disk, RocksDB-based metastore or (2) with an 
+on-heap metastore.
 
 ## RocksDB Metastore
 
@@ -33,7 +33,7 @@ takes roughly 1GB of memory. Default: `10000000` (10 million)
 ### Advanced Tuning Properties
 
 * `alluxio.master.metastore.inode.cache.evict.batch.size`: Batch size for flushing modifications
-  to RocksDB. Default: 1000
+  to RocksDB. Default: `1000`
 * `alluxio.master.metastore.inode.cache.high.water.mark.ratio`: Ratio of the maximum cache size
   where the cache begins evicting. Default: `0.85`
 * `alluxio.master.metastore.inode.cache.low.water.mark.ratio`: Ratio of the maximum cache size
@@ -43,7 +43,7 @@ takes roughly 1GB of memory. Default: `10000000` (10 million)
 
 The heap metastore is simple: it stores all metadata on the heap. This gives consistent,
 fast performance, but the required memory scales with the number of files in the
-filesystem. With 32GB of memory, Alluxio can support around 40 million files.
+filesystem. With 32GB of Alluxio master memory, Alluxio can support around 40 million files.
 
 To configure Alluxio to use the on-heap metastore, set
 
