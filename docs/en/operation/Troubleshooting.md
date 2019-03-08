@@ -13,7 +13,8 @@ This page is a collection of high-level guides and tips regarding how to diagnos
 Alluxio.
 
 Note: this doc is not intended to be the full list of Alluxio questions.
-Feel free to post questions on the [Alluxio Mailing List](https://groups.google.com/forum/#!forum/alluxio-users).
+Join the [Alluxio community Slack Channel](https://www.alluxio.org/slack) to chat with users and
+developers, or post questions on the [Alluxio Mailing List](https://groups.google.com/forum/#!forum/alluxio-users).
 
 ## Where are the Alluxio logs?
 
@@ -127,9 +128,19 @@ Alternatively, add the following lines to `spark/conf/spark-defaults.conf`:
 
 ```properties
 spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
-spark.executor.extraClassPath
-{{site.ALLUXIO_CLIENT_JAR_PATH}}
+spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
+
+- For Presto, put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into the directory
+`${PRESTO_HOME}/plugin/hive-hadoop2/`
+Since Presto has long running processes, ensure they are restarted after the jar has been added.
+
+- For Hive, set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
+
+```bash
+export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
+```
+Since Hive has long running processes, ensure they are restarted after the jar has been added.
 
 If the corresponding classpath has been set but exceptions still exist, users can check
 whether the path is valid by:
@@ -183,13 +194,8 @@ HDFS deployment is connected and healthy for Alluxio to store journals when the 
 ### Q: I'm seeing that client connection was rejected by master
 
 A: When you see errors from applications like `"alluxio.exception.status.UnavailableException:
-Failed to connect to BlockMasterClient @ hostname:19998 after 13 attempts"` and also find the
-following warning messages in `logs/master.log`: `"WARN  TThreadPoolServer - Task has been rejected by
-ExecutorService 9 times till timedout, reason: java.util.concurrent.RejectedExecutionException:
-Task org.apache.thrift.server.TThreadPoolServer$WorkerProcess@22fba58c rejected from
-java.util.concurrent.ThreadPoolExecutor@19593091[Running, pool size = 2048, active threads = 2048,
-queued tasks = 0, completed tasks = 14]"`, it indicates that the Alluxio master server has run out
-threads in its thread pool to serve new incoming client requests.
+Failed to connect to BlockMasterClient @ hostname:19998 after 13 attempts"`, a possibility is the
+Alluxio master server has run out threads in its thread pool to serve new incoming client requests.
 
 To solve this issue, you can try:
 - Increase the thread pool size on the master to serve client requests by increasing
@@ -197,11 +203,6 @@ To solve this issue, you can try:
 `conf/alluxio-site.properties`. Note that, this value should be no larger than the number of max
 open files allowed by the system allows. One can check the system limit using `"ulimit -n"` on Linux
 or [other approaches](https://stackoverflow.com/questions/880557/socket-accept-too-many-open-files)
-- Decrease the connection pool size on the client to send requests to master by decreasing
-`alluxio.user.block.master.client.threads` (default to 10) and
-`alluxio.user.file.master.client.threads` (default to 10). You can set this property to a smaller
-value in `conf/alluxio-site.properties`. Note that, reducing the value of these two properties may
-potentially add latency for master to serve requests.
 
 ### Q: I added some files in under file system. How can I reveal the files in Alluxio?
 
