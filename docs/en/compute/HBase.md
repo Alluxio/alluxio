@@ -122,8 +122,8 @@ After this mapreduce job finishes, you can see a result like this:
 
 ### Alluxio in HA mode
 
-When Alluxio is running in HA mode with default internal leader election, change the `hbase.rootdir` property
-in `conf/hbase-site.xml` to include the Alluxio master addresses.
+When Alluxio is running in HA mode with embedded-journal-based leader election, change the `hbase.rootdir` property
+in `conf/hbase-site.xml` to include the Alluxio master rpc addresses.
 
 ```xml
 <property>
@@ -132,14 +132,9 @@ in `conf/hbase-site.xml` to include the Alluxio master addresses.
 </property>
 ```
 
-When running with Zookeeper-based leader election, include the Zookeeper information instead.
-
-```xml
-<property>
-  <name>hbase.rootdir</name>
-  <value>alluxio://zk@zookeeper_hostname1:2181,zookeeper_hostname2:2181,zookeeper_hostname3:2181/hbase</value>
-</property>
-```
+When Alluxio is running with Zookeeper-based leader election,
+please refer to [HA mode client URI]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-client-uri-for-alluxio-client)
+for more details about how to include Zookeeper information in the client URI.
 
 ### Add additional Alluxio site properties to HBase
 

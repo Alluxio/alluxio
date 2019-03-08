@@ -146,20 +146,20 @@ Add the following properties to the `conf/alluxio-site.properties` file:
   shared storage system must be accessible by all master nodes and all worker nodes.
   - Examples: `alluxio.underfs.address=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.underfs.address=s3a://bucket/dir/`
   
-### Setting up HA cluster with internal leader election
+### Setting up HA cluster with embedded-journal-based election
 
-The minimal configuration to set up a HA cluster is to give the master rpc addresses to all nodes inside the cluster.
-Alluxio's internal leader election will determine the leader master.
+The minimal configuration to set up a HA cluster is to give the embedded journal addresses to all nodes inside the cluster.
+Alluxio's internal leader election will determine the leader master. The default embedded journal port is `19200`.
 
 ```
-alluxio.master.rpc.addresses=<MASTER_HOSTNAME_1>:19998,<MASTER_HOSTNAME_2>:19998,<MASTER_HOSTNAME_3>:19998
+alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200
 ```
 
-Note that embedded journal feature relies on [Copycat](https://github.com/atomix/copycat) which has built-in leader election. 
+Note that embedded journal feature relies on Copycat which has built-in leader election. 
 The built-in leader election cannot work with Zookeeper since we cannot have two leaders which might not match. 
 Enabling embedded journal is enabling Alluxio's internal leader election. 
 See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#Embedded-Journal-Configuration) 
-for other ways to configure Alluxio HA cluster with internal leader election. The embedded journal is appropriate when no fast, 
+for more details of embedded journal information and configurations. The embedded journal is appropriate when no fast, 
 non-object storage such as HDFS or NFS is available, or no Zookeeper cluster is available.
 
 ### Setting up HA cluster with Zookeeper-based leader election
@@ -251,34 +251,17 @@ $ ./bin/alluxio runTests
 ### Configure Alluxio Clients for HA
 
 When an Alluxio client interacts with Alluxio in HA mode, the client must know about the Alluxio HA 
-cluster, so that the client knows how to discover the Alluxio leader master. There are 2 ways to
-configure the client for Alluxio HA.
-
-#### HA Client URI for Alluxio Client
-
-Users can use the Alluxio URI to connect to an Alluxio HA cluster, by fully specifying the HA cluster information.
-To specify the multi-master information within the Alluxio URI, 
-use `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
-To specify the ZooKeeper information within the Alluxio URI, use `alluxio://zk@<ZOOKEEPER_ADDRESS>`.
-
-For example, for many applications (e.g., Hadoop, HBase, Hive and Flink), you can use a comma as the
-delimiter for multiple addresses in the URI, like `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998` 
-and `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`.
-
-For some other applications (e.g., Spark), you need to use semicolons as the delimiter for multiple
-addresses, like `alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998` 
-and `alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path`.
-
-If you use the URI to specify the HA cluster information, the URI will take precedence, and ignore the
-related Alluxio HA mode configuration.
+cluster, so that the client knows how to discover the Alluxio leader master. There are 2 ways toconfigure the client for Alluxio HA.
 
 #### HA Configuration Parameters for Alluxio Client
 
-Users can configure the following parameter to connect to Alluxio cluster with internal leader election:
-
+When connecting to Alluxio HA cluster using embedded-journal-based leader election,
+Alluxio clients need the `alluxio.master.rpc.addresses` information to decide the node addresses
+to ping to find out the Alluxio leader master which is serving rpc requests.
 - `alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
 
-Users can configure the following parameters to connect to Alluxio cluster with ZooKeeper leader election: 
+When connecting to Alluxio HA cluster using Zookeeper-based leader election,
+the following properties are needed to connect to Zookeeper to get the leader master information.
 
 - `alluxio.zookeeper.enabled=true`
 - `alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>`
@@ -294,6 +277,24 @@ Hadoop CLI with an Alluxio URI.
 ```bash
 $ hadoop fs -ls alluxio:///directory
 ```
+
+#### HA Client URI for Alluxio Client
+
+Users can use the Alluxio URI to connect to an Alluxio HA cluster, by fully specifying the HA cluster information.
+To specify the multi-master information within the Alluxio URI, 
+use `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
+To specify the ZooKeeper information within the Alluxio URI, use `alluxio://zk@<ZOOKEEPER_ADDRESS>`.
+
+For example, for many applications (e.g., Hadoop, HBase, Hive and Flink), you can use a comma as the
+delimiter for multiple addresses in the URI, like `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998` 
+and `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`.
+
+For some other applications (e.g., Spark), you need to use semicolons as the delimiter for multiple
+addresses, like `alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998` 
+and `alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path`. 
+
+If you use the URI to specify the HA cluster information, the URI will take precedence, and ignore the
+related Alluxio HA mode configuration.
 
 ## Operations
 
@@ -383,8 +384,7 @@ master.
 #### Alluxio HA cluster with internal leader election
 
 When internal leader election is used, Alluxio masters are determined. Adding or Removing master nodes
-require modify the `alluxio.master.rpc.addresses` or `alluxio.master.embedded.journal.addresses` (depends
-on which parameter you set to enable the internal leader election).
+is not supported. 
 
 #### Alluxio HA cluster with Zookeeper election
 

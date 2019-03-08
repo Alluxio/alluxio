@@ -223,20 +223,12 @@ Alternatively, modify `conf/hive-site.xml` to have:
 
 ### Connect to Alluxio with HA
 
-> Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
- in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to
- Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
-
-If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
-`zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`, it requires setting
-set the Alluxio properties `alluxio.zookeeper.enabled` and `alluxio.zookeeper.address`
-
-One approach is to set in `alluxio-site.properties`.
+If you are running Alluxio in fault tolerant mode with embedded-journal-based leader election,
+set the Alluxio properties `alluxio.master.rpc.addresses` in `alluxio-site.properties`.
 Ensure that this file is on the classpath of Hive.
 
 ```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
+alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
@@ -244,15 +236,15 @@ Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
 ```xml
 <configuration>
   <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+    <name>alluxio.master.rpc.addresses</name>
+    <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
   </property>
 </configuration>
 ```
+
+> Tips：since Alluxio 2.0, there is an easier way to configure Hive to connect to Alluxio
+ in fault tolerant mode. Please follow the instructions in [HDFS API to connect to
+ Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
 
 ### Experimental: Use Alluxio as the Default Filesystem
 

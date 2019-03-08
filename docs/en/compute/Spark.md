@@ -109,12 +109,9 @@ Also, the input file `Input_HDFS` now will be 100% loaded in the Alluxio file sy
 
 ## Advanced Setup
 
-### Customize Alluxio User Properties for All Spark Jobs
+### Configure Spark to find Alluxio cluster in HA mode
 
-Let us use the setup of Spark to talk to Alluxio service in HA Mode as an example.
-
-#### Default internal leader election
-
+When connecting to the Alluxio HA cluster using embedded 
 Add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf` so Spark applications
 can know the Alluxio masters to connect to and find out the leader master.
 
@@ -135,36 +132,9 @@ Alternatively you can add the properties to the Hadoop configuration file
 </configuration>
 ```
 
-#### Zookeeper-based leader election
-
-If you are running multiple Alluxio masters with a Zookeeper service running at
-`zkHost1:2181`, `zkHost2:2181`, and `zkHost3:2181`,
-add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf`:
-
-```bash
-spark.driver.extraJavaOptions -Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
-spark.executor.extraJavaOptions -Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
-```
-
-Alternatively you can add the properties to the Hadoop configuration file
-`${SPARK_HOME}/conf/core-site.xml`:
-
-```xml
-<configuration>
-  <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
-  </property>
-</configuration>
-```
-
-As of Alluxio version 2.0, users can encode the Zookeeper service address
-inside an Alluxio URI (see [details](#access-data-from-alluxio-in-ha-mode)).
-In this way, it requires no extra setup for Spark configuration.
+Similarly, users can also configure Spark to find Alluxio HA cluster using 
+Zookeeper-based leader election, please refer to 
+[HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters-for-alluxio-client).
 
 ### Customize Alluxio User Properties for Individual Spark Jobs
 
@@ -203,28 +173,21 @@ or by the configured Zookeeper service.
 ```
 
 Alternatively, if the connection details for Alluxio HA mode is not set in Spark configuration,
-One can specify the connection details in the URI directly:
+one can specify the connection details in the URI directly.
 
-Connect to Alluxio HA cluster using internal leader election:
-
-```scala
-> val s = sc.textFile("alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/Input")
-> val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/Output")
-```
-
-Connect to Alluxio HA cluster using Zookeeper-based leader election:
+For example, specify the master rpc addresses in the URI to 
+connect to Alluxio HA cluster using embedded-journal-based leader election:
 
 ```scala
-> val s = sc.textFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/Input")
+> val s = sc.textFile("alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998/Input")
 > val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/Output")
+> double.saveAsTextFile("alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998/Output")
 ```
 
 > Note that you must use semicolons rather than commas to separate different Alluxio master or Zookeeper addresses to
 refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
 Please refer to the instructions in [HDFS API to connect to Alluxio with high
-availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
+availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#configure-alluxio-clients-for-ha).
 
 ### Cache RDD into Alluxio
 

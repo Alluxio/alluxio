@@ -156,12 +156,12 @@ hive.config.resources=/<PATH_TO_CONF>/core-site.xml,/<PATH_TO_CONF>/hdfs-site.xm
 
 #### Example: connect to Alluxio with HA
 
-To use Alluxio in fault tolerant mode, set the Alluxio cluster properties appropriately in an
+If the Alluxio HA cluster is using embedded-journal-based leader election,
+set the Alluxio cluster properties appropriately in an
 `alluxio-site.properties` file which is on the classpath.
 
 ```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
+alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 Alternatively you can add the properties to the Hadoop `core-site.xml` configuration
@@ -170,15 +170,14 @@ which is contained by `hive.config.resources`.
 ```xml
 <configuration>
   <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+    <name>alluxio.master.rpc.addresses</name>
+    <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
   </property>
 </configuration>
 ```
+
+For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
+please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters-for-alluxio-client).
 
 #### Example: change default Alluxio write type
 

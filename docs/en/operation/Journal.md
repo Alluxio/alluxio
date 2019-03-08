@@ -22,14 +22,13 @@ an external Zookeeper cluster for coordination, and relies on a UFS for persiste
 To get reasonable performance, the UFS journal requires a UFS that supports fast streaming writes, 
 such as HDFS or NFS.
 
-The embedded journal does its own coordination and persistent storage, but has a few limitations.
-
-First, `n` masters using the embedded journal can tolerate only `floor(n/2)` master failures, 
+The embedded journal does its own coordination and persistent storage, but has a few limitations:
+* `n` masters using the embedded journal can tolerate only `floor(n/2)` master failures, 
 compared to `n-1` for UFS journal. For example, With `3` masters, UFS journal can tolerate `2` failures, 
 while embedded journal can only tolerate `1`. However, UFS journal depends on Zookeeper, 
 which similarly only supports `floor(#zookeeper_nodes / 2)` failures.
 
-The other limitation is that embedded journal does not support dynamically changing master membership. 
+* embedded journal does not support dynamically changing master membership. 
 With UFS journal, replacing a master on `host1` with a new master on `host2` is as simple as starting a new master on `host2`, 
 then killing the master on `host1`. Changing the masters in an embedded journal cluster requires backing up the cluster, 
 shutting it down, and then starting up again with the new masters using the backup.
@@ -68,28 +67,25 @@ alluxio.master.journal.folder=/opt/alluxio/journal
 
 The configuration specified below should be applied to both Alluxio servers and Alluxio clients.
 
-Set the addresses of all masters in the cluster. The default rpc port is `19998`.
+Set the addresses of all masters in the cluster. The default embedded journal port is `19200`.
 
 ```
-alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200
 ```
-
-The input value is a list of comma-separated `host:port` RPC addresses where the client
-should look for masters when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled,
-since Zookeeper already stores the master addresses. If this is not set, clients will look for masters using the hostnames
-from `alluxio.master.embedded.journal.addresses` and the master rpc port.
 
 ### Optional configuration
 
 * `alluxio.master.embedded.journal.port`: The port masters use for embedded journal communication. Default: `19200`.
 * `alluxio.master.port`: The port masters use for RPCs. Default: `19998`.
-* `alluxio.master.embedded.journal.addresses`: A list of comma-separated embedded journal addresses
-like `alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200`.
+* `alluxio.master.rpc.addresses`: A list of comma-separated `host:port` RPC addresses where the client should look for masters 
+when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses. 
+If this is not set, clients will look for masters using the hostnames from `alluxio.master.embedded.journal.addresses` 
+and the master rpc port (Default:`19998`).
 
 ### Job service configuration
 
 It is usually best not to set any of these - by default the job master will use the same hostnames as the Alluxio master, 
-so it is enough to set only `alluxio.master.rpc.addresses`. These properties only need to be set 
+so it is enough to set only `alluxio.master.embedded.journal.addresses`. These properties only need to be set 
 when the job service is being run independent from the rest of the system or using a non-standard port.
 
 * `alluxio.job.master.embedded.journal.port`: the port job masters use for embedded journal communications. Default: `20003`.
