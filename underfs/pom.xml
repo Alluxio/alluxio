@@ -32,6 +32,7 @@
     <module>swift</module>
     <module>wasb</module>
     <module>kodo</module>
+    <module>bos</module>
   </modules>
 
   <properties>

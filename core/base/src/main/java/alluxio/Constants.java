@@ -72,6 +72,7 @@ public final class Constants {
   public static final String HEADER_GCS = "gs://";
   public static final String HEADER_COS = "cos://";
   public static final String HEADER_KODO = "kodo://";
+  public static final String HEADER_BOS = "bos://";
 
   public static final int MAX_PORT = 65535;
 
