@@ -11,13 +11,13 @@
 
 package alluxio.cli.fs;
 
-import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.conf.Source;
+import alluxio.exception.ExceptionMessage;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -57,12 +57,8 @@ public final class FileSystemShell extends AbstractShell {
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
     if (!ConfigurationUtils.masterHostConfigured(conf)
         && argv.length > 0 && !argv[0].equals("help")) {
-      System.out.println(String.format(
-          "Cannot run alluxio fs shell; master hostname is not "
-              + "configured. Please modify %s to either set %s or configure zookeeper with "
-              + "%s=true and %s=[comma-separated zookeeper master addresses]",
-          Constants.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
-          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString()));
+      System.out.println(ExceptionMessage.UNABLE_TO_DETERMINE_MASTER_HOSTNAME
+              .getMessage("Alluxio fs shell"));
       System.exit(1);
     }
 

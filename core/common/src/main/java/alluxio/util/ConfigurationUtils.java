@@ -21,6 +21,7 @@ import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
@@ -267,6 +268,37 @@ public final class ConfigurationUtils {
         && conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
     return conf.isSet(PropertyKey.JOB_MASTER_HOSTNAME) || usingZk
         || getJobMasterRpcAddresses(conf).size() > 1;
+  }
+
+  /**
+   * Returns a unified message for cases when the master hostname cannot be determined.
+   *
+   * @param serviceName The name of the service that couldn't run. i.e. Alluxio worker, fsadmin
+   *                    shell, etc.
+   * @return a string with the message
+   */
+  public static String getMasterHostNotConfiguredMessage(String serviceName) {
+    return getHostNotConfiguredMessage(serviceName, "master", PropertyKey.MASTER_HOSTNAME,
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
+  }
+
+  /**
+   * Returns a unified message for cases when the job master hostname cannot be determined.
+   *
+   * @param serviceName The name of the service that couldn't run. i.e. Alluxio worker, fsadmin
+   *                    shell, etc.
+   * @return a string with the message
+   */
+  public static String getJobMasterHostNotConfiguredMessage(String serviceName) {
+    return getHostNotConfiguredMessage(serviceName, "job master", PropertyKey.JOB_MASTER_HOSTNAME,
+        PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES);
+  }
+
+  private static String getHostNotConfiguredMessage(String serviceName, String masterName,
+      PropertyKey masterHostnameKey, PropertyKey embeddedJournalKey) {
+    return ExceptionMessage.UNABLE_TO_DETERMINE_MASTER_HOSTNAME.getMessage(serviceName, masterName,
+        masterHostnameKey.getName(), PropertyKey.ZOOKEEPER_ENABLED.getName(),
+        PropertyKey.ZOOKEEPER_ADDRESS.getName(), embeddedJournalKey.getName());
   }
 
   /**
