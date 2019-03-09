@@ -38,6 +38,12 @@ if [[ -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
   . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
 fi
 
+if [[ $(uname -s) == Darwin && ! -e "${ALLUXIO_CONF_DIR}/alluxio-site.properties" ]]; then
+  cp ${ALLUXIO_CONF_DIR}/alluxio-site.properties.template ${ALLUXIO_CONF_DIR}/alluxio-site.properties
+  sed -i '' 's/# alluxio\.master\.hostname=localhost/alluxio\.master\.hostname=localhost/' \
+    ${ALLUXIO_CONF_DIR}/alluxio-site.properties
+fi
+
 if [[ -z "$(which java)" ]]; then
   echo "Cannot find the 'java' command."
   exit 1
