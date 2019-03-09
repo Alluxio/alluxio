@@ -32,7 +32,8 @@ public final class UnderFileSystemTestUtils {
         || ufsAddress.startsWith(Constants.HEADER_S3A)
         || ufsAddress.startsWith(Constants.HEADER_GCS)
         || ufsAddress.startsWith(Constants.HEADER_SWIFT)
-        || ufsAddress.startsWith(Constants.HEADER_OSS);
+        || ufsAddress.startsWith(Constants.HEADER_OSS)
+        || ufsAddress.startsWith(Constants.HEADER_BOS);
   }
 
   private UnderFileSystemTestUtils() {} // prevent instantiation

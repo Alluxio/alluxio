@@ -34,6 +34,8 @@ public final class GetConfKey {
       .put("FS_GCS_SECRETACCESSKEY", "fs.gcs.secretAccessKey")
       .put("FS_OSS_ACCESSKEYID", "fs.oss.accessKeyId")
       .put("FS_OSS_ACCESSKEYSECRET", "fs.oss.accessKeySecret")
+      .put("FS_BOS_ACCESSKEYID", "fs.bos.accessKeyId")
+      .put("FS_BOS_ACCESSKEYSECRET", "fs.bos.accessKeySecret")
       .build();
 
   /**

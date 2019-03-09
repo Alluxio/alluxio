@@ -87,5 +87,10 @@ public final class UnderFileSystemTest {
         mConfiguration);
     Assert.assertNull("No UnderFileSystemFactory should exist for Gluster FS paths as it requires"
         + " a separate module", factory);
+
+    factory = UnderFileSystemFactoryRegistry.find("bos://localhost/test/path", mConfiguration);
+    Assert.assertNull(
+        "No UnderFileSystemFactory should exist for BOS paths as it requires a separate module",
+        factory);
   }
 }

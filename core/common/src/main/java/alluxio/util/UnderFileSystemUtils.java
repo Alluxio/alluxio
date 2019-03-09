@@ -130,6 +130,14 @@ public final class UnderFileSystemUtils {
   }
 
   /**
+   * @param ufs the {@link UnderFileSystem} implementation to check
+   * @return true if the implementation is a Baidu Cloud BOS service implementation
+   */
+  public static boolean isBos(UnderFileSystem ufs) {
+    return "bos".equals(ufs.getUnderFSType());
+  }
+
+  /**
    * @param uri the UFS path
    * @return the bucket or container name of the object storage
    */
