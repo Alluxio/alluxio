@@ -127,7 +127,6 @@ The job workers are discussed more in the following section.
 
 ### Alluxio Workers
 
-
 Alluxio workers are responsible for managing user-configurable local resources
 allocated to Alluxio (e.g. memory, SSDs, HDDs). Alluxio workers store data
 as blocks and serve client requests that read or write data by reading or
