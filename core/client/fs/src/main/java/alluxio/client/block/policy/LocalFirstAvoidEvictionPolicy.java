@@ -9,17 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.policy;
+package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
@@ -35,49 +33,42 @@ import javax.annotation.concurrent.ThreadSafe;
  * USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES is used to reserve some space of the worker
  * to store the block, for the values mCapacityBytes minus mUsedBytes is not the available bytes.
  */
-// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
-public final class LocalFirstAvoidEvictionPolicy
-    implements FileWriteLocationPolicy, BlockLocationPolicy {
+public final class LocalFirstAvoidEvictionPolicy implements BlockLocationPolicy {
   private final LocalFirstPolicy mPolicy;
-  private final long mFileWriteCapacityReserved;
+  private final long mBlockCapacityReserved;
 
   /**
    * Constructs a {@link LocalFirstAvoidEvictionPolicy}.
    *
-   * @param alluxioConf Alluxio configuration
+   * @param options {@link CreateOptions} for BlockLocationPolicy
    */
-  public LocalFirstAvoidEvictionPolicy(AlluxioConfiguration alluxioConf) {
-    mPolicy = new LocalFirstPolicy(alluxioConf);
-    mFileWriteCapacityReserved = alluxioConf
-        .getBytes(PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES);
+  public LocalFirstAvoidEvictionPolicy(CreateOptions options) {
+    this(options.getTieredIdentity(), options.getBlockReservedCapacity(),
+        options.getConfiguration());
   }
 
-  @VisibleForTesting
-  LocalFirstAvoidEvictionPolicy(TieredIdentity localTieredIdentity,
+  LocalFirstAvoidEvictionPolicy(TieredIdentity localTieredIdentity, long blockCapacityReserved,
       AlluxioConfiguration conf) {
     mPolicy = LocalFirstPolicy.create(localTieredIdentity, conf);
-    mFileWriteCapacityReserved = conf
-        .getBytes(PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES);
-  }
-
-  @Override
-  public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes) {
-    List<BlockWorkerInfo> allWorkers = Lists.newArrayList(workerInfoList);
-    // Prefer workers with enough availability.
-    List<BlockWorkerInfo> workers = allWorkers.stream()
-        .filter(worker -> getAvailableBytes(worker) >= blockSizeBytes)
-        .collect(Collectors.toList());
-    if (workers.isEmpty()) {
-      workers = allWorkers;
-    }
-    return mPolicy.getWorkerForNextBlock(workers, blockSizeBytes);
+    mBlockCapacityReserved = blockCapacityReserved;
   }
 
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
-    return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
+    List<BlockWorkerInfo> allWorkers = Lists.newArrayList(options.getBlockWorkerInfos());
+    // Prefer workers with enough availability.
+    List<BlockWorkerInfo> workers = allWorkers.stream()
+        .filter(worker -> getAvailableBytes(worker) >= options.getBlockSize())
+        .collect(Collectors.toList());
+    if (workers.isEmpty()) {
+      workers = allWorkers;
+    }
+    GetWorkerOptions filteredWorkers = GetWorkerOptions.defaults()
+        .setBlockId(options.getBlockId())
+        .setBlockSize(options.getBlockSize())
+        .setBlockWorkerInfos(workers);
+    return mPolicy.getWorker(filteredWorkers);
   }
 
   /**
@@ -91,7 +82,7 @@ public final class LocalFirstAvoidEvictionPolicy
   private long getAvailableBytes(BlockWorkerInfo workerInfo) {
     long mCapacityBytes = workerInfo.getCapacityBytes();
     long mUsedBytes = workerInfo.getUsedBytes();
-    return mCapacityBytes - mUsedBytes - mFileWriteCapacityReserved;
+    return mCapacityBytes - mUsedBytes - mBlockCapacityReserved;
   }
 
   @Override
@@ -104,7 +95,7 @@ public final class LocalFirstAvoidEvictionPolicy
     }
     LocalFirstAvoidEvictionPolicy that = (LocalFirstAvoidEvictionPolicy) o;
     return Objects.equal(mPolicy, that.mPolicy)
-        && Objects.equal(mFileWriteCapacityReserved, that.mFileWriteCapacityReserved);
+        && Objects.equal(mBlockCapacityReserved, that.mBlockCapacityReserved);
   }
 
   @Override
@@ -116,7 +107,7 @@ public final class LocalFirstAvoidEvictionPolicy
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("policy", mPolicy)
-        .add("fileWriteCapacityReservered", mFileWriteCapacityReserved)
+        .add("blockCapacityReservered", mBlockCapacityReserved)
         .toString();
   }
 }

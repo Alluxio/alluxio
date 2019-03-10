@@ -12,9 +12,8 @@
 package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -58,23 +57,10 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   /**
    * Constructs a new {@link DeterministicHashPolicy}.
    *
-   * @param alluxioConf Alluxio configuration
+   * @param options {@link CreateOptions} for BlockLocationPolicy
    */
-  public DeterministicHashPolicy(AlluxioConfiguration alluxioConf) {
-    int numShards = alluxioConf
-        .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS);
-    Preconditions.checkArgument(numShards >= 1);
-    mShards = numShards;
-  }
-
-  /**
-   * Constructs a new {@link DeterministicHashPolicy}.
-   *
-   * @param numShards the number of shards a block's traffic can be sharded to
-   * @deprecated This constructor will be removed in 2.0 in favor of passing a configuration object
-   */
-  @Deprecated
-  public DeterministicHashPolicy(Integer numShards) {
+  public DeterministicHashPolicy(CreateOptions options) {
+    int numShards = options.getDeterministicHashPolicyNumShards();
     Preconditions.checkArgument(numShards >= 1);
     mShards = numShards;
   }

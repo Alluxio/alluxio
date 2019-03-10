@@ -66,18 +66,18 @@ public interface CreateFilePOptionsOrBuilder extends
   int getReplicationDurable();
 
   /**
-   * <code>optional string fileWriteLocationPolicy = 7;</code>
+   * <code>optional string blockWriteLocationPolicy = 7;</code>
    */
-  boolean hasFileWriteLocationPolicy();
+  boolean hasBlockWriteLocationPolicy();
   /**
-   * <code>optional string fileWriteLocationPolicy = 7;</code>
+   * <code>optional string blockWriteLocationPolicy = 7;</code>
    */
-  java.lang.String getFileWriteLocationPolicy();
+  java.lang.String getBlockWriteLocationPolicy();
   /**
-   * <code>optional string fileWriteLocationPolicy = 7;</code>
+   * <code>optional string blockWriteLocationPolicy = 7;</code>
    */
   com.google.protobuf.ByteString
-      getFileWriteLocationPolicyBytes();
+      getBlockWriteLocationPolicyBytes();
 
   /**
    * <code>optional int32 writeTier = 8;</code>

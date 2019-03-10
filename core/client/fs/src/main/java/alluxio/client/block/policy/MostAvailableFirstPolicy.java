@@ -9,12 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.policy;
+package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -25,35 +24,27 @@ import javax.annotation.concurrent.ThreadSafe;
  * A policy that returns the worker with the most available bytes. The policy returns null if no
  * worker is qualified.
  */
-// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
-public final class MostAvailableFirstPolicy
-    implements FileWriteLocationPolicy, BlockLocationPolicy {
+public final class MostAvailableFirstPolicy implements BlockLocationPolicy {
 
   /**
    * Constructs a new {@link MostAvailableFirstPolicy}.
    *
-   * @param alluxioConf Alluxio configuration
+   * @param options {@link CreateOptions} for BlockLocationPolicy
    */
-  public MostAvailableFirstPolicy(AlluxioConfiguration alluxioConf) {}
+  public MostAvailableFirstPolicy(CreateOptions options) {}
 
   @Override
-  public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes) {
+  public WorkerNetAddress getWorker(GetWorkerOptions options) {
     long mostAvailableBytes = -1;
     WorkerNetAddress result = null;
-    for (BlockWorkerInfo workerInfo : workerInfoList) {
+    for (BlockWorkerInfo workerInfo : options.getBlockWorkerInfos()) {
       if (workerInfo.getCapacityBytes() - workerInfo.getUsedBytes() > mostAvailableBytes) {
         mostAvailableBytes = workerInfo.getCapacityBytes() - workerInfo.getUsedBytes();
         result = workerInfo.getNetAddress();
       }
     }
     return result;
-  }
-
-  @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
-    return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
   }
 
   @Override

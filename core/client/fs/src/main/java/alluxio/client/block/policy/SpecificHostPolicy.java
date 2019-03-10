@@ -9,13 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.policy;
+package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -28,16 +26,15 @@ import javax.annotation.concurrent.ThreadSafe;
  * Always returns a worker with the specified hostname. Returns null if no active worker on that
  * hostname found.
  */
-// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
-public final class SpecificHostPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
+public final class SpecificHostPolicy implements BlockLocationPolicy {
   private final String mHostname;
 
   /**
-   * @param alluxioConf Alluxio configuration
+   * @param options {@link CreateOptions} for BlockLocationPolicy
    */
-  public SpecificHostPolicy(AlluxioConfiguration alluxioConf) {
-    this(alluxioConf.get(PropertyKey.WORKER_HOSTNAME));
+  public SpecificHostPolicy(CreateOptions options) {
+    this(options.getSpecificWorker());
   }
 
   /**
@@ -50,20 +47,14 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy, BlockL
   }
 
   @Override
-  public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes) {
+  public WorkerNetAddress getWorker(GetWorkerOptions options) {
     // find the first worker matching the host name
-    for (BlockWorkerInfo info : workerInfoList) {
+    for (BlockWorkerInfo info : options.getBlockWorkerInfos()) {
       if (info.getNetAddress().getHost().equals(mHostname)) {
         return info.getNetAddress();
       }
     }
     return null;
-  }
-
-  @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
-    return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
   }
 
   @Override

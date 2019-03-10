@@ -11,8 +11,12 @@
 
 package alluxio.client.block.policy.options;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 
+import com.google.common.testing.EqualsTester;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,10 +32,14 @@ public final class CreateOptionsTest {
    */
   @Test
   public void defaults() throws IOException {
-    CreateOptions options = CreateOptions.defaults();
+    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    CreateOptions options = CreateOptions.defaults(conf);
 
-    Assert.assertEquals(1, options.getDeterministicHashPolicyNumShards());
-    Assert.assertEquals(null, options.getLocationPolicyClassName());
+    Assert.assertEquals(conf
+        .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS),
+        options.getDeterministicHashPolicyNumShards());
+    Assert.assertEquals(conf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
+        options.getLocationPolicyClassName());
   }
 
   /**
@@ -43,7 +51,7 @@ public final class CreateOptionsTest {
     int deterministicHashPolicyNumShards = random.nextInt();
     String locationPolicyClassName = CommonUtils.randomAlphaNumString(10);
 
-    CreateOptions options = CreateOptions.defaults();
+    CreateOptions options = CreateOptions.defaults(ConfigurationTestUtils.defaults());
     options.setDeterministicHashPolicyNumShards(deterministicHashPolicyNumShards);
     options.setLocationPolicyClassName(locationPolicyClassName);
     Assert.assertEquals(deterministicHashPolicyNumShards,
@@ -53,6 +61,17 @@ public final class CreateOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    alluxio.test.util.CommonUtils.testEquals(CreateOptions.class);
+    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    new EqualsTester()
+        .addEqualityGroup(CreateOptions.defaults(conf), CreateOptions.defaults(conf))
+        .addEqualityGroup(CreateOptions.defaults(conf).setBlockReservedCapacity(1),
+            CreateOptions.defaults(conf).setBlockReservedCapacity(1))
+        .addEqualityGroup(CreateOptions.defaults(conf).setDeterministicHashPolicyNumShards(5),
+            CreateOptions.defaults(conf).setDeterministicHashPolicyNumShards(5))
+        .addEqualityGroup(CreateOptions.defaults(conf).setSpecificWorker("a"),
+            CreateOptions.defaults(conf).setSpecificWorker("a"))
+        .addEqualityGroup(CreateOptions.defaults(conf).setTieredIdentity(null),
+            CreateOptions.defaults(conf).setTieredIdentity(null))
+        .testEquals();
   }
 }

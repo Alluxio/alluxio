@@ -20,7 +20,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.policy.LocalFirstPolicy;
+import alluxio.client.block.policy.LocalFirstPolicy;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
@@ -131,7 +131,7 @@ public final class JobUtils {
 
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE)
-            .setFileReadLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).build();
+            .setBlockReadLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).build();
 
     AlluxioConfiguration conf = ServerConfiguration.global();
     InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);

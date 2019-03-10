@@ -21,7 +21,7 @@ private static final long serialVersionUID = 0L;
     replicationMax_ = 0;
     replicationMin_ = 0;
     replicationDurable_ = 0;
-    fileWriteLocationPolicy_ = "";
+    blockWriteLocationPolicy_ = "";
     writeTier_ = 0;
     writeType_ = 1;
   }
@@ -98,7 +98,7 @@ private static final long serialVersionUID = 0L;
           case 58: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000040;
-            fileWriteLocationPolicy_ = bs;
+            blockWriteLocationPolicy_ = bs;
             break;
           }
           case 64: {
@@ -251,19 +251,19 @@ private static final long serialVersionUID = 0L;
     return replicationDurable_;
   }
 
-  public static final int FILEWRITELOCATIONPOLICY_FIELD_NUMBER = 7;
-  private volatile java.lang.Object fileWriteLocationPolicy_;
+  public static final int BLOCKWRITELOCATIONPOLICY_FIELD_NUMBER = 7;
+  private volatile java.lang.Object blockWriteLocationPolicy_;
   /**
-   * <code>optional string fileWriteLocationPolicy = 7;</code>
+   * <code>optional string blockWriteLocationPolicy = 7;</code>
    */
-  public boolean hasFileWriteLocationPolicy() {
+  public boolean hasBlockWriteLocationPolicy() {
     return ((bitField0_ & 0x00000040) == 0x00000040);
   }
   /**
-   * <code>optional string fileWriteLocationPolicy = 7;</code>
+   * <code>optional string blockWriteLocationPolicy = 7;</code>
    */
-  public java.lang.String getFileWriteLocationPolicy() {
-    java.lang.Object ref = fileWriteLocationPolicy_;
+  public java.lang.String getBlockWriteLocationPolicy() {
+    java.lang.Object ref = blockWriteLocationPolicy_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
@@ -271,22 +271,22 @@ private static final long serialVersionUID = 0L;
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       if (bs.isValidUtf8()) {
-        fileWriteLocationPolicy_ = s;
+        blockWriteLocationPolicy_ = s;
       }
       return s;
     }
   }
   /**
-   * <code>optional string fileWriteLocationPolicy = 7;</code>
+   * <code>optional string blockWriteLocationPolicy = 7;</code>
    */
   public com.google.protobuf.ByteString
-      getFileWriteLocationPolicyBytes() {
-    java.lang.Object ref = fileWriteLocationPolicy_;
+      getBlockWriteLocationPolicyBytes() {
+    java.lang.Object ref = blockWriteLocationPolicy_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      fileWriteLocationPolicy_ = b;
+      blockWriteLocationPolicy_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
@@ -382,7 +382,7 @@ private static final long serialVersionUID = 0L;
       output.writeInt32(6, replicationDurable_);
     }
     if (((bitField0_ & 0x00000040) == 0x00000040)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 7, fileWriteLocationPolicy_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 7, blockWriteLocationPolicy_);
     }
     if (((bitField0_ & 0x00000080) == 0x00000080)) {
       output.writeInt32(8, writeTier_);
@@ -426,7 +426,7 @@ private static final long serialVersionUID = 0L;
         .computeInt32Size(6, replicationDurable_);
     }
     if (((bitField0_ & 0x00000040) == 0x00000040)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(7, fileWriteLocationPolicy_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(7, blockWriteLocationPolicy_);
     }
     if (((bitField0_ & 0x00000080) == 0x00000080)) {
       size += com.google.protobuf.CodedOutputStream
@@ -486,10 +486,10 @@ private static final long serialVersionUID = 0L;
       result = result && (getReplicationDurable()
           == other.getReplicationDurable());
     }
-    result = result && (hasFileWriteLocationPolicy() == other.hasFileWriteLocationPolicy());
-    if (hasFileWriteLocationPolicy()) {
-      result = result && getFileWriteLocationPolicy()
-          .equals(other.getFileWriteLocationPolicy());
+    result = result && (hasBlockWriteLocationPolicy() == other.hasBlockWriteLocationPolicy());
+    if (hasBlockWriteLocationPolicy()) {
+      result = result && getBlockWriteLocationPolicy()
+          .equals(other.getBlockWriteLocationPolicy());
     }
     result = result && (hasWriteTier() == other.hasWriteTier());
     if (hasWriteTier()) {
@@ -542,9 +542,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + REPLICATIONDURABLE_FIELD_NUMBER;
       hash = (53 * hash) + getReplicationDurable();
     }
-    if (hasFileWriteLocationPolicy()) {
-      hash = (37 * hash) + FILEWRITELOCATIONPOLICY_FIELD_NUMBER;
-      hash = (53 * hash) + getFileWriteLocationPolicy().hashCode();
+    if (hasBlockWriteLocationPolicy()) {
+      hash = (37 * hash) + BLOCKWRITELOCATIONPOLICY_FIELD_NUMBER;
+      hash = (53 * hash) + getBlockWriteLocationPolicy().hashCode();
     }
     if (hasWriteTier()) {
       hash = (37 * hash) + WRITETIER_FIELD_NUMBER;
@@ -705,7 +705,7 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000010);
       replicationDurable_ = 0;
       bitField0_ = (bitField0_ & ~0x00000020);
-      fileWriteLocationPolicy_ = "";
+      blockWriteLocationPolicy_ = "";
       bitField0_ = (bitField0_ & ~0x00000040);
       writeTier_ = 0;
       bitField0_ = (bitField0_ & ~0x00000080);
@@ -772,7 +772,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
         to_bitField0_ |= 0x00000040;
       }
-      result.fileWriteLocationPolicy_ = fileWriteLocationPolicy_;
+      result.blockWriteLocationPolicy_ = blockWriteLocationPolicy_;
       if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
         to_bitField0_ |= 0x00000080;
       }
@@ -849,9 +849,9 @@ private static final long serialVersionUID = 0L;
       if (other.hasReplicationDurable()) {
         setReplicationDurable(other.getReplicationDurable());
       }
-      if (other.hasFileWriteLocationPolicy()) {
+      if (other.hasBlockWriteLocationPolicy()) {
         bitField0_ |= 0x00000040;
-        fileWriteLocationPolicy_ = other.fileWriteLocationPolicy_;
+        blockWriteLocationPolicy_ = other.blockWriteLocationPolicy_;
         onChanged();
       }
       if (other.hasWriteTier()) {
@@ -1174,24 +1174,24 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object fileWriteLocationPolicy_ = "";
+    private java.lang.Object blockWriteLocationPolicy_ = "";
     /**
-     * <code>optional string fileWriteLocationPolicy = 7;</code>
+     * <code>optional string blockWriteLocationPolicy = 7;</code>
      */
-    public boolean hasFileWriteLocationPolicy() {
+    public boolean hasBlockWriteLocationPolicy() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
-     * <code>optional string fileWriteLocationPolicy = 7;</code>
+     * <code>optional string blockWriteLocationPolicy = 7;</code>
      */
-    public java.lang.String getFileWriteLocationPolicy() {
-      java.lang.Object ref = fileWriteLocationPolicy_;
+    public java.lang.String getBlockWriteLocationPolicy() {
+      java.lang.Object ref = blockWriteLocationPolicy_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          fileWriteLocationPolicy_ = s;
+          blockWriteLocationPolicy_ = s;
         }
         return s;
       } else {
@@ -1199,53 +1199,53 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string fileWriteLocationPolicy = 7;</code>
+     * <code>optional string blockWriteLocationPolicy = 7;</code>
      */
     public com.google.protobuf.ByteString
-        getFileWriteLocationPolicyBytes() {
-      java.lang.Object ref = fileWriteLocationPolicy_;
+        getBlockWriteLocationPolicyBytes() {
+      java.lang.Object ref = blockWriteLocationPolicy_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        fileWriteLocationPolicy_ = b;
+        blockWriteLocationPolicy_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>optional string fileWriteLocationPolicy = 7;</code>
+     * <code>optional string blockWriteLocationPolicy = 7;</code>
      */
-    public Builder setFileWriteLocationPolicy(
+    public Builder setBlockWriteLocationPolicy(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000040;
-      fileWriteLocationPolicy_ = value;
+      blockWriteLocationPolicy_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string fileWriteLocationPolicy = 7;</code>
+     * <code>optional string blockWriteLocationPolicy = 7;</code>
      */
-    public Builder clearFileWriteLocationPolicy() {
+    public Builder clearBlockWriteLocationPolicy() {
       bitField0_ = (bitField0_ & ~0x00000040);
-      fileWriteLocationPolicy_ = getDefaultInstance().getFileWriteLocationPolicy();
+      blockWriteLocationPolicy_ = getDefaultInstance().getBlockWriteLocationPolicy();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string fileWriteLocationPolicy = 7;</code>
+     * <code>optional string blockWriteLocationPolicy = 7;</code>
      */
-    public Builder setFileWriteLocationPolicyBytes(
+    public Builder setBlockWriteLocationPolicyBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000040;
-      fileWriteLocationPolicy_ = value;
+      blockWriteLocationPolicy_ = value;
       onChanged();
       return this;
     }

@@ -174,7 +174,7 @@ In this case, you will see the above error once the local worker does not have e
 To distribute the data of your file on different workers, you can change this policy to `RoundRobinPolicy` (see below).
 
 ```bash
-$ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
+$ bin/alluxio fs -Dalluxio.user.block.write.location.policy.class=alluxio.client.block.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
 ```
 
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.

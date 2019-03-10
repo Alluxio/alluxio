@@ -2640,9 +2640,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
-      new Builder(Name.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY)
-          .setDefaultValue("alluxio.client.file.policy.RoundRobinPolicy")
+  public static final PropertyKey USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY =
+      new Builder(Name.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY)
+          .setDefaultValue("alluxio.client.block.policy.RoundRobinPolicy")
           .setDescription("The default location policy for choosing workers for writing a "
               + "file's blocks using copyFromLocal command.")
           .setScope(Scope.CLIENT)
@@ -2754,19 +2754,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "writing data to Alluxio but fallback to write to UFS without stopping the "
               + "application. This property only works when the write type is ASYNC_THROUGH.")
           .setDefaultValue(false).build();
-  public static final PropertyKey USER_FILE_WRITE_LOCATION_POLICY =
-      new Builder(Name.USER_FILE_WRITE_LOCATION_POLICY)
-          .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
+  public static final PropertyKey USER_BLOCK_WRITE_LOCATION_POLICY =
+      new Builder(Name.USER_BLOCK_WRITE_LOCATION_POLICY)
+          .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
           .setDescription("The default location policy for choosing workers for writing a "
               + "file's blocks.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =
-      new Builder(Name.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES)
+  public static final PropertyKey USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES =
+      new Builder(Name.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES)
           .setDefaultValue("0MB")
-          .setDescription("The portion of space reserved in worker when user use the "
-              + "LocalFirstAvoidEvictionPolicy class as file write location policy.")
+          .setDescription("The portion of space reserved in a worker when using the "
+              + "LocalFirstAvoidEvictionPolicy class as block location policy.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3046,16 +3046,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
       new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
-          .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
+          .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
           .setDescription(String.format("When an Alluxio client reads a file from the UFS, it "
               + "delegates the read to an Alluxio worker. The client uses this policy to choose "
-              + "which worker to read through. Builtin choices: %s.", Arrays.asList(
+              + "which worker to read through. Built-in choices: %s.", Arrays.asList(
               javadocLink("alluxio.client.block.policy.DeterministicHashPolicy"),
-              javadocLink("alluxio.client.file.policy.LocalFirstAvoidEvictionPolicy"),
-              javadocLink("alluxio.client.file.policy.LocalFirstPolicy"),
-              javadocLink("alluxio.client.file.policy.MostAvailableFirstPolicy"),
-              javadocLink("alluxio.client.file.policy.RoundRobinPolicy"),
-              javadocLink("alluxio.client.file.policy.SpecificHostPolicy"))))
+              javadocLink("alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy"),
+              javadocLink("alluxio.client.block.policy.LocalFirstPolicy"),
+              javadocLink("alluxio.client.block.policy.MostAvailableFirstPolicy"),
+              javadocLink("alluxio.client.block.policy.RoundRobinPolicy"),
+              javadocLink("alluxio.client.block.policy.SpecificHostPolicy"))))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3936,18 +3936,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // User related properties
     //
+    public static final String USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES =
+        "alluxio.user.block.avoid.eviction.policy.reserved.size.bytes";
     public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
         "alluxio.user.block.master.client.threads";
-    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
-        "alluxio.user.block.worker.client.pool.size";
-    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
-        "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
         "alluxio.user.block.size.bytes.default";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.block.worker.client.pool.gc.threshold";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
+        "alluxio.user.block.worker.client.pool.size";
     public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
         "alluxio.user.block.worker.client.read.retry";
+    public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
+        "alluxio.user.block.write.location.policy.class";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
@@ -3956,8 +3960,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
         "alluxio.user.file.cache.partially.read.block";
-    public static final String USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
-        "alluxio.user.file.copyfromlocal.write.location.policy.class";
+    public static final String USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY =
+        "alluxio.user.file.copyfromlocal.block.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =
@@ -3986,10 +3990,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.create.ttl";
     public static final String USER_FILE_CREATE_TTL_ACTION =
         "alluxio.user.file.create.ttl.action";
-    public static final String USER_FILE_WRITE_LOCATION_POLICY =
-        "alluxio.user.file.write.location.policy.class";
-    public static final String USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =
-        "alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes";
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";

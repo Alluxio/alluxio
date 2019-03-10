@@ -567,8 +567,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
     FileOutStream os = null;
     try (Closer closer = Closer.create()) {
       CreateFilePOptions createOptions = CreateFilePOptions.newBuilder()
-          .setFileWriteLocationPolicy(mFsContext.getConf().get(
-                  PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY))
+          .setBlockWriteLocationPolicy(mFsContext.getConf().get(
+                  PropertyKey.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY))
           .build();
       os = closer.register(mFileSystem.createFile(dstPath, createOptions));
       FileInputStream in = closer.register(new FileInputStream(src));

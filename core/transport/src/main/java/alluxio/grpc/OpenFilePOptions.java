@@ -18,7 +18,7 @@ private static final long serialVersionUID = 0L;
   private OpenFilePOptions() {
     readType_ = 1;
     maxUfsReadConcurrency_ = 0;
-    fileReadLocationPolicy_ = "";
+    blockReadLocationPolicy_ = "";
     hashingNumberOfShards_ = 0;
   }
 
@@ -72,7 +72,7 @@ private static final long serialVersionUID = 0L;
           case 26: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000004;
-            fileReadLocationPolicy_ = bs;
+            blockReadLocationPolicy_ = bs;
             break;
           }
           case 32: {
@@ -149,19 +149,19 @@ private static final long serialVersionUID = 0L;
     return maxUfsReadConcurrency_;
   }
 
-  public static final int FILEREADLOCATIONPOLICY_FIELD_NUMBER = 3;
-  private volatile java.lang.Object fileReadLocationPolicy_;
+  public static final int BLOCKREADLOCATIONPOLICY_FIELD_NUMBER = 3;
+  private volatile java.lang.Object blockReadLocationPolicy_;
   /**
-   * <code>optional string fileReadLocationPolicy = 3;</code>
+   * <code>optional string blockReadLocationPolicy = 3;</code>
    */
-  public boolean hasFileReadLocationPolicy() {
+  public boolean hasBlockReadLocationPolicy() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional string fileReadLocationPolicy = 3;</code>
+   * <code>optional string blockReadLocationPolicy = 3;</code>
    */
-  public java.lang.String getFileReadLocationPolicy() {
-    java.lang.Object ref = fileReadLocationPolicy_;
+  public java.lang.String getBlockReadLocationPolicy() {
+    java.lang.Object ref = blockReadLocationPolicy_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
@@ -169,22 +169,22 @@ private static final long serialVersionUID = 0L;
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       if (bs.isValidUtf8()) {
-        fileReadLocationPolicy_ = s;
+        blockReadLocationPolicy_ = s;
       }
       return s;
     }
   }
   /**
-   * <code>optional string fileReadLocationPolicy = 3;</code>
+   * <code>optional string blockReadLocationPolicy = 3;</code>
    */
   public com.google.protobuf.ByteString
-      getFileReadLocationPolicyBytes() {
-    java.lang.Object ref = fileReadLocationPolicy_;
+      getBlockReadLocationPolicyBytes() {
+    java.lang.Object ref = blockReadLocationPolicy_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      fileReadLocationPolicy_ = b;
+      blockReadLocationPolicy_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
@@ -246,7 +246,7 @@ private static final long serialVersionUID = 0L;
       output.writeInt32(2, maxUfsReadConcurrency_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, fileReadLocationPolicy_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, blockReadLocationPolicy_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       output.writeInt32(4, hashingNumberOfShards_);
@@ -271,7 +271,7 @@ private static final long serialVersionUID = 0L;
         .computeInt32Size(2, maxUfsReadConcurrency_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, fileReadLocationPolicy_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, blockReadLocationPolicy_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       size += com.google.protobuf.CodedOutputStream
@@ -306,10 +306,10 @@ private static final long serialVersionUID = 0L;
       result = result && (getMaxUfsReadConcurrency()
           == other.getMaxUfsReadConcurrency());
     }
-    result = result && (hasFileReadLocationPolicy() == other.hasFileReadLocationPolicy());
-    if (hasFileReadLocationPolicy()) {
-      result = result && getFileReadLocationPolicy()
-          .equals(other.getFileReadLocationPolicy());
+    result = result && (hasBlockReadLocationPolicy() == other.hasBlockReadLocationPolicy());
+    if (hasBlockReadLocationPolicy()) {
+      result = result && getBlockReadLocationPolicy()
+          .equals(other.getBlockReadLocationPolicy());
     }
     result = result && (hasHashingNumberOfShards() == other.hasHashingNumberOfShards());
     if (hasHashingNumberOfShards()) {
@@ -340,9 +340,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + MAXUFSREADCONCURRENCY_FIELD_NUMBER;
       hash = (53 * hash) + getMaxUfsReadConcurrency();
     }
-    if (hasFileReadLocationPolicy()) {
-      hash = (37 * hash) + FILEREADLOCATIONPOLICY_FIELD_NUMBER;
-      hash = (53 * hash) + getFileReadLocationPolicy().hashCode();
+    if (hasBlockReadLocationPolicy()) {
+      hash = (37 * hash) + BLOCKREADLOCATIONPOLICY_FIELD_NUMBER;
+      hash = (53 * hash) + getBlockReadLocationPolicy().hashCode();
     }
     if (hasHashingNumberOfShards()) {
       hash = (37 * hash) + HASHINGNUMBEROFSHARDS_FIELD_NUMBER;
@@ -486,7 +486,7 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
       maxUfsReadConcurrency_ = 0;
       bitField0_ = (bitField0_ & ~0x00000002);
-      fileReadLocationPolicy_ = "";
+      blockReadLocationPolicy_ = "";
       bitField0_ = (bitField0_ & ~0x00000004);
       hashingNumberOfShards_ = 0;
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -531,7 +531,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
         to_bitField0_ |= 0x00000004;
       }
-      result.fileReadLocationPolicy_ = fileReadLocationPolicy_;
+      result.blockReadLocationPolicy_ = blockReadLocationPolicy_;
       if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
         to_bitField0_ |= 0x00000008;
       }
@@ -592,9 +592,9 @@ private static final long serialVersionUID = 0L;
       if (other.hasMaxUfsReadConcurrency()) {
         setMaxUfsReadConcurrency(other.getMaxUfsReadConcurrency());
       }
-      if (other.hasFileReadLocationPolicy()) {
+      if (other.hasBlockReadLocationPolicy()) {
         bitField0_ |= 0x00000004;
-        fileReadLocationPolicy_ = other.fileReadLocationPolicy_;
+        blockReadLocationPolicy_ = other.blockReadLocationPolicy_;
         onChanged();
       }
       if (other.hasHashingNumberOfShards()) {
@@ -699,24 +699,24 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object fileReadLocationPolicy_ = "";
+    private java.lang.Object blockReadLocationPolicy_ = "";
     /**
-     * <code>optional string fileReadLocationPolicy = 3;</code>
+     * <code>optional string blockReadLocationPolicy = 3;</code>
      */
-    public boolean hasFileReadLocationPolicy() {
+    public boolean hasBlockReadLocationPolicy() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional string fileReadLocationPolicy = 3;</code>
+     * <code>optional string blockReadLocationPolicy = 3;</code>
      */
-    public java.lang.String getFileReadLocationPolicy() {
-      java.lang.Object ref = fileReadLocationPolicy_;
+    public java.lang.String getBlockReadLocationPolicy() {
+      java.lang.Object ref = blockReadLocationPolicy_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          fileReadLocationPolicy_ = s;
+          blockReadLocationPolicy_ = s;
         }
         return s;
       } else {
@@ -724,53 +724,53 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string fileReadLocationPolicy = 3;</code>
+     * <code>optional string blockReadLocationPolicy = 3;</code>
      */
     public com.google.protobuf.ByteString
-        getFileReadLocationPolicyBytes() {
-      java.lang.Object ref = fileReadLocationPolicy_;
+        getBlockReadLocationPolicyBytes() {
+      java.lang.Object ref = blockReadLocationPolicy_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        fileReadLocationPolicy_ = b;
+        blockReadLocationPolicy_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>optional string fileReadLocationPolicy = 3;</code>
+     * <code>optional string blockReadLocationPolicy = 3;</code>
      */
-    public Builder setFileReadLocationPolicy(
+    public Builder setBlockReadLocationPolicy(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000004;
-      fileReadLocationPolicy_ = value;
+      blockReadLocationPolicy_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string fileReadLocationPolicy = 3;</code>
+     * <code>optional string blockReadLocationPolicy = 3;</code>
      */
-    public Builder clearFileReadLocationPolicy() {
+    public Builder clearBlockReadLocationPolicy() {
       bitField0_ = (bitField0_ & ~0x00000004);
-      fileReadLocationPolicy_ = getDefaultInstance().getFileReadLocationPolicy();
+      blockReadLocationPolicy_ = getDefaultInstance().getBlockReadLocationPolicy();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string fileReadLocationPolicy = 3;</code>
+     * <code>optional string blockReadLocationPolicy = 3;</code>
      */
-    public Builder setFileReadLocationPolicyBytes(
+    public Builder setBlockReadLocationPolicyBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000004;
-      fileReadLocationPolicy_ = value;
+      blockReadLocationPolicy_ = value;
       onChanged();
       return this;
     }

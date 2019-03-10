@@ -17,7 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.policy.LocalFirstPolicy;
+import alluxio.client.block.policy.LocalFirstPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
@@ -96,7 +96,7 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
       throws Exception {
     CreateFilePOptions createOptions = CreateFilePOptions.newBuilder().setWriteTier(writeTier)
         .setWriteType(WritePType.MUST_CACHE)
-        .setFileWriteLocationPolicy(LocalFirstPolicy.class.getTypeName()).build();
+        .setBlockWriteLocationPolicy(LocalFirstPolicy.class.getTypeName()).build();
     FileOutStream os = mFileSystem.createFile(
         new AlluxioURI("/tier-" + writeTier + "_" + CommonUtils.randomAlphaNumString(5)),
         createOptions);

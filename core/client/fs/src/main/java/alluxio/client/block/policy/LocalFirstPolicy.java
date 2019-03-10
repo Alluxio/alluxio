@@ -9,18 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.policy;
+package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.network.TieredIdentityFactory;
 import alluxio.util.TieredIdentityUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
 import java.util.Collections;
@@ -29,50 +27,46 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
  * it randomly picks a worker from the active workers list for each block write.
  */
-// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
-public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
+public final class LocalFirstPolicy implements BlockLocationPolicy {
   private final TieredIdentity mTieredIdentity;
   private final AlluxioConfiguration mConf;
 
   /**
    * Constructs a {@link LocalFirstPolicy}.
    *
-   * @param alluxioConf Alluxio configuration
+   * @param options {@link CreateOptions} for BlockLocationPolicy
    */
-  public LocalFirstPolicy(AlluxioConfiguration alluxioConf) {
-    this(TieredIdentityFactory.localIdentity(alluxioConf), alluxioConf);
+  public LocalFirstPolicy(CreateOptions options) {
+    this(options.getTieredIdentity(), options.getConfiguration());
   }
 
   /**
    * @param localTieredIdentity the local tiered identity
+   * @param conf Alluxio configuration
    */
   private LocalFirstPolicy(TieredIdentity localTieredIdentity, AlluxioConfiguration conf) {
     mTieredIdentity = localTieredIdentity;
     mConf = conf;
   }
 
-  @VisibleForTesting
   static LocalFirstPolicy create(TieredIdentity localTieredIdentity, AlluxioConfiguration conf) {
     return new LocalFirstPolicy(localTieredIdentity, conf);
   }
 
   @Override
-  @Nullable
-  public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes) {
-    List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(workerInfoList);
+  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+    List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(options.getBlockWorkerInfos());
     Collections.shuffle(shuffledWorkers);
     // Workers must have enough capacity to hold the block.
     List<BlockWorkerInfo> candidateWorkers = shuffledWorkers.stream()
-        .filter(worker -> worker.getCapacityBytes() >= blockSizeBytes)
+        .filter(worker -> worker.getCapacityBytes() >= options.getBlockSize())
         .collect(Collectors.toList());
 
     // Try finding a worker based on nearest tiered identity.
@@ -90,11 +84,6 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
         .filter(worker -> worker.getNetAddress().getTieredIdentity().equals(nearest.get()))
         .map(worker -> worker.getNetAddress())
         .findFirst().orElse(null);
-  }
-
-  @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
-    return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
   }
 
   @Override

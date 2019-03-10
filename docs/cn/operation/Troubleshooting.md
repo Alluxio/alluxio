@@ -141,7 +141,7 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用�
 如果本地worker节点没有足够空间，你将会看到上述错误。你可以通过将策略修改为`RoundRobinPolicy`(如下所述)来将你的文件分散存储到不同worker节点上。
 
 ```bash
-$ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
+$ bin/alluxio fs -Dalluxio.user.block.write.location.policy.class=alluxio.client.block.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
 ```
 
 

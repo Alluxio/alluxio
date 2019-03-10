@@ -26,18 +26,18 @@ public interface OpenFilePOptionsOrBuilder extends
   int getMaxUfsReadConcurrency();
 
   /**
-   * <code>optional string fileReadLocationPolicy = 3;</code>
+   * <code>optional string blockReadLocationPolicy = 3;</code>
    */
-  boolean hasFileReadLocationPolicy();
+  boolean hasBlockReadLocationPolicy();
   /**
-   * <code>optional string fileReadLocationPolicy = 3;</code>
+   * <code>optional string blockReadLocationPolicy = 3;</code>
    */
-  java.lang.String getFileReadLocationPolicy();
+  java.lang.String getBlockReadLocationPolicy();
   /**
-   * <code>optional string fileReadLocationPolicy = 3;</code>
+   * <code>optional string blockReadLocationPolicy = 3;</code>
    */
   com.google.protobuf.ByteString
-      getFileReadLocationPolicyBytes();
+      getBlockReadLocationPolicyBytes();
 
   /**
    * <code>optional int32 hashingNumberOfShards = 4;</code>

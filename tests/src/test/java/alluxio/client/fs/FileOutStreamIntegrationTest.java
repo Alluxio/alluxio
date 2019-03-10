@@ -16,7 +16,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
-import alluxio.client.file.policy.LocalFirstPolicy;
+import alluxio.client.block.policy.LocalFirstPolicy;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.util.CommonUtils;
@@ -125,7 +125,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
     CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
-        .setFileWriteLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).setRecursive(true)
+        .setBlockWriteLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).setRecursive(true)
         .build();
     try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
       os.write((byte) 0);

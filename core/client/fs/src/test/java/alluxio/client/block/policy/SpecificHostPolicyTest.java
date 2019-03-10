@@ -9,10 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.policy;
+package alluxio.client.block.policy;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.SpecificHostPolicy;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
@@ -38,8 +40,10 @@ public final class SpecificHostPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
+    GetWorkerOptions options = GetWorkerOptions.defaults()
+        .setBlockWorkerInfos(workerInfoList).setBlockSize(Constants.MB);
     Assert.assertEquals("worker2",
-        policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
+        policy.getWorker(options).getHost());
   }
 
   /**
@@ -54,6 +58,8 @@ public final class SpecificHostPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
-    Assert.assertNull(policy.getWorkerForNextBlock(workerInfoList, Constants.MB));
+    GetWorkerOptions options = GetWorkerOptions.defaults()
+        .setBlockWorkerInfos(workerInfoList).setBlockSize(2 * (long) Constants.GB);
+    Assert.assertNull(policy.getWorker(options));
   }
 }

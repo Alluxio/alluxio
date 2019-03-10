@@ -25,7 +25,6 @@ import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
@@ -49,7 +48,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -241,7 +242,7 @@ public final class AlluxioBlockStore {
   }
 
   private Set<WorkerNetAddress> handleFailedWorkers(Set<WorkerNetAddress> workers,
-      Map<WorkerNetAddress, Long> failedWorkers) {
+                                                    Map<WorkerNetAddress, Long> failedWorkers) {
     if (workers.isEmpty()) {
       return Collections.EMPTY_SET;
     }
@@ -298,10 +299,15 @@ public final class AlluxioBlockStore {
   public BlockOutStream getOutStream(long blockId, long blockSize, OutStreamOptions options)
       throws IOException {
     WorkerNetAddress address;
-    FileWriteLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
-        PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
-    java.util.Set<BlockWorkerInfo> blockWorkers;
+    BlockLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
+        PreconditionMessage.BLOCK_WRITE_LOCATION_POLICY_UNSPECIFIED);
+    Set<BlockWorkerInfo> blockWorkers;
     blockWorkers = com.google.common.collect.Sets.newHashSet(getEligibleWorkers());
+    GetWorkerOptions workerOptions = GetWorkerOptions.defaults()
+        .setBlockId(blockId)
+        .setBlockSize(blockSize)
+        .setBlockWorkerInfos(new ArrayList<>(blockWorkers));
+
     // The number of initial copies depends on the write type: if ASYNC_THROUGH, it is the property
     // "alluxio.user.file.replication.durable" before data has been persisted; otherwise
     // "alluxio.user.file.replication.min"
@@ -309,7 +315,7 @@ public final class AlluxioBlockStore {
         && options.getReplicationDurable() > options.getReplicationMin())
         ? options.getReplicationDurable() : options.getReplicationMin();
     if (initialReplicas <= 1) {
-      address = locationPolicy.getWorkerForNextBlock(blockWorkers, blockSize);
+      address = locationPolicy.getWorker(workerOptions);
       if (address == null) {
         throw new UnavailableException(
             ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
@@ -318,8 +324,8 @@ public final class AlluxioBlockStore {
     }
 
     // Group different block workers by their hostnames
-    java.util.Map<String, java.util.Set<BlockWorkerInfo>> blockWorkersByHost =
-        new java.util.HashMap<>();
+    Map<String, Set<BlockWorkerInfo>> blockWorkersByHost =
+        new HashMap<>();
     for (BlockWorkerInfo blockWorker : blockWorkers) {
       String hostName = blockWorker.getNetAddress().getHost();
       if (blockWorkersByHost.containsKey(hostName)) {
@@ -330,9 +336,9 @@ public final class AlluxioBlockStore {
     }
 
     // Select N workers on different hosts where N is the value of initialReplicas for this block
-    List<WorkerNetAddress> workerAddressList = new java.util.ArrayList<>();
+    List<WorkerNetAddress> workerAddressList = new ArrayList<>();
     for (int i = 0; i < initialReplicas; i++) {
-      address = locationPolicy.getWorkerForNextBlock(blockWorkers, blockSize);
+      address = locationPolicy.getWorker(workerOptions);
       if (address == null) {
         break;
       }

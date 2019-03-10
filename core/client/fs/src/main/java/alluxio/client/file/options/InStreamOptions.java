@@ -66,7 +66,7 @@ public final class InStreamOptions {
     OpenFilePOptions.Builder openOptionsBuilder = OpenFilePOptions.newBuilder()
         .setReadType(alluxioConf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
             .toProto())
-        .setFileReadLocationPolicy(
+        .setBlockReadLocationPolicy(
             alluxioConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
         .setHashingNumberOfShards(alluxioConf
             .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS))
@@ -77,11 +77,10 @@ public final class InStreamOptions {
 
     mStatus = status;
     mProtoOptions = openOptions;
-    CreateOptions blockLocationPolicyCreateOptions =
-        CreateOptions.defaults().setLocationPolicyClassName(openOptions.getFileReadLocationPolicy())
-            .setDeterministicHashPolicyNumShards(openOptions.getHashingNumberOfShards());
-    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions,
-        alluxioConf);
+    CreateOptions blockLocationPolicyCreateOptions = CreateOptions.defaults(alluxioConf)
+        .setLocationPolicyClassName(openOptions.getBlockReadLocationPolicy())
+        .setDeterministicHashPolicyNumShards(openOptions.getHashingNumberOfShards());
+    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
   }
 
   /**

@@ -35,7 +35,6 @@ import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.block.stream.TestUnderFileSystemFileOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.ExceptionMessage;
@@ -407,14 +406,9 @@ public class FileOutStreamTest {
 
   @Test
   public void createWithNoWorker() throws Exception {
-    OutStreamOptions options =
-        OutStreamOptions.defaults(sConf).setLocationPolicy(new FileWriteLocationPolicy() {
-          @Override
-          public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-              long blockSizeBytes) {
-            return null;
-          }
-        }).setWriteType(WriteType.CACHE_THROUGH);
+    OutStreamOptions options = OutStreamOptions.defaults(sConf)
+        .setLocationPolicy((getWorkerOptions) -> null)
+        .setWriteType(WriteType.CACHE_THROUGH);
     mException.expect(UnavailableException.class);
     mException.expectMessage(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     mTestStream = createTestStream(FILE_NAME, options);

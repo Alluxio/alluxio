@@ -57,15 +57,15 @@ public final class DeterministicHashPolicyTest {
   @Test
   public void getWorkerDeterministically() {
     DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
-        CreateOptions.defaults()
-            .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()), sConf);
+        CreateOptions.defaults(sConf)
+            .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()));
     String host = policy.getWorker(
         GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos).setBlockId(1)
             .setBlockSize(2 * (long) Constants.GB)).getHost();
     for (int i = 0; i < 10; i++) {
       DeterministicHashPolicy p = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
-          CreateOptions.defaults()
-              .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()), sConf);
+          CreateOptions.defaults(sConf)
+              .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()));
       // For the same block, always return the same worker.
       Assert.assertEquals(host, p.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos).setBlockId(1)
@@ -79,8 +79,8 @@ public final class DeterministicHashPolicyTest {
   @Test
   public void getWorkerEnoughCapacity() {
     DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
-        CreateOptions.defaults()
-            .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()), sConf);
+        CreateOptions.defaults(sConf)
+            .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName()));
     for (long blockId = 0; blockId < 100; blockId++) {
       // worker1 does not have enough capacity. It should never be picked.
       Assert.assertNotEquals("worker1", policy.getWorker(
@@ -92,9 +92,9 @@ public final class DeterministicHashPolicyTest {
   @Test
   public void getWorkerMultipleShards() {
     DeterministicHashPolicy policy2 = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
-        CreateOptions.defaults()
+        CreateOptions.defaults(sConf)
             .setLocationPolicyClassName(DeterministicHashPolicy.class.getCanonicalName())
-            .setDeterministicHashPolicyNumShards(2), sConf);
+            .setDeterministicHashPolicyNumShards(2));
     Set<String> addresses1 = new HashSet<>();
     Set<String> addresses2 = new HashSet<>();
     for (int i = 0; i < 100; i++) {
