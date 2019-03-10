@@ -24,22 +24,14 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import java.io.IOException;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Displays information for the path specified in args. Depends on different options, this command
@@ -127,7 +119,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
     SORT_FIELD_COMPARATORS.put("name",
         Comparator.comparing(URIStatus::getName, String.CASE_INSENSITIVE_ORDER));
     SORT_FIELD_COMPARATORS.put("path", Comparator.comparing(URIStatus::getPath));
-    SORT_FIELD_COMPARATORS.put("size", Comparator.comparingLong(URIStatus::getBlockSizeBytes));
+    SORT_FIELD_COMPARATORS.put("size", Comparator.comparingLong(URIStatus::getLength));
   }
 
   /**
