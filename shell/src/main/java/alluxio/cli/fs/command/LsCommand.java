@@ -28,10 +28,17 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Collectors;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays information for the path specified in args. Depends on different options, this command
