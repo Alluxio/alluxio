@@ -67,14 +67,19 @@ import java.util.stream.Collectors;
  */
 public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   private static final long INTERVAL_MS = 100;
+  private static final long LARGE_INTERVAL_MS = 1000;
   private static final FileSystemMasterCommonPOptions PSYNC_NEVER =
       FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build();
   private static final FileSystemMasterCommonPOptions PSYNC_ALWAYS =
       FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
   private static final FileSystemMasterCommonPOptions PSYNC_INTERVAL =
       FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(INTERVAL_MS).build();
+  private static final FileSystemMasterCommonPOptions PSYNC_LARGE_INTERVAL =
+      FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(LARGE_INTERVAL_MS).build();
+
   private static final String ROOT_DIR = "/";
   private static final String EXISTING_DIR = "/dir_exist";
+  private static final String NEW_FILE_UNDER_DIR = "/dir_exist/file_new";
   private static final String EXISTING_FILE = "/file_exist";
   private static final String NEW_DIR = "/dir_new";
   private static final String NEW_FILE = "/file_new";
@@ -541,6 +546,39 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // Make sure we can create the nested file.
     Assert.assertNotNull(mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE))));
+  }
+
+  @Test
+  public void clusterRestartSync() throws Exception {
+    ListStatusPOptions listStatusPOptions = ListStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataPType.NEVER)
+        .setCommonOptions(PSYNC_LARGE_INTERVAL).build();
+
+    List<URIStatus> statusList =
+        mFileSystem.listStatus(new AlluxioURI(alluxioPath(EXISTING_DIR)), listStatusPOptions);
+    Assert.assertNotNull(statusList);
+    Assert.assertEquals(0, statusList.size());
+    mLocalAlluxioClusterResource.get().stopMasters();
+    mLocalAlluxioClusterResource.get().startMasters();
+
+    List<URIStatus> statusListAfterRestart =
+        mFileSystem.listStatus(new AlluxioURI(alluxioPath(EXISTING_DIR)), listStatusPOptions);
+    Assert.assertNotNull(statusListAfterRestart);
+    Assert.assertEquals(0, statusListAfterRestart.size());
+
+    writeUfsFile(ufsPath(NEW_FILE_UNDER_DIR), 1);
+
+    List<URIStatus> statusListAgain =
+        mFileSystem.listStatus(new AlluxioURI(alluxioPath(EXISTING_DIR)), listStatusPOptions);
+    Assert.assertNotNull(statusListAgain);
+    Assert.assertEquals(0, statusListAgain.size());
+
+    Thread.sleep(LARGE_INTERVAL_MS);
+
+    List<URIStatus> statusListAfterSleeping =
+        mFileSystem.listStatus(new AlluxioURI(alluxioPath(EXISTING_DIR)), listStatusPOptions);
+    Assert.assertNotNull(statusListAfterSleeping);
+    Assert.assertEquals(1, statusListAfterSleeping.size());
   }
 
   @LocalAlluxioClusterResource.Config(
