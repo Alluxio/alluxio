@@ -6,7 +6,7 @@ group: Data Applications
 priority: 2
 ---
 
-[Presto](https://prestodb.io/)
+[Presto](https://prestosql.io/)
 is an open source distributed SQL query engine for running interactive analytic queries
 on data at a large scale.
 This guide describes how to run Presto to query Alluxio as a distributed cache layer,
@@ -23,7 +23,7 @@ latency especially when data is remote or network is slow or congested.
 ## Prerequisites
 
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
-* [Deploy Presto](https://prestodb.io/docs/current/installation/deployment.html).
+* [Deploy Presto](https://prestosql.io/docs/current/installation/deployment.html).
 This guide is tested with `presto-0.208`.
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
@@ -111,7 +111,7 @@ $ ${PRESTO_HOME}/bin/launcher run
 
 ### Query tables using Presto
 
-Follow [Presto CLI guidence](https://prestodb.io/docs/current/installation/cli.html) to download the `presto-cli-<PRESTO_VERSION>-executable.jar`,
+Follow [Presto CLI guidence](https://prestosql.io/docs/current/installation/cli.html) to download the `presto-cli-<PRESTO_VERSION>-executable.jar`,
 rename it to `presto`, and make it executable with `chmod +x`
 (sometimes the executable `presto` exists in `${PRESTO_HOME}/bin/presto` and you can use it
 directly).
