@@ -111,7 +111,7 @@ Alluxio通过环境变量来支持一些常用的配置设置，包括:
   <td>从1.1版本开始被<code class="highlighter-rouge">ALLUXIO_MASTER_HOSTNAME</code>替代，并将在2.0版本中移除</td>
 </tr>
 <tr>
-  <td><code class="highlighter-rouge">MASTER_MOUNT_TABLE_ROOT_UFS</code></td>
+  <td><code class="highlighter-rouge">ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS</code></td>
   <td>底层存储系统地址，默认为
 <code class="highlighter-rouge">${ALLUXIO_HOME}/underFSStorage</code>，即本地文件系统</td>
 </tr>

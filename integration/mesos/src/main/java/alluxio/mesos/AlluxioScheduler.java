@@ -167,7 +167,7 @@ public class AlluxioScheduler implements Scheduler {
                             .newBuilder()
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
-                                    .setName("MASTER_MOUNT_TABLE_ROOT_UFS")
+                                    .setName("ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS")
                                     .setValue(ServerConfiguration
                                         .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
                                     .build())
@@ -213,7 +213,7 @@ public class AlluxioScheduler implements Scheduler {
                                     .build())
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
-                                    .setName("MASTER_MOUNT_TABLE_ROOT_UFS")
+                                    .setName("ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS")
                                     .setValue(ServerConfiguration
                                         .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
                                     .build())
