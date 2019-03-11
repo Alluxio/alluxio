@@ -3312,6 +3312,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           inodePath.removeLastInode();
         }
         pathsToLoad = result.getPathsToLoad();
+        pathsToLoad.add(mMountTable.getMountPoint(inodePath.getUri()));
       }
     } catch (InvalidPathException | FileDoesNotExistException | AccessControlException e) {
       LOG.warn("Exception encountered when syncing metadata for {}, exception is {}",
