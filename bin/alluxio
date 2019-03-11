@@ -191,7 +191,14 @@ function formatJournal {
 }
 
 function formatMasters {
-  formatJournal "$@"
+  JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} \
+                       alluxio.master.journal.type | awk '{print toupper($0)}')
+  if [[ ${JOURNAL_TYPE} == "EMBEDDED" ]]; then
+    # Embedded journal is stored on-disk, so format needs to be run on each master
+    ${LAUNCHER} ${BIN}/alluxio-masters.sh ${BIN}/alluxio formatJournal
+  else
+    formatJournal
+  fi
 }
 
 function main {
