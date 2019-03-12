@@ -11,7 +11,7 @@ priority: 0
 
 Alluxio stores most of its metadata on the master node. The metadata includes the
 filesystem tree, file permissions, and block locations. Alluxio provides two ways
-to store the metadata: (1) with an on-disk, RocksDB-based metastore or (2) with an 
+to store the metadata: (1) with an on-disk, RocksDB-based metastore or (2) with an
 on-heap metastore.
 
 ## RocksDB Metastore
@@ -23,9 +23,16 @@ The default cache size is 10 million inodes, which comes out to around 10GB of m
 The cache performs LRU-style eviction, with an asynchronous evictor evicting from a
 high water mark (default 85%) down to a low water mark (default 80%).
 
+Rocks is the default metastore, but you can explicitly set it in configuration with
+
+```
+alluxio.master.metastore=ROCKS
+```
+
 ### Configuration Properties
 
-* `alluxio.master.metastore.dir`: The directory for writing RocksDB data. Default: ${work_dir}/metastore
+* `alluxio.master.metastore.dir`: A local directory for writing RocksDB data.
+Default: ${work_dir}/metastore
 * `alluxio.master.metastore.inode.cache.max.size`: A hard limit on the size of the inode cache.
 Increase this to improve performance if you have spare master memory. Every million inodes
 takes roughly 1GB of memory. Default: `10000000` (10 million)
