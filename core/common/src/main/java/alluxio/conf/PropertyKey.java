@@ -496,18 +496,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   /**
    * UFS related properties.
-   *
-   * @deprecated since 1.5.0 and will be removed in 2.0. Use MASTER_MOUNT_TABLE_ROOT_UFS instead.
    */
-  @Deprecated
-  public static final PropertyKey UNDERFS_ADDRESS =
-      new Builder(Name.UNDERFS_ADDRESS)
-          .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
-          .setDescription("Under file storage address. This property is deprecated; "
-              + "use alluxio.master.mount.table.root.ufs instead")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
       new Builder(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE)
           .setDefaultValue(false)
@@ -1069,8 +1058,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_UFS =
       new Builder(Template.MASTER_MOUNT_TABLE_UFS, "root")
-          .setDefaultValue(String.format("${%s}", Name.UNDERFS_ADDRESS))
-          .setDescription("The UFS mounted to Alluxio root mount point.")
+          .setDescription("The storage address of the UFS at the Alluxio root mount point.")
+          .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -3525,7 +3514,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // UFS related properties
     //
-    public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
     public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
         "alluxio.underfs.allow.set.owner.failure";
     public static final String UNDERFS_CLEANUP_ENABLED = "alluxio.underfs.cleanup.enabled";
