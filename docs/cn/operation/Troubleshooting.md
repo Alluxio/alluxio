@@ -48,7 +48,7 @@ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y
 
 典型问题:
 
-- `ALLUXIO_UNDERFS_ADDRESS`配置不正确
+- `ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS`配置不正确
 - 如果 `ssh localhost` 失败, 请确认`~/.ssh/authorized_keys`文件中包含主机的ssh公钥
 
 ### 问题: 打算在Spark/HDFS集群中部署Alluxio，有什么建议？

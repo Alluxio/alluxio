@@ -86,13 +86,13 @@ $ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/publi
 $ docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
-             -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
+             -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
              alluxio master
 ```
 详细说明:
 - `-e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP}`: 指定 Alluxio master 的监听 IP 地址.
 - `-v $PWD/underStorage:/underStorage`:和Docker容器共享底层存储层文件夹。
-- `-e ALLUXIO_UNDERFS_ADDRESS=/underStorage`:通知worker应用 /underStorage为底层文件存储层。
+- `-e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage`:通知worker应用 /underStorage为底层文件存储层。
 
 
 ## 运行Alluxio worker
@@ -105,7 +105,7 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_RAM_FOLDER=/opt/ramdisk \
              -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
-             -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
+             -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
              alluxio worker)
 ```
 Details:
@@ -114,7 +114,7 @@ Details:
 - `-e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP}`: 通知worker如何连接Master。
 - `-e ALLUXIO_RAM_FOLDER=/opt/ramdisk`: 通知worker如何定位ramdisk。
 - `-e ALLUXIO_WORKER_MEMORY_SIZE=1GB`: 通知worker节点ramdisk可用空间。
-- `-e ALLUXIO_UNDERFS_ADDRESS=/underStorage`: 通知worker将/underStorage作为底层文件系统。
+- `-e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage`: 通知worker将/underStorage作为底层文件系统。
 
 ### 测试集群
 
@@ -159,7 +159,7 @@ $ docker run -d --net=host --shm-size=1G \
            -v $PWD/underStorage:/underStorage \
            -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
            -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
-           -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
+           -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
            alluxio worker
 ```
 
@@ -192,7 +192,7 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
              -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d \
-             -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
+             -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
              alluxio worker)
 ```
 

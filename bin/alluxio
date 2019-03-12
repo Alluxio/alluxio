@@ -239,12 +239,12 @@ function main {
   "format")
     if [[ $# -eq 1 ]]; then
       if [[ $1 == "-s" ]]; then
-        if [[ -e ${ALLUXIO_UNDERFS_ADDRESS} ]]; then
+        if [[ -e ${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS} ]]; then
           # if ufs is local filesystem and already exists
           exit 0
         else
           # if ufs is not set it will default to local filesystem
-          if [[ ! -z ${ALLUXIO_UNDERFS_ADDRESS} ]] && [[ ${ALLUXIO_UNDERFS_ADDRESS} != /* ]] && [[ ${ALLUXIO_UNDERFS_ADDRESS} != file://* ]]; then
+          if [[ ! -z ${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS} ]] && [[ ${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS} != /* ]] && [[ ${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS} != file://* ]]; then
             # if ufs is not local filesystem, don't format
             exit 0
           fi

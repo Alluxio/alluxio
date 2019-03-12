@@ -65,7 +65,7 @@ in these logs. Double check if you missed any configuration
 steps in [Running-Alluxio-Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 Typical issues:
-- `ALLUXIO_UNDERFS_ADDRESS` is not configured correctly.
+- `ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS` is not configured correctly.
 - If running `ssh localhost` fails, make sure the public SSH key for the host is added in `~/.ssh/authorized_keys`.
 
 ### Q: I'm trying to deploy Alluxio in a cluster with Spark and HDFS. Are there any suggestions?
