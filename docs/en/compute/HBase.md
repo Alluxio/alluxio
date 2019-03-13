@@ -122,15 +122,19 @@ After this mapreduce job finishes, you can see a result like this:
 
 ### Alluxio in HA mode
 
-When Alluxio is running in fault tolerant mode, change the `hbase.rootdir` property in `conf/hbase-site.xml`
-to include Zookeeper information.
+When Alluxio is running in HA mode, change the `hbase.rootdir` property in `conf/hbase-site.xml`
+to use a HA-style Alluxio authority like `host1:19998,host2:19998,host3:19998`
+or `zk@host1:2181,host2:2181,host3:2181`.
 
 ```xml
 <property>
   <name>hbase.rootdir</name>
-  <value>alluxio://zk@zookeeper_hostname1:2181,zookeeper_hostname2:2181,zookeeper_hostname3:2181/hbase</value>
+  <value>alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/hbase</value>
 </property>
 ```
+
+See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority)
+for more details.
 
 ### Add additional Alluxio site properties to HBase
 

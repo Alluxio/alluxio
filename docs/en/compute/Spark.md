@@ -109,37 +109,32 @@ Also, the input file `Input_HDFS` now will be 100% loaded in the Alluxio file sy
 
 ## Advanced Setup
 
-### Customize Alluxio User Properties for All Spark Jobs
+### Configure Spark to find Alluxio cluster in HA mode
 
-Let us use the setup of Spark to talk to Alluxio service in HA Mode as an example.
-If you are running multiple Alluxio masters in with a Zookeeper service running at
-`zkHost1:2181`, `zkHost2:2181`, and `zkHost3:2181`,
-add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf`:
+When connecting to the Alluxio HA cluster using internal leader election,
+add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf` so Spark applications
+can know the Alluxio masters to connect to and find out the leader master.
 
 ```bash
-spark.driver.extraJavaOptions   -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181 -Dalluxio.zookeeper.enabled=true
-spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181 -Dalluxio.zookeeper.enabled=true
+spark.driver.extraJavaOptions -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+spark.executor.extraJavaOptions -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
-Alternatively you can add the properties to the Hadoop configuration file
+Alternatively you can add the property to the Hadoop configuration file
 `${SPARK_HOME}/conf/core-site.xml`:
 
 ```xml
 <configuration>
   <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+    <name>alluxio.master.rpc.addresses</name>
+    <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
   </property>
 </configuration>
 ```
 
-As of Alluxio version 2.0, users can encode the Zookeeper service address
-inside an Alluxio URI (see [details](#access-data-from-alluxio-in-ha-mode)).
-In this way, it requires no extra setup for Spark configuration.
+Similarly, users can also configure Spark to find Alluxio HA cluster using 
+Zookeeper-based leader election, please refer to 
+[HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
 
 ### Customize Alluxio User Properties for Individual Spark Jobs
 
@@ -166,10 +161,10 @@ Note that, in client mode you need set `--driver-java-options "-Dalluxio.user.fi
 
 ### Access Data from Alluxio in HA Mode
 
-If Spark is set up by the instructions in [Alluxio with HA](#customize-alluxio-user-properties-for-all-spark-jobs),
-you can write URIs using the "`alluxio://`" scheme without specifying an Alluxio master in the authority.
-This is because in HA mode, the address of leader Alluxio master will be served by the configured Zookeeper
-service rather than a user-specified hostname derived from the URI.
+If Spark is set up by the instructions in [Configure Spark to find Alluxio cluster in HA mode](#configure-spark-to-find-alluxio-cluster-in-ha-mode),
+you can write URIs using the "`alluxio://`" scheme without specifying cluster information in the authority.
+This is because in HA mode, the address of leader Alluxio master will be served by the internal leader election 
+or by the configured Zookeeper service.
 
 ```scala
 > val s = sc.textFile("alluxio:///Input")
@@ -177,19 +172,19 @@ service rather than a user-specified hostname derived from the URI.
 > double.saveAsTextFile("alluxio:///Output")
 ```
 
-Alternatively, if the Zookeeper address for Alluxio HA is not set in Spark configuration,
-one can specify the address of Zookeeper in the URI in the format of "`zk@zkHost1:2181;zkHost2:2181;zkHost3:2181`":
+Alternatively, one can use the HA authority in URI directly without any configuration setup.
+For example, specify the master rpc addresses in the URI to 
+connect to Alluxio HA cluster using internal leader election:
 
 ```scala
-> val s = sc.textFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/Input")
+> val s = sc.textFile("alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998/Input")
 > val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/Output")
+> double.saveAsTextFile("alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998/Output")
 ```
 
-> Note that you must use semicolons rather than commas to separate different Zookeeper addresses to
+> Note that you must use semicolons rather than commas to separate different addresses to
 refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
-Please refer to the instructions in [HDFS API to connect to Alluxio with high
-availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
+Please refer to the instructions in [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority).
 
 ### Cache RDD into Alluxio
 

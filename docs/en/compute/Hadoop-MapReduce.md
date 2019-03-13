@@ -108,8 +108,7 @@ $ bin/alluxio fs ls /wordcount/output
 $ bin/alluxio fs cat /wordcount/output/part-r-00000
 ```
 
-> Tips：The previous wordcount example is also applicable to Alluxio in fault tolerant mode with Zookeeper.
-
+> Tips：The previous wordcount example is also applicable to Alluxio in HA mode.
 Please follow the instructions in
 [HDFS API to connect to Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
 
@@ -136,22 +135,21 @@ when the jar is already on every node, then the `-libjars` command line option i
 
 Alluxio configuration parameters can be added to the Hadoop `core-site.xml` file to affect all MapReduce jobs.
 Let us use the setup of Hadoop to interact with the Alluxio service in HA Mode as an example.
-If you are running multiple Alluxio masters in with a Zookeeper service running at
-`zkHost1:2181`, `zkHost2:2181`, and `zkHost3:2181`,
-add the following two properties to the `core-site.xml` file of your Hadoop installation:
+
+When Alluxio is running in HA mode, add the HA mode client configuration in `core-site.xml` file of your Hadoop installation.
+For example, if the Alluxio is using internal leader election, add the `alluxio.master.rpc.addresses` property:
 
 ```xml
 <configuration>
   <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+    <name>alluxio.master.rpc.addresses</name>
+    <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
   </property>
 </configuration>
 ```
+
+See [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters)
+for more details.
 
 ### Customize Alluxio User Properties for Individual MapReduce Jobs
 
