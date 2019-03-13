@@ -17,7 +17,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.conf.Source;
-import alluxio.exception.ExceptionMessage;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -57,8 +56,7 @@ public final class FileSystemShell extends AbstractShell {
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
     if (!ConfigurationUtils.masterHostConfigured(conf)
         && argv.length > 0 && !argv[0].equals("help")) {
-      System.out.println(ExceptionMessage.UNABLE_TO_DETERMINE_MASTER_HOSTNAME
-              .getMessage("Alluxio fs shell"));
+      System.out.println(ConfigurationUtils.getMasterHostNotConfiguredMessage("Alluxio fs shell"));
       System.exit(1);
     }
 
