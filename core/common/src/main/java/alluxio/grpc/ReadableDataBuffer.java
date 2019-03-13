@@ -15,6 +15,8 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 
 import io.grpc.internal.ReadableBuffer;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 public class ReadableDataBuffer implements DataBuffer {
@@ -52,5 +54,15 @@ public class ReadableDataBuffer implements DataBuffer {
   @Override
   public void release() {
     mBuffer.close();
+  }
+
+  @Override
+  public void readBytes(OutputStream outputStream, int length) throws IOException {
+    mBuffer.readBytes(outputStream, length);
+  }
+
+  @Override
+  public void readBytes(ByteBuffer outputBuf) {
+    mBuffer.readBytes(outputBuf);
   }
 }
