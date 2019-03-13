@@ -223,8 +223,8 @@ Alternatively, modify `conf/hive-site.xml` to have:
 
 ### Connect to Alluxio with HA
 
-If you are running Alluxio in fault tolerant mode with embedded-journal-based leader election,
-set the Alluxio properties `alluxio.master.rpc.addresses` in `alluxio-site.properties`.
+If you are running Alluxio in HA mode with internal leader election,
+set the Alluxio property `alluxio.master.rpc.addresses` in `alluxio-site.properties`.
 Ensure that this file is on the classpath of Hive.
 
 ```properties
@@ -242,9 +242,17 @@ Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
 </configuration>
 ```
 
-> Tips：since Alluxio 2.0, there is an easier way to configure Hive to connect to Alluxio
- in fault tolerant mode. Please follow the instructions in [HDFS API to connect to
- Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
+For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
+please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
+
+If Hive is set up by adding the above HA mode configuration, one can write URIs using the "`alluxio://`" scheme:
+
+```
+hive> alter table u_user set location "alluxio:///ml-100k";
+```
+
+Since Alluxio 2.0, one can directly use Alluxio HA-style authorities in Hive queries without any configuration setup. 
+See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority) for more details.
 
 ### Experimental: Use Alluxio as the Default Filesystem
 

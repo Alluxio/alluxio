@@ -111,16 +111,16 @@ Also, the input file `Input_HDFS` now will be 100% loaded in the Alluxio file sy
 
 ### Configure Spark to find Alluxio cluster in HA mode
 
-When connecting to the Alluxio HA cluster using embedded 
-Add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf` so Spark applications
+When connecting to the Alluxio HA cluster using internal leader election,
+add the following lines to `${SPARK_HOME}/conf/spark-defaults.conf` so Spark applications
 can know the Alluxio masters to connect to and find out the leader master.
 
 ```bash
-spark.driver.extraJavaOptions   -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
-spark.executor.extraJavaOptions  -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+spark.driver.extraJavaOptions -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+spark.executor.extraJavaOptions -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
-Alternatively you can add the properties to the Hadoop configuration file
+Alternatively you can add the property to the Hadoop configuration file
 `${SPARK_HOME}/conf/core-site.xml`:
 
 ```xml
@@ -134,7 +134,7 @@ Alternatively you can add the properties to the Hadoop configuration file
 
 Similarly, users can also configure Spark to find Alluxio HA cluster using 
 Zookeeper-based leader election, please refer to 
-[HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters-for-alluxio-client).
+[HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
 
 ### Customize Alluxio User Properties for Individual Spark Jobs
 
@@ -161,8 +161,8 @@ Note that, in client mode you need set `--driver-java-options "-Dalluxio.user.fi
 
 ### Access Data from Alluxio in HA Mode
 
-If Spark is set up by the instructions in [configuring Spark when Alluxio is in HA mode](#customize-alluxio-user-properties-for-all-spark-jobs),
-you can write URIs using the "`alluxio://`" scheme without specifying an Alluxio master in the authority.
+If Spark is set up by the instructions in [Configure Spark to find Alluxio cluster in HA mode](#configure-spark-to-find-alluxio-cluster-in-ha-mode),
+you can write URIs using the "`alluxio://`" scheme without specifying cluster information in the authority.
 This is because in HA mode, the address of leader Alluxio master will be served by the internal leader election 
 or by the configured Zookeeper service.
 
@@ -172,11 +172,9 @@ or by the configured Zookeeper service.
 > double.saveAsTextFile("alluxio:///Output")
 ```
 
-Alternatively, if the connection details for Alluxio HA mode is not set in Spark configuration,
-one can specify the connection details in the URI directly.
-
+Alternatively, one can use the HA authority in URI directly without any configuration setup.
 For example, specify the master rpc addresses in the URI to 
-connect to Alluxio HA cluster using embedded-journal-based leader election:
+connect to Alluxio HA cluster using internal leader election:
 
 ```scala
 > val s = sc.textFile("alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998/Input")
@@ -184,10 +182,9 @@ connect to Alluxio HA cluster using embedded-journal-based leader election:
 > double.saveAsTextFile("alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998/Output")
 ```
 
-> Note that you must use semicolons rather than commas to separate different Alluxio master or Zookeeper addresses to
+> Note that you must use semicolons rather than commas to separate different addresses to
 refer a URI of Alluxio in HA mode in Spark. Otherwise, the URI will be considered invalid by Spark.
-Please refer to the instructions in [HDFS API to connect to Alluxio with high
-availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#configure-alluxio-clients-for-ha).
+Please refer to the instructions in [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority).
 
 ### Cache RDD into Alluxio
 

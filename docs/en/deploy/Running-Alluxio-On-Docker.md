@@ -115,10 +115,9 @@ If it dies, one of the remaining masters will become leader and pick up where th
 
 #### Internal leader election
 
-Alluxio by default using embedded-journal-based leader election. 
+Alluxio uses internal leader election by default. 
 
-Provide the master embedded journal addresses
-and set the hostname of the current master:
+Provide the master embedded journal addresses and set the hostname of the current master:
 
 ```bash
 $ docker run -d --net=host \
@@ -128,8 +127,7 @@ $ docker run -d --net=host \
              alluxio master
 ```
 
-Set the master rpc addresses for all the workers so that they can ping all the Alluxio masters
-to find out the leader master.
+Set the master rpc addresses for all the workers so that they can query the master nodes find out the leader master.
 
 ```bash
 $ docker run -d --net=host \
