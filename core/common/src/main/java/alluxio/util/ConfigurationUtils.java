@@ -273,7 +273,7 @@ public final class ConfigurationUtils {
   /**
    * Returns a unified message for cases when the master hostname cannot be determined.
    *
-   * @param serviceName The name of the service that couldn't run. i.e. Alluxio worker, fsadmin
+   * @param serviceName the name of the service that couldn't run. i.e. Alluxio worker, fsadmin
    *                    shell, etc.
    * @return a string with the message
    */
@@ -285,7 +285,7 @@ public final class ConfigurationUtils {
   /**
    * Returns a unified message for cases when the job master hostname cannot be determined.
    *
-   * @param serviceName The name of the service that couldn't run. i.e. Alluxio worker, fsadmin
+   * @param serviceName the name of the service that couldn't run. i.e. Alluxio worker, fsadmin
    *                    shell, etc.
    * @return a string with the message
    */
