@@ -207,7 +207,7 @@ public enum ExceptionMessage {
 
   // configuration
   UNABLE_TO_DETERMINE_MASTER_HOSTNAME("Cannot run {0}; Unable to determine {1} address. Please "
-      + "modify" + Constants.SITE_PROPERTIES + " to either set {2}, configure zookeeper with "
+      + "modify " + Constants.SITE_PROPERTIES + " to either set {2}, configure zookeeper with "
       + "{3}=true and {4}=[comma-separated zookeeper master addresses], or utilize internal HA by "
       + "setting {5}=[comma-separated alluxio {1} addresses]"),
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
@@ -305,9 +305,9 @@ public enum ExceptionMessage {
    * @return the formatted message
    */
   public String getMessage(Object... params) {
-    Preconditions.checkArgument(mMessage.getFormats().length == params.length,
-        "The message takes " + mMessage.getFormats().length + " arguments, but is given "
-            + params.length);
+    Preconditions.checkArgument(mMessage.getFormatsByArgumentIndex().length == params.length,
+        "The message takes " + mMessage.getFormatsByArgumentIndex().length + " arguments, but is "
+            + "given " + params.length);
     // MessageFormat is not thread-safe, so guard it
     synchronized (mMessage) {
       return mMessage.format(params);
