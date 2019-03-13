@@ -11,8 +11,10 @@
 
 package alluxio.client.file;
 
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PathConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
@@ -305,6 +307,15 @@ public final class FileSystemContext implements Closeable {
    */
   public AlluxioConfiguration getConf() {
     return mClientContext.getConf();
+  }
+
+  /**
+   * @param path the path to get the configuration for
+   * @return the path level configurations for the path
+   */
+  public AlluxioConfiguration getConf(AlluxioURI path) {
+    return new PathConfiguration(mClientContext.getConf(),
+        mClientContext.getPathConf(), path);
   }
 
   /**

@@ -17,6 +17,8 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.util.ConfigurationUtils;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
@@ -36,6 +38,7 @@ import javax.security.auth.Subject;
  */
 public class ClientContext {
   private volatile AlluxioConfiguration mConf;
+  private volatile Map<String, AlluxioConfiguration> mPathConf = new HashMap<>();
   private final Subject mSubject;
 
   /**
@@ -87,6 +90,7 @@ public class ClientContext {
     } else {
       mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
     }
+    // TODO(cc): load path level configurations from master
   }
 
   /**
@@ -103,6 +107,7 @@ public class ClientContext {
   protected synchronized void updateWithClusterDefaults(InetSocketAddress address)
       throws AlluxioStatusException {
     mConf = ConfigurationUtils.loadClusterDefaults(address, mConf);
+    // TODO(cc): load path level configurations from master
   }
 
   /**
@@ -110,6 +115,13 @@ public class ClientContext {
    */
   public AlluxioConfiguration getConf() {
     return mConf;
+  }
+
+  /**
+   * @return the path level configurations
+   */
+  public Map<String, AlluxioConfiguration> getPathConf() {
+    return mPathConf;
   }
 
   /**

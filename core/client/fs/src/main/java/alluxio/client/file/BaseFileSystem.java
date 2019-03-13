@@ -538,7 +538,7 @@ public class BaseFileSystem implements FileSystem {
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
     InStreamOptions inStreamOptions = new InStreamOptions(status, options,
-        mFsContext.getConf());
+        mFsContext.getConf(path));
     return new FileInStream(status, inStreamOptions, mFsContext);
   }
 
