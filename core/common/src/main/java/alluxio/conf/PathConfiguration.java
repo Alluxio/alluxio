@@ -11,10 +11,7 @@
 
 package alluxio.conf;
 
-import alluxio.AlluxioURI;
-
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,155 +24,129 @@ import java.util.Set;
  * 2. cluster level configuration.
  */
 public final class PathConfiguration implements AlluxioConfiguration {
-  private final AlluxioConfiguration mClusterConf;
-  private final Map<String, AlluxioConfiguration> mPathConf;
-  private final AlluxioURI mPath;
-  private final Filter mFilter;
-
-  /**
-   * Filter out the path level configuration for a specific key.
-   */
-  private interface Filter {
-    AlluxioConfiguration filter(PropertyKey key);
-  }
-
-  private final class PathFilter implements Filter {
-    @Override
-    public AlluxioConfiguration filter(PropertyKey key) {
-      AlluxioConfiguration conf = mPathConf.get(mPath.getPath());
-      if (conf != null && conf.isSet(key)) {
-        return conf;
-      }
-      return mClusterConf;
-    }
-  }
+  private final AlluxioConfiguration mConf;
+  private final int mPathIndex;
 
   /**
    * Constructs a new PathConfiguration.
    *
-   * @param clusterConf cluster level configuration
-   * @param pathConf path level configuration
-   * @param path the specific path this configuration is for
+   * It stores a reference to conf without copying properties.
+   *
+   * @param conf the Alluxio configuration
+   * @param pathIndex the index of the path this configuration is for
    */
-  public PathConfiguration(AlluxioConfiguration clusterConf,
-      Map<String, AlluxioConfiguration> pathConf, AlluxioURI path) {
-    mClusterConf = clusterConf;
-    mPathConf = pathConf;
-    mPath = path;
-    mFilter = new PathFilter();
+  public PathConfiguration(AlluxioConfiguration conf, int pathIndex) {
+    mConf = conf;
+    mPathIndex = pathIndex;
+  }
+
+  private PropertyKey resolve(PropertyKey key) {
+    PropertyKey pathKey = PropertyKey.Template.PATH_PROPERTY.format(mPathIndex, key.toString());
+    return mConf.isSet(pathKey) ? pathKey : key;
   }
 
   @Override
   public String get(PropertyKey key) {
-    return mFilter.filter(key).get(key);
+    return mConf.get(resolve(key));
   }
 
   @Override
   public String get(PropertyKey key, ConfigurationValueOptions options) {
-    return mFilter.filter(key).get(key, options);
+    return mConf.get(resolve(key), options);
   }
 
   @Override
   public boolean isSet(PropertyKey key) {
-    return mFilter.filter(key).isSet(key);
+    return mConf.isSet(resolve(key));
   }
 
   @Override
   public Set<PropertyKey> keySet() {
-    return mClusterConf.keySet();
+    return mConf.keySet();
   }
 
   @Override
   public int getInt(PropertyKey key) {
-    return mFilter.filter(key).getInt(key);
+    return mConf.getInt(resolve(key));
   }
 
   @Override
   public long getLong(PropertyKey key) {
-    return mFilter.filter(key).getLong(key);
+    return mConf.getLong(resolve(key));
   }
 
   @Override
   public double getDouble(PropertyKey key) {
-    return mFilter.filter(key).getDouble(key);
+    return mConf.getDouble(resolve(key));
   }
 
   @Override
   public float getFloat(PropertyKey key) {
-    return mFilter.filter(key).getFloat(key);
+    return mConf.getFloat(resolve(key));
   }
 
   @Override
   public boolean getBoolean(PropertyKey key) {
-    return mFilter.filter(key).getBoolean(key);
+    return mConf.getBoolean(resolve(key));
   }
 
   @Override
   public List<String> getList(PropertyKey key, String delimiter) {
-    return mFilter.filter(key).getList(key, delimiter);
+    return mConf.getList(resolve(key), delimiter);
   }
 
   @Override
   public <T extends Enum<T>> T getEnum(PropertyKey key, Class<T> enumType) {
-    return mFilter.filter(key).getEnum(key, enumType);
+    return mConf.getEnum(resolve(key), enumType);
   }
 
   @Override
   public long getBytes(PropertyKey key) {
-    return mFilter.filter(key).getBytes(key);
+    return mConf.getBytes(resolve(key));
   }
 
   @Override
   public long getMs(PropertyKey key) {
-    return mFilter.filter(key).getMs(key);
+    return mConf.getMs(resolve(key));
   }
 
   @Override
   public Duration getDuration(PropertyKey key) {
-    return mFilter.filter(key).getDuration(key);
+    return mConf.getDuration(resolve(key));
   }
 
   @Override
   public <T> Class<T> getClass(PropertyKey key) {
-    return mFilter.filter(key).getClass(key);
+    return mConf.getClass(resolve(key));
   }
 
   @Override
   public Map<String, String> getNestedProperties(PropertyKey prefixKey) {
-    return mFilter.filter(prefixKey).getNestedProperties(prefixKey);
+    return mConf.getNestedProperties(resolve(prefixKey));
   }
 
   @Override
   public AlluxioProperties copyProperties() {
-    AlluxioProperties properties = mClusterConf.copyProperties();
-    properties.forEach((key, value) ->
-        properties.set(key, mFilter.filter(key).get(key)));
-    return properties;
+    return mConf.copyProperties();
   }
 
   @Override
   public Source getSource(PropertyKey key) {
-    return mFilter.filter(key).getSource(key);
+    return mConf.getSource(resolve(key));
   }
 
   @Override
   public Map<String, String> toMap(ConfigurationValueOptions opts) {
-    Map<String, String> map = new HashMap<>();
-    keySet().forEach(key ->
-        map.put(key.getName(), mFilter.filter(key).get(key, opts)));
-    return map;
+    return mConf.toMap(opts);
   }
 
   @Override
   public void validate() {
-    mClusterConf.validate();
-    for (AlluxioConfiguration conf : mPathConf.values()) {
-      conf.validate();
-    }
+    mConf.validate();
   }
 
   @Override
   public boolean clusterDefaultsLoaded() {
-    return mClusterConf.clusterDefaultsLoaded();
+    return mConf.clusterDefaultsLoaded();
   }
 }

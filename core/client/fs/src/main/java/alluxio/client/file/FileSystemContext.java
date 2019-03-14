@@ -13,15 +13,16 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PathConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PathConfiguration;
+import alluxio.conf.PathIndexer;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -30,8 +31,8 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
-import alluxio.util.IdUtils;
 import alluxio.security.authentication.SaslParticipantProviderUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.util.network.NettyUtils;
@@ -123,6 +124,7 @@ public final class FileSystemContext implements Closeable {
   private WorkerNetAddress mLocalWorker;
 
   private final ClientContext mClientContext;
+  private final PathIndexer mPathIndexer;
   private final String mAppId;
   private final EventLoopGroup mWorkerGroup;
 
@@ -203,6 +205,7 @@ public final class FileSystemContext implements Closeable {
   private FileSystemContext(ClientContext ctx) {
     Preconditions.checkNotNull(ctx, "ctx");
     mClientContext = ctx;
+    mPathIndexer = new PathIndexer(mClientContext.getConf());
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
     mClosed = new AtomicBoolean(false);
@@ -310,12 +313,14 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
+   * Returns a {@link PathConfiguration} which holds references to the configuration
+   * returned by {@link #getConf()} without copying properties.
+   *
    * @param path the path to get the configuration for
    * @return the path level configurations for the path
    */
   public AlluxioConfiguration getConf(AlluxioURI path) {
-    return new PathConfiguration(mClientContext.getConf(),
-        mClientContext.getPathConf(), path);
+    return new PathConfiguration(mClientContext.getConf(), mPathIndexer.index(path.getPath()));
   }
 
   /**
