@@ -9,7 +9,7 @@ priority: 4
 * 内容列表
 {:toc}
 
-该指南介绍如何配置Alluxio以使用[Baidu Cloud BOS](https://cloud.baidu.com/product/bos.html)作为底层文件系统。对象存储服务（BOS）是阿里云提供的一个大容量、安全、高可靠性的云存储服务。
+该指南介绍如何配置Alluxio以使用[Baidu Cloud BOS](https://cloud.baidu.com/product/bos.html)作为底层文件系统。对象存储服务（BOS）是百度云提供的稳定、安全、高效、高可扩展的云存储服务。您可以将任意数量和形式的非结构化数据存入BOS，并对数据进行管理和处理。BOS支持标准、低频、冷存储等多种存储类型，满足您各类场景的存储需求。
 
 ## 初始步骤
 
@@ -37,10 +37,10 @@ fs.bos.accessKeySecret=<BOS_ACCESS_KEY_SECRET>
 fs.bos.endpoint=<BOS_ENDPOINT>
 ```
 
-此处, `fs.bos.accessKeyId `和`fs.bos.accessKeySecret`分别为`Access Key ID`字符串[AccessKey](https://cloud.baidu.com/doc/Reference/GetAKSK.html)和`Access Key Secret`字符串，均受阿里云[AccessKeys管理界面](https://console.bce.baidu.com/iam/#/iam/baseinfo)管理；`fs.bos.endpoint`是Bucket概述中所说的Bucket的endpoint，其可能的取值比如`bj.bcebos.com`，`gz.bcebos.com`, `su.bcebos.com`。
+此处, `fs.bos.accessKeyId `和`fs.bos.accessKeySecret`分别为`Access Key ID`字符串[AccessKey](https://cloud.baidu.com/doc/Reference/GetAKSK.html)和`Access Key Secret`字符串，均受百度云[AccessKeys管理界面](https://console.bce.baidu.com/iam/#/iam/baseinfo)管理；`fs.bos.endpoint`是Bucket概述中所说的Bucket的endpoint，其可能的取值比如`bj.bcebos.com`，`gz.bcebos.com`, `su.bcebos.com`。
 ([BOS Endpoint](https://cloud.baidu.com/doc/BOS/GettingStarted-new.html))。
 
-更改完成后，Alluxio应该能够将BOS作为底层文件系统运行，你可以尝试[使用BOS在本地运行Alluxio](#running-alluxio-locally-with-s3)
+更改完成后，Alluxio应该能够将BOS作为底层文件系统运行，你可以尝试[使用BOS在本地运行Alluxio](#使用bos在本地运行alluxio)
 
 ### 嵌套目录安装
 

@@ -10,7 +10,7 @@ priority: 10
 {:toc}
 
 This guide describes how to configure [Baidu Cloud BOS](https://cloud.baidu.com/product/bos.html) as Alluxio's under storage system. 
-Object Storage Service (BOS) is a massive, secure and highly reliable cloud storage service provided by Baidu Cloud.
+Baidu Cloud Object Storage Service (BOS) is a stable, secure, efficient, and highly scalable cloud storage service provided by Baidu Cloud. You can store arbitrary quantity of any form of unstructured data in BOS, then manage and process the data. BOS supports standard, low frequency, cold storage and other storage types to meet with the storage needs of your various scenarios.
 
 ## Prerequisites
 
