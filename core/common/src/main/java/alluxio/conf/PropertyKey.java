@@ -4217,7 +4217,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           NESTED_PATH_PROPERTY_CREATOR =
           createNestedPropertyCreator(Scope.CLIENT, ConsistencyCheckLevel.ENFORCE);
 
-
       private static BiFunction<String, PropertyKey, PropertyKey> fromBuilder(Builder builder) {
         return (name, baseProperty) -> builder.setName(name).buildUnregistered();
       }

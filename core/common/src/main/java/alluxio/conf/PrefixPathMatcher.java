@@ -108,9 +108,9 @@ public final class PrefixPathMatcher implements PathMatcher {
       TrieNode node = nodes.get(i);
       if (node != mTrie && mPaths.containsKey(node)) {
         String prefix = mPaths.get(node);
-        if ((prefix.length() == path.length()) ||
-            (prefix.charAt(prefix.length() - 1) == '/') ||
-            (path.charAt(prefix.length()) == '/')) {
+        if ((prefix.length() == path.length())
+            || (prefix.charAt(prefix.length() - 1) == '/')
+            || (path.charAt(prefix.length()) == '/')) {
           // path is in the subtree of prefix.
           return prefix;
         }
