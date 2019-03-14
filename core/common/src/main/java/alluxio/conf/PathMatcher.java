@@ -16,8 +16,13 @@ package alluxio.conf;
  */
 public interface PathMatcher {
   /**
+   * Returned by {@link #match(String)} when there is no match.
+   */
+  String NO_MATCH = "";
+
+  /**
    * @param path the path to be matched
-   * @return the matched path pattern or an empty string if no match is found
+   * @return the matched path pattern or {@link NO_MATCH} when there is no match
    */
   String match(String path);
 }

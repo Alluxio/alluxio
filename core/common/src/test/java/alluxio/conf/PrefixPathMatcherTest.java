@@ -14,6 +14,7 @@ package alluxio.conf;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,29 +25,28 @@ public class PrefixPathMatcherTest {
   @Test
   public void match() {
     String[] paths = new String[]{
-        "/",
+        "/a",
         "/a/b",
-        "/a/b/",
         "/a/b/c",
         "/a/bc",
     };
     Set<String> pathSet = new HashSet<>();
-    for (String path : paths) {
-      pathSet.add(path);
-    }
+    Collections.addAll(pathSet, paths);
     PrefixPathMatcher matcher = new PrefixPathMatcher(pathSet);
     Assert.assertEquals("", matcher.match(""));
-    Assert.assertEquals("/", matcher.match("/"));
-    Assert.assertEquals("/", matcher.match("/a"));
-    Assert.assertEquals("/", matcher.match("/b"));
-    Assert.assertEquals("/", matcher.match("/ab"));
+    Assert.assertEquals("", matcher.match("/"));
+    Assert.assertEquals("", matcher.match("/b"));
+    Assert.assertEquals("", matcher.match("/ab"));
+    Assert.assertEquals("/a", matcher.match("/a"));
+    Assert.assertEquals("/a", matcher.match("/a/"));
+    Assert.assertEquals("/a", matcher.match("/a/bd"));
     Assert.assertEquals("/a/b", matcher.match("/a/b"));
-    Assert.assertEquals("/a/b/", matcher.match("/a/b/"));
-    Assert.assertEquals("/a/b/", matcher.match("/a/b/d"));
-    Assert.assertEquals("/a/bc", matcher.match("/a/bc"));
-    Assert.assertEquals("/", matcher.match("/a/bd"));
+    Assert.assertEquals("/a/b", matcher.match("/a/b/"));
+    Assert.assertEquals("/a/b", matcher.match("/a/b/d"));
+    Assert.assertEquals("/a/b", matcher.match("/a/b/cd"));
     Assert.assertEquals("/a/b/c", matcher.match("/a/b/c"));
     Assert.assertEquals("/a/b/c", matcher.match("/a/b/c/d"));
-    Assert.assertEquals("/a/b/", matcher.match("/a/b/cd"));
+    Assert.assertEquals("/a/bc", matcher.match("/a/bc"));
+    Assert.assertEquals("/a/bc", matcher.match("/a/bc/d"));
   }
 }

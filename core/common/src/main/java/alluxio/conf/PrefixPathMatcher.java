@@ -90,7 +90,7 @@ public final class PrefixPathMatcher implements PathMatcher {
   private final Map<TrieNode, String> mPaths = new HashMap<>();
 
   /**
-   * Builds internal data structures based on paths.
+   * Builds internal trie based on paths.
    *
    * @param paths the list of path patterns
    */
@@ -116,6 +116,6 @@ public final class PrefixPathMatcher implements PathMatcher {
         }
       }
     }
-    return "";
+    return NO_MATCH;
   }
 }
