@@ -555,6 +555,10 @@ public class BaseFileSystem implements FileSystem {
     checkUri(dst);
     options = FileSystemOptions.renameDefaults(mFsContext.getConf())
         .toBuilder().mergeFrom(options).build();
+    // Check whether the destination is a folder
+    URIStatus dstStatus = getStatus(dst);
+    if(dstStatus.isFolder())
+      System.out.println("The dst is a folder.");
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
       // TODO(calvin): Update this code on the master side.
