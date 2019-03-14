@@ -3357,8 +3357,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_JOB_CAPACITY =
       new Builder(Name.JOB_MASTER_JOB_CAPACITY)
-          .setDescription("The total number of jobs that the ALluxio Job Master can run at any one "
-              + "moment.")
+          .setDescription("The total possible number of available job statuses in the job master. "
+              + "This value includes running and finished jobs which are have completed within "
+              + Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME + ".")
           .setDefaultValue(100000)
           .build();
   public static final PropertyKey JOB_MASTER_WORKER_HEARTBEAT_INTERVAL =
@@ -3369,8 +3370,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_WORKER_TIMEOUT =
       new Builder(Name.JOB_MASTER_WORKER_TIMEOUT)
-          .setDescription("The time length after a job worker heartbeat that the job master "
-              + "will mark a worker as lost without a subsequent heartbeat.")
+          .setDescription("The time period after which the job master will mark a worker as lost "
+              + "without a subsequent heartbeat.")
           .setDefaultValue("60sec")
           .build();
   public static final PropertyKey JOB_MASTER_BIND_HOST =
@@ -3442,10 +3443,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JOB_MASTER_RPC_ADDRESSES)
           .setDescription("The list of RPC addresses to use for the job service configured in "
               + "non-zookeeper HA mode. If this property is not specifically defined, it will "
-              + "first fall back to using the alluxio.master.rpc.addresses replacing those "
+              + "first fall back to using alluxio.master.rpc.addresses replacing those "
               + "address ports with the port defined by alluxio.job.master.port. Otherwise the "
-              + "addresses are then inherited from alluxio.job.master.embedded.journal.addresses "
+              + "addresses are inherited from alluxio.job.master.embedded.journal.addresses "
               + "using the port defined in alluxio.job.master.port")
+          .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)
