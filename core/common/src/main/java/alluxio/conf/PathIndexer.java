@@ -31,8 +31,8 @@ public final class PathIndexer {
   private final PathMatcher mMatcher;
 
   /**
-   * The expected properties in conf are of format:
-   * {@code alluxio.path.<index>=<path pattern>}.
+   * Property {@link PropertyKey.PATHS} and properties formatted as
+   * {@link PropertyKey.Template.PATH_INDEX} are expected in conf.
    *
    * The conf is not copied or stored in this class, later updates to conf will not update the
    * internal data structures.
