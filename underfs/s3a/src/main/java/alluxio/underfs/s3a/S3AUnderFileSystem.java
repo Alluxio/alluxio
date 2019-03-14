@@ -429,7 +429,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       return result;
     };
     try {
-      return retry(op);
+      return retry(op, "get next chunk of listing result");
     } catch (AmazonClientException e) {
       throw new IOException(e);
     }
@@ -445,7 +445,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       return result;
     };
     try {
-      return retry(op);
+      return retry(op, "get next chunk of listing result V1");
     } catch (AmazonClientException e) {
       throw new IOException(e);
     }
@@ -549,7 +549,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     };
 
     try {
-      return retry(op);
+      return retry(op, "get object status");
     } catch (AmazonServiceException e) {
       if (e.getStatusCode() == 404) { // file not found, possible for exists calls
         return null;
@@ -639,15 +639,18 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * S3A eventual consistency issue.
    *
    * @param op the Amazon client operation to retry
+   * @param info the information regarding the operation
    * @return the operation result if operation succeed
    */
-  private <T> T retry(AmazonClientOperation<T> op) throws AmazonClientException {
+  private <T> T retry(AmazonClientOperation<T> op, String info) throws AmazonClientException {
     RetryPolicy retryPolicy = getRetryPolicy();
     AmazonClientException thrownException = null;
     while (retryPolicy.attempt()) {
       try {
         return op.apply();
       } catch (AmazonClientException e) {
+        LOG.debug("{} attempt to {} failed with exception : {}", retryPolicy.getAttemptCount(),
+            info, e.getMessage());
         thrownException = e;
       }
     }
