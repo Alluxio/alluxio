@@ -530,7 +530,7 @@ public class BaseFileSystem implements FileSystem {
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.openFileDefaults(mFsContext.getConf())
+    options = FileSystemOptions.openFileDefaults(mFsContext.getConf(path))
         .toBuilder().mergeFrom(options).build();
     URIStatus status = getStatus(path);
     if (status.isFolder()) {
