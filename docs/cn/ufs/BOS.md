@@ -37,7 +37,7 @@ fs.bos.accessKeySecret=<BOS_ACCESS_KEY_SECRET>
 fs.bos.endpoint=<BOS_ENDPOINT>
 ```
 
-此处, `fs.bos.accessKeyId `和`fs.bos.accessKeySecret`分别为`Access Key ID`字符串[AccessKey](https://cloud.baidu.com/doc/Reference/GetAKSK.html)和`Access Key Secret`字符串，均受百度云[AccessKeys管理界面](https://console.bce.baidu.com/iam/#/iam/baseinfo)管理；`fs.bos.endpoint`是Bucket概述中所说的Bucket的endpoint，其可能的取值比如`bj.bcebos.com`，`gz.bcebos.com`, `su.bcebos.com`。
+此处, `fs.bos.accessKeyId `和`fs.bos.accessKeySecret`分别为`Access Key ID`字符串[AccessKey](https://cloud.baidu.com/doc/Reference/GetAKSK.html)和`Access Key Secret`字符串，均受百度云[AccessKeys管理界面](https://console.bce.baidu.com/iam/#/iam/accesslist)管理；`fs.bos.endpoint`是Bucket概述中所说的Bucket的endpoint，其可能的取值比如`bj.bcebos.com`，`gz.bcebos.com`, `su.bcebos.com`。
 ([BOS Endpoint](https://cloud.baidu.com/doc/BOS/GettingStarted-new.html))。
 
 更改完成后，Alluxio应该能够将BOS作为底层文件系统运行，你可以尝试[使用BOS在本地运行Alluxio](#使用bos在本地运行alluxio)

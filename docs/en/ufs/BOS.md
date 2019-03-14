@@ -49,7 +49,7 @@ fs.bos.endpoint=<BOS_ENDPOINT>
 ```
 
 `fs.bos.accessKeyId` and `fs.bos.accessKeySecret` is the [AccessKey](https://cloud.baidu.com/doc/Reference/GetAKSK.html) for BOS, 
-which are created and managed in [Baidu Cloud AccessKey management console](https://console.bce.baidu.com/iam/#/iam/baseinfo).
+which are created and managed in [Baidu Cloud AccessKey management console](https://console.bce.baidu.com/iam/#/iam/accesslist).
 
 `fs.bos.endpoint` is the endpoint of this bucket, which can be found in the bucket overview page with
 values like `bj.bcebos.com` and `gz.bcebos.com`. Available endpoints are listed in the 
