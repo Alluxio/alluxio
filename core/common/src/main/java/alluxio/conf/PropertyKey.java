@@ -3441,12 +3441,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_RPC_ADDRESSES =
       new Builder(Name.JOB_MASTER_RPC_ADDRESSES)
-          .setDescription("The list of RPC addresses to use for the job service configured in "
-              + "non-zookeeper HA mode. If this property is not specifically defined, it will "
-              + "first fall back to using alluxio.master.rpc.addresses replacing those "
-              + "address ports with the port defined by alluxio.job.master.port. Otherwise the "
-              + "addresses are inherited from alluxio.job.master.embedded.journal.addresses "
-              + "using the port defined in alluxio.job.master.port")
+          .setDescription(String.format("The list of RPC addresses to use for the job service "
+                  + "configured in non-zookeeper HA mode. If this property is not specifically "
+                  + "defined, it will first fall back to using %s, replacing those address "
+                  + "ports with the port defined by %s. Otherwise the addresses are inherited from "
+                  + "%s using the port defined in %s",
+              Name.MASTER_RPC_ADDRESSES, Name.JOB_MASTER_RPC_PORT,
+              Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, Name.JOB_MASTER_RPC_PORT))
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
