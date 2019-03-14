@@ -2,6 +2,10 @@
    Author's custom styles
    ========================================================================== */
 
+a.dropdown-item.active {
+    color: white;
+}
+
 .version {
     line-height: 23px;
     vertical-align: middle;
