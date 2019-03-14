@@ -39,7 +39,6 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.AccessControlList;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
@@ -422,39 +421,35 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   // Get next chunk of listing result.
   private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request)
       throws IOException {
-    // S3A write-then-list workload may has problems due to its eventual consistency issue
-    RetryPolicy retryPolicy = getRetryPolicy();
-    IOException thrownException = null;
-    while (retryPolicy.attempt()) {
-      try {
-        // Query S3 for the next batch of objects.
-        ListObjectsV2Result result = mClient.listObjectsV2(request);
-        // Advance the request continuation token to the next set of objects.
-        request.setContinuationToken(result.getNextContinuationToken());
-        return result;
-      } catch (AmazonClientException e) {
-        thrownException = new IOException(e);
-      }
+    // S3A write-then-list workload may have problems due to eventual consistency
+    AmazonClientOperation<ListObjectsV2Result> ops = () -> {
+      // Query S3 for the next batch of objects.
+      ListObjectsV2Result result = mClient.listObjectsV2(request);
+      // Advance the request continuation token to the next set of objects.
+      request.setContinuationToken(result.getNextContinuationToken());
+      return result;
+    };
+    try {
+      return retry(ops);
+    } catch (AmazonClientException e) {
+      throw new IOException(e);
     }
-    throw thrownException;
   }
 
   // Get next chunk of listing result.
   private ObjectListing getObjectListingChunkV1(ListObjectsRequest request) throws IOException {
-    RetryPolicy retryPolicy = getRetryPolicy();
-    IOException thrownException = null;
-    while (retryPolicy.attempt()) {
-      try {
-        // Query S3 for the next batch of objects.
-        ObjectListing result = mClient.listObjects(request);
-        // Advance the request continuation token to the next set of objects.
-        request.setMarker(result.getNextMarker());
-        return result;
-      } catch (AmazonClientException e) {
-        thrownException = new IOException(e);
-      }
+    AmazonClientOperation<ObjectListing> ops = () -> {
+      // Query S3 for the next batch of objects.
+      ObjectListing result = mClient.listObjects(request);
+      // Advance the request continuation token to the next set of objects.
+      request.setMarker(result.getNextMarker());
+      return result;
+    };
+    try {
+      return retry(ops);
+    } catch (AmazonClientException e) {
+      throw new IOException(e);
     }
-    throw thrownException;
   }
 
   /**
@@ -548,24 +543,23 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   @Nullable
   protected ObjectStatus getObjectStatus(String key) throws IOException {
-    AmazonClientException thrownException = null;
     // Solve s3a eventual consistency issues in write-then-list and write-then-rename workload
-    RetryPolicy retryPolicy = getRetryPolicy();
-    while (retryPolicy.attempt()) {
-      try {
-        ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
-        return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
-            meta.getLastModified().getTime());
-      } catch (AmazonClientException e) {
-        thrownException = e;
-      }
-    }
+    AmazonClientOperation<ObjectStatus> ops = () -> {
+      ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
+      return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
+          meta.getLastModified().getTime());
+    };
 
-    if (thrownException instanceof AmazonServiceException &&
-        ((AmazonServiceException) thrownException).getStatusCode() == 404) {
-      return null; // file not found, possible for exists calls
+    try {
+      return retry(ops);
+    } catch (AmazonServiceException e) {
+      if (e.getStatusCode() == 404) {
+        return null;
+      }
+      throw new IOException(e);
+    } catch (AmazonClientException e) {
+      throw new IOException(e);
     }
-    throw new IOException(thrownException);
   }
 
   @Override
@@ -628,5 +622,36 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     } catch (AmazonClientException e) {
       throw new IOException(e);
     }
+  }
+
+  /**
+   * Represents a Amazon client operation.
+   */
+  private interface AmazonClientOperation<T> {
+    /**
+     * Applies this operation.
+     *
+     * @return the result of this operation
+     */
+    T apply() throws AmazonClientException;
+  }
+
+  /**
+   * Retries the given Amazon client operation.
+   *
+   * @param op the Amazon client operation to retry
+   * @return the operation result if operation succeed
+   */
+  private <T> T retry(AmazonClientOperation<T> op) throws AmazonClientException {
+    RetryPolicy retryPolicy = getRetryPolicy();
+    AmazonClientException thrownException = null;
+    while (retryPolicy.attempt()) {
+      try {
+        return op.apply();
+      } catch (AmazonClientException e) {
+        thrownException = e;
+      }
+    }
+    throw thrownException;
   }
 }
