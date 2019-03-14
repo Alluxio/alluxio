@@ -421,8 +421,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   // Get next chunk of listing result.
   private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request)
       throws IOException {
-    // S3A write-then-list workload may have problems due to eventual consistency
-    AmazonClientOperation<ListObjectsV2Result> ops = () -> {
+    AmazonClientOperation<ListObjectsV2Result> op = () -> {
       // Query S3 for the next batch of objects.
       ListObjectsV2Result result = mClient.listObjectsV2(request);
       // Advance the request continuation token to the next set of objects.
@@ -430,7 +429,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       return result;
     };
     try {
-      return retry(ops);
+      return retry(op);
     } catch (AmazonClientException e) {
       throw new IOException(e);
     }
@@ -438,7 +437,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   // Get next chunk of listing result.
   private ObjectListing getObjectListingChunkV1(ListObjectsRequest request) throws IOException {
-    AmazonClientOperation<ObjectListing> ops = () -> {
+    AmazonClientOperation<ObjectListing> op = () -> {
       // Query S3 for the next batch of objects.
       ObjectListing result = mClient.listObjects(request);
       // Advance the request continuation token to the next set of objects.
@@ -446,7 +445,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       return result;
     };
     try {
-      return retry(ops);
+      return retry(op);
     } catch (AmazonClientException e) {
       throw new IOException(e);
     }
@@ -543,17 +542,16 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   @Nullable
   protected ObjectStatus getObjectStatus(String key) throws IOException {
-    // Solve s3a eventual consistency issues in write-then-list and write-then-rename workload
-    AmazonClientOperation<ObjectStatus> ops = () -> {
+    AmazonClientOperation<ObjectStatus> op = () -> {
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
       return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
           meta.getLastModified().getTime());
     };
 
     try {
-      return retry(ops);
+      return retry(op);
     } catch (AmazonServiceException e) {
-      if (e.getStatusCode() == 404) {
+      if (e.getStatusCode() == 404) { // file not found, possible for exists calls
         return null;
       }
       throw new IOException(e);
@@ -568,13 +566,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * @return the s3a retry policy
+   * @return the retry policy to use in s3a
    */
   private RetryPolicy getRetryPolicy() {
     return new ExponentialBackoffRetry(
-        (int) mUfsConf.getMs(PropertyKey.UNDERFS_S3A_RETRY_BASE_SLEEP_MS),
-        (int) mUfsConf.getMs(PropertyKey.UNDERFS_S3A_RETRY_MAX_SLEEP_MS),
-        mUfsConf.getInt(PropertyKey.UNDERFS_S3A_RETRY_MAX_NUM));
+        (int) mUfsConf.getMs(PropertyKey.UNDERFS_OBJECT_STORE_RETRY_BASE_SLEEP_MS),
+        (int) mUfsConf.getMs(PropertyKey.UNDERFS_OBJECT_STORE_RETRY_MAX_SLEEP_MS),
+        mUfsConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_RETRY_MAX_NUM));
   }
 
   /**
@@ -637,7 +635,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   /**
-   * Retries the given Amazon client operation.
+   * Retries the given Amazon client operation to resolve
+   * S3A eventual consistency issue.
    *
    * @param op the Amazon client operation to retry
    * @return the operation result if operation succeed
