@@ -242,7 +242,7 @@ public final class AlluxioBlockStore {
   }
 
   private Set<WorkerNetAddress> handleFailedWorkers(Set<WorkerNetAddress> workers,
-                                                    Map<WorkerNetAddress, Long> failedWorkers) {
+      Map<WorkerNetAddress, Long> failedWorkers) {
     if (workers.isEmpty()) {
       return Collections.EMPTY_SET;
     }
@@ -324,8 +324,7 @@ public final class AlluxioBlockStore {
     }
 
     // Group different block workers by their hostnames
-    Map<String, Set<BlockWorkerInfo>> blockWorkersByHost =
-        new HashMap<>();
+    Map<String, Set<BlockWorkerInfo>> blockWorkersByHost = new HashMap<>();
     for (BlockWorkerInfo blockWorker : blockWorkers) {
       String hostName = blockWorker.getNetAddress().getHost();
       if (blockWorkersByHost.containsKey(hostName)) {
