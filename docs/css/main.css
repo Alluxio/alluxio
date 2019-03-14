@@ -28,18 +28,23 @@ img {
 .language-bash > .highlight > .highlight > code > span.line::before {
     content: "$";
     font-style: inherit;
-    padding-right: .5rem;
-    padding-left: .5rem;
-
+    margin-right: .7rem;
 }
 
-.highlighter-rouge > .highlight {
-    background-color: #DCDCDC;
-    margin-top: 1rem;
+div.highlighter-rouge {
     margin-bottom: 1rem;
-    padding-left: 5px;
-    border-radius: 5px;
+}
 
+div.highlighter-rouge > div.highlight {
+    background-color: #DCDCDC;
+    padding-top:0.3rem;
+    padding-bottom: 0.3rem;
+    padding-left: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+div.highlight > pre.highlight {
+    margin-bottom: 0rem;
 }
 
 .navbar {
