@@ -22,7 +22,7 @@ img {
 }
 
 .language-bash > .highlight > .highlight > code > span.line::before {
-    content: "~ $";
+    content: "$";
     font-style: inherit;
     padding-right: .5rem;
     padding-left: .5rem;
