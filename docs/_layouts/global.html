@@ -62,7 +62,7 @@
 
   <div class="container">
     <div class="row">
-      <div class="col-3" id="nav_elements">
+      <div class="col-md-3" id="nav_elements">
         <div class="sticky-top">
         <ul class="nav nav-pills flex-column">
           {% assign categories = site.categoryList %}
@@ -91,7 +91,7 @@
                   {% endif %}
                 </a>
                 {% else %}
-                <a class="dropdown-item" href="{{base}}{{node.url}}">
+                <a class="dropdown-item" href="{{site.baseurl}}{{node.url}}">
                   {% if node.nickname == null %}
                   {{node.title}}
                   {% else %}
