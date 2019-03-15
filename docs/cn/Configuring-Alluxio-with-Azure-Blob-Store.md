@@ -21,13 +21,13 @@ priority： 0
 例如，如果你是在你的本地机器运行Alluxio,`ALLUXIO_MASTER_HOSTNAME`应该被设置为`localhost`。
 
 ```
-$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
+./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
 ```
 
 或者你可以从模板创建文件并手动设置内容。
 
 ```
-$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
+cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```
 而且，为了在Alluxio上使用Azure Blob Store，在你的Azure storage帐户上创建一个新的container或者使用一个已有的container。你应该注意你在这个container里准备使用的目录,你可以在这个容器里面创建一个目录，或者使用一个已有的目录。鉴于这篇文章的目的，我们将Azure storage帐户名取名为`AZURE_ACCOUNT`，将帐户里的容器取名为`AZURE_CONTAINER`并将该container里面的目录称为`AZURE_DIRECTORY`。更多关于Azure storage帐户的信息，请看[这里](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)。
 
@@ -68,8 +68,8 @@ alluxio.underfs.hdfs.prefixes=hdfs://,glusterfs:///,maprfs:///,wasb://
 完成所有配置之后，你可以本地运行Alluxio,观察是否一切运行正常。
 
 ```
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
@@ -77,7 +77,7 @@ $ ./bin/alluxio-start.sh local
 接着，你可以运行一个简单的示例程序：
 
 ```
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 运行成功后，你可以访问你的容器AZURE_CONTAINER，确认其中包含了由Alluxio创建的文件和目录。该测试中，创建的文件名应该像下面这样：
@@ -89,5 +89,5 @@ AZURE_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE
 若要停止Alluxio，你可以运行以下命令:
 
 ```
-$ ./bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```

@@ -25,7 +25,7 @@ You need to configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 You need to configure Alluxio to use Swift as its under storage system by modifying

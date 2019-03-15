@@ -33,7 +33,7 @@ priority: 1
 > 但是，底层数据不会改变。
 
 ```bash
-$ ./bin/alluxio format
+./bin/alluxio format
 ```
 
 # 第1步：本地启动Alluxio文件系统
@@ -41,7 +41,7 @@ $ ./bin/alluxio format
 简单运行如下的命令来启动Alluxio文件系统。
 
 ```bash
-$ ./bin/alluxio-start.sh local
+./bin/alluxio-start.sh local
 ```
 
 > 注意：用户在linux系统下运行上述命令需要输入密码来获取sudo权限,
@@ -82,7 +82,7 @@ alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 然后在不需要请求root权限的情况下启动Alluxio：
 
 ```bash
-$ ./bin/alluxio-start.sh local NoMount
+./bin/alluxio-start.sh local NoMount
 ```
 
 另外，用户可以使用Linux[tmpFS](https://en.wikipedia.org/wiki/Tmpfs)存储内存数据，
@@ -97,7 +97,7 @@ alluxio.worker.tieredstore.level0.dirs.path=/dev/shm
 其次是：
 
 ```bash
-$ ./bin/alluxio-start.sh local NoMount
+./bin/alluxio-start.sh local NoMount
 ```
 
 ## 我怎样避免通过输入密码运行sudo命令？

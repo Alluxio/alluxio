@@ -1,3 +1,3 @@
 ```bash
-$ ./create <number of machines> google
+./create <number of machines> google
 ```

@@ -28,7 +28,7 @@ You need to configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 ### Option 1: S3A Interface (preferred)

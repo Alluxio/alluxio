@@ -26,13 +26,13 @@ priority: 1
 你可以在Alluxio目录下运行以下命令：
 
 ```bash
-$ mvn install -P<HADOOP_PROFILE> -DskipTests
+mvn install -P<HADOOP_PROFILE> -DskipTests
 ```
 
 对于不同的Hadoop发行版本，可用的Hadoop配置文件包括“hadoop-1”，“hadoop-2.2”，“hadoop-2.3”...“hadoop-2.8”。你也可以进一步设置一个特定的Hadoop发行版本进行编译，比如：
 
 ```bash
-$ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
+mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 ```
 
 编译成功后，新的Alluxio客户端Jar包可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中发现; 文档后续部分将会用到这个jar文件。
@@ -64,7 +64,7 @@ $ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 其次, 在`conf`目录中`hadoop-env.sh`文件中修改`$HADOOP_CLASSPATH`：
 
 ```bash
-$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 该配置确保Alluxio客户端jar包是利用的，对于通过Alluxio的URIs来创建和提交作业进行交互的MapReduce作业客户端。
@@ -79,7 +79,7 @@ $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 你可以在使用`hadoop jar ...`的时候加入-libjars命令行选项，指定`{{site.ALLUXIO_CLIENT_JAR_PATH}}`为`-libjars`的参数。这条命令会把该Jar包放到Hadoop的DistributedCache中，使所有节点都可以访问到。例如，下面的命令就是将Alluxio客户端Jar包添加到`-libjars`选项中。
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
+bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
 ```
 
 2.**手动将Client Jar包分发到所有节点**
@@ -92,21 +92,21 @@ $ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.
 为了方便，我们假设是伪分布式的集群，通过运行如下命令启动(根据hadoop的版本，你可能需要把`./bin`换成`./sbin`)：
 
 ```bash
-$ cd $HADOOP_HOME
-$ bin/stop-all.sh
-$ bin/start-all.sh
+cd $HADOOP_HOME
+bin/stop-all.sh
+bin/start-all.sh
 ```
 
 以本地模式启动Alluxio：
 
 ```bash
-$ bin/alluxio-start.sh local
+bin/alluxio-start.sh local
 ```
 
 你可以在Alluxio中加入两个简单的文件来运行wordcount。在你的Alluxio目录中运行：
 
 ```bash
-$ bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
+bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
 ```
 
 该命令将`LICENSE`文件复制到Alluxio的文件命名空间中，并指定其路径为`/wordcount/input.txt`。
@@ -114,12 +114,12 @@ $ bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
 现在我们运行一个用于wordcount的MapReduce作业。
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
+bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
 ```
 
 作业完成后，wordcount的结果将存在Alluxio的`/wordcount/output`目录下。你可以通过运行如下命令来查看结果文件：
 
 ```bash
-$ bin/alluxio fs ls /wordcount/output
-$ bin/alluxio fs cat /wordcount/output/part-r-00000
+bin/alluxio fs ls /wordcount/output
+bin/alluxio fs cat /wordcount/output/part-r-00000
 ```
