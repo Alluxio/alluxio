@@ -701,7 +701,7 @@ The `setReplication` command sets the max and/or min replication level of a file
 a directory recursively. This is a metadata operation and will not cause any replication to be
 created or removed immediately. The replication level of the target file or directory will be
 changed automatically in background. This command takes an argument of `--min` to specify the
-minimal replication level and -max for the maximal replication. Specify -1 as the argument of
+minimal replication level and `--max` for the maximal replication. Specify -1 as the argument of
 `--max` option to indicate no limit of the maximum number of replicas. If the specified path is a
 directory and `-R` is specified, it will recursively set all files in this directory.
 

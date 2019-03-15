@@ -264,7 +264,7 @@ For Alluxio to use the custom evictor, the fully qualified class name must be sp
 `alluxio.worker.evictor.class` property. After compiling the class to a JAR file, the JAR file
 needs to be accessible and added to the Alluxio worker's java classpath.
 
-## Managing Data Lifecycle in Alluxio
+## Managing the Data Lifecycle in Alluxio
 
 Users should understanding the following concepts to properly utilize available resources:
 
@@ -317,7 +317,7 @@ will automatically load data into the Alluxio cache when a file is used for the 
 
 The command [`alluxio fs persist`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url
 }}#persist)
-command allows a user to push data from the Alluxio cache to a UFS.
+allows a user to push data from the Alluxio cache to a UFS.
 
 ```bash
 $ ./bin/alluxio fs persist ${PATH_TO_FILE}
@@ -418,37 +418,37 @@ duration, such as a minute, in order for the the master to quickly identify the 
 
 ### Passive Replication
 
-Like many distributed file systems, each file in Alluxio consists of one or multiple blocks store
+Like many distributed file systems, each file in Alluxio consists of one or multiple blocks stored
 across the cluster. By default, Alluxio may adjust the replication level of different blocks
 dynamically and automatically based on the workload and storage capacity. For example, Alluxio may
 create more replicas of a particular block when more clients request to read this block with read
-type `CACHE` or `CACHE_PROMOTE`; Alluxio may also remove existing replicas when they are less often
-used to reclaim the space for data that is more often accessed ([Evictor in Alluxio Storage](#eviction-policies)).
-It is possible that in the same file different blocks have different number
+type `CACHE` or `CACHE_PROMOTE`; Alluxio may also remove existing replicas when they are used less
+often to reclaim the space for data that is accessed more often ([Evictor in Alluxio Storage](#eviction-policies)).
+It is possible that in the same file different blocks have a different number
 of replicas according to the popularity.
 
 By default, this replication or eviction decision and the corresponding data transfer is completely
-transparent to users and applications accessing Alluxio data.
+transparent to users and applications accessing data stored in Alluxio.
 
 ### Active Replication
 
 In addition to the dynamic replication adjustment, Alluxio also provides APIs and command-line
 interfaces for users to maintain a target range of replication level for a file explicitly.
-Particularly, user can configure the following two properties for a file in Alluxio:
+Particularly, a user can configure the following two properties for a file in Alluxio:
 
 1. `alluxio.user.file.replication.min` is the minimum possible number of replicas of this file. Its
 default value is 0, so in the default case Alluxio may completely evict this file from Alluxio
 managed space after the file becomes cold. By setting this property to a positive integer, Alluxio
 will check the replication levels of all the blocks in this file periodically. When some blocks
-become under-replicated, Alluxio ensures no more eviction on these blocks and will actively create
-more replicas to restore the replication level.
+become under-replicated, Alluxio will not evict any of these blocks and actively create more
+replicas to restore the replication level.
 1. `alluxio.user.file.replication.max` is the maximum number of replicas. Once the property of this
-file is set to a positive integer, Alluxio will check replication level and remove the excessive
+file is set to a positive integer, Alluxio will check the replication level and remove the excessive
 replicas. Set this property to -1 to make no upper limit (the default case), and to 0 to prevent
 storing any data of this file in Alluxio. Note that, the value of `alluxio.user.file.replication.max`
 must be no less than `alluxio.user.file.replication.min`.
 
-For example, users can copy a local file `/path/to/file` to Alluxio with at least two replicas nitially:
+For example, users can copy a local file `/path/to/file` to Alluxio with at least two replicas initially:
 
 ```bash
 $ ./bin/alluxio fs -Dalluxio.user.file.replication.min=2 copyFromLocal /path/to/file /file
