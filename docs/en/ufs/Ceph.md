@@ -28,7 +28,7 @@ You need to configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 ### Option 1: S3A Interface (preferred)
@@ -69,8 +69,8 @@ as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
 Start up Alluxio locally to see that everything works.
 
 ```bash
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -79,7 +79,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Run a simple example program:
 
 ```bash
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 Visit your bucket/container to verify the files and directories created
@@ -98,7 +98,7 @@ If using the Swift connector, you should see files named like:
 To stop Alluxio, run:
 
 ```bash
-$ ./bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```
 
 ## Access Control

@@ -52,13 +52,13 @@ Alluxio还包括一个可以提供便利和人性化的使用体验的FUSE界面
 首先在Alluxio的根目录下创建一个文件夹。
 
 ```bash
-$ ./bin/alluxio fs mkdir /training-data
+./bin/alluxio fs mkdir /training-data
 ```
 
 然后我们可以把存储在S3桶中的ImageNet数据挂载到路径 `/training-data/imagenet`上。假定数据在s3中的路径是 `s3a://alluxio-tensorflow-imagenet/`。
 
 ```bash
-$ ./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
+./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
 ```
 
 请注意，此命令需要传递存储桶的S3证书。这些证书与挂载点相关联，这样之后的访问就不需要证书了。
@@ -67,22 +67,22 @@ $ ./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-image
 权限为可读写。
 
 ```bash
-$ sudo mkdir -p /mnt/fuse
-$ sudo chown ec2-user:ec2-user /mnt/fuse
-$ chmod 664 /mnt/fuse
+sudo mkdir -p /mnt/fuse
+sudo chown ec2-user:ec2-user /mnt/fuse
+chmod 664 /mnt/fuse
 ```
 
 然后我们运行 Alluxio-FUSE shell 来将Alluxio目录下的 training-data 挂载到本地目录 `/mnt/fuse` 下面。
 
 ```bash
-$ ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
+./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
 ```
 
 现在，你可以访问挂载目录并浏览其中的数据了，你应该能看到存储在云中的数据。
 
 ```bash
-$ cd /mnt/fuse
-$ ls
+cd /mnt/fuse
+ls
 ```
 
 该文件夹已准备好供深度学习框架使用，深度学习框架将把Alluxio存储视为本地文件夹。我们将在下一节中使用此文件夹进行Tensorflow训练。

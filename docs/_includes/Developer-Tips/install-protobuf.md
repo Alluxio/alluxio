@@ -1,3 +1,3 @@
 ```bash
-$ brew install protobuf
+brew install protobuf
 ```
