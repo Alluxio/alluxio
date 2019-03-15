@@ -141,30 +141,24 @@ public final class MiniBenchmark {
       for (int j = 0; j < sConcurrency; ++j) {
         switch (sType) {
           case READ:
-            executorService.submit(new Runnable() {
-              @Override
-              public void run() {
+            executorService.submit(() -> {
                 try {
-                  readFile(barrier, runtime, count.addAndGet(1), alluxioConf);
-                } catch (Exception e) {
-                  LOG.error("Failed to read file.", e);
-                  System.exit(-1);
-                }
-              }
-            });
+                    readFile(barrier, runtime, count.addAndGet(1));
+                  } catch (Exception e) {
+                    LOG.error("Failed to read file.", e);
+                    System.exit(-1);
+                  }
+                });
             break;
           case WRITE:
-            executorService.submit(new Runnable() {
-              @Override
-              public void run() {
+            executorService.submit(() -> {
                 try {
-                  writeFile(barrier, runtime, count.addAndGet(1), alluxioConf);
-                } catch (Exception e) {
-                  LOG.error("Failed to write file.", e);
-                  System.exit(-1);
-                }
-              }
-            });
+                    writeFile(barrier, runtime, count.addAndGet(1));
+                  } catch (Exception e) {
+                    LOG.error("Failed to write file.", e);
+                    System.exit(-1);
+                  }
+                });
             break;
           default:
             throw new RuntimeException("Unsupported type.");
