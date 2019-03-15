@@ -27,7 +27,7 @@ from the command line. For example, the following Alluxio shell command sets the
 `CACHE_THROUGH` when copying files to Alluxio:
 
 ```bash
-$ bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLocal README.md /README.md
+bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLocal README.md /README.md
 ```
 
 ## Spark Jobs
@@ -38,7 +38,7 @@ Spark drivers. For example, to submit a Spark job with the write `CACHE_THROUGH`
  Alluxio:
 
 ```bash
-$ spark-submit \
+spark-submit \
 --conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
 --conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
 ...
@@ -60,7 +60,7 @@ and the properties will be propagated to all the tasks of this job.  For example
 MapReduce job of wordcount sets write type to `CACHE_THROUGH` when writing to Alluxio:
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
+bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
 -Dalluxio.user.file.writetype.default=CACHE_THROUGH \
 -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
 <INPUT FILES> <OUTPUT DIRECTORY>
@@ -75,7 +75,7 @@ configure an Alluxio cluster. If this file does not exist, it can be created fro
 template file under `${ALLUXIO_HOME}/conf`:
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio node (masters
@@ -156,16 +156,16 @@ cluster with a namenode also running at `localhost`, and enable Java remote debu
 you can do so before starting master process using:
 
 ```bash
-$ export ALLUXIO_MASTER_HOSTNAME="localhost"
-$ export ALLUXIO_UNDERFS_ADDRESS="hdfs://localhost:9000"
-$ export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"
+export ALLUXIO_MASTER_HOSTNAME="localhost"
+export ALLUXIO_UNDERFS_ADDRESS="hdfs://localhost:9000"
+export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"
 ```
 
 Users can either set these variables through the shell or in `conf/alluxio-env.sh`. If this file
 does not exist yet, you can create one by copying the template:
 
 ```bash
-$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
+cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```
 
 # Order of Configuration Sources

@@ -24,7 +24,7 @@ You need to configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Assuming the NFS clients are co-located with Alluxio nodes, all the NFS shares are mounted at

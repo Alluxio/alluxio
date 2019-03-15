@@ -27,7 +27,7 @@ O Alluxio funciona com o `Spark 1.1` ou superiores `out-of-the-box`.
 projeto inteiro a partir do diretório raiz do Alluxio com o comando:
 
 ```bash
-$ mvn clean package -Pspark -DskipTests
+mvn clean package -Pspark -DskipTests
 ```
 
 * Adicione a linha seguinte para `spark/conf/spark-defaults.conf`:
@@ -74,7 +74,7 @@ Esta seção demonstra como usar o Alluxio como entrada e a saída para aplicaç
 Coloque o arquivo `LICENSE` dentro do `HDFS`, assumindo a que o `namenode` está rodando no `localhost`:
 
 ```bash
-$ hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
+hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
 ```
 
 Execute os comandos seguintes pelo `spark-shell`, assumindo a que o Alluxio `Master` está rodando
@@ -116,13 +116,13 @@ explicitamente o nome do servidor através do `script` fornecido no `Spark`. Ini
 em cada `slave node` com o `slave-hostname`:
 
 ```bash
-$ $SPARK_HOME/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
+$SPARK_HOME/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
 ```
 
 Por exemplo:
 
 ```bash
-$ $SPARK_HOME/sbin/start-slave.sh -h simple30 spark://simple27:7077
+$SPARK_HOME/sbin/start-slave.sh -h simple30 spark://simple27:7077
 ```
 
 Você também pode definir o `SPARK_LOCAL_HOSTNAME` em `$SPARK_HOME/conf/spark-env.sh` para obter sucesso

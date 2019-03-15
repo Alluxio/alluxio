@@ -11,7 +11,7 @@ priority: 0
 Alluxio命令行接口为用户提供了基本的文件系统操作，可以使用以下命令来得到所有子命令：
 
 ```bash
-$ ./bin/alluxio fs
+./bin/alluxio fs
 Usage: alluxio fs [generic options]
        [cat <path>]
        [checkConsistency [-r] <Alluxio path>]
@@ -209,10 +209,10 @@ Usage: alluxio fs [generic options]
 
 ```bash
 # 打印所有子命令
-$ ./bin/alluxio fs help
+./bin/alluxio fs help
 #
 # 对 ls 命令打印帮助信息
-$ ./bin/alluxio fs help ls
+./bin/alluxio fs help ls
 ```
 
 ### leader
@@ -386,8 +386,8 @@ date), %Y 为自从 January 1, 1970 UTC 以来的毫秒数;
 使用举例:
 
 ```bash
-$ ./bin/alluxio fs test -d /someDir
-$ echo $?
+./bin/alluxio fs test -d /someDir
+echo $?
 ```
 
 ### touch

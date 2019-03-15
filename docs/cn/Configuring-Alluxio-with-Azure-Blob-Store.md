@@ -27,7 +27,7 @@ priority： 0
 要使用Azure blob store作为Alluxio根挂载点的UFS，您需要通过修改`conf/alluxio-site.properties`配置Alluxio使用底层存储系统。如果这个文件不存在，重命名template文件。
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 首先修改`conf / alluxio-site.properties`来指定underfs address：
@@ -46,7 +46,7 @@ fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
  Azure blob store位置可以挂载在Alluxio命名空间中的嵌套目录中，以便统一访问到多个底层存储系统。Alluxio的[Command Line Interface](Command-Line-Interface.html)可以用于此目的。
 
 ```bash
-$ ./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\
+./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\
   /mnt/azure wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
@@ -57,8 +57,8 @@ $ ./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core
 完成所有配置之后，你可以本地运行Alluxio,观察是否一切运行正常。
 
 ```
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
@@ -66,7 +66,7 @@ $ ./bin/alluxio-start.sh local
 接着，你可以运行一个简单的示例程序：
 
 ```
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 运行成功后，你可以访问你的容器`<AZURE_CONTAINER>`，确认其中包含了由Alluxio创建的文件和目录。该测试中，创建的文件名应该像下面这样：
@@ -78,5 +78,5 @@ $ ./bin/alluxio runTests
 若要停止Alluxio，你可以运行以下命令:
 
 ```
-$ ./bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```

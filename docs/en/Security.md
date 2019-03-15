@@ -88,7 +88,7 @@ and the x permission is required to access a child of the directory.
 For example, the output of the shell command `ls` when authorization is enabled is:
 
 ```bash
-$ ./bin/alluxio fs ls /
+./bin/alluxio fs ls /
 drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2017 13:24:15:649  DIR /default_tests_files
 -rw-r--r-- jack           staff                       80   NOT_PERSISTED 11-20-2017 13:24:15:649 100% /default_tests_files/BASIC_CACHE_PROMOTE_MUST_CACHE
 ```

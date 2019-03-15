@@ -40,6 +40,6 @@ On Alluxio master nodes, we recommend at least 4 vcores.
 After updating the YARN configuration, restart YARN so that it picks up the changes:
 
 ```bash
-$ ${HADOOP_HOME}/sbin/stop-yarn.sh
-$ ${HADOOP_HOME}/sbin/start-yarn.sh
+${HADOOP_HOME}/sbin/stop-yarn.sh
+${HADOOP_HOME}/sbin/start-yarn.sh
 ```

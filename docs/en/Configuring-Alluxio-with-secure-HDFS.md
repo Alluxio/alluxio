@@ -31,7 +31,7 @@ versions, one needs to specify  the correct Hadoop profile and run the following
 directory:
 
 ```bash
-$ mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
+mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
 ```
 
 Alluxio provides predefined build profiles including `hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ...
@@ -40,7 +40,7 @@ Hadoop release version, you can also specify the version `<YOUR_HADOOP_VERSION>`
 For example,
 
 ```bash
-$ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
+mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 ```
 
 would compile Alluxio for the Apache Hadoop version 2.7.1.
@@ -91,7 +91,7 @@ the default Kerberos configuration on the machine. For example:
 * If you use Hadoop, you can add to `HADOOP_OPTS` in `${HADOOP_CONF_DIR}/hadoop-env.sh`.
 
 ```bash
-$ export HADOOP_OPTS="$HADOOP_OPTS -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
+export HADOOP_OPTS="$HADOOP_OPTS -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
 * If you use Spark, you can add to `SPARK_JAVA_OPTS` in `${SPARK_CONF_DIR}/spark-env.sh`.
@@ -136,8 +136,8 @@ credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+bin/alluxio format
+bin/alluxio-start.sh local
 ```
 
 This should start one Alluxio master and one Alluxio worker locally. You can see the master UI at
@@ -146,7 +146,7 @@ This should start one Alluxio master and one Alluxio worker locally. You can see
 Next, you can run a simple example program:
 
 ```bash
-$ bin/alluxio runTests
+bin/alluxio runTests
 ```
 
 For this test to succeed, you need to make sure that the login user of Alluxio cli has
@@ -162,5 +162,5 @@ files named like: `/default_tests_files/Basic_CACHE_THROUGH`
 You can stop Alluxio any time by running:
 
 ```bash
-$ bin/alluxio-stop.sh local
+bin/alluxio-stop.sh local
 ```

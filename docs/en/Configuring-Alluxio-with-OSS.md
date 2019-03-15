@@ -71,7 +71,7 @@ For example, the following command mounts a directory inside an OSS bucket into 
 `/oss`:
 
 ```bash
-$ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
+./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
   --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
   --option fs.oss.endpoint=<OSS_ENDPOINT> \
   /oss oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
@@ -82,8 +82,8 @@ $ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+bin/alluxio format
+bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -92,7 +92,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Next, you can run a simple example program:
 
 ```bash
-$ bin/alluxio runTests
+bin/alluxio runTests
 ```
 
 After this succeeds, you can visit your OSS directory `oss://<OSS_BUCKET>/<OSS_DIRECTORY>` to verify the files
@@ -102,5 +102,5 @@ and directories created by Alluxio exist. For this test, you should see files na
 To stop Alluxio, you can run:
 
 ```bash
-$ bin/alluxio-stop.sh local
+bin/alluxio-stop.sh local
 ```

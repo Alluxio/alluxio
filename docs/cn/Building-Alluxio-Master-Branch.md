@@ -66,7 +66,7 @@ Maven编译环境将自动获取依赖，编译源码，运行单元测试，并
 你可以运行以下命令以使用Hadoop编译Alluxio。
 
 ```bash
-$ mvn install -P<HADOOP_PROFILE> -DskipTests
+mvn install -P<HADOOP_PROFILE> -DskipTests
 ```
 
 对于不同的Hadoop发行版，可用的Hadoop配置文件包括`hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ... `hadoop-2.8`。通过查看[这节](#发行版支持)，你可以进一步设置特定的Hadoop发行版来编译。
@@ -76,7 +76,7 @@ $ mvn install -P<HADOOP_PROFILE> -DskipTests
 你可以运行以下命令编译不同计算框架的Alluxio服务器和客户端Jar包。
 
 ```bash
-$ mvn install -DskipTests
+mvn install -DskipTests
 ```
 
 ## 发行版支持
@@ -85,7 +85,7 @@ $ mvn install -DskipTests
 `hadoop.version`。你可以运行以下命令：
 
 ```bash
-$ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
+mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 ```
 其中`<HADOOP_VERSION>`可以根据不同的发行版设置
 

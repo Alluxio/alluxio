@@ -1,3 +1,3 @@
 ```bash
-$ mvn clean package -DskipTests
+n clean package -DskipTests
 ```

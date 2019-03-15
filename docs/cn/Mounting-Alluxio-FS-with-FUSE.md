@@ -27,13 +27,13 @@ Alluxio-FUSE是基于[FUSE]((http://fuse.sourceforge.net/))这个项目，并且
 在完成配置以及启动Alluxio集群后，在需要挂载Alluxio的节点上启动Shell并进入`$ALLUXIO_HOME`目录，再运行
 
 ```bash
-$ integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path]
+integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path]
 ```
 
 该命令会启动一个后台java进程，用于将对应的Alluxio路径挂载到`<mount_point>`指定的路径。比如，以下这个命令将Alluxio路径`/people`挂载到本地文件系统的`/mnt/people`目录下。
 
 ```bash
-$ integration/fuse/bin/alluxio-fuse mount /mnt/people /people
+integration/fuse/bin/alluxio-fuse mount /mnt/people /people
 Starting alluxio-fuse on local host.
 Alluxio-fuse mounted at /mnt/people. See /lib/alluxio/logs/fuse.log for logs
 ```
@@ -45,13 +45,13 @@ Alluxio-fuse mounted at /mnt/people. See /lib/alluxio/logs/fuse.log for logs
 要卸载Alluxio-FUSE时，在该节点上启动Shell并进入`$ALLUXIO_HOME`目录，再运行：
 
 ```bash
-$ integration/fuse/bin/alluxio-fuse umount mount_point
+integration/fuse/bin/alluxio-fuse umount mount_point
 ```
 
 该命令将终止alluxio-fuse java后台进程，并卸载该文件系统。例如：
 
 ```bash
-$ integration/fuse/bin/alluxio-fuse umount /mnt/people
+integration/fuse/bin/alluxio-fuse umount /mnt/people
 Unmount fuse at /mnt/people (PID: 97626).
 ```
 
@@ -60,7 +60,7 @@ Unmount fuse at /mnt/people (PID: 97626).
 要罗列所有的挂载点，在该节点上启动Shell并进入`$ALLUXIO_HOME`目录，再运行：
 
 ```bash
-$ integration/fuse/bin/alluxio-fuse stat
+integration/fuse/bin/alluxio-fuse stat
 ```
 
 改命令会输出包括`pid, mount_point, alluxio_path`在内的信息.

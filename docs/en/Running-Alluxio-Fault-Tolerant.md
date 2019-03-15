@@ -155,19 +155,19 @@ To test automatic fail over, ssh into current Alluxio master leader, and find pr
 the `AlluxioMaster` process with:
 
 ```bash
-$ jps | grep AlluxioMaster
+jps | grep AlluxioMaster
 ```
 
 Then kill the leader with:
 
 ```bash
-$ kill -9 <leader pid found via the above command>
+kill -9 <leader pid found via the above command>
 ```
 
 Then you can see the leader with the following command:
 
 ```bash
-$ ./bin/alluxio fs leader
+./bin/alluxio fs leader
 ```
 
 The output of the command should show the new leader. You may need to wait for a moment for the

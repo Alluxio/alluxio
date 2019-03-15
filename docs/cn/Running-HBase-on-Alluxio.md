@@ -75,7 +75,7 @@ export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 启动HBase
 
 ```bash
-$ ${HBASE_HOME}/bin/start-hbase.sh
+${HBASE_HOME}/bin/start-hbase.sh
 ```
 
 访问HBase网址`http://<HBASE_MASTER_HOSTNAME>:16010`的Web用户界面以确认HBase在Alluxio上运行

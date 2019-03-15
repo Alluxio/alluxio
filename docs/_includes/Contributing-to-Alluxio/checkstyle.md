@@ -1,3 +1,3 @@
 ```bash
-$ mvn checkstyle:checkstyle
+n checkstyle:checkstyle
 ```
