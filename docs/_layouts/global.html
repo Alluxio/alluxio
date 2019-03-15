@@ -102,6 +102,20 @@
               </div>
             </div>
             {% endfor %}
+            <!-- Generate the language selector at the top of the navigation bar -->
+            {% assign multiLanguagePages = site.pages | where:'name',page.name | sort:'languagePriority' %}
+            <li class="nav-item">
+              <div class="dropdown">
+                  <button class="btn dropdown-toggle active" type="button" id="LANGUAGE" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{page.languageName}}
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="LANGUAGE">
+                    {% for singleLanguage in multiLanguagePages %}
+                      <a href="{{site.baseurl}}{{singleLanguage.url}}" class="dropdown-item">{{singleLanguage.languageName}}</a>
+                    {% endfor %}    
+                  </div>
+              </div>
+            </li>
         </ul>
       </div>
       </div>
