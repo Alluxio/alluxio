@@ -2,6 +2,11 @@
    Author's custom styles
    ========================================================================== */
 
+.language-bash > .highlight > .highlight > code > span.line::before {
+    content: "$";
+    font-style: inherit;
+    margin-right: .7rem;
+}
 .navbar .brand {
     height: 50px;
     width: 160px;
