@@ -26,12 +26,12 @@ Alluxio可以运行在一个Docker容器中，本指南介绍如何使用Alluxio
 ## 安装Docker
 
 ```bash
-$ sudo yum install -y docker git
-$ sudo service docker start
-$ # Add the current user to the docker group
-$ sudo usermod -a -G docker $(id -u -n)
-$ # Log out and log back in again to pick up the group changes
-$ exit
+sudo yum install -y docker git
+sudo service docker start
+# Add the current user to the docker group
+sudo usermod -a -G docker $(id -u -n)
+# Log out and log back in again to pick up the group changes
+exit
 ```
 
 ## 复制Alluxio仓库
@@ -53,7 +53,7 @@ docker build -t alluxio .
 
 在主机上创建一个底层存储文件目录
 ```bash
-$ mkdir underStorage
+mkdir underStorage
 ```
 
 ### 设置虚拟内存允许快速短路读取
@@ -61,15 +61,15 @@ $ mkdir underStorage
 从主机：
 
 ```bash
-$ sudo mkdir /mnt/ramdisk
-$ sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
-$ sudo chmod a+w /mnt/ramdisk
+sudo mkdir /mnt/ramdisk
+sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
+sudo chmod a+w /mnt/ramdisk
 ```
 
 重启Docker，使得Docker可以检测到新的挂载点。
 
 ```bash
-$ sudo service docker restart
+sudo service docker restart
 ```
 
 ## 运行Alluxio master
@@ -81,9 +81,9 @@ docker run -d --net=host alluxio master
 ### 运行Alluxio master
 
 ```bash
-$ # This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
-$ docker run -d --net=host \
+# This gets the public ip of the current EC2 instance
+export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
+docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=/underStorage \
@@ -98,8 +98,8 @@ $ docker run -d --net=host \
 ## 运行Alluxio worker
 
 ```bash
-$ # Launch an Alluxio worker container and save the container ID for later
-$ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
+# Launch an Alluxio worker container and save the container ID for later
+ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
              -v /mnt/ramdisk:/opt/ramdisk \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
@@ -136,12 +136,12 @@ bin/alluxio runTests
 
 本地压缩包:
 ```bash
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
+docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
 ```
 
 远程压缩包:
 ```bash
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz .
+docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz .
 ```
 
 # Alluxio配置属性
@@ -155,7 +155,7 @@ $ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.o
 当未指定`ALLUXIO_RAM_FOLDER`时，worker Docker容器会使用挂载在`/dev/shm`上的tmpfs。若要配置worker的内存大小为`1GB`，可以在启动时指定`--shm-size 1G`，并且配置Alluxio worker内存大小为`1GB`。
 
 ```bash
-$ docker run -d --net=host --shm-size=1G \
+docker run -d --net=host --shm-size=1G \
            -v $PWD/underStorage:/underStorage \
            -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
            -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
@@ -176,17 +176,17 @@ $ docker run -d --net=host --shm-size=1G \
 
 在主机上为域套接字创建一个文件夹。
 ```bash
-$ mkdir /tmp/domain
-$ chmod a+w /tmp/domain
+mkdir /tmp/domain
+chmod a+w /tmp/domain
 ```
 
 当通过worker和客户端的docker容器启动它们时，通过`-v /tmp/domain:/opt/domain`共享域套接字文件夹。同时在启动容器时，通过添加`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d`
 在worker设置属性值`alluxio.worker.data.server.domain.socket.address`。
 
 ```bash
-$ # This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
-$ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
+# This gets the public ip of the current EC2 instance
+export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
+ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
              -v /tmp/domain:/opt/domain \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \

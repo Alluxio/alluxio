@@ -26,7 +26,7 @@ can be downloaded from [here](https://github.com/Alluxio/alluxio-extensions/tree
 Execute the following command on master to install the extension to all masters and workers defined in `conf/masters` and `conf/workers`:
 
 ```bash
-$ bin/alluxio extensions install /PATH/TO/DOWNLOADED/OBS/jar
+bin/alluxio extensions install /PATH/TO/DOWNLOADED/OBS/jar
 ```
 
 See [here]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}) for more details on Alluxio extension management.
@@ -75,8 +75,8 @@ under the Object Storage Service category.
 Start the Alluxio servers:
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+bin/alluxio format
+bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -85,7 +85,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Run a simple example program:
 
 ```bash
-$ bin/alluxio runTests
+bin/alluxio runTests
 ```
 
 Visit your OBS folder `obs://<OBS_BUCKET>/<OBS_DIRECTORY>` to verify the files
@@ -94,7 +94,7 @@ and directories created by Alluxio exist.
 To stop Alluxio, you can run:
 
 ```bash
-$ bin/alluxio-stop.sh local
+bin/alluxio-stop.sh local
 ```
 
 ## Advanced Setup
@@ -110,7 +110,7 @@ For example, the following command mounts a folder inside an OBS bucket into All
 directory `/obs`:
 
 ```bash
-$ ./bin/alluxio fs mount --option fs.obs.accessKey=<OBS_ACCESS_KEY> \
+./bin/alluxio fs mount --option fs.obs.accessKey=<OBS_ACCESS_KEY> \
   --option fs.obs.secretKey=<OBS_SECRET_KEY> \
   --option fs.obs.endpoint=<OBS_ENDPOINT> \
   /obs obs://<OBS_BUCKET>/<OBS_DIRECTORY>/

@@ -57,8 +57,8 @@ COS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多�
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master UI。
@@ -66,7 +66,7 @@ $ bin/alluxio-start.sh local
 接着，你可以运行一个简单的示例程序：
 
 ```bash
-$ bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 运行成功后，访问你的COS目录`cos://<COS_ALLUXIO_BUCKET>/<COS_DATA>`，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像`COS_ALLUXIO_BUCKET/COS_DATA/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`这样。。
@@ -74,5 +74,5 @@ $ bin/alluxio runTests
 运行以下命令停止Alluxio：
 
 ```bash
-$ bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```
