@@ -59,7 +59,8 @@ public final class FileSystemAdminShell extends AbstractShell {
   public static void main(String[] args) {
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
     if (!ConfigurationUtils.masterHostConfigured(conf) && args.length > 0) {
-      System.out.println("Cannot run alluxio fsadmin shell as master hostname is not configured.");
+      System.out.println(ConfigurationUtils
+          .getMasterHostNotConfiguredMessage("Alluxio fsadmin shell"));
       System.exit(1);
     }
     // Reduce the RPC retry max duration to fall earlier for CLIs

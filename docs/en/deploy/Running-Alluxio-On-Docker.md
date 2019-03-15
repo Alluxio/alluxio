@@ -30,12 +30,12 @@ UI in your browser.
 To set up Docker after provisioning the instance, run
 
 ```bash
-$ sudo yum install -y docker
-$ sudo service docker start
-$ # Add the current user to the docker group
-$ sudo usermod -a -G docker $(id -u -n)
-$ # Log out and log back in again to pick up the group changes
-$ exit
+sudo yum install -y docker
+sudo service docker start
+# Add the current user to the docker group
+sudo usermod -a -G docker $(id -u -n)
+# Log out and log back in again to pick up the group changes
+exit
 ```
 
 ## Launch Alluxio
@@ -45,11 +45,11 @@ The `--shm-size=1G` argument will allocate a `1G` tmpfs for the worker to store 
 
 ```bash
 # Launch the Alluxio master
-$ docker run -d --net=host \
+docker run -d --net=host \
     -v /mnt/data:/opt/alluxio/underFSStorage \
     alluxio/alluxio master
 # Launch the Alluxio worker
-$ docker run -d --net=host \
+docker run -d --net=host \
     --shm-size=1G -e ALLUXIO_WORKER_MEMORY_SIZE=1G \
     -v /mnt/data:/opt/alluxio/underFSStorage \
     -e ALLUXIO_MASTER_HOSTNAME=localhost \
@@ -60,7 +60,7 @@ $ docker run -d --net=host \
 
 To verify that the services came up, check `docker ps`. You should see something like
 ```bash
-$ docker ps
+docker ps
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
 ef2f3b5be1a3        alluxio:1.8.0       "/entrypoint.sh work…"   6 days ago          Up 6 days                               dazzling_lichterman
 8e3c31ed62cc        alluxio:1.8.0       "/entrypoint.sh mast…"   6 days ago          Up 6 days                               eloquent_clarke
@@ -75,14 +75,14 @@ Visit `instance_hostname:19999` to view the Alluxio web UI. You should see one w
 To run tests, enter the worker container
 
 ```bash
-$ docker exec -it ${worker_container_id} /bin/bash
+docker exec -it ${worker_container_id} /bin/bash
 ```
 
 Run the tests
 
 ```bash
-$ cd /opt/alluxio
-$ bin/alluxio runTests
+cd /opt/alluxio
+./bin/alluxio runTests
 ```
 
 Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to learn more about how to manage the cluster and make is production-ready.
@@ -103,26 +103,51 @@ when the image starts. If you aren't seeing a property take effect, make sure th
 contents with
 
 ```bash
-$ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-site.properties
+docker exec ${container_id} cat /opt/alluxio/conf/alluxio-site.properties
 ```
 
 ### Run in High-Availability Mode
 
 A lone Alluxio master is a single point of failure. To guard against this, a production
-cluster should run multiple Alluxio masters and use Zookeeper for leader election. One
-of the masters will be elected leader and serve client requests. If it dies, one of the
-remaining masters will become leader and pick up where the previous master left off.
+cluster should run multiple Alluxio masters and use internal leader election or Zookeeper-based leader election. 
+One of the masters will be elected leader and serve client requests. 
+If it dies, one of the remaining masters will become leader and pick up where the previous master left off.
 
-With multiple masters, Alluxio needs a shared journal directory that all masters have
-access to, usually either NFS or HDFS.
+#### Internal leader election
 
-To run in HA mode, launch multiple Alluxio masters, point them to a shared journal,
-and set their Zookeeper configuration.
+Alluxio uses internal leader election by default. 
+
+Provide the master embedded journal addresses and set the hostname of the current master:
 
 ```bash
 $ docker run -d --net=host \
              ...
-             -e ALLUXIO_MASTER_JOURNAL_FOLDER=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
+             -e ALLUXIO_MASTER_EMBEDDED_JOURNAL_ADDRESSES=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200 \
+             -e ALLUXIO_MASTER_HOSTNAME=master_hostname_1 \
+             alluxio master
+```
+
+Set the master rpc addresses for all the workers so that they can query the master nodes find out the leader master.
+
+```bash
+$ docker run -d --net=host \
+             ...
+             -e ALLUXIO_MASTER_RPC_ADDRESSES=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998 \
+             alluxio worker
+```
+
+#### Zookeeper-based leader election
+
+To run in HA mode with Zookeeper, Alluxio needs a shared journal directory 
+that all masters have access to, usually either NFS or HDFS.
+
+Point them to a shared journal and set their Zookeeper configuration.
+
+```bash
+docker run -d --net=host \
+             ...
+             -e ALLUXIO_MASTER_JOURNAL_TYPE=UFS \
+             -e ALLUXIO_MASTER_JOURNAL_FOLDER=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal \
              -e ALLUXIO_ZOOKEEPER_ENABLED=true -e ALLUXIO_ZOOKEEPER_ADDRESS=zkhost1:2181,zkhost2:2181,zkhost3:2181 \
              alluxio master
 ```
@@ -131,7 +156,7 @@ Set the same Zookeeper configuration for workers so that they can query Zookeepe
 to discover the current leader.
 
 ```bash
-$ docker run -d --net=host \
+docker run -d --net=host \
              ...
              -e ALLUXIO_ZOOKEEPER_ENABLED=true -e ALLUXIO_ZOOKEEPER_ADDRESS=zkhost1:2181,zkhost2:2181,zkhost3:2181 \
              alluxio worker
@@ -146,9 +171,10 @@ local Alluxio worker without going over the loopback network. Instead, they will
 read and write using [domain sockets](https://en.wikipedia.org/wiki/Unix_domain_socket).
 
 On worker host machines, create a directory for the shared domain socket.
+
 ```bash
-$ mkdir /tmp/domain
-$ chmod a+w /tmp/domain
+mkdir /tmp/domain
+chmod a+w /tmp/domain
 ```
 
 When starting workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`
@@ -157,7 +183,7 @@ to share the domain socket directory. Also set domain socket properties by passi
 `-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true` when launching worker containers.
 
 ```bash
-$ docker run -d --net=host \
+docker run -d --net=host \
              ...
              -v /tmp/domain:/opt/domain \
              -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain \

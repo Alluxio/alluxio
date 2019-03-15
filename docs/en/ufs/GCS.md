@@ -37,7 +37,7 @@ Configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Configure Alluxio to use GCS as its root under storage system. The first modification is to
@@ -70,7 +70,7 @@ An GCS location can be mounted at a nested directory in the Alluxio namespace to
 to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
 
 ```bash
-$ ./bin/alluxio fs mount --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>\
+./bin/alluxio fs mount --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>\
   /mnt/gcs gs://GCS_BUCKET/GCS_DIRECTORY
 ```
 

@@ -21,8 +21,8 @@ Alluxio可以在Kubernetes上运行。这个指南演示了如何使用Alluxio G
 ## 克隆Alluxio库
 
 ```bash
-$ git clone https://github.com/Alluxio/alluxio.git
-$ cd integration/kubernetes
+git clone https://github.com/Alluxio/alluxio.git
+cd integration/kubernetes
 ```
 
 可以在`integration/kubernetes`下找到部署Alluxio所需的Kubernetes说明。
@@ -33,8 +33,8 @@ $ cd integration/kubernetes
 
 在主机上，为共享域套接字创建一个目录。
 ```bash
-$ mkdir /tmp/domain
-$ chmod a+w /tmp/domain
+mkdir /tmp/domain
+chmod a+w /tmp/domain
 ```
 
 如果不需要或不能设置短路访问，则可以跳过此步骤。要禁用此功能，请根据下面的配置部分中的说明设置属性 `alluxio.user.short.circuit.enabled=false`。
@@ -52,14 +52,14 @@ Alluxio master可以配置为使用[持久性卷](https://kubernetes.io/docs/con
 
 从模板创建持久性卷。访问模式`ReadWriteMany`用于允许多个Alluxio master节点访问共享卷。
 ```bash
-$ cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
+cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
 ```
 
 注意：提供的说明是使用`hostPath`卷在单节点部署上进行演示。对于多节点集群，可以选择使用NFS，AWSElasticBlockStore，GCEPersistentDisk或其他可用的持久性卷插件。
 
 创建持久性卷。
 ```bash
-$ kubectl create -f alluxio-journal-volume.yaml
+kubectl create -f alluxio-journal-volume.yaml
 ```
 
 ## 配置Alluxio属性
@@ -68,49 +68,49 @@ Kubernetes中的Alluxio容器使用环境变量来设置Alluxio属性。有关`c
 在一个文件中定义所有的环境变量。复制`integration/kubernetes/conf`中的属性模板，并根据需要修改或添加配置属性。
 请注意，在与主机联网运行Alluxio时，分配给Alluxio服务的端口不能事先被占用。
 ```bash
-$ cp conf/alluxio.properties.template conf/alluxio.properties
+cp conf/alluxio.properties.template conf/alluxio.properties
 ```
 
 创建一个ConfigMap。
 ```bash
-$ kubectl create configmap alluxio-config --from-env-file=ALLUXIO_CONFIG=conf/alluxio.properties
+kubectl create configmap alluxio-config --from-env-file=ALLUXIO_CONFIG=conf/alluxio.properties
 ```
 
 ## 部署
 
 从模板准备Alluxio部署。 修改所需的参数，例如Docker映像的位置，以及Pod的CPU和内存要求。
 ```bash
-$ cp alluxio-master.yaml.template alluxio-master.yaml
-$ cp alluxio-worker.yaml.template alluxio-worker.yaml
+cp alluxio-master.yaml.template alluxio-master.yaml
+cp alluxio-worker.yaml.template alluxio-worker.yaml
 ```
 
 一旦所有的前提条件和配置已经建立，部署Alluxio。
 ```bash
-$ kubectl create -f alluxio-master.yaml
-$ kubectl create -f alluxio-worker.yaml
+kubectl create -f alluxio-master.yaml
+kubectl create -f alluxio-worker.yaml
 ```
 
 验证Alluxio部署的状态。
 ```bash
-$ kubectl get pods
+kubectl get pods
 ```
 
 如果为Alluxio master使用持久卷，卷的状态应该变为 `CLAIMED`。
 ```bash
-$ kubectl get pv alluxio-journal-volume
+kubectl get pv alluxio-journal-volume
 ```
 
 ## 验证
 
 准备就绪后，从master pod 访问Alluxio CLI并运行基本的I/O测试。
 ```bash
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+kubectl exec -ti alluxio-master-0 /bin/bash
 ```
 
 从master pod执行以下操作：
 ```bash
-$ cd /opt/alluxio
-$ ./bin/alluxio runTests
+cd /opt/alluxio
+./bin/alluxio runTests
 ```
 
 ## 卸载

@@ -1,3 +1,3 @@
 ```bash
-$ bin/alluxio bootstrapConf localhost local
+./bin/alluxio bootstrapConf localhost local
 ```

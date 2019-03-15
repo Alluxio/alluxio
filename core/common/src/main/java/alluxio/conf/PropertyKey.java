@@ -496,18 +496,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   /**
    * UFS related properties.
-   *
-   * @deprecated since 1.5.0 and will be removed in 2.0. Use MASTER_MOUNT_TABLE_ROOT_UFS instead.
    */
-  @Deprecated
-  public static final PropertyKey UNDERFS_ADDRESS =
-      new Builder(Name.UNDERFS_ADDRESS)
-          .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
-          .setDescription("Under file storage address. This property is deprecated; "
-              + "use alluxio.master.mount.table.root.ufs instead")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
       new Builder(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE)
           .setDefaultValue(false)
@@ -1069,8 +1058,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_UFS =
       new Builder(Template.MASTER_MOUNT_TABLE_UFS, "root")
-          .setDefaultValue(String.format("${%s}", Name.UNDERFS_ADDRESS))
-          .setDescription("The UFS mounted to Alluxio root mount point.")
+          .setDescription("The storage address of the UFS at the Alluxio root mount point.")
+          .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -1864,7 +1853,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "You will need to set a path to this socket. The AlluxioWorker needs to be "
               + "able to create the path. If " + Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID
               + " is set, the path should be the home directory for the domain socket. The full "
-              + "path for the domain socket with be <path>/<uuid>.")
+              + "path for the domain socket with be {path}/{uuid}.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2011,6 +2000,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_NETWORK_BLOCK_READER_THREADS_MAX)
           .setDefaultValue(2048)
           .setDescription("The maximum number of threads used to read blocks in the data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
+      new Builder(Name.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX)
+          .setDefaultValue(1024)
+          .setDescription("The maximum number of threads used to write blocks in the data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
+      new Builder(Name.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
+          .setDefaultValue(8)
+          .setDescription("When a client writes to a remote worker, the maximum number of "
+              + "data messages to buffer by the server for each request.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3344,50 +3348,112 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Job service
   //
   public static final PropertyKey JOB_MASTER_CLIENT_THREADS =
-      new Builder(Name.JOB_MASTER_CLIENT_THREADS).setDefaultValue(1024).build();
-  public static final PropertyKey JOB_MASTER_FINISHED_JOB_RETENTION_MS =
-      new Builder(Name.JOB_MASTER_FINISHED_JOB_RETENTION_MS).setDefaultValue(300000).build();
+      new Builder(Name.JOB_MASTER_CLIENT_THREADS)
+          .setDescription("The number of threads the Alluxio master uses to make requests to the "
+              + "job master.")
+          .setDefaultValue(1024)
+          .build();
+  public static final PropertyKey JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
+      new Builder(Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME)
+          .setDescription("The length of time the Alluxio Job Master should save information about "
+              + "completed jobs before they are discarded.")
+          .setDefaultValue("300sec")
+          .build();
   public static final PropertyKey JOB_MASTER_JOB_CAPACITY =
-      new Builder(Name.JOB_MASTER_JOB_CAPACITY).setDefaultValue(100000).build();
-  public static final PropertyKey JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS =
-      new Builder(Name.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS).setDefaultValue(1000).build();
-  public static final PropertyKey JOB_MASTER_WORKER_TIMEOUT_MS =
-      new Builder(Name.JOB_MASTER_WORKER_TIMEOUT_MS).setDefaultValue(60000).build();
+      new Builder(Name.JOB_MASTER_JOB_CAPACITY)
+          .setDescription("The total possible number of available job statuses in the job master. "
+              + "This value includes running and finished jobs which are have completed within "
+              + Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME + ".")
+          .setDefaultValue(100000)
+          .build();
+  public static final PropertyKey JOB_MASTER_WORKER_HEARTBEAT_INTERVAL =
+      new Builder(Name.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL)
+          .setDescription("The amount of time that the Alluxio job worker should wait in between "
+              + "heartbeats to the Job Master.")
+          .setDefaultValue("1sec")
+          .build();
+  public static final PropertyKey JOB_MASTER_WORKER_TIMEOUT =
+      new Builder(Name.JOB_MASTER_WORKER_TIMEOUT)
+          .setDescription("The time period after which the job master will mark a worker as lost "
+              + "without a subsequent heartbeat.")
+          .setDefaultValue("60sec")
+          .build();
   public static final PropertyKey JOB_MASTER_BIND_HOST =
       new Builder(Name.JOB_MASTER_BIND_HOST)
+          .setDescription("The host that the Alluxio job master will bind to.")
           .setDefaultValue("0.0.0.0")
           .build();
   public static final PropertyKey JOB_MASTER_HOSTNAME =
-      new Builder(Name.JOB_MASTER_HOSTNAME).setDefaultValue("${alluxio.master.hostname}").build();
-  public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL_MS =
-      new Builder(Name.JOB_MASTER_LOST_WORKER_INTERVAL_MS).setDefaultValue(1000).build();
+      new Builder(Name.JOB_MASTER_HOSTNAME)
+          .setDescription("The hostname of the Alluxio job master.")
+          .setDefaultValue("${alluxio.master.hostname}")
+          .build();
+  public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL =
+      new Builder(Name.JOB_MASTER_LOST_WORKER_INTERVAL)
+          .setDescription("The time interval the job master waits between checks for lost workers.")
+          .setDefaultValue("1sec")
+          .build();
   public static final PropertyKey JOB_MASTER_RPC_PORT =
-      new Builder(Name.JOB_MASTER_RPC_PORT).setDefaultValue(20001).build();
+      new Builder(Name.JOB_MASTER_RPC_PORT)
+          .setDescription("The RPC port that the job master uses.")
+          .setDefaultValue(20001)
+          .build();
   public static final PropertyKey JOB_MASTER_WEB_BIND_HOST =
-      new Builder(Name.JOB_MASTER_WEB_BIND_HOST).setDefaultValue("0.0.0.0").build();
+      new Builder(Name.JOB_MASTER_WEB_BIND_HOST)
+          .setDescription("The host that the job master web server binds to.")
+          .setDefaultValue("0.0.0.0")
+          .build();
   public static final PropertyKey JOB_MASTER_WEB_HOSTNAME =
       new Builder(Name.JOB_MASTER_WEB_HOSTNAME)
+          .setDescription("The hostname of the job master web server.")
           .setDefaultValue("${alluxio.job.master.hostname}")
           .build();
   public static final PropertyKey JOB_MASTER_WEB_PORT =
-      new Builder(Name.JOB_MASTER_WEB_PORT).setDefaultValue(20002).build();
+      new Builder(Name.JOB_MASTER_WEB_PORT)
+          .setDescription("The port the job master web server uses.")
+          .setDefaultValue(20002)
+          .build();
   public static final PropertyKey JOB_WORKER_BIND_HOST =
-      new Builder(Name.JOB_WORKER_BIND_HOST).setDefaultValue("0.0.0.0").build();
+      new Builder(Name.JOB_WORKER_BIND_HOST)
+          .setDescription("The host that the Alluxio job worker will bind to.")
+          .setDefaultValue("0.0.0.0")
+          .build();
   public static final PropertyKey JOB_WORKER_DATA_PORT =
-      new Builder(Name.JOB_WORKER_DATA_PORT).setDefaultValue(30002).build();
-  public static final PropertyKey JOB_WORKER_HOSTNAME = new Builder(Name.JOB_WORKER_HOSTNAME)
-      .setDescription("The hostname of Alluxio job worker.")
-      .setScope(Scope.WORKER)
-      .build();
+      new Builder(Name.JOB_WORKER_DATA_PORT)
+          .setDescription("The port the Alluxio Job worker uses to send data.")
+          .setDefaultValue(30002)
+          .build();
+  public static final PropertyKey JOB_WORKER_HOSTNAME =
+      new Builder(Name.JOB_WORKER_HOSTNAME)
+          .setDescription("The hostname of the Alluxio job worker.")
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey JOB_WORKER_RPC_PORT =
-      new Builder(Name.JOB_WORKER_RPC_PORT).setDefaultValue(30001).build();
+      new Builder(Name.JOB_WORKER_RPC_PORT)
+          .setDescription("The port the job worker uses to send RPCs")
+          .setDefaultValue(30001)
+          .build();
   public static final PropertyKey JOB_WORKER_WEB_BIND_HOST =
-      new Builder(Name.JOB_WORKER_WEB_BIND_HOST).setDefaultValue("0.0.0.0").build();
+      new Builder(Name.JOB_WORKER_WEB_BIND_HOST)
+          .setDescription("The host the job worker web server binds to.")
+          .setDefaultValue("0.0.0.0")
+          .build();
   public static final PropertyKey JOB_WORKER_WEB_PORT =
-      new Builder(Name.JOB_WORKER_WEB_PORT).setDefaultValue(30003).build();
-
+      new Builder(Name.JOB_WORKER_WEB_PORT)
+          .setDescription("The port the Alluxio job worker web server uses.")
+          .setDefaultValue(30003)
+          .build();
   public static final PropertyKey JOB_MASTER_RPC_ADDRESSES =
-      new Builder(Name.JOB_MASTER_RPC_ADDRESSES).build();
+      new Builder(Name.JOB_MASTER_RPC_ADDRESSES)
+          .setDescription(String.format("The list of RPC addresses to use for the job service "
+                  + "configured in non-zookeeper HA mode. If this property is not specifically "
+                  + "defined, it will first fall back to using %s, replacing those address "
+                  + "ports with the port defined by %s. Otherwise the addresses are inherited from "
+                  + "%s using the port defined in %s",
+              Name.MASTER_RPC_ADDRESSES, Name.JOB_MASTER_RPC_PORT,
+              Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, Name.JOB_MASTER_RPC_PORT))
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(String.format("A comma-separated list of journal addresses for all job "
@@ -3525,7 +3591,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // UFS related properties
     //
-    public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
     public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
         "alluxio.underfs.allow.set.owner.failure";
     public static final String UNDERFS_CLEANUP_ENABLED = "alluxio.underfs.cleanup.enabled";
@@ -3849,6 +3914,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.async.cache.manager.threads.max";
     public static final String WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
         "alluxio.worker.network.block.reader.threads.max";
+    public static final String WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
+        "alluxio.worker.network.block.writer.threads.max";
+    public static final String WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
+        "alluxio.worker.network.writer.buffer.size.messages";
     public static final String WORKER_NETWORK_FLOWCONTROL_WINDOW =
         "alluxio.worker.network.flowcontrol.window";
     public static final String WORKER_NETWORK_KEEPALIVE_TIME_MS =
@@ -4094,18 +4163,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String JOB_MASTER_CLIENT_THREADS =
         "alluxio.job.master.client.threads";
-    public static final String JOB_MASTER_FINISHED_JOB_RETENTION_MS =
-        "alluxio.job.master.finished.job.retention.ms";
+    public static final String JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
+        "alluxio.job.master.finished.job.retention.time";
     public static final String JOB_MASTER_JOB_CAPACITY = "alluxio.job.master.job.capacity";
-    public static final String JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS =
-        "alluxio.job.master.worker.heartbeat.interval.ms";
-    public static final String JOB_MASTER_WORKER_TIMEOUT_MS =
-        "alluxio.job.master.worker.timeout.ms";
+    public static final String JOB_MASTER_WORKER_HEARTBEAT_INTERVAL =
+        "alluxio.job.master.worker.heartbeat.interval";
+    public static final String JOB_MASTER_WORKER_TIMEOUT =
+        "alluxio.job.master.worker.timeout";
 
     public static final String JOB_MASTER_BIND_HOST = "alluxio.job.master.bind.host";
     public static final String JOB_MASTER_HOSTNAME = "alluxio.job.master.hostname";
-    public static final String JOB_MASTER_LOST_WORKER_INTERVAL_MS =
-        "alluxio.job.master.lost.worker.interval.ms";
+    public static final String JOB_MASTER_LOST_WORKER_INTERVAL =
+        "alluxio.job.master.lost.worker.interval";
     public static final String JOB_MASTER_RPC_PORT = "alluxio.job.master.rpc.port";
     public static final String JOB_MASTER_WEB_BIND_HOST = "alluxio.job.master.web.bind.host";
     public static final String JOB_MASTER_WEB_HOSTNAME = "alluxio.job.master.web.hostname";

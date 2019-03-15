@@ -286,7 +286,7 @@ In order to manually free data in Alluxio, you can use the `./bin/alluxio` file 
 line interface.
 
 ```bash
-$ ./bin/alluxio fs free ${PATH_TO_UNUSED_DATA}
+./bin/alluxio fs free ${PATH_TO_UNUSED_DATA}
 ```
 
 This will remove the data at the given path from Alluxio storage. The data is still accessible if
@@ -302,7 +302,7 @@ If the data is already in a UFS, use
 [`alluxio fs load`]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#load)
 
 ```bash
-$ ./bin/alluxio fs load ${PATH_TO_FILE}
+./bin/alluxio fs load ${PATH_TO_FILE}
 ```
 
 To load data from the local file system, use the
@@ -318,7 +318,7 @@ will automatically load data into the Alluxio cache when a file is used for the 
 command allows a user to push data from the Alluxio cache to a UFS.
 
 ```bash
-$ ./bin/alluxio fs persist ${PATH_TO_FILE}
+./bin/alluxio fs persist ${PATH_TO_FILE}
 ```
 
 This command is useful if you have data which you loaded into Alluxio which did not originate from
@@ -405,7 +405,7 @@ access patterns.
 For example, to delete the files created by the `runTests` after 3 minutes:
 
 ```bash
-$ bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m -Dalluxio.user.file.create.ttl
+./bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m -Dalluxio.user.file.create.ttl
 .action=DELETE
 ```
 
@@ -418,7 +418,7 @@ The Alluxio shell command `fsadmin report` provides a short summary of space ava
 along with other useful information. A sample output is shown below:
 
 ```bash
-$ ./bin/alluxio fsadmin report
+./bin/alluxio fsadmin report
 Alluxio cluster summary:
     Master Address: localhost/127.0.0.1:19998
     Web Port: 19999
@@ -443,13 +443,13 @@ the Alluxio cache.
 To get the total used bytes in the Alluxio cache:
 
 ```bash
-$ ./bin/alluxio fs getUsedBytes
+./bin/alluxio fs getUsedBytes
 ```
 
 To get the total capacity of the Alluxio cache in bytes:
 
 ```bash
-$ ./bin/alluxio fs getCapacityBytes
+./bin/alluxio fs getCapacityBytes
 ```
 
 The Alluxio master web interface gives the user a visual overview of the cluster and how much

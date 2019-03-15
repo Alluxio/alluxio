@@ -245,7 +245,7 @@ worker on each compute node.
 
 ### Install Python Client Library
 ```bash
-$ pip install alluxio
+pip install alluxio
 ```
 
 ### Example Usage
@@ -365,7 +365,7 @@ worker on each compute node.
 
 ### Install Go Client Library
 ```bash
-$ go get -d github.com/Alluxio/alluxio-go
+go get -d github.com/Alluxio/alluxio-go
 ```
 
 ### Example Usage

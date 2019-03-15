@@ -232,7 +232,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     }
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
-    // sets UNDERFS_ADDRESS.
+    // sets MASTER_MOUNT_TABLE_ROOT_UFS.
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     String path = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     if (ufs.isDirectory(path)) {

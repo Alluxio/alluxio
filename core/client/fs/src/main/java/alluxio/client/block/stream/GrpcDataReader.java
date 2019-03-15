@@ -88,7 +88,7 @@ public final class GrpcDataReader implements DataReader {
                 .add("request", mReadRequest)
                 .add("address", address)
                 .toString(),
-            mMarshaller);
+            null, mMarshaller);
       } else {
         mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
             MoreObjects.toStringHelper(this)

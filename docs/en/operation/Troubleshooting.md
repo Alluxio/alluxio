@@ -65,7 +65,7 @@ in these logs. Double check if you missed any configuration
 steps in [Running-Alluxio-Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 Typical issues:
-- `ALLUXIO_UNDERFS_ADDRESS` is not configured correctly.
+- `ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS` is not configured correctly.
 - If running `ssh localhost` fails, make sure the public SSH key for the host is added in `~/.ssh/authorized_keys`.
 
 ### Q: I'm trying to deploy Alluxio in a cluster with Spark and HDFS. Are there any suggestions?
@@ -115,13 +115,13 @@ properties on all nodes running this framework. Here are some examples:
 - For MapReduce jobs, you can append the client jar to `$HADOOP_CLASSPATH`:
 
 ```bash
-$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 - For Spark jobs, you can append the client jar to `$SPARK_CLASSPATH`:
 
 ```bash
-$ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
+export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
 ```
 
 Alternatively, add the following lines to `spark/conf/spark-defaults.conf`:
@@ -146,7 +146,7 @@ If the corresponding classpath has been set but exceptions still exist, users ca
 whether the path is valid by:
 
 ```bash
-$ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
+ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
 ### Q: I'm seeing error messages like "Frame size (67108864) larger than max length (16777216)". What is wrong?
@@ -174,7 +174,7 @@ In this case, you will see the above error once the local worker does not have e
 To distribute the data of your file on different workers, you can change this policy to `RoundRobinPolicy` (see below).
 
 ```bash
-$ bin/alluxio fs -Dalluxio.user.block.write.location.policy.class=alluxio.client.block.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
+./bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
 ```
 
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.

@@ -11,7 +11,7 @@ priority: 0
 Alluxio命令行接口为用户提供了基本的文件系统操作，可以使用以下命令来得到所有子命令：
 
 ```bash
-$ ./bin/alluxio fs
+./bin/alluxio fs
 Usage: alluxio fs [generic options]
        [cat <path>]
        [checkConsistency [-r] <Alluxio path>]
@@ -26,7 +26,7 @@ Usage: alluxio fs [generic options]
 >大多数需要路径参数的命令可以使用通配符以便简化使用，例如：
 >
 >```bash
->$ ./bin/alluxio fs rm '/data/2014*'
+>./bin/alluxio fs rm '/data/2014*'
 >```
 >
 >该示例命令会将`data`文件夹下以`2014`为文件名前缀的所有文件删除。
@@ -40,7 +40,7 @@ Usage: alluxio fs [generic options]
 >作为一种绕开这个问题的方式，你可以禁用自动补全功能（跟具体shell有关，例如`set -f`），或者使用转义通配符，例如：
 >
 >```bash
->$ ./bin/alluxio fs cat /\\*
+>./bin/alluxio fs cat /\\*
 >```
 >
 >注意是两个转义符号，这是因为该shell脚本最终会调用一个java程序运行，该java程序将获取到转义输入参数（cat /\\*）。
@@ -67,7 +67,7 @@ Usage: alluxio fs [generic options]
 例如，当测试一个新的计算任务时，`cat`命令可以用来快速确认其输出结果：
 
 ```bash
-$ ./bin/alluxio fs cat /output/part-00000
+./bin/alluxio fs cat /output/part-00000
 ```
 
 ### checkConsistency
@@ -83,10 +83,10 @@ $ ./bin/alluxio fs cat /output/part-00000
 
 ```bash
 # List each inconsistent file or directory
-$ ./bin/alluxio fs checkConsistency /
+./bin/alluxio fs checkConsistency /
 #
 # Repair the inconsistent files or directories
-$ ./bin/alluxio fs checkConsistency -r /
+./bin/alluxio fs checkConsistency -r /
 ```
 
 ### checksum
@@ -223,10 +223,10 @@ $ ./bin/alluxio fs checkConsistency -r /
 
 ```bash
 # 打印所有子命令
-$ ./bin/alluxio fs help
+./bin/alluxio fs help
 #
 # 对 ls 命令打印帮助信息
-$ ./bin/alluxio fs help ls
+./bin/alluxio fs help ls
 ```
 
 ### leader
@@ -394,8 +394,8 @@ date), %Y 为自从 January 1, 1970 UTC 以来的毫秒数;
 使用举例:
 
 ```bash
-$ ./bin/alluxio fs test -d /someDir
-$ echo $?
+./bin/alluxio fs test -d /someDir
+echo $?
 ```
 
 ### touch

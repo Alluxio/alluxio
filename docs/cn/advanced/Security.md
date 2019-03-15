@@ -77,7 +77,7 @@ Alluxio文件系统为目录和文件实现了一个访问权限模型，该模�
 例如，当启用访问权限控制时，运行shell命令`ls -R`后其输出如下：
 
 ```bash
-$ ./bin/alluxio fs ls /
+./bin/alluxio fs ls /
 drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2017 13:24:15:649  DIR /default_tests_files
 -rw-r--r-- jack           staff                       80   NOT_PERSISTED 11-20-2017 13:24:15:649 100% /default_tests_files/BASIC_CACHE_PROMOTE_MUST_CACHE
 ```

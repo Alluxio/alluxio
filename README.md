@@ -25,6 +25,17 @@ Alluxio is used in production to manage Petabytes of data in many leading compan
 the largest deployment exceeding 1300 nodes. Find more use cases at
 [Powered by Alluxio](https://www.alluxio.org/community/powered-by-alluxio).
 
+## Community and Events
+Please use the following to reach members of the community:
+
+* Slack: [alluxio-community channel](https://www.alluxio.org/slack)
+* Community Events: [upcoming online office hours, meetups and webinars](https://www.alluxio.org/resources/events)
+* Mailing List: [alluxio-users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
+* Meetup Groups: [Bay Area Meetup](http://www.meetup.com/Alluxio), 
+[New York Meetup](https://www.meetup.com/Alluxio-Open-Source-New-York-Meetup),
+[Beijing Alluxio Meetup](https://www.meetup.com/meetup-group-iLMBZGhS/)
+* Twitter: [@alluxio](https://twitter.com/alluxio)
+
 ## Download Alluxio
 
 ### Binary download
@@ -62,15 +73,6 @@ to run a simple example with Alluxio.
 ## Report a Bug
 
 To report bugs, suggest improvements, or create new feature requests, please open a [Github Issue](https://github.com/alluxio/alluxio/issues). Our previous [Alluxio JIRA system](https://alluxio.atlassian.net) has been deprecated since December 2018.
-
-## Join the Community
-
-Please use the following to reach members of the community:
-
-* Slack: [alluxio-community channel](https://www.alluxio.org/slack)
-* Mailing List: [alluxio-users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
-* Meetup Group: [Bay Area Meetup](http://www.meetup.com/Alluxio)
-* Twitter: [@alluxio](https://twitter.com/alluxio)
 
 ## Depend on Alluxio
 

@@ -26,7 +26,7 @@ Alluxio代理是一个独立运行的server，可通过命令`${ALLUXIO_HOME}/bi
 
 # 安装Go语言客户端相关库
 ```bash
-$ go get -d github.com/Alluxio/alluxio-go
+go get -d github.com/Alluxio/alluxio-go
 ```
 
 # 示例使用程序

@@ -4,7 +4,7 @@
   description: The path to the Alluxio logs directory
 - name: ALLUXIO_MASTER_HOSTNAME
   description: hostname of the Alluxio master. Defaults to localhost
-- name: ALLUXIO_UNDERFS_ADDRESS
+- name: ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS
   description: >
     The under storage system addess. Defaults to `${ALLUXIO_HOME}`/underFSStorage which is a local
     file system.

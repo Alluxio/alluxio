@@ -72,7 +72,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(JobMaster.class);
   private static final long RETENTION_MS =
-      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_MS);
+      ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME);
 
   // Worker metadata management.
   private final IndexDefinition<MasterWorkerInfo, Long> mIdIndex =
@@ -168,7 +168,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
               new LostWorkerDetectionHeartbeatExecutor(),
-              ServerConfiguration.getInt(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL_MS),
+              (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
               ServerConfiguration.global()));
     }
   }
@@ -369,8 +369,8 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
 
     @Override
     public void heartbeat() {
-      int masterWorkerTimeoutMs = ServerConfiguration
-          .getInt(PropertyKey.JOB_MASTER_WORKER_TIMEOUT_MS);
+      int masterWorkerTimeoutMs = (int) ServerConfiguration
+          .getMs(PropertyKey.JOB_MASTER_WORKER_TIMEOUT);
       List<MasterWorkerInfo> lostWorkers = new ArrayList<MasterWorkerInfo>();
       // Run under shared lock for mWorkers
       try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
