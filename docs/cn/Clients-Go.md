@@ -23,7 +23,7 @@ Alluxio代理是一个独立运行的server，可用通过`${ALLUXIO_HOME}/bin/a
 
 # 安装Go客户端相关库
 ```bash
-$ go get -d github.com/Alluxio/alluxio-go
+go get -d github.com/Alluxio/alluxio-go
 ```
 
 # 示例使用程序

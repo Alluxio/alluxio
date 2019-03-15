@@ -66,7 +66,7 @@ To build Alluxio against different compute frameworks, you can run Maven build w
 You can run the following command to compile Alluxio with Hadoop.
 
 ```bash
-$ mvn install -P<HADOOP_PROFILE> -DskipTests
+mvn install -P<HADOOP_PROFILE> -DskipTests
 ```
 
 Available Hadoop profiles include `hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ... `hadoop-2.8` for
@@ -77,7 +77,7 @@ compile by checking out [this section](#distro-support).
 You can run the following command to compile Alluxio with Spark
 
 ```bash
-$ mvn install -Pspark -DskipTests
+mvn install -Pspark -DskipTests
 ```
 
 ### Flink
@@ -85,14 +85,14 @@ $ mvn install -Pspark -DskipTests
 You can run the following command to compile Alluxio with Flink
 
 ```bash
-$ mvn install -Pflink -DskipTests
+mvn install -Pflink -DskipTests
 ```
 
 ### Presto
 You can run the following command to compile Alluxio with Presto
 
 ```bash
-$ mvn install -Ppresto -DskipTests
+mvn install -Ppresto -DskipTests
 ```
 
 ## Distro Support
@@ -101,7 +101,7 @@ To build Alluxio against one of the different distros of hadoop, you only need t
 `hadoop.version`. You can run the following command:
 
 ```bash
-$ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
+mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 ```
 where `<HADOOP_VERSION>` can be set for different distributions.
 

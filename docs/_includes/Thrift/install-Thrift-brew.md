@@ -1,3 +1,3 @@
 ```bash
-$ brew install thrift
+brew install thrift
 ```

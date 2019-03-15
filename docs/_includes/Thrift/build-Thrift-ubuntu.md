@@ -1,5 +1,5 @@
 ```bash
-$ ./configure --with-boost=/usr/local
-$ make
-$ make install
+./configure --with-boost=/usr/local
+make
+make install
 ```

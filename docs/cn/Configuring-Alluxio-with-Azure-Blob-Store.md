@@ -25,7 +25,7 @@ priority： 0
 你需要通过修改`conf/alluxio-site.properties`配置Alluxio使用底层存储系统。如果这个文件不存在，重命名template文件。
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Alluxio可以通过HDFS接口支持Azure Blob store。你可以在[这里](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html)找到更多关于在Azure blob store上运行hadoop的信息。
@@ -64,8 +64,8 @@ alluxio.underfs.hdfs.prefixes=hdfs://,glusterfs:///,maprfs:///,wasb://
 完成所有配置之后，你可以本地运行Alluxio,观察是否一切运行正常。
 
 ```
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
@@ -73,7 +73,7 @@ $ ./bin/alluxio-start.sh local
 接着，你可以运行一个简单的示例程序：
 
 ```
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 运行成功后，你可以访问你的容器AZURE_CONTAINER，确认其中包含了由Alluxio创建的文件和目录。该测试中，创建的文件名应该像下面这样：
@@ -85,5 +85,5 @@ AZURE_DIRECTORY/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
 若要停止Alluxio，你可以运行以下命令:
 
 ```
-$ ./bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```

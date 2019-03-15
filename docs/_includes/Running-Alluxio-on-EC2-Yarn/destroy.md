@@ -1,3 +1,3 @@
 ```bash
-$ ./destroy
+./destroy
 ```

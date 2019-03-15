@@ -29,7 +29,7 @@ Alluxio works together with Spark 1.1 or later out-of-the-box.
 from the top level `alluxio` directory with the following command:
 
 ```bash
-$ mvn clean package -Pspark -DskipTests
+mvn clean package -Pspark -DskipTests
 ```
 
 * Add the following line to `spark/conf/spark-defaults.conf`.
@@ -87,7 +87,7 @@ First, we will copy some local data to the Alluxio file system. Put the file `LI
 assuming you are in the Alluxio project directory:
 
 ```bash
-$ bin/alluxio fs copyFromLocal LICENSE /LICENSE
+bin/alluxio fs copyFromLocal LICENSE /LICENSE
 ```
 
 Run the following commands from `spark-shell`, assuming Alluxio Master is running on `localhost`:
@@ -113,7 +113,7 @@ Assuming the namenode is running on `localhost` and you are using the default mo
 `/alluxio`:
 
 ```bash
-$ hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
+hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
 ```
 
 Note that Alluxio has no notion of the file. You can verify this by going to the web UI. Run the
@@ -168,13 +168,13 @@ hostnames by using the following script offered in Spark. Start Spark Worker in 
 slave-hostname:
 
 ```bash
-$ ${SPARK_HOME}/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
+${SPARK_HOME}/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
 ```
 
 For example:
 
 ```bash
-$ ${SPARK_HOME}/sbin/start-slave.sh -h simple30 spark://simple27:7077
+${SPARK_HOME}/sbin/start-slave.sh -h simple30 spark://simple27:7077
 ```
 
 You can also set the `SPARK_LOCAL_HOSTNAME` in `$SPARK_HOME/conf/spark-env.sh` to achieve this. For

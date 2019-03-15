@@ -26,7 +26,7 @@ You need to configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Minio is an object storage server built for cloud applications and DevOps. Minio provides an open source alternative to AWS S3.

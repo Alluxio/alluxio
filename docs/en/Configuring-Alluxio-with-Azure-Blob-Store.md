@@ -31,7 +31,7 @@ You need to configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Alluxio can support the Azure Blob Store via the HDFS interface. You can find more about running Hadoop on Azure Blob Store [here](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html).
@@ -70,8 +70,8 @@ After these changes, Alluxio should be configured to work with Azure Blob Store 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
 ```
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+bin/alluxio format
+bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at [http://localhost:19999](http://localhost:19999).
@@ -79,7 +79,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Next, you can run a simple example program:
 
 ```
-$ ./bin/alluxio runTests
+bin/alluxio runTests
 ```
 
 After this succeeds, you can visit your container `AZURE_CONTAINER` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
@@ -91,5 +91,5 @@ AZURE_DIRECTORY/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
 To stop Alluxio, you can run:
 
 ```
-$ ./bin/alluxio-stop.sh local
+bin/alluxio-stop.sh local
 ```
