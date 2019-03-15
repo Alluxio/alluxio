@@ -18,7 +18,7 @@ Then, if you haven't already done so, create your configuration file with `boots
 For example, if you are running Alluxio on your local machine, `<ALLUXIO_MASTER_HOSTNAME>` should be set to `localhost` in the following command:
 
 ```bash
-$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
+./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
 ```
 
 Alternatively, you can also create the configuration file from the template and set the contents manually.

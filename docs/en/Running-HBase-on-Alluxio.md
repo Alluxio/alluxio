@@ -79,7 +79,7 @@ change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE
 Start HBase:
 
 ```bash
-$ ${HBASE_HOME}/bin/start-hbase.sh
+${HBASE_HOME}/bin/start-hbase.sh
 ```
 
 Visit HBase Web UI at `http://<hostname>:16010` to confirm that HBase is running on Alluxio

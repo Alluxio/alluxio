@@ -1,3 +1,3 @@
 ```bash
-$ ./create <number of machines> aws
+./create <number of machines> aws
 ```

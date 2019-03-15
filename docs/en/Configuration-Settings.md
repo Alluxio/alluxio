@@ -129,7 +129,7 @@ For example, `${ALLUXIO_HOME}/conf/` is by default on the classpath of Alluxio m
 So you can simply create `${ALLUXIO_HOME}/conf/alluxio-site.properties` by
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Then customize it to fit your configuration tuning needs to start Alluxio servers or to use Alluxio shell commands:
@@ -140,8 +140,8 @@ For applications like Spark or MapReduce to use Alluxio property files, you can 
 For example
 
 ```bash
-$ export SPARK_CLASSPATH=${ALLUXIO_HOME}/conf:${SPARK_CLASSPATH} # for Spark jobs
-$ export HADOOP_CLASSPATH=${ALLUXIO_HOME}/conf:${HADOOP_CLASSPATH} # for Hadoop jobs
+export SPARK_CLASSPATH=${ALLUXIO_HOME}/conf:${SPARK_CLASSPATH} # for Spark jobs
+export HADOOP_CLASSPATH=${ALLUXIO_HOME}/conf:${HADOOP_CLASSPATH} # for Hadoop jobs
 ```
 
 Alternatively, with access to paths like `/etc/`, one can copy the site properties to `/etc/alluxio/`. This configuration will be shared
