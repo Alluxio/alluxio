@@ -1,3 +1,3 @@
 ```bash
-$ ./create <number of machines> vb
+./create <number of machines> vb
 ```

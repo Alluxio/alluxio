@@ -20,7 +20,7 @@ priority: 1
 在`fs` 命令和子命令之前(例如，`copyFromLocal`)，可以将JVM系统属性 `-Dproperty=value`放入到命令行中，以指定引用属性。例如，下面的Alluxio shell命令在将文件复制到Alluxio时将写入类型设置为`CACHE_THROUGH`:
 
 ```bash
-$ bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLocal README.md /README.md
+./bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLocal README.md /README.md
 ```
 
 ## Spark 作业
@@ -29,7 +29,7 @@ $ bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH copyFromLoc
  添加`"-Dproperty=value"`向Spark job传递JVM环境参数。例如，当提交Spark jobs时设置向Alluxio写入方式为`CACHE_THROUGH`
 
 ```bash
-$ spark-submit \
+spark-submit \
 --conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
 --conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
 ...
@@ -51,7 +51,7 @@ Hadoop MapReduce用户可以在`hadoop jar`或“`yarn jar`命令后添加`"-Dpr
 MapReduce任务中设置wordcount集写入Alluxio类型为`CACHE_THROUGH`：
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
+./bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
 -Dalluxio.user.file.writetype.default=CACHE_THROUGH \
 -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
 <INPUT FILES> <OUTPUT DIRECTORY>
@@ -65,7 +65,7 @@ Alluxio管理员可以创建和定制属性文件`alluxio-site.properties`来配
 如果该文件不存在，可以从模板文件`${ALLUXIO_HOME}/conf`:中创建:
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 确保在启动集群之前该文件上被分发到每个Alluxio节点(master和worker)的`${ALLUXIO_HOME}/conf` 下
@@ -159,15 +159,15 @@ Alluxio通过环境变量来支持一些常用的配置设置，包括:
 例如，如果你希望将Alluxio master运行在`localhost`上，其底层存储系统HDFS的namenode也运行在`localhost`上，并且在7001端口启用Java远程调试，可以使用：
 
 ```bash
-$ export ALLUXIO_MASTER_HOSTNAME="localhost"
-$ export ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="hdfs://localhost:9000"
-$ export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"
+export ALLUXIO_MASTER_HOSTNAME="localhost"
+export ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="hdfs://localhost:9000"
+export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"
 ```
 
 用户可以通过shell命令或者`conf/alluxio-env.sh`设置这些环境变量。如果该文件不存在，可以通过运行以下命令令Alluxio自动生成`conf/alluxio-env.sh`文件：
 
 ```bash
-$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
+cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```
 
 # 配置资源
@@ -185,16 +185,16 @@ Alluxio属性可以在多个资源中配置。在这种情况下，它的最终�
 要检查特定配置属性的值及其值的来源，用户可以使用以下命令行:
 
 ```bash
-$ bin/alluxio getConf alluxio.worker.port
+./bin/alluxio getConf alluxio.worker.port
 29998
-$ bin/alluxio getConf --source alluxio.worker.port
+./bin/alluxio getConf --source alluxio.worker.port
 DEFAULT
 ```
 
 列出所有配置属性的来源:
 
 ```bash
-$ bin/alluxio getConf --source
+./bin/alluxio getConf --source
 alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
 alluxio.debug=false (DEFAULT)
 ...
@@ -204,7 +204,7 @@ alluxio.debug=false (DEFAULT)
 。注意，使用`--master`选项 `getConf`将查询master，因此需要主节点运行;没有`--master` 选项，此命令只检查本地配置。
 
 ```bash
-$ bin/alluxio getConf --master --source
+./bin/alluxio getConf --master --source
 alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
 alluxio.debug=false (DEFAULT)
 ...

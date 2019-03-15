@@ -24,7 +24,7 @@ priority: 2
 在`${ALLUXIO_HOME}/conf`目录下，从模板创建`conf/alluxio-site.properties`配置文件。
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 更新`conf/alluxio-site.properties`中的`alluxio.master.hostname`为你将运行Alluxio Master的机器的主机名。添加所有worker节点的IP地址到`conf/workers`文件。
@@ -34,7 +34,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 最后，同步所有信息到worker节点。你可以使用
 
 ```bash
-$ ./bin/alluxio copyDir <dirname>
+./bin/alluxio copyDir <dirname>
 ```
 
 来同步文件和文件夹到所有的`alluxio/conf/workers`中指定的主机。如果你只在Alluxio master节点上下载并解压了Alluxio压缩包，你可以使用`copyDir`命令同步worker节点下的Alluxio文件夹，你同样可以
@@ -45,16 +45,16 @@ $ ./bin/alluxio copyDir <dirname>
 现在，你可以启动 Alluxio:
 
 ```bash
-$ cd alluxio
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh # use the right parameters here. e.g. all Mount
+cd alluxio
+./bin/alluxio format
+./bin/alluxio-start.sh # use the right parameters here. e.g. all Mount
 # Notice: the Mount and SudoMount parameters will format the existing RamFS.
 ```
 
 为了确保Alluxio正在运行，访问 `http://<alluxio_master_hostname>:19999`，检查文件夹`alluxio/logs`下的日志，or 或者运行简单程序：
 
 ```bash
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 **注意**：如果你使用EC2，确保master节点上的安全组设置允许来自alluxio web UI 端口的连接。
@@ -176,19 +176,19 @@ hadoop fs -ls alluxio:///directory
 要测试自动故障处理，请ssh登录至当前的Alluxio master leader，并使用以下命令查找`AlluxioMaster`进程的进程ID：
 
 ```bash
-$ jps | grep AlluxioMaster
+jps | grep AlluxioMaster
 ```
 
 然后使用以下命令杀死leader：
 
 ```bash
-$ kill -9 <leader pid found via the above command>
+kill -9 <leader pid found via the above command>
 ```
 
 然后可以使用以下命令查看leader：
 
 ```bash
-$ ./bin/alluxio fs leader
+./bin/alluxio fs leader
 ```
 
 命令的输出应该显示新的leader。您可能需要一段时间以等待新的leader当选。

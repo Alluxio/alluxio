@@ -66,7 +66,7 @@ Copy local data to the Alluxio file system. Put the file `LICENSE` into Alluxio,
 assuming you are in the Alluxio project directory:
 
 ```bash
-$ bin/alluxio fs copyFromLocal LICENSE /Input
+./bin/alluxio fs copyFromLocal LICENSE /Input
 ```
 
 Run the following commands from `spark-shell`, assuming Alluxio Master is running on `localhost`:
@@ -90,7 +90,7 @@ as an example of a distributed under storage system.
 Put a file `Input_HDFS` into HDFS:
 
 ```bash
-$ hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
+hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
 ```
 
 Note that Alluxio has no notion of the file. You can verify this by going to the web UI. Run the
@@ -144,7 +144,7 @@ Spark drivers. For example, to submit a Spark job with the write `CACHE_THROUGH`
  Alluxio:
 
 ```bash
-$ spark-submit \
+spark-submit \
 --conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
 --conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
 ...
@@ -245,13 +245,13 @@ When you have a running Spark cluster (or Spark standalone) of version 2.x, you 
 following command in the Alluxio project directory:
 
 ```bash
-$ integration/checker/bin/alluxio-checker.sh spark <spark master uri>
+integration/checker/bin/alluxio-checker.sh spark <spark master uri>
 ```
 
 For example,
 
 ```bash
-$ integration/checker/bin/alluxio-checker.sh spark spark://sparkMaster:7077
+integration/checker/bin/alluxio-checker.sh spark spark://sparkMaster:7077
 ```
 
 This command will report potential problems that might prevent you from running Spark on Alluxio.
@@ -272,13 +272,13 @@ hostnames by using the following script offered in Spark. Start Spark Worker in 
 slave-hostname:
 
 ```bash
-$ ${SPARK_HOME}/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
+${SPARK_HOME}/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
 ```
 
 For example:
 
 ```bash
-$ ${SPARK_HOME}/sbin/start-slave.sh -h simple30 spark://simple27:7077
+${SPARK_HOME}/sbin/start-slave.sh -h simple30 spark://simple27:7077
 ```
 
 You can also set the `SPARK_LOCAL_HOSTNAME` in `$SPARK_HOME/conf/spark-env.sh` to achieve this. For

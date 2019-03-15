@@ -55,14 +55,14 @@ available to all the nodes. For example, the following command adds the Alluxio 
 `-libjars` option:
 
 ```bash
-$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
+./bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
 ```
 
 Sometimes, you also need to set the `HADOOP_CLASSPATH` environment variable to make Alluxio client
 jar available to the client JVM which is created when you run the `hadoop jar` command:
 
 ```bash
-$  export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 Alternative ways are described in the [Advanced Setup](#advanced-setup)
@@ -72,9 +72,9 @@ Alternative ways are described in the [Advanced Setup](#advanced-setup)
 For simplicity, we will assume a pseudo-distributed Hadoop cluster, started by running:
 
 ```bash
-$ cd $HADOOP_HOME
-$ bin/stop-all.sh
-$ bin/start-all.sh
+cd $HADOOP_HOME
+./bin/stop-all.sh
+./bin/start-all.sh
 ```
 
 Depending on the Hadoop version, you may need to replace `./bin` with `./sbin`.
@@ -82,13 +82,13 @@ Depending on the Hadoop version, you may need to replace `./bin` with `./sbin`.
 Start Alluxio locally:
 
 ```bash
-$ bin/alluxio-start.sh local SudoMount
+./bin/alluxio-start.sh local SudoMount
 ```
 
 You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:
 
 ```bash
-$ bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
+./bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
 ```
 
 This command will copy the `LICENSE` file into the Alluxio namespace with the path
@@ -97,15 +97,15 @@ This command will copy the `LICENSE` file into the Alluxio namespace with the pa
 Now we can run a MapReduce job (using Hadoop 2.7.3 as example) for wordcount.
 
 ```bash
-$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
+./bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
 ```
 
 After this job completes, the result of the wordcount will be in the `/wordcount/output` directory
 in Alluxio. You can see the resulting files by running:
 
 ```bash
-$ bin/alluxio fs ls /wordcount/output
-$ bin/alluxio fs cat /wordcount/output/part-r-00000
+./bin/alluxio fs ls /wordcount/output
+./bin/alluxio fs cat /wordcount/output/part-r-00000
 ```
 
 > Tips：The previous wordcount example is also applicable to Alluxio in HA mode.
@@ -158,7 +158,7 @@ and the properties will be propagated to all the tasks of this job.  For example
 MapReduce job of wordcount sets write type to `CACHE_THROUGH` when writing to Alluxio:
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
+./bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
 -Dalluxio.user.file.writetype.default=CACHE_THROUGH \
 -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
 <INPUT FILES> <OUTPUT DIRECTORY>
@@ -188,7 +188,7 @@ setup correctly for integrating with Alluxio. The MapReduce integration checker 
 When you have a running Hadoop cluster (or standalone), you can run the following command in the Alluxio project directory:
 
 ```bash
-$ integration/checker/bin/alluxio-checker.sh mapreduce
+integration/checker/bin/alluxio-checker.sh mapreduce
 ```
 
 You can use `-h` to display helpful information about the command.
@@ -218,12 +218,12 @@ configured correctly but the Alluxio client jar is not found on the classpath of
 You can append the client jar to `$HADOOP_CLASSPATH`:
 
 ```bash
-$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 If the corresponding classpath has been set but exceptions still exist, users can check
 whether the path is valid by:
 
 ```bash
-$ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
+ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```

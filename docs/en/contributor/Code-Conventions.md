@@ -73,7 +73,7 @@ will be formatted to what you want
 warnings are introduced:
 
 ```bash
-$ mvn checkstyle:checkstyle
+mvn checkstyle:checkstyle
 ```
 
 ## Logging Conventions

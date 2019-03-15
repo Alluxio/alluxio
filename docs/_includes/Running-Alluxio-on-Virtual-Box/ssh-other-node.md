@@ -1,3 +1,3 @@
 ```bash
-$ ssh AlluxioWorker1
+ssh AlluxioWorker1
 ```

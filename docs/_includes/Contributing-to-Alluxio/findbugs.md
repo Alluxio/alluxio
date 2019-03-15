@@ -1,3 +1,3 @@
 ```bash
-$ mvn compile findbugs:findbugs
+mvn compile findbugs:findbugs
 ```
