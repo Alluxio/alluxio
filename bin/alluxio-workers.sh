@@ -10,6 +10,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+set -o pipefail
+
 LAUNCHER=
 # If debugging is enabled propagate that through to sub-shells
 if [[ "$-" == *x* ]]; then
@@ -29,18 +31,38 @@ DEFAULT_LIBEXEC_DIR="${BIN}/../libexec"
 ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
 . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
-HOSTLIST=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
+HOSTLIST=($(echo $(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")))
 mkdir -p "${ALLUXIO_LOGS_DIR}"
 ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 
 echo "Executing the following command on all worker nodes and logging to ${ALLUXIO_TASK_LOG}: $@" | tee -a ${ALLUXIO_TASK_LOG}
 
-for worker in $(echo ${HOSTLIST}); do
+for worker in ${HOSTLIST[@]}; do
   echo "[${worker}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}
   nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${worker} ${LAUNCHER} \
     $"${@// /\\ }" 2>&1 | while read line; do echo "[${worker}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
+  pids[${#pids[@]}]=$!
 done
 
+# wait for all pids
 echo "Waiting for tasks to finish..."
-wait
-echo "All tasks finished"
+for pid in ${pids[@]}; do
+    wait ${pid}
+    ret_codes[${#ret_codes[@]}]=$?
+done
+
+# print detailed task results one by one
+all_ok=1
+for ((i = 0; i < ${#ret_codes[@]}; i++)); do
+    if [[ ${ret_codes[$i]} -eq 0 ]]; then
+        echo "Task on '${HOSTLIST[$i]}' runs OK!"
+    else
+        all_ok=0
+        echo "Task on '${HOSTLIST[$i]}' fails, exit code: ${ret_codes[$i]}"
+    fi
+done
+
+# only show the log when all tasks run OK!
+if [[ ${all_ok} -eq 1 ]]; then
+    echo "All tasks finished"
+fi
