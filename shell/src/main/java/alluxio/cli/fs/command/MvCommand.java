@@ -51,13 +51,12 @@ public final class MvCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
-
-    mFileSystem.rename(srcPath, dstPath);
-
     // If dstPath is a folder, move the final component of srcPath into the dstPath folder
-    if (mFileSystem.getStatus(dstPath).isFolder()) {
+    if (mFileSystem.exists(dstPath) && mFileSystem.getStatus(dstPath).isFolder()) {
       dstPath = dstPath.join(srcPath.getName());
     }
+
+    mFileSystem.rename(srcPath, dstPath);
     System.out.println("Renamed " + srcPath + " to " + dstPath);
     return 0;
   }
