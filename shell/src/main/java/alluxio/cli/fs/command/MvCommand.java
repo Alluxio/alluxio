@@ -55,9 +55,9 @@ public final class MvCommand extends AbstractFileSystemCommand {
     mFileSystem.rename(srcPath, dstPath);
 
     // If dstPath is a folder, move the final component of srcPath into the dstPath folder
-    if(mFileSystem.getStatus(dstPath).isFolder())
-      dstPath=dstPath.join(srcPath.getName());
-
+    if (mFileSystem.getStatus(dstPath).isFolder()) {
+      dstPath = dstPath.join(srcPath.getName());
+    }
     System.out.println("Renamed " + srcPath + " to " + dstPath);
     return 0;
   }
