@@ -62,8 +62,8 @@ and you can try to run alluxio locally with OSS.
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+bin/alluxio format
+bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -72,7 +72,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Next, you can run a simple example program:
 
 ```bash
-$ bin/alluxio runTests
+bin/alluxio runTests
 ```
 
 After this succeeds, you can visit your OSS directory OSS_BUCKET/OSS_DIRECTORY to verify the files
@@ -82,5 +82,5 @@ and directories created by Alluxio exist. For this test, you should see files na
 To stop Alluxio, you can run:
 
 ```bash
-$ bin/alluxio-stop.sh local
+bin/alluxio-stop.sh local
 ```

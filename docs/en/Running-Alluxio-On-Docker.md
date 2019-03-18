@@ -21,10 +21,10 @@ All steps below should be executed from your linux machine.
 ### Install Docker
 
 ```bash
-$ sudo yum install -y docker git
-$ sudo service docker start
-$ # Add the current user to the docker group
-$ sudo usermod -a -G docker $(id -u -n)
+sudo yum install -y docker git
+sudo service docker start
+# Add the current user to the docker group
+sudo usermod -a -G docker $(id -u -n)
 ```
 
 Finally, log out and log back in again to pick up the group changes
@@ -32,24 +32,24 @@ Finally, log out and log back in again to pick up the group changes
 ### Clone the Alluxio repo
 
 ```bash
-$ git clone https://github.com/Alluxio/alluxio.git
+git clone https://github.com/Alluxio/alluxio.git
 ```
 
 ### Build the Alluxio Docker image
 
 ```bash
-$ cd alluxio/integration/docker
-$ docker build -t alluxio .
+cd alluxio/integration/docker
+docker build -t alluxio .
 ```
 
 By default, this will build an image for the latest released version of Alluxio. To build
 from a local Alluxio tarball or a different downloadable tarball, you can use `--build-arg`
 
 ```bash
-$ # Build from a local tarball
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
-$ # Alternatively, build from a remote tarball
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.4.0/alluxio-1.4.0-bin.tar.gz .
+# Build from a local tarball
+docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
+# Alternatively, build from a remote tarball
+docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.4.0/alluxio-1.4.0-bin.tar.gz .
 ```
 
 ### Set up under storage
@@ -59,7 +59,7 @@ you would instead use something like HDFS or S3.
 
 Create an under storage folder on the host
 ```bash
-$ mkdir underStorage
+mkdir underStorage
 ```
 
 When we launch the master and worker containers, we will mount this directory with `-v /underStorage:/underStorage`.
@@ -75,15 +75,15 @@ a shared ramdisk.
 From the host machine:
 
 ```bash
-$ sudo mkdir /mnt/ramdisk
-$ sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
-$ sudo chmod a+w /mnt/ramdisk
+sudo mkdir /mnt/ramdisk
+sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
+sudo chmod a+w /mnt/ramdisk
 ```
 
 After mounting the ramdisk, restart Docker so that it is aware of the new mount point.
 
 ```bash
-$ sudo service docker restart
+sudo service docker restart
 ```
 
 ### Useful Docker run flags
@@ -98,7 +98,7 @@ We use these `docker run` flags when launching Alluxio master and worker contain
 ### Run the Alluxio master
 
 ```bash
-$ docker run -d --net=host \
+docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio master
@@ -115,9 +115,9 @@ This way, the data written by the Alluxio worker can be directly accessed from o
 container.
 
 ```bash
-$ # This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
-$ docker run -d --net=host \
+# This gets the public ip of the current EC2 instance
+export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
+docker run -d --net=host \
              -v /mnt/ramdisk:/opt/ramdisk \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
@@ -132,13 +132,13 @@ $ docker run -d --net=host \
 To test the cluster, first enter the worker container.
 
 ```bash
-$ docker exec -it ${ALLUXIO_WORKER_CONTAINER_ID} /bin/sh
+docker exec -it ${ALLUXIO_WORKER_CONTAINER_ID} /bin/sh
 ```
 
 Now run Alluxio tests.
 ```bash
-$ cd opt/alluxio
-$ bin/alluxio runTests
+cd opt/alluxio
+bin/alluxio runTests
 ```
 
 ### Read/Write to the local worker 
@@ -158,10 +158,10 @@ run with `-v /mnt/ramdisk:/opt/ramdisk`.
 
 From the host machine
 ```bash
-$ mkdir /tmp/domain
-$ chmod a+w /tmp/domain
-$ touch /tmp/domain/d
-$ chmod a+w /tmp/domain/d
+mkdir /tmp/domain
+chmod a+w /tmp/domain
+touch /tmp/domain/d
+chmod a+w /tmp/domain/d
 ```
 When starting worker and clients, run the docker container with `-v /tmp/domain:/opt/domain`
 to share `/tmp/domain` directory on the host machine with the worker and clients under 
@@ -180,7 +180,7 @@ and replacing periods with underscores. For example, `alluxio.master.hostname` c
 when the image starts.
 
 ```bash
-$ docker run -d --net=host \
+docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
@@ -201,7 +201,7 @@ tmpfs mounted at `/dev/shm`. To set the size of the worker memory to `1GB`, spec
 `--shm-size 1G` at launch time and configure the Alluxio worker with `1GB` memory size.
 
 ```bash
-$ docker run -d --net=host --shm-size=1G \
+docker run -d --net=host --shm-size=1G \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \

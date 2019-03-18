@@ -43,10 +43,10 @@ docker build -t alluxio .
 默认情况下，这会为最新版本的Alluxio构建镜像。若要根据本地的Alluxio压缩包或者另外一个可下载的压缩包构建，可以使用`--build-arg`参数。
 
 ```bash
-$ # 根据本地压缩包构建
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
-$ # 根据远端压缩包构建
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.4.0/alluxio-1.4.0-bin.tar.gz .
+# 根据本地压缩包构建
+docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
+# 根据远端压缩包构建
+docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/1.4.0/alluxio-1.4.0-bin.tar.gz .
 ```
 
 ### 设置底层存储系统
@@ -55,7 +55,7 @@ $ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.o
 
 在主机上创建一个底层存储文件目录
 ```bash
-$ mkdir underStorage
+mkdir underStorage
 ```
 
 启动master和worker容器时，使用`-v /underStorage:/underStorage`命令挂载这个目录。
@@ -67,15 +67,15 @@ $ mkdir underStorage
 从主机：
 
 ```bash
-$ sudo mkdir /mnt/ramdisk
-$ sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
-$ sudo chmod a+w /mnt/ramdisk
+sudo mkdir /mnt/ramdisk
+sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
+sudo chmod a+w /mnt/ramdisk
 ```
 
 挂载虚拟内存后，重启Docker，使得Docker可以检测到新的挂载点。
 
 ```bash
-$ sudo service docker restart
+sudo service docker restart
 ```
 
 ## 运行Alluxio master
@@ -96,7 +96,7 @@ docker run -d --net=host alluxio master
 ### 运行Alluxio master
 
 ```bash
-$ docker run -d --net=host \
+docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio master
@@ -108,7 +108,7 @@ $ docker run -d --net=host \
 通过`-v /mnt/ramdisk:/opt/ramdisk`来给worker指定给定位置和大小的共享虚拟内存。`-v /mnt/ramdisk:/opt/ramdisk`命令将主机路径`/mnt/ramdisk`挂载到worker容器路径`/opt/ramdisk`。这样，Alluxio worker 可以直接从容器外部写入数据。
 
 ```bash
-$ docker run -d --net=host \
+docker run -d --net=host \
              -v /mnt/ramdisk:/opt/ramdisk \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
@@ -145,10 +145,10 @@ bin/alluxio runTests
 
 在主机上：
 ```bash
-$ mkdir /tmp/domain
-$ chmod a+w /tmp/domain
-$ touch /tmp/domain/d
-$ chmod a+w /tmp/domain/d
+mkdir /tmp/domain
+chmod a+w /tmp/domain
+touch /tmp/domain/d
+chmod a+w /tmp/domain/d
 ```
 当启动worker和client时，使用`-v / tmp / domain：/ opt / domain`运行docker容器来共享主机上的`/ tmp / domain`目录与worker节点和客户端的`/ opt / domain`目录。
 在运行容器时通过传递`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS = / opt / domain / d`来设置 `alluxio.worker.data.server.domain.socket.address` 属性。
@@ -159,7 +159,7 @@ $ chmod a+w /tmp/domain/d
 
 要配置一个Alluxio配置项，将所有字母变成大写，并将句点替换为下划线从而将它转换为环境变量。例如，将`alluxio.master.hostname`转换为`ALLUXIO_MASTER_HOSTNAME`。然后，你可以使用`-e PROPERTY=value`在镜像上设置该环境变量。当该镜像启动时，相应的Alluxio配置项会被拷贝到`conf/alluxio-site.properties`。
 
-$ docker run -d --net=host \
+docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
@@ -174,7 +174,7 @@ $ docker run -d --net=host \
 当未指定`ALLUXIO_RAM_FOLDER`时，worker Docker容器会使用挂载在`/dev/shm`上的tmpfs。若要配置worker的内存大小为`1GB`，可以在启动时指定`--shm-size 1G`，并且配置Alluxio worker内存大小为`1GB`。
 
 ```bash
-$ docker run -d --net=host --shm-size=1G \
+docker run -d --net=host --shm-size=1G \
            -v $PWD/underStorage:/underStorage \
            -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
            -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \

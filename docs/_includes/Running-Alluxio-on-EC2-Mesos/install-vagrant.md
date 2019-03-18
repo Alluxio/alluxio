@@ -1,3 +1,3 @@
 ```bash
-$ sudo bash bin/install.sh
+do bash bin/install.sh
 ```

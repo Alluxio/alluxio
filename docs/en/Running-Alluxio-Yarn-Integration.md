@@ -20,13 +20,13 @@ Alluxio as a YARN application.
 **Alluxio downloaded locally**
 
 ```bash
-$ curl http://downloads.alluxio.org/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz | tar xz
+curl http://downloads.alluxio.org/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz | tar xz
 ```
 
 ## Build YARN Integration
 
 ```bash
-$ mvn clean install -Dhadoop.version=<your hadoop version> -Pyarn -Dlicense.skip -DskipTests -Dfindbugs.skip -Dmaven.javadoc.skip -Dcheckstyle.skip
+mvn clean install -Dhadoop.version=<your hadoop version> -Pyarn -Dlicense.skip -DskipTests -Dfindbugs.skip -Dmaven.javadoc.skip -Dcheckstyle.skip
 ```
 
 Make sure to replace <your hadoop version> with the version of Hadoop that you are using.
@@ -52,9 +52,9 @@ For example, to launch an Alluxio cluster with 3 worker nodes, where an HDFS tem
 `hdfs://masterhost:9000/tmp/` and the master hostname is `masterhost`, you would run
 
 ```bash
-$ export HADOOP_HOME=/hadoop
-$ /hadoop/bin/hadoop fs -mkdir hdfs://masterhost:9000/tmp
-$ /alluxio/integration/yarn/bin/alluxio-yarn.sh 3 hdfs://masterhost:9000/tmp/ masterhost
+export HADOOP_HOME=/hadoop
+/hadoop/bin/hadoop fs -mkdir hdfs://masterhost:9000/tmp
+/alluxio/integration/yarn/bin/alluxio-yarn.sh 3 hdfs://masterhost:9000/tmp/ masterhost
 ```
 
 You may also start the Alluxio Master node separately from Yarn in which case the above startup will
@@ -75,7 +75,7 @@ INFO impl.YarnClientImpl: Submitted application application_1445469376652_0002
 This application ID can be used to destroy the application by running
 
 ```bash
-$ /hadoop/bin/yarn application -kill application_1445469376652_0002
+/hadoop/bin/yarn application -kill application_1445469376652_0002
 ```
 
 The ID can also be found in the YARN web UI.
@@ -86,5 +86,5 @@ Once you have the Alluxio application running, you can check its health by confi
 `alluxio.master.hostname=masterhost` in `conf/alluxio-site.properties` and running
 
 ```bash
-$ /alluxio/bin/alluxio runTests
+/alluxio/bin/alluxio runTests
 ```

@@ -21,7 +21,7 @@ In the `${ALLUXIO_HOME}/conf` directory, create the `conf/alluxio-site.propertie
 file from the template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Update `alluxio.master.hostname` in `conf/alluxio-site.properties` to the hostname of the machine

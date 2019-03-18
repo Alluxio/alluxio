@@ -12,7 +12,7 @@ Alluxio's command line interface provides users with basic file system operation
 the following command line utility to get all the subcommands:
 
 ```bash
-$ ./bin/alluxio fs
+./bin/alluxio fs
 Usage: alluxio fs [generic options]
        [cat <path>]
        [checkConsistency [-r] <Alluxio path>]
@@ -225,10 +225,10 @@ Examples:
 
 ```bash
 # Print all subcommands
-$ ./bin/alluxio fs help
+./bin/alluxio fs help
 #
 # Print help message for ls
-$ ./bin/alluxio fs help ls
+./bin/alluxio fs help ls
 ```
 
 ### leader
@@ -413,8 +413,8 @@ Options:
 Examples:
 
 ```bash
-$ ./bin/alluxio fs test -d /someDir
-$ echo $?
+./bin/alluxio fs test -d /someDir
+echo $?
 ```
 
 ### touch
