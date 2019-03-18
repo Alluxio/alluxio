@@ -28,7 +28,7 @@ versions, one needs to specify  the correct Hadoop profile and run the following
 directory:
 
 ```bash
-$ mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
+mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
 ```
 
 Alluxio provides predefined build profiles including `hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ...
@@ -36,7 +36,7 @@ Alluxio provides predefined build profiles including `hadoop-1`, `hadoop-2.2`, `
 Hadoop release version, you can also specify the version in the command. For example,
 
 ```bash
-$ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
+mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 ```
 
 would compile Alluxio for the Apache Hadoop version 2.7.1.
@@ -51,7 +51,7 @@ You need to configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 ### Basic Configuration
@@ -126,8 +126,8 @@ exists. After everything is configured, you can start up Alluxio locally to see 
 works.
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+bin/alluxio format
+bin/alluxio-start.sh local
 ```
 
 This should start one Alluxio master and one Alluxio worker locally. You can see the master UI at
@@ -136,7 +136,7 @@ This should start one Alluxio master and one Alluxio worker locally. You can see
 Next, you can run a simple example program:
 
 ```bash
-$ bin/alluxio runTests
+bin/alluxio runTests
 ```
 After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
 to verify the files and directories created by Alluxio exist. For this test, you should see
@@ -145,5 +145,5 @@ files named like: `/default_tests_files/BASIC_CACHE_THROUGH`
 You can stop Alluxio any time by running:
 
 ```bash
-$ bin/alluxio-stop.sh local
+bin/alluxio-stop.sh local
 ```

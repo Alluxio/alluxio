@@ -30,32 +30,32 @@ All steps below should be executed from your Linux machine.
 ### Install Docker
 
 ```bash
-$ sudo yum install -y docker git
-$ sudo service docker start
-$ # Add the current user to the docker group
-$ sudo usermod -a -G docker $(id -u -n)
-$ # Log out and log back in again to pick up the group changes
-$ exit
+sudo yum install -y docker git
+sudo service docker start
+# Add the current user to the docker group
+sudo usermod -a -G docker $(id -u -n)
+# Log out and log back in again to pick up the group changes
+exit
 ```
 
 ### Clone the Alluxio repo
 
 ```bash
-$ git clone https://github.com/Alluxio/alluxio.git
+git clone https://github.com/Alluxio/alluxio.git
 ```
 
 ### Build the Alluxio Docker image
 
 ```bash
-$ cd alluxio/integration/docker
-$ docker build -t alluxio .
+cd alluxio/integration/docker
+docker build -t alluxio .
 ```
 
 ### Set up under storage
 
 Create an under storage folder on the host.
 ```bash
-$ mkdir underStorage
+mkdir underStorage
 ```
 
 ### Set up ramdisk to enable short-circuit reads
@@ -63,21 +63,21 @@ $ mkdir underStorage
 From the host machine:
 
 ```bash
-$ sudo mkdir /mnt/ramdisk
-$ sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
-$ sudo chmod a+w /mnt/ramdisk
+sudo mkdir /mnt/ramdisk
+sudo mount -t ramfs -o size=1G ramfs /mnt/ramdisk
+sudo chmod a+w /mnt/ramdisk
 ```
 
 Restart Docker so that it is aware of the new mount point.
 
 ```bash
-$ sudo service docker restart
+sudo service docker restart
 ```
 
 ### Run the Alluxio master
 
 ```bash
-$ docker run -d --net=host \
+docker run -d --net=host \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio master
@@ -89,10 +89,10 @@ Details:
 ### Run the Alluxio worker
 
 ```bash
-$ # This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
-$ # Launch an Alluxio worker container and save the container ID for later
-$ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
+# This gets the public ip of the current EC2 instance
+export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
+# Launch an Alluxio worker container and save the container ID for later
+ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
              -v /mnt/ramdisk:/opt/ramdisk \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
@@ -114,13 +114,13 @@ Details:
 To test the cluster, first enter the worker container.
 
 ```bash
-$ docker exec -it ${ALLUXIO_WORKER_CONTAINER_ID} /bin/sh
+docker exec -it ${ALLUXIO_WORKER_CONTAINER_ID} /bin/sh
 ```
 
 Now run Alluxio tests.
 ```bash
-$ cd opt/alluxio
-$ bin/alluxio runTests
+cd opt/alluxio
+bin/alluxio runTests
 ```
 
 # Building from a specific Alluxio distribution
@@ -129,12 +129,12 @@ To build an Alluxio Docker image from a local or remote Alluxio tarball, use `--
 
 Local tarball:
 ```bash
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
+docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
 ```
 
 Remote tarball:
 ```bash
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz .
+docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz .
 ```
 
 # Alluxio Configuration Properties
@@ -159,7 +159,7 @@ tmpfs mounted at `/dev/shm`. To set the size of the worker memory to `1GB`, spec
 `--shm-size 1G` at launch time and configure the Alluxio worker with `1GB` memory size.
 
 ```bash
-$ docker run -d --net=host --shm-size=1G \
+docker run -d --net=host --shm-size=1G \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \
              -e ALLUXIO_WORKER_MEMORY_SIZE=1GB \
@@ -185,8 +185,8 @@ write throughput.
 
 From the host machine, create a directory for the shared domain socket.
 ```bash
-$ mkdir /tmp/domain
-$ chmod a+w /tmp/domain
+mkdir /tmp/domain
+chmod a+w /tmp/domain
 ```
 
 When starting workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`
@@ -196,9 +196,9 @@ to share the domain socket directory. Also set the site property
 when launching the container.
 
 ```bash
-$ # This gets the public ip of the current EC2 instance
-$ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
-$ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
+# This gets the public ip of the current EC2 instance
+export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
+ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
              -v /tmp/domain:/opt/domain \
              -v $PWD/underStorage:/underStorage \
              -e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP} \

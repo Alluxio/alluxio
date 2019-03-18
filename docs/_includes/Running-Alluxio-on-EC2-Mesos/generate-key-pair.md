@@ -1,3 +1,3 @@
 ```bash
-$ chmod 400 <your key pair>.pem
+chmod 400 <your key pair>.pem
 ```

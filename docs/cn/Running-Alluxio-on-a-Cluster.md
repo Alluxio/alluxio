@@ -20,7 +20,7 @@ priority: 2
 在`${ALLUXIO_HOME}/conf`目录下，从模板创建`conf/alluxio-site.properties`配置文件。
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 更新`conf/alluxio-site.properties`中的`alluxio.master.hostname`为你将运行Alluxio Master的机器的主机名。添加所有worker节点的IP地址到`conf/workers`文件。

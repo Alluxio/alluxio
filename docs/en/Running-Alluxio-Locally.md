@@ -36,7 +36,7 @@ repeatedly input the password, you can add the public ssh key for the host into
 > However, data in under storage will not be changed.
 
 ```bash
-$ ./bin/alluxio format
+./bin/alluxio format
 ```
 
 # Step 1: Start Alluxio Filesystem Locally
@@ -44,7 +44,7 @@ $ ./bin/alluxio format
 Simply run the following command to start Alluxio filesystem.
 
 ```bash
-$ ./bin/alluxio-start.sh local
+./bin/alluxio-start.sh local
 ```
 
 > NOTE: On Linux, this command may require to input password to get sudo privileges
@@ -85,7 +85,7 @@ alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 and then start Alluxio with `NoMount` option to use the above directory as its data storage:
 
 ```bash
-$ ./bin/alluxio-start.sh local NoMount
+./bin/alluxio-start.sh local NoMount
 ```
 
 Alternatively, you can also specify Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)
@@ -101,7 +101,7 @@ alluxio.worker.tieredstore.level0.dirs.path=/dev/shm
 followed by:
 
 ```bash
-$ ./bin/alluxio-start.sh local NoMount
+./bin/alluxio-start.sh local NoMount
 ```
 
 ## How can I avoid typing the password to run sudo?

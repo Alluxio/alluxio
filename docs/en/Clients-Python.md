@@ -29,7 +29,7 @@ worker on each compute node.
 
 # Install Python Client Library
 ```bash
-$ pip install alluxio
+pip install alluxio
 ```
 
 # Example Usage

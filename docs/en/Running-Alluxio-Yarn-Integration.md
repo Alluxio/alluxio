@@ -35,10 +35,10 @@ For example, to launch an Alluxio cluster with 3 worker nodes, where an HDFS tem
 `hdfs://${HDFS_MASTER}:9000/tmp/` and the master hostname is `${ALLUXIO_MASTER}`, you would run
 
 ```bash
-$ # If Yarn does not reside in `HADOOP_HOME`, set the environment variable `YARN_HOME` to the base path of Yarn.
-$ export HADOOP_HOME=<path to hadoop home>
-$ ${HADOOP_HOME}/bin/hadoop fs -mkdir hdfs://${HDFS_MASTER}:9000/tmp
-$ ${ALLUXIO_HOME}/integration/yarn/bin/alluxio-yarn.sh 3 hdfs://${HDFS_MASTER}:9000/tmp/ ${ALLUXIO_MASTER}
+# If Yarn does not reside in `HADOOP_HOME`, set the environment variable `YARN_HOME` to the base path of Yarn.
+export HADOOP_HOME=<path to hadoop home>
+${HADOOP_HOME}/bin/hadoop fs -mkdir hdfs://${HDFS_MASTER}:9000/tmp
+${ALLUXIO_HOME}/integration/yarn/bin/alluxio-yarn.sh 3 hdfs://${HDFS_MASTER}:9000/tmp/ ${ALLUXIO_MASTER}
 ```
 
 You may also start the Alluxio Master node separately from Yarn in which case the above startup will
@@ -59,7 +59,7 @@ INFO impl.YarnClientImpl: Submitted application application_1445469376652_0002
 This application ID can be used to destroy the application by running
 
 ```bash
-$ ${HADOOP_HOME}/bin/yarn application -kill application_1445469376652_0002
+${HADOOP_HOME}/bin/yarn application -kill application_1445469376652_0002
 ```
 
 The ID can also be found in the YARN web UI.
@@ -70,5 +70,5 @@ Once you have the Alluxio application running, you can check its health by confi
 `alluxio.master.hostname=masterhost` in `conf/alluxio-site.properties` and running
 
 ```bash
-$ ${ALLUXIO_HOME}/bin/alluxio runTests
+${ALLUXIO_HOME}/bin/alluxio runTests
 ```

@@ -66,8 +66,8 @@ You can download a data file (e.g., `ml-100k.zip`) from
 Unzip this file and upload the file `u.user` into `ml-100k/` on Alluxio:
 
 ```bash
-$ bin/alluxio fs mkdir /ml-100k
-$ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
+bin/alluxio fs mkdir /ml-100k
+bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
 ```
 
 Then create a new internal table:
@@ -244,10 +244,10 @@ to Hadoop configuration directory on each node. For example, change
 Create Directories in Alluxio for Hive:
 
 ```bash
-$ ./bin/alluxio fs mkdir /tmp
-$ ./bin/alluxio fs mkdir /user/hive/warehouse
-$ ./bin/alluxio fs chmod 775 /tmp
-$ ./bin/alluxio fs chmod 775 /user/hive/warehouse
+./bin/alluxio fs mkdir /tmp
+./bin/alluxio fs mkdir /user/hive/warehouse
+./bin/alluxio fs chmod 775 /tmp
+./bin/alluxio fs chmod 775 /user/hive/warehouse
 ```
 
 Then you can follow the

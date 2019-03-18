@@ -12,7 +12,7 @@ Alluxio的管理员命令行接口为管理员提供了管理Alluxio文件系统
 您可以调用以下命令行来获取所有子命令：
  
 ```bash
-$ ./bin/alluxio fsadmin
+./bin/alluxio fsadmin
 Usage: alluxio fsadmin [generic options]
        [ufs --mode <noAccess/readOnly/readWrite> <ufsPath>]
        ...
@@ -42,5 +42,5 @@ Usage: alluxio fsadmin [generic options]
 例如，一个底层存储可以设为`readOnly`模式来禁止写入操作。 Alluxio将不会对底层存储尝试任何写入操作。
  
 ```bash
-$ ./bin/alluxio fsadmin ufs --mode readOnly hdfs://ns
+./bin/alluxio fsadmin ufs --mode readOnly hdfs://ns
 ```

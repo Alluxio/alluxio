@@ -66,7 +66,7 @@ To build Alluxio against different compute frameworks, you can run Maven build w
 You can run the following command to compile Alluxio with Hadoop.
 
 ```bash
-$ mvn install -P<HADOOP_PROFILE> -DskipTests
+mvn install -P<HADOOP_PROFILE> -DskipTests
 ```
 
 Available Hadoop profiles include `hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ... `hadoop-2.8` for
@@ -79,7 +79,7 @@ You can run the following command to compile Alluxio server and client jars that
 different compute frameworks.
 
 ```bash
-$ mvn install -DskipTests
+mvn install -DskipTests
 ```
 
 ## Distro Support
@@ -88,7 +88,7 @@ To build Alluxio against one of the different distros of hadoop, you only need t
 `hadoop.version`. You can run the following command:
 
 ```bash
-$ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
+mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 ```
 where `<HADOOP_VERSION>` can be set for different distributions.
 

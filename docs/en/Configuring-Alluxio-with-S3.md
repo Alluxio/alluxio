@@ -35,7 +35,7 @@ You need to configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 You need to configure Alluxio to use S3 as its under storage system by modifying
@@ -76,7 +76,7 @@ An S3 location can be mounted at a nested directory in the Alluxio namespace to 
 to multiple under storage systems. Alluxio's [Command Line Interface](Command-Line-Interface.html) can be used for this purpose.
 
 ```bash
-$ ./bin/alluxio fs mount --option aws.accessKeyId=<AWS_ACCESS_KEY_ID> --option aws.secretKey=<AWS_SECRET_KEY_ID>\
+./bin/alluxio fs mount --option aws.accessKeyId=<AWS_ACCESS_KEY_ID> --option aws.secretKey=<AWS_SECRET_KEY_ID>\
   /mnt/s3 s3a://<S3_BUCKET>/<S3_DIRECTORY>
 ```
 
@@ -161,8 +161,8 @@ the v2 signatures by setting the `alluxio.underfs.s3a.signer.algorithm` to `S3Si
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
 ```bash
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -171,7 +171,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Next, you can run a simple example program:
 
 ```bash
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 After this succeeds, you can visit your S3 directory `S3_BUCKET/S3_DIRECTORY` to verify the files
@@ -184,7 +184,7 @@ S3_BUCKET/S3_DIRECTORY/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
 To stop Alluxio, you can run:
 
 ```bash
-$ ./bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```
 
 ## S3 Access Control

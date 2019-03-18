@@ -27,8 +27,8 @@ Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-contai
 ## Clone the Alluxio repo
 
 ```bash
-$ git clone https://github.com/Alluxio/alluxio.git
-$ cd integration/kubernetes
+git clone https://github.com/Alluxio/alluxio.git
+cd integration/kubernetes
 ```
 
 The kubernetes specifications required to deploy Alluxio can be found under `integration/kubernetes`.
@@ -41,8 +41,8 @@ eligible to run the Alluxio worker process to enable this mode of operation.
 
 From the host machine, create a directory for the shared domain socket.
 ```bash
-$ mkdir /tmp/domain
-$ chmod a+w /tmp/domain
+mkdir /tmp/domain
+chmod a+w /tmp/domain
 ```
 
 This step can be skipped in case short-circuit accesss is not desired or cannot be set up. To disable
@@ -57,7 +57,7 @@ for storing the journal. The volume, once claimed, is persisted across restarts 
 Create the persistent volume spec from the template. The access mode `ReadWriteMany` is used to allow
 multiple Alluxio master nodes to access the shared volume.
 ```bash
-$ cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
+cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
 ```
 
 Note: the spec provided uses a `hostPath` volume for demonstration on a single-node deployment. For a
@@ -66,7 +66,7 @@ persistent volume plugins.
 
 Create the persistent volume.
 ```bash
-$ kubectl create -f alluxio-journal-volume.yaml
+kubectl create -f alluxio-journal-volume.yaml
 ```
 
 ## Configure Alluxio properties
@@ -79,12 +79,12 @@ Define all environment variables in a single file. Copy the properties template 
 Note that when running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
 ```bash
-$ cp conf/alluxio.properties.template conf/alluxio.properties
+cp conf/alluxio.properties.template conf/alluxio.properties
 ```
 
 Create a ConfigMap.
 ```bash
-$ kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxio.properties
+kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxio.properties
 ```
 
 ## Deploy
@@ -92,37 +92,37 @@ $ kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxi
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
 location of the Docker image, and CPU and memory requirements for pods.
 ```bash
-$ cp alluxio-master.yaml.template alluxio-master.yaml
-$ cp alluxio-worker.yaml.template alluxio-worker.yaml
+cp alluxio-master.yaml.template alluxio-master.yaml
+cp alluxio-worker.yaml.template alluxio-worker.yaml
 ```
 
 Once all the pre-requisites and configuration have been setup, deploy Alluxio.
 ```bash
-$ kubectl create -f alluxio-master.yaml
-$ kubectl create -f alluxio-worker.yaml
+kubectl create -f alluxio-master.yaml
+kubectl create -f alluxio-worker.yaml
 ```
 
 Verify status of the Alluxio deployment.
 ```bash
-$ kubectl get pods
+kubectl get pods
 ```
 
 If using peristent volumes for Alluxio master, the status of the volume should change to `CLAIMED`.
 ```bash
-$ kubectl get pv alluxio-journal-volume
+kubectl get pv alluxio-journal-volume
 ```
 
 ## Verify
 
 Once ready, access the Alluxio CLI from the master pod and run basic I/O tests.
 ```bash
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+kubectl exec -ti alluxio-master-0 /bin/bash
 ```
 
 From the master pod, execute the following:
 ```bash
-$ cd /opt/alluxio
-$ ./bin/alluxio runTests
+cd /opt/alluxio
+./bin/alluxio runTests
 ```
 
 ## Uninstall

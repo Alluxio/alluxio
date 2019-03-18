@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio-start.sh local
+./bin/alluxio-start.sh local
 ```

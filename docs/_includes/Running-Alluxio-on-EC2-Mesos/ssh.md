@@ -1,3 +1,3 @@
 ```bash
-$ vagrant ssh <node name>
+grant ssh <node name>
 ```
