@@ -33,7 +33,7 @@ Configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Configure Alluxio to use GCS as its under storage system. The first modification is to

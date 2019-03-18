@@ -77,14 +77,14 @@ through FUSE.
 Create a folder at the root in Alluxio
 
 ```bash
-$ ./bin/alluxio fs mkdir /training-data
+./bin/alluxio fs mkdir /training-data
 ```
 
 Mount the ImageNet data stored in an S3 bucket into path `/training-data/imagenet`,
 assuming the data is at the S3 path `s3a://alluxio-tensorflow-imagenet/`.
 
 ```bash
-$ ./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
+./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
 ```
 
 Note this command takes options to pass the S3 credentials of the bucket. These credentials
@@ -94,29 +94,29 @@ Start the Alluxio-FUSE process. Create a folder `/mnt/fuse`, change its
 owner to the current user (`ec2-user` in this example), and modify its permissions to allow read and write.
 
 ```bash
-$ sudo mkdir -p /mnt/fuse
-$ sudo chown ec2-user:ec2-user /mnt/fuse
-$ chmod 664 /mnt/fuse
+sudo mkdir -p /mnt/fuse
+sudo chown ec2-user:ec2-user /mnt/fuse
+chmod 664 /mnt/fuse
 ```
 
 Run the Alluxio-FUSE shell to mount Alluxio folder training-data to the local folder
 /`mnt/fuse`.
 
 ```bash
-$ ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
+./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
 ```
 
 Check the status of the FUSE process with:
 
 ```bash
-$ ./integration/fuse/bin/alluxio-fuse stat
+./integration/fuse/bin/alluxio-fuse stat
 ```
 
 Browse the data at the mounted folder; it should display the training data stored in the cloud.
 
 ```bash
-$ cd /mnt/fuse
-$ ls
+cd /mnt/fuse
+ls
 ```
 
 This folder is ready for the deep learning frameworks to use, which would treat the Alluxio

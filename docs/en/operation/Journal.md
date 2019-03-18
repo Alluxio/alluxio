@@ -47,7 +47,7 @@ Before starting Alluxio for the first time, the journal must be formatted.
 
 ```bash
 # This permanently deletes all Alluxio metadata, so be careful with this operation
-$ bin/alluxio formatMaster
+bin/alluxio formatMaster
 ```
 
 ## Operations
@@ -60,7 +60,7 @@ unavailability while the backup is written.
 
 To generate a backup, use the `fsadmin backup` CLI command.
 ```bash
-$ bin/alluxio fsadmin backup
+bin/alluxio fsadmin backup
 ```
 
 By default, this will write a backup named
@@ -105,9 +105,9 @@ journal, then restart the system, passing the URI of the backup with the `-i`
 (import) flag.
 
 ```bash
-$ bin/alluxio-stop.sh masters
-$ bin/alluxio formatMaster
-$ bin/alluxio-start.sh -i <backup_uri> masters
+bin/alluxio-stop.sh masters
+bin/alluxio formatMaster
+bin/alluxio-start.sh -i <backup_uri> masters
 ```
 
 The `<backup_uri>` should be a full URI path that is available to all masters, e.g.
@@ -157,7 +157,7 @@ metadata in memory. To start a dedicated standby master for writing periodic che
 run
 
 ```bash
-$ bin/alluxio-start.sh secondary_master
+bin/alluxio-start.sh secondary_master
 ```
 
 ### Recovering from journal issues

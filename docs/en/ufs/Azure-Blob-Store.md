@@ -38,7 +38,7 @@ you need to configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
@@ -60,7 +60,7 @@ to multiple under storage systems. Alluxio's
 [Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
 
 ```bash
-$ ./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\
+./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\
   /mnt/azure wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
@@ -71,8 +71,8 @@ After these changes, Alluxio should be configured to work with Azure Blob Store 
 Start up Alluxio locally to see that everything works.
 
 ```
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -81,7 +81,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Run a simple example program:
 
 ```
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 Visit your container `<AZURE_CONTAINER>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
@@ -93,5 +93,5 @@ Visit your container `<AZURE_CONTAINER>` to verify the files and directories cre
 To stop Alluxio, you can run:
 
 ```
-$ ./bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```

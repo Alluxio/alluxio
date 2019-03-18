@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio fs cat /\\*
+./bin/alluxio fs cat /\\*
 ```

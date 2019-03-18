@@ -28,7 +28,7 @@ versions, one needs to specify the correct Hadoop profile and run the following 
 directory:
 
 ```bash
-$ mvn install -P<YOUR_HADOOP_PROFILE> -D<HADOOP_VERSION> -DskipTests
+mvn install -P<YOUR_HADOOP_PROFILE> -D<HADOOP_VERSION> -DskipTests
 ```
 
 Alluxio provides predefined build profiles including `hadoop-1`, `hadoop-2` (enabled by default),
@@ -37,9 +37,9 @@ Hadoop release version, you can also specify the version in the command. For exa
 
 ```bash
 # Build Alluxio for the Apache Hadoop version Hadoop 2.7.1
-$ mvn install -Phadoop-2 -Dhadoop.version=2.7.1 -DskipTests
+mvn install -Phadoop-2 -Dhadoop.version=2.7.1 -DskipTests
 # Build Alluxio for the Apache Hadoop version Hadoop 2.7.1
-$ mvn install -Phadoop-3 -Dhadoop.version=3.0.0 -DskipTests
+mvn install -Phadoop-3 -Dhadoop.version=3.0.0 -DskipTests
 ```
 
 Please visit the
@@ -57,7 +57,7 @@ file `conf/alluxio-site.properties`.
 If the file does not exist, create the configuration file from the template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 ### Basic Configuration
@@ -162,8 +162,8 @@ when starting Alluxio services.
 Finally, you are ready to start the Alluxio servers!
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+bin/alluxio format
+bin/alluxio-start.sh local
 ```
 
 This will start one Alluxio master and one Alluxio worker locally. You can see the master UI at
@@ -172,7 +172,7 @@ This will start one Alluxio master and one Alluxio worker locally. You can see t
 Run a simple example program:
 
 ```bash
-$ bin/alluxio runTests
+bin/alluxio runTests
 ```
 
 If the test fails with permission errors, make sure that the current user (`${USER}`) has
@@ -188,5 +188,5 @@ files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at
 Stop Alluxio by running:
 
 ```bash
-$ bin/alluxio-stop.sh local
+bin/alluxio-stop.sh local
 ```
