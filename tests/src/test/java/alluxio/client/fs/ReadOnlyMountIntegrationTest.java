@@ -21,8 +21,10 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.LoadMetadataPOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
@@ -134,7 +136,6 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
   @Test
   public void deleteFile() throws IOException, AlluxioException {
     AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
-    mFileSystem.loadMetadata(fileUri);
     try {
       mFileSystem.delete(fileUri);
       Assert.fail("deleteFile should not succeed under a readonly mount.");
@@ -146,7 +147,6 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
-    mFileSystem.loadMetadata(fileUri, LoadMetadataPOptions.newBuilder().setRecursive(true).build());
     try {
       mFileSystem.delete(fileUri);
       Assert.fail("deleteFile should not succeed under a readonly mount.");
@@ -161,11 +161,9 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
   @Test
   public void getFileStatus() throws IOException, AlluxioException {
     AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
-    mFileSystem.loadMetadata(fileUri);
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
-    mFileSystem.loadMetadata(fileUri, LoadMetadataPOptions.newBuilder().setRecursive(true).build());
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
   }
 
@@ -252,40 +250,36 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadMetadata() throws IOException, AlluxioException {
     AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
-    // TODO(jiri) Re-enable this once we support the "check UFS" option for getStatus.
-//    try {
-//      mFileSystem.getStatus(fileUri);
-//      Assert.fail("File should not exist before loading metadata.");
-//    } catch (FileDoesNotExistException e) {
-//      Assert
-//        .assertEquals(e.getMessage(), ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(FILE_PATH));
-//    }
-    mFileSystem.loadMetadata(fileUri);
+    try {
+      mFileSystem.getStatus(fileUri, GetStatusPOptions.newBuilder()
+          .setLoadMetadataType(LoadMetadataPType.NEVER).build());
+      Assert.fail("File should not exist before loading metadata.");
+    } catch (FileDoesNotExistException e) {
+      Assert
+          .assertEquals(e.getMessage(), ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(FILE_PATH));
+    }
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
-    // TODO(jiri) Re-enable this once we support the "check UFS" option for getStatus.
-//    try {
-//      mFileSystem.getStatus(fileUri);
-//      Assert.fail("File should not exist before loading metadata.");
-//    } catch (FileDoesNotExistException e) {
-//      Assert.assertEquals(e.getMessage(),
-//          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(SUB_FILE_PATH));
-    // }
-    mFileSystem.loadMetadata(fileUri, LoadMetadataPOptions.newBuilder().setRecursive(true).build());
+    try {
+      mFileSystem.getStatus(fileUri, GetStatusPOptions.newBuilder()
+          .setLoadMetadataType(LoadMetadataPType.NEVER).build());
+      Assert.fail("File should not exist before loading metadata.");
+    } catch (FileDoesNotExistException e) {
+      Assert.assertEquals(e.getMessage(),
+          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(SUB_FILE_PATH));
+    }
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
   }
 
   @Test
   public void openFile() throws IOException, AlluxioException {
     AlluxioURI fileUri = new AlluxioURI(FILE_PATH);
-    mFileSystem.loadMetadata(fileUri);
     FileInStream inStream = mFileSystem.openFile(fileUri);
     Assert.assertNotNull(inStream);
     inStream.close();
 
     fileUri = new AlluxioURI(SUB_FILE_PATH);
-    mFileSystem.loadMetadata(fileUri, LoadMetadataPOptions.newBuilder().setRecursive(true).build());
     inStream = mFileSystem.openFile(fileUri);
     Assert.assertNotNull(inStream);
     inStream.close();
