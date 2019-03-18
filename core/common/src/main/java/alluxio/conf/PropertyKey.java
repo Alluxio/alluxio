@@ -624,30 +624,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_OBJECT_STORE_RETRY_BASE_SLEEP_MS =
       new Builder(Name.UNDERFS_OBJECT_STORE_RETRY_BASE_SLEEP_MS)
           .setDefaultValue("50ms")
-          .setDescription("Block reads and gets metadata information from an object store "
-              + "automatically retry for transient errors with an exponential backoff. "
-              + "This property determines the base time in the exponential backoff. "
-              + "Only applicable for S3A.")
+          .setDescription("Object store operations automatically retry for transient errors "
+              + "with an exponential backoff. This property determines the base time"
+              + "in the exponential backoff. Only applicable for S3A.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_RETRY_MAX_NUM =
       new Builder(Name.UNDERFS_OBJECT_STORE_RETRY_MAX_NUM)
           .setDefaultValue(20)
-          .setDescription("Block reads and gets metadata information from an object store "
-              + "automatically retry for transient errors with an exponential backoff. "
-              + "This property determines the maximum number of retries. "
-              + "Only applicable for S3A.")
+          .setDescription("Object store operations automatically retry for transient errors "
+              + "with an exponential backoff. This property determines"
+              + "the maximum number of retries. Only applicable for S3A.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_RETRY_MAX_SLEEP_MS =
       new Builder(Name.UNDERFS_OBJECT_STORE_RETRY_MAX_SLEEP_MS)
           .setDefaultValue("30sec")
-          .setDescription("Block reads and gets metadata information from an object store "
-              + "automatically retry for transient errors with an exponential backoff. "
-              + "This property determines the maximum wait time in the backoff. "
-              + "Only applicable for S3A.")
+          .setDescription("Object store operations automatically retry for transient errors "
+              + "with an exponential backoff. This property determines "
+              + "the maximum wait time in the backoff. Only applicable for S3A.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();

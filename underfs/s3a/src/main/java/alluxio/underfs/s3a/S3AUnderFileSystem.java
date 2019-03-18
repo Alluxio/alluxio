@@ -421,15 +421,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   // Get next chunk of listing result.
   private ListObjectsV2Result getObjectListingChunk(ListObjectsV2Request request)
       throws IOException {
-    AmazonClientOperation<ListObjectsV2Result> op = () -> {
-      // Query S3 for the next batch of objects.
-      ListObjectsV2Result result = mClient.listObjectsV2(request);
-      // Advance the request continuation token to the next set of objects.
-      request.setContinuationToken(result.getNextContinuationToken());
-      return result;
-    };
     try {
-      return retry(op, "get next chunk of listing result");
+      return retry(() -> {
+        // Query S3 for the next batch of objects.
+        ListObjectsV2Result result = mClient.listObjectsV2(request);
+        // Advance the request continuation token to the next set of objects.
+        request.setContinuationToken(result.getNextContinuationToken());
+        return result;
+      }, "get next chunk of listing result");
     } catch (AmazonClientException e) {
       throw new IOException(e);
     }
@@ -437,15 +436,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   // Get next chunk of listing result.
   private ObjectListing getObjectListingChunkV1(ListObjectsRequest request) throws IOException {
-    AmazonClientOperation<ObjectListing> op = () -> {
-      // Query S3 for the next batch of objects.
-      ObjectListing result = mClient.listObjects(request);
-      // Advance the request continuation token to the next set of objects.
-      request.setMarker(result.getNextMarker());
-      return result;
-    };
     try {
-      return retry(op, "get next chunk of listing result V1");
+      return retry(() -> {
+        // Query S3 for the next batch of objects.
+        ObjectListing result = mClient.listObjects(request);
+        // Advance the request continuation token to the next set of objects.
+        request.setMarker(result.getNextMarker());
+        return result;
+      }, "get next chunk of listing result V1");
     } catch (AmazonClientException e) {
       throw new IOException(e);
     }
@@ -542,14 +540,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   @Nullable
   protected ObjectStatus getObjectStatus(String key) throws IOException {
-    AmazonClientOperation<ObjectStatus> op = () -> {
-      ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
-      return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
-          meta.getLastModified().getTime());
-    };
-
     try {
-      return retry(op, "get object status");
+      return retry(() -> {
+        ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
+        return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
+            meta.getLastModified().getTime());
+      }, "get object status");
     } catch (AmazonServiceException e) {
       if (e.getStatusCode() == 404) { // file not found, possible for exists calls
         return null;
@@ -639,10 +635,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * S3A eventual consistency issue.
    *
    * @param op the Amazon client operation to retry
-   * @param info the information regarding the operation
+   * @param description the description regarding the operation
    * @return the operation result if operation succeed
    */
-  private <T> T retry(AmazonClientOperation<T> op, String info) throws AmazonClientException {
+  private <T> T retry(AmazonClientOperation<T> op, String description)
+      throws AmazonClientException {
     RetryPolicy retryPolicy = getRetryPolicy();
     AmazonClientException thrownException = null;
     while (retryPolicy.attempt()) {
@@ -650,7 +647,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         return op.apply();
       } catch (AmazonClientException e) {
         LOG.debug("{} attempt to {} failed with exception : {}", retryPolicy.getAttemptCount(),
-            info, e.getMessage());
+            description, e.getMessage());
         thrownException = e;
       }
     }
