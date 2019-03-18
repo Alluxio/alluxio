@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio fs leader
+./bin/alluxio fs leader
 ```

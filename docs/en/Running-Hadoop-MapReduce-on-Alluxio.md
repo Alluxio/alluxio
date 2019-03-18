@@ -58,7 +58,7 @@ Optionally, modify `$HADOOP_CLASSPATH` by changing `hadoop-env.sh` also in `conf
 have:
 
 ```bash
-$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 This ensures Alluxio client jar available for the MapReduce job client that creates and submits
@@ -85,7 +85,7 @@ available to all the nodes. For example, the following command adds the Alluxio 
 `-libjars` option:
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
+bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
 ```
 
 2.**Distributing the client jars to all nodes manually.**
@@ -104,21 +104,21 @@ For simplicity, we will assume a pseudo-distributed Hadoop cluster, started by r
 the hadoop version, you might need to replace `./bin` with `./sbin`.):
 
 ```bash
-$ cd $HADOOP_HOME
-$ bin/stop-all.sh
-$ bin/start-all.sh
+cd $HADOOP_HOME
+bin/stop-all.sh
+bin/start-all.sh
 ```
 
 Start Alluxio locally:
 
 ```bash
-$ bin/alluxio-start.sh local
+bin/alluxio-start.sh local
 ```
 
 You can add a sample file to Alluxio to run wordcount on. From your Alluxio directory:
 
 ```bash
-$ bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
+bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
 ```
 
 This command will copy the `LICENSE` file into the Alluxio namespace with the path
@@ -127,13 +127,13 @@ This command will copy the `LICENSE` file into the Alluxio namespace with the pa
 Now we can run a MapReduce job (using Hadoop 2.7.3 as example) for wordcount.
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
+bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
 ```
 
 After this job completes, the result of the wordcount will be in the `/wordcount/output` directory
 in Alluxio. You can see the resulting files by running:
 
 ```bash
-$ bin/alluxio fs ls /wordcount/output
-$ bin/alluxio fs cat /wordcount/output/part-r-00000
+bin/alluxio fs ls /wordcount/output
+bin/alluxio fs cat /wordcount/output/part-r-00000
 ```

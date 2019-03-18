@@ -20,7 +20,7 @@ priority: 5
 您需要修改`conf/alluxio-site.properties`配置Alluxio，以使用NFS作为其底层存储系统。如果该配置文件不存在，请从模板创建该配置文件。
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 假定所有NFS客户端与Alluxio部署在同样的节点上，且NFS挂载在`/mnt/nfs`，那以下的环境变量要添加到`conf/alluxio-site.properties`配置文件中：

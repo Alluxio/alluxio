@@ -23,7 +23,7 @@ priority: 1
 为了配置Alluxio以使用底层文件系统，需要修改`alluxio-site.properties`文件。如果该文件不存在，根据模板创建配置文件。
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 ### 方法1: S3A接口

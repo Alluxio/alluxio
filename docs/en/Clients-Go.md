@@ -26,7 +26,7 @@ worker on each compute node.
 
 # Install Go Client Library
 ```bash
-$ go get -d github.com/Alluxio/alluxio-go
+go get -d github.com/Alluxio/alluxio-go
 ```
 
 # Example Usage

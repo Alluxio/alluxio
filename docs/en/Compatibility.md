@@ -17,9 +17,9 @@ Alluxio cluster < 1.5.0 by running the following commands in the home directory 
 
 ```bash
 # Back up the v0 journal to avoid losing data in case of failures while running journal upgrader.
-$ cp -r YourJournalDirectoryV0 YourJournalBackupDirectory
+cp -r YourJournalDirectoryV0 YourJournalBackupDirectory
 # Upgrade the journal.
-$ ./bin/alluxio upgradeJournal -journalDirectoryV0 YourJournalDirectoryV0 
+./bin/alluxio upgradeJournal -journalDirectoryV0 YourJournalDirectoryV0 
 ```
 
 # Alluxio client and server 

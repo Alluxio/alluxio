@@ -66,7 +66,7 @@ Maven构建环境将自动获取依赖，编译源码，运行单元测试，并
 你可以运行以下命令以使用Hadoop编译Alluxio。
 
 ```bash
-$ mvn install -P<HADOOP_PROFILE> -DskipTests
+mvn install -P<HADOOP_PROFILE> -DskipTests
 ```
 
 对于不同的Hadoop发行版，可用的Hadoop配置文件包括`hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ... `hadoop-2.8`。通过查看[这节](#发行版支持)，你可以进一步设置特定的Hadoop发行版来编译。
@@ -77,7 +77,7 @@ $ mvn install -P<HADOOP_PROFILE> -DskipTests
 你可以运行以下命令以使用Spark编译Alluxio。
 
 ```bash
-$ mvn install -Pspark -DskipTests
+mvn install -Pspark -DskipTests
 ```
 
 ### Flink
@@ -85,14 +85,14 @@ $ mvn install -Pspark -DskipTests
 你可以运行以下命令以使用Flink编译Alluxio。
 
 ```bash
-$ mvn install -Pflink -DskipTests
+mvn install -Pflink -DskipTests
 ```
 
 ### Presto
 你可以运行以下命令以使用Presto编译Alluxio。
 
 ```bash
-$ mvn install -Ppresto -DskipTests
+mvn install -Ppresto -DskipTests
 ```
 
 ## 发行版支持
@@ -101,7 +101,7 @@ $ mvn install -Ppresto -DskipTests
 `hadoop.version`。你可以运行以下命令：
 
 ```bash
-$ mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
+mvn install -P<HADOOP_PROFILE> -Dhadoop.version=<HADOOP_VERSION> -DskipTests
 ```
 其中`<HADOOP_VERSION>`可以根据不同的发行版设置
 

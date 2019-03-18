@@ -1,3 +1,3 @@
 ```bash
-$ vagrant ssh AlluxioMaster
+vagrant ssh AlluxioMaster
 ```

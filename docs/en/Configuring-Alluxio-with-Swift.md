@@ -25,7 +25,7 @@ You need to configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Modify `conf/alluxio-site.properties` to include:
@@ -62,8 +62,8 @@ Using the Swift module makes [Ceph Object Storage](https://ceph.com/ceph-storage
 After configuration, you can start an Alluxio cluster:
 
 ```bash
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -72,7 +72,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Next, you can run a simple example program:
 
 ```bash
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 After this succeeds, you can visit your Swift container to verify the files and directories created
@@ -85,13 +85,13 @@ by Alluxio exist. For this test, you should see files named like:
 To stop Alluxio, you can run:
 
 ```bash
-$ ./bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```
 
 ## Running functional tests
 
 ```bash
-$ mvn test -DtestSwiftContainerKey=swift://<container>
+mvn test -DtestSwiftContainerKey=swift://<container>
 ```
 
 ## Swift Access Control

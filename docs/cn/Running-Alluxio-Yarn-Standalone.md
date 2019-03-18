@@ -32,6 +32,6 @@ Alluxio master节点存储Alluxio每个文件的元数据，所以它需要一�
 更新YARN配置后，重启YARN以保证更改生效：
 
 ```bash
-$ ${HADOOP_HOME}/sbin/stop-yarn.sh
-$ ${HADOOP_HOME}/sbin/start-yarn.sh
+${HADOOP_HOME}/sbin/stop-yarn.sh
+${HADOOP_HOME}/sbin/start-yarn.sh
 ```
