@@ -16,7 +16,7 @@ priority: 5
 例如，如果你是在本机运行Alluxio，那么在以下的命令中`<ALLUXIO_MASTER_HOSTNAME>`应该设置为`localhost`：
 
 ```bash
-$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
+./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
 ```
 
 除了上述方式，也可以通过template文件创建配置文件，并且手动设置相应参数。

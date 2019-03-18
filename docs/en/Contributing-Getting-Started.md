@@ -26,7 +26,7 @@ Developing Alluxio requires Java 7 or 8. If you are unsure of which version of J
 can check with this command:
 
 ```bash
-$ java -version
+java -version
 ```
 
 If you do not have Java installed, download and install [the Java SDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
@@ -81,8 +81,8 @@ After you forked the Alluxio repository, you should create a local clone of your
 copy the files of your fork onto your computer. You can clone your fork with this command:
 
 ```bash
-$ git clone https://github.com/YOUR-USERNAME/alluxio.git
-$ cd alluxio
+git clone https://github.com/YOUR-USERNAME/alluxio.git
+cd alluxio
 ```
 
 This will create the clone under the `alluxio/` directory.
@@ -91,13 +91,13 @@ In order to pull changes from the open source Alluxio code base into your clone,
 new remote that points to the Alluxio repository. In the directory of your newly created clone, run:
 
 ```bash
-$ git remote add upstream https://github.com/Alluxio/alluxio.git
+git remote add upstream https://github.com/Alluxio/alluxio.git
 ```
 
 You can view the urls for remote repositories with the following command.
 
 ```bash
-$ git remote -v
+git remote -v
 ```
 
 This will show you the urls for `origin` (your fork), and `upstream` (the Alluxio repository)
@@ -114,7 +114,7 @@ Now that you have a local clone of Alluxio, you can build Alluxio!
 In your local clone directory, you can build Alluxio with:
 
 ```bash
-$ mvn clean install
+mvn clean install
 ```
 
 This will build all of Alluxio, as well as run all the tests. This may take several minutes to
@@ -124,7 +124,7 @@ If at any point in time you would like to only recompile and not run all the che
 can run:
 
 ```bash
-$ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
+mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
 ```
 
 This should take less than 1 minute.
@@ -166,14 +166,14 @@ First, make sure you are on the `master` branch in your clone. You switch to you
 with:
 
 ```bash
-$ git checkout master
+git checkout master
 ```
 
 Then, you should make sure your `master` branch is in sync with the latest changes from the evolving
 Alluxio code base. You pull in all the new changes in the project with the following command:
 
 ```bash
-$ git pull upstream master
+git pull upstream master
 ```
 
 This will pull in all the changes from the Alluxio open source project, into your local `master`
@@ -183,7 +183,7 @@ Now, you can create a new branch in order to work on the **New Contributor** tas
 To create a branch name **awesome_feature**, run:
 
 ```bash
-$ git checkout -b awesome_feature
+git checkout -b awesome_feature
 ```
 
 This will create the branch, and switch to it. Now, you can modify the necessary code to address the
@@ -195,14 +195,14 @@ As you are addressing the ticket, you can create local commits of your code. Thi
 when you have finished a well-defined portion of the change. You can stage a file for commit with:
 
 ```bash
-$ git add <file to stage>
+git add <file to stage>
 ```
 
 Once all the appropriate files are staged, you can create a local commit of those modifications
 with:
 
 ```bash
-$ git commit -m "<concise but descriptive commit message>"
+git commit -m "<concise but descriptive commit message>"
 ```
 
 If you want more details, please visit [instructions on how to create commits](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository).
@@ -217,7 +217,7 @@ After you have created all necessary local commits, you can push all your commit
 in GitHub. For your **awesome_feature** branch, you can push to GitHub with:
 
 ```bash
-$ git push origin awesome_feature
+git push origin awesome_feature
 ```
 
 This will push all of your new commits in your local branch **awesome_feature**, to the
@@ -255,9 +255,9 @@ have to make the change in the branch you were using for that pull request, crea
 commit, push to your remote branch, and the pull request will be automatically updated. In detail:
 
 ```bash
-$ git add <modified files>
-$ git commit -m "<another commit message>"
-$ git push origin awesome_feature
+git add <modified files>
+git commit -m "<another commit message>"
+git push origin awesome_feature
 ```
 
 After all the comments and questions have been addressed in the pull request, reviewers will give
