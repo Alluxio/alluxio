@@ -13,7 +13,10 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.CommandUtils;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BackupResponse;
 
 import org.apache.commons.cli.CommandLine;
@@ -58,7 +61,8 @@ public class BackupCommand extends AbstractFsAdminCommand {
     String[] args = cl.getArgs();
     String dir;
     if (args.length < 1) {
-      dir = null;
+      InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      dir = conf.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
     } else {
       dir = args[0];
     }
