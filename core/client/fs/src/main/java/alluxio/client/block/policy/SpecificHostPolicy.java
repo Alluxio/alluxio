@@ -12,8 +12,9 @@
 package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -31,10 +32,12 @@ public final class SpecificHostPolicy implements BlockLocationPolicy {
   private final String mHostname;
 
   /**
-   * @param options {@link CreateOptions} for BlockLocationPolicy
+   * Constructs a new {@link SpecificHostPolicy}.
+   *
+   * @param conf Alluxio configuration
    */
-  public SpecificHostPolicy(CreateOptions options) {
-    this(options.getSpecificWorker());
+  public SpecificHostPolicy(AlluxioConfiguration conf) {
+    this(conf.get(PropertyKey.WORKER_HOSTNAME));
   }
 
   /**

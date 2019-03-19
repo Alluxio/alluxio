@@ -12,8 +12,8 @@
 package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -42,9 +42,9 @@ public final class RoundRobinPolicy implements BlockLocationPolicy {
   /**
    * Constructs a new {@link RoundRobinPolicy}.
    *
-   * @param options {@link CreateOptions} for BlockLocationPolicy
+   * @param conf Alluxio configuration
    */
-  public RoundRobinPolicy(CreateOptions options) {}
+  public RoundRobinPolicy(AlluxioConfiguration conf) {}
 
   /**
    * The policy uses the first fetch of worker info list as the base, and visits each of them in a
@@ -58,7 +58,7 @@ public final class RoundRobinPolicy implements BlockLocationPolicy {
   @Override
   @Nullable
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
-    WorkerNetAddress address = mBlockLocationCache.get(options.getBlockId());
+    WorkerNetAddress address = mBlockLocationCache.get(options.getBlockInfo().getBlockId());
     if (address != null) {
       return address;
     }
@@ -75,12 +75,13 @@ public final class RoundRobinPolicy implements BlockLocationPolicy {
       WorkerNetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
       BlockWorkerInfo workerInfo = findBlockWorkerInfo(options.getBlockWorkerInfos(), candidate);
       mIndex = (mIndex + 1) % mWorkerInfoList.size();
-      if (workerInfo != null && workerInfo.getCapacityBytes() >= options.getBlockSize()) {
+      if (workerInfo != null
+          && workerInfo.getCapacityBytes() >= options.getBlockInfo().getLength()) {
         address = candidate;
         break;
       }
     }
-    mBlockLocationCache.put(options.getBlockId(), address);
+    mBlockLocationCache.put(options.getBlockInfo().getBlockId(), address);
     return address;
   }
 

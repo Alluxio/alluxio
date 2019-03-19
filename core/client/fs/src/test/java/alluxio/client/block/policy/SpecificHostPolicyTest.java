@@ -13,8 +13,8 @@ package alluxio.client.block.policy;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.SpecificHostPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
@@ -41,7 +41,7 @@ public final class SpecificHostPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     GetWorkerOptions options = GetWorkerOptions.defaults()
-        .setBlockWorkerInfos(workerInfoList).setBlockSize(Constants.MB);
+        .setBlockWorkerInfos(workerInfoList).setBlockInfo(new BlockInfo().setLength(Constants.MB));
     Assert.assertEquals("worker2",
         policy.getWorker(options).getHost());
   }
@@ -54,12 +54,12 @@ public final class SpecificHostPolicyTest {
   public void noMatchingHost() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker3");
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1F")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
-    GetWorkerOptions options = GetWorkerOptions.defaults()
-        .setBlockWorkerInfos(workerInfoList).setBlockSize(2 * (long) Constants.GB);
+    GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
+        .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
     Assert.assertNull(policy.getWorker(options));
   }
 }

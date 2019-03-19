@@ -62,9 +62,7 @@ message CompleteFilePRequest {
 message OpenFilePOptions {
   optional ReadPType readType = 1;
   optional int32 maxUfsReadConcurrency = 2;
-  optional string blockReadLocationPolicy = 3;
-  optional int32 hashingNumberOfShards = 4;
-  optional FileSystemMasterCommonPOptions commonOptions = 5;
+  optional FileSystemMasterCommonPOptions commonOptions = 4;
 }
 
 message CreateDirectoryPResponse {}

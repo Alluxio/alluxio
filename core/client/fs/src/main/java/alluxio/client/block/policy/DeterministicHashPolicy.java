@@ -12,8 +12,9 @@
 package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -57,10 +58,11 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   /**
    * Constructs a new {@link DeterministicHashPolicy}.
    *
-   * @param options {@link CreateOptions} for BlockLocationPolicy
+   * @param conf Alluxio configuration
    */
-  public DeterministicHashPolicy(CreateOptions options) {
-    int numShards = options.getDeterministicHashPolicyNumShards();
+  public DeterministicHashPolicy(AlluxioConfiguration conf) {
+    int numShards =
+        conf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS);
     Preconditions.checkArgument(numShards >= 1);
     mShards = numShards;
   }
@@ -83,12 +85,13 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
     List<WorkerNetAddress> workers = new ArrayList<>();
     // Try the next one if the worker mapped from the blockId doesn't work until all the workers
     // are examined.
-    int hv = Math.abs(mHashFunc.newHasher().putLong(options.getBlockId()).hash().asInt());
+    int hv = Math.abs(mHashFunc.newHasher().putLong(options.getBlockInfo().getBlockId()).hash().asInt());
     int index = hv % workerInfos.size();
     for (BlockWorkerInfo blockWorkerInfoUnused : workerInfos) {
       WorkerNetAddress candidate = workerInfos.get(index).getNetAddress();
       BlockWorkerInfo workerInfo = blockWorkerInfoMap.get(candidate);
-      if (workerInfo != null && workerInfo.getCapacityBytes() >= options.getBlockSize()) {
+      if (workerInfo != null
+          && workerInfo.getCapacityBytes() >= options.getBlockInfo().getLength()) {
         workers.add(candidate);
         if (workers.size() >= mShards) {
           break;

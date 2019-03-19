@@ -14,9 +14,10 @@ package alluxio.client.block.policy;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.test.util.CommonUtils;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
@@ -45,7 +46,7 @@ public final class MostAvailableFirstPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
     MostAvailableFirstPolicy policy = new MostAvailableFirstPolicy(null);
     GetWorkerOptions options = GetWorkerOptions.defaults()
-        .setBlockWorkerInfos(workerInfoList).setBlockSize(Constants.MB);
+        .setBlockWorkerInfos(workerInfoList).setBlockInfo(new BlockInfo().setLength(Constants.MB));
     Assert.assertEquals("worker3",
         policy.getWorker(options).getHost());
   }
@@ -53,7 +54,7 @@ public final class MostAvailableFirstPolicyTest {
   @Test
   public void equalsTest() throws Exception {
     CommonUtils.testEquals(MostAvailableFirstPolicy.class,
-        new Class[]{CreateOptions.class},
-        new Object[]{CreateOptions.defaults(ConfigurationTestUtils.defaults())});
+        new Class[]{AlluxioConfiguration.class},
+        new Object[]{ConfigurationTestUtils.defaults()});
   }
 }

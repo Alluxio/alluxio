@@ -20,7 +20,6 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
@@ -29,6 +28,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
@@ -113,7 +113,7 @@ public final class AlluxioBlockStoreTest {
     /**
      * Cosntructs this mock location policy with empty host list.
      */
-    public MockBlockLocationPolicy(CreateOptions options) {
+    public MockBlockLocationPolicy(AlluxioConfiguration conf) {
       mIndex = 0;
       mWorkerNetAddresses =  Collections.emptyList();
     }
@@ -285,8 +285,9 @@ public final class AlluxioBlockStoreTest {
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L))
             .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
-    OpenFilePOptions readOptions = OpenFilePOptions.newBuilder()
-        .setBlockReadLocationPolicy(MockBlockLocationPolicy.class.getTypeName()).build();
+    sConf.set(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY,
+        MockBlockLocationPolicy.class.getTypeName());
+    OpenFilePOptions readOptions = OpenFilePOptions.newBuilder().build();
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, sConf);
     ((MockBlockLocationPolicy) options.getUfsReadLocationPolicy())
         .setHosts(Arrays.asList(worker1, worker2));

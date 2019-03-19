@@ -223,8 +223,12 @@ public final class AlluxioBlockStore {
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
       blockWorkerInfo = blockWorkerInfo.stream()
           .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
-      GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults().setBlockId(info.getBlockId())
-          .setBlockSize(info.getLength()).setBlockWorkerInfos(blockWorkerInfo);
+      GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
+          .setBlockInfo(new BlockInfo()
+              .setBlockId(info.getBlockId())
+              .setLength(info.getLength())
+              .setLocations(locations))
+          .setBlockWorkerInfos(blockWorkerInfo);
       dataSource = policy.getWorker(getWorkerOptions);
     }
     if (dataSource == null) {
@@ -304,8 +308,7 @@ public final class AlluxioBlockStore {
     Set<BlockWorkerInfo> blockWorkers;
     blockWorkers = com.google.common.collect.Sets.newHashSet(getEligibleWorkers());
     GetWorkerOptions workerOptions = GetWorkerOptions.defaults()
-        .setBlockId(blockId)
-        .setBlockSize(blockSize)
+        .setBlockInfo(new BlockInfo().setBlockId(blockId).setLength(blockSize))
         .setBlockWorkerInfos(new ArrayList<>(blockWorkers));
 
     // The number of initial copies depends on the write type: if ASYNC_THROUGH, it is the property

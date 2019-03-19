@@ -12,7 +12,6 @@
 package alluxio.client.file.options;
 
 import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -24,7 +23,6 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
-import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
@@ -96,10 +94,8 @@ public final class OutStreamOptions {
     }
     if (options.hasBlockWriteLocationPolicy()) {
       try {
-        mLocationPolicy = (BlockLocationPolicy) CommonUtils.createNewClassInstance(
-            Class.forName(options.getBlockWriteLocationPolicy()),
-            new Class[] {CreateOptions.class},
-            new Object[] {CreateOptions.defaults(alluxioConf)});
+        mLocationPolicy = BlockLocationPolicy.Factory.create(
+            alluxioConf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), alluxioConf);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -110,12 +106,9 @@ public final class OutStreamOptions {
     mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
-
-    CreateOptions policyOptions = CreateOptions.defaults(alluxioConf);
-    mLocationPolicy =
-        CommonUtils.createNewClassInstance(alluxioConf.<BlockLocationPolicy>getClass(
-            PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), new Class[] {CreateOptions.class},
-            new Object[] {policyOptions});
+    mLocationPolicy = BlockLocationPolicy.Factory.create(
+        alluxioConf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
+        alluxioConf);
     mWriteTier = alluxioConf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = alluxioConf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mOwner = SecurityUtils.getOwnerFromLoginModule(alluxioConf);

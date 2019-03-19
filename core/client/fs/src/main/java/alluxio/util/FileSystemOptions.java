@@ -194,9 +194,6 @@ public class FileSystemOptions {
   public static OpenFilePOptions openFileDefaults(AlluxioConfiguration conf) {
     return OpenFilePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
-        .setBlockReadLocationPolicy(conf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
-        .setHashingNumberOfShards(conf
-            .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS))
         .setMaxUfsReadConcurrency(conf.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX))
         .setReadType(conf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
             .toProto())

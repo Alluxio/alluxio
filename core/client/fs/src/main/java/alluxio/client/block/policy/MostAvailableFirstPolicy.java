@@ -12,8 +12,8 @@
 package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -30,9 +30,9 @@ public final class MostAvailableFirstPolicy implements BlockLocationPolicy {
   /**
    * Constructs a new {@link MostAvailableFirstPolicy}.
    *
-   * @param options {@link CreateOptions} for BlockLocationPolicy
+   * @param conf Alluxio configuration
    */
-  public MostAvailableFirstPolicy(CreateOptions options) {}
+  public MostAvailableFirstPolicy(AlluxioConfiguration conf) {}
 
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {

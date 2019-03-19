@@ -30,6 +30,7 @@ import alluxio.metrics.WorkerMetrics;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptions;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
@@ -104,7 +105,9 @@ public class FileOutStream extends AbstractOutStream {
     } else { // Write is through to the under storage, create mUnderStorageOutputStream.
       GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
           .setBlockWorkerInfos(mBlockStore.getEligibleWorkers())
-          .setBlockSize(0); // not storing data to Alluxio, so block size is 0
+          .setBlockInfo(new BlockInfo()
+              .setBlockId(-1)
+              .setLength(0)); // not storing data to Alluxio, so block size is 0
       WorkerNetAddress workerNetAddress =
           options.getLocationPolicy().getWorker(getWorkerOptions);
       if (workerNetAddress == null) {

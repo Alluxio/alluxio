@@ -26,38 +26,15 @@ public interface OpenFilePOptionsOrBuilder extends
   int getMaxUfsReadConcurrency();
 
   /**
-   * <code>optional string blockReadLocationPolicy = 3;</code>
-   */
-  boolean hasBlockReadLocationPolicy();
-  /**
-   * <code>optional string blockReadLocationPolicy = 3;</code>
-   */
-  java.lang.String getBlockReadLocationPolicy();
-  /**
-   * <code>optional string blockReadLocationPolicy = 3;</code>
-   */
-  com.google.protobuf.ByteString
-      getBlockReadLocationPolicyBytes();
-
-  /**
-   * <code>optional int32 hashingNumberOfShards = 4;</code>
-   */
-  boolean hasHashingNumberOfShards();
-  /**
-   * <code>optional int32 hashingNumberOfShards = 4;</code>
-   */
-  int getHashingNumberOfShards();
-
-  /**
-   * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+   * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 4;</code>
    */
   boolean hasCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+   * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 4;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
-   * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+   * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 4;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
 }

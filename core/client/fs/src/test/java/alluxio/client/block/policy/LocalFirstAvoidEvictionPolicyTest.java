@@ -16,11 +16,12 @@ import static org.junit.Assert.assertEquals;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerNetAddress;
@@ -48,11 +49,11 @@ public class LocalFirstAvoidEvictionPolicyTest {
     BlockLocationPolicy policy;
     WorkerNetAddress chosen;
     // local rack with enough availability
-    policy = new LocalFirstAvoidEvictionPolicy(CreateOptions.defaults(mConf)
-        .setTieredIdentity(TieredIdentityFactory
-            .fromString("node=node2,rack=rack3", mConf)));
+    policy = new LocalFirstAvoidEvictionPolicy(
+        mConf.getBytes(PropertyKey.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES),
+        TieredIdentityFactory.fromString("node=node2,rack=rack3", mConf), mConf);
     GetWorkerOptions options = GetWorkerOptions.defaults()
-        .setBlockWorkerInfos(workers).setBlockSize(Constants.GB);
+        .setBlockWorkerInfos(workers).setBlockInfo(new BlockInfo().setLength(Constants.GB));
     chosen = policy.getWorker(options);
     assertEquals("node4", chosen.getTieredIdentity().getTier(0).getValue());
   }
@@ -63,12 +64,12 @@ public class LocalFirstAvoidEvictionPolicyTest {
   @Test
   public void getOthersWhenNotEnoughAvailabilityOnLocal() {
     String localhostName = NetworkAddressUtils.getLocalHostName(1000);
-    BlockLocationPolicy policy = new LocalFirstAvoidEvictionPolicy(CreateOptions.defaults(mConf));
+    BlockLocationPolicy policy = new LocalFirstAvoidEvictionPolicy(mConf);
     List<BlockWorkerInfo> workers = new ArrayList<>();
     workers.add(worker(Constants.GB, 0, "worker1", ""));
     workers.add(worker(Constants.MB, Constants.MB, localhostName, ""));
     GetWorkerOptions options = GetWorkerOptions.defaults()
-        .setBlockWorkerInfos(workers).setBlockSize(Constants.MB);
+        .setBlockWorkerInfos(workers).setBlockInfo(new BlockInfo().setLength(Constants.MB));
     assertEquals("worker1", policy.getWorker(options).getHost());
   }
 
@@ -78,12 +79,12 @@ public class LocalFirstAvoidEvictionPolicyTest {
   @Test
   public void getLocalWhenNoneHasAvailability() {
     String localhostName = NetworkAddressUtils.getLocalHostName(1000);
-    BlockLocationPolicy policy = new LocalFirstAvoidEvictionPolicy(CreateOptions.defaults(mConf));
+    BlockLocationPolicy policy = new LocalFirstAvoidEvictionPolicy(mConf);
     List<BlockWorkerInfo> workers = new ArrayList<>();
     workers.add(worker(Constants.GB, Constants.MB, "worker1", ""));
     workers.add(worker(Constants.GB, Constants.MB, localhostName, ""));
     GetWorkerOptions options = GetWorkerOptions.defaults()
-        .setBlockWorkerInfos(workers).setBlockSize(Constants.GB);
+        .setBlockWorkerInfos(workers).setBlockInfo(new BlockInfo().setLength(Constants.GB));
     assertEquals(localhostName,
         policy.getWorker(options).getHost());
   }
@@ -92,8 +93,8 @@ public class LocalFirstAvoidEvictionPolicyTest {
   public void equalsTest() throws Exception {
     new EqualsTester()
         .addEqualityGroup(
-            new LocalFirstAvoidEvictionPolicy(CreateOptions.defaults(mConf)),
-            new LocalFirstAvoidEvictionPolicy(CreateOptions.defaults(mConf)))
+            new LocalFirstAvoidEvictionPolicy(mConf),
+            new LocalFirstAvoidEvictionPolicy(mConf))
         .testEquals();
   }
 

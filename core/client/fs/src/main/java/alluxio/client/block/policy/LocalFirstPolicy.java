@@ -12,13 +12,14 @@
 package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.network.TieredIdentityFactory;
 import alluxio.util.TieredIdentityUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
 import java.util.Collections;
@@ -39,25 +40,23 @@ public final class LocalFirstPolicy implements BlockLocationPolicy {
   private final AlluxioConfiguration mConf;
 
   /**
-   * Constructs a {@link LocalFirstPolicy}.
+   * Constructs a new {@link LocalFirstPolicy}.
    *
-   * @param options {@link CreateOptions} for BlockLocationPolicy
-   */
-  public LocalFirstPolicy(CreateOptions options) {
-    this(options.getTieredIdentity(), options.getConfiguration());
-  }
-
-  /**
-   * @param localTieredIdentity the local tiered identity
    * @param conf Alluxio configuration
    */
-  private LocalFirstPolicy(TieredIdentity localTieredIdentity, AlluxioConfiguration conf) {
-    mTieredIdentity = localTieredIdentity;
+  public LocalFirstPolicy(AlluxioConfiguration conf) {
+    mTieredIdentity = TieredIdentityFactory.localIdentity(conf);
     mConf = conf;
   }
 
-  static LocalFirstPolicy create(TieredIdentity localTieredIdentity, AlluxioConfiguration conf) {
-    return new LocalFirstPolicy(localTieredIdentity, conf);
+  static LocalFirstPolicy create(AlluxioConfiguration conf) {
+    return new LocalFirstPolicy(conf);
+  }
+
+  @VisibleForTesting
+  LocalFirstPolicy(TieredIdentity identity, AlluxioConfiguration conf) {
+    mTieredIdentity = identity;
+    mConf = conf;
   }
 
   @Override
@@ -66,7 +65,7 @@ public final class LocalFirstPolicy implements BlockLocationPolicy {
     Collections.shuffle(shuffledWorkers);
     // Workers must have enough capacity to hold the block.
     List<BlockWorkerInfo> candidateWorkers = shuffledWorkers.stream()
-        .filter(worker -> worker.getCapacityBytes() >= options.getBlockSize())
+        .filter(worker -> worker.getCapacityBytes() >= options.getBlockInfo().getLength())
         .collect(Collectors.toList());
 
     // Try finding a worker based on nearest tiered identity.

@@ -12,12 +12,12 @@
 package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
@@ -39,18 +39,25 @@ public final class LocalFirstAvoidEvictionPolicy implements BlockLocationPolicy 
   private final long mBlockCapacityReserved;
 
   /**
-   * Constructs a {@link LocalFirstAvoidEvictionPolicy}.
+   * Constructs a new {@link LocalFirstAvoidEvictionPolicy}.
    *
-   * @param options {@link CreateOptions} for BlockLocationPolicy
+   * @param conf Alluxio configuration
    */
-  public LocalFirstAvoidEvictionPolicy(CreateOptions options) {
-    this(options.getTieredIdentity(), options.getBlockReservedCapacity(),
-        options.getConfiguration());
+  public LocalFirstAvoidEvictionPolicy(AlluxioConfiguration conf) {
+    this(conf.getBytes(alluxio.conf.PropertyKey.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES),
+        conf);
   }
 
-  LocalFirstAvoidEvictionPolicy(TieredIdentity localTieredIdentity, long blockCapacityReserved,
+  LocalFirstAvoidEvictionPolicy(long blockCapacityReserved,
       AlluxioConfiguration conf) {
-    mPolicy = LocalFirstPolicy.create(localTieredIdentity, conf);
+    mPolicy = LocalFirstPolicy.create(conf);
+    mBlockCapacityReserved = blockCapacityReserved;
+  }
+
+  @VisibleForTesting
+  LocalFirstAvoidEvictionPolicy(long blockCapacityReserved, TieredIdentity identity,
+      AlluxioConfiguration conf) {
+    mPolicy = new LocalFirstPolicy(identity, conf);
     mBlockCapacityReserved = blockCapacityReserved;
   }
 
@@ -59,14 +66,13 @@ public final class LocalFirstAvoidEvictionPolicy implements BlockLocationPolicy 
     List<BlockWorkerInfo> allWorkers = Lists.newArrayList(options.getBlockWorkerInfos());
     // Prefer workers with enough availability.
     List<BlockWorkerInfo> workers = allWorkers.stream()
-        .filter(worker -> getAvailableBytes(worker) >= options.getBlockSize())
+        .filter(worker -> getAvailableBytes(worker) >= options.getBlockInfo().getLength())
         .collect(Collectors.toList());
     if (workers.isEmpty()) {
       workers = allWorkers;
     }
     GetWorkerOptions filteredWorkers = GetWorkerOptions.defaults()
-        .setBlockId(options.getBlockId())
-        .setBlockSize(options.getBlockSize())
+        .setBlockInfo(options.getBlockInfo())
         .setBlockWorkerInfos(workers);
     return mPolicy.getWorker(filteredWorkers);
   }
