@@ -64,3 +64,6 @@ categoryInfo:
     en: Resources
     cn: 开发者资源
     pt: Recursos
+# For no baseurl, leave blank
+# Anything other than blank: this should always START with a '/' and NEVER end with a '/' character
+baseurl:
