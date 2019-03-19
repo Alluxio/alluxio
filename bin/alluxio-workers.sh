@@ -54,9 +54,7 @@ done
 # print detailed task results one by one
 all_ok=1
 for ((i = 0; i < ${#ret_codes[@]}; i++)); do
-    if [[ ${ret_codes[$i]} -eq 0 ]]; then
-        echo "Task on '${HOSTLIST[$i]}' runs OK!"
-    else
+    if [[ ${ret_codes[$i]} -ne 0 ]]; then
         all_ok=0
         echo "Task on '${HOSTLIST[$i]}' fails, exit code: ${ret_codes[$i]}"
     fi
