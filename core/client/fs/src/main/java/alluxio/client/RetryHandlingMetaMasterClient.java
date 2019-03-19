@@ -15,7 +15,6 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BackupPOptions;
-import alluxio.grpc.BackupPOptions.Builder;
 import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMetricsPOptions;
@@ -72,13 +71,8 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public BackupResponse backup(String targetDirectory, boolean localFileSystem) throws IOException {
-    Builder optsBuilder = BackupPOptions.newBuilder().setLocalFileSystem(localFileSystem);
-    if (targetDirectory != null) {
-      optsBuilder = optsBuilder.setTargetDirectory(targetDirectory);
-    }
-    BackupPOptions opts = optsBuilder.build();
-    return retryRPC(() -> BackupResponse.fromProto(mClient.backup(opts)));
+  public BackupResponse backup(BackupPOptions options) throws IOException {
+    return retryRPC(() -> BackupResponse.fromProto(mClient.backup(options)));
   }
 
   @Override
