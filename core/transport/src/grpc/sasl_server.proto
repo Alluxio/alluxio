@@ -11,11 +11,17 @@ enum SaslMessageType {
   SUCCESS = 1;
 }
 
+enum ChannelAuthenticationScheme {
+  NOSASL = 0;
+  SIMPLE = 1;
+  CUSTOM = 2;
+}
+
 message SaslMessage {
   optional SaslMessageType messageType = 1;
   optional bytes message = 2;
   optional string clientId = 3;
-  optional string authenticationName = 4;
+  optional ChannelAuthenticationScheme authenticationScheme = 4;
 }
 
 service SaslAuthenticationService {
