@@ -76,7 +76,6 @@ public class FileSystemOptions {
     return CreateFilePOptions.newBuilder()
         .setBlockSizeBytes(conf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
         .setCommonOptions(commonDefaults(conf))
-        .setBlockWriteLocationPolicy(conf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY))
         .setMode(ModeUtils.applyFileUMask(Mode.defaults(),
             conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
         .setRecursive(false)

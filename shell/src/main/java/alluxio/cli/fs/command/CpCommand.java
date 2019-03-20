@@ -20,14 +20,12 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
@@ -566,11 +564,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
 
     FileOutStream os = null;
     try (Closer closer = Closer.create()) {
-      CreateFilePOptions createOptions = CreateFilePOptions.newBuilder()
-          .setBlockWriteLocationPolicy(mFsContext.getConf().get(
-                  PropertyKey.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY))
-          .build();
-      os = closer.register(mFileSystem.createFile(dstPath, createOptions));
+      os = closer.register(mFileSystem.createFile(dstPath));
       FileInputStream in = closer.register(new FileInputStream(src));
       FileChannel channel = closer.register(in.getChannel());
       ByteBuffer buf = ByteBuffer.allocate(mCopyFromLocalBufferSize);

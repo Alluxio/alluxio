@@ -92,13 +92,11 @@ public final class OutStreamOptions {
     if (options.hasWriteType()) {
       mWriteType = WriteType.fromProto(options.getWriteType());
     }
-    if (options.hasBlockWriteLocationPolicy()) {
-      try {
-        mLocationPolicy = BlockLocationPolicy.Factory.create(
-            alluxioConf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), alluxioConf);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
+    try {
+      mLocationPolicy = BlockLocationPolicy.Factory.create(
+          alluxioConf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), alluxioConf);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
