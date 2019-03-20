@@ -16,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.ChannelAuthenticator;
+
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.netty.channel.EventLoopGroup;
@@ -33,6 +34,9 @@ public final class GrpcChannelBuilder {
   /** Key for acquiring the underlying managed channel. */
   protected GrpcManagedChannelPool.ChannelKey mChannelKey;
 
+  /** Connection address. */
+  protected SocketAddress mServerAddress;
+
   /** Whether to use mParentSubject as authentication user. */
   protected boolean mUseSubject;
   /** Subject for authentication. */
@@ -49,10 +53,11 @@ public final class GrpcChannelBuilder {
   protected AlluxioConfiguration mConfiguration;
 
   private GrpcChannelBuilder(SocketAddress address, AlluxioConfiguration conf) {
+    mServerAddress = address;
     mConfiguration = conf;
     mChannelKey = GrpcManagedChannelPool.ChannelKey.create(conf);
     // Set default overrides for the channel.
-    mChannelKey.setAddress(address).usePlaintext();
+    mChannelKey.setAddress(address);
     mChannelKey.setMaxInboundMessageSize(
         (int) mConfiguration.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
     mUseSubject = true;
@@ -213,7 +218,7 @@ public final class GrpcChannelBuilder {
                   mConfiguration.getMs(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT));
         }
         // Get an authenticated wrapper channel over given managed channel.
-        clientChannel = channelAuthenticator.authenticate(underlyingChannel, mConfiguration);
+        clientChannel = channelAuthenticator.authenticate(mServerAddress, underlyingChannel);
       }
       // Create the channel after authentication with the target.
       return new GrpcChannel(mChannelKey, clientChannel,
