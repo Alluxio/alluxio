@@ -133,10 +133,10 @@ public class GrpcSecurityTest {
 
   private GrpcServer createServer(AuthType authType) {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, authType.name());
-    GrpcServerBuilder serverBuilder = GrpcServerBuilder
-        .forAddress(new InetSocketAddress(NetworkAddressUtils
-            .getLocalHostName((int) mConfiguration
-                .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 0), mConfiguration);
+    InetSocketAddress bindAddress = new InetSocketAddress(NetworkAddressUtils.getLocalHostName(
+        (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 0);
+    GrpcServerBuilder serverBuilder =
+        GrpcServerBuilder.forAddress("localhost", bindAddress, mConfiguration);
     return serverBuilder.build();
   }
 
