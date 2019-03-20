@@ -54,21 +54,17 @@ done
 
 # wait for all pids
 echo "Waiting for tasks to finish..."
-for pid in ${pids[@]}; do
-    wait ${pid}
-    ret_codes[${#ret_codes[@]}]=$?
-done
-
-# print detailed task results one by one
-all_ok=1
-for ((i = 0; i < ${#ret_codes[@]}; i++)); do
-    if [[ ${ret_codes[$i]} -ne 0 ]]; then
-        all_ok=0
-        echo "Task on '${HOSTLIST[$i]}' fails, exit code: ${ret_codes[$i]}"
+has_error=0
+for ((i=0; i< ${#pids[@]}; i++)); do
+    wait ${pids[$i]}
+    ret_code=$?
+    if [[ ${ret_code} -ne 0 ]]; then
+      has_error=1
+      echo "Task on '${HOSTLIST[$i]}' fails, exit code: ${ret_code}"
     fi
 done
 
 # only show the log when all tasks run OK!
-if [[ ${all_ok} -eq 1 ]]; then
+if [[ ${has_error} -eq 0 ]]; then
     echo "All tasks finished"
 fi
