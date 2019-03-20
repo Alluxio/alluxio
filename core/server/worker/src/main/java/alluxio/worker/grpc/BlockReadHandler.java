@@ -29,6 +29,7 @@ import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.UnderFileSystemBlockReader;
@@ -169,7 +170,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
         Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
         if (mWorker.openUfsBlock(request.getSessionId(), request.getId(),
-            Protocol.OpenUfsBlockOptions.parseFrom(openUfsBlockOptions.toByteString()))) {
+                Protocol.OpenUfsBlockOptions.parseFrom(openUfsBlockOptions.toByteString()))) {
           try {
             BlockReader reader =
                 mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart());
@@ -201,16 +202,19 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
 
   /**
    * Creates an instance of {@link AbstractReadHandler}.
-   *  @param executorService the executor service to run {@link DataReader}s
+   *
+   * @param executorService the executor service to run {@link DataReader}s
    * @param blockWorker the block worker
    * @param responseObserver the response observer of the gRPC stream
+   * @param userInfo the authenticated user info
    */
   public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
-      StreamObserver<ReadResponse> responseObserver) {
-    super(executorService, responseObserver);
+      StreamObserver<ReadResponse> responseObserver, AuthenticatedUserInfo userInfo) {
+    super(executorService, responseObserver, userInfo);
     mWorker = blockWorker;
   }
 
+  @Override
   protected BlockReadRequestContext createRequestContext(alluxio.grpc.ReadRequest request) {
     return new BlockReadRequestContext(request);
   }

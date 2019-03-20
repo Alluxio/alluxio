@@ -19,6 +19,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.util.LogUtils;
@@ -77,13 +78,18 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    */
   private volatile T mContext;
 
+  protected alluxio.security.authentication.AuthenticatedUserInfo mUserInfo;
+
   /**
    * Creates an instance of {@link AbstractWriteHandler}.
    *
    * @param responseObserver the response observer for the write request
+   * @param userInfo the authenticated user info
    */
-  AbstractWriteHandler(StreamObserver<WriteResponse> responseObserver) {
+  AbstractWriteHandler(StreamObserver<WriteResponse> responseObserver,
+      AuthenticatedUserInfo userInfo) {
     mResponseObserver = responseObserver;
+    mUserInfo = userInfo;
     mSerializingExecutor = new SerializingExecutor(GrpcExecutors.BLOCK_WRITER_EXECUTOR);
   }
 

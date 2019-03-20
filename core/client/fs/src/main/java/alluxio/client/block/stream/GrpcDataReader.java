@@ -78,9 +78,9 @@ public final class GrpcDataReader implements DataReader {
     mReaderBufferSizeMessages = alluxioConf
         .getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
     mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
-
-    mClient = mContext.acquireBlockWorkerClient(address);
     mMarshaller = new ReadResponseMarshaller();
+    mClient = mContext.acquireBlockWorkerClient(address);
+
     try {
       if (alluxioConf.getBoolean(PropertyKey.USER_NETWORK_ZEROCOPY_ENABLED)) {
         mStream = new GrpcDataMessageBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
