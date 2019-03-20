@@ -35,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RaftJournalWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalWriter.class);
-  private static final long FLUSH_TIMEOUT_S = 2;
+  private static final long FLUSH_TIMEOUT_S = 30;
 
   private final AtomicLong mNextSequenceNumberToWrite;
   private final AtomicLong mLastSubmittedSequenceNumber;
