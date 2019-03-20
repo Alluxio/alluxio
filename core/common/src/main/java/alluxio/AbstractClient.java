@@ -17,6 +17,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannelBuilder;
@@ -194,7 +195,9 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
+    AlluxioStatusException connectFailReason = null;
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
+
     while (retryPolicy.attempt()) {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
@@ -227,6 +230,9 @@ public abstract class AbstractClient implements Client {
       } catch (IOException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
+        if (e instanceof UnauthenticatedException) {
+          connectFailReason = (AlluxioStatusException) e;
+        }
       }
     }
     // Reaching here indicates that we did not successfully connect.
@@ -240,6 +246,11 @@ public abstract class AbstractClient implements Client {
           String.format("Failed to determine address for %s after %s attempts", getServiceName(),
               retryPolicy.getAttemptCount()));
     }
+
+    if (connectFailReason != null) {
+      throw connectFailReason;
+    }
+
     throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
         getServiceName(), mAddress, retryPolicy.getAttemptCount()));
   }
