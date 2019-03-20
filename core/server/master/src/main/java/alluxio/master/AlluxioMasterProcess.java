@@ -116,13 +116,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
   }
 
-  /**
-   * Gets the registered class from the master registry.
-   *
-   * @param clazz the class of the master to get
-   * @param <T> the type of the master to get
-   * @return the given master
-   */
+  @Override
   public <T extends Master> T getMaster(Class<T> clazz) {
     return mRegistry.get(clazz);
   }
@@ -278,8 +272,8 @@ public class AlluxioMasterProcess extends MasterProcess {
     try {
       stopRejectingRpcServer();
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress,
-          ServerConfiguration.global());
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
+          mRpcConnectAddress.getHostName(), mRpcBindAddress, ServerConfiguration.global());
 
       mRPCExecutor = Executors.newFixedThreadPool(mMaxWorkerThreads,
           ThreadFactoryUtils.build("grpc-rpc-%d", true));
@@ -291,7 +285,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
-      LOG.info("Started gRPC server on address {}", mRpcBindAddress);
+      LOG.info("Started gRPC server on address {}", mRpcConnectAddress);
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();

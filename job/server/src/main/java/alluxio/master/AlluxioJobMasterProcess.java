@@ -79,6 +79,15 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     }
   }
 
+  @Override
+  public <T extends Master> T getMaster(Class<T> clazz) {
+    if (clazz == JobMaster.class) {
+      return (T) mJobMaster;
+    } else {
+      throw new RuntimeException(String.format("Could not found the master: %s", clazz));
+    }
+  }
+
   /**
    * @return the {@link JobMaster} for this process
    */
@@ -173,17 +182,15 @@ public class AlluxioJobMasterProcess extends MasterProcess {
    * {@link Master}s and meta services.
    */
   protected void startServingRPCServer() {
-    // TODO(ggezer) Executor threads not reused until thread capacity is hit.
-    //ExecutorService executorService = Executors.newFixedThreadPool(mMaxWorkerThreads);
     try {
       stopRejectingRpcServer();
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress,
-          ServerConfiguration.global());
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
+          mRpcConnectAddress.getHostName(), mRpcBindAddress, ServerConfiguration.global());
       registerServices(serverBuilder, mJobMaster.getServices());
 
       mGrpcServer = serverBuilder.build().start();
-      LOG.info("Started gRPC server on address {}", mRpcBindAddress);
+      LOG.info("Started gRPC server on address {}", mRpcConnectAddress);
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
