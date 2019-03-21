@@ -11,8 +11,11 @@
 
 package alluxio;
 
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.path.PathConfiguration;
+import alluxio.conf.path.PrefixPathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.util.ConfigurationUtils;
 
@@ -36,6 +39,7 @@ import javax.security.auth.Subject;
  */
 public class ClientContext {
   private volatile AlluxioConfiguration mConf;
+  private volatile PathConfiguration mPathConf;
   private final Subject mSubject;
 
   /**
@@ -72,6 +76,7 @@ public class ClientContext {
   protected ClientContext(ClientContext ctx) {
     mSubject = ctx.getSubject();
     mConf = ctx.getConf();
+    mPathConf = ctx.getPathConf();
   }
 
   private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
@@ -87,6 +92,7 @@ public class ClientContext {
     } else {
       mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
     }
+    mPathConf = new PrefixPathConfiguration();
   }
 
   /**
@@ -102,14 +108,24 @@ public class ClientContext {
    */
   protected synchronized void updateWithClusterDefaults(InetSocketAddress address)
       throws AlluxioStatusException {
-    mConf = ConfigurationUtils.loadClusterDefaults(address, mConf);
+    Pair<AlluxioConfiguration, PathConfiguration> conf =
+        ConfigurationUtils.loadClusterAndPathDefaults(address, mConf);
+    mConf = conf.getFirst();
+    mPathConf = conf.getSecond();
   }
 
   /**
-   * @return the {@link AlluxioConfiguration} backing this context
+   * @return the cluster level configuration backing this context
    */
   public AlluxioConfiguration getConf() {
     return mConf;
+  }
+
+  /**
+   * @return the path level configuration backing this context
+   */
+  public PathConfiguration getPathConf() {
+    return mPathConf;
   }
 
   /**

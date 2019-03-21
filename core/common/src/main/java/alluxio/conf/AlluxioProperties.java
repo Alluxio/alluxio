@@ -98,7 +98,7 @@ public class AlluxioProperties {
    * @param value value to put
    * @param source the source of this value for the key
    */
-  protected void put(PropertyKey key, String value, Source source) {
+  public void put(PropertyKey key, String value, Source source) {
     if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
       mUserProps.put(key, Optional.ofNullable(value));
       mSources.put(key, source);

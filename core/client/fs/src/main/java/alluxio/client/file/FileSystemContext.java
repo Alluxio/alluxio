@@ -20,9 +20,8 @@ import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PathConfiguration;
-import alluxio.conf.PathIndexer;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -304,21 +303,21 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * @return the {@link AlluxioConfiguration} backing this {@link FileSystemContext}
+   * @return the cluster level configuration backing this {@link FileSystemContext}
    */
   public AlluxioConfiguration getConf() {
     return mClientContext.getConf();
   }
 
   /**
-   * Returns a {@link PathConfiguration} which holds references to the configuration
-   * returned by {@link #getConf()} without copying properties.
+   * The path level configuration is a {@link SpecificPathConfiguration}.
    *
    * @param path the path to get the configuration for
-   * @return the path level configurations for the path
+   * @return the path level configuration for the specific path
    */
   public AlluxioConfiguration getConf(AlluxioURI path) {
-    return new PathConfiguration(mClientContext.getConf(), mPathIndexer.index(path.getPath()));
+    return new SpecificPathConfiguration(mClientContext.getConf(), mClientContext.getPathConf(),
+        path);
   }
 
   /**
