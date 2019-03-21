@@ -493,7 +493,7 @@ public final class ConfigurationUtils {
     }
   }
 
-  private static Properties loadProperties(List<ConfigProperty> properties) {
+  private static Properties toProperties(List<ConfigProperty> properties) {
     Properties props = new Properties();
     for (ConfigProperty property : properties) {
       String name = property.getName();
@@ -524,7 +524,7 @@ public final class ConfigurationUtils {
       AlluxioConfiguration conf) {
     List<alluxio.grpc.ConfigProperty> clusterConfig = response.getConfigsList();
     LOG.info("Alluxio client (version {}) is trying to load cluster level configurations");
-    Properties clusterProps = loadProperties(clusterConfig);
+    Properties clusterProps = toProperties(clusterConfig);
     // Check version.
     String clientVersion = conf.get(PropertyKey.VERSION);
     String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
@@ -554,7 +554,7 @@ public final class ConfigurationUtils {
   private static PathConfiguration loadPathConfiguration(GetConfigurationPResponse response) {
     Map<String, AlluxioConfiguration> pathConfs = new HashMap<>();
     response.getPathConfigsMap().forEach((path, conf) -> {
-      Properties props = loadProperties(conf.getPropertiesList());
+      Properties props = toProperties(conf.getPropertiesList());
       AlluxioProperties properties = new AlluxioProperties();
       properties.merge(props, Source.PATH_DEFAULT);
       pathConfs.put(path, new InstancedConfiguration(properties, true));

@@ -44,10 +44,10 @@ public final class MetaMasterConfigurationServiceHandler
   public void getConfiguration(GetConfigurationPOptions options,
       StreamObserver<GetConfigurationPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () ->
-      GetConfigurationPResponse.newBuilder()
-          .addAllConfigs(mMetaMaster.getConfiguration(options))
-          .putAllPathConfigs(mMetaMaster.getPathConfiguration(options))
-          .build(), "getConfiguration", "options=%s", responseObserver, options);
+        GetConfigurationPResponse.newBuilder()
+            .addAllConfigs(mMetaMaster.getConfiguration(options))
+            .putAllPathConfigs(mMetaMaster.getPathConfiguration(options))
+            .build(), "getConfiguration", "options=%s", responseObserver, options);
   }
 
   @Override
@@ -57,8 +57,8 @@ public final class MetaMasterConfigurationServiceHandler
     String key = request.getKey();
     String value = request.getValue();
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<SetPathConfigurationPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<SetPathConfigurationPResponse>) () ->
+    {
       mMetaMaster.setPathConfiguration(path, PropertyKey.fromString(key), value);
       return SetPathConfigurationPResponse.getDefaultInstance();
     }, "setPathConfiguration", "request=%s", responseObserver, request);
