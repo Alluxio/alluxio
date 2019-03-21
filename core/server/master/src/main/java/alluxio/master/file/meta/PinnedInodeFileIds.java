@@ -9,19 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.file.meta;
+
+import alluxio.master.journal.checkpoint.CheckpointName;
 
 /**
- * Names for associating checkpoint data with the classes they represent. To support
- * reading checkpoint written by older versions, these names should never change.
+ * Keeps track of which files are pinned.
  */
-public enum CheckpointName {
-  ACTIVE_SYNC_MANAGER,
-  BLOCK_MASTER,
-  FILE_SYSTEM_MASTER,
-  INODE_DIRECTORY_ID_GENERATOR,
-  INODE_TREE,
-  MASTER_UFS_MANAGER,
-  MOUNT_TABLE,
-  NOOP,
+public final class PinnedInodeFileIds extends CheckpointedIdHashSet {
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.PINNED_INODE_FILE_IDS;
+  }
 }

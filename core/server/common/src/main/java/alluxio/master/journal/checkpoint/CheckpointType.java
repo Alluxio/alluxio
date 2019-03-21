@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.master.journal.checkpoint;
 
 import alluxio.RuntimeConstants;
 
@@ -26,7 +26,24 @@ public enum CheckpointType {
    * This format uses kryo's chunked encoding to write multiple [checkpoint_name, checkpoint_bytes]
    * entries to the output stream.
    */
-  COMPOUND(1);
+  COMPOUND(1),
+  /**
+   * A series of longs written by {@link java.io.DataOutputStream}.
+   */
+  LONGS(2),
+  /**
+   * A RocksDB backup in .tar.gz format.
+   */
+  ROCKS(3),
+  /**
+   * This format sequentially writes delimited InodeMeta.Inode protocol buffers one after another
+   * using the protocol buffer writeDelimitedTo method.
+   */
+  INODE_PROTOS(4),
+  /**
+   * A checkpoint consisting of a single long value written by a data output stream.
+   */
+  LONG(5);
 
   private final long mId;
 

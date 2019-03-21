@@ -188,8 +188,6 @@ public final class Constants {
 
   // Journal
   public static final String JOB_JOURNAL_NAME = "JobJournal";
-  public static final long JOURNAL_ENTRY_CHECKPOINT_VERSION = 0L;
-  public static final long COMPOUND_CHECKPOINT_VERSION = 1L;
 
   // Replication
   public static final int REPLICATION_MAX_INFINITY = -1;

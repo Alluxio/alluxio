@@ -18,6 +18,7 @@ import alluxio.master.file.meta.MutableInode;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
 
@@ -94,5 +95,10 @@ public class DelegatingReadOnlyInodeStore implements ReadOnlyInodeStore {
   @VisibleForTesting
   public Set<MutableInode<?>> allInodes() {
     return mDelegate.allInodes();
+  }
+
+  @Override
+  public void close() throws IOException {
+    mDelegate.close();
   }
 }
