@@ -49,6 +49,12 @@
       <artifactId>slf4j-log4j12</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+    <!-- using older version to match dependency version from Hadoop -->
+    <groupId>com.google.guava</groupId>
+    <artifactId>guava</artifactId>
+    <version>14.0.1</version>
+  </dependency>
   </dependencies>
 
   <profiles>
@@ -203,36 +209,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-          <groupId>com.coderplus.maven.plugins</groupId>
-          <artifactId>copy-rename-maven-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>copy-and-rename-file</id>
-              <phase>install</phase>
-              <goals>
-                <goal>copy</goal>
-              </goals>
-              <configuration>
-                <sourceFile>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</sourceFile>
-                <destinationFile>${project.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <artifactId>maven-clean-plugin</artifactId>
-          <configuration>
-            <filesets>
-              <fileset>
-                <directory>${basedir}/../../lib</directory>
-                <includes>
-                  <include>**/${project.artifactId}-*.jar</include>
-                </includes>
-              </fileset>
-            </filesets>
-          </configuration>
-        </plugin>
     </plugins>
   </build>
 </project>
