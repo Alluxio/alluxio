@@ -112,6 +112,15 @@ message GetMetricsPResponse {
   map<string, MetricValue> metrics = 1;
 }
 
+message SetPathConfigurationPOptions {}
+message SetPathConfigurationPRequest {
+  required string path = 1;
+  required string key = 2;
+  required string value = 3;
+  optional SetPathConfigurationPOptions options = 4;
+}
+message SetPathConfigurationPResponse {}
+
 /**
   * This interface contains meta master service endpoints for Alluxio clients
   * to query cluster configuration.
@@ -121,6 +130,11 @@ service MetaMasterConfigurationService {
    * Returns a list of Alluxio runtime configuration information.
    */
   rpc GetConfiguration(GetConfigurationPOptions) returns (GetConfigurationPResponse);
+
+  /**
+   * Sets a property for a path pattern.
+   */
+  rpc SetPathConfiguration(SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
 }
 
 /**
