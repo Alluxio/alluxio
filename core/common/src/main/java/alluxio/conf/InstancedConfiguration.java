@@ -132,18 +132,12 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   @Override
   public boolean isSet(PropertyKey key) {
-    if (!mProperties.isSet(key)) {
-      return false;
-    }
-    return isResolvable(key);
+    return mProperties.isSet(key) && isResolvable(key);
   }
 
   @Override
   public boolean isSetByUser(PropertyKey key) {
-    if (!mProperties.isSetByUser(key)) {
-      return false;
-    }
-    return isResolvable(key);
+    return mProperties.isSetByUser(key) && isResolvable(key);
   }
 
   /**
