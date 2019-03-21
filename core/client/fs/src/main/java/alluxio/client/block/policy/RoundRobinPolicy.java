@@ -9,10 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.policy;
+package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.wire.WorkerNetAddress;
@@ -32,9 +31,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A policy that chooses the worker for the next block in a round-robin manner and skips workers
  * that do not have enough space. The policy returns null if no worker can be found.
  */
-// TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @NotThreadSafe
-public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
+public final class RoundRobinPolicy implements BlockLocationPolicy {
   private List<BlockWorkerInfo> mWorkerInfoList;
   private int mIndex;
   private boolean mInitialized = false;
@@ -44,9 +42,9 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
   /**
    * Constructs a new {@link RoundRobinPolicy}.
    *
-   * @param alluxioConf Alluxio configuration
+   * @param conf Alluxio configuration
    */
-  public RoundRobinPolicy(AlluxioConfiguration alluxioConf) {}
+  public RoundRobinPolicy(AlluxioConfiguration conf) {}
 
   /**
    * The policy uses the first fetch of worker info list as the base, and visits each of them in a
@@ -54,16 +52,19 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
    * in the subsequent calls has the same order from the first, and it will skip the workers that
    * are no longer active.
    *
-   * @param workerInfoList the info of the active workers
-   * @param blockSizeBytes the size of the block in bytes
+   * @param options options
    * @return the address of the worker to write to
    */
   @Override
   @Nullable
-  public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes) {
+  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+    WorkerNetAddress address = mBlockLocationCache.get(options.getBlockInfo().getBlockId());
+    if (address != null) {
+      return address;
+    }
+
     if (!mInitialized) {
-      mWorkerInfoList = Lists.newArrayList(workerInfoList);
+      mWorkerInfoList = Lists.newArrayList(options.getBlockWorkerInfos());
       Collections.shuffle(mWorkerInfoList);
       mIndex = 0;
       mInitialized = true;
@@ -72,24 +73,15 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy, BlockLoc
     // at most try all the workers
     for (int i = 0; i < mWorkerInfoList.size(); i++) {
       WorkerNetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
-      BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
+      BlockWorkerInfo workerInfo = findBlockWorkerInfo(options.getBlockWorkerInfos(), candidate);
       mIndex = (mIndex + 1) % mWorkerInfoList.size();
-      if (workerInfo != null && workerInfo.getCapacityBytes() >= blockSizeBytes) {
-        return candidate;
+      if (workerInfo != null
+          && workerInfo.getCapacityBytes() >= options.getBlockInfo().getLength()) {
+        address = candidate;
+        break;
       }
     }
-    return null;
-  }
-
-  @Override
-  @Nullable
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
-    WorkerNetAddress address = mBlockLocationCache.get(options.getBlockId());
-    if (address != null) {
-      return address;
-    }
-    address = getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
-    mBlockLocationCache.put(options.getBlockId(), address);
+    mBlockLocationCache.put(options.getBlockInfo().getBlockId(), address);
     return address;
   }
 

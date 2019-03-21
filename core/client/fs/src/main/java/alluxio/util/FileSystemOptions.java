@@ -76,7 +76,6 @@ public class FileSystemOptions {
     return CreateFilePOptions.newBuilder()
         .setBlockSizeBytes(conf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
         .setCommonOptions(commonDefaults(conf))
-        .setFileWriteLocationPolicy(conf.get(PropertyKey.USER_FILE_WRITE_LOCATION_POLICY))
         .setMode(ModeUtils.applyFileUMask(Mode.defaults(),
             conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
         .setRecursive(false)
@@ -194,9 +193,6 @@ public class FileSystemOptions {
   public static OpenFilePOptions openFileDefaults(AlluxioConfiguration conf) {
     return OpenFilePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
-        .setFileReadLocationPolicy(conf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
-        .setHashingNumberOfShards(conf
-            .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS))
         .setMaxUfsReadConcurrency(conf.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX))
         .setReadType(conf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class)
             .toProto())

@@ -85,25 +85,25 @@ Alluxio提供了位置策略来选择要存储文件块到哪一个worker。
 
 使用Alluxio的Java API，用户可以设置策略在`CreateFileOptions`中向Alluxio写入文件和在`OpenFileOptions`中读取文件。
 
-用户可以轻松地覆盖默认的策略类[配置文件](Configuration-Settings.html)中的属性`alluxio.user.file.write.location.policy.class`。内置的策略包括：
+用户可以轻松地覆盖默认的策略类[配置文件](Configuration-Settings.html)中的属性`alluxio.user.block.write.location.policy.class`。内置的策略包括：
 
-* **LocalFirstPolicy (alluxio.client.file.policy.LocalFirstPolicy)**
+* **LocalFirstPolicy (alluxio.client.block.policy.LocalFirstPolicy)**
 
     首先返回本地主机，如果本地worker没有足够的块容量，它从活动worker列表中随机选择一名worker。这是默认的策略。
 
-* **MostAvailableFirstPolicy (alluxio.client.file.policy.MostAvailableFirstPolicy)**
+* **MostAvailableFirstPolicy (alluxio.client.block.policy.MostAvailableFirstPolicy)**
 
     返回具有最多可用字节的worker。
 
-* **RoundRobinPolicy (alluxio.client.file.policy.RoundRobinPolicy)**
+* **RoundRobinPolicy (alluxio.client.block.policy.RoundRobinPolicy)**
 
     以循环方式选择下一个worker，跳过没有足够容量的worker。
 
-* **SpecificHostPolicy (alluxio.client.file.policy.SpecificHostPolicy)**
+* **SpecificHostPolicy (alluxio.client.block.policy.SpecificHostPolicy)**
 
     返回具有指定主机名的worker。此策略不能设置为默认策略。
 
-Alluxio支持自定义策略，所以你也可以通过实现接口`alluxio.client.file.policyFileWriteLocationPolicy`制定适合自己的策略。注意
+Alluxio支持自定义策略，所以你也可以通过实现接口`alluxio.client.block.policy.BlockLocationPolicy`制定适合自己的策略。注意
 默认策略必须有一个空的构造函数。并使用ASYNC_THROUGH写入类型，所有块的文件必须写入同一个worker。
 
 ### 写入层
