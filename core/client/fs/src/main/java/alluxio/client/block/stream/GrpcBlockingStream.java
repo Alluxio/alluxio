@@ -91,7 +91,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
    * @throws IOException if any error occurs
    */
   public void send(ReqT request, long timeoutMs) throws IOException {
-    if (mClosed || mCanceled) {
+    if (mClosed || mCanceled || mClosedFromRemote) {
       throw new CanceledException(formatErrorMessage(
           "Failed to send request %s: stream is already closed or canceled.", request));
     }
@@ -123,7 +123,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
    * @throws IOException if any error occurs
    */
   public void send(ReqT request) throws IOException {
-    if (mClosed || mCanceled) {
+    if (mClosed || mCanceled || mClosedFromRemote) {
       throw new CanceledException(formatErrorMessage(
           "Failed to send request %s: stream is already closed or canceled.", request));
     }
