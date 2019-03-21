@@ -39,63 +39,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class PrefixPathMatcher implements PathMatcher {
   /**
-   * A node in a trie.
-   */
-  private final class TrieNode {
-    private Map<String, TrieNode> mChildren = new HashMap<>();
-    private boolean mIsTerminal = false;
-
-    /**
-     * Inserts a path into the trie.
-     *
-     * Each path component forms a node in the trie,
-     * root path "/" will correspond to the root of the trie.
-     *
-     * @param path a path with components separated by "/"
-     * @return the last inserted trie node or the last traversed trie node if no node is inserted
-     */
-    public TrieNode insert(String path) {
-      TrieNode current = this;
-      for (String component : path.split("/")) {
-        if (!current.mChildren.containsKey(component)) {
-          current.mChildren.put(component, new TrieNode());
-        }
-        current = current.mChildren.get(component);
-      }
-      current.mIsTerminal = true;
-      return current;
-    }
-
-    /**
-     * Traverses the trie along the path components until the traversal cannot proceed any more.
-     *
-     * Returns a list of visited terminal node, a node is terminal if it is the last visited
-     * node of an inserted path.
-     *
-     * @param path the target path
-     * @return the terminal nodes sorted by the time they are visited
-     */
-    public List<TrieNode> search(String path) {
-      List<TrieNode> terminal = new ArrayList<>();
-      TrieNode current = this;
-      if (current.mIsTerminal) {
-        terminal.add(current);
-      }
-      for (String component : path.split("/")) {
-        if (current.mChildren.containsKey(component)) {
-          current = current.mChildren.get(component);
-          if (current.mIsTerminal) {
-            terminal.add(current);
-          }
-        } else {
-          break;
-        }
-      }
-      return terminal;
-    }
-  }
-
-  /**
    * Root of the trie for path patterns.
    */
   private final TrieNode mTrie = new TrieNode();

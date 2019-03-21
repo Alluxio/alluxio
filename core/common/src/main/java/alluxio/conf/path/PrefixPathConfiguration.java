@@ -36,11 +36,11 @@ public final class PrefixPathConfiguration implements PathConfiguration {
   /**
    * Map from path prefixes to corresponding configurations.
    */
-  private ConcurrentHashMap<String, AlluxioConfiguration> mConf = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, AlluxioConfiguration> mConf = new ConcurrentHashMap<>();
   /**
    * Matches path patterns.
    */
-  private PathMatcher mMatcher;
+  private final PathMatcher mMatcher;
 
   /**
    * Constructs an empty path level configuration.
