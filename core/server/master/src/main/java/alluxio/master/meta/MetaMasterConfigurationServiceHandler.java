@@ -12,9 +12,12 @@
 package alluxio.master.meta;
 
 import alluxio.RpcUtils;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
+import alluxio.grpc.SetPathConfigurationPRequest;
+import alluxio.grpc.SetPathConfigurationPResponse;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -40,9 +43,24 @@ public final class MetaMasterConfigurationServiceHandler
   @Override
   public void getConfiguration(GetConfigurationPOptions options,
       StreamObserver<GetConfigurationPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
-      return GetConfigurationPResponse.newBuilder()
-          .addAllConfigs(mMetaMaster.getConfiguration(options)).build();
-    }, "getConfiguration", "options=%s", responseObserver, options);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () ->
+      GetConfigurationPResponse.newBuilder()
+          .addAllConfigs(mMetaMaster.getConfiguration(options))
+          .putAllPathConfigs(mMetaMaster.getPathConfiguration(options))
+          .build(), "getConfiguration", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void setPathConfiguration(SetPathConfigurationPRequest request,
+      StreamObserver<SetPathConfigurationPResponse> responseObserver) {
+    String path = request.getPath();
+    String key = request.getKey();
+    String value = request.getValue();
+
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<SetPathConfigurationPResponse>) () -> {
+      mMetaMaster.setPathConfiguration(path, PropertyKey.fromString(key), value);
+      return SetPathConfigurationPResponse.getDefaultInstance();
+    }, "setPathConfiguration", "request=%s", responseObserver, request);
   }
 }

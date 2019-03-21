@@ -35,6 +35,7 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
+import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -427,6 +428,33 @@ public final class ConfigurationUtils {
     AlluxioProperties props = conf.copyProperties();
     props.merge(properties, source);
     return new InstancedConfiguration(props);
+  }
+
+  /**
+   * Sends a request to meta master to set a property for a path pattern.
+   *
+   * @param address the meta master address
+   * @param conf the cluster level configuration
+   * @param path the path pattern
+   * @param key the property key
+   * @param value the property value
+   */
+  public static void setPathConfiguration(InetSocketAddress address, AlluxioConfiguration conf,
+      String path, PropertyKey key, String value) throws AlluxioStatusException {
+    GrpcChannel channel = null;
+    try {
+      channel = GrpcChannelBuilder.newBuilder(address, conf).disableAuthentication().build();
+      MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
+          MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
+      client.setPathConfiguration(SetPathConfigurationPRequest.newBuilder()
+          .setPath(path).setKey(key.getName()).setValue(value).build());
+    } catch (io.grpc.StatusRuntimeException e) {
+      AlluxioStatusException ase = AlluxioStatusException.fromStatusRuntimeException(e);
+      LOG.warn("Failed to connect to meta master {} : {}", address, ase.getMessage());
+      throw new UnavailableException(String.format(
+          "Failed to connect to meta master %s to set property {} = {} for path pattern {}",
+          address, key.getName(), value, path), e);
+    }
   }
 
   /**

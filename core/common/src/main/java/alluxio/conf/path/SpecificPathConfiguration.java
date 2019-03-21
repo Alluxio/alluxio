@@ -84,6 +84,11 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
+  public boolean isSetByUser(PropertyKey key) {
+    return conf(key).isSetByUser(key);
+  }
+
+  @Override
   public Set<PropertyKey> keySet() {
     return mClusterConf.keySet();
   }
