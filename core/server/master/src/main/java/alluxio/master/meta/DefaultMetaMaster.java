@@ -341,10 +341,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
     Map<String, ConfigProperties> pathConfig = new HashMap<>();
     mPathProperties.getProperties().forEach((path, properties) -> {
       List<ConfigProperty> configPropertyList = new ArrayList<>();
-      properties.forEach((key, value) -> {
-        configPropertyList.add(ConfigProperty.newBuilder().setName(key.getName())
-            .setSource(Source.PATH_DEFAULT.toString()).setValue(value).build());
-      });
+      properties.forEach((key, value) ->
+          configPropertyList.add(ConfigProperty.newBuilder().setName(key.getName())
+              .setSource(Source.PATH_DEFAULT.toString()).setValue(value).build()));
       ConfigProperties configProperties = ConfigProperties.newBuilder().addAllProperties(
           configPropertyList).build();
       pathConfig.put(path, configProperties);

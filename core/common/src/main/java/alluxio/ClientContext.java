@@ -19,6 +19,8 @@ import alluxio.conf.path.PrefixPathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.util.ConfigurationUtils;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.net.InetSocketAddress;
 
 import javax.annotation.Nullable;
@@ -96,8 +98,8 @@ public class ClientContext {
   }
 
   /**
-   * This method will attempt to load the cluster defaults and update the configuration if
-   * necessary.
+   * This method will attempt to load the cluster and path level configuration defaults and update
+   * the configuration if necessary.
    *
    * This method should be synchronized so that concurrent calls to it don't continually overwrite
    * the previous configuration. The cluster defaults should only ever need to be updated once
@@ -106,10 +108,11 @@ public class ClientContext {
    * @param address the address to load cluster defaults from
    * @throws AlluxioStatusException
    */
-  protected synchronized void updateWithClusterDefaults(InetSocketAddress address)
+  @VisibleForTesting
+  public synchronized void updateConfigurationDefaults(InetSocketAddress address)
       throws AlluxioStatusException {
     Pair<AlluxioConfiguration, PathConfiguration> conf =
-        ConfigurationUtils.loadClusterAndPathDefaults(address, mConf);
+        ConfigurationUtils.loadClusterAndPathDefaults(address, mConf, mPathConf);
     mConf = conf.getFirst();
     mPathConf = conf.getSecond();
   }

@@ -16,10 +16,14 @@ import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.ConfigurationUtils;
 
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
@@ -27,6 +31,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.net.InetSocketAddress;
 
 /**
  * Integration tests for path level configurations.
@@ -43,26 +49,30 @@ public class PathConfigurationIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
-          .setProperty(PropertyKey.PATHS, 4)
-          .setProperty(PropertyKey.Template.PATH_INDEX.format(0), REMOTE_DIR)
-          .setProperty(PropertyKey.Template.PATH_PROPERTY.format(0,
-              PropertyKey.USER_FILE_READ_TYPE_DEFAULT), ReadType.CACHE.toString())
-          .setProperty(PropertyKey.Template.PATH_INDEX.format(1), REMOTE_UNCACHED_FILE)
-          .setProperty(PropertyKey.Template.PATH_PROPERTY.format(1,
-              PropertyKey.USER_FILE_READ_TYPE_DEFAULT), ReadType.NO_CACHE.toString())
-          .setProperty(PropertyKey.Template.PATH_INDEX.format(2), LOCAL_DIR)
-          .setProperty(PropertyKey.Template.PATH_PROPERTY.format(2,
-              PropertyKey.USER_FILE_READ_TYPE_DEFAULT), ReadType.NO_CACHE.toString())
-          .setProperty(PropertyKey.Template.PATH_INDEX.format(3), LOCAL_CACHED_FILE)
-          .setProperty(PropertyKey.Template.PATH_PROPERTY.format(3,
-              PropertyKey.USER_FILE_READ_TYPE_DEFAULT), ReadType.CACHE.toString())
           .build();
-  private FileSystem mFileSystem = null;
+  private InetSocketAddress mMasterAddress;
+  private FileSystem mFileSystem;
   private CreateFilePOptions mWriteThrough;
+
+  private void setPathConfigurations() throws Exception {
+    AlluxioConfiguration conf = ServerConfiguration.global();
+    ConfigurationUtils.setPathConfiguration(mMasterAddress, conf, REMOTE_DIR,
+        PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.CACHE.toString());
+    ConfigurationUtils.setPathConfiguration(mMasterAddress, conf, REMOTE_UNCACHED_FILE,
+        PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
+    ConfigurationUtils.setPathConfiguration(mMasterAddress, conf, LOCAL_DIR,
+        PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
+    ConfigurationUtils.setPathConfiguration(mMasterAddress, conf, LOCAL_CACHED_FILE,
+        PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.CACHE.toString());
+  }
 
   @Before
   public void before() throws Exception {
-    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    mMasterAddress = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress();
+    setPathConfigurations();
+    FileSystemContext fsContext = FileSystemContext.create(ServerConfiguration.global());
+    fsContext.getClientContext().updateConfigurationDefaults(mMasterAddress);
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient(fsContext);
     mWriteThrough = CreateFilePOptions.newBuilder().setRecursive(true)
         .setWriteType(WritePType.THROUGH).build();
   }

@@ -557,7 +557,7 @@ public final class ConfigurationUtils {
       Properties props = loadProperties(conf.getPropertiesList());
       AlluxioProperties properties = new AlluxioProperties();
       properties.merge(props, Source.PATH_DEFAULT);
-      pathConfs.put(path, new InstancedConfiguration(properties));
+      pathConfs.put(path, new InstancedConfiguration(properties, true));
     });
     return new PrefixPathConfiguration(pathConfs);
   }
@@ -581,36 +581,34 @@ public final class ConfigurationUtils {
    */
   public static AlluxioConfiguration loadClusterDefaults(InetSocketAddress address,
       AlluxioConfiguration conf) throws AlluxioStatusException {
-    if (!shouldLoadClusterConfiguration(conf)) {
-      return conf;
+    if (shouldLoadClusterConfiguration(conf)) {
+      GetConfigurationPResponse response = loadConfiguration(address, conf);
+      conf = loadClusterConfiguration(response, conf);
     }
-    GetConfigurationPResponse response = loadConfiguration(address, conf);
-    return loadClusterConfiguration(response, conf);
+    return conf;
   }
 
   /**
    * Loads both cluster and path level configurations from meta master.
    *
    * Only client scope properties will be loaded.
-   * An RPC to meta master is always issued,
-   * if cluster level configuration has been loaded or the feature of loading configuration from
-   * meta master is disabled, then cluster level configuration is kept as conf,
-   * but path level configuration will always be loaded from the meta master's response.
+   * If cluster level configuration has been loaded or the feature of loading configuration from
+   * meta master is disabled, then no RPC is issued, and both cluster and path level configuration
+   * is kept as original
    *
    * @param address the meta master address
-   * @param conf the cluster level configuration
+   * @param clusterConf the cluster level configuration
+   * @param pathConf the cluster level configuration
    * @return both cluster and path level configuration
    */
   public static Pair<AlluxioConfiguration, PathConfiguration> loadClusterAndPathDefaults(
-      InetSocketAddress address, AlluxioConfiguration conf) throws AlluxioStatusException {
-    GetConfigurationPResponse response = loadConfiguration(address, conf);
-    AlluxioConfiguration clusterConf;
-    if (!shouldLoadClusterConfiguration(conf)) {
-      clusterConf = conf;
-    } else {
-      clusterConf = loadClusterConfiguration(response, conf);
+      InetSocketAddress address, AlluxioConfiguration clusterConf, PathConfiguration pathConf)
+      throws AlluxioStatusException {
+    if (shouldLoadClusterConfiguration(clusterConf)) {
+      GetConfigurationPResponse response = loadConfiguration(address, clusterConf);
+      clusterConf = loadClusterConfiguration(response, clusterConf);
+      pathConf = loadPathConfiguration(response);
     }
-    PathConfiguration pathConf = loadPathConfiguration(response);
     return new Pair<>(clusterConf, pathConf);
   }
 }

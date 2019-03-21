@@ -11,11 +11,9 @@
 
 package alluxio.master.meta;
 
-import alluxio.conf.AlluxioProperties;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,24 +22,21 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Source of truth for path level properties.
  * TODO(cc): journaling
- * TODO(cc): improve concurrency
  * TODO(cc): more operations like batch operation, delete, etc
  */
 @ThreadSafe
 public final class PathProperties {
   /**
-   * Map from path to path level properties.
+   * Map from path to key value properties.
    */
-  private final ConcurrentHashMap<String, AlluxioProperties> mProperties =
+  private final ConcurrentHashMap<String, ConcurrentHashMap<PropertyKey, String>> mProperties =
       new ConcurrentHashMap<>();
 
   /**
-   * @return a deep copy of the internal map from path to properties
+   * @return an unmodifiable view of the internal properties
    */
-  public synchronized Map<String, AlluxioProperties> getProperties() {
-    Map<String, AlluxioProperties> properties = new HashMap<>();
-    mProperties.forEach((path, props) -> properties.put(path, props.copy()));
-    return properties;
+  public Map<String, Map<PropertyKey, String>> getProperties() {
+    return Collections.unmodifiableMap(mProperties);
   }
 
   /**
@@ -51,8 +46,7 @@ public final class PathProperties {
    * @param key the property key
    * @param value the property value
    */
-  public synchronized void setProperty(String path, PropertyKey key, String value) {
-    mProperties.computeIfAbsent(path, k -> new AlluxioProperties())
-        .put(key, value, Source.PATH_DEFAULT);
+  public void setProperty(String path, PropertyKey key, String value) {
+    mProperties.computeIfAbsent(path, k -> new ConcurrentHashMap<>()).put(key, value);
   }
 }
