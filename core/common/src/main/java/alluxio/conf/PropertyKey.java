@@ -2523,17 +2523,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // Path level configuration related properties
-  //
-  public static final PropertyKey PATHS =
-      new Builder(Name.PATHS)
-          .setDefaultValue(0)
-          .setDescription("The total number of paths with customized path level configurations.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.CLIENT)
-          .build();
-
-  //
   // User related properties
   //
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_THREADS =
@@ -3933,11 +3922,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String LOGSERVER_THREADS_MIN = "alluxio.logserver.threads.min";
 
     //
-    // Path level configuration related properties
-    //
-    public static final String PATHS = "alluxio.paths";
-
-    //
     // User related properties
     //
     public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
@@ -4153,8 +4137,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @ThreadSafe
   public enum Template {
     LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
-    PATH_INDEX("alluxio.path.%d", "alluxio\\.path\\.(\\d+)"),
-    PATH_PROPERTY("alluxio.path.%d.%s", "alluxio\\.path\\.(\\d+)\\.(?<nested>(\\w+\\.)*+\\w+)"),
     MASTER_IMPERSONATION_GROUPS_OPTION("alluxio.master.security.impersonation.%s.groups",
         "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.groups"),
     MASTER_IMPERSONATION_USERS_OPTION("alluxio.master.security.impersonation.%s.users",
@@ -4213,9 +4195,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       private static final BiFunction<String, PropertyKey, PropertyKey>
           NESTED_JOURNAL_PROPERTY_CREATOR =
           createNestedPropertyCreator(Scope.MASTER, ConsistencyCheckLevel.ENFORCE);
-      private static final BiFunction<String, PropertyKey, PropertyKey>
-          NESTED_PATH_PROPERTY_CREATOR =
-          createNestedPropertyCreator(Scope.CLIENT, ConsistencyCheckLevel.ENFORCE);
 
       private static BiFunction<String, PropertyKey, PropertyKey> fromBuilder(Builder builder) {
         return (name, baseProperty) -> builder.setName(name).buildUnregistered();
