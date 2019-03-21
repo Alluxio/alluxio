@@ -59,7 +59,7 @@ public class BackupCommand extends AbstractFsAdminCommand {
   public int run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
     Builder opts = BackupPOptions.newBuilder();
-    if (args.length == 1) {
+    if (args.length >= 1) {
       opts.setTargetDirectory(args[0]);
     }
     opts.setLocalFileSystem(cl.hasOption(LOCAL_OPTION.getLongOpt()));
