@@ -27,6 +27,7 @@ import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
+import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
 import alluxio.util.IdUtils;
 import alluxio.worker.WorkerProcess;
@@ -57,6 +58,7 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
   private WorkerProcess mWorkerProcess;
   private final AsyncCacheRequestManager mRequestManager;
   private ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
+  private WriteRequestMarshaller mWriteRequestMarshaller = new WriteRequestMarshaller();
 
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
@@ -76,9 +78,13 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
    */
   public Map<MethodDescriptor, MethodDescriptor> getOverriddenMethodDescriptors() {
     if (ZERO_COPY_ENABLED) {
-      return ImmutableMap.of(BlockWorkerGrpc.getReadBlockMethod(),
+      return ImmutableMap.of(
+          BlockWorkerGrpc.getReadBlockMethod(),
           BlockWorkerGrpc.getReadBlockMethod().toBuilder()
-              .setResponseMarshaller(mReadResponseMarshaller).build());
+              .setResponseMarshaller(mReadResponseMarshaller).build(),
+          BlockWorkerGrpc.getWriteBlockMethod(),
+          BlockWorkerGrpc.getWriteBlockMethod().toBuilder()
+              .setRequestMarshaller(mWriteRequestMarshaller).build());
     }
     return Collections.emptyMap();
   }
@@ -99,10 +105,14 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
 
   @Override
   public StreamObserver<alluxio.grpc.WriteRequest> writeBlock(
-      final StreamObserver<WriteResponse> responseObserver) {
-    DelegationWriteHandler handler = new DelegationWriteHandler(mWorkerProcess, responseObserver);
+      StreamObserver<WriteResponse> responseObserver) {
     ServerCallStreamObserver<WriteResponse> serverResponseObserver =
         (ServerCallStreamObserver<WriteResponse>) responseObserver;
+    if (ZERO_COPY_ENABLED) {
+      responseObserver =
+          new DataMessageServerRequestObserver<>(responseObserver, mWriteRequestMarshaller, null);
+    }
+    DelegationWriteHandler handler = new DelegationWriteHandler(mWorkerProcess, responseObserver);
     serverResponseObserver.setOnCancelHandler(handler::onCancel);
     return handler;
   }

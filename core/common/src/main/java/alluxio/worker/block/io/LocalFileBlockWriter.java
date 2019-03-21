@@ -11,11 +11,14 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.netty.buffer.ByteBuf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -31,6 +34,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalFileBlockWriter implements BlockWriter {
+  private static final Logger LOG = LoggerFactory.getLogger(LocalFileBlockWriter.class);
+
   private final String mFilePath;
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
@@ -59,6 +64,22 @@ public final class LocalFileBlockWriter implements BlockWriter {
   @Override
   public long append(ByteBuf buf) throws IOException {
     long bytesWritten = buf.readBytes(mLocalFileChannel, buf.readableBytes());
+    mPosition += bytesWritten;
+    return bytesWritten;
+  }
+
+  @Override
+  public long append(DataBuffer buffer) throws IOException {
+    ByteBuf bytebuf = null;
+    try {
+      bytebuf = (ByteBuf) buffer.getNettyOutput();
+    } catch (Throwable e) {
+      LOG.debug("Failed to get ByteBuf from DataBuffer, write performance may be degraded.");
+    }
+    if (bytebuf != null) {
+      return append(bytebuf);
+    }
+    long bytesWritten = write(mLocalFileChannel.size(), buffer);
     mPosition += bytesWritten;
     return bytesWritten;
   }
@@ -96,6 +117,16 @@ public final class LocalFileBlockWriter implements BlockWriter {
     MappedByteBuffer outputBuf =
         mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, offset, inputBufLength);
     outputBuf.put(inputBuf);
+    int bytesWritten = outputBuf.limit();
+    BufferUtils.cleanDirectBuffer(outputBuf);
+    return bytesWritten;
+  }
+
+  private long write(long offset, DataBuffer inputBuf) throws IOException {
+    int inputBufLength = inputBuf.readableBytes();
+    MappedByteBuffer outputBuf =
+        mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, offset, inputBufLength);
+    inputBuf.readBytes(outputBuf);
     int bytesWritten = outputBuf.limit();
     BufferUtils.cleanDirectBuffer(outputBuf);
     return bytesWritten;

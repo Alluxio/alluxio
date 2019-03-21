@@ -35,7 +35,6 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAclContext;
@@ -373,27 +372,6 @@ public interface FileSystemMaster extends Master {
    * @return all the files lost on the workers
    */
   List<Long> getLostFiles();
-
-  /**
-   * Loads metadata for the object identified by the given path from UFS into Alluxio.
-   * <p>
-   * This operation requires users to have WRITE permission on the path
-   * and its parent path if path is a file, or WRITE permission on the
-   * parent path if path is a directory.
-   *
-   * @param path the path for which metadata should be loaded
-   * @param context the load metadata context
-   * @return the file id of the loaded path
-   * @throws BlockInfoException if an invalid block size is encountered
-   * @throws FileDoesNotExistException if there is no UFS path
-   * @throws InvalidPathException if invalid path is encountered
-   * @throws InvalidFileSizeException if invalid file size is encountered
-   * @throws FileAlreadyCompletedException if the file is already completed
-   * @throws AccessControlException if permission checking fails
-   */
-  long loadMetadata(AlluxioURI path, LoadMetadataContext context)
-      throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException;
 
   /**
    * Mounts a UFS path onto an Alluxio path.

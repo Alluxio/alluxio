@@ -51,7 +51,7 @@ Put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into directory
 (this directory may differ across versions) on all Presto servers. Restart Presto service:
 
 ```bash
-$ ${PRESTO_HOME}/bin/launcher restart
+${PRESTO_HOME}/bin/launcher restart
 ```
 
 After completing the basic configuration,
@@ -69,8 +69,8 @@ You can download a data file (e.g., `ml-100k.zip`) from
 Unzip this file and upload the file `u.user` into `/ml-100k/` on Alluxio:
 
 ```bash
-$ bin/alluxio fs mkdir /ml-100k
-$ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
+./bin/alluxio fs mkdir /ml-100k
+./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
 ```
 
 Create an external Hive table from existing files in Alluxio.
@@ -97,7 +97,7 @@ Ensure your Hive metastore service is running. Hive metastore listens on port `9
 default. If it is not running,
 
 ```bash
-$ ${HIVE_HOME}/bin/hive --service metastore
+${HIVE_HOME}/bin/hive --service metastore
 ```
 
 ### Start Presto server
@@ -106,7 +106,7 @@ Start your Presto server. Presto server runs on port `8080` by default (set by
 `http-server.http.port` in `${PRESTO_HOME}/etc/config.properties` ):
 
 ```bash
-$ ${PRESTO_HOME}/bin/launcher run
+${PRESTO_HOME}/bin/launcher run
 ```
 
 ### Query tables using Presto
@@ -119,7 +119,7 @@ directly).
 Run a single query (replace `localhost:8080` with your actual Presto server hostname and port):
 
 ```bash
-$ ./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
+./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
 ```
 
 And you can see the query results from console:
@@ -156,29 +156,28 @@ hive.config.resources=/<PATH_TO_CONF>/core-site.xml,/<PATH_TO_CONF>/hdfs-site.xm
 
 #### Example: connect to Alluxio with HA
 
-To use Alluxio in fault tolerant mode, set the Alluxio cluster properties appropriately in an
+If the Alluxio HA cluster uses internal leader election,
+set the Alluxio cluster property appropriately in the
 `alluxio-site.properties` file which is on the classpath.
 
 ```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
+alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
-Alternatively you can add the properties to the Hadoop `core-site.xml` configuration
+Alternatively you can add the property to the Hadoop `core-site.xml` configuration
 which is contained by `hive.config.resources`.
 
 ```xml
 <configuration>
   <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+    <name>alluxio.master.rpc.addresses</name>
+    <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
   </property>
 </configuration>
 ```
+
+For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
+please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
 
 #### Example: change default Alluxio write type
 

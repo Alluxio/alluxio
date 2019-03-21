@@ -16,8 +16,11 @@ import io.grpc.MethodDescriptor;
 import io.grpc.ServerMethodDefinition;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.ServiceDescriptor;
+import io.grpc.internal.CompositeReadableBuffer;
 import io.grpc.internal.ReadableBuffer;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +31,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 /**
  * Utilities for gRPC message serialization.
@@ -42,21 +46,23 @@ public class GrpcSerializationUtils {
 
   private static final String BUFFER_INPUT_STREAM_CLASS_NAME =
       "io.grpc.internal.ReadableBuffers$BufferInputStream";
-  private static final String BUFFER_FIELD_NAME =
-      "buffer";
+  private static final String BUFFER_FIELD_NAME = "buffer";
+  private static final String BUFFERS_FIELD_NAME = "buffers";
   private static final String NETTY_WRITABLE_BUFFER_CLASS_NAME =
       "io.grpc.netty.NettyWritableBuffer";
+  private static final String NETTY_READABLE_BUFFER_CLASS_NAME =
+      "io.grpc.netty.NettyReadableBuffer";
   private static final String BUFFER_CHAIN_OUTPUT_STREAM_CLASS_NAME =
       "io.grpc.internal.MessageFramer$BufferChainOutputStream";
-  private static final String BUFFER_LIST_FIELD_NAME =
-      "bufferList";
-  private static final String CURRENT_FIELD_NAME =
-      "current";
+  private static final String BUFFER_LIST_FIELD_NAME = "bufferList";
+  private static final String CURRENT_FIELD_NAME = "current";
 
   private static Constructor<?> sNettyWritableBufferConstructor;
   private static Field sBufferList;
+  private static Field sCompositeBuffers = null;
   private static Field sCurrent;
   private static Field sReadableBufferField = null;
+  private static Field sReadableByteBuf = null;
   private static boolean sZeroCopySendSupported = true;
   private static boolean sZeroCopyReceiveSupported = true;
 
@@ -72,6 +78,8 @@ public class GrpcSerializationUtils {
           getPrivateConstructor(NETTY_WRITABLE_BUFFER_CLASS_NAME, ByteBuf.class);
       sBufferList = getPrivateField(BUFFER_CHAIN_OUTPUT_STREAM_CLASS_NAME, BUFFER_LIST_FIELD_NAME);
       sCurrent = getPrivateField(BUFFER_CHAIN_OUTPUT_STREAM_CLASS_NAME, CURRENT_FIELD_NAME);
+      sCompositeBuffers = getPrivateField(CompositeReadableBuffer.class.getName(), BUFFERS_FIELD_NAME);
+      sReadableByteBuf = getPrivateField(NETTY_READABLE_BUFFER_CLASS_NAME, BUFFER_FIELD_NAME);
     } catch (Exception e) {
       LOG.warn("Cannot get gRPC output stream buffer, zero copy receive will be disabled.", e);
       sZeroCopyReceiveSupported = false;
@@ -126,6 +134,42 @@ public class GrpcSerializationUtils {
   }
 
   /**
+   * Gets a Netty buffer directly from a gRPC ReadableBuffer.
+   *
+   * @param buffer the input buffer
+   * @return the raw ByteBuf, or null if the ByteBuf cannot be extracted
+   */
+  public static ByteBuf getByteBufFromReadableBuffer(ReadableBuffer buffer) {
+    if (!sZeroCopyReceiveSupported) {
+      return null;
+    }
+    try {
+      if (buffer instanceof CompositeReadableBuffer) {
+        Queue<ReadableBuffer> buffers = (Queue<ReadableBuffer>)sCompositeBuffers.get(buffer);
+        if (buffers.size() == 1) {
+          return getByteBufFromReadableBuffer(buffers.peek());
+        } else {
+          CompositeByteBuf buf = PooledByteBufAllocator.DEFAULT.compositeBuffer();
+          for (ReadableBuffer readableBuffer : buffers) {
+            ByteBuf subBuffer = getByteBufFromReadableBuffer(readableBuffer);
+            if (subBuffer == null) {
+              return null;
+            }
+            buf.addComponent(true, subBuffer);
+          }
+          return buf;
+        }
+      } else if (buffer.getClass().equals(sReadableByteBuf.getDeclaringClass())) {
+        return (ByteBuf) sReadableByteBuf.get(buffer);
+      }
+    } catch (Exception e) {
+      LOG.warn("Failed to get data buffer from stream: {}.", e.getMessage());
+      return null;
+    }
+    return null;
+  }
+
+  /**
    * Add the given buffers directly to the gRPC output stream.
    *
    * @param buffers the buffers to be added
@@ -149,7 +193,7 @@ public class GrpcSerializationUtils {
       }
       return true;
     } catch (Exception e) {
-      LOG.warn("Failed to add data buffer to stream.", e);
+      LOG.warn("Failed to add data buffer to stream: {}.", e.getMessage());
       return false;
     }
   }

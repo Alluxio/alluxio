@@ -16,6 +16,8 @@ import alluxio.util.io.BufferUtils;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.Unpooled;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 /**
@@ -57,6 +59,16 @@ public final class NioDataBuffer implements DataBuffer {
   @Override
   public void readBytes(byte[] dst, int dstIndex, int length) {
     mBuffer.get(dst, dstIndex, length);
+  }
+
+  @Override
+  public void readBytes(OutputStream outputStream, int length) throws IOException {
+    Unpooled.wrappedBuffer(mBuffer).readBytes(outputStream, length).release();
+  }
+
+  @Override
+  public void readBytes(ByteBuffer outputBuf) {
+    outputBuf.put(mBuffer);
   }
 
   @Override

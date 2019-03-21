@@ -94,13 +94,13 @@ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y
 - 对于MapReduce应用，可以将客户端jar包添加到`$HADOOP_CLASSPATH`：
 
 ```bash
-$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 - 对于Spark应用，可以将客户端jar包添加到`$SPARK_CLASSPATH`：
 
 ```bash
-$ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
+export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
 ```
 
 除了上述方法，还可以将以下配置添加到`spark/conf/spark-defaults.conf`中：
@@ -114,7 +114,7 @@ spark.executor.extraClassPath
 如果已经设置相关的classpath，但是异常仍然存在，用户可以这样检测路径是否有效：
 
 ```bash
-$ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
+ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
 ### 问题: 出现类似如下的错误信息: "Frame size (67108864) larger than max length (16777216)",这种类型错误信息出现的原因是什么?
@@ -141,7 +141,7 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用�
 如果本地worker节点没有足够空间，你将会看到上述错误。你可以通过将策略修改为`RoundRobinPolicy`(如下所述)来将你的文件分散存储到不同worker节点上。
 
 ```bash
-$ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
+./bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
 ```
 
 

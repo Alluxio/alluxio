@@ -48,7 +48,7 @@ public abstract class JobIntegrationTest extends BaseIntegrationTest {
 
   private LocalAlluxioClusterResource buildLocalAlluxioCluster() {
     LocalAlluxioClusterResource.Builder resource = new LocalAlluxioClusterResource.Builder()
-        .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS, 20)
+        .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, 20)
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
         .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES))
         .setProperty(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB")

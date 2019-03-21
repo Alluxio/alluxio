@@ -11,10 +11,8 @@
 
 package alluxio.cli.job;
 
-import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
@@ -49,12 +47,8 @@ public final class JobShell extends AbstractShell {
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
 
     if (!ConfigurationUtils.masterHostConfigured(conf) && argv.length > 0) {
-      System.out.println(String.format(
-          "Cannot run alluxio job shell; master hostname is not "
-              + "configured. Please modify %s to either set %s or configure zookeeper with "
-              + "%s=true and %s=[comma-separated zookeeper master addresses]",
-          Constants.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
-          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString()));
+      System.out.println(ConfigurationUtils
+          .getMasterHostNotConfiguredMessage("Alluxio job shell"));
       System.exit(1);
     }
 
