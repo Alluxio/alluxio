@@ -124,7 +124,6 @@ public final class FileSystemContext implements Closeable {
   private WorkerNetAddress mLocalWorker;
 
   private final ClientContext mClientContext;
-  private final PathIndexer mPathIndexer;
   private final String mAppId;
   private final EventLoopGroup mWorkerGroup;
 
@@ -205,7 +204,6 @@ public final class FileSystemContext implements Closeable {
   private FileSystemContext(ClientContext ctx) {
     Preconditions.checkNotNull(ctx, "ctx");
     mClientContext = ctx;
-    mPathIndexer = new PathIndexer(mClientContext.getConf());
     mExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
     mClosed = new AtomicBoolean(false);
