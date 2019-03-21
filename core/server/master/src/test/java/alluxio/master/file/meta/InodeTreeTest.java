@@ -42,7 +42,6 @@ import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
-import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.authorization.Mode;
@@ -122,8 +121,7 @@ public final class InodeTreeTest {
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
     InodeLockManager lockManager = new InodeLockManager();
-    mInodeStore = context.getInodeStoreFactory()
-        .apply(new InodeStoreArgs(lockManager, ServerConfiguration.global()));
+    mInodeStore = context.getInodeStoreFactory().apply(lockManager);
     mTree = new InodeTree(mInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);
 
     mRegistry.start(true);

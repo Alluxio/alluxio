@@ -16,7 +16,7 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.master.journal.checkpoint.Checkpointed;
-import alluxio.master.journal.checkpoint.LongsCheckpointReader;
+import alluxio.master.journal.checkpoint.LongsCheckpointFormat.LongsCheckpointReader;
 
 import java.io.IOException;
 import java.io.OutputStream;

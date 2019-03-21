@@ -15,14 +15,9 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.master.file.contexts.CreateDirectoryContext;
-import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.MutableInodeDirectory;
-import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metastore.InodeStore.WriteBatch;
-import alluxio.util.ConfigurationUtils;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,9 +31,7 @@ public class RocksInodeStoreTest {
 
   @Test
   public void batchWrite() throws IOException {
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    conf.set(PropertyKey.MASTER_METASTORE_DIR, mFolder.newFolder());
-    RocksInodeStore store = new RocksInodeStore(new InodeStoreArgs(new InodeLockManager(), conf));
+    RocksInodeStore store = new RocksInodeStore(mFolder.newFolder().getAbsolutePath());
     WriteBatch batch = store.createWriteBatch();
     for (int i = 1; i < 20; i++) {
       batch.writeInode(
@@ -52,9 +45,7 @@ public class RocksInodeStoreTest {
 
   @Test
   public void toStringEntries() throws IOException {
-    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    conf.set(PropertyKey.MASTER_METASTORE_DIR, mFolder.newFolder());
-    RocksInodeStore store = new RocksInodeStore(new InodeStoreArgs(new InodeLockManager(), conf));
+    RocksInodeStore store = new RocksInodeStore(mFolder.newFile().getAbsolutePath());
     assertEquals("", store.toStringEntries());
 
     store.writeInode(MutableInodeDirectory.create(1, 0, "dir", CreateDirectoryContext.defaults()));

@@ -22,8 +22,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import alluxio.conf.ConfigurationBuilder;
+import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.meta.Inode;
@@ -32,12 +33,13 @@ import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.metastore.InodeStore;
-import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metastore.heap.HeapInodeStore;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -61,15 +63,16 @@ public class CachingInodeStoreMockedBackingStoreTest {
   private InodeStore mBackingStore;
   private CachingInodeStore mStore;
 
+  @Rule
+  public ConfigurationRule mConf = new ConfigurationRule(
+      ImmutableMap.of(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, Long.toString(CACHE_SIZE),
+          PropertyKey.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE, "5"),
+      ServerConfiguration.global());
+
   @Before
   public void before() {
-    InodeStoreArgs args = new InodeStoreArgs(new InodeLockManager(),
-        new ConfigurationBuilder()
-            .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE)
-            .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE, 5)
-            .build());
-    mBackingStore = spy(new HeapInodeStore(args));
-    mStore = new CachingInodeStore(mBackingStore, args);
+    mBackingStore = spy(new HeapInodeStore());
+    mStore = new CachingInodeStore(mBackingStore, new InodeLockManager());
     mStore.writeNewInode(TEST_INODE_DIR);
   }
 
