@@ -17,11 +17,16 @@ message BackupPResponse {
  optional string hostname = 2;
 }
 
+message ConfigProperties {
+  repeated ConfigProperty properties = 1;
+}
+
 message GetConfigurationPOptions{
  optional bool rawValue = 1;
 }
 message GetConfigurationPResponse{
   repeated ConfigProperty configs = 1;
+  map<string, ConfigProperties> pathConfigs = 2;
 }
 
 enum ConfigStatus {
