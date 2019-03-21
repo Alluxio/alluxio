@@ -9,20 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.conf;
+package alluxio.conf.path;
+
+import alluxio.AlluxioURI;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Matches a path against a set of path patterns.
  */
 public interface PathMatcher {
   /**
-   * Returned by {@link #match(String)} when there is no match.
+   * @param path the path to be matched, must start with "/"
+   * @return the list of matched path patterns sorted by descending match preferences
    */
-  String NO_MATCH = "";
-
-  /**
-   * @param path the path to be matched
-   * @return the matched path pattern or {@link NO_MATCH} when there is no match
-   */
-  String match(String path);
+  Optional<List<String>> match(AlluxioURI path);
 }

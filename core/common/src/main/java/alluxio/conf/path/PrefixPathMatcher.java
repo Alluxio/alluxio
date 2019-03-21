@@ -9,19 +9,23 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.conf;
+package alluxio.conf.path;
+
+import alluxio.AlluxioURI;
+
+import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Matches the path with the longest matched prefix, and the path must be in the subtree of the
- * prefix.
+ * Matched patterns are prefixes of a path, the path must be in the subtree of the prefixes.
  *
  * For example:
  * /a/b/c matches /a/b, but
@@ -38,43 +42,48 @@ public final class PrefixPathMatcher implements PathMatcher {
    * A node in a trie.
    */
   private final class TrieNode {
-    private Map<Character, TrieNode> mChildren = new HashMap<>();
+    private Map<String, TrieNode> mChildren = new HashMap<>();
     private boolean mIsTerminal = false;
 
     /**
-     * Inserts a string into the trie, each character forms a node in the trie.
+     * Inserts a path into the trie.
      *
-     * @param s the string
+     * Each path component forms a node in the trie,
+     * root path "/" will correspond to the root of the trie.
+     *
+     * @param path a path with components separated by "/"
      * @return the last inserted trie node or the last traversed trie node if no node is inserted
      */
-    public TrieNode insert(String s) {
+    public TrieNode insert(String path) {
       TrieNode current = this;
-      for (int i = 0; i < s.length(); i++) {
-        char c = s.charAt(i);
-        if (!current.mChildren.containsKey(c)) {
-          current.mChildren.put(c, new TrieNode());
+      for (String component : path.split("/")) {
+        if (!current.mChildren.containsKey(component)) {
+          current.mChildren.put(component, new TrieNode());
         }
-        current = current.mChildren.get(c);
+        current = current.mChildren.get(component);
       }
       current.mIsTerminal = true;
       return current;
     }
 
     /**
-     * Traverses the trie along the characters in s until the traversal cannot proceed any more.
-     * Returns a list of visited terminal node, a node is terminal if it is the last visited
-     * node of an inserted string.
+     * Traverses the trie along the path components until the traversal cannot proceed any more.
      *
-     * @param s the target string
+     * Returns a list of visited terminal node, a node is terminal if it is the last visited
+     * node of an inserted path.
+     *
+     * @param path the target path
      * @return the terminal nodes sorted by the time they are visited
      */
-    public List<TrieNode> search(String s) {
+    public List<TrieNode> search(String path) {
       List<TrieNode> terminal = new ArrayList<>();
       TrieNode current = this;
-      for (int i = 0; i < s.length(); i++) {
-        char c = s.charAt(i);
-        if (current.mChildren.containsKey(c)) {
-          current = current.mChildren.get(c);
+      if (current.mIsTerminal) {
+        terminal.add(current);
+      }
+      for (String component : path.split("/")) {
+        if (current.mChildren.containsKey(component)) {
+          current = current.mChildren.get(component);
           if (current.mIsTerminal) {
             terminal.add(current);
           }
@@ -86,36 +95,45 @@ public final class PrefixPathMatcher implements PathMatcher {
     }
   }
 
+  /**
+   * Root of the trie for path patterns.
+   */
   private final TrieNode mTrie = new TrieNode();
+  /**
+   * A map from terminal trie node to the corresponding path pattern.
+   */
   private final Map<TrieNode, String> mPaths = new HashMap<>();
 
   /**
    * Builds internal trie based on paths.
    *
+   * Each path pattern must start with "/".
+   *
    * @param paths the list of path patterns
    */
   public PrefixPathMatcher(Set<String> paths) {
     for (String path : paths) {
+      Preconditions.checkArgument(path.startsWith("/"), "Path must start with /");
       TrieNode node = mTrie.insert(path);
       mPaths.put(node, path);
     }
   }
 
   @Override
-  public String match(String path) {
-    List<TrieNode> nodes = mTrie.search(path);
+  public Optional<List<String>> match(AlluxioURI path) {
+    Preconditions.checkArgument(path.getPath().startsWith("/"), "Path must start with /");
+    List<TrieNode> nodes = mTrie.search(path.getPath());
+    if (nodes.isEmpty()) {
+      return Optional.empty();
+    }
+    List<String> matchedPatterns = new ArrayList<>();
     for (int i = nodes.size() - 1; i >= 0; i--) {
       TrieNode node = nodes.get(i);
-      if (node != mTrie && mPaths.containsKey(node)) {
-        String prefix = mPaths.get(node);
-        if ((prefix.length() == path.length())
-            || (prefix.charAt(prefix.length() - 1) == '/')
-            || (path.charAt(prefix.length()) == '/')) {
-          // path is in the subtree of prefix.
-          return prefix;
-        }
+      if (mPaths.containsKey(node)) {
+        String pattern = mPaths.get(node);
+        matchedPatterns.add(pattern);
       }
     }
-    return NO_MATCH;
+    return Optional.of(matchedPatterns);
   }
 }
