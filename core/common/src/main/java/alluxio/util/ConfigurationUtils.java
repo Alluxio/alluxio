@@ -484,7 +484,7 @@ public final class ConfigurationUtils {
       AlluxioStatusException ase = AlluxioStatusException.fromStatusRuntimeException(e);
       LOG.warn("Failed to connect to meta master {} : {}", address, ase.getMessage());
       throw new UnavailableException(String.format(
-          "Failed to connect to meta master %s to set property {} = {} for path pattern {}",
+          "Failed to connect to meta master %s to set property %s = %s for path pattern %s",
           address, key.getName(), value, path), e);
     }
   }
