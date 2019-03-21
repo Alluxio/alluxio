@@ -166,12 +166,24 @@ public class AlluxioProperties {
    * @return true if there is value for the key, false otherwise
    */
   public boolean isSet(PropertyKey key) {
+    if (isSetByUser(key)) {
+      return true;
+    }
+    // In case key is not the reference to the original key
+    return PropertyKey.fromString(key.toString()).getDefaultValue() != null;
+  }
+
+  /**
+   * @param key the key to check
+   * @return true if there is a value for the key set by user, false otherwise even when there is a
+   *         default value for the key
+   */
+  public boolean isSetByUser(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
       Optional<String> val = mUserProps.get(key);
       return val.isPresent();
     }
-    // In case key is not the reference to the original key
-    return PropertyKey.fromString(key.toString()).getDefaultValue() != null;
+    return false;
   }
 
   /**

@@ -65,7 +65,7 @@ public final class PrefixPathConfiguration implements PathConfiguration {
     Optional<List<String>> patterns = mMatcher.match(path);
     if (patterns.isPresent()) {
       for (String pattern : patterns.get()) {
-        if (mConf.get(pattern).isSet(key)) {
+        if (mConf.get(pattern).isSetByUser(key)) {
           return Optional.of(mConf.get(pattern));
         }
       }

@@ -118,11 +118,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     return value;
   }
 
-  @Override
-  public boolean isSet(PropertyKey key) {
-    if (!mProperties.isSet(key)) {
-      return false;
-    }
+  private boolean isResolvable(PropertyKey key) {
     String val = mProperties.get(key);
     try {
       // Lookup to resolve any key before simply returning isSet. An exception will be thrown if
@@ -132,6 +128,22 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     } catch (UnresolvablePropertyException e) {
       return false;
     }
+  }
+
+  @Override
+  public boolean isSet(PropertyKey key) {
+    if (!mProperties.isSet(key)) {
+      return false;
+    }
+    return isResolvable(key);
+  }
+
+  @Override
+  public boolean isSetByUser(PropertyKey key) {
+    if (!mProperties.isSetByUser(key)) {
+      return false;
+    }
+    return isResolvable(key);
   }
 
   /**
