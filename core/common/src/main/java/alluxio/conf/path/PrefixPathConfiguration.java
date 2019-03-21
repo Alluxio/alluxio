@@ -13,8 +13,6 @@ package alluxio.conf.path;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.AlluxioProperties;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
 import java.util.Collections;
@@ -50,14 +48,15 @@ public final class PrefixPathConfiguration implements PathConfiguration {
   }
 
   /**
-   * Constructs a new path level configuration based on the path level properties.
+   * Constructs a new path level configuration.
    *
-   * @param pathProperties a map from path patterns to corresponding properties
+   * A shallow copy of the map will be created internally.
+   *
+   * @param configurations a map from path patterns to corresponding path level configuration
    */
-  public PrefixPathConfiguration(Map<String, AlluxioProperties> pathProperties) {
-    pathProperties.forEach(
-        (path, properties) -> mConf.put(path, new InstancedConfiguration(properties)));
-    mMatcher = new PrefixPathMatcher(pathProperties.keySet());
+  public PrefixPathConfiguration(Map<String, AlluxioConfiguration> configurations) {
+    configurations.forEach((path, conf) -> mConf.put(path, conf));
+    mMatcher = new PrefixPathMatcher(configurations.keySet());
   }
 
   @Override

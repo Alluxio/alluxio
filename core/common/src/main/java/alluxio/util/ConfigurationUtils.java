@@ -524,13 +524,14 @@ public final class ConfigurationUtils {
    * @return the loaded path level configuration
    */
   private static PathConfiguration loadPathConfiguration(GetConfigurationPResponse response) {
-    Map<String, AlluxioProperties> pathProperties = new HashMap<>();
-    response.getPathConfigsMap().forEach((path, properties) -> {
-      Properties props = loadProperties(properties.getPropertiesList());
-      pathProperties.computeIfAbsent(path, key -> new AlluxioProperties())
-          .merge(props, Source.PATH_DEFAULT);
+    Map<String, AlluxioConfiguration> pathConfs = new HashMap<>();
+    response.getPathConfigsMap().forEach((path, conf) -> {
+      Properties props = loadProperties(conf.getPropertiesList());
+      AlluxioProperties properties = new AlluxioProperties();
+      properties.merge(props, Source.PATH_DEFAULT);
+      pathConfs.put(path, new InstancedConfiguration(properties));
     });
-    return new PrefixPathConfiguration(pathProperties);
+    return new PrefixPathConfiguration(pathConfs);
   }
 
   private static boolean shouldLoadClusterConfiguration(AlluxioConfiguration conf) {
