@@ -141,6 +141,14 @@ public final class GrpcDataReader implements DataReader {
       return null;
     }
     mPosToRead += buffer.readableBytes();
+    if (!mStream.isClosedFromRemote()) {
+      try {
+        mStream.send(ReadRequest.newBuilder().setOffsetReceived(mPosToRead).build());
+      } catch (Exception e) {
+        // nothing is done as the receipt is sent at best effort
+        LOG.warn("Failed to send receipt of data: {}.", e.getMessage());
+      }
+    }
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
     return buffer;
   }
