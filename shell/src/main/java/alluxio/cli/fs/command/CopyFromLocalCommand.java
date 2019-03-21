@@ -43,12 +43,10 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
    */
   public CopyFromLocalCommand(FileSystemContext fsContext) {
     super(fsContext);
+    // The copyFromLocal command needs its own filesystem context because we overwrite the
+    // block location policy configuration.
+    // The original one can't be closed because it may still be in-use within the same shell.
     InstancedConfiguration conf = new InstancedConfiguration(fsContext.getConf().copyProperties());
-    try {
-      fsContext.close(); // Close resources that won't be utilized
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to close filesystem context");
-    }
     conf.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
         conf.get(PropertyKey.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY));
     LOG.debug(String.format("copyFromLocal block write location policy is %s from property %s",
