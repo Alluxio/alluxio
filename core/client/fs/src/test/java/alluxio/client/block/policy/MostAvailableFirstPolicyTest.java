@@ -9,13 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.policy;
+package alluxio.client.block.policy;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.test.util.CommonUtils;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
@@ -25,16 +27,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tests {@link RoundRobinPolicy}.
+ * Tests {@link MostAvailableFirstPolicy}.
  */
-public final class RoundRobinPolicyTest {
+public final class MostAvailableFirstPolicyTest {
   private static final int PORT = 1;
 
   /**
-   * Tests that the correct workers are chosen when round robin is used.
+   * Tests that the worker with the most available space is chosen.
    */
   @Test
-  public void getWorker() {
+  public void getMostAvailableWorker() {
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
@@ -42,17 +44,17 @@ public final class RoundRobinPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 2 * (long) Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker3")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
-    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.defaults());
-
-    Assert.assertNotEquals(
-        policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost(),
-        policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost());
+    MostAvailableFirstPolicy policy = new MostAvailableFirstPolicy(null);
+    GetWorkerOptions options = GetWorkerOptions.defaults()
+        .setBlockWorkerInfos(workerInfoList).setBlockInfo(new BlockInfo().setLength(Constants.MB));
+    Assert.assertEquals("worker3",
+        policy.getWorker(options).getHost());
   }
 
   @Test
   public void equalsTest() throws Exception {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
-    CommonUtils.testEquals(RoundRobinPolicy.class, new Class[]{AlluxioConfiguration.class},
-        new Object[]{conf});
+    CommonUtils.testEquals(MostAvailableFirstPolicy.class,
+        new Class[]{AlluxioConfiguration.class},
+        new Object[]{ConfigurationTestUtils.defaults()});
   }
 }

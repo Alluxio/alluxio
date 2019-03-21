@@ -58,23 +58,11 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   /**
    * Constructs a new {@link DeterministicHashPolicy}.
    *
-   * @param alluxioConf Alluxio configuration
+   * @param conf Alluxio configuration
    */
-  public DeterministicHashPolicy(AlluxioConfiguration alluxioConf) {
-    int numShards = alluxioConf
-        .getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS);
-    Preconditions.checkArgument(numShards >= 1);
-    mShards = numShards;
-  }
-
-  /**
-   * Constructs a new {@link DeterministicHashPolicy}.
-   *
-   * @param numShards the number of shards a block's traffic can be sharded to
-   * @deprecated This constructor will be removed in 2.0 in favor of passing a configuration object
-   */
-  @Deprecated
-  public DeterministicHashPolicy(Integer numShards) {
+  public DeterministicHashPolicy(AlluxioConfiguration conf) {
+    int numShards =
+        conf.getInt(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS);
     Preconditions.checkArgument(numShards >= 1);
     mShards = numShards;
   }
@@ -97,12 +85,14 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
     List<WorkerNetAddress> workers = new ArrayList<>();
     // Try the next one if the worker mapped from the blockId doesn't work until all the workers
     // are examined.
-    int hv = Math.abs(mHashFunc.newHasher().putLong(options.getBlockId()).hash().asInt());
+    int hv =
+        Math.abs(mHashFunc.newHasher().putLong(options.getBlockInfo().getBlockId()).hash().asInt());
     int index = hv % workerInfos.size();
     for (BlockWorkerInfo blockWorkerInfoUnused : workerInfos) {
       WorkerNetAddress candidate = workerInfos.get(index).getNetAddress();
       BlockWorkerInfo workerInfo = blockWorkerInfoMap.get(candidate);
-      if (workerInfo != null && workerInfo.getCapacityBytes() >= options.getBlockSize()) {
+      if (workerInfo != null
+          && workerInfo.getCapacityBytes() >= options.getBlockInfo().getLength()) {
         workers.add(candidate);
         if (workers.size() >= mShards) {
           break;
