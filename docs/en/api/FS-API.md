@@ -144,8 +144,8 @@ Users can override the default policy class in the
     Returns a worker with the specified host name. This policy cannot be set as default policy.
 
 Alluxio supports custom policies, so you can also develop your own policy appropriate for your
-workload by implementing the interface `alluxio.client.block.policy.FileWriteLocationPolicy`. Note that a
-default policy must have a constructor which takes `alluxio.client.block.policy.options.CreateOptions`.
+workload by implementing the interface `alluxio.client.block.policy.BlockLocationPolicy`. Note that a
+default policy must have a constructor which takes `alluxio.conf.AlluxioConfiguration`.
 To use `ASYNC_THROUGH` write type, all the blocks of a file must be written to the same worker.
 
 #### Write Tier

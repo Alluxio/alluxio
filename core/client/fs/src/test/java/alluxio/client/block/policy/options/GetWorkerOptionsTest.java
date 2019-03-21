@@ -35,7 +35,7 @@ public final class GetWorkerOptionsTest {
   private final List<BlockWorkerInfo> mWorkerInfos = new ArrayList<>();
 
   /**
-   * Tests for defaults {@link CreateOptions}.
+   * Tests for defaults {@link GetWorkerOptions}.
    */
   @Test
   public void defaults() throws IOException {

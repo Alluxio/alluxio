@@ -67,7 +67,7 @@ public final class OutStreamOptions {
    *
    * @param options CreateFile options
    * @param alluxioConf Alluxio configuration
-   * @throws Exception if FileWriteLocationPolicy can't be loaded
+   * @throws Exception if {@link BlockLocationPolicy} can't be loaded
    */
   public OutStreamOptions(CreateFilePOptions options, AlluxioConfiguration alluxioConf) {
     this(alluxioConf);

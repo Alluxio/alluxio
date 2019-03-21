@@ -103,7 +103,7 @@ Alluxio提供了位置策略来选择要存储文件块到哪一个worker。
 
     返回具有指定主机名的worker。此策略不能设置为默认策略。
 
-Alluxio支持自定义策略，所以你也可以通过实现接口`alluxio.client.block.policyFileWriteLocationPolicy`制定适合自己的策略。注意
+Alluxio支持自定义策略，所以你也可以通过实现接口`alluxio.client.block.policy.BlockLocationPolicy`制定适合自己的策略。注意
 默认策略必须有一个空的构造函数。并使用ASYNC_THROUGH写入类型，所有块的文件必须写入同一个worker。
 
 ### 写入层
