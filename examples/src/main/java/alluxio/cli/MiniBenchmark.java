@@ -143,22 +143,22 @@ public final class MiniBenchmark {
           case READ:
             executorService.submit(() -> {
                 try {
-                    readFile(barrier, runtime, count.addAndGet(1));
-                  } catch (Exception e) {
-                    LOG.error("Failed to read file.", e);
-                    System.exit(-1);
-                  }
-                });
+                  readFile(barrier, runtime, count.addAndGet(1), alluxioConf);
+                } catch (Exception e) {
+                  LOG.error("Failed to read file.", e);
+                  System.exit(-1);
+                }
+            });
             break;
           case WRITE:
             executorService.submit(() -> {
                 try {
-                    writeFile(barrier, runtime, count.addAndGet(1));
-                  } catch (Exception e) {
-                    LOG.error("Failed to write file.", e);
-                    System.exit(-1);
-                  }
-                });
+                  writeFile(barrier, runtime, count.addAndGet(1), alluxioConf);
+                } catch (Exception e) {
+                  LOG.error("Failed to write file.", e);
+                  System.exit(-1);
+                }
+            });
             break;
           default:
             throw new RuntimeException("Unsupported type.");
