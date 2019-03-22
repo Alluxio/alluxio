@@ -32,10 +32,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * /a/b/c matches /a/b, but
  * /a/bc does not match /a/b because although /a/b is a prefix of /a/bc, /a/bc is not
  * in the subtree of /a/b.
- *
- * Thread safety:
- * Must be constructed in a single thread and published safely.
- * After construction, all operations on the internal read only data structures are thread safe.
  */
 @ThreadSafe
 public final class PrefixPathMatcher implements PathMatcher {
