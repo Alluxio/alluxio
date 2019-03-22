@@ -27,9 +27,9 @@
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.basedir}/build</build.path>
-    <!-- Decouple hadoop versions between north and south bound -->
     <ufs.hadoop.version>2.2.0</ufs.hadoop.version>
     <shading.prefix>alluxio.shaded.hdfs</shading.prefix>
+    <!-- Composite jar name with both hadoop version and project version included -->
     <lib.jar.name>${project.artifactId}-${ufs.hadoop.version}-${project.version}.jar</lib.jar.name>
   </properties>
 
@@ -139,6 +139,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <!-- Since we don't shade all artifacts, we need to promote the transitive dependencies -->
               <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
               <relocations>
                 <relocation>
@@ -195,8 +196,6 @@
                   <include>org.apache.curator:*</include>
                   <include>org.apache.hadoop:*</include>
                   <include>org.htrace:htrace-core</include>
-
-                  <!-- This dependency needs to be included to properly get rid of the HTTP Components dependency -->
                   <include>net.java.dev.jets3t:jets3t</include>
                   <include>org.apache.httpcomponents:*</include>
                   <include>commons-httpclient:commons-httpclient</include>
