@@ -14,13 +14,14 @@ package alluxio.client.cli.fs;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.ClientContext;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.SystemOutRule;
 import alluxio.SystemPropertyRule;
 import alluxio.cli.GetConf;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigurationPResponse;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -144,8 +145,7 @@ public final class GetConfTest {
     // Prepare mock meta master client
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
-    List<ConfigProperty> configList = prepareConfigList();
-    Mockito.when(client.getConfiguration().getConfigsList()).thenReturn(configList);
+    Mockito.when(client.getConfiguration()).thenReturn(prepareGetConfigurationResponse());
 
     assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master"));
     String expectedOutput = "alluxio.logger.type=MASTER_LOGGER\n"
@@ -162,8 +162,7 @@ public final class GetConfTest {
     // Prepare mock meta master client
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
-    List<ConfigProperty> configList = prepareConfigList();
-    Mockito.when(client.getConfiguration().getConfigsList()).thenReturn(configList);
+    Mockito.when(client.getConfiguration()).thenReturn(prepareGetConfigurationResponse());
     assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master",
         "--source"));
     // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
@@ -196,5 +195,11 @@ public final class GetConfTest {
             .setSource("SYSTEM_PROPERTY").build(),
         ConfigProperty.newBuilder().setName("alluxio.master.audit.logger.type")
             .setValue("MASTER_AUDIT_LOGGER").setSource("SYSTEM_PROPERTY").build());
+  }
+
+  private GetConfigurationPResponse prepareGetConfigurationResponse() {
+    return GetConfigurationPResponse.newBuilder()
+        .addAllConfigs(prepareConfigList())
+        .build();
   }
 }
