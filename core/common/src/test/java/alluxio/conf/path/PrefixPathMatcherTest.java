@@ -27,9 +27,18 @@ import java.util.Set;
  */
 public class PrefixPathMatcherTest {
   @Test
+  public void root() {
+    Set<String> paths = new HashSet<>();
+    paths.add("/");
+    PrefixPathMatcher matcher = new PrefixPathMatcher(paths);
+    checkMatch(matcher, "/", "/");
+    checkMatch(matcher, "/a", "/");
+    checkMatch(matcher, "/a/b", "/");
+  }
+
+  @Test
   public void match() {
     String[] paths = new String[]{
-        "/",
         "/a",
         "/a/b/",
         "/a/b/c",
@@ -38,20 +47,20 @@ public class PrefixPathMatcherTest {
     Set<String> pathSet = new HashSet<>();
     Collections.addAll(pathSet, paths);
     PrefixPathMatcher matcher = new PrefixPathMatcher(pathSet);
-    checkMatch(matcher, "/", "/");
-    checkMatch(matcher, "/a", "/a", "/");
-    checkMatch(matcher, "/a/", "/a", "/");
-    checkMatch(matcher, "/b", "/");
-    checkMatch(matcher, "/ab", "/");
-    checkMatch(matcher, "/a/bd", "/a", "/");
-    checkMatch(matcher, "/a/b", "/a/b/", "/a", "/");
-    checkMatch(matcher, "/a/b/", "/a/b/", "/a", "/");
-    checkMatch(matcher, "/a/b/d", "/a/b/", "/a", "/");
-    checkMatch(matcher, "/a/b/cd", "/a/b/", "/a", "/");
-    checkMatch(matcher, "/a/b/c", "/a/b/c", "/a/b/", "/a", "/");
-    checkMatch(matcher, "/a/b/c/d", "/a/b/c", "/a/b/", "/a", "/");
-    checkMatch(matcher, "/a/bc", "/a/bc", "/a", "/");
-    checkMatch(matcher, "/a/bc/d", "/a/bc", "/a", "/");
+    checkNoMatch(matcher, "/");
+    checkNoMatch(matcher, "/ab");
+    checkNoMatch(matcher, "/b");
+    checkMatch(matcher, "/a", "/a");
+    checkMatch(matcher, "/a/", "/a");
+    checkMatch(matcher, "/a/bd", "/a");
+    checkMatch(matcher, "/a/b", "/a/b/", "/a");
+    checkMatch(matcher, "/a/b/", "/a/b/", "/a");
+    checkMatch(matcher, "/a/b/d", "/a/b/", "/a");
+    checkMatch(matcher, "/a/b/cd", "/a/b/", "/a");
+    checkMatch(matcher, "/a/b/c", "/a/b/c", "/a/b/", "/a");
+    checkMatch(matcher, "/a/b/c/d", "/a/b/c", "/a/b/", "/a");
+    checkMatch(matcher, "/a/bc", "/a/bc", "/a");
+    checkMatch(matcher, "/a/bc/d", "/a/bc", "/a");
   }
 
   private void checkMatch(PrefixPathMatcher matcher, String path, String... expected) {
