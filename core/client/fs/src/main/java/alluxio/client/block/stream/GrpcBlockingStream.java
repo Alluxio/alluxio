@@ -285,7 +285,6 @@ public class GrpcBlockingStream<ReqT, ResT> {
         LOG.warn("Received error {} for stream ({})", t, mDescription);
         updateException(t);
         mReadyOrFailed.signal();
-        mClosedFromRemote = true;
       }
     }
 
