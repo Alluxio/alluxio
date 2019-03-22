@@ -171,7 +171,8 @@ public final class GetConf {
     if (cmd.hasOption(MASTER_OPTION_NAME)) {
       // load cluster-wide configuration
       try (RetryHandlingMetaMasterConfigClient client = clientSupplier.get()) {
-        client.getConfiguration().forEach(prop -> confMap.put(prop.getName(), prop));
+        client.getConfiguration().getConfigsList().forEach(
+            prop -> confMap.put(prop.getName(), prop));
       } catch (IOException e) {
         System.out.println("Unable to get master-side configuration: " + e.getMessage());
         return -1;

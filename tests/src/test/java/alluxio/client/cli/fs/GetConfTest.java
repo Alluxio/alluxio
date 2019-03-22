@@ -145,7 +145,7 @@ public final class GetConfTest {
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
     List<ConfigProperty> configList = prepareConfigList();
-    Mockito.when(client.getConfiguration()).thenReturn(configList);
+    Mockito.when(client.getConfiguration().getConfigsList()).thenReturn(configList);
 
     assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master"));
     String expectedOutput = "alluxio.logger.type=MASTER_LOGGER\n"
@@ -163,7 +163,7 @@ public final class GetConfTest {
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
     List<ConfigProperty> configList = prepareConfigList();
-    Mockito.when(client.getConfiguration()).thenReturn(configList);
+    Mockito.when(client.getConfiguration().getConfigsList()).thenReturn(configList);
     assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master",
         "--source"));
     // CHECKSTYLE.OFF: LineLengthExceed - Much more readable

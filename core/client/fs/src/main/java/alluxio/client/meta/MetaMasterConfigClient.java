@@ -11,21 +11,27 @@
 
 package alluxio.client.meta;
 
-import alluxio.grpc.ConfigProperty;
+import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetConfigurationPResponse;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Interface for a meta master config client.
  */
 public interface MetaMasterConfigClient extends Closeable {
+  /**
+   * @return the runtime configuration
+   */
+  GetConfigurationPResponse getConfiguration() throws IOException;
 
   /**
-   * Gets the runtime configuration information.
+   * Sets a property for a path.
    *
-   * @return a list of configuration information
+   * @param path the path
+   * @param key the property key
+   * @param value the property value
    */
-  List<ConfigProperty> getConfiguration() throws IOException;
+  void setPathConfiguration(String path, PropertyKey key, String value) throws IOException;
 }

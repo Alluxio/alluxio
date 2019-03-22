@@ -71,7 +71,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
     try (MetaMasterConfigClient client =
              new RetryHandlingMetaMasterConfigClient(MasterClientContext
                  .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
-      List<ConfigProperty> configList = client.getConfiguration();
+      List<ConfigProperty> configList = client.getConfiguration().getConfigsList();
       int configWebPort = -1;
       for (ConfigProperty info : configList) {
         if (info.getName().equals("alluxio.master.web.port")) {
