@@ -19,7 +19,7 @@
   </parent>
   <artifactId>alluxio-shaded-hdfs</artifactId>
   <packaging>jar</packaging>
-  <name>alluxio-shaded-hdfs</name>
+  <name>Alluxio Shaded HDFS</name>
   <version>${ufs.hadoop.version}</version>
   <description>Alluxio shaded hdfs</description>
 
