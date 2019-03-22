@@ -18,11 +18,11 @@ We'll also discuss more advanced topics and how to troubleshoot.
 
 ## Prerequisites
 
-- A Linux machine with Docker installed. To run Docker on Amazon Linux, check out the documentation [Docker Basics for Amazon ECS
+- A machine with Docker installed. To run Docker on Amazon Linux, check out the documentation [Docker Basics for Amazon ECS
 ](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html#install_docker).
 - Ports 19998, 19999, 29998, 29999, and 30000 are available
 
-If you don't have access to a Linux machine with Docker installed, you can
+If you don't have access to a machine with Docker installed, you can
 provision a t2.small EC2 machine (costs about $0.03/hour) to follow along with
 the tutorial. When provisioning the instance, set the security group so that
 port `19999` is open to your IP address. This will let you view the Alluxio web
@@ -39,22 +39,35 @@ sudo usermod -a -G docker $(id -u -n)
 exit
 ```
 
+## Prepare network and UFS volume
+
+Create a network for connecting Alluxio containers, and create a volume for storing ufs data.
+
+```bash
+docker network create alluxio_nw
+docker volume create ufs
+```
+
 ## Launch Alluxio
 
-These commands use the host machine's `/mnt/data` directory as the under storage for Alluxio.
 The `--shm-size=1G` argument will allocate a `1G` tmpfs for the worker to store Alluxio data.
 
 ```bash
 # Launch the Alluxio master
-docker run -d --net=host \
-    -v /mnt/data:/opt/alluxio/underFSStorage \
-    alluxio/alluxio master
+docker run -d \
+           -p 19999:19999 \
+           --net=alluxio_nw \
+           --name=alluxio_master \
+           -v ufs:/opt/alluxio/underFSStorage \
+           alluxio/alluxio master
 # Launch the Alluxio worker
-docker run -d --net=host \
-    --shm-size=1G -e ALLUXIO_WORKER_MEMORY_SIZE=1G \
-    -v /mnt/data:/opt/alluxio/underFSStorage \
-    -e ALLUXIO_MASTER_HOSTNAME=localhost \
-    alluxio/alluxio worker
+docker run -d \
+           --net=alluxio_nw \
+           --name=alluxio_worker \
+           --shm-size=1G -e ALLUXIO_WORKER_MEMORY_SIZE=1G \
+           -v ufs:/opt/alluxio/underFSStorage \
+           -e ALLUXIO_MASTER_HOSTNAME=alluxio_master \
+           alluxio/alluxio worker
 ```
 
 ## Verify the Cluster
@@ -62,9 +75,9 @@ docker run -d --net=host \
 To verify that the services came up, check `docker ps`. You should see something like
 ```bash
 docker ps
-CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
-ef2f3b5be1a3        alluxio:1.8.0       "/entrypoint.sh work…"   6 days ago          Up 6 days                               dazzling_lichterman
-8e3c31ed62cc        alluxio:1.8.0       "/entrypoint.sh mast…"   6 days ago          Up 6 days                               eloquent_clarke
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                      NAMES
+1fef7c714d25        alluxio/alluxio     "/entrypoint.sh work…"   39 seconds ago      Up 38 seconds                                  alluxio_worker
+27f92f702ac2        alluxio/alluxio     "/entrypoint.sh mast…"   44 seconds ago      Up 43 seconds       0.0.0.0:19999->19999/tcp   alluxio_master
 ```
 
 If you don't see the containers, run `docker logs` on their container ids to see what happened.
@@ -122,20 +135,20 @@ and set their Zookeeper configuration.
 
 ```bash
 docker run -d --net=host \
-             ...
-             -e ALLUXIO_MASTER_JOURNAL_FOLDER=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
-             -e ALLUXIO_ZOOKEEPER_ENABLED=true -e ALLUXIO_ZOOKEEPER_ADDRESS=zkhost1:2181,zkhost2:2181,zkhost3:2181 \
-             alluxio master
+           ...
+           -e ALLUXIO_MASTER_JOURNAL_FOLDER=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
+           -e ALLUXIO_ZOOKEEPER_ENABLED=true -e ALLUXIO_ZOOKEEPER_ADDRESS=zkhost1:2181,zkhost2:2181,zkhost3:2181 \
+           alluxio master
 ```
 
 Set the same Zookeeper configuration for workers so that they can query Zookeeper
 to discover the current leader.
 
 ```bash
-docker run -d --net=host \
-             ...
-             -e ALLUXIO_ZOOKEEPER_ENABLED=true -e ALLUXIO_ZOOKEEPER_ADDRESS=zkhost1:2181,zkhost2:2181,zkhost3:2181 \
-             alluxio worker
+docker run -d \
+           ...
+           -e ALLUXIO_ZOOKEEPER_ENABLED=true -e ALLUXIO_ZOOKEEPER_ADDRESS=zkhost1:2181,zkhost2:2181,zkhost3:2181 \
+           alluxio worker
 ```
 
 ### Enable short-circuit reads and writes
@@ -158,12 +171,12 @@ to share the domain socket directory. Also set domain socket properties by passi
 `-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true` when launching worker containers.
 
 ```bash
-docker run -d --net=host \
-             ...
-             -v /tmp/domain:/opt/domain \
-             -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain \
-             -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true \
-             alluxio worker
+docker run -d \
+           ...
+           -v /tmp/domain:/opt/domain \
+           -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain \
+           -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true \
+           alluxio worker
 ```
 
 ### Relaunch Alluxio Servers
