@@ -29,11 +29,13 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 
-import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
@@ -3582,6 +3584,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
+  // Deprecated keys - slated for removal
+  /**
+   * @deprecated This key is used for testing. It is always deprecated.
+   */
+  @Deprecated
+  @DeprecatedKey(message = "This key is used only for testing. It is always deprecated")
+
+  public static final PropertyKey TEST_DEPRECATED_KEY =
+      new Builder("alluxio.test.deprecated.key")
+          .build();
+
+  // Removed keys - never use these. They will throw an exception during validation
+  // Deprecated keys - slated for removal
+  @DeprecatedKey(message = "This key is used only for testing. It is always deprecated",
+      state = KeyState.REMOVED)
+  public static final PropertyKey TEST_REMOVED_KEY =
+      new Builder("alluxio.test.removed.key")
+          .build();
+
   /**
    * @param fullyQualifiedClassname a fully qualified classname
    * @return html linking the text of the classname to the alluxio javadoc for the class
@@ -4353,6 +4374,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO(
         "alluxio.worker.tieredstore.level%d.watermark.low.ratio",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.low\\.ratio"),
+
+    @DeprecatedKey(message = "testDeprecatedMsg", state = KeyState.REMOVED)
+    TEST_DEPRECATED_TEMPLATE(
+        "alluxio.test.%s.format.deprecated.template",
+        "alluxio\\.test\\.(\\w+)\\.format\\.deprecated\\.template"),
     ;
 
     // puts property creators in a nested class to avoid NPE in enum static initialization
@@ -4757,24 +4783,188 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     return mDisplayType;
   }
 
+  private static final Map<PropertyKey, DeprecatedKey> DEPRECATED_KEYS =
+      populateAnnotatedKeyMap(PropertyKey.class);
+  private static final Map<Template, DeprecatedKey> DEPRECATED_TEMPLATES =
+      populateAnnotatedKeyMap(Template.class);
+
+  private static <T, K> Map<T, DeprecatedKey> populateAnnotatedKeyMap(Class<T> clazz) {
+    Map<T, DeprecatedKey> annotations = new HashMap<>();
+    for (Field field : clazz.getDeclaredFields()) {
+      if (!field.getType().equals(clazz)) {
+        continue;
+      }
+      // We want to support the javax.lang.Deprecated annotation, but it would be useful to
+      // also provide deprecated/removal messages with each key, so we check for both.
+      // Only one (Deprecated vs DeprecatedKey) needs to be specified.
+      Deprecated deprecated = field.getAnnotation(Deprecated.class);
+      DeprecatedKey deprecatedKey = field.getAnnotation(DeprecatedKey.class);
+
+      try {
+        // Field#get parameter can be null if retrieving a static field (all PKs are static)
+        // See https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Field.html
+        // This also works with Template enums
+        T key = clazz.cast(field.get(null));
+        if (deprecatedKey != null) {
+          annotations.put(key, deprecatedKey);
+        } else if (deprecated != null) {
+          // Exists in the map, but we can't derive a message/state
+          // The assumption is that if it exists within this map, it is deprecated.
+          annotations.put(key, null);
+        }
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return annotations;
+  }
+
   /**
-   * @param name the name of a property key
+   * Returns whether or not the given property key is deprecated or completely removed.
+   *
+   * It first checks if the specific key is deprecated, otherwise it will fall back to checking
+   * if the key's name matches any of the PropertyKey templates. If no keys or templates match, it
+   * will return false. If the key is marked with {@link DeprecatedKey} this will return true
+   * regardless of the key state.
+   *
+   * @param key the property key to check
    * @return if this property key is deprecated
    */
-  public static boolean isDeprecated(String name) {
-    try {
-      PropertyKey key = new PropertyKey(name);
-      Class c = key.getClass();
-      Field field = c.getDeclaredField(name);
-      Annotation[] annotations = field.getDeclaredAnnotations();
-      for (Annotation anno : annotations) {
-        if (anno instanceof Deprecated) {
+  public static boolean isDeprecated(PropertyKey key) {
+    if (DEPRECATED_KEYS.containsKey(key)) {
+      return true;
+    } else {
+      for (Map.Entry<Template, DeprecatedKey> e : DEPRECATED_TEMPLATES.entrySet()) {
+        Matcher match = e.getKey().match(key.getName());
+        if (match.matches()) {
           return true;
         }
       }
-      return false;
-    } catch (NoSuchFieldException e) {
-      return false;
     }
+    return false;
+  }
+
+  /**
+   * @param name the property key to check
+   * @return if this property key is deprecated
+   */
+  public static boolean isDeprecated(String name) {
+    return isDeprecated(new PropertyKey(name));
+  }
+
+  /**
+   * @param key the property key to check
+   * @return if this property key is removed
+   */
+  public static boolean isRemoved(PropertyKey key) {
+    if (isDeprecated(key)) {
+      DeprecatedKey annotation = getAnnotation(key);
+      if (annotation != null) {
+        return annotation.state() == KeyState.REMOVED;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * @param key the property key to check
+   * @return if this property key is removed
+   */
+  public static String getDeprecationMessage(PropertyKey key) {
+    if (isDeprecated(key)) {
+      DeprecatedKey annotation = getAnnotation(key);
+      if (annotation != null) {
+        return annotation.message();
+      }
+    }
+    return "";
+  }
+
+  /**
+   * Returns the annotation that describes a deprecated key.
+   *
+   * Due to support for the {@link java.lang.Deprecated} annotation, this method will return null
+   * in the case that a PropertyKey is marked with {@link java.lang.Deprecated}. It is
+   * recommended to use {@link alluxio.conf.PropertyKey.DeprecatedKey} to mark keys as deprecated.
+   * Using {@link alluxio.conf.PropertyKey.DeprecatedKey} is preferred because it gives us more
+   * information about deprecation and removal of they key which can be propagated to the user.
+   * The a null return value of this method is not enough to determine if a key is deprecated.
+   *
+   * @param key The deprecated PropertyKey
+   * @return The annotation object describing the deprecation, null if marked with
+   * {@link java.lang.Deprecated} or not annotated at all.
+   */
+  private static DeprecatedKey getAnnotation(PropertyKey key) {
+    if (DEPRECATED_KEYS.containsKey(key)) {
+      return DEPRECATED_KEYS.get(key);
+    } else {
+      for (Map.Entry<Template, DeprecatedKey> e : DEPRECATED_TEMPLATES.entrySet()) {
+        Matcher match = e.getKey().match(key.getName());
+        if (match.matches()) {
+          return e.getValue();
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * An annotation for PropertyKeys that can be used to mark a key as deprecated (slated for
+   * removal) or removed. If the key is in the {@link KeyState.DEPRECATED} then this annotation
+   * should trigger log warning messages upon configuration validation. Otherwise if the state is
+   * {@link KeyState.REMOVED} then an exception should be thrown. It also allows the programmer to
+   * provide a descriptive message to users on what alternatives may be available.
+   *
+   * This annotation is provided as an alternative to {@link java.lang.Deprecated}. Both
+   * annotations do not need to be specified on a key. The advantage of using this annotation is
+   * that we can supply a custom message rather than simply telling the user "This key has been
+   * deprecated".
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface DeprecatedKey {
+    /**
+     * A message to the user which could suggest an alternative key.
+     *
+     * The message should not mention anything about deprecation, but rather alternatives,
+     * side-effects, and/or the time-frame for removal of the key.
+     *
+     * An example may be:
+     *
+     * "This key is slated for removal in v2.0. An equivalent configuration property is
+     * alluxio.x.y.z."
+     *
+     * or
+     *
+     * "This key is slated for removal in v3.0. Afterwards, this value will no longer be
+     * configurable"
+     *
+     * @return A string explaining deprecation or removal
+     */
+    String message() default "";
+
+    /**
+     * The state of deprecation of the annotated object.
+     *
+     * If a user uses a field marked as REMOVED then the behavior of such key will be undefined
+     * and may result in unintended consequences. Otherwise a key marked as DEPRECATED should
+     * avoid being used at any cost as it will be transitioned to REMOVED in the near future.
+     *
+     * @return
+     */
+    KeyState state() default KeyState.DEPRECATED;
+  }
+
+  /**
+   * The state of a key if marked with {@link DeprecatedKey}
+   *
+   * REMOVED indicates the key should never be used in code and is only present to warn and error
+   * on the erroneous use of the key.
+   *
+   * DEPRECATED means the key should be used with care and the user should be warned about using
+   * the deprecated key.
+   */
+  public enum KeyState {
+    DEPRECATED,
+    REMOVED,
   }
 }

@@ -230,7 +230,7 @@ public final class PropertyKeyTest {
 
   @Test
   public void isDeprecated() throws Exception {
-    assertFalse(PropertyKey.isDeprecated("VERSION"));
+    assertFalse(PropertyKey.isDeprecated("alluxio.version"));
   }
 
   @Test
@@ -294,5 +294,15 @@ public final class PropertyKeyTest {
           "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()),
           key.getDefaultValue(), "");
     }
+  }
+
+  @Test
+  public void testKeyIsDeprecatedOrRemoved() throws Exception {
+    assertTrue(PropertyKey.isDeprecated(PropertyKey.TEST_DEPRECATED_KEY.getName()));
+    assertTrue(PropertyKey.isDeprecated(PropertyKey.TEST_DEPRECATED_KEY));
+
+    assertTrue(PropertyKey.isRemoved(PropertyKey.TEST_REMOVED_KEY));
+    assertTrue(PropertyKey.isDeprecated(Template.TEST_DEPRECATED_TEMPLATE.format("removed")));
+    assertTrue(PropertyKey.isRemoved(Template.TEST_DEPRECATED_TEMPLATE.format("removed")));
   }
 }

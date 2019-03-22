@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -347,6 +348,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     if (!getBoolean(PropertyKey.CONF_VALIDATION_ENABLED)) {
       return;
     }
+    List<String> removalMessages = new ArrayList<>();
     for (PropertyKey key : keySet()) {
       Preconditions.checkState(
           getSource(key).getType() != Source.Type.SITE_PROPERTY || !key.isIgnoredSiteProperty(),
@@ -354,7 +356,25 @@ public class InstancedConfiguration implements AlluxioConfiguration {
               + "and must be specified as a JVM property. "
               + "If no JVM property is present, Alluxio will use default value '%s'.",
           key.getName(), key.getDefaultValue());
+
+      if (PropertyKey.isDeprecated(key)) {
+        if (PropertyKey.isRemoved(key)) {
+          String errorMsg = String.format("%s is no longer a valid property. %s", key.getName(),
+              PropertyKey.getDeprecationMessage(key));
+          removalMessages.add(errorMsg);
+          LOG.error(errorMsg);
+        } else {
+          LOG.warn("%s is deprecated. Please avoid using this key in the future. %s",
+              key.getName(), PropertyKey.getDeprecationMessage(key));
+        }
+      }
     }
+
+    if (removalMessages.size() > 0) {
+      String msg = removalMessages.stream().reduce((m1, m2) -> m1 + "\n" + m2).get();
+      throw new RuntimeException(msg);
+    }
+
     checkTimeouts();
     checkWorkerPorts();
     checkUserFileBufferBytes();
