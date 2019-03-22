@@ -27,6 +27,14 @@ import java.util.Set;
  */
 public class PrefixPathMatcherTest {
   @Test
+  public void empty() {
+    PrefixPathMatcher matcher = new PrefixPathMatcher(Collections.emptySet());
+    checkNoMatch(matcher, "/");
+    checkNoMatch(matcher, "/a");
+    checkNoMatch(matcher, "/a/bc");
+  }
+
+  @Test
   public void root() {
     Set<String> paths = new HashSet<>();
     paths.add("/");
