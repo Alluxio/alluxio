@@ -14,10 +14,6 @@ package alluxio.client.meta;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.ClientContext;
-import alluxio.client.MetaMasterClient;
-import alluxio.client.MetaMasterConfigClient;
-import alluxio.client.RetryHandlingMetaMasterClient;
-import alluxio.client.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.MasterInfo;

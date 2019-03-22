@@ -19,7 +19,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.SystemOutRule;
 import alluxio.SystemPropertyRule;
 import alluxio.cli.GetConf;
-import alluxio.client.RetryHandlingMetaMasterConfigClient;
+import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.grpc.ConfigProperty;
 
 import com.google.common.collect.ImmutableMap;

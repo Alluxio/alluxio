@@ -11,7 +11,7 @@
 
 package alluxio.cli.fsadmin.doctor;
 
-import alluxio.client.MetaMasterClient;
+import alluxio.client.meta.MetaMasterClient;
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
 import alluxio.wire.ConfigCheckReport;
