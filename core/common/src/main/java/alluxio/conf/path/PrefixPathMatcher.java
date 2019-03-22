@@ -25,9 +25,9 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Patterns to be matched against are paths, a path matches a pattern if it is the same as the
- * pattern or in the subtree of the pattern.
+ * A {@link PathMatcher} to match a path against a set of paths.
  *
+ * Path a matches path b if a is the same as b or a is in the subtree of b.
  * For example:
  * /a/b/c matches /a/b, but
  * /a/bc does not match /a/b because although /a/b is a prefix of /a/bc, /a/bc is not
@@ -36,20 +36,20 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class PrefixPathMatcher implements PathMatcher {
   /**
-   * Root of the trie for path patterns.
+   * Root of the trie for paths.
    */
   private final TrieNode mTrie = new TrieNode();
   /**
-   * A map from terminal trie node to the corresponding path pattern.
+   * A map from terminal trie node to the corresponding path.
    */
   private final Map<TrieNode, String> mPaths = new HashMap<>();
 
   /**
    * Builds internal trie based on paths.
    *
-   * Each path pattern must start with "/".
+   * Each path must start with "/".
    *
-   * @param paths the list of path patterns
+   * @param paths the list of path
    */
   public PrefixPathMatcher(Set<String> paths) {
     for (String path : paths) {
@@ -66,14 +66,13 @@ public final class PrefixPathMatcher implements PathMatcher {
     if (nodes.isEmpty()) {
       return Optional.empty();
     }
-    List<String> matchedPatterns = new ArrayList<>();
+    List<String> matchedPaths = new ArrayList<>();
     for (int i = nodes.size() - 1; i >= 0; i--) {
       TrieNode node = nodes.get(i);
       if (mPaths.containsKey(node)) {
-        String pattern = mPaths.get(node);
-        matchedPatterns.add(pattern);
+        matchedPaths.add(mPaths.get(node));
       }
     }
-    return Optional.of(matchedPatterns);
+    return Optional.of(matchedPaths);
   }
 }
