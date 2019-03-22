@@ -78,7 +78,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
   private final ReentrantLock mLock = new ReentrantLock();
 
-  protected alluxio.security.authentication.AuthenticatedUserInfo mUserInfo;
+  protected AuthenticatedUserInfo mUserInfo;
 
   /**
    * This is only created in the gRPC event thread when a read request is received.

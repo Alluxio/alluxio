@@ -11,15 +11,16 @@
 
 package alluxio.security.authentication;
 
-import javax.security.sasl.SaslServer;
 import java.util.UUID;
+
+import javax.security.sasl.SaslServer;
 
 /**
  * Interface for authentication scheme specific {@link SaslServer} management.
  */
 public interface SaslServerHandler {
   /**
-   * Callback that will receive the authentication completion.
+   * Callback that will be called when authentication complete.
    *
    * @param channelId channel that has been authenticated
    * @param authenticationServer authentication server instance

@@ -84,7 +84,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     if (clazz == JobMaster.class) {
       return (T) mJobMaster;
     } else {
-      throw new RuntimeException(String.format("Could not found the master: %s", clazz));
+      throw new RuntimeException(String.format("Could not find the master: %s", clazz));
     }
   }
 

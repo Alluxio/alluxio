@@ -78,7 +78,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    */
   private volatile T mContext;
 
-  protected alluxio.security.authentication.AuthenticatedUserInfo mUserInfo;
+  protected AuthenticatedUserInfo mUserInfo;
 
   /**
    * Creates an instance of {@link AbstractWriteHandler}.

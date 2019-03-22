@@ -11,9 +11,9 @@
 
 package alluxio.grpc;
 
-import alluxio.security.authentication.AuthenticatedUserInjector;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.security.authentication.AuthenticatedUserInjector;
 import alluxio.security.authentication.AuthenticationServer;
 import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.util.SecurityUtils;

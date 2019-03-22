@@ -84,10 +84,6 @@ public abstract class WebServer {
 
     System.setProperty("org.apache.jasper.compiler.disablejsr199", "false");
 
-    // Set the ContainerIncludeJarPattern so that jetty examines these
-    // container-path jars for tlds, web-fragments etc.
-    // If you omit the jar that contains the jstl .tlds, the jsp engine will
-    // scan for them instead.
     mServletContextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
     mServletContextHandler.setContextPath(AlluxioURI.SEPARATOR);
 

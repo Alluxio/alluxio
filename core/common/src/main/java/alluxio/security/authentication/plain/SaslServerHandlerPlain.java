@@ -13,18 +13,19 @@ package alluxio.security.authentication.plain;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.security.authentication.AuthenticationServer;
+import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.SaslServerHandler;
+
+import java.security.Security;
+import java.util.HashMap;
+import java.util.UUID;
 
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
-import java.security.Security;
-import java.util.HashMap;
-import java.util.UUID;
 
 /**
  * {@link SaslServerHandler} implementation for Plain/Custom schemes.

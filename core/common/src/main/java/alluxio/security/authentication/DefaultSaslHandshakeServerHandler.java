@@ -21,7 +21,7 @@ import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 
 /**
- * Implementation of {@link DefaultSaslHandshakeServerHandler}.
+ * Default implementation of {@link DefaultSaslHandshakeServerHandler}.
  */
 public class DefaultSaslHandshakeServerHandler implements SaslHandshakeServerHandler {
   /** SaslClientHandler that will be used be used for handshake. */

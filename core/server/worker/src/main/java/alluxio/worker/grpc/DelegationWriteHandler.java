@@ -30,7 +30,7 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
   private final WorkerProcess mWorkerProcess;
   private final DataMessageMarshaller<WriteRequest> mMarshaller;
   private AbstractWriteHandler mWriteHandler;
-  private alluxio.security.authentication.AuthenticatedUserInfo mUserInfo;
+  private AuthenticatedUserInfo mUserInfo;
 
   /**
    * @param workerProcess the worker process instance

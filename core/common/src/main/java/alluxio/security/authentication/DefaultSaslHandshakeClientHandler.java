@@ -22,7 +22,7 @@ import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 
 /**
- * Implementation of {@link SaslHandshakeClientHandler}.
+ * Default implementation of {@link SaslHandshakeClientHandler}.
  */
 public class DefaultSaslHandshakeClientHandler implements SaslHandshakeClientHandler {
   /** Initial challenge for client to start Sasl session. */
