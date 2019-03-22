@@ -21,6 +21,9 @@ import java.util.Map;
  */
 public final class TrieNode {
   private Map<String, TrieNode> mChildren = new HashMap<>();
+  /**
+   * A node is terminal if it is the last visited node when inserting a path.
+   */
   private boolean mIsTerminal = false;
 
   /**
@@ -46,9 +49,6 @@ public final class TrieNode {
 
   /**
    * Traverses the trie along the path components until the traversal cannot proceed any more.
-   *
-   * Returns a list of visited terminal node, a node is terminal if it is the last visited
-   * node of an inserted path.
    *
    * @param path the target path
    * @return the terminal nodes sorted by the time they are visited

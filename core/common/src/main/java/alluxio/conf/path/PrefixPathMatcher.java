@@ -25,7 +25,8 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Matched patterns are prefixes of a path, the path must be in the subtree of the prefixes.
+ * Patterns to be matched against are paths, a path matches a pattern if it is the same as the
+ * pattern or in the subtree of the pattern.
  *
  * For example:
  * /a/b/c matches /a/b, but

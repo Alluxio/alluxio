@@ -57,6 +57,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.BiFunction;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -525,7 +526,15 @@ public final class ConfigurationUtils {
     }
   }
 
-  private static Properties toProperties(List<ConfigProperty> properties) {
+  /**
+   * Loads client scope properties from the property list returned by grpc.
+   *
+   * @param properties the property list returned by grpc
+   * @param logMessage a function with key and value as parameter and returns debug log message
+   * @return the loaded properties
+   */
+  private static Properties loadClientProperties(List<ConfigProperty> properties,
+      BiFunction<PropertyKey, String, String> logMessage) {
     Properties props = new Properties();
     for (ConfigProperty property : properties) {
       String name = property.getName();
@@ -538,7 +547,7 @@ public final class ConfigurationUtils {
         }
         String value = property.getValue();
         props.put(key, value);
-        LOG.debug("Loading property: {} ({}) -> {}", key, key.getScope(), value);
+        LOG.debug(logMessage.apply(key, value));
       }
     }
     return props;
@@ -554,11 +563,13 @@ public final class ConfigurationUtils {
    */
   private static AlluxioConfiguration loadClusterConfiguration(GetConfigurationPResponse response,
       AlluxioConfiguration conf) {
-    List<alluxio.grpc.ConfigProperty> clusterConfig = response.getConfigsList();
-    LOG.info("Alluxio client (version {}) is trying to load cluster level configurations");
-    Properties clusterProps = toProperties(clusterConfig);
-    // Check version.
     String clientVersion = conf.get(PropertyKey.VERSION);
+    LOG.info("Alluxio client (version {}) is trying to load cluster level configurations",
+        clientVersion);
+    List<alluxio.grpc.ConfigProperty> clusterConfig = response.getConfigsList();
+    Properties clusterProps = loadClientProperties(clusterConfig, (key, value) ->
+        String.format("Loading property: %s (%s) -> %s", key, key.getScope(), value));
+    // Check version.
     String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
     if (!clientVersion.equals(clusterVersion)) {
       LOG.warn("Alluxio client version ({}) does not match Alluxio cluster version ({})",
@@ -581,16 +592,24 @@ public final class ConfigurationUtils {
    * Only client scope properties will be loaded.
    *
    * @param response the get configuration RPC response
+   * @param clusterConf cluster level configuration
    * @return the loaded path level configuration
    */
-  private static PathConfiguration loadPathConfiguration(GetConfigurationPResponse response) {
+  private static PathConfiguration loadPathConfiguration(GetConfigurationPResponse response,
+      AlluxioConfiguration clusterConf) {
+    String clientVersion = clusterConf.get(PropertyKey.VERSION);
+    LOG.info("Alluxio client (version {}) is trying to load path level configurations",
+        clientVersion);
     Map<String, AlluxioConfiguration> pathConfs = new HashMap<>();
     response.getPathConfigsMap().forEach((path, conf) -> {
-      Properties props = toProperties(conf.getPropertiesList());
+      Properties props = loadClientProperties(conf.getPropertiesList(),
+          (key, value) -> String.format("Loading property: %s (%s) -> %s for path %s",
+              key, key.getScope(), value, path));
       AlluxioProperties properties = new AlluxioProperties();
       properties.merge(props, Source.PATH_DEFAULT);
       pathConfs.put(path, new InstancedConfiguration(properties, true));
     });
+    LOG.info("Alluxio client has loaded path level configurations");
     return new PrefixPathConfiguration(pathConfs);
   }
 
@@ -639,7 +658,7 @@ public final class ConfigurationUtils {
     if (shouldLoadClusterConfiguration(clusterConf)) {
       GetConfigurationPResponse response = loadConfiguration(address, clusterConf);
       clusterConf = loadClusterConfiguration(response, clusterConf);
-      pathConf = loadPathConfiguration(response);
+      pathConf = loadPathConfiguration(response, clusterConf);
     }
     return new Pair<>(clusterConf, pathConf);
   }
