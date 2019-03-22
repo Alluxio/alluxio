@@ -219,9 +219,10 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   @Override
   public void close() {
     Closer closer = Closer.create();
+    // Close the backing store last so that cache eviction threads don't hit errors.
+    closer.register(mBackingStore);
     closer.register(mInodeCache);
     closer.register(mEdgeCache);
-    closer.register(mBackingStore);
     try {
       closer.close();
     } catch (IOException e) {
