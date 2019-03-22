@@ -20,11 +20,11 @@
   <artifactId>alluxio-shaded-hdfs</artifactId>
   <packaging>jar</packaging>
   <name>alluxio-shaded-hdfs</name>
-  <version>${ufs.hadoop.version}-2.0.0-SNAPSHOT</version>
+  <version>${ufs.hadoop.version}</version>
   <description>Alluxio shaded hdfs</description>
 
   <properties>
-    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- The build path need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.basedir}/build</build.path>
     <ufs.hadoop.version>2.2.0</ufs.hadoop.version>
