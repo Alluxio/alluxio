@@ -54,7 +54,7 @@
     <groupId>com.google.guava</groupId>
     <artifactId>guava</artifactId>
     <version>14.0.1</version>
-  </dependency>
+    </dependency>
   </dependencies>
 
   <profiles>
@@ -69,21 +69,6 @@
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.igormaznitsa</groupId>
-            <artifactId>jcp</artifactId>
-            <configuration>
-              <globalVars>
-                <property>
-                  <name>HADOOP1</name>
-                </property>
-              </globalVars>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
 
     <!-- Profile to build this UFS module connecting to hdfs 2, this is the default profile -->
@@ -128,6 +113,13 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+        <skip>true</skip>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
