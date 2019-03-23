@@ -142,22 +142,22 @@ public final class MiniBenchmark {
         switch (sType) {
           case READ:
             executorService.submit(() -> {
-                try {
-                  readFile(barrier, runtime, count.addAndGet(1), alluxioConf);
-                } catch (Exception e) {
-                  LOG.error("Failed to read file.", e);
-                  System.exit(-1);
-                }
+              try {
+                readFile(barrier, runtime, count.addAndGet(1), alluxioConf);
+              } catch (Exception e) {
+                LOG.error("Failed to read file.", e);
+                System.exit(-1);
+              }
             });
             break;
           case WRITE:
             executorService.submit(() -> {
-                try {
-                  writeFile(barrier, runtime, count.addAndGet(1), alluxioConf);
-                } catch (Exception e) {
-                  LOG.error("Failed to write file.", e);
-                  System.exit(-1);
-                }
+              try {
+                writeFile(barrier, runtime, count.addAndGet(1), alluxioConf);
+              } catch (Exception e) {
+                LOG.error("Failed to write file.", e);
+                System.exit(-1);
+              }
             });
             break;
           default:
