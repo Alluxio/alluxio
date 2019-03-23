@@ -22,6 +22,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.wire.Configuration;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -145,7 +146,8 @@ public final class GetConfTest {
     // Prepare mock meta master client
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
-    Mockito.when(client.getConfiguration()).thenReturn(prepareGetConfigurationResponse());
+    Mockito.when(client.getConfiguration()).thenReturn(
+        Configuration.fromProto(prepareGetConfigurationResponse()));
 
     assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master"));
     String expectedOutput = "alluxio.logger.type=MASTER_LOGGER\n"
@@ -162,7 +164,8 @@ public final class GetConfTest {
     // Prepare mock meta master client
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
-    Mockito.when(client.getConfiguration()).thenReturn(prepareGetConfigurationResponse());
+    Mockito.when(client.getConfiguration()).thenReturn(Configuration.fromProto(
+        prepareGetConfigurationResponse()));
     assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master",
         "--source"));
     // CHECKSTYLE.OFF: LineLengthExceed - Much more readable

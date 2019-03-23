@@ -15,12 +15,12 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.wire.Property;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -71,9 +71,9 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
     try (MetaMasterConfigClient client =
              new RetryHandlingMetaMasterConfigClient(MasterClientContext
                  .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
-      List<ConfigProperty> configList = client.getConfiguration().getConfigsList();
+      List<Property> configList = client.getConfiguration().getClusterConf();
       int configWebPort = -1;
-      for (ConfigProperty info : configList) {
+      for (Property info : configList) {
         if (info.getName().equals("alluxio.master.web.port")) {
           configWebPort = Integer.valueOf(info.getValue());
         }

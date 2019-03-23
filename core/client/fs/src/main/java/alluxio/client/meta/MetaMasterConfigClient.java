@@ -12,7 +12,7 @@
 package alluxio.client.meta;
 
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.wire.Configuration;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -24,7 +24,7 @@ public interface MetaMasterConfigClient extends Closeable {
   /**
    * @return the runtime configuration
    */
-  GetConfigurationPResponse getConfiguration() throws IOException;
+  Configuration getConfiguration() throws IOException;
 
   /**
    * Sets a property for a path.

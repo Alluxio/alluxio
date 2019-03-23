@@ -15,11 +15,11 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.master.MasterClientContext;
+import alluxio.wire.Configuration;
 
 import java.io.IOException;
 
@@ -64,8 +64,9 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   }
 
   @Override
-  public GetConfigurationPResponse getConfiguration() throws IOException {
-    return retryRPC(() -> mClient.getConfiguration(GetConfigurationPOptions.getDefaultInstance()));
+  public Configuration getConfiguration() throws IOException {
+    return Configuration.fromProto(retryRPC(() ->
+        mClient.getConfiguration(GetConfigurationPOptions.getDefaultInstance())));
   }
 
   @Override
