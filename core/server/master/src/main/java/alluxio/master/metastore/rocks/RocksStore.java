@@ -11,6 +11,7 @@
 
 package alluxio.master.metastore.rocks;
 
+import alluxio.Constants;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
@@ -37,14 +38,18 @@ import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Class for managing a rocksdb database. This class handles common functionality such as
  * initializing the database and performing database backup/restore.
+ *
+ * Thread safety is achieved by synchronizing all public methods.
  */
+@ThreadSafe
 public final class RocksStore implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(RocksStore.class);
 
@@ -54,21 +59,25 @@ public final class RocksStore implements Closeable {
   private final DBOptions mDbOpts;
 
   private RocksDB mDb;
-  /** Map from column name to column handle. */
-  private Map<String, ColumnFamilyHandle> mColumnFamilyHandles;
+  // When we create the database, we must set these handles.
+  private List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
 
   /**
    * @param dbPath a path for the rocks database
    * @param backupPath a path for taking database backups
    * @param columnFamilyDescriptors columns to create within the rocks database
    * @param dbOpts db options
+   * @param columnHandles column handle references to populate
    */
   public RocksStore(String dbPath, String backupPath,
-      Collection<ColumnFamilyDescriptor> columnFamilyDescriptors, DBOptions dbOpts) {
+      Collection<ColumnFamilyDescriptor> columnFamilyDescriptors, DBOptions dbOpts,
+      List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
+    Preconditions.checkState(columnFamilyDescriptors.size() == columnHandles.size());
     mDbPath = dbPath;
     mDbBackupPath = backupPath;
     mColumnFamilyDescriptors = columnFamilyDescriptors;
     mDbOpts = dbOpts;
+    mColumnHandles = columnHandles;
     new File(mDbBackupPath).mkdirs();
     try {
       resetDb();
@@ -86,15 +95,6 @@ public final class RocksStore implements Closeable {
   }
 
   /**
-   * @param columnName a column name
-   * @return the column family handle for the given name. The columns change when clear() is called,
-   *         so if the caller caches the returned column, they must reset it after calling clear()
-   */
-  public synchronized ColumnFamilyHandle getColumn(String columnName) {
-    return mColumnFamilyHandles.get(columnName);
-  }
-
-  /**
    * Clears and re-initializes the database.
    */
   public synchronized void clear() {
@@ -105,22 +105,24 @@ public final class RocksStore implements Closeable {
     }
   }
 
-  private synchronized void resetDb() throws RocksDBException {
+  private void resetDb() throws RocksDBException {
     stopDb();
     formatDbDirs();
     createDb();
   }
 
-  private synchronized void stopDb() {
+  private void stopDb() {
     if (mDb != null) {
       try {
         // Column handles must be closed before closing the db, or an exception gets thrown.
-        mColumnFamilyHandles.values().forEach(handle -> handle.close());
+        mColumnHandles.forEach(handle -> {
+          handle.get().close();
+          handle.set(null);
+        });
         mDb.close();
       } catch (Throwable t) {
         LOG.error("Failed to close rocks database", t);
       }
-      mColumnFamilyHandles = null;
       mDb = null;
     }
   }
@@ -143,9 +145,9 @@ public final class RocksStore implements Closeable {
     // a list which will hold the handles for the column families once the db is opened
     List<ColumnFamilyHandle> columns = new ArrayList<>();
     mDb = RocksDB.open(mDbOpts, mDbPath, cfDescriptors, columns);
-    mColumnFamilyHandles = new HashMap<>();
-    for (ColumnFamilyHandle column : columns) {
-      mColumnFamilyHandles.put(new String(column.getName()), column);
+    for (int i = 0; i < columns.size() - 1; i++) {
+      // Skip the default column.
+      mColumnHandles.get(i).set(columns.get(i+1));
     }
     LOG.info("Opened rocks database under path {}", mDbPath);
   }
@@ -198,7 +200,8 @@ public final class RocksStore implements Closeable {
     } catch (RocksDBException e) {
       throw new IOException(e);
     }
-    LOG.info("Restored rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
+    LOG.info("Restored rocksdb checkpoint in {}ms",
+        (System.nanoTime() - startNano) / Constants.MS_NANO);
   }
 
   @Override

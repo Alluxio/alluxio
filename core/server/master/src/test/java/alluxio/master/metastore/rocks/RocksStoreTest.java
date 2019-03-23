@@ -32,6 +32,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class RocksStoreTest {
   @Rule
@@ -54,24 +55,26 @@ public class RocksStoreTest {
         Arrays.asList(new ColumnFamilyDescriptor("test".getBytes(), cfOpts));
     String dbDir = mFolder.newFolder("rocks").getAbsolutePath();
     String backupsDir = mFolder.newFolder("rocks-backups").getAbsolutePath();
-    RocksStore store = new RocksStore(dbDir, backupsDir, columnDescriptors, dbOpts);
+    AtomicReference<ColumnFamilyHandle> testColumn = new AtomicReference<>();
+    RocksStore store =
+        new RocksStore(dbDir, backupsDir, columnDescriptors, dbOpts, Arrays.asList(testColumn));
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RocksDB db = store.getDb();
-    ColumnFamilyHandle column = store.getColumn("test");
     int count = 10;
     for (int i = 0; i < count; i++) {
-      db.put(column, new WriteOptions().setDisableWAL(true), ("a" + i).getBytes(), "b".getBytes());
+      db.put(testColumn.get(), new WriteOptions().setDisableWAL(true), ("a" + i).getBytes(),
+          "b".getBytes());
     }
     store.writeToCheckpoint(baos);
 
     String newBbDir = mFolder.newFolder("rocks-new").getAbsolutePath();
-    store = new RocksStore(newBbDir, backupsDir, columnDescriptors, dbOpts);
+    store =
+        new RocksStore(newBbDir, backupsDir, columnDescriptors, dbOpts, Arrays.asList(testColumn));
     store.restoreFromCheckpoint(
         new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     db = store.getDb();
-    column = store.getColumn("test");
     for (int i = 0; i < count; i++) {
-      assertArrayEquals("b".getBytes(), db.get(column, ("a" + i).getBytes()));
+      assertArrayEquals("b".getBytes(), db.get(testColumn.get(), ("a" + i).getBytes()));
     }
   }
 }

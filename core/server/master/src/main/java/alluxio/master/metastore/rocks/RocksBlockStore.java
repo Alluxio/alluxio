@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -54,10 +55,8 @@ public class RocksBlockStore implements BlockStore {
   private final WriteOptions mDisableWAL;
 
   private final RocksStore mRocksStore;
-
-  private RocksDB mDb;
-  private ColumnFamilyHandle mBlockMetaColumn;
-  private ColumnFamilyHandle mBlockLocationsColumn;
+  private final AtomicReference<ColumnFamilyHandle> mBlockMetaColumn = new AtomicReference<>();
+  private final AtomicReference<ColumnFamilyHandle> mBlockLocationsColumn = new AtomicReference<>();
 
   /**
    * Creates and initializes a rocks block store.
@@ -83,15 +82,15 @@ public class RocksBlockStore implements BlockStore {
         .setCreateMissingColumnFamilies(true);
     String dbPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME + "-backups");
-    mRocksStore = new RocksStore(dbPath, backupPath, columns, dbOpts);
-    setDbAndColumns(mRocksStore);
+    mRocksStore = new RocksStore(dbPath, backupPath, columns, dbOpts,
+        Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn));
   }
 
   @Override
   public Optional<BlockMeta> getBlock(long id) {
     byte[] meta;
     try {
-      meta = mDb.get(mBlockMetaColumn, Longs.toByteArray(id));
+      meta = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -109,7 +108,7 @@ public class RocksBlockStore implements BlockStore {
   public void putBlock(long id, BlockMeta meta) {
     try {
       // Overwrites the key if it already exists.
-      mDb.put(mBlockMetaColumn, mDisableWAL, Longs.toByteArray(id), meta.toByteArray());
+      db().put(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id), meta.toByteArray());
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -118,7 +117,7 @@ public class RocksBlockStore implements BlockStore {
   @Override
   public void removeBlock(long id) {
     try {
-      mDb.delete(mBlockMetaColumn, mDisableWAL, Longs.toByteArray(id));
+      db().delete(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -127,13 +126,12 @@ public class RocksBlockStore implements BlockStore {
   @Override
   public void clear() {
     mRocksStore.clear();
-    setDbAndColumns(mRocksStore);
   }
 
   @Override
   public List<BlockLocation> getLocations(long id) {
-    try (RocksIterator iter =
-        mDb.newIterator(mBlockLocationsColumn, new ReadOptions().setPrefixSameAsStart(true))) {
+    try (RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(),
+        new ReadOptions().setPrefixSameAsStart(true))) {
       iter.seek(Longs.toByteArray(id));
       List<BlockLocation> locations = new ArrayList<>();
       for (; iter.isValid(); iter.next()) {
@@ -151,7 +149,7 @@ public class RocksBlockStore implements BlockStore {
   public void addLocation(long id, BlockLocation location) {
     byte[] key = RocksUtils.toByteArray(id, location.getWorkerId());
     try {
-      mDb.put(mBlockLocationsColumn, mDisableWAL, key, location.toByteArray());
+      db().put(mBlockLocationsColumn.get(), mDisableWAL, key, location.toByteArray());
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -161,7 +159,7 @@ public class RocksBlockStore implements BlockStore {
   public void removeLocation(long blockId, long workerId) {
     byte[] key = RocksUtils.toByteArray(blockId, workerId);
     try {
-      mDb.delete(mBlockLocationsColumn, mDisableWAL, key);
+      db().delete(mBlockLocationsColumn.get(), mDisableWAL, key);
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -171,7 +169,7 @@ public class RocksBlockStore implements BlockStore {
   public Iterator<Block> iterator() {
     List<Block> blocks = new ArrayList<>();
     try (RocksIterator iter =
-        mDb.newIterator(mBlockMetaColumn, new ReadOptions().setPrefixSameAsStart(true))) {
+        db().newIterator(mBlockMetaColumn.get(), new ReadOptions().setPrefixSameAsStart(true))) {
       iter.seekToFirst();
       while (iter.isValid()) {
         try {
@@ -185,18 +183,7 @@ public class RocksBlockStore implements BlockStore {
     return blocks.iterator();
   }
 
-  /**
-   * @param store the RocksStore to set the db and columns from
-   */
-  private void setDbAndColumns(RocksStore store) {
-    mDb = store.getDb();
-    if (mBlockLocationsColumn != null) {
-      mBlockLocationsColumn.close();
-    }
-    mBlockLocationsColumn = store.getColumn(BLOCK_LOCATIONS_COLUMN);
-    if (mBlockMetaColumn != null) {
-      mBlockMetaColumn.close();
-    }
-    mBlockMetaColumn = store.getColumn(BLOCK_META_COLUMN);
+  private RocksDB db() {
+    return mRocksStore.getDb();
   }
 }
