@@ -118,7 +118,7 @@ public final class UfsFallbackBlockWriteHandler
         context.setOutputStream(null);
       }
       if (context.getUfsResource() != null) {
-        context.getUfsResource().get().deleteFile(context.getUfsPath());
+        context.getUfsResource().get().deleteExistingFile(context.getUfsPath());
       }
     }
     if (context.getUfsResource() != null) {

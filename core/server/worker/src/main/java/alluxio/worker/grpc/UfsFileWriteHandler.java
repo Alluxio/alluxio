@@ -109,7 +109,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     // TODO(calvin): Consider adding cancel to the ufs stream api.
     if (context.getOutputStream() != null && context.getUfsResource() != null) {
       context.getOutputStream().close();
-      context.getUfsResource().get().deleteFile(request.getUfsPath());
+      context.getUfsResource().get().deleteExistingFile(request.getUfsPath());
       context.setOutputStream(null);
       context.setCreateOptions(null);
       context.getUfsResource().close();
@@ -156,7 +156,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       // This acl information will be ignored by all but HDFS implementations
       createOptions.setAcl(ProtoUtils.fromProto(createUfsFileOptions.getAcl()));
     }
-    context.setOutputStream(ufs.create(request.getUfsPath(), createOptions));
+    context.setOutputStream(ufs.createNonexistingFile(request.getUfsPath(), createOptions));
     context.setCreateOptions(createOptions);
     String ufsString = MetricsSystem.escape(ufsClient.getUfsMountPointUri());
     String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS,

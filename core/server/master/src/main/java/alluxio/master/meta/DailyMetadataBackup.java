@@ -131,7 +131,7 @@ public final class DailyMetadataBackup {
    * Deletes stale backup files to avoid consuming too many spaces.
    */
   private void deleteStaleBackups() throws Exception {
-    UfsStatus[] statuses = mUfs.listStatus(mBackupDir);
+    UfsStatus[] statuses = mUfs.listExistingStatus(mBackupDir);
     if (statuses.length <= mRetainedFiles) {
       return;
     }
@@ -156,7 +156,7 @@ public final class DailyMetadataBackup {
     for (int i = 0; i < toDeleteFileNum; i++) {
       String toDeleteFile = PathUtils.concatPath(mBackupDir,
           timeToFile.pollFirstEntry().getValue());
-      mUfs.deleteFile(toDeleteFile);
+      mUfs.deleteExistingFile(toDeleteFile);
     }
     LOG.info("Deleted {} stale metadata backup files at {}", toDeleteFileNum, mBackupDir);
   }

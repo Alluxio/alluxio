@@ -1197,7 +1197,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         return ufs.isDirectory(ufsPath);
       } else {
         return ufs.isFile(ufsPath)
-            && ufs.getFileStatus(ufsPath).getContentLength() == inode.asFile().getLength();
+            && ufs.getExistingFileStatus(ufsPath).getContentLength() == inode.asFile().getLength();
       }
     }
   }
@@ -2202,9 +2202,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
           boolean success;
           if (srcInode.isFile()) {
-            success = ufs.renameFile(ufsSrcPath, ufsDstUri);
+            success = ufs.renameRenamableFile(ufsSrcPath, ufsDstUri);
           } else {
-            success = ufs.renameDirectory(ufsSrcPath, ufsDstUri);
+            success = ufs.renameRenamableDirectory(ufsSrcPath, ufsDstUri);
           }
           if (!success) {
             throw new IOException(
@@ -2214,7 +2214,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         // The destination was persisted in ufs.
         mUfsAbsentPathCache.processExisting(dstPath);
       }
-    } catch (Exception e) {
+    } catch (IOException e) {
       // On failure, revert changes and throw exception.
       mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
           .setId(srcInode.getId())
@@ -2432,7 +2432,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           } else {
             listOptions.setRecursive(false);
           }
-          UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
+          UfsStatus[] children = ufs.listExistingStatus(ufsUri.toString(), listOptions);
           // children can be null if the pathname does not denote a directory
           // or if the we do not have permission to listStatus on the directory in the ufs.
           if (children == null) {
@@ -2516,7 +2516,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
       ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
       if (context.getUfsStatus() == null) {
-        context.setUfsStatus(ufs.getFileStatus(ufsUri.toString()));
+        context.setUfsStatus(ufs.getExistingFileStatus(ufsUri.toString()));
       }
       ufsLength = ((UfsFileStatus) context.getUfsStatus()).getContentLength();
 
@@ -2612,7 +2612,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       if (context.getUfsStatus() == null) {
-        context.setUfsStatus(ufs.getDirectoryStatus(ufsUri.toString()));
+        context.setUfsStatus(ufs.getExistingDirectoryStatus(ufsUri.toString()));
       }
       Pair<AccessControlList, DefaultAccessControlList> aclPair =
           ufs.getAclPair(ufsUri.toString());
@@ -2772,7 +2772,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
                 ServerConfiguration.global()));
         // Check that the ufsPath exists and is a directory
-        if (!ufs.isDirectory(ufsPath.toString())) {
+        if (!ufs.isExistingDirectory(ufsPath.toString())) {
           throw new IOException(
               ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
         }
@@ -4073,7 +4073,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
               UnderFileSystem ufs = ufsResource.get();
               String ufsPath = resolution.getUri().toString();
-              if (!ufs.renameFile(tempUfsPath, ufsPath)) {
+              if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
                 throw new IOException(
                     String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
               }
@@ -4258,7 +4258,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     final String errMessage = "Failed to delete UFS file {}.";
     if (!ufsPath.isEmpty()) {
       try {
-        if (!ufs.deleteFile(ufsPath)) {
+        if (!ufs.deleteExistingFile(ufsPath)) {
           LOG.warn(errMessage, ufsPath);
         }
       } catch (IOException e) {

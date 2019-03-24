@@ -74,6 +74,16 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
+    return mUfs.createNonexistingFile(path, options);
+  }
+
+  @Override
+  public OutputStream createNonexistingFile(String path) throws IOException {
+    return mUfs.createNonexistingFile(path);
+  }
+
+  @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
     return mUfs.create(path, options);
   }
@@ -89,8 +99,23 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public boolean deleteExistingDirectory(String path) throws IOException {
+    return mUfs.deleteExistingDirectory(path);
+  }
+
+  @Override
+  public boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException {
+    return mUfs.deleteExistingDirectory(path, options);
+  }
+
+  @Override
   public boolean deleteFile(String path) throws IOException {
     return mUfs.deleteFile(path);
+  }
+
+  @Override
+  public boolean deleteExistingFile(String path) throws IOException {
+    return mUfs.deleteExistingFile(path);
   }
 
   @Override
@@ -115,6 +140,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
+    return mUfs.getExistingDirectoryStatus(path);
+  }
+
+  @Override
   public List<String> getFileLocations(String path) throws IOException {
     return mUfs.getFileLocations(path);
   }
@@ -128,6 +158,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public UfsFileStatus getFileStatus(String path) throws IOException {
     return mUfs.getFileStatus(path);
+  }
+
+  @Override
+  public UfsFileStatus getExistingFileStatus(String path) throws IOException {
+    return mUfs.getExistingFileStatus(path);
   }
 
   @Override
@@ -156,6 +191,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public UfsStatus getExistingStatus(String path) throws IOException {
+    return mUfs.getExistingStatus(path);
+  }
+
+  @Override
   public String getUnderFSType() {
     return mUfs.getUnderFSType();
   }
@@ -163,6 +203,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public boolean isDirectory(String path) throws IOException {
     return mUfs.isDirectory(path);
+  }
+
+  @Override
+  public boolean isExistingDirectory(String path) throws IOException {
+    return mUfs.isExistingDirectory(path);
   }
 
   @Override
@@ -191,6 +236,16 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public UfsStatus[] listExistingStatus(String path) throws IOException {
+    return mUfs.listStatus(path);
+  }
+
+  @Override
+  public UfsStatus[] listExistingStatus(String path, ListOptions options) throws IOException {
+    return mUfs.listStatus(path, options);
+  }
+
+  @Override
   public boolean mkdirs(String path) throws IOException {
     return mUfs.mkdirs(path);
   }
@@ -206,6 +261,16 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
+    return mUfs.openExistingFile(path, options);
+  }
+
+  @Override
+  public InputStream openExistingFile(String path) throws IOException {
+    return mUfs.openExistingFile(path);
+  }
+
+  @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
     return mUfs.open(path, options);
   }
@@ -216,8 +281,18 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public boolean renameRenamableDirectory(String src, String dst) throws IOException {
+    return mUfs.renameRenamableDirectory(src, dst);
+  }
+
+  @Override
   public boolean renameFile(String src, String dst) throws IOException {
     return mUfs.renameFile(src, dst);
+  }
+
+  @Override
+  public boolean renameRenamableFile(String src, String dst) throws IOException {
+    return mUfs.renameRenamableFile(src, dst);
   }
 
   @Override

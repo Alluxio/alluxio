@@ -16,6 +16,9 @@ import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -83,6 +86,34 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public OutputStream createNonexistingFile(String path) throws IOException {
+    return retry(() -> createNonexistingFile(path, CreateOptions.defaults(mAlluxioConf)),
+        "create non-existing file");
+  }
+
+  @Override
+  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
+    return retry(() -> createNonexistingFile(path, options),
+        "create non-existing file");
+  }
+
+  @Override
+  public boolean deleteExistingDirectory(String path) throws IOException {
+    return retry(() -> deleteDirectory(path, DeleteOptions.defaults()),
+        "delete existing directory");
+  }
+
+  @Override
+  public boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException {
+    return retry(() -> deleteDirectory(path, options), "delete existing directory");
+  }
+
+  @Override
+  public boolean deleteExistingFile(String path) throws IOException {
+    return retry(() -> deleteFile(path), "delete existing file");
+  }
+
+  @Override
   public boolean exists(String path) throws IOException {
     return isFile(path) || isDirectory(path);
   }
@@ -94,8 +125,18 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException{
+  public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
     // Noop here by default
+  }
+
+  @Override
+  public  UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
+    return retry(() -> getDirectoryStatus(path), "get existing directory status");
+  }
+
+  @Override
+  public  UfsFileStatus getExistingFileStatus(String path) throws IOException {
+    return retry(() -> getFileStatus(path), "get existing file status");
   }
 
   @Override
@@ -129,6 +170,16 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public List<String> getPhysicalStores() {
     return new ArrayList<>(Arrays.asList(mUri.getRootPath()));
+  }
+
+  @Override
+  public UfsStatus getExistingStatus(String path) throws IOException {
+    return retry(() -> getStatus(path), "get existing status");
+  }
+
+  @Override
+  public boolean isExistingDirectory(String path) throws IOException {
+    return retry(() -> isDirectory(path), "check if is existing directory");
   }
 
   @Override
@@ -181,8 +232,38 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public UfsStatus[] listExistingStatus(String path) throws IOException {
+    return retry(() -> listStatus(path), "list existing status");
+  }
+
+  @Override
+  public UfsStatus[] listExistingStatus(String path, ListOptions options) throws IOException {
+    return retry(() -> listStatus(path, options), "list existing status");
+  }
+
+  @Override
   public InputStream open(String path) throws IOException {
     return open(path, OpenOptions.defaults());
+  }
+
+  @Override
+  public InputStream openExistingFile(String path) throws IOException {
+    return retry(() -> open(path), "open existing file");
+  }
+
+  @Override
+  public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
+    return retry(() -> open(path, options), "open existing file");
+  }
+
+  @Override
+  public boolean renameRenamableDirectory(String src, String dst) throws IOException {
+    return retry(() -> renameDirectory(src, dst), "rename renamable directory");
+  }
+
+  @Override
+  public boolean renameRenamableFile(String src, String dst) throws IOException {
+    return retry(() -> renameFile(src, dst), "rename renamable file");
   }
 
   @Override
@@ -230,5 +311,61 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
    */
   protected static String validatePath(String path) {
     return new AlluxioURI(path).toString();
+  }
+
+  /**
+   * Represents a Amazon client operation.
+   */
+  private interface UfsOperation<T> {
+    /**
+     * Applies this operation.
+     *
+     * @return the result of this operation
+     */
+    T apply() throws IOException;
+  }
+
+  /**
+   * Retries the given under filesystem operation to resolve
+   * S3A eventual consistency issue.
+   *
+   * @param op the under filesystem operation to retry
+   * @param description the description regarding the operation
+   * @return the operation result if operation succeed
+   */
+  private <T> T retry(UfsOperation<T> op, String description)
+      throws IOException {
+    RetryPolicy retryPolicy = getRetryPolicy();
+    IOException thrownException = null;
+    while (retryPolicy.attempt()) {
+      try {
+        T result  = op.apply();
+        if (result instanceof Boolean) {
+          if ((Boolean) result) {
+            return result;
+          }
+        } else {
+          return result;
+        }
+      } catch (IOException e) {
+        LOG.debug("{} attempt to {} failed with exception : {}", retryPolicy.getAttemptCount(),
+            description, e.getMessage());
+        thrownException = e;
+      }
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    return (T) Boolean.valueOf(false);
+  }
+
+  /**
+   * @return the retry policy to use
+   */
+  private RetryPolicy getRetryPolicy() {
+    return new ExponentialBackoffRetry(
+        (int) mUfsConf.getMs(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS),
+        (int) mUfsConf.getMs(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS),
+        mUfsConf.getInt(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM));
   }
 }

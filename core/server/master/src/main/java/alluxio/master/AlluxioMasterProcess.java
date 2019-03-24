@@ -175,7 +175,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     }
     try (UnderFileSystem closeUfs = ufs;
-        InputStream ufsIn = ufs.open(backup.getPath())) {
+        InputStream ufsIn = ufs.openExistingFile(backup.getPath())) {
       LOG.info("Initializing metadata from backup {}", backup);
       mBackupManager.initFromBackup(ufsIn);
     }

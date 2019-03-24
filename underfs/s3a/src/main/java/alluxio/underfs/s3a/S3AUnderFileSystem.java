@@ -598,9 +598,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected InputStream openObject(String key, OpenOptions options) throws IOException {
     try {
       RetryPolicy retryPolicy = new ExponentialBackoffRetry(
-          (int) mUfsConf.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS),
-          (int) mUfsConf.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS),
-          mUfsConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM));
+          (int) mUfsConf.getMs(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS),
+          (int) mUfsConf.getMs(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS),
+          mUfsConf.getInt(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM));
       return new S3AInputStream(mBucketName, key, mClient, retryPolicy, options.getOffset());
     } catch (AmazonClientException e) {
       throw new IOException(e);

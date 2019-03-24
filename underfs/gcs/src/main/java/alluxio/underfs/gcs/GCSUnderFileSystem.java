@@ -16,8 +16,11 @@ import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -158,6 +161,47 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   // Setting GCS mode via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setMode(String path, short mode) throws IOException {}
+
+  @Override
+  public UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
+    return getDirectoryStatus(path);
+  }
+
+  // GCS provides strong global consistency for bucket and object listing
+  @Override
+  public UfsStatus getExistingStatus(String path) throws IOException {
+    return getStatus(path);
+  }
+
+  // GCS provides strong global consistency for bucket and object listing
+  @Override
+  public boolean isExistingDirectory(String path) throws IOException {
+    return isDirectory(path);
+  }
+
+  // GCS provides strong global consistency for bucket and object listing
+  @Override
+  public UfsStatus[] listExistingStatus(String path) throws IOException {
+    return listStatus(path);
+  }
+
+  // GCS provides strong global consistency for bucket and object listing
+  @Override
+  public UfsStatus[] listExistingStatus(String path, ListOptions options) throws IOException {
+    return listStatus(path, options);
+  }
+
+  // GCS provides strong global consistency for read-after-write and read-after-metadata-update
+  @Override
+  public InputStream openExistingFile(String path) throws IOException {
+    return open(path);
+  }
+
+  // GCS provides strong global consistency for read-after-write and read-after-metadata-update
+  @Override
+  public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
+    return open(path, options);
+  }
 
   @Override
   protected boolean copyObject(String src, String dst) {
