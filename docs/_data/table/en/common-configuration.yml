@@ -33,7 +33,7 @@ alluxio.job.master.job.capacity:
 alluxio.job.master.lost.worker.interval:
   'The time interval the job master waits between checks for lost workers.'
 alluxio.job.master.rpc.addresses:
-  'The list of RPC addresses to use for the job service configured in non-zookeeper HA mode. If this property is not specificallydefined, it will first fall back to using alluxio.master.rpc.addresses replacing those address ports with the port defined by alluxio.job.master.rpc.port. Otherwise the addresses are inherited from alluxio.job.master.embedded.journal.addresses using the port defined in alluxio.job.master.rpc.port'
+  'The list of RPC addresses to use for the job service configured in non-zookeeper HA mode. If this property is not specifically defined, it will first fall back to using alluxio.master.rpc.addresses, replacing those address ports with the port defined by alluxio.job.master.rpc.port. Otherwise the addresses are inherited from alluxio.job.master.embedded.journal.addresses using the port defined in alluxio.job.master.rpc.port'
 alluxio.job.master.rpc.port:
   'The RPC port that the job master uses.'
 alluxio.job.master.web.bind.host:
@@ -114,8 +114,6 @@ alluxio.test.mode:
   'Flag used only during tests to allow special behavior.'
 alluxio.tmp.dirs:
   'The path(s) to store Alluxio temporary files, use commas as delimiters. If multiple paths are specified, one will be selected at random per temporary file. Currently, only files to be uploaded to object stores are stored in these paths.'
-alluxio.underfs.address:
-  'Under file storage address. This property is deprecated; use alluxio.master.mount.table.root.ufs instead'
 alluxio.underfs.allow.set.owner.failure:
   'Whether to allow setting owner in UFS to fail. When set to true, it is possible file or directory owners diverge between Alluxio and UFS.'
 alluxio.underfs.cleanup.enabled:

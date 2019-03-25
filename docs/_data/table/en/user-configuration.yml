@@ -1,5 +1,7 @@
 alluxio.user.app.id:
   'The custom id to use for labeling this client''s info, such as metrics. If unset, a random long will be used. This value is displayed in the client logs on initialization. Note that using the same app id will cause client info to be aggregated, so different applications must set their own ids or leave this value unset to use a randomly generated id.'
+alluxio.user.block.avoid.eviction.policy.reserved.size.bytes:
+  'The portion of space reserved in a worker when using the LocalFirstAvoidEvictionPolicy class as block location policy.'
 alluxio.user.block.master.client.threads:
   'The number of threads used by a block master client pool to talk to the block master.'
 alluxio.user.block.remote.read.buffer.size.bytes:
@@ -12,6 +14,8 @@ alluxio.user.block.worker.client.pool.size:
   'The maximum number of block worker clients cached in the block worker client pool.'
 alluxio.user.block.worker.client.read.retry:
   'The maximum number of workers to retry before the client gives up on  reading a block'
+alluxio.user.block.write.location.policy.class:
+  'The default location policy for choosing workers for writing a file''s blocks.'
 alluxio.user.conf.cluster.default.enabled:
   'When this property is true, an Alluxio client will load the default values of configuration properties set by Alluxio master.'
 alluxio.user.date.format.pattern:
@@ -22,7 +26,7 @@ alluxio.user.file.buffer.bytes:
   'The size of the file buffer to use for file system reads/writes.'
 alluxio.user.file.cache.partially.read.block:
   'This property is deprecated as of 1.7 and has no effect. Use the read type to control caching behavior.'
-alluxio.user.file.copyfromlocal.write.location.policy.class:
+alluxio.user.file.copyfromlocal.block.location.policy.class:
   'The default location policy for choosing workers for writing a file''s blocks using copyFromLocal command.'
 alluxio.user.file.create.ttl:
   'Time to live for files created by a user, no ttl by default.'
@@ -56,10 +60,6 @@ alluxio.user.file.ufs.tier.enabled:
   'When workers run out of available memory, whether the client can skip writing data to Alluxio but fallback to write to UFS without stopping the application. This property only works when the write type is ASYNC_THROUGH.'
 alluxio.user.file.waitcompleted.poll:
   'The time interval to poll a file for its completion status when using waitCompleted.'
-alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes:
-  'The portion of space reserved in worker when user use the LocalFirstAvoidEvictionPolicy class as file write location policy.'
-alluxio.user.block.write.location.policy.class:
-  'The default location policy for choosing workers for writing a file''s blocks.'
 alluxio.user.file.write.tier.default:
   'The default tier for choosing a where to write a block. Valid option is any integer. Non-negative values identify tiers starting from top going down (0 identifies the first tier, 1 identifies the second tier, and so on). If the provided value is greater than the number of tiers, it identifies the last tier. Negative values identify tiers starting from the bottom going up (-1 identifies the last tier, -2 identifies the second to last tier, and so on). If the absolute value of the provided value is greater than the number of tiers, it identifies the first tier.'
 alluxio.user.file.writetype.default:
@@ -121,7 +121,7 @@ alluxio.user.ufs.block.location.all.fallback.enabled:
 alluxio.user.ufs.block.read.concurrency.max:
   'The maximum concurrent readers for one UFS block on one Block Worker.'
 alluxio.user.ufs.block.read.location.policy:
-  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Builtin choices: [<a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstPolicy.html">alluxio.client.block.policy.LocalFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/MostAvailableFirstPolicy.html">alluxio.client.block.policy.MostAvailableFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/RoundRobinPolicy.html">alluxio.client.block.policy.RoundRobinPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/SpecificHostPolicy.html">alluxio.client.block.policy.SpecificHostPolicy</a>].'
+  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Built-in choices: [<a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/LocalFirstPolicy.html">alluxio.client.block.policy.LocalFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/MostAvailableFirstPolicy.html">alluxio.client.block.policy.MostAvailableFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/RoundRobinPolicy.html">alluxio.client.block.policy.RoundRobinPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/SpecificHostPolicy.html">alluxio.client.block.policy.SpecificHostPolicy</a>].'
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
   'When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.'
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
