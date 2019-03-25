@@ -94,7 +94,7 @@ func symlink(oldname, newname string) {
 }
 
 func getCommonMvnArgs(hadoopVersion version) []string {
-	args := []string{"clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pmesos"}
+	args := []string{"-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pmesos"}
 	if mvnArgsFlag != "" {
 		for _, arg := range strings.Split(mvnArgsFlag, ",") {
 			args = append(args, arg)
