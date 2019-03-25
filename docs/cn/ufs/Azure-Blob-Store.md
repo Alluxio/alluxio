@@ -32,7 +32,7 @@ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 首先修改`conf / alluxio-site.properties`来指定underfs address：
 
 ```
-alluxio.underfs.address=wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
+alluxio.master.mount.table.root.ufs=wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
 其次，将以下属性添加到`conf/alluxio-site.properties`来指定根挂载点的Azure account证书：

@@ -46,10 +46,10 @@ workers. The configuration parameters which must be set are:
 - `alluxio.master.hostname=<MASTER_HOSTNAME>`
   - This is set to the hostname of the master node.
   - Examples: `alluxio.master.hostname=1.2.3.4`, `alluxio.master.hostname=node1.a.com`
-- `alluxio.underfs.address=<STORAGE_URI>`
+- `alluxio.master.mount.table.root.ufs=<STORAGE_URI>`
   - This is set to the URI of the shared storage system to mount to the Alluxio root. This shared
   shared storage system must be accessible by the master node and all worker nodes.
-  - Examples: `alluxio.underfs.address=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.underfs.address=s3a://bucket/dir/`
+  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3a://bucket/dir/`
 
 This is the minimal configuration to start Alluxio, but additional configuration may be added.
 
@@ -143,10 +143,10 @@ Add the following properties to the `conf/alluxio-site.properties` file:
   - This must be set to the correct externally visible hostname for each master node.
   (Workers ignore this parameter when `alluxio.zookeeper.enabled` is enabled)
   - Examples: `alluxio.master.hostname=1.2.3.4`, `alluxio.master.hostname=node1.a.com`
-- `alluxio.underfs.address=<STORAGE_URI>`
+- `alluxio.master.mount.table.root.ufs=<STORAGE_URI>`
   - This is set to the URI of the shared storage system to mount to the Alluxio root. This shared
   shared storage system must be accessible by all master nodes and all worker nodes.
-  - Examples: `alluxio.underfs.address=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.underfs.address=s3a://bucket/dir/`
+  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3a://bucket/dir/`
   
 ### Setting up HA cluster with internal leader election
 

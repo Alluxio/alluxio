@@ -33,7 +33,7 @@ Alluxio提供了一个挂载API，通过该API能够在Alluxio中访问多个数
 
 ![unified]({{ site.baseurl }}/img/screenshot_unified.png)
 
-默认情况下，Alluxio文件系统挂载到Alluxio配置中`alluxio.underfs.address`指定的目录，该目录代表Alluxio
+默认情况下，Alluxio文件系统挂载到Alluxio配置中`alluxio.master.mount.table.root.ufs`指定的目录，该目录代表Alluxio
 的"primary storage"。另外，用户可以通过挂载API添加和删除数据源。
 
 ```java

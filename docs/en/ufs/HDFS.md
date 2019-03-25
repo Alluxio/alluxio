@@ -67,7 +67,7 @@ mapping HDFS root directory to Alluxio, or `hdfs://localhost:8020/alluxio/data` 
 directory `/alluxio/data` is mapped to Alluxio.
 
 ```
-alluxio.underfs.address=hdfs://<NAMENODE>:<PORT>
+alluxio.master.mount.table.root.ufs=hdfs://<NAMENODE>:<PORT>
 ```
 
 ## Example: Running Alluxio Locally with HDFS
@@ -144,7 +144,7 @@ of the whole HDFS namespace, change the under storage address to something like
 `hdfs://nameservice/alluxio/data`.
 
 ```
-alluxio.underfs.address=hdfs://nameservice/
+alluxio.master.mount.table.root.ufs=hdfs://nameservice/
 ```
 
 ### User/Permission Mapping
