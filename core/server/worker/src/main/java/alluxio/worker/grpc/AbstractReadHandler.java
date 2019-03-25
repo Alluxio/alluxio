@@ -105,7 +105,6 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
   @Override
   public void onNext(alluxio.grpc.ReadRequest request) {
-
     // Expected state: context equals null as this handler is new for request.
     // Otherwise, notify the client an illegal state. Note that, we reset the context before
     // validation msg as validation may require to update error in context.
