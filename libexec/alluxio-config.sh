@@ -68,7 +68,7 @@ if [[ -n "${ALLUXIO_MASTER_HOSTNAME}" ]]; then
 fi
 
 if [[ -n "${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS}" ]]; then
-  ALLUXIO_JAVA_OPTS+=" -Dalluxio.underfs.address=${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS}"
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.mount.table.root.ufs=${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS}"
 fi
 
 if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZE}" ]]; then
