@@ -44,6 +44,7 @@ public final class Configuration {
   }
 
   /**
+   * @param conf the grpc representation of configuration
    * @return the wire representation of the proto response
    */
   public static Configuration fromProto(GetConfigurationPResponse conf) {
