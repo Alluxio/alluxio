@@ -11,15 +11,17 @@
 
 package alluxio.client.file;
 
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -28,8 +30,8 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
-import alluxio.util.IdUtils;
 import alluxio.security.authentication.SaslParticipantProviderUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.util.network.NettyUtils;
@@ -301,10 +303,21 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * @return the {@link AlluxioConfiguration} backing this {@link FileSystemContext}
+   * @return the cluster level configuration backing this {@link FileSystemContext}
    */
   public AlluxioConfiguration getConf() {
     return mClientContext.getConf();
+  }
+
+  /**
+   * The path level configuration is a {@link SpecificPathConfiguration}.
+   *
+   * @param path the path to get the configuration for
+   * @return the path level configuration for the specific path
+   */
+  public AlluxioConfiguration getConf(AlluxioURI path) {
+    return new SpecificPathConfiguration(mClientContext.getConf(), mClientContext.getPathConf(),
+        path);
   }
 
   /**

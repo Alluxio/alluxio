@@ -21,9 +21,11 @@ import alluxio.collections.IndexedSet;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Source;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.ConfigProperties;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
@@ -139,6 +141,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
   /** The metadata daily backup. */
   private DailyMetadataBackup mDailyBackup;
 
+  /** Path level properties. */
+  private PathProperties mPathProperties;
+
   /**
    * Creates a new instance of {@link DefaultMetaMaster}.
    *
@@ -177,6 +182,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
     } else {
       mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     }
+
+    mPathProperties = new PathProperties();
   }
 
   @Override
@@ -325,6 +332,26 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
       }
     }
     return configInfoList;
+  }
+
+  @Override
+  public Map<String, ConfigProperties> getPathConfiguration(GetConfigurationPOptions options) {
+    Map<String, ConfigProperties> pathConfig = new HashMap<>();
+    mPathProperties.getProperties().forEach((path, properties) -> {
+      List<ConfigProperty> configPropertyList = new ArrayList<>();
+      properties.forEach((key, value) ->
+          configPropertyList.add(ConfigProperty.newBuilder().setName(key.getName())
+              .setSource(Source.PATH_DEFAULT.toString()).setValue(value).build()));
+      ConfigProperties configProperties = ConfigProperties.newBuilder().addAllProperties(
+          configPropertyList).build();
+      pathConfig.put(path, configProperties);
+    });
+    return pathConfig;
+  }
+
+  @Override
+  public void setPathConfiguration(String path, PropertyKey key, String value) {
+    mPathProperties.setProperty(path, key, value);
   }
 
   @Override

@@ -98,7 +98,7 @@ public class AlluxioProperties {
    * @param value value to put
    * @param source the source of this value for the key
    */
-  protected void put(PropertyKey key, String value, Source source) {
+  public void put(PropertyKey key, String value, Source source) {
     if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
       mUserProps.put(key, Optional.ofNullable(value));
       mSources.put(key, source);
@@ -166,12 +166,24 @@ public class AlluxioProperties {
    * @return true if there is value for the key, false otherwise
    */
   public boolean isSet(PropertyKey key) {
+    if (isSetByUser(key)) {
+      return true;
+    }
+    // In case key is not the reference to the original key
+    return PropertyKey.fromString(key.toString()).getDefaultValue() != null;
+  }
+
+  /**
+   * @param key the key to check
+   * @return true if there is a value for the key set by user, false otherwise even when there is a
+   *         default value for the key
+   */
+  public boolean isSetByUser(PropertyKey key) {
     if (mUserProps.containsKey(key)) {
       Optional<String> val = mUserProps.get(key);
       return val.isPresent();
     }
-    // In case key is not the reference to the original key
-    return PropertyKey.fromString(key.toString()).getDefaultValue() != null;
+    return false;
   }
 
   /**

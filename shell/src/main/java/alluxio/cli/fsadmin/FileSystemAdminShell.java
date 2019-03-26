@@ -19,7 +19,7 @@ import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.command.Context;
-import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.conf.Source;

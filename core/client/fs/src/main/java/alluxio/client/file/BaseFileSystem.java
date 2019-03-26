@@ -490,7 +490,7 @@ public class BaseFileSystem implements FileSystem {
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.openFileDefaults(mFsContext.getConf())
+    options = FileSystemOptions.openFileDefaults(mFsContext.getConf(path))
         .toBuilder().mergeFrom(options).build();
     URIStatus status = getStatus(path);
     if (status.isFolder()) {
@@ -498,7 +498,7 @@ public class BaseFileSystem implements FileSystem {
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
     InStreamOptions inStreamOptions = new InStreamOptions(status, options,
-        mFsContext.getConf());
+        mFsContext.getConf(path));
     return new FileInStream(status, inStreamOptions, mFsContext);
   }
 

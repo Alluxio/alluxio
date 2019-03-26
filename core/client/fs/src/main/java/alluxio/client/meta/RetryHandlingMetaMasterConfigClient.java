@@ -9,18 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client;
+package alluxio.client.meta;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.grpc.ConfigProperty;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.master.MasterClientContext;
+import alluxio.wire.Configuration;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -63,8 +64,14 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   }
 
   @Override
-  public List<ConfigProperty> getConfiguration() throws IOException {
-    return retryRPC(() -> mClient.getConfiguration(GetConfigurationPOptions.getDefaultInstance())
-        .getConfigsList());
+  public Configuration getConfiguration() throws IOException {
+    return Configuration.fromProto(retryRPC(() ->
+        mClient.getConfiguration(GetConfigurationPOptions.getDefaultInstance())));
+  }
+
+  @Override
+  public void setPathConfiguration(String path, PropertyKey key, String value) throws IOException {
+    retryRPC(() -> mClient.setPathConfiguration(SetPathConfigurationPRequest.newBuilder()
+        .setPath(path).setKey(key.getName()).setValue(value).build()));
   }
 }

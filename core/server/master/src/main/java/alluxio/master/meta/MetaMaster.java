@@ -11,8 +11,10 @@
 
 package alluxio.master.meta;
 
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.ConfigProperties;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaCommand;
@@ -25,6 +27,7 @@ import alluxio.wire.ConfigCheckReport;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The interface of meta master.
@@ -49,6 +52,21 @@ public interface MetaMaster extends Master {
    * @return configuration information list
    */
   List<ConfigProperty> getConfiguration(GetConfigurationPOptions options);
+
+  /**
+   * @param options get configuration options
+   * @return a mapping from path to path level properties
+   */
+  Map<String, ConfigProperties> getPathConfiguration(GetConfigurationPOptions options);
+
+  /**
+   * Sets a property for a path pattern.
+   *
+   * @param path the path pattern
+   * @param key the property key
+   * @param value the property value
+   */
+  void setPathConfiguration(String path, PropertyKey key, String value);
 
   /**
    * @return the addresses of live masters
