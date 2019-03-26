@@ -74,6 +74,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
+    return mUfs.create(path, options);
+  }
+
+  @Override
   public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
     return mUfs.createNonexistingFile(path, options);
   }
@@ -81,11 +86,6 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public OutputStream createNonexistingFile(String path) throws IOException {
     return mUfs.createNonexistingFile(path);
-  }
-
-  @Override
-  public OutputStream create(String path, CreateOptions options) throws IOException {
-    return mUfs.create(path, options);
   }
 
   @Override
@@ -261,6 +261,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public InputStream open(String path, OpenOptions options) throws IOException {
+    return mUfs.open(path, options);
+  }
+
+  @Override
   public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
     return mUfs.openExistingFile(path, options);
   }
@@ -268,11 +273,6 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public InputStream openExistingFile(String path) throws IOException {
     return mUfs.openExistingFile(path);
-  }
-
-  @Override
-  public InputStream open(String path, OpenOptions options) throws IOException {
-    return mUfs.open(path, options);
   }
 
   @Override
