@@ -58,6 +58,8 @@ alluxio.worker.network.async.cache.manager.threads.max:
   'The maximum number of threads used to cache blocks asynchronously in the data server.'
 alluxio.worker.network.block.reader.threads.max:
   'The maximum number of threads used to read blocks in the data server.'
+alluxio.worker.network.block.writer.threads.max:
+  'The maximum number of threads used to write blocks in the data server.'
 alluxio.worker.network.flowcontrol.window:
   'The HTTP2 flow control window used by worker gRPC connections. Larger value will allow more data to be buffered but will use more memory.'
 alluxio.worker.network.keepalive.time:
@@ -82,6 +84,8 @@ alluxio.worker.network.reader.max.chunk.size.bytes:
   'When a client read from a remote worker, the maximum chunk size.'
 alluxio.worker.network.shutdown.timeout:
   'Maximum amount of time to wait until the worker gRPC server is shutdown (regardless of the quiet period).'
+alluxio.worker.network.writer.buffer.size.messages:
+  'When a client writes to a remote worker, the maximum number of data messages to buffer by the server for each request.'
 alluxio.worker.network.zerocopy.enabled:
   'Whether zero copy is enabled on worker when processing data streams.'
 alluxio.worker.port:

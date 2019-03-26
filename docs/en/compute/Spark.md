@@ -30,7 +30,7 @@ as a near-compute cache Alluxio can still provide compute frameworks like Spark 
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
 * Alluxio has been set up and is running.
 This guide assumes the persistent under storage is a local HDFS deployment. E.g., a line of
-`alluxio.underfs.address= hdfs://localhost:9000/alluxio/` is included in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
+`alluxio.master.mount.table.root.ufs=hdfs://localhost:9000/alluxio/` is included in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 Note that Alluxio supports many other under storage systems in addition to HDFS.
 To access data from any number of those systems is orthogonal
 to the focus of this guide but covered by
@@ -132,8 +132,8 @@ Alternatively you can add the property to the Hadoop configuration file
 </configuration>
 ```
 
-Similarly, users can also configure Spark to find Alluxio HA cluster using 
-Zookeeper-based leader election, please refer to 
+Similarly, users can also configure Spark to find Alluxio HA cluster using
+Zookeeper-based leader election, please refer to
 [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
 
 ### Customize Alluxio User Properties for Individual Spark Jobs
@@ -163,7 +163,7 @@ Note that, in client mode you need set `--driver-java-options "-Dalluxio.user.fi
 
 If Spark is set up by the instructions in [Configure Spark to find Alluxio cluster in HA mode](#configure-spark-to-find-alluxio-cluster-in-ha-mode),
 you can write URIs using the "`alluxio://`" scheme without specifying cluster information in the authority.
-This is because in HA mode, the address of leader Alluxio master will be served by the internal leader election 
+This is because in HA mode, the address of leader Alluxio master will be served by the internal leader election
 or by the configured Zookeeper service.
 
 ```scala
@@ -173,7 +173,7 @@ or by the configured Zookeeper service.
 ```
 
 Alternatively, one can use the HA authority in URI directly without any configuration setup.
-For example, specify the master rpc addresses in the URI to 
+For example, specify the master rpc addresses in the URI to
 connect to Alluxio HA cluster using internal leader election:
 
 ```scala
@@ -299,7 +299,7 @@ in Spark WebUI below.
 
 To maximize the amount of locality your Spark jobs attain, you should use as many
 executors as possible, hopefully at least one executor per node.
-As with all methods of Alluxio deployment, there should also be an Alluxio worker on all computation 
+As with all methods of Alluxio deployment, there should also be an Alluxio worker on all computation
 odes.
 
 When a Spark job is run on YARN, Spark launches its executors without taking data locality into

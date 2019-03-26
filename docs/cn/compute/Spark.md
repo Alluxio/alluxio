@@ -107,7 +107,7 @@ integration/checker/bin/alluxio-checker.sh spark <spark master uri> [partition n
 
 ### 使用来自HDFS的数据
 
-Alluxio支持在给出具体的路径时，透明的从底层文件系统中取数据。将文件`LICENSE`放到Alluxio所挂载的目录下（默认是`/alluxio`）的HDFS中，意味着在这个目录下的HDFS中的任何文件都能被Alluxio发现。通过改变位于Server上的`conf/alluxio-site.properties`文件中的 `alluxio.underfs.address`属性可以修改这个设置。假定namenode节点运行在`localhost`，并且Alluxio默认的挂载目录是`alluxio`:
+Alluxio支持在给出具体的路径时，透明的从底层文件系统中取数据。将文件`LICENSE`放到Alluxio所挂载的目录下（默认是`/alluxio`）的HDFS中，意味着在这个目录下的HDFS中的任何文件都能被Alluxio发现。通过改变位于Server上的`conf/alluxio-site.properties`文件中的 `alluxio.master.mount.table.root.ufs`属性可以修改这个设置。假定namenode节点运行在`localhost`，并且Alluxio默认的挂载目录是`alluxio`:
 
 ```bash
 hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE

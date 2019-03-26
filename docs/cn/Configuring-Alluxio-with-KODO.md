@@ -26,7 +26,7 @@ Alluxio通过[统一命名空间](Unified-and-Transparent-Namespace.html)统一�
 若要在Alluxio中使用七牛Kodo作为底层文件系统，一定要修改`conf/alluxio-site.properties`配置文件。首先要指定一个已有的存储空间和其中的目录作为底层文件系统，可以在`conf/alluxio-site.properties`中添加如下语句指定它。
 
 ```
-alluxio.underfs.address=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
+alluxio.master.mount.table.root.ufs=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
 ```
 七牛不支持直接在管理控制台进行文件夹的管理，但是跟其他云厂商相同，我们默认使用`/`来对文件进行区隔。若配置 KODO_DIRECTORY 后，会在 Kodo 生成 以 KODO_DIRECTORY/ 为前缀的文件。
 

@@ -1,3 +1,3 @@
 ```properties
-alluxio.underfs.address=/mnt/gluster
+alluxio.master.mount.table.root.ufs=/mnt/gluster
 ```

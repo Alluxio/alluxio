@@ -26,7 +26,7 @@ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 假定GlusterFS bricks与Alluxio部署在同样的节点上，且GlusterFS volume挂载在`/mnt/gluster`，那以下的环境变量要添加到`conf/alluxio-site.properties`配置文件中：
 
 ```properties
-alluxio.underfs.address=/mnt/gluster
+alluxio.master.mount.table.root.ufs=/mnt/gluster
 ```
 
 ## 使用GlusterFS在本地运行Alluxio
