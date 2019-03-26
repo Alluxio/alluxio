@@ -56,8 +56,8 @@ final class UfsJournalGarbageCollector implements Closeable {
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mUfs = mJournal.getUfs();
     mGc = mExecutor.scheduleAtFixedRate(this::gc, 
-        Constants.SECOND_MS, ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_GC_PERIOD_MS),
-        TimeUnit.MILLISECONDS);
+      Constants.SECOND_MS, ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_GC_PERIOD_MS),
+      TimeUnit.MILLISECONDS);
   }
 
   @Override
