@@ -50,7 +50,7 @@ public interface InodeStore extends ReadOnlyInodeStore {
 
   @Override
   default Optional<Inode> get(long id) {
-    return getMutable(id).map(inode -> Inode.wrap(inode));
+    return getMutable(id).map(Inode::wrap);
   }
 
   /**
