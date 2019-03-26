@@ -21,6 +21,7 @@ import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.BackupPOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
@@ -56,7 +57,9 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
         fs.createDirectory(new AlluxioURI("/dir" + i));
       }
       File backupsDir = AlluxioTestDirectory.createTemporaryDirectory("backups");
-      AlluxioURI zkBackup = metaClient.backup(backupsDir.getAbsolutePath(), false).getBackupUri();
+      AlluxioURI zkBackup = metaClient.backup(BackupPOptions.newBuilder()
+          .setTargetDirectory(backupsDir.getAbsolutePath()).setLocalFileSystem(false).build())
+          .getBackupUri();
       cluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, zkBackup.toString());
 
       // Migrate to embedded journal HA.
