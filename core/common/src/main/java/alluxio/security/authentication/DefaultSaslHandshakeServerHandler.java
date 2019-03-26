@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.security.authentication.plain;
+package alluxio.security.authentication;
 
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SaslMessage;
 import alluxio.grpc.SaslMessageType;
-import alluxio.security.authentication.SaslHandshakeServerHandler;
 
 import com.google.protobuf.ByteString;
 
@@ -21,20 +21,24 @@ import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 
 /**
- * Implementation of {@link SaslHandshakeServerHandler} for plain authentication.
+ * Default implementation of {@link DefaultSaslHandshakeServerHandler}.
  */
-public class SaslHandshakeServerHandlerPlain implements SaslHandshakeServerHandler {
+public class DefaultSaslHandshakeServerHandler implements SaslHandshakeServerHandler {
+  /** SaslClientHandler that will be used be used for handshake. */
+  private final SaslServerHandler mSaslServerHandler;
 
-  /** SaslServer that will be used. */
+  /** SaslClient that is owned by given handler. */
   private final SaslServer mSaslServer;
 
   /**
-   * Creates {@link SaslHandshakeServerHandlerPlain} with given {@link SaslServer}.
+   * Creates {@link DefaultSaslHandshakeServerHandler} with given {@link SaslServerHandler}.
    *
-   * @param saslServer sasl server
+   * @param saslServerHandler sasl server handler
    */
-  public SaslHandshakeServerHandlerPlain(SaslServer saslServer) {
-    mSaslServer = saslServer;
+  public DefaultSaslHandshakeServerHandler(SaslServerHandler saslServerHandler)
+      throws UnauthenticatedException {
+    mSaslServerHandler = saslServerHandler;
+    mSaslServer = mSaslServerHandler.getSaslServer();
   }
 
   @Override

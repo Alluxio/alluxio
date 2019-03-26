@@ -53,7 +53,7 @@ public final class UfsFileWriteHandlerTest extends AbstractWriteHandlerTest {
         .thenReturn(mOutputStream)
         .thenReturn(new FileOutputStream(mFile, true));
     mResponseObserver = Mockito.mock(StreamObserver.class);
-    mWriteHandler = new UfsFileWriteHandler(ufsManager, mResponseObserver);
+    mWriteHandler = new UfsFileWriteHandler(ufsManager, mResponseObserver, mUserInfo);
     setupResponseTrigger();
   }
 

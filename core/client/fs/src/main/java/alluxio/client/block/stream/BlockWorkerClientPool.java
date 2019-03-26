@@ -13,6 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.util.ThreadFactoryUtils;
 
@@ -21,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.SocketAddress;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -37,7 +37,7 @@ import javax.security.auth.Subject;
 public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorkerClient> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientPool.class);
   private final Subject mSubject;
-  private final SocketAddress mAddress;
+  private final GrpcServerAddress mAddress;
   private static final int WORKER_CLIENT_POOL_GC_THREADPOOL_SIZE = 10;
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(WORKER_CLIENT_POOL_GC_THREADPOOL_SIZE,
@@ -52,10 +52,10 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
    * @param address address of the worker
    * @param maxCapacity the maximum capacity of the pool
    * @param alluxioConf Alluxio configuration
-   * @param workerGroup netty event loop group to create clients with
-   *        is above the minimum capacity(1), it is closed and removed from the pool.
+   * @param workerGroup netty event loop group to create clients with is above the minimum
+   *        capacity(1), it is closed and removed from the pool.
    */
-  public BlockWorkerClientPool(Subject subject, SocketAddress address, int maxCapacity,
+  public BlockWorkerClientPool(Subject subject, GrpcServerAddress address, int maxCapacity,
       AlluxioConfiguration alluxioConf, EventLoopGroup workerGroup) {
     super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
     mSubject = subject;

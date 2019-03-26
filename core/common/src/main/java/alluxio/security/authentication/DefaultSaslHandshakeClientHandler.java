@@ -9,12 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.security.authentication.plain;
+package alluxio.security.authentication;
 
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.SaslMessage;
 import alluxio.grpc.SaslMessageType;
-import alluxio.security.authentication.AuthType;
-import alluxio.security.authentication.SaslHandshakeClientHandler;
 
 import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
@@ -23,22 +22,27 @@ import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 
 /**
- * Implementation of {@link SaslHandshakeClientHandler} for plain authentication.
+ * Default implementation of {@link SaslHandshakeClientHandler}.
  */
-public class SaslHandshakeClientHandlerPlain implements SaslHandshakeClientHandler {
+public class DefaultSaslHandshakeClientHandler implements SaslHandshakeClientHandler {
   /** Initial challenge for client to start Sasl session. */
-  private static final byte[] S_PLAIN_INITIATE_CHANNEL = new byte[0];
+  private static final byte[] S_INITIATE_CHALLENGE = new byte[0];
 
-  /** SaslClient that will be used. */
+  /** SaslClientHandler that will be used be used for handshake. */
+  private final SaslClientHandler mSaslClientHandler;
+
+  /** SaslClient that is owned by given handler. */
   private final SaslClient mSaslClient;
 
   /**
-   * Creates {@link SaslHandshakeClientHandlerPlain} with given {@link SaslClient}.
+   * Creates {@link DefaultSaslHandshakeClientHandler} with given {@link SaslClientHandler}.
    *
-   * @param saslClient sasl client
+   * @param saslClientHandler sasl client handler
    */
-  public SaslHandshakeClientHandlerPlain(SaslClient saslClient) {
-    mSaslClient = saslClient;
+  public DefaultSaslHandshakeClientHandler(SaslClientHandler saslClientHandler)
+      throws UnauthenticatedException {
+    mSaslClientHandler = saslClientHandler;
+    mSaslClient = mSaslClientHandler.getSaslClient();
   }
 
   @Override
@@ -67,12 +71,12 @@ public class SaslHandshakeClientHandlerPlain implements SaslHandshakeClientHandl
   @Override
   public SaslMessage getInitialMessage(String channelId) throws SaslException {
     byte[] initiateSaslResponse = null;
-    if (mSaslClient.hasInitialResponse()) {
-      initiateSaslResponse = mSaslClient.evaluateChallenge(S_PLAIN_INITIATE_CHANNEL);
+    if (mSaslClientHandler.getSaslClient().hasInitialResponse()) {
+      initiateSaslResponse = mSaslClient.evaluateChallenge(S_INITIATE_CHALLENGE);
     }
     SaslMessage.Builder initialResponse =
         SaslMessage.newBuilder().setMessageType(SaslMessageType.CHALLENGE)
-            .setAuthenticationName(AuthType.SIMPLE.getAuthName());
+            .setAuthenticationScheme(mSaslClientHandler.getClientScheme());
     if (initiateSaslResponse != null) {
       initialResponse.setMessage(ByteString.copyFrom(initiateSaslResponse));
     }

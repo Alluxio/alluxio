@@ -15,6 +15,7 @@ import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
 
@@ -29,15 +30,18 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
   private final WorkerProcess mWorkerProcess;
   private final DataMessageMarshaller<WriteRequest> mMarshaller;
   private AbstractWriteHandler mWriteHandler;
+  private AuthenticatedUserInfo mUserInfo;
 
   /**
    * @param workerProcess the worker process instance
    * @param responseObserver the response observer of the gRPC stream
+   * @param userInfo the authenticated user info
    */
   public DelegationWriteHandler(WorkerProcess workerProcess,
-      StreamObserver<WriteResponse> responseObserver) {
+      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo) {
     mWorkerProcess = workerProcess;
     mResponseObserver = responseObserver;
+    mUserInfo = userInfo;
     if (mResponseObserver instanceof DataMessageMarshallerProvider) {
       mMarshaller = ((DataMessageMarshallerProvider<WriteRequest, WriteResponse>) mResponseObserver)
           .getRequestMarshaller();
@@ -49,15 +53,14 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
   private AbstractWriteHandler createWriterHandler(alluxio.grpc.WriteRequest request) {
     switch (request.getCommand().getType()) {
       case ALLUXIO_BLOCK:
-        return new BlockWriteHandler(mWorkerProcess.getWorker(BlockWorker.class),
-            mResponseObserver);
+        return new BlockWriteHandler(mWorkerProcess.getWorker(BlockWorker.class), mResponseObserver,
+            mUserInfo);
       case UFS_FILE:
-        return new UfsFileWriteHandler(mWorkerProcess.getUfsManager(),
-            mResponseObserver);
+        return new UfsFileWriteHandler(mWorkerProcess.getUfsManager(), mResponseObserver,
+            mUserInfo);
       case UFS_FALLBACK_BLOCK:
-        return new UfsFallbackBlockWriteHandler(
-            mWorkerProcess.getWorker(BlockWorker.class), mWorkerProcess.getUfsManager(),
-            mResponseObserver);
+        return new UfsFallbackBlockWriteHandler(mWorkerProcess.getWorker(BlockWorker.class),
+            mWorkerProcess.getUfsManager(), mResponseObserver, mUserInfo);
       default:
         throw new IllegalArgumentException(String.format("Invalid request type %s",
             request.getCommand().getType().name()));

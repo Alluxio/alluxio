@@ -20,6 +20,7 @@ import alluxio.grpc.DataMessage;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.resource.LockResource;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
 
 import com.codahale.metrics.Counter;
@@ -77,6 +78,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
   private final ReentrantLock mLock = new ReentrantLock();
 
+  protected AuthenticatedUserInfo mUserInfo;
+
   /**
    * This is only created in the gRPC event thread when a read request is received.
    * Using "volatile" because we want any value change of this variable to be
@@ -90,12 +93,14 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    *
    * @param executorService the executor service to run {@link DataReader}s
    * @param responseObserver the response observer of the
+   * @param userInfo the authenticated user info
    */
   AbstractReadHandler(ExecutorService executorService,
-      StreamObserver<ReadResponse> responseObserver) {
+      StreamObserver<ReadResponse> responseObserver, AuthenticatedUserInfo userInfo) {
     mDataReaderExecutor = executorService;
     mSerializingExecutor = new SerializingExecutor(executorService);
     mResponseObserver = responseObserver;
+    mUserInfo = userInfo;
   }
 
   @Override

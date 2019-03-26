@@ -13,6 +13,7 @@ package alluxio.grpc;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.security.authentication.AuthenticatedUserInjector;
 import alluxio.security.authentication.AuthenticationServer;
 import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.util.SecurityUtils;
@@ -24,8 +25,6 @@ import io.grpc.netty.NettyServerBuilder;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
 import java.util.HashSet;
@@ -46,17 +45,19 @@ public final class GrpcServerBuilder {
   private Set<ServiceType> mServices;
   /** Authentication server instance that will be used by this server. */
   private AuthenticationServer mAuthenticationServer;
-
-  /** Configuration object used for  */
+  /** Alluxio configuration.  */
   private AlluxioConfiguration mConfiguration;
 
-  private GrpcServerBuilder(NettyServerBuilder nettyServerBuilder, AlluxioConfiguration conf) {
-    mConfiguration = conf;
+  private GrpcServerBuilder(String hostName, SocketAddress address, AuthenticationServer authenticationServer, AlluxioConfiguration conf) {
+    mAuthenticationServer = authenticationServer;
+    mNettyServerBuilder = NettyServerBuilder.forAddress(address);
     mServices = new HashSet<>();
-    mNettyServerBuilder = nettyServerBuilder;
-    if (SecurityUtils.isAuthenticationEnabled(conf)) {
-      LoggerFactory.getLogger(GrpcServerBuilder.class).warn("Authentication ENABLED");
-      mAuthenticationServer = new DefaultAuthenticationServer(conf);
+    mConfiguration = conf;
+
+    if (SecurityUtils.isAuthenticationEnabled(mConfiguration)) {
+      if (mAuthenticationServer == null) {
+        mAuthenticationServer = new DefaultAuthenticationServer(hostName, mConfiguration);
+      }
       addService(new GrpcService(mAuthenticationServer).disableAuthentication());
     }
   }
@@ -64,11 +65,27 @@ public final class GrpcServerBuilder {
   /**
    * Create an new instance of {@link GrpcServerBuilder} with authentication support.
    *
+   * @param hostName the host name
    * @param address the address
+   * @param conf Alluxio configuration
    * @return a new instance of {@link GrpcServerBuilder}
    */
-  public static GrpcServerBuilder forAddress(SocketAddress address, AlluxioConfiguration conf) {
-    return new GrpcServerBuilder(NettyServerBuilder.forAddress(address), conf);
+  public static GrpcServerBuilder forAddress(String hostName, SocketAddress address,
+      AlluxioConfiguration conf) {
+    return new GrpcServerBuilder(hostName, address, null, conf);
+  }
+
+  /**
+   * Create an new instance of {@link GrpcServerBuilder} with authentication support.
+   *
+   * @param hostName the host name
+   * @param address the address
+   * @param authenticationServer the authentication server to use
+   * @return a new instance of {@link GrpcServerBuilder}
+   */
+  public static GrpcServerBuilder forAddress(String hostName, SocketAddress address,
+      AuthenticationServer authenticationServer, AlluxioConfiguration conf) {
+    return new GrpcServerBuilder(hostName, address, authenticationServer, conf);
   }
 
   /**
@@ -192,8 +209,11 @@ public final class GrpcServerBuilder {
    */
   public GrpcServerBuilder addService(GrpcService serviceDefinition) {
     ServerServiceDefinition service = serviceDefinition.getServiceDefinition();
-    if (SecurityUtils.isAuthenticationEnabled(mConfiguration) && serviceDefinition.isAuthenticated()) {
-      service = ServerInterceptors.intercept(service, mAuthenticationServer.getInterceptors());
+    if (SecurityUtils.isAuthenticationEnabled(mConfiguration)
+        && serviceDefinition.isAuthenticated()) {
+      // Intercept the service with authenticated user injector.
+      service = ServerInterceptors.intercept(service,
+          new AuthenticatedUserInjector(mAuthenticationServer));
     }
     mNettyServerBuilder = mNettyServerBuilder.addService(service);
     return this;

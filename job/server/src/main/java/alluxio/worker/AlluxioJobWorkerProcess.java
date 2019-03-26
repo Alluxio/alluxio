@@ -59,8 +59,11 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
   /** Used for auto binding. **/
   private ServerSocket mBindSocket;
 
-  /** The address for the rpc server. */
-  private InetSocketAddress mRpcAddress;
+  /** The connect address for the rpc server. */
+  private InetSocketAddress mRpcConnectAddress;
+
+  /** The bind address for the rpc server. */
+  private InetSocketAddress mRpcBindAddress;
 
   /** Worker start time in milliseconds. */
   private long mStartTimeMs;
@@ -100,9 +103,11 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
       }
       // Reset worker RPC port based on assigned port number
       ServerConfiguration.set(PropertyKey.JOB_WORKER_RPC_PORT, Integer.toString(mRPCPort));
-      mRpcAddress =
-          NetworkAddressUtils.getConnectAddress(ServiceType.JOB_WORKER_RPC,
-              ServerConfiguration.global());
+
+      mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.JOB_WORKER_RPC,
+          ServerConfiguration.global());
+      mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.JOB_WORKER_RPC,
+          ServerConfiguration.global());
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -111,7 +116,7 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
 
   @Override
   public InetSocketAddress getRpcAddress() {
-    return mRpcAddress;
+    return mRpcConnectAddress;
   }
 
   @Override
@@ -186,9 +191,9 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
         mBindSocket.close();
       }
 
-      LOG.info("Starting gRPC server on address {}", mRpcAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcAddress,
-          ServerConfiguration.global());
+      LOG.info("Starting gRPC server on address {}", mRpcConnectAddress);
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
+          mRpcConnectAddress.getHostName(), mRpcBindAddress, ServerConfiguration.global());
 
       for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> serviceEntry : mJobWorker.getServices()
           .entrySet()) {
@@ -197,7 +202,7 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
       }
 
       mGrpcServer = serverBuilder.build().start();
-      LOG.info("Started gRPC server on address {}", mRpcAddress);
+      LOG.info("Started gRPC server on address {}", mRpcConnectAddress);
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
@@ -212,7 +217,7 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
 
   @Override
   public void stop() throws Exception {
-    LOG.info("Stopping RPC server on {} @ {}", this, mRpcAddress);
+    LOG.info("Stopping RPC server on {} @ {}", this, mRpcConnectAddress);
     if (isServing()) {
       stopServing();
       stopWorkers();
