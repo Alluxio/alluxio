@@ -21,6 +21,7 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.metrics.CommonMetrics;
@@ -216,7 +217,7 @@ public abstract class AbstractClient implements Client {
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
-            .newBuilder(mAddress, mContext.getConf())
+            .newBuilder(new GrpcServerAddress(mAddress), mContext.getConf())
             .setSubject(mContext.getSubject())
             .build();
         // Create stub for version service on host

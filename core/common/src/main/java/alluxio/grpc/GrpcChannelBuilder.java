@@ -34,8 +34,8 @@ public final class GrpcChannelBuilder {
   /** Key for acquiring the underlying managed channel. */
   protected GrpcManagedChannelPool.ChannelKey mChannelKey;
 
-  /** Connection address. */
-  protected SocketAddress mServerAddress;
+  /** gRPC Server address. */
+  protected GrpcServerAddress mServerAddress;
 
   /** Whether to use mParentSubject as authentication user. */
   protected boolean mUseSubject;
@@ -52,12 +52,12 @@ public final class GrpcChannelBuilder {
 
   protected AlluxioConfiguration mConfiguration;
 
-  private GrpcChannelBuilder(SocketAddress address, AlluxioConfiguration conf) {
+  private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf) {
     mServerAddress = address;
     mConfiguration = conf;
     mChannelKey = GrpcManagedChannelPool.ChannelKey.create(conf);
     // Set default overrides for the channel.
-    mChannelKey.setAddress(address);
+    mChannelKey.setAddress(address.getSocketAddress());
     mChannelKey.setMaxInboundMessageSize(
         (int) mConfiguration.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
     mUseSubject = true;
@@ -71,7 +71,8 @@ public final class GrpcChannelBuilder {
    * @param conf Alluxio configuration
    * @return a new instance of {@link GrpcChannelBuilder}
    */
-  public static GrpcChannelBuilder newBuilder(SocketAddress address, AlluxioConfiguration conf) {
+  public static GrpcChannelBuilder newBuilder(GrpcServerAddress address,
+      AlluxioConfiguration conf) {
     return new GrpcChannelBuilder(address, conf);
   }
 

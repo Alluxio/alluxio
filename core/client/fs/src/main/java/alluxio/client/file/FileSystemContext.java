@@ -22,6 +22,7 @@ import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientContext;
@@ -391,10 +392,11 @@ public final class FileSystemContext implements Closeable {
       final WorkerNetAddress workerNetAddress, final Subject subject) throws IOException {
     SocketAddress address =
         NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress, getConf());
+    GrpcServerAddress serverAddress = new GrpcServerAddress(workerNetAddress.getHost(), address);
     ClientPoolKey key = new ClientPoolKey(address,
         AuthenticationUserUtils.getImpersonationUser(subject, getConf()));
     return mBlockWorkerClientPool.computeIfAbsent(key,
-        k -> new BlockWorkerClientPool(subject, address,
+        k -> new BlockWorkerClientPool(subject, serverAddress,
             getConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE), getConf(),
             mWorkerGroup))
         .acquire();

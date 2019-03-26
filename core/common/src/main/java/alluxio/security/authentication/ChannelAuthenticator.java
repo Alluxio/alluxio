@@ -17,6 +17,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.ChannelAuthenticationScheme;
 import alluxio.exception.status.UnknownException;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.grpc.GrpcChannelBuilder;
@@ -108,7 +109,7 @@ public class ChannelAuthenticator {
    * @return channel that is augmented for authentication
    * @throws UnauthenticatedException
    */
-  public Channel authenticate(SocketAddress serverAddress, ManagedChannel managedChannel)
+  public Channel authenticate(GrpcServerAddress serverAddress, ManagedChannel managedChannel)
       throws AlluxioStatusException {
     LOG.debug("Channel authentication initiated. ChannelId:{}, AuthType:{}, Target:{}", mChannelId,
             mAuthType, managedChannel.authority());
@@ -121,12 +122,12 @@ public class ChannelAuthenticator {
   }
 
   private class AuthenticatedManagedChannel extends Channel implements AuthenticatedChannel {
-    private final SocketAddress mServerAddress;
+    private final GrpcServerAddress mServerAddress;
     private final ManagedChannel mManagedChannel;
     private Channel mChannel;
     private boolean mAuthenticated;
 
-    AuthenticatedManagedChannel(SocketAddress serverAddress, ManagedChannel managedChannel)
+    AuthenticatedManagedChannel(GrpcServerAddress serverAddress, ManagedChannel managedChannel)
         throws AlluxioStatusException {
       mServerAddress = serverAddress;
       mManagedChannel = managedChannel;
@@ -138,7 +139,7 @@ public class ChannelAuthenticator {
       try {
         // Determine channel authentication scheme to use.
         ChannelAuthenticationScheme authScheme =
-            getChannelAuthScheme(mParentSubject, mServerAddress);
+            getChannelAuthScheme(mParentSubject, mServerAddress.getSocketAddress());
         // Create SaslHandler for talking with target host's authentication service.
         SaslClientHandler saslClientHandler =
             createSaslClientHandler(mServerAddress, authScheme, mParentSubject);
@@ -202,7 +203,7 @@ public class ChannelAuthenticator {
      * @return the created {@link SaslClientHandler} instance
      * @throws UnauthenticatedException
      */
-    private SaslClientHandler createSaslClientHandler(SocketAddress serverAddress,
+    private SaslClientHandler createSaslClientHandler(GrpcServerAddress serverAddress,
         ChannelAuthenticationScheme authScheme, Subject subject) throws UnauthenticatedException {
       switch (authScheme) {
         case SIMPLE:
