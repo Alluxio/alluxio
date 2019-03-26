@@ -93,13 +93,13 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     mMetricsAggregatorRegistry.put(aggregator.getName(), aggregator);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClusterMetricName(aggregator.getName()),
         (Gauge<Object>) () -> {
-              Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
-              for (MetricsFilter filter : aggregator.getFilters()) {
-                metrics.put(filter, mMetricsStore
-                    .getMetricsByInstanceTypeAndName(filter.getInstanceType(), filter.getName()));
-              }
-              return aggregator.getValue(metrics);
-            });
+          Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
+          for (MetricsFilter filter : aggregator.getFilters()) {
+            metrics.put(filter, mMetricsStore
+                .getMetricsByInstanceTypeAndName(filter.getInstanceType(), filter.getName()));
+          }
+          return aggregator.getValue(metrics);
+        });
   }
 
   @VisibleForTesting
