@@ -151,9 +151,9 @@ public final class GetConfTest {
     String expectedOutput = "alluxio.logger.type=MASTER_LOGGER\n"
         + "alluxio.master.audit.logger.type=MASTER_AUDIT_LOGGER\n"
         + "alluxio.master.hostname=localhost\n"
+        + "alluxio.master.mount.table.root.ufs=hdfs://localhost:9000\n"
         + "alluxio.master.port=19998\n"
-        + "alluxio.master.web.port=19999\n"
-        + "alluxio.underfs.address=hdfs://localhost:9000\n";
+        + "alluxio.master.web.port=19999\n";
     assertEquals(expectedOutput, mOutputStream.toString());
   }
 
@@ -171,9 +171,9 @@ public final class GetConfTest {
         "alluxio.logger.type=MASTER_LOGGER (SYSTEM_PROPERTY)\n"
         + "alluxio.master.audit.logger.type=MASTER_AUDIT_LOGGER (SYSTEM_PROPERTY)\n"
         + "alluxio.master.hostname=localhost (SITE_PROPERTY (/alluxio/conf/alluxio-site.properties))\n"
+        + "alluxio.master.mount.table.root.ufs=hdfs://localhost:9000 (SITE_PROPERTY (/alluxio/conf/alluxio-site.properties))\n"
         + "alluxio.master.port=19998 (DEFAULT)\n"
-        + "alluxio.master.web.port=19999 (DEFAULT)\n"
-        + "alluxio.underfs.address=hdfs://localhost:9000 (SITE_PROPERTY (/alluxio/conf/alluxio-site.properties))\n";
+        + "alluxio.master.web.port=19999 (DEFAULT)\n";
     // CHECKSTYLE.ON: LineLengthExceed
     assertEquals(expectedOutput, mOutputStream.toString());
   }
@@ -189,7 +189,7 @@ public final class GetConfTest {
             .setSource("DEFAULT").build(),
         ConfigProperty.newBuilder().setName("alluxio.master.hostname").setValue("localhost")
             .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)").build(),
-        ConfigProperty.newBuilder().setName("alluxio.underfs.address")
+        ConfigProperty.newBuilder().setName("alluxio.master.mount.table.root.ufs")
             .setValue("hdfs://localhost:9000")
             .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)").build(),
         ConfigProperty.newBuilder().setName("alluxio.logger.type").setValue("MASTER_LOGGER")

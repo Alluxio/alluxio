@@ -33,7 +33,7 @@ directory `/mnt/nfs`, the following environment variable assignment needs to be 
 
 ```
 alluxio.master.hostname=localhost
-alluxio.underfs.address=/mnt/nfs
+alluxio.master.mount.table.root.ufs=/mnt/nfs
 ```
 
 ## Running Alluxio with NFS

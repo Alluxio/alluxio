@@ -40,7 +40,7 @@ Minio是为云应用程序和DevOps构建的对象存储服务器。 Minio提供
 在`conf/alluxio-site.properties`文件中要修改的所有字段如下所示：
 
 ```properties
-alluxio.underfs.address=s3a://<MINIO_BUCKET>/<MINIO_DIRECTORY>
+alluxio.master.mount.table.root.ufs=s3a://<MINIO_BUCKET>/<MINIO_DIRECTORY>
 alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
 alluxio.underfs.s3.disable.dns.buckets=true
 alluxio.underfs.s3a.inherit_acl=false

@@ -76,8 +76,6 @@ alluxio.test.mode:
   设置在测试过程中是否启用某些特殊行为。
 alluxio.tmp.dirs:
   存储Alluxio临时文件的路径，使用逗号作为分隔符。如果指定了多个路径，每个临时文件将随机选择一个路径。目前，只有上传到对象存储的文件存储在这些路径中。
-alluxio.underfs.address:
-  Alluxio在底层文件系统中的文件夹。
 alluxio.underfs.allow.set.owner.failure:
   是否允许UFS中的设置所有者失败。当设置为true时，文件或目录所有者可能会在Alluxio和UFS之间产生分歧。
 alluxio.underfs.gcs.owner.id.to.username.mapping:

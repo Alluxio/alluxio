@@ -49,7 +49,7 @@ or `obs://alluxio-obs-bucket/alluxio/data` if only the folder `/alluxio/data` in
 is mapped to Alluxio.
 
 ```
-alluxio.underfs.address=obs://<OBS_BUCKET>/<OBS_DIRECTORY>/
+alluxio.master.mount.table.root.ufs=obs://<OBS_BUCKET>/<OBS_DIRECTORY>/
 ```
 
 Specify the Huawei Cloud credentials for OBS access. In `conf/alluxio-site.properties`,

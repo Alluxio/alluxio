@@ -25,8 +25,8 @@ systems.
 
 ![unified]({{ '/img/screenshot_unified.png' | relativize_url }})
 
-The directory specified by the `alluxio.underfs.address` is mounted to the root of the Alluxio
-namespace. This directory identifies the "primary storage" for Alluxio.
+The directory specified by the `alluxio.master.mount.table.root.ufs` is mounted to the root of the
+Alluxio namespace. This directory identifies the "primary storage" for Alluxio.
 In addition, users can use the mounting API to add and remove data sources:
 
 ```java
@@ -81,7 +81,7 @@ The root mount point of the Alluxio namespace can be specified in `conf/alluxio-
 The following line is an example configuration where a HDFS path is at the root of the Alluxio namespace.
 
 ```
-alluxio.underfs.address=hdfs://HDFS_HOSTNAME:8020
+alluxio.master.mount.table.root.ufs=hdfs://HDFS_HOSTNAME:8020
 ```
 
 Mount options for the root mount point can be configured using the configuration prefix:
