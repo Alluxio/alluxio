@@ -81,7 +81,7 @@ public final class LocalFirstPolicy implements BlockLocationPolicy {
     // Map back to the worker with the nearest tiered identity.
     return candidateWorkers.stream()
         .filter(worker -> worker.getNetAddress().getTieredIdentity().equals(nearest.get()))
-        .map(worker -> worker.getNetAddress())
+        .map(BlockWorkerInfo::getNetAddress)
         .findFirst().orElse(null);
   }
 
