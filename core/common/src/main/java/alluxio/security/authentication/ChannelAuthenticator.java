@@ -15,12 +15,12 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.grpc.ChannelAuthenticationScheme;
 import alluxio.exception.status.UnknownException;
+import alluxio.grpc.ChannelAuthenticationScheme;
+import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
-import alluxio.grpc.GrpcChannelBuilder;
 
 import io.grpc.CallOptions;
 import io.grpc.Channel;
@@ -33,9 +33,10 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.security.auth.Subject;
 import java.net.SocketAddress;
 import java.util.UUID;
+
+import javax.security.auth.Subject;
 
 /**
  * Used to authenticate with the target host. Used internally by {@link GrpcChannelBuilder}.
