@@ -864,7 +864,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         HashSet<String> prefixes = new HashSet<>();
         for (ObjectStatus objectStatus : chunk.getObjectStatuses()) {
           String objectName = objectStatus.getName();
-          while (objectName.startsWith(keyPrefix)) {
+          while (objectName.startsWith(keyPrefix) && objectName.contains(PATH_SEPARATOR)) {
             objectName = objectName.substring(0, objectName.lastIndexOf(PATH_SEPARATOR));
             if (!objectName.isEmpty()) {
               // include the separator with the prefix, to conform to what object stores return
