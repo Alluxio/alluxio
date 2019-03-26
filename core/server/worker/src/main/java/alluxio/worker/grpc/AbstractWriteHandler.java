@@ -21,6 +21,7 @@ import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
 
 import com.codahale.metrics.Counter;
@@ -77,13 +78,18 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    */
   private volatile T mContext;
 
+  protected AuthenticatedUserInfo mUserInfo;
+
   /**
    * Creates an instance of {@link AbstractWriteHandler}.
    *
    * @param responseObserver the response observer for the write request
+   * @param userInfo the authenticated user info
    */
-  AbstractWriteHandler(StreamObserver<WriteResponse> responseObserver) {
+  AbstractWriteHandler(StreamObserver<WriteResponse> responseObserver,
+      AuthenticatedUserInfo userInfo) {
     mResponseObserver = responseObserver;
+    mUserInfo = userInfo;
     mSerializingExecutor = new SerializingExecutor(GrpcExecutors.BLOCK_WRITER_EXECUTOR);
   }
 

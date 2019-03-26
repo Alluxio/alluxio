@@ -11,20 +11,21 @@
 
 package alluxio.security.authentication;
 
-import alluxio.grpc.SaslMessage;
+import alluxio.grpc.ChannelAuthenticationScheme;
 
-import javax.security.sasl.SaslException;
+import javax.security.sasl.SaslClient;
 
 /**
- * Interface for providing server-side handshake routines for a particular authentication scheme.
+ * Interface for authentication scheme specific {@link SaslClient} management.
  */
-public interface SaslHandshakeServerHandler {
+public interface SaslClientHandler {
   /**
-   * Handles given {@link SaslMessage} from the client.
-   *
-   * @param message client Sasl message
-   * @return server's response to given client message
-   * @throws SaslException
+   * @return the scheme under which client is authenticating
    */
-  public SaslMessage handleSaslMessage(SaslMessage message) throws SaslException;
+  ChannelAuthenticationScheme getClientScheme();
+
+  /**
+   * @return the {@link SaslClient} instance
+   */
+  SaslClient getSaslClient();
 }

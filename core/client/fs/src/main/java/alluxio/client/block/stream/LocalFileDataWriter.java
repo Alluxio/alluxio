@@ -71,9 +71,9 @@ public final class LocalFileDataWriter implements DataWriter {
     AlluxioConfiguration conf = context.getConf();
     long chunkSize = conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
 
-    final BlockWorkerClient blockWorker = context.acquireBlockWorkerClient(address);
     Closer closer = Closer.create();
     try {
+      final BlockWorkerClient blockWorker = context.acquireBlockWorkerClient(address);
       closer.register(new Closeable() {
         @Override
         public void close() throws IOException {

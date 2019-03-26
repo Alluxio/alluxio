@@ -48,6 +48,7 @@ public final class GrpcDataServer implements DataServer {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataServer.class);
 
   private final SocketAddress mSocketAddress;
+  private final WorkerProcess mWorkerProcess;
   private final long mTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT);
   private final long mKeepAliveTimeMs =
@@ -73,14 +74,17 @@ public final class GrpcDataServer implements DataServer {
   /**
    * Creates a new instance of {@link GrpcDataServer}.
    *
-   * @param address the server address
+   * @param hostName the server host name
+   * @param bindAddress the server bind address
    * @param workerProcess the Alluxio worker process
    */
-  public GrpcDataServer(final SocketAddress address, final WorkerProcess workerProcess) {
-    mSocketAddress = address;
+  public GrpcDataServer(final String hostName, final SocketAddress bindAddress,
+      final WorkerProcess workerProcess) {
+    mSocketAddress = bindAddress;
+    mWorkerProcess = workerProcess;
     try {
       BlockWorkerImpl blockWorkerService = new BlockWorkerImpl(workerProcess, mFsContext);
-      mServer = createServerBuilder(address, NettyUtils.getWorkerChannel(
+      mServer = createServerBuilder(hostName, bindAddress, NettyUtils.getWorkerChannel(
           ServerConfiguration.global()))
           .addService(new GrpcService(
               GrpcSerializationUtils.overrideMethods(blockWorkerService.bindService(),
@@ -94,19 +98,22 @@ public final class GrpcDataServer implements DataServer {
           .start();
       // There is no way to query domain socket address afterwards.
       // So store the bind address if it's domain socket address.
-      if (address instanceof DomainSocketAddress) {
-        mDomainSocketAddress = (DomainSocketAddress) address;
+      if (bindAddress instanceof DomainSocketAddress) {
+        mDomainSocketAddress = (DomainSocketAddress) bindAddress;
       }
     } catch (IOException e) {
-      LOG.error("Server failed to start on {}", address.toString(), e);
+      LOG.error("Server failed to start on {}", bindAddress.toString(), e);
       throw new RuntimeException(e);
     }
-    LOG.info("Server started, listening on {}", address.toString());
+    LOG.info("Server started, listening on {}", bindAddress.toString());
   }
 
-  private GrpcServerBuilder createServerBuilder(SocketAddress address, ChannelType type) {
-    GrpcServerBuilder builder = GrpcServerBuilder.forAddress(address, ServerConfiguration.global());
+  private GrpcServerBuilder createServerBuilder(String hostName,
+      SocketAddress bindAddress, ChannelType type) {
+    GrpcServerBuilder builder =
+        GrpcServerBuilder.forAddress(hostName, bindAddress, ServerConfiguration.global());
     int bossThreadCount = ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BOSS_THREADS);
+
     // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
     int workerThreadCount =
         ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);

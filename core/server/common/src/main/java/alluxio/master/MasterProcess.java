@@ -116,6 +116,15 @@ public abstract class MasterProcess implements Process {
   public abstract InetSocketAddress getRpcAddress();
 
   /**
+   * Gets the registered class from the master registry.
+   *
+   * @param clazz the class of the master to get
+   * @param <T> the type of the master to get
+   * @return the given master
+   */
+  public abstract <T extends Master> T getMaster(Class<T> clazz);
+
+  /**
    * @return the start time of the master in milliseconds
    */
   public long getStartTimeMs() {

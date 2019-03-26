@@ -19,7 +19,7 @@ private static final long serialVersionUID = 0L;
     messageType_ = 0;
     message_ = com.google.protobuf.ByteString.EMPTY;
     clientId_ = "";
-    authenticationName_ = "";
+    authenticationScheme_ = 0;
   }
 
   @java.lang.Override
@@ -75,10 +75,15 @@ private static final long serialVersionUID = 0L;
             clientId_ = bs;
             break;
           }
-          case 34: {
-            com.google.protobuf.ByteString bs = input.readBytes();
-            bitField0_ |= 0x00000008;
-            authenticationName_ = bs;
+          case 32: {
+            int rawValue = input.readEnum();
+            alluxio.grpc.ChannelAuthenticationScheme value = alluxio.grpc.ChannelAuthenticationScheme.valueOf(rawValue);
+            if (value == null) {
+              unknownFields.mergeVarintField(4, rawValue);
+            } else {
+              bitField0_ |= 0x00000008;
+              authenticationScheme_ = rawValue;
+            }
             break;
           }
         }
@@ -179,46 +184,20 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int AUTHENTICATIONNAME_FIELD_NUMBER = 4;
-  private volatile java.lang.Object authenticationName_;
+  public static final int AUTHENTICATIONSCHEME_FIELD_NUMBER = 4;
+  private int authenticationScheme_;
   /**
-   * <code>optional string authenticationName = 4;</code>
+   * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
    */
-  public boolean hasAuthenticationName() {
+  public boolean hasAuthenticationScheme() {
     return ((bitField0_ & 0x00000008) == 0x00000008);
   }
   /**
-   * <code>optional string authenticationName = 4;</code>
+   * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
    */
-  public java.lang.String getAuthenticationName() {
-    java.lang.Object ref = authenticationName_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        authenticationName_ = s;
-      }
-      return s;
-    }
-  }
-  /**
-   * <code>optional string authenticationName = 4;</code>
-   */
-  public com.google.protobuf.ByteString
-      getAuthenticationNameBytes() {
-    java.lang.Object ref = authenticationName_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      authenticationName_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
+  public alluxio.grpc.ChannelAuthenticationScheme getAuthenticationScheme() {
+    alluxio.grpc.ChannelAuthenticationScheme result = alluxio.grpc.ChannelAuthenticationScheme.valueOf(authenticationScheme_);
+    return result == null ? alluxio.grpc.ChannelAuthenticationScheme.NOSASL : result;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -243,7 +222,7 @@ private static final long serialVersionUID = 0L;
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, clientId_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, authenticationName_);
+      output.writeEnum(4, authenticationScheme_);
     }
     unknownFields.writeTo(output);
   }
@@ -265,7 +244,8 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, clientId_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, authenticationName_);
+      size += com.google.protobuf.CodedOutputStream
+        .computeEnumSize(4, authenticationScheme_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -297,10 +277,9 @@ private static final long serialVersionUID = 0L;
       result = result && getClientId()
           .equals(other.getClientId());
     }
-    result = result && (hasAuthenticationName() == other.hasAuthenticationName());
-    if (hasAuthenticationName()) {
-      result = result && getAuthenticationName()
-          .equals(other.getAuthenticationName());
+    result = result && (hasAuthenticationScheme() == other.hasAuthenticationScheme());
+    if (hasAuthenticationScheme()) {
+      result = result && authenticationScheme_ == other.authenticationScheme_;
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -325,9 +304,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + CLIENTID_FIELD_NUMBER;
       hash = (53 * hash) + getClientId().hashCode();
     }
-    if (hasAuthenticationName()) {
-      hash = (37 * hash) + AUTHENTICATIONNAME_FIELD_NUMBER;
-      hash = (53 * hash) + getAuthenticationName().hashCode();
+    if (hasAuthenticationScheme()) {
+      hash = (37 * hash) + AUTHENTICATIONSCHEME_FIELD_NUMBER;
+      hash = (53 * hash) + authenticationScheme_;
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -464,7 +443,7 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       clientId_ = "";
       bitField0_ = (bitField0_ & ~0x00000004);
-      authenticationName_ = "";
+      authenticationScheme_ = 0;
       bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
@@ -505,7 +484,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
         to_bitField0_ |= 0x00000008;
       }
-      result.authenticationName_ = authenticationName_;
+      result.authenticationScheme_ = authenticationScheme_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -559,10 +538,8 @@ private static final long serialVersionUID = 0L;
         clientId_ = other.clientId_;
         onChanged();
       }
-      if (other.hasAuthenticationName()) {
-        bitField0_ |= 0x00000008;
-        authenticationName_ = other.authenticationName_;
-        onChanged();
+      if (other.hasAuthenticationScheme()) {
+        setAuthenticationScheme(other.getAuthenticationScheme());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -739,78 +716,38 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object authenticationName_ = "";
+    private int authenticationScheme_ = 0;
     /**
-     * <code>optional string authenticationName = 4;</code>
+     * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
      */
-    public boolean hasAuthenticationName() {
+    public boolean hasAuthenticationScheme() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional string authenticationName = 4;</code>
+     * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
      */
-    public java.lang.String getAuthenticationName() {
-      java.lang.Object ref = authenticationName_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          authenticationName_ = s;
-        }
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
+    public alluxio.grpc.ChannelAuthenticationScheme getAuthenticationScheme() {
+      alluxio.grpc.ChannelAuthenticationScheme result = alluxio.grpc.ChannelAuthenticationScheme.valueOf(authenticationScheme_);
+      return result == null ? alluxio.grpc.ChannelAuthenticationScheme.NOSASL : result;
     }
     /**
-     * <code>optional string authenticationName = 4;</code>
+     * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
      */
-    public com.google.protobuf.ByteString
-        getAuthenticationNameBytes() {
-      java.lang.Object ref = authenticationName_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        authenticationName_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>optional string authenticationName = 4;</code>
-     */
-    public Builder setAuthenticationName(
-        java.lang.String value) {
+    public Builder setAuthenticationScheme(alluxio.grpc.ChannelAuthenticationScheme value) {
       if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000008;
-      authenticationName_ = value;
+        throw new NullPointerException();
+      }
+      bitField0_ |= 0x00000008;
+      authenticationScheme_ = value.getNumber();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string authenticationName = 4;</code>
+     * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
      */
-    public Builder clearAuthenticationName() {
+    public Builder clearAuthenticationScheme() {
       bitField0_ = (bitField0_ & ~0x00000008);
-      authenticationName_ = getDefaultInstance().getAuthenticationName();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string authenticationName = 4;</code>
-     */
-    public Builder setAuthenticationNameBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000008;
-      authenticationName_ = value;
+      authenticationScheme_ = 0;
       onChanged();
       return this;
     }
