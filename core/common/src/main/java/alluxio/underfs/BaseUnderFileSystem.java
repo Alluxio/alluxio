@@ -88,29 +88,30 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public OutputStream createNonexistingFile(String path) throws IOException {
     return retry(() -> createNonexistingFile(path, CreateOptions.defaults(mAlluxioConf)),
-        "create non-existing file");
+        "create file " + path);
   }
 
   @Override
   public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
     return retry(() -> createNonexistingFile(path, options),
-        "create non-existing file");
+        String.format("create file %s with options %s", path, options));
   }
 
   @Override
   public boolean deleteExistingDirectory(String path) throws IOException {
     return retry(() -> deleteDirectory(path, DeleteOptions.defaults()),
-        "delete existing directory");
+        "delete directory " + path);
   }
 
   @Override
   public boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException {
-    return retry(() -> deleteDirectory(path, options), "delete existing directory");
+    return retry(() -> deleteDirectory(path, options),
+        String.format("delete directory %s with options %s", path, options));
   }
 
   @Override
   public boolean deleteExistingFile(String path) throws IOException {
-    return retry(() -> deleteFile(path), "delete existing file");
+    return retry(() -> deleteFile(path), "delete existing file " + path);
   }
 
   @Override
@@ -131,12 +132,12 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public  UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
-    return retry(() -> getDirectoryStatus(path), "get existing directory status");
+    return retry(() -> getDirectoryStatus(path), "get status of directory " + path);
   }
 
   @Override
   public  UfsFileStatus getExistingFileStatus(String path) throws IOException {
-    return retry(() -> getFileStatus(path), "get existing file status");
+    return retry(() -> getFileStatus(path), "get status of file " + path);
   }
 
   @Override
@@ -174,12 +175,13 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public UfsStatus getExistingStatus(String path) throws IOException {
-    return retry(() -> getStatus(path), "get existing status");
+    return retry(() -> getStatus(path), "get status of " + path);
   }
 
   @Override
   public boolean isExistingDirectory(String path) throws IOException {
-    return retry(() -> isDirectory(path), "check if is existing directory");
+    return retry(() -> isDirectory(path),
+        String.format("check if %s is a directory", path));
   }
 
   @Override
@@ -233,12 +235,13 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public UfsStatus[] listExistingStatus(String path) throws IOException {
-    return retry(() -> listStatus(path), "list existing status");
+    return retry(() -> listStatus(path), "list status of " + path);
   }
 
   @Override
   public UfsStatus[] listExistingStatus(String path, ListOptions options) throws IOException {
-    return retry(() -> listStatus(path, options), "list existing status");
+    return retry(() -> listStatus(path, options),
+        String.format("list status of %s with options %s", path, options));
   }
 
   @Override
@@ -248,22 +251,25 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public InputStream openExistingFile(String path) throws IOException {
-    return retry(() -> open(path), "open existing file");
+    return retry(() -> open(path), "open file " + path);
   }
 
   @Override
   public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
-    return retry(() -> open(path, options), "open existing file");
+    return retry(() -> open(path, options),
+        String.format("open file %s with options %s", path, options));
   }
 
   @Override
   public boolean renameRenamableDirectory(String src, String dst) throws IOException {
-    return retry(() -> renameDirectory(src, dst), "rename renamable directory");
+    return retry(() -> renameDirectory(src, dst),
+        String.format("rename directory from %s to %s", src, dst));
   }
 
   @Override
   public boolean renameRenamableFile(String src, String dst) throws IOException {
-    return retry(() -> renameFile(src, dst), "rename renamable file");
+    return retry(() -> renameFile(src, dst),
+        String.format("rename file from %s to %s", src, dst));
   }
 
   @Override
@@ -314,7 +320,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   /**
-   * Represents a Amazon client operation.
+   * Represents a under filesystem operation.
    */
   private interface UfsOperation<T> {
     /**
@@ -326,12 +332,11 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   /**
-   * Retries the given under filesystem operation to resolve
-   * S3A eventual consistency issue.
+   * Retries the given under filesystem operation to resolve eventual consistency issue.
    *
    * @param op the under filesystem operation to retry
    * @param description the description regarding the operation
-   * @return the operation result if operation succeed
+   * @return the operation result if operation succeed or returned true
    */
   private <T> T retry(UfsOperation<T> op, String description)
       throws IOException {

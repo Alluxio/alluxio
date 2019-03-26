@@ -24,7 +24,7 @@ import java.io.OutputStream;
 
 /**
  * Representing a consistent under filesystem
- * which does not have the eventual consistency issue.
+ * which does not have eventual consistency issue.
  */
 public abstract class ConsistentUnderFileSystem extends BaseUnderFileSystem {
 
@@ -42,7 +42,7 @@ public abstract class ConsistentUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream createNonexistingFile(String path) throws IOException {
-    return create(path, CreateOptions.defaults(mAlluxioConf));
+    return create(path);
   }
 
   @Override
@@ -52,7 +52,7 @@ public abstract class ConsistentUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public boolean deleteExistingDirectory(String path) throws IOException {
-    return deleteDirectory(path, DeleteOptions.defaults());
+    return deleteDirectory(path);
   }
 
   @Override

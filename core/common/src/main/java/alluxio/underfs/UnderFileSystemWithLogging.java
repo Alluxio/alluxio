@@ -490,12 +490,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<UfsStatus>() {
       @Override
       public UfsStatus call() throws IOException {
-        return mUnderFileSystem.getStatus(path);
+        return mUnderFileSystem.getExistingStatus(path);
       }
 
       @Override
       public String toString() {
-        return String.format("GetStatus: path=%s", path);
+        return String.format("GetExistingStatus: path=%s", path);
       }
     });
   }

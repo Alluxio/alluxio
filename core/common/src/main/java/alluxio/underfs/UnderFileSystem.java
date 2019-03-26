@@ -233,7 +233,7 @@ public interface UnderFileSystem extends Closeable {
    * Creates a file in the under file system with the indicated name.
    *
    * Similar to {@link #create(String)} but
-   * deals with the write-then-delete eventual consistency issue.
+   * deals with the delete-then-create eventual consistency issue.
    *
    * @param path the file name
    * @return A {@code OutputStream} object
@@ -244,7 +244,7 @@ public interface UnderFileSystem extends Closeable {
    * Creates a file in the under file system with the specified {@link CreateOptions}.
    *
    * Similar to {@link #create(String, CreateOptions)} but
-   * deals with the write-then-delete eventual consistency issue.
+   * deals with the delete-then-create eventual consistency issue.
    *
    * @param path the file name
    * @param options the options for create
@@ -351,7 +351,7 @@ public interface UnderFileSystem extends Closeable {
    * Gets the directory status.
    *
    * Similar to {@link #getDirectoryStatus(String)} but
-   * deals with the write-then-list eventual consistency issue.
+   * deals with the write-then-get-status eventual consistency issue.
    *
    * @param path the path to the directory
    * @return the directory status
@@ -386,8 +386,9 @@ public interface UnderFileSystem extends Closeable {
 
   /**
    * Gets the file status.
+   *
    * Similar to {@link #getFileStatus(String)} but
-   * deals with the write-then-list eventual consistency issue.
+   * deals with the write-then-get-status eventual consistency issue.
    *
    * @param path the path to the file
    * @return the file status
@@ -448,8 +449,9 @@ public interface UnderFileSystem extends Closeable {
 
   /**
    * Gets the file or directory status.
+   *
    * Similar to {@link #getStatus(String)} but
-   * deals with the write-then-list eventual consistency issue.
+   * deals with the write-then-get-status eventual consistency issue.
    *
    * @param path the path to get the status
    * @return the file or directory status
@@ -650,7 +652,7 @@ public interface UnderFileSystem extends Closeable {
    * Renames a directory from {@code src} to {@code dst} in under file system.
    *
    * Similar to {@link #renameDirectory(String, String)} but
-   * deals with the write-then-rename eventual consistency issue.
+   * deals with the write-src-then-rename and delete-dst-then-rename eventual consistency issue.
    *
    * @param src the source directory path
    * @param dst the destination directory path
@@ -671,7 +673,7 @@ public interface UnderFileSystem extends Closeable {
    * Renames a file from {@code src} to {@code dst} in under file system.
    *
    * Similar to {@link #renameFile(String, String)} but
-   * deals with the write-then-rename eventual consistency issue.
+   * deals with the write-src-then-rename and delete-dst-then-rename eventual consistency issue.
    *
    * @param src the source file path
    * @param dst the destination file path

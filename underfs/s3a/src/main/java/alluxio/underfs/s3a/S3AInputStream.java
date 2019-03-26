@@ -11,15 +11,9 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.retry.RetryPolicy;
-
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,8 +24,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class S3AInputStream extends InputStream {
-  private static final Logger LOG = LoggerFactory.getLogger(S3AInputStream.class);
-
   /** Client for operations with s3. */
   private final AmazonS3 mClient;
   /** Name of the bucket the object resides in. */
@@ -45,22 +37,15 @@ public class S3AInputStream extends InputStream {
   private long mPos;
 
   /**
-   * Policy determining the retry behavior in case the key does not exist. The key may not exist
-   * because of eventual consistency.
-   */
-  private final RetryPolicy mRetryPolicy;
-
-  /**
    * Constructor for an input stream of an object in s3 using the aws-sdk implementation to read
    * the data. The stream will be positioned at the start of the file.
    *
    * @param bucketName the bucket the object resides in
    * @param key the path of the object to read
    * @param client the s3 client to use for operations
-   * @param retryPolicy retry policy in case the key does not exist
    */
-  public S3AInputStream(String bucketName, String key, AmazonS3 client, RetryPolicy retryPolicy) {
-    this(bucketName, key, client, retryPolicy, 0L);
+  public S3AInputStream(String bucketName, String key, AmazonS3 client) {
+    this(bucketName, key, client, 0L);
   }
 
   /**
@@ -70,15 +55,12 @@ public class S3AInputStream extends InputStream {
    * @param bucketName the bucket the object resides in
    * @param key the path of the object to read
    * @param client the s3 client to use for operations
-   * @param retryPolicy retry policy in case the key does not exist
    * @param position the position to begin reading from
    */
-  public S3AInputStream(String bucketName, String key, AmazonS3 client, RetryPolicy retryPolicy,
-      long position) {
+  public S3AInputStream(String bucketName, String key, AmazonS3 client, long position) {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
-    mRetryPolicy = retryPolicy;
     mPos = position;
   }
 
@@ -142,23 +124,7 @@ public class S3AInputStream extends InputStream {
     if (mPos > 0) {
       getReq.setRange(mPos);
     }
-    AmazonS3Exception lastException = null;
-    while (mRetryPolicy.attempt()) {
-      try {
-        mIn = mClient.getObject(getReq).getObjectContent();
-        return;
-      } catch (AmazonS3Exception e) {
-        LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
-            mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
-        if (e.getStatusCode() != HttpStatus.SC_NOT_FOUND) {
-          throw e;
-        }
-        // Key does not exist
-        lastException = e;
-      }
-    }
-    // Failed after retrying key does not exist
-    throw lastException;
+    mIn = mClient.getObject(getReq).getObjectContent();
   }
 
   /**
