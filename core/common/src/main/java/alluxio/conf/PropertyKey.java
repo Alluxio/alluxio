@@ -2097,8 +2097,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_NETWORK_READER_BUFFER_SIZE_BYTES =
       new Builder(Name.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES)
           .setDefaultValue("4MB")
-          .setDescription("When a client read from a remote worker, the maximum amount of data"
-              + " not received by client allowed before the worker pauses sending more data.")
+          .setDescription("When a client reads from a remote worker, the maximum amount of data"
+              + " not received by client allowed before the worker pauses sending more data."
+              + " If this value is lower than read chunk size, read performance may be impacted"
+              + " as worker waits more often for buffer to free up. Higher value will increase"
+              + " the memory consumed by each read request.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
