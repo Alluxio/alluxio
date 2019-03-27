@@ -28,7 +28,6 @@ message JournalEntry {
   optional DeleteBlockEntry delete_block = 29;
   optional DeleteFileEntry delete_file = 6;
   optional DeleteMountPointEntry delete_mount_point = 8;
-  optional DeletePathPropertiesEntry delete_path_properties = 41;
   optional InodeDirectoryEntry inode_directory = 9;
   optional InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 10;
   optional InodeFileEntry inode_file = 11;
@@ -36,6 +35,7 @@ message JournalEntry {
   optional NewBlockEntry new_block = 38;
   optional PathPropertiesEntry path_properties = 40;
   optional PersistDirectoryEntry persist_directory = 15;
+  optional RemovePathPropertiesEntry remove_path_properties = 41;
   optional RemoveSyncPointEntry remove_sync_point = 33;
   optional RenameEntry rename = 19;
   optional SetAclEntry set_acl = 31;

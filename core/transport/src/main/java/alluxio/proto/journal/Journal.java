@@ -158,19 +158,6 @@ public final class Journal {
     alluxio.proto.journal.File.DeleteMountPointEntryOrBuilder getDeleteMountPointOrBuilder();
 
     /**
-     * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-     */
-    boolean hasDeletePathProperties();
-    /**
-     * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-     */
-    alluxio.proto.journal.Meta.DeletePathPropertiesEntry getDeletePathProperties();
-    /**
-     * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-     */
-    alluxio.proto.journal.Meta.DeletePathPropertiesEntryOrBuilder getDeletePathPropertiesOrBuilder();
-
-    /**
      * <code>optional .alluxio.proto.journal.InodeDirectoryEntry inode_directory = 9;</code>
      */
     boolean hasInodeDirectory();
@@ -260,6 +247,19 @@ public final class Journal {
      * <code>optional .alluxio.proto.journal.PersistDirectoryEntry persist_directory = 15;</code>
      */
     alluxio.proto.journal.File.PersistDirectoryEntryOrBuilder getPersistDirectoryOrBuilder();
+
+    /**
+     * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+     */
+    boolean hasRemovePathProperties();
+    /**
+     * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+     */
+    alluxio.proto.journal.Meta.RemovePathPropertiesEntry getRemovePathProperties();
+    /**
+     * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+     */
+    alluxio.proto.journal.Meta.RemovePathPropertiesEntryOrBuilder getRemovePathPropertiesOrBuilder();
 
     /**
      * <code>optional .alluxio.proto.journal.RemoveSyncPointEntry remove_sync_point = 33;</code>
@@ -551,7 +551,7 @@ public final class Journal {
             }
             case 74: {
               alluxio.proto.journal.File.InodeDirectoryEntry.Builder subBuilder = null;
-              if (((bitField0_ & 0x00001000) == 0x00001000)) {
+              if (((bitField0_ & 0x00000800) == 0x00000800)) {
                 subBuilder = inodeDirectory_.toBuilder();
               }
               inodeDirectory_ = input.readMessage(alluxio.proto.journal.File.InodeDirectoryEntry.PARSER, extensionRegistry);
@@ -559,12 +559,12 @@ public final class Journal {
                 subBuilder.mergeFrom(inodeDirectory_);
                 inodeDirectory_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00001000;
+              bitField0_ |= 0x00000800;
               break;
             }
             case 82: {
               alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry.Builder subBuilder = null;
-              if (((bitField0_ & 0x00002000) == 0x00002000)) {
+              if (((bitField0_ & 0x00001000) == 0x00001000)) {
                 subBuilder = inodeDirectoryIdGenerator_.toBuilder();
               }
               inodeDirectoryIdGenerator_ = input.readMessage(alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry.PARSER, extensionRegistry);
@@ -572,12 +572,12 @@ public final class Journal {
                 subBuilder.mergeFrom(inodeDirectoryIdGenerator_);
                 inodeDirectoryIdGenerator_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00002000;
+              bitField0_ |= 0x00001000;
               break;
             }
             case 90: {
               alluxio.proto.journal.File.InodeFileEntry.Builder subBuilder = null;
-              if (((bitField0_ & 0x00004000) == 0x00004000)) {
+              if (((bitField0_ & 0x00002000) == 0x00002000)) {
                 subBuilder = inodeFile_.toBuilder();
               }
               inodeFile_ = input.readMessage(alluxio.proto.journal.File.InodeFileEntry.PARSER, extensionRegistry);
@@ -585,12 +585,12 @@ public final class Journal {
                 subBuilder.mergeFrom(inodeFile_);
                 inodeFile_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00004000;
+              bitField0_ |= 0x00002000;
               break;
             }
             case 98: {
               alluxio.proto.journal.File.InodeLastModificationTimeEntry.Builder subBuilder = null;
-              if (((bitField0_ & 0x00008000) == 0x00008000)) {
+              if (((bitField0_ & 0x00004000) == 0x00004000)) {
                 subBuilder = inodeLastModificationTime_.toBuilder();
               }
               inodeLastModificationTime_ = input.readMessage(alluxio.proto.journal.File.InodeLastModificationTimeEntry.PARSER, extensionRegistry);
@@ -598,12 +598,12 @@ public final class Journal {
                 subBuilder.mergeFrom(inodeLastModificationTime_);
                 inodeLastModificationTime_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00008000;
+              bitField0_ |= 0x00004000;
               break;
             }
             case 122: {
               alluxio.proto.journal.File.PersistDirectoryEntry.Builder subBuilder = null;
-              if (((bitField0_ & 0x00040000) == 0x00040000)) {
+              if (((bitField0_ & 0x00020000) == 0x00020000)) {
                 subBuilder = persistDirectory_.toBuilder();
               }
               persistDirectory_ = input.readMessage(alluxio.proto.journal.File.PersistDirectoryEntry.PARSER, extensionRegistry);
@@ -611,7 +611,7 @@ public final class Journal {
                 subBuilder.mergeFrom(persistDirectory_);
                 persistDirectory_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00040000;
+              bitField0_ |= 0x00020000;
               break;
             }
             case 130: {
@@ -772,7 +772,7 @@ public final class Journal {
             }
             case 306: {
               alluxio.proto.journal.File.NewBlockEntry.Builder subBuilder = null;
-              if (((bitField0_ & 0x00010000) == 0x00010000)) {
+              if (((bitField0_ & 0x00008000) == 0x00008000)) {
                 subBuilder = newBlock_.toBuilder();
               }
               newBlock_ = input.readMessage(alluxio.proto.journal.File.NewBlockEntry.PARSER, extensionRegistry);
@@ -780,7 +780,7 @@ public final class Journal {
                 subBuilder.mergeFrom(newBlock_);
                 newBlock_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00010000;
+              bitField0_ |= 0x00008000;
               break;
             }
             case 314: {
@@ -794,7 +794,7 @@ public final class Journal {
             }
             case 322: {
               alluxio.proto.journal.Meta.PathPropertiesEntry.Builder subBuilder = null;
-              if (((bitField0_ & 0x00020000) == 0x00020000)) {
+              if (((bitField0_ & 0x00010000) == 0x00010000)) {
                 subBuilder = pathProperties_.toBuilder();
               }
               pathProperties_ = input.readMessage(alluxio.proto.journal.Meta.PathPropertiesEntry.PARSER, extensionRegistry);
@@ -802,20 +802,20 @@ public final class Journal {
                 subBuilder.mergeFrom(pathProperties_);
                 pathProperties_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00020000;
+              bitField0_ |= 0x00010000;
               break;
             }
             case 330: {
-              alluxio.proto.journal.Meta.DeletePathPropertiesEntry.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000800) == 0x00000800)) {
-                subBuilder = deletePathProperties_.toBuilder();
+              alluxio.proto.journal.Meta.RemovePathPropertiesEntry.Builder subBuilder = null;
+              if (((bitField0_ & 0x00040000) == 0x00040000)) {
+                subBuilder = removePathProperties_.toBuilder();
               }
-              deletePathProperties_ = input.readMessage(alluxio.proto.journal.Meta.DeletePathPropertiesEntry.PARSER, extensionRegistry);
+              removePathProperties_ = input.readMessage(alluxio.proto.journal.Meta.RemovePathPropertiesEntry.PARSER, extensionRegistry);
               if (subBuilder != null) {
-                subBuilder.mergeFrom(deletePathProperties_);
-                deletePathProperties_ = subBuilder.buildPartial();
+                subBuilder.mergeFrom(removePathProperties_);
+                removePathProperties_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00000800;
+              bitField0_ |= 0x00040000;
               break;
             }
           }
@@ -1071,34 +1071,13 @@ public final class Journal {
       return deleteMountPoint_ == null ? alluxio.proto.journal.File.DeleteMountPointEntry.getDefaultInstance() : deleteMountPoint_;
     }
 
-    public static final int DELETE_PATH_PROPERTIES_FIELD_NUMBER = 41;
-    private alluxio.proto.journal.Meta.DeletePathPropertiesEntry deletePathProperties_;
-    /**
-     * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-     */
-    public boolean hasDeletePathProperties() {
-      return ((bitField0_ & 0x00000800) == 0x00000800);
-    }
-    /**
-     * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-     */
-    public alluxio.proto.journal.Meta.DeletePathPropertiesEntry getDeletePathProperties() {
-      return deletePathProperties_ == null ? alluxio.proto.journal.Meta.DeletePathPropertiesEntry.getDefaultInstance() : deletePathProperties_;
-    }
-    /**
-     * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-     */
-    public alluxio.proto.journal.Meta.DeletePathPropertiesEntryOrBuilder getDeletePathPropertiesOrBuilder() {
-      return deletePathProperties_ == null ? alluxio.proto.journal.Meta.DeletePathPropertiesEntry.getDefaultInstance() : deletePathProperties_;
-    }
-
     public static final int INODE_DIRECTORY_FIELD_NUMBER = 9;
     private alluxio.proto.journal.File.InodeDirectoryEntry inodeDirectory_;
     /**
      * <code>optional .alluxio.proto.journal.InodeDirectoryEntry inode_directory = 9;</code>
      */
     public boolean hasInodeDirectory() {
-      return ((bitField0_ & 0x00001000) == 0x00001000);
+      return ((bitField0_ & 0x00000800) == 0x00000800);
     }
     /**
      * <code>optional .alluxio.proto.journal.InodeDirectoryEntry inode_directory = 9;</code>
@@ -1119,7 +1098,7 @@ public final class Journal {
      * <code>optional .alluxio.proto.journal.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 10;</code>
      */
     public boolean hasInodeDirectoryIdGenerator() {
-      return ((bitField0_ & 0x00002000) == 0x00002000);
+      return ((bitField0_ & 0x00001000) == 0x00001000);
     }
     /**
      * <code>optional .alluxio.proto.journal.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 10;</code>
@@ -1140,7 +1119,7 @@ public final class Journal {
      * <code>optional .alluxio.proto.journal.InodeFileEntry inode_file = 11;</code>
      */
     public boolean hasInodeFile() {
-      return ((bitField0_ & 0x00004000) == 0x00004000);
+      return ((bitField0_ & 0x00002000) == 0x00002000);
     }
     /**
      * <code>optional .alluxio.proto.journal.InodeFileEntry inode_file = 11;</code>
@@ -1161,7 +1140,7 @@ public final class Journal {
      * <code>optional .alluxio.proto.journal.InodeLastModificationTimeEntry inode_last_modification_time = 12;</code>
      */
     public boolean hasInodeLastModificationTime() {
-      return ((bitField0_ & 0x00008000) == 0x00008000);
+      return ((bitField0_ & 0x00004000) == 0x00004000);
     }
     /**
      * <code>optional .alluxio.proto.journal.InodeLastModificationTimeEntry inode_last_modification_time = 12;</code>
@@ -1182,7 +1161,7 @@ public final class Journal {
      * <code>optional .alluxio.proto.journal.NewBlockEntry new_block = 38;</code>
      */
     public boolean hasNewBlock() {
-      return ((bitField0_ & 0x00010000) == 0x00010000);
+      return ((bitField0_ & 0x00008000) == 0x00008000);
     }
     /**
      * <code>optional .alluxio.proto.journal.NewBlockEntry new_block = 38;</code>
@@ -1203,7 +1182,7 @@ public final class Journal {
      * <code>optional .alluxio.proto.journal.PathPropertiesEntry path_properties = 40;</code>
      */
     public boolean hasPathProperties() {
-      return ((bitField0_ & 0x00020000) == 0x00020000);
+      return ((bitField0_ & 0x00010000) == 0x00010000);
     }
     /**
      * <code>optional .alluxio.proto.journal.PathPropertiesEntry path_properties = 40;</code>
@@ -1224,7 +1203,7 @@ public final class Journal {
      * <code>optional .alluxio.proto.journal.PersistDirectoryEntry persist_directory = 15;</code>
      */
     public boolean hasPersistDirectory() {
-      return ((bitField0_ & 0x00040000) == 0x00040000);
+      return ((bitField0_ & 0x00020000) == 0x00020000);
     }
     /**
      * <code>optional .alluxio.proto.journal.PersistDirectoryEntry persist_directory = 15;</code>
@@ -1237,6 +1216,27 @@ public final class Journal {
      */
     public alluxio.proto.journal.File.PersistDirectoryEntryOrBuilder getPersistDirectoryOrBuilder() {
       return persistDirectory_ == null ? alluxio.proto.journal.File.PersistDirectoryEntry.getDefaultInstance() : persistDirectory_;
+    }
+
+    public static final int REMOVE_PATH_PROPERTIES_FIELD_NUMBER = 41;
+    private alluxio.proto.journal.Meta.RemovePathPropertiesEntry removePathProperties_;
+    /**
+     * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+     */
+    public boolean hasRemovePathProperties() {
+      return ((bitField0_ & 0x00040000) == 0x00040000);
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+     */
+    public alluxio.proto.journal.Meta.RemovePathPropertiesEntry getRemovePathProperties() {
+      return removePathProperties_ == null ? alluxio.proto.journal.Meta.RemovePathPropertiesEntry.getDefaultInstance() : removePathProperties_;
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+     */
+    public alluxio.proto.journal.Meta.RemovePathPropertiesEntryOrBuilder getRemovePathPropertiesOrBuilder() {
+      return removePathProperties_ == null ? alluxio.proto.journal.Meta.RemovePathPropertiesEntry.getDefaultInstance() : removePathProperties_;
     }
 
     public static final int REMOVE_SYNC_POINT_FIELD_NUMBER = 33;
@@ -1500,19 +1500,19 @@ public final class Journal {
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
         output.writeMessage(8, getDeleteMountPoint());
       }
-      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
         output.writeMessage(9, getInodeDirectory());
       }
-      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
         output.writeMessage(10, getInodeDirectoryIdGenerator());
       }
-      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
         output.writeMessage(11, getInodeFile());
       }
-      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
         output.writeMessage(12, getInodeLastModificationTime());
       }
-      if (((bitField0_ & 0x00040000) == 0x00040000)) {
+      if (((bitField0_ & 0x00020000) == 0x00020000)) {
         output.writeMessage(15, getPersistDirectory());
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
@@ -1551,17 +1551,17 @@ public final class Journal {
       if (((bitField0_ & 0x04000000) == 0x04000000)) {
         output.writeMessage(37, getUpdateInodeFile());
       }
-      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
         output.writeMessage(38, getNewBlock());
       }
       for (int i = 0; i < journalEntries_.size(); i++) {
         output.writeMessage(39, journalEntries_.get(i));
       }
-      if (((bitField0_ & 0x00020000) == 0x00020000)) {
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
         output.writeMessage(40, getPathProperties());
       }
-      if (((bitField0_ & 0x00000800) == 0x00000800)) {
-        output.writeMessage(41, getDeletePathProperties());
+      if (((bitField0_ & 0x00040000) == 0x00040000)) {
+        output.writeMessage(41, getRemovePathProperties());
       }
       unknownFields.writeTo(output);
     }
@@ -1599,23 +1599,23 @@ public final class Journal {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(8, getDeleteMountPoint());
       }
-      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(9, getInodeDirectory());
       }
-      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(10, getInodeDirectoryIdGenerator());
       }
-      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(11, getInodeFile());
       }
-      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(12, getInodeLastModificationTime());
       }
-      if (((bitField0_ & 0x00040000) == 0x00040000)) {
+      if (((bitField0_ & 0x00020000) == 0x00020000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(15, getPersistDirectory());
       }
@@ -1667,7 +1667,7 @@ public final class Journal {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(37, getUpdateInodeFile());
       }
-      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(38, getNewBlock());
       }
@@ -1675,13 +1675,13 @@ public final class Journal {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(39, journalEntries_.get(i));
       }
-      if (((bitField0_ & 0x00020000) == 0x00020000)) {
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(40, getPathProperties());
       }
-      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+      if (((bitField0_ & 0x00040000) == 0x00040000)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(41, getDeletePathProperties());
+          .computeMessageSize(41, getRemovePathProperties());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1754,11 +1754,6 @@ public final class Journal {
         result = result && getDeleteMountPoint()
             .equals(other.getDeleteMountPoint());
       }
-      result = result && (hasDeletePathProperties() == other.hasDeletePathProperties());
-      if (hasDeletePathProperties()) {
-        result = result && getDeletePathProperties()
-            .equals(other.getDeletePathProperties());
-      }
       result = result && (hasInodeDirectory() == other.hasInodeDirectory());
       if (hasInodeDirectory()) {
         result = result && getInodeDirectory()
@@ -1793,6 +1788,11 @@ public final class Journal {
       if (hasPersistDirectory()) {
         result = result && getPersistDirectory()
             .equals(other.getPersistDirectory());
+      }
+      result = result && (hasRemovePathProperties() == other.hasRemovePathProperties());
+      if (hasRemovePathProperties()) {
+        result = result && getRemovePathProperties()
+            .equals(other.getRemovePathProperties());
       }
       result = result && (hasRemoveSyncPoint() == other.hasRemoveSyncPoint());
       if (hasRemoveSyncPoint()) {
@@ -1892,10 +1892,6 @@ public final class Journal {
         hash = (37 * hash) + DELETE_MOUNT_POINT_FIELD_NUMBER;
         hash = (53 * hash) + getDeleteMountPoint().hashCode();
       }
-      if (hasDeletePathProperties()) {
-        hash = (37 * hash) + DELETE_PATH_PROPERTIES_FIELD_NUMBER;
-        hash = (53 * hash) + getDeletePathProperties().hashCode();
-      }
       if (hasInodeDirectory()) {
         hash = (37 * hash) + INODE_DIRECTORY_FIELD_NUMBER;
         hash = (53 * hash) + getInodeDirectory().hashCode();
@@ -1923,6 +1919,10 @@ public final class Journal {
       if (hasPersistDirectory()) {
         hash = (37 * hash) + PERSIST_DIRECTORY_FIELD_NUMBER;
         hash = (53 * hash) + getPersistDirectory().hashCode();
+      }
+      if (hasRemovePathProperties()) {
+        hash = (37 * hash) + REMOVE_PATH_PROPERTIES_FIELD_NUMBER;
+        hash = (53 * hash) + getRemovePathProperties().hashCode();
       }
       if (hasRemoveSyncPoint()) {
         hash = (37 * hash) + REMOVE_SYNC_POINT_FIELD_NUMBER;
@@ -2099,7 +2099,6 @@ public final class Journal {
           getDeleteBlockFieldBuilder();
           getDeleteFileFieldBuilder();
           getDeleteMountPointFieldBuilder();
-          getDeletePathPropertiesFieldBuilder();
           getInodeDirectoryFieldBuilder();
           getInodeDirectoryIdGeneratorFieldBuilder();
           getInodeFileFieldBuilder();
@@ -2107,6 +2106,7 @@ public final class Journal {
           getNewBlockFieldBuilder();
           getPathPropertiesFieldBuilder();
           getPersistDirectoryFieldBuilder();
+          getRemovePathPropertiesFieldBuilder();
           getRemoveSyncPointFieldBuilder();
           getRenameFieldBuilder();
           getSetAclFieldBuilder();
@@ -2182,52 +2182,52 @@ public final class Journal {
           deleteMountPointBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000400);
-        if (deletePathPropertiesBuilder_ == null) {
-          deletePathProperties_ = null;
-        } else {
-          deletePathPropertiesBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000800);
         if (inodeDirectoryBuilder_ == null) {
           inodeDirectory_ = null;
         } else {
           inodeDirectoryBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00001000);
+        bitField0_ = (bitField0_ & ~0x00000800);
         if (inodeDirectoryIdGeneratorBuilder_ == null) {
           inodeDirectoryIdGenerator_ = null;
         } else {
           inodeDirectoryIdGeneratorBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00002000);
+        bitField0_ = (bitField0_ & ~0x00001000);
         if (inodeFileBuilder_ == null) {
           inodeFile_ = null;
         } else {
           inodeFileBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00004000);
+        bitField0_ = (bitField0_ & ~0x00002000);
         if (inodeLastModificationTimeBuilder_ == null) {
           inodeLastModificationTime_ = null;
         } else {
           inodeLastModificationTimeBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00008000);
+        bitField0_ = (bitField0_ & ~0x00004000);
         if (newBlockBuilder_ == null) {
           newBlock_ = null;
         } else {
           newBlockBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00010000);
+        bitField0_ = (bitField0_ & ~0x00008000);
         if (pathPropertiesBuilder_ == null) {
           pathProperties_ = null;
         } else {
           pathPropertiesBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00020000);
+        bitField0_ = (bitField0_ & ~0x00010000);
         if (persistDirectoryBuilder_ == null) {
           persistDirectory_ = null;
         } else {
           persistDirectoryBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00020000);
+        if (removePathPropertiesBuilder_ == null) {
+          removePathProperties_ = null;
+        } else {
+          removePathPropertiesBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00040000);
         if (removeSyncPointBuilder_ == null) {
@@ -2395,66 +2395,66 @@ public final class Journal {
         if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
           to_bitField0_ |= 0x00000800;
         }
-        if (deletePathPropertiesBuilder_ == null) {
-          result.deletePathProperties_ = deletePathProperties_;
-        } else {
-          result.deletePathProperties_ = deletePathPropertiesBuilder_.build();
-        }
-        if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
-          to_bitField0_ |= 0x00001000;
-        }
         if (inodeDirectoryBuilder_ == null) {
           result.inodeDirectory_ = inodeDirectory_;
         } else {
           result.inodeDirectory_ = inodeDirectoryBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
-          to_bitField0_ |= 0x00002000;
+        if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
+          to_bitField0_ |= 0x00001000;
         }
         if (inodeDirectoryIdGeneratorBuilder_ == null) {
           result.inodeDirectoryIdGenerator_ = inodeDirectoryIdGenerator_;
         } else {
           result.inodeDirectoryIdGenerator_ = inodeDirectoryIdGeneratorBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00004000) == 0x00004000)) {
-          to_bitField0_ |= 0x00004000;
+        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
+          to_bitField0_ |= 0x00002000;
         }
         if (inodeFileBuilder_ == null) {
           result.inodeFile_ = inodeFile_;
         } else {
           result.inodeFile_ = inodeFileBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00008000) == 0x00008000)) {
-          to_bitField0_ |= 0x00008000;
+        if (((from_bitField0_ & 0x00004000) == 0x00004000)) {
+          to_bitField0_ |= 0x00004000;
         }
         if (inodeLastModificationTimeBuilder_ == null) {
           result.inodeLastModificationTime_ = inodeLastModificationTime_;
         } else {
           result.inodeLastModificationTime_ = inodeLastModificationTimeBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00010000) == 0x00010000)) {
-          to_bitField0_ |= 0x00010000;
+        if (((from_bitField0_ & 0x00008000) == 0x00008000)) {
+          to_bitField0_ |= 0x00008000;
         }
         if (newBlockBuilder_ == null) {
           result.newBlock_ = newBlock_;
         } else {
           result.newBlock_ = newBlockBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00020000) == 0x00020000)) {
-          to_bitField0_ |= 0x00020000;
+        if (((from_bitField0_ & 0x00010000) == 0x00010000)) {
+          to_bitField0_ |= 0x00010000;
         }
         if (pathPropertiesBuilder_ == null) {
           result.pathProperties_ = pathProperties_;
         } else {
           result.pathProperties_ = pathPropertiesBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00040000) == 0x00040000)) {
-          to_bitField0_ |= 0x00040000;
+        if (((from_bitField0_ & 0x00020000) == 0x00020000)) {
+          to_bitField0_ |= 0x00020000;
         }
         if (persistDirectoryBuilder_ == null) {
           result.persistDirectory_ = persistDirectory_;
         } else {
           result.persistDirectory_ = persistDirectoryBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00040000) == 0x00040000)) {
+          to_bitField0_ |= 0x00040000;
+        }
+        if (removePathPropertiesBuilder_ == null) {
+          result.removePathProperties_ = removePathProperties_;
+        } else {
+          result.removePathProperties_ = removePathPropertiesBuilder_.build();
         }
         if (((from_bitField0_ & 0x00080000) == 0x00080000)) {
           to_bitField0_ |= 0x00080000;
@@ -2604,9 +2604,6 @@ public final class Journal {
         if (other.hasDeleteMountPoint()) {
           mergeDeleteMountPoint(other.getDeleteMountPoint());
         }
-        if (other.hasDeletePathProperties()) {
-          mergeDeletePathProperties(other.getDeletePathProperties());
-        }
         if (other.hasInodeDirectory()) {
           mergeInodeDirectory(other.getInodeDirectory());
         }
@@ -2627,6 +2624,9 @@ public final class Journal {
         }
         if (other.hasPersistDirectory()) {
           mergePersistDirectory(other.getPersistDirectory());
+        }
+        if (other.hasRemovePathProperties()) {
+          mergeRemovePathProperties(other.getRemovePathProperties());
         }
         if (other.hasRemoveSyncPoint()) {
           mergeRemoveSyncPoint(other.getRemoveSyncPoint());
@@ -3918,124 +3918,6 @@ public final class Journal {
         return deleteMountPointBuilder_;
       }
 
-      private alluxio.proto.journal.Meta.DeletePathPropertiesEntry deletePathProperties_ = null;
-      private com.google.protobuf.SingleFieldBuilderV3<
-          alluxio.proto.journal.Meta.DeletePathPropertiesEntry, alluxio.proto.journal.Meta.DeletePathPropertiesEntry.Builder, alluxio.proto.journal.Meta.DeletePathPropertiesEntryOrBuilder> deletePathPropertiesBuilder_;
-      /**
-       * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-       */
-      public boolean hasDeletePathProperties() {
-        return ((bitField0_ & 0x00000800) == 0x00000800);
-      }
-      /**
-       * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-       */
-      public alluxio.proto.journal.Meta.DeletePathPropertiesEntry getDeletePathProperties() {
-        if (deletePathPropertiesBuilder_ == null) {
-          return deletePathProperties_ == null ? alluxio.proto.journal.Meta.DeletePathPropertiesEntry.getDefaultInstance() : deletePathProperties_;
-        } else {
-          return deletePathPropertiesBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-       */
-      public Builder setDeletePathProperties(alluxio.proto.journal.Meta.DeletePathPropertiesEntry value) {
-        if (deletePathPropertiesBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          deletePathProperties_ = value;
-          onChanged();
-        } else {
-          deletePathPropertiesBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000800;
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-       */
-      public Builder setDeletePathProperties(
-          alluxio.proto.journal.Meta.DeletePathPropertiesEntry.Builder builderForValue) {
-        if (deletePathPropertiesBuilder_ == null) {
-          deletePathProperties_ = builderForValue.build();
-          onChanged();
-        } else {
-          deletePathPropertiesBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000800;
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-       */
-      public Builder mergeDeletePathProperties(alluxio.proto.journal.Meta.DeletePathPropertiesEntry value) {
-        if (deletePathPropertiesBuilder_ == null) {
-          if (((bitField0_ & 0x00000800) == 0x00000800) &&
-              deletePathProperties_ != null &&
-              deletePathProperties_ != alluxio.proto.journal.Meta.DeletePathPropertiesEntry.getDefaultInstance()) {
-            deletePathProperties_ =
-              alluxio.proto.journal.Meta.DeletePathPropertiesEntry.newBuilder(deletePathProperties_).mergeFrom(value).buildPartial();
-          } else {
-            deletePathProperties_ = value;
-          }
-          onChanged();
-        } else {
-          deletePathPropertiesBuilder_.mergeFrom(value);
-        }
-        bitField0_ |= 0x00000800;
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-       */
-      public Builder clearDeletePathProperties() {
-        if (deletePathPropertiesBuilder_ == null) {
-          deletePathProperties_ = null;
-          onChanged();
-        } else {
-          deletePathPropertiesBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000800);
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-       */
-      public alluxio.proto.journal.Meta.DeletePathPropertiesEntry.Builder getDeletePathPropertiesBuilder() {
-        bitField0_ |= 0x00000800;
-        onChanged();
-        return getDeletePathPropertiesFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-       */
-      public alluxio.proto.journal.Meta.DeletePathPropertiesEntryOrBuilder getDeletePathPropertiesOrBuilder() {
-        if (deletePathPropertiesBuilder_ != null) {
-          return deletePathPropertiesBuilder_.getMessageOrBuilder();
-        } else {
-          return deletePathProperties_ == null ?
-              alluxio.proto.journal.Meta.DeletePathPropertiesEntry.getDefaultInstance() : deletePathProperties_;
-        }
-      }
-      /**
-       * <code>optional .alluxio.proto.journal.DeletePathPropertiesEntry delete_path_properties = 41;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilderV3<
-          alluxio.proto.journal.Meta.DeletePathPropertiesEntry, alluxio.proto.journal.Meta.DeletePathPropertiesEntry.Builder, alluxio.proto.journal.Meta.DeletePathPropertiesEntryOrBuilder> 
-          getDeletePathPropertiesFieldBuilder() {
-        if (deletePathPropertiesBuilder_ == null) {
-          deletePathPropertiesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              alluxio.proto.journal.Meta.DeletePathPropertiesEntry, alluxio.proto.journal.Meta.DeletePathPropertiesEntry.Builder, alluxio.proto.journal.Meta.DeletePathPropertiesEntryOrBuilder>(
-                  getDeletePathProperties(),
-                  getParentForChildren(),
-                  isClean());
-          deletePathProperties_ = null;
-        }
-        return deletePathPropertiesBuilder_;
-      }
-
       private alluxio.proto.journal.File.InodeDirectoryEntry inodeDirectory_ = null;
       private com.google.protobuf.SingleFieldBuilderV3<
           alluxio.proto.journal.File.InodeDirectoryEntry, alluxio.proto.journal.File.InodeDirectoryEntry.Builder, alluxio.proto.journal.File.InodeDirectoryEntryOrBuilder> inodeDirectoryBuilder_;
@@ -4043,7 +3925,7 @@ public final class Journal {
        * <code>optional .alluxio.proto.journal.InodeDirectoryEntry inode_directory = 9;</code>
        */
       public boolean hasInodeDirectory() {
-        return ((bitField0_ & 0x00001000) == 0x00001000);
+        return ((bitField0_ & 0x00000800) == 0x00000800);
       }
       /**
        * <code>optional .alluxio.proto.journal.InodeDirectoryEntry inode_directory = 9;</code>
@@ -4068,7 +3950,7 @@ public final class Journal {
         } else {
           inodeDirectoryBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00000800;
         return this;
       }
       /**
@@ -4082,7 +3964,7 @@ public final class Journal {
         } else {
           inodeDirectoryBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00000800;
         return this;
       }
       /**
@@ -4090,7 +3972,7 @@ public final class Journal {
        */
       public Builder mergeInodeDirectory(alluxio.proto.journal.File.InodeDirectoryEntry value) {
         if (inodeDirectoryBuilder_ == null) {
-          if (((bitField0_ & 0x00001000) == 0x00001000) &&
+          if (((bitField0_ & 0x00000800) == 0x00000800) &&
               inodeDirectory_ != null &&
               inodeDirectory_ != alluxio.proto.journal.File.InodeDirectoryEntry.getDefaultInstance()) {
             inodeDirectory_ =
@@ -4102,7 +3984,7 @@ public final class Journal {
         } else {
           inodeDirectoryBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00000800;
         return this;
       }
       /**
@@ -4115,14 +3997,14 @@ public final class Journal {
         } else {
           inodeDirectoryBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00001000);
+        bitField0_ = (bitField0_ & ~0x00000800);
         return this;
       }
       /**
        * <code>optional .alluxio.proto.journal.InodeDirectoryEntry inode_directory = 9;</code>
        */
       public alluxio.proto.journal.File.InodeDirectoryEntry.Builder getInodeDirectoryBuilder() {
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00000800;
         onChanged();
         return getInodeDirectoryFieldBuilder().getBuilder();
       }
@@ -4161,7 +4043,7 @@ public final class Journal {
        * <code>optional .alluxio.proto.journal.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 10;</code>
        */
       public boolean hasInodeDirectoryIdGenerator() {
-        return ((bitField0_ & 0x00002000) == 0x00002000);
+        return ((bitField0_ & 0x00001000) == 0x00001000);
       }
       /**
        * <code>optional .alluxio.proto.journal.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 10;</code>
@@ -4186,7 +4068,7 @@ public final class Journal {
         } else {
           inodeDirectoryIdGeneratorBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00002000;
+        bitField0_ |= 0x00001000;
         return this;
       }
       /**
@@ -4200,7 +4082,7 @@ public final class Journal {
         } else {
           inodeDirectoryIdGeneratorBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00002000;
+        bitField0_ |= 0x00001000;
         return this;
       }
       /**
@@ -4208,7 +4090,7 @@ public final class Journal {
        */
       public Builder mergeInodeDirectoryIdGenerator(alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry value) {
         if (inodeDirectoryIdGeneratorBuilder_ == null) {
-          if (((bitField0_ & 0x00002000) == 0x00002000) &&
+          if (((bitField0_ & 0x00001000) == 0x00001000) &&
               inodeDirectoryIdGenerator_ != null &&
               inodeDirectoryIdGenerator_ != alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry.getDefaultInstance()) {
             inodeDirectoryIdGenerator_ =
@@ -4220,7 +4102,7 @@ public final class Journal {
         } else {
           inodeDirectoryIdGeneratorBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00002000;
+        bitField0_ |= 0x00001000;
         return this;
       }
       /**
@@ -4233,14 +4115,14 @@ public final class Journal {
         } else {
           inodeDirectoryIdGeneratorBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00002000);
+        bitField0_ = (bitField0_ & ~0x00001000);
         return this;
       }
       /**
        * <code>optional .alluxio.proto.journal.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 10;</code>
        */
       public alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry.Builder getInodeDirectoryIdGeneratorBuilder() {
-        bitField0_ |= 0x00002000;
+        bitField0_ |= 0x00001000;
         onChanged();
         return getInodeDirectoryIdGeneratorFieldBuilder().getBuilder();
       }
@@ -4279,7 +4161,7 @@ public final class Journal {
        * <code>optional .alluxio.proto.journal.InodeFileEntry inode_file = 11;</code>
        */
       public boolean hasInodeFile() {
-        return ((bitField0_ & 0x00004000) == 0x00004000);
+        return ((bitField0_ & 0x00002000) == 0x00002000);
       }
       /**
        * <code>optional .alluxio.proto.journal.InodeFileEntry inode_file = 11;</code>
@@ -4304,7 +4186,7 @@ public final class Journal {
         } else {
           inodeFileBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00004000;
+        bitField0_ |= 0x00002000;
         return this;
       }
       /**
@@ -4318,7 +4200,7 @@ public final class Journal {
         } else {
           inodeFileBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00004000;
+        bitField0_ |= 0x00002000;
         return this;
       }
       /**
@@ -4326,7 +4208,7 @@ public final class Journal {
        */
       public Builder mergeInodeFile(alluxio.proto.journal.File.InodeFileEntry value) {
         if (inodeFileBuilder_ == null) {
-          if (((bitField0_ & 0x00004000) == 0x00004000) &&
+          if (((bitField0_ & 0x00002000) == 0x00002000) &&
               inodeFile_ != null &&
               inodeFile_ != alluxio.proto.journal.File.InodeFileEntry.getDefaultInstance()) {
             inodeFile_ =
@@ -4338,7 +4220,7 @@ public final class Journal {
         } else {
           inodeFileBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00004000;
+        bitField0_ |= 0x00002000;
         return this;
       }
       /**
@@ -4351,14 +4233,14 @@ public final class Journal {
         } else {
           inodeFileBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00004000);
+        bitField0_ = (bitField0_ & ~0x00002000);
         return this;
       }
       /**
        * <code>optional .alluxio.proto.journal.InodeFileEntry inode_file = 11;</code>
        */
       public alluxio.proto.journal.File.InodeFileEntry.Builder getInodeFileBuilder() {
-        bitField0_ |= 0x00004000;
+        bitField0_ |= 0x00002000;
         onChanged();
         return getInodeFileFieldBuilder().getBuilder();
       }
@@ -4397,7 +4279,7 @@ public final class Journal {
        * <code>optional .alluxio.proto.journal.InodeLastModificationTimeEntry inode_last_modification_time = 12;</code>
        */
       public boolean hasInodeLastModificationTime() {
-        return ((bitField0_ & 0x00008000) == 0x00008000);
+        return ((bitField0_ & 0x00004000) == 0x00004000);
       }
       /**
        * <code>optional .alluxio.proto.journal.InodeLastModificationTimeEntry inode_last_modification_time = 12;</code>
@@ -4422,7 +4304,7 @@ public final class Journal {
         } else {
           inodeLastModificationTimeBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00004000;
         return this;
       }
       /**
@@ -4436,7 +4318,7 @@ public final class Journal {
         } else {
           inodeLastModificationTimeBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00004000;
         return this;
       }
       /**
@@ -4444,7 +4326,7 @@ public final class Journal {
        */
       public Builder mergeInodeLastModificationTime(alluxio.proto.journal.File.InodeLastModificationTimeEntry value) {
         if (inodeLastModificationTimeBuilder_ == null) {
-          if (((bitField0_ & 0x00008000) == 0x00008000) &&
+          if (((bitField0_ & 0x00004000) == 0x00004000) &&
               inodeLastModificationTime_ != null &&
               inodeLastModificationTime_ != alluxio.proto.journal.File.InodeLastModificationTimeEntry.getDefaultInstance()) {
             inodeLastModificationTime_ =
@@ -4456,7 +4338,7 @@ public final class Journal {
         } else {
           inodeLastModificationTimeBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00004000;
         return this;
       }
       /**
@@ -4469,14 +4351,14 @@ public final class Journal {
         } else {
           inodeLastModificationTimeBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00008000);
+        bitField0_ = (bitField0_ & ~0x00004000);
         return this;
       }
       /**
        * <code>optional .alluxio.proto.journal.InodeLastModificationTimeEntry inode_last_modification_time = 12;</code>
        */
       public alluxio.proto.journal.File.InodeLastModificationTimeEntry.Builder getInodeLastModificationTimeBuilder() {
-        bitField0_ |= 0x00008000;
+        bitField0_ |= 0x00004000;
         onChanged();
         return getInodeLastModificationTimeFieldBuilder().getBuilder();
       }
@@ -4515,7 +4397,7 @@ public final class Journal {
        * <code>optional .alluxio.proto.journal.NewBlockEntry new_block = 38;</code>
        */
       public boolean hasNewBlock() {
-        return ((bitField0_ & 0x00010000) == 0x00010000);
+        return ((bitField0_ & 0x00008000) == 0x00008000);
       }
       /**
        * <code>optional .alluxio.proto.journal.NewBlockEntry new_block = 38;</code>
@@ -4540,7 +4422,7 @@ public final class Journal {
         } else {
           newBlockBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00008000;
         return this;
       }
       /**
@@ -4554,7 +4436,7 @@ public final class Journal {
         } else {
           newBlockBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00008000;
         return this;
       }
       /**
@@ -4562,7 +4444,7 @@ public final class Journal {
        */
       public Builder mergeNewBlock(alluxio.proto.journal.File.NewBlockEntry value) {
         if (newBlockBuilder_ == null) {
-          if (((bitField0_ & 0x00010000) == 0x00010000) &&
+          if (((bitField0_ & 0x00008000) == 0x00008000) &&
               newBlock_ != null &&
               newBlock_ != alluxio.proto.journal.File.NewBlockEntry.getDefaultInstance()) {
             newBlock_ =
@@ -4574,7 +4456,7 @@ public final class Journal {
         } else {
           newBlockBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00008000;
         return this;
       }
       /**
@@ -4587,14 +4469,14 @@ public final class Journal {
         } else {
           newBlockBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00010000);
+        bitField0_ = (bitField0_ & ~0x00008000);
         return this;
       }
       /**
        * <code>optional .alluxio.proto.journal.NewBlockEntry new_block = 38;</code>
        */
       public alluxio.proto.journal.File.NewBlockEntry.Builder getNewBlockBuilder() {
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00008000;
         onChanged();
         return getNewBlockFieldBuilder().getBuilder();
       }
@@ -4633,7 +4515,7 @@ public final class Journal {
        * <code>optional .alluxio.proto.journal.PathPropertiesEntry path_properties = 40;</code>
        */
       public boolean hasPathProperties() {
-        return ((bitField0_ & 0x00020000) == 0x00020000);
+        return ((bitField0_ & 0x00010000) == 0x00010000);
       }
       /**
        * <code>optional .alluxio.proto.journal.PathPropertiesEntry path_properties = 40;</code>
@@ -4658,7 +4540,7 @@ public final class Journal {
         } else {
           pathPropertiesBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00020000;
+        bitField0_ |= 0x00010000;
         return this;
       }
       /**
@@ -4672,7 +4554,7 @@ public final class Journal {
         } else {
           pathPropertiesBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00020000;
+        bitField0_ |= 0x00010000;
         return this;
       }
       /**
@@ -4680,7 +4562,7 @@ public final class Journal {
        */
       public Builder mergePathProperties(alluxio.proto.journal.Meta.PathPropertiesEntry value) {
         if (pathPropertiesBuilder_ == null) {
-          if (((bitField0_ & 0x00020000) == 0x00020000) &&
+          if (((bitField0_ & 0x00010000) == 0x00010000) &&
               pathProperties_ != null &&
               pathProperties_ != alluxio.proto.journal.Meta.PathPropertiesEntry.getDefaultInstance()) {
             pathProperties_ =
@@ -4692,7 +4574,7 @@ public final class Journal {
         } else {
           pathPropertiesBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00020000;
+        bitField0_ |= 0x00010000;
         return this;
       }
       /**
@@ -4705,14 +4587,14 @@ public final class Journal {
         } else {
           pathPropertiesBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00020000);
+        bitField0_ = (bitField0_ & ~0x00010000);
         return this;
       }
       /**
        * <code>optional .alluxio.proto.journal.PathPropertiesEntry path_properties = 40;</code>
        */
       public alluxio.proto.journal.Meta.PathPropertiesEntry.Builder getPathPropertiesBuilder() {
-        bitField0_ |= 0x00020000;
+        bitField0_ |= 0x00010000;
         onChanged();
         return getPathPropertiesFieldBuilder().getBuilder();
       }
@@ -4751,7 +4633,7 @@ public final class Journal {
        * <code>optional .alluxio.proto.journal.PersistDirectoryEntry persist_directory = 15;</code>
        */
       public boolean hasPersistDirectory() {
-        return ((bitField0_ & 0x00040000) == 0x00040000);
+        return ((bitField0_ & 0x00020000) == 0x00020000);
       }
       /**
        * <code>optional .alluxio.proto.journal.PersistDirectoryEntry persist_directory = 15;</code>
@@ -4776,7 +4658,7 @@ public final class Journal {
         } else {
           persistDirectoryBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00040000;
+        bitField0_ |= 0x00020000;
         return this;
       }
       /**
@@ -4790,7 +4672,7 @@ public final class Journal {
         } else {
           persistDirectoryBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00040000;
+        bitField0_ |= 0x00020000;
         return this;
       }
       /**
@@ -4798,7 +4680,7 @@ public final class Journal {
        */
       public Builder mergePersistDirectory(alluxio.proto.journal.File.PersistDirectoryEntry value) {
         if (persistDirectoryBuilder_ == null) {
-          if (((bitField0_ & 0x00040000) == 0x00040000) &&
+          if (((bitField0_ & 0x00020000) == 0x00020000) &&
               persistDirectory_ != null &&
               persistDirectory_ != alluxio.proto.journal.File.PersistDirectoryEntry.getDefaultInstance()) {
             persistDirectory_ =
@@ -4810,7 +4692,7 @@ public final class Journal {
         } else {
           persistDirectoryBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00040000;
+        bitField0_ |= 0x00020000;
         return this;
       }
       /**
@@ -4823,14 +4705,14 @@ public final class Journal {
         } else {
           persistDirectoryBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00040000);
+        bitField0_ = (bitField0_ & ~0x00020000);
         return this;
       }
       /**
        * <code>optional .alluxio.proto.journal.PersistDirectoryEntry persist_directory = 15;</code>
        */
       public alluxio.proto.journal.File.PersistDirectoryEntry.Builder getPersistDirectoryBuilder() {
-        bitField0_ |= 0x00040000;
+        bitField0_ |= 0x00020000;
         onChanged();
         return getPersistDirectoryFieldBuilder().getBuilder();
       }
@@ -4860,6 +4742,124 @@ public final class Journal {
           persistDirectory_ = null;
         }
         return persistDirectoryBuilder_;
+      }
+
+      private alluxio.proto.journal.Meta.RemovePathPropertiesEntry removePathProperties_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          alluxio.proto.journal.Meta.RemovePathPropertiesEntry, alluxio.proto.journal.Meta.RemovePathPropertiesEntry.Builder, alluxio.proto.journal.Meta.RemovePathPropertiesEntryOrBuilder> removePathPropertiesBuilder_;
+      /**
+       * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+       */
+      public boolean hasRemovePathProperties() {
+        return ((bitField0_ & 0x00040000) == 0x00040000);
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+       */
+      public alluxio.proto.journal.Meta.RemovePathPropertiesEntry getRemovePathProperties() {
+        if (removePathPropertiesBuilder_ == null) {
+          return removePathProperties_ == null ? alluxio.proto.journal.Meta.RemovePathPropertiesEntry.getDefaultInstance() : removePathProperties_;
+        } else {
+          return removePathPropertiesBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+       */
+      public Builder setRemovePathProperties(alluxio.proto.journal.Meta.RemovePathPropertiesEntry value) {
+        if (removePathPropertiesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          removePathProperties_ = value;
+          onChanged();
+        } else {
+          removePathPropertiesBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00040000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+       */
+      public Builder setRemovePathProperties(
+          alluxio.proto.journal.Meta.RemovePathPropertiesEntry.Builder builderForValue) {
+        if (removePathPropertiesBuilder_ == null) {
+          removePathProperties_ = builderForValue.build();
+          onChanged();
+        } else {
+          removePathPropertiesBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00040000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+       */
+      public Builder mergeRemovePathProperties(alluxio.proto.journal.Meta.RemovePathPropertiesEntry value) {
+        if (removePathPropertiesBuilder_ == null) {
+          if (((bitField0_ & 0x00040000) == 0x00040000) &&
+              removePathProperties_ != null &&
+              removePathProperties_ != alluxio.proto.journal.Meta.RemovePathPropertiesEntry.getDefaultInstance()) {
+            removePathProperties_ =
+              alluxio.proto.journal.Meta.RemovePathPropertiesEntry.newBuilder(removePathProperties_).mergeFrom(value).buildPartial();
+          } else {
+            removePathProperties_ = value;
+          }
+          onChanged();
+        } else {
+          removePathPropertiesBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00040000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+       */
+      public Builder clearRemovePathProperties() {
+        if (removePathPropertiesBuilder_ == null) {
+          removePathProperties_ = null;
+          onChanged();
+        } else {
+          removePathPropertiesBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00040000);
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+       */
+      public alluxio.proto.journal.Meta.RemovePathPropertiesEntry.Builder getRemovePathPropertiesBuilder() {
+        bitField0_ |= 0x00040000;
+        onChanged();
+        return getRemovePathPropertiesFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+       */
+      public alluxio.proto.journal.Meta.RemovePathPropertiesEntryOrBuilder getRemovePathPropertiesOrBuilder() {
+        if (removePathPropertiesBuilder_ != null) {
+          return removePathPropertiesBuilder_.getMessageOrBuilder();
+        } else {
+          return removePathProperties_ == null ?
+              alluxio.proto.journal.Meta.RemovePathPropertiesEntry.getDefaultInstance() : removePathProperties_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.RemovePathPropertiesEntry remove_path_properties = 41;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          alluxio.proto.journal.Meta.RemovePathPropertiesEntry, alluxio.proto.journal.Meta.RemovePathPropertiesEntry.Builder, alluxio.proto.journal.Meta.RemovePathPropertiesEntryOrBuilder> 
+          getRemovePathPropertiesFieldBuilder() {
+        if (removePathPropertiesBuilder_ == null) {
+          removePathPropertiesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              alluxio.proto.journal.Meta.RemovePathPropertiesEntry, alluxio.proto.journal.Meta.RemovePathPropertiesEntry.Builder, alluxio.proto.journal.Meta.RemovePathPropertiesEntryOrBuilder>(
+                  getRemovePathProperties(),
+                  getParentForChildren(),
+                  isClean());
+          removePathProperties_ = null;
+        }
+        return removePathPropertiesBuilder_;
       }
 
       private alluxio.proto.journal.File.RemoveSyncPointEntry removeSyncPoint_ = null;
@@ -6219,22 +6219,22 @@ public final class Journal {
       "l.DeleteBlockEntry\022;\n\013delete_file\030\006 \001(\0132" +
       "&.alluxio.proto.journal.DeleteFileEntry\022" +
       "H\n\022delete_mount_point\030\010 \001(\0132,.alluxio.pr" +
-      "oto.journal.DeleteMountPointEntry\022P\n\026del" +
-      "ete_path_properties\030) \001(\01320.alluxio.prot" +
-      "o.journal.DeletePathPropertiesEntry\022C\n\017i" +
-      "node_directory\030\t \001(\0132*.alluxio.proto.jou" +
-      "rnal.InodeDirectoryEntry\022[\n\034inode_direct" +
-      "ory_id_generator\030\n \001(\01325.alluxio.proto.j" +
-      "ournal.InodeDirectoryIdGeneratorEntry\0229\n" +
-      "\ninode_file\030\013 \001(\0132%.alluxio.proto.journa" +
-      "l.InodeFileEntry\022[\n\034inode_last_modificat" +
-      "ion_time\030\014 \001(\01325.alluxio.proto.journal.I" +
-      "nodeLastModificationTimeEntry\0227\n\tnew_blo" +
-      "ck\030& \001(\0132$.alluxio.proto.journal.NewBloc" +
-      "kEntry\022C\n\017path_properties\030( \001(\0132*.alluxi" +
-      "o.proto.journal.PathPropertiesEntry\022G\n\021p" +
-      "ersist_directory\030\017 \001(\0132,.alluxio.proto.j" +
-      "ournal.PersistDirectoryEntry\022F\n\021remove_s" +
+      "oto.journal.DeleteMountPointEntry\022C\n\017ino" +
+      "de_directory\030\t \001(\0132*.alluxio.proto.journ" +
+      "al.InodeDirectoryEntry\022[\n\034inode_director" +
+      "y_id_generator\030\n \001(\01325.alluxio.proto.jou" +
+      "rnal.InodeDirectoryIdGeneratorEntry\0229\n\ni" +
+      "node_file\030\013 \001(\0132%.alluxio.proto.journal." +
+      "InodeFileEntry\022[\n\034inode_last_modificatio" +
+      "n_time\030\014 \001(\01325.alluxio.proto.journal.Ino" +
+      "deLastModificationTimeEntry\0227\n\tnew_block" +
+      "\030& \001(\0132$.alluxio.proto.journal.NewBlockE" +
+      "ntry\022C\n\017path_properties\030( \001(\0132*.alluxio." +
+      "proto.journal.PathPropertiesEntry\022G\n\021per" +
+      "sist_directory\030\017 \001(\0132,.alluxio.proto.jou" +
+      "rnal.PersistDirectoryEntry\022P\n\026remove_pat" +
+      "h_properties\030) \001(\01320.alluxio.proto.journ" +
+      "al.RemovePathPropertiesEntry\022F\n\021remove_s" +
       "ync_point\030! \001(\0132+.alluxio.proto.journal." +
       "RemoveSyncPointEntry\0222\n\006rename\030\023 \001(\0132\".a" +
       "lluxio.proto.journal.RenameEntry\0223\n\007set_" +
@@ -6272,7 +6272,7 @@ public final class Journal {
     internal_static_alluxio_proto_journal_JournalEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_JournalEntry_descriptor,
-        new java.lang.String[] { "SequenceNumber", "ActiveSyncTxId", "AddSyncPoint", "AddMountPoint", "AsyncPersistRequest", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "DeleteBlock", "DeleteFile", "DeleteMountPoint", "DeletePathProperties", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "NewBlock", "PathProperties", "PersistDirectory", "RemoveSyncPoint", "Rename", "SetAcl", "SetAttribute", "UpdateUfsMode", "UpdateInode", "UpdateInodeDirectory", "UpdateInodeFile", "JournalEntries", });
+        new java.lang.String[] { "SequenceNumber", "ActiveSyncTxId", "AddSyncPoint", "AddMountPoint", "AsyncPersistRequest", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "DeleteBlock", "DeleteFile", "DeleteMountPoint", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "NewBlock", "PathProperties", "PersistDirectory", "RemovePathProperties", "RemoveSyncPoint", "Rename", "SetAcl", "SetAttribute", "UpdateUfsMode", "UpdateInode", "UpdateInodeDirectory", "UpdateInodeFile", "JournalEntries", });
     alluxio.proto.journal.Block.getDescriptor();
     alluxio.proto.journal.File.getDescriptor();
     alluxio.proto.journal.Meta.getDescriptor();

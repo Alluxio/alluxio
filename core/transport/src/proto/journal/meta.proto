@@ -11,6 +11,6 @@ message PathPropertiesEntry {
 }
 
 // next available id: 2
-message DeletePathPropertiesEntry {
+message RemovePathPropertiesEntry {
   optional string path = 1;
 }

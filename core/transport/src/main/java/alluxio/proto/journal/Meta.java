@@ -886,8 +886,8 @@ public final class Meta {
 
   }
 
-  public interface DeletePathPropertiesEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.DeletePathPropertiesEntry)
+  public interface RemovePathPropertiesEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.RemovePathPropertiesEntry)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -909,18 +909,18 @@ public final class Meta {
    * next available id: 2
    * </pre>
    *
-   * Protobuf type {@code alluxio.proto.journal.DeletePathPropertiesEntry}
+   * Protobuf type {@code alluxio.proto.journal.RemovePathPropertiesEntry}
    */
-  public  static final class DeletePathPropertiesEntry extends
+  public  static final class RemovePathPropertiesEntry extends
       com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.DeletePathPropertiesEntry)
-      DeletePathPropertiesEntryOrBuilder {
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.RemovePathPropertiesEntry)
+      RemovePathPropertiesEntryOrBuilder {
   private static final long serialVersionUID = 0L;
-    // Use DeletePathPropertiesEntry.newBuilder() to construct.
-    private DeletePathPropertiesEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // Use RemovePathPropertiesEntry.newBuilder() to construct.
+    private RemovePathPropertiesEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private DeletePathPropertiesEntry() {
+    private RemovePathPropertiesEntry() {
       path_ = "";
     }
 
@@ -929,7 +929,7 @@ public final class Meta {
     getUnknownFields() {
       return this.unknownFields;
     }
-    private DeletePathPropertiesEntry(
+    private RemovePathPropertiesEntry(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -975,14 +975,14 @@ public final class Meta {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_DeletePathPropertiesEntry_descriptor;
+      return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_DeletePathPropertiesEntry_fieldAccessorTable
+      return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.proto.journal.Meta.DeletePathPropertiesEntry.class, alluxio.proto.journal.Meta.DeletePathPropertiesEntry.Builder.class);
+              alluxio.proto.journal.Meta.RemovePathPropertiesEntry.class, alluxio.proto.journal.Meta.RemovePathPropertiesEntry.Builder.class);
     }
 
     private int bitField0_;
@@ -1064,10 +1064,10 @@ public final class Meta {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof alluxio.proto.journal.Meta.DeletePathPropertiesEntry)) {
+      if (!(obj instanceof alluxio.proto.journal.Meta.RemovePathPropertiesEntry)) {
         return super.equals(obj);
       }
-      alluxio.proto.journal.Meta.DeletePathPropertiesEntry other = (alluxio.proto.journal.Meta.DeletePathPropertiesEntry) obj;
+      alluxio.proto.journal.Meta.RemovePathPropertiesEntry other = (alluxio.proto.journal.Meta.RemovePathPropertiesEntry) obj;
 
       boolean result = true;
       result = result && (hasPath() == other.hasPath());
@@ -1095,69 +1095,69 @@ public final class Meta {
       return hash;
     }
 
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry parseFrom(
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry parseFrom(
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry parseFrom(
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry parseFrom(
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry parseFrom(byte[] data)
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry parseFrom(
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry parseFrom(java.io.InputStream input)
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry parseFrom(
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry parseDelimitedFrom(java.io.InputStream input)
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input);
     }
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry parseDelimitedFrom(
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry parseFrom(
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry parseFrom(
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -1169,7 +1169,7 @@ public final class Meta {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(alluxio.proto.journal.Meta.DeletePathPropertiesEntry prototype) {
+    public static Builder newBuilder(alluxio.proto.journal.Meta.RemovePathPropertiesEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() {
@@ -1188,25 +1188,25 @@ public final class Meta {
      * next available id: 2
      * </pre>
      *
-     * Protobuf type {@code alluxio.proto.journal.DeletePathPropertiesEntry}
+     * Protobuf type {@code alluxio.proto.journal.RemovePathPropertiesEntry}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.DeletePathPropertiesEntry)
-        alluxio.proto.journal.Meta.DeletePathPropertiesEntryOrBuilder {
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.RemovePathPropertiesEntry)
+        alluxio.proto.journal.Meta.RemovePathPropertiesEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_DeletePathPropertiesEntry_descriptor;
+        return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_descriptor;
       }
 
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_DeletePathPropertiesEntry_fieldAccessorTable
+        return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                alluxio.proto.journal.Meta.DeletePathPropertiesEntry.class, alluxio.proto.journal.Meta.DeletePathPropertiesEntry.Builder.class);
+                alluxio.proto.journal.Meta.RemovePathPropertiesEntry.class, alluxio.proto.journal.Meta.RemovePathPropertiesEntry.Builder.class);
       }
 
-      // Construct using alluxio.proto.journal.Meta.DeletePathPropertiesEntry.newBuilder()
+      // Construct using alluxio.proto.journal.Meta.RemovePathPropertiesEntry.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -1230,23 +1230,23 @@ public final class Meta {
 
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_DeletePathPropertiesEntry_descriptor;
+        return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_descriptor;
       }
 
-      public alluxio.proto.journal.Meta.DeletePathPropertiesEntry getDefaultInstanceForType() {
-        return alluxio.proto.journal.Meta.DeletePathPropertiesEntry.getDefaultInstance();
+      public alluxio.proto.journal.Meta.RemovePathPropertiesEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.Meta.RemovePathPropertiesEntry.getDefaultInstance();
       }
 
-      public alluxio.proto.journal.Meta.DeletePathPropertiesEntry build() {
-        alluxio.proto.journal.Meta.DeletePathPropertiesEntry result = buildPartial();
+      public alluxio.proto.journal.Meta.RemovePathPropertiesEntry build() {
+        alluxio.proto.journal.Meta.RemovePathPropertiesEntry result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return result;
       }
 
-      public alluxio.proto.journal.Meta.DeletePathPropertiesEntry buildPartial() {
-        alluxio.proto.journal.Meta.DeletePathPropertiesEntry result = new alluxio.proto.journal.Meta.DeletePathPropertiesEntry(this);
+      public alluxio.proto.journal.Meta.RemovePathPropertiesEntry buildPartial() {
+        alluxio.proto.journal.Meta.RemovePathPropertiesEntry result = new alluxio.proto.journal.Meta.RemovePathPropertiesEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
@@ -1285,16 +1285,16 @@ public final class Meta {
         return (Builder) super.addRepeatedField(field, value);
       }
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof alluxio.proto.journal.Meta.DeletePathPropertiesEntry) {
-          return mergeFrom((alluxio.proto.journal.Meta.DeletePathPropertiesEntry)other);
+        if (other instanceof alluxio.proto.journal.Meta.RemovePathPropertiesEntry) {
+          return mergeFrom((alluxio.proto.journal.Meta.RemovePathPropertiesEntry)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(alluxio.proto.journal.Meta.DeletePathPropertiesEntry other) {
-        if (other == alluxio.proto.journal.Meta.DeletePathPropertiesEntry.getDefaultInstance()) return this;
+      public Builder mergeFrom(alluxio.proto.journal.Meta.RemovePathPropertiesEntry other) {
+        if (other == alluxio.proto.journal.Meta.RemovePathPropertiesEntry.getDefaultInstance()) return this;
         if (other.hasPath()) {
           bitField0_ |= 0x00000001;
           path_ = other.path_;
@@ -1313,11 +1313,11 @@ public final class Meta {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        alluxio.proto.journal.Meta.DeletePathPropertiesEntry parsedMessage = null;
+        alluxio.proto.journal.Meta.RemovePathPropertiesEntry parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (alluxio.proto.journal.Meta.DeletePathPropertiesEntry) e.getUnfinishedMessage();
+          parsedMessage = (alluxio.proto.journal.Meta.RemovePathPropertiesEntry) e.getUnfinishedMessage();
           throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
@@ -1414,39 +1414,39 @@ public final class Meta {
       }
 
 
-      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.DeletePathPropertiesEntry)
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.RemovePathPropertiesEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.DeletePathPropertiesEntry)
-    private static final alluxio.proto.journal.Meta.DeletePathPropertiesEntry DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.RemovePathPropertiesEntry)
+    private static final alluxio.proto.journal.Meta.RemovePathPropertiesEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new alluxio.proto.journal.Meta.DeletePathPropertiesEntry();
+      DEFAULT_INSTANCE = new alluxio.proto.journal.Meta.RemovePathPropertiesEntry();
     }
 
-    public static alluxio.proto.journal.Meta.DeletePathPropertiesEntry getDefaultInstance() {
+    public static alluxio.proto.journal.Meta.RemovePathPropertiesEntry getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<DeletePathPropertiesEntry>
-        PARSER = new com.google.protobuf.AbstractParser<DeletePathPropertiesEntry>() {
-      public DeletePathPropertiesEntry parsePartialFrom(
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<RemovePathPropertiesEntry>
+        PARSER = new com.google.protobuf.AbstractParser<RemovePathPropertiesEntry>() {
+      public RemovePathPropertiesEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-        return new DeletePathPropertiesEntry(input, extensionRegistry);
+        return new RemovePathPropertiesEntry(input, extensionRegistry);
       }
     };
 
-    public static com.google.protobuf.Parser<DeletePathPropertiesEntry> parser() {
+    public static com.google.protobuf.Parser<RemovePathPropertiesEntry> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<DeletePathPropertiesEntry> getParserForType() {
+    public com.google.protobuf.Parser<RemovePathPropertiesEntry> getParserForType() {
       return PARSER;
     }
 
-    public alluxio.proto.journal.Meta.DeletePathPropertiesEntry getDefaultInstanceForType() {
+    public alluxio.proto.journal.Meta.RemovePathPropertiesEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -1463,10 +1463,10 @@ public final class Meta {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_PathPropertiesEntry_PropertiesEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_proto_journal_DeletePathPropertiesEntry_descriptor;
+    internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_proto_journal_DeletePathPropertiesEntry_fieldAccessorTable;
+      internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -1481,7 +1481,7 @@ public final class Meta {
       "h\030\001 \001(\t\022N\n\nproperties\030\002 \003(\0132:.alluxio.pr" +
       "oto.journal.PathPropertiesEntry.Properti" +
       "esEntry\0321\n\017PropertiesEntry\022\013\n\003key\030\001 \001(\t\022" +
-      "\r\n\005value\030\002 \001(\t:\0028\001\")\n\031DeletePathProperti" +
+      "\r\n\005value\030\002 \001(\t:\0028\001\")\n\031RemovePathProperti" +
       "esEntry\022\014\n\004path\030\001 \001(\t"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
@@ -1508,11 +1508,11 @@ public final class Meta {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_PathPropertiesEntry_PropertiesEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_alluxio_proto_journal_DeletePathPropertiesEntry_descriptor =
+    internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_descriptor =
       getDescriptor().getMessageTypes().get(1);
-    internal_static_alluxio_proto_journal_DeletePathPropertiesEntry_fieldAccessorTable = new
+    internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_DeletePathPropertiesEntry_descriptor,
+        internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_descriptor,
         new java.lang.String[] { "Path", });
   }
 
