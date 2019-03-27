@@ -55,6 +55,9 @@ message ReadRequest {
 
   // This is only set for UFS block read.
   optional alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;
+
+  // Read receipt
+  optional int64 offset_received = 7;
 }
 
 // The read response.
