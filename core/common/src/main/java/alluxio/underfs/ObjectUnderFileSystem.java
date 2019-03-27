@@ -262,15 +262,15 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     /**
      * Add a new input to be operated on.
      *
-     * @param path of object
+     * @param input the input to operate on
      * @throws IOException if a non-Alluxio error occurs
      */
-    public void add(T path) throws IOException {
+    public void add(T input) throws IOException {
       if (mCurrentBatchBuffer.size() == getBatchSize()) {
         // Batch is full
         submitBatch();
       }
-      mCurrentBatchBuffer.add(path);
+      mCurrentBatchBuffer.add(input);
       mEntriesAdded++;
     }
 
@@ -324,8 +324,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       List<T> mBatch;
 
       /**
-       * Operate on a batch of paths.
-       * @param batch a list of paths to delete
+       * Operate on a batch of inputs.
+       *
+       * @param batch a list of inputs for the current batch
        */
       public OperationThread(List<T> batch) {
         mBatch = batch;

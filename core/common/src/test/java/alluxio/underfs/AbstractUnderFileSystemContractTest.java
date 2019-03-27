@@ -670,6 +670,48 @@ public abstract class AbstractUnderFileSystemContractTest {
     assertTrue(mUfs.isFile(testDirDstNestedChild));
   }
 
+  @Test
+  public void renameLargeDirectory() throws IOException {
+    LargeDirectoryConfig config = prepareLargeDirectoryTest();
+    String dstTopLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "topLevelDirMoved");
+    mUfs.renameDirectory(config.getTopLevelDirectory(), dstTopLevelDirectory);
+
+    // 1. Check the src directory no longer exists
+    String[] srcChildren = config.getChildren();
+    for (String src : srcChildren) {
+      // Retry for some time to allow list operation eventual consistency for S3 and GCS.
+      // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
+      // https://cloud.google.com/storage/docs/consistency for more details.
+      // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
+      boolean srcDeleted = false;
+      for (int i = 0; i < 20; i++) {
+        srcDeleted = !mUfs.exists(src);
+        if (srcDeleted) {
+          break;
+        }
+        CommonUtils.sleepMs(500);
+      }
+      assertTrue(srcDeleted);
+    }
+    // 2. Check the dst directory exists
+    UfsStatus[] results = new UfsStatus[] {};
+    for (int i = 0; i < 20; i++) {
+      results = mUfs.listStatus(dstTopLevelDirectory);
+      if (srcChildren.length == results.length) {
+        break;
+      }
+      CommonUtils.sleepMs(500);
+    }
+    assertEquals(srcChildren.length, results.length);
+
+    String[] resultNames = UfsStatus.convertToNames(results);
+    Arrays.sort(resultNames);
+    for (int i = 0; i < srcChildren.length; ++i) {
+      assertTrue(resultNames[i].equals(CommonUtils.stripPrefixIfPresent(srcChildren[i],
+          PathUtils.normalizePath(dstTopLevelDirectory, "/"))));
+    }
+  }
+
   private void createEmptyFile(String path) throws IOException {
     OutputStream o = mUfs.create(path);
     o.close();
