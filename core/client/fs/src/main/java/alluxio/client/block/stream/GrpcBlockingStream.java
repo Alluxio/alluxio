@@ -66,6 +66,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
   private Throwable mError;
   /** This condition is met if mError != null or client is ready to send data. */
   private final Condition mReadyOrFailed = mLock.newCondition();
+  private boolean mClosedFromRemote = false;
 
   /**
    * @param rpcFunc the gRPC bi-directional stream stub function
@@ -90,7 +91,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
    * @throws IOException if any error occurs
    */
   public void send(ReqT request, long timeoutMs) throws IOException {
-    if (mClosed || mCanceled) {
+    if (mClosed || mCanceled || mClosedFromRemote) {
       throw new CanceledException(formatErrorMessage(
           "Failed to send request %s: stream is already closed or canceled.", request));
     }
@@ -111,6 +112,23 @@ public class GrpcBlockingStream<ReqT, ResT> {
               "Failed to send request %s: interrupted while waiting for server.", request), e);
         }
       }
+    }
+    mRequestObserver.onNext(request);
+  }
+
+  /**
+   * Sends a request. Will not wait for the stream to be ready.
+   *
+   * @param request the request
+   * @throws IOException if any error occurs
+   */
+  public void send(ReqT request) throws IOException {
+    if (mClosed || mCanceled || mClosedFromRemote) {
+      throw new CanceledException(formatErrorMessage(
+          "Failed to send request %s: stream is already closed or canceled.", request));
+    }
+    try (LockResource lr = new LockResource(mLock)) {
+      checkError();
     }
     mRequestObserver.onNext(request);
   }
@@ -183,6 +201,13 @@ public class GrpcBlockingStream<ReqT, ResT> {
     while (receive(timeoutMs) != null) {
       // wait until inbound stream is closed from server.
     }
+  }
+
+  /**
+   * @return whether the stream is closed by the server
+   */
+  public boolean isClosedFromRemote() {
+    return mClosedFromRemote;
   }
 
   /**
@@ -268,6 +293,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
       try {
         LOG.debug("Received completed event for stream ({})", mDescription);
         mResponses.put(this);
+        mClosedFromRemote = true;
       } catch (InterruptedException e) {
         handleInterruptedException(e);
       }
