@@ -600,6 +600,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return false;
     }
     // Rename each child in the src folder to destination/child
+    // a. Since renames are a copy operation, files are added to a buffer and processed concurrently
+    // b. Pseudo-directories are metadata only operations are not added to the buffer
     RenameBuffer buffer = new RenameBuffer();
     for (UfsStatus child : children) {
       String childSrcPath = PathUtils.concatPath(src, child.getName());
