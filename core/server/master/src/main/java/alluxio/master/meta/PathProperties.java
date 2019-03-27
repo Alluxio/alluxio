@@ -40,8 +40,13 @@ import javax.annotation.concurrent.ThreadSafe;
  * Source of truth for path level properties.
  *
  * We assume that operations for path level properties are not highly concurrent,
- * with this assumption, thread safety in this class is guaranteed by a read write lock.
- * If the assumption is incorrect, we need to use a more fine-grained concurrency control method.
+ * based on this assumption,
+ * thread safety in this class is guaranteed by a read write lock,
+ * also for simplicity, for an operation on a path, we journal the full properties of the path
+ * after the operation is done.
+ *
+ * If the assumption is incorrect, we need to use a more fine-grained concurrency control method
+ * and only journal the changes to the path properties.
  */
 @ThreadSafe
 public final class PathProperties implements DelegatingJournaled {
@@ -82,7 +87,7 @@ public final class PathProperties implements DelegatingJournaled {
           .getOrDefault(path, new HashMap<>());
       properties.forEach((key, value) -> newProperties.put(key.getName(), value));
       mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder()
-          .putAllProperties(newProperties).build());
+          .setPath(path).putAllProperties(newProperties).build());
     }
   }
 
@@ -99,7 +104,7 @@ public final class PathProperties implements DelegatingJournaled {
         Map<String, String> newProperties = mState.getProperties().get(path);
         keys.forEach(key -> newProperties.remove(key.getName()));
         mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder()
-            .putAllProperties(newProperties).build());
+            .setPath(path).putAllProperties(newProperties).build());
       }
     }
   }
@@ -135,7 +140,10 @@ public final class PathProperties implements DelegatingJournaled {
     private final Map<String, Map<String, String>> mProperties = new HashMap<>();
 
     /**
-     * @return an unmodifiable view of the internal properties
+     * The map from paths to properties is unmodifiable, but for each path, the property map is
+     * modifiable.
+     *
+     * @return the internal properties
      */
     public Map<String, Map<String, String>> getProperties() {
       return Collections.unmodifiableMap(mProperties);
@@ -156,7 +164,12 @@ public final class PathProperties implements DelegatingJournaled {
     private void applyPathProperties(PathPropertiesEntry entry) {
       final String path = entry.getPath();
       final Map<String, String> properties = entry.getPropertiesMap();
-      mProperties.put(path, properties);
+      if (mProperties.containsKey(path)) {
+        mProperties.get(path).clear();
+        mProperties.get(path).putAll(properties);
+      } else {
+        mProperties.put(path, new HashMap<>(properties));
+      }
     }
 
     private void applyRemovePathProperties(RemovePathPropertiesEntry entry) {
