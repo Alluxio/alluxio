@@ -24,4 +24,5 @@ public enum CheckpointName {
   MASTER_UFS_MANAGER,
   MOUNT_TABLE,
   NOOP,
+  PATH_PROPERTIES,
 }
