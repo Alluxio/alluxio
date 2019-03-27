@@ -40,7 +40,8 @@ public class PathPropertiesTest {
 
   static {
     READ_CACHE_WRITE_CACHE_THROUGH = new HashMap<>();
-    READ_CACHE_WRITE_CACHE_THROUGH.put(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.CACHE.toString());
+    READ_CACHE_WRITE_CACHE_THROUGH.put(PropertyKey.USER_FILE_READ_TYPE_DEFAULT,
+        ReadType.CACHE.toString());
     READ_CACHE_WRITE_CACHE_THROUGH.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
         WriteType.CACHE_THROUGH.toString());
 
