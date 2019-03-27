@@ -260,7 +260,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     protected abstract List<T> operate(List<T> paths) throws IOException;
 
     /**
-     * Add a new object to be deleted.
+     * Add a new input to be operated on.
      *
      * @param path of object
      * @throws IOException if a non-Alluxio error occurs
@@ -292,12 +292,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           LOG.warn(
               "{}: Interrupted while waiting for the result of batch operation. UFS and Alluxio "
                   + "state may be inconsistent. Error: {}",
-              this.getClass().getName(), e.getMessage());
+              getClass().getName(), e.getMessage());
         } catch (ExecutionException e) {
           // If operation failed to execute do not add to successfully deleted list
           LOG.warn(
               "{}: A batch operation failed. UFS and Alluxio state may be inconsistent. Error: {}",
-              this.getClass().getName(), e.getMessage());
+              getClass().getName(), e.getMessage());
         }
       }
       return result;
