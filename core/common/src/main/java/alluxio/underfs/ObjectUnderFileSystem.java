@@ -225,19 +225,19 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param T input type for operation
    */
   protected abstract class OperationBuffer<T> {
-    /** A list of objects in batches to be deleted in parallel. */
+    /** A list of inputs in batches to be operated on in parallel. */
     private ArrayList<List<T>> mBatches;
-    /** A list of the successfully deleted objects for each batch delete. */
+    /** A list of the successful operations for each batch. */
     private ArrayList<Future<List<T>>> mBatchesResult;
-    /** Buffer for a batch of objects to be deleted. */
+    /** Buffer for a batch of inputs. */
     private List<T> mCurrentBatchBuffer;
-    /** Total number of objects to be deleted across batches. */
+    /** Total number of inputs to be operated on across batches. */
     protected int mEntriesAdded;
 
     /**
-     * Construct a new {@link DeleteBuffer} instance.
+     * Construct a new {@link OperationBuffer} instance.
      */
-    public OperationBuffer() {
+    protected OperationBuffer() {
       mBatches = new ArrayList<>();
       mBatchesResult = new ArrayList<>();
       mCurrentBatchBuffer = new ArrayList<>();
@@ -252,10 +252,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     protected abstract int getBatchSize();
 
     /**
-     * Operate on a list of paths.
+     * Operate on a list of input type {@link T}.
      *
-     * @param paths the list of paths to operate on
-     * @return list of paths for which operation was successful
+     * @param paths the list of input type {@link T} to operate on
+     * @return list of inputs for successful operations
      */
     protected abstract List<T> operate(List<T> paths) throws IOException;
 
@@ -277,7 +277,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     /**
      * Get the combined result from all batches.
      *
-     * @return a list of successfully deleted objects
+     * @return a list of inputs for successful operations
      * @throws IOException if a non-Alluxio error occurs
      */
     public List<T> getResult() throws IOException {
@@ -289,12 +289,15 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
           // If operation was interrupted do not add to successfully deleted list
-          LOG.warn("Interrupted while waiting for the result of batch operation. UFS and Alluxio "
-              + "state may be inconsistent. Error: {}", e.getMessage());
+          LOG.warn(
+              "{}: Interrupted while waiting for the result of batch operation. UFS and Alluxio "
+                  + "state may be inconsistent. Error: {}",
+              this.getClass().getName(), e.getMessage());
         } catch (ExecutionException e) {
           // If operation failed to execute do not add to successfully deleted list
-          LOG.warn("A batch operation failed. UFS and Alluxio state may be inconsistent. Error: {}",
-              e.getMessage());
+          LOG.warn(
+              "{}: A batch operation failed. UFS and Alluxio state may be inconsistent. Error: {}",
+              this.getClass().getName(), e.getMessage());
         }
       }
       return result;
@@ -318,7 +321,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      */
     @NotThreadSafe
     protected class OperationThread implements Callable<List<T>> {
-
       List<T> mBatch;
 
       /**
