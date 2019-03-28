@@ -45,7 +45,7 @@ final class MasterUtils {
     List<Callable<Void>> callables = new ArrayList<>();
     for (final MasterFactory factory : alluxio.master.ServiceUtils.getMasterServiceLoader()) {
       callables.add(() -> {
-        if(factory.isEnabled()){
+        if (factory.isEnabled()) {
           factory.create(registry, context);
         }
         return null;
