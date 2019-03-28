@@ -28,6 +28,7 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -671,7 +672,7 @@ public abstract class AbstractUnderFileSystemContractTest {
   }
 
   @Test
-  public void renameLargeDirectory() throws IOException {
+  public void renameLargeDirectory() throws Exception {
     LargeDirectoryConfig config = prepareLargeDirectoryTest();
     String dstTopLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "topLevelDirMoved");
     mUfs.renameDirectory(config.getTopLevelDirectory(), dstTopLevelDirectory);
@@ -694,22 +695,22 @@ public abstract class AbstractUnderFileSystemContractTest {
       assertTrue(srcDeleted);
     }
     // 2. Check the dst directory exists
-    UfsStatus[] results = new UfsStatus[] {};
-    for (int i = 0; i < 20; i++) {
-      results = mUfs.listStatus(dstTopLevelDirectory);
-      if (srcChildren.length == results.length) {
-        break;
+    CommonUtils.waitFor("list after create consistency", () -> {
+      UfsStatus[] results;
+      try {
+        results = mUfs.listStatus(dstTopLevelDirectory);
+        // Check nested files and directories in dst exist
+        String[] resultNames = UfsStatus.convertToNames(results);
+        Arrays.sort(resultNames);
+        for (int i = 0; i < srcChildren.length; ++i) {
+          assertTrue(resultNames[i].equals(CommonUtils.stripPrefixIfPresent(srcChildren[i],
+              PathUtils.normalizePath(dstTopLevelDirectory, "/"))));
+        }
+      } catch (IOException e) {
+        return false;
       }
-      CommonUtils.sleepMs(500);
-    }
-    assertEquals(srcChildren.length, results.length);
-
-    String[] resultNames = UfsStatus.convertToNames(results);
-    Arrays.sort(resultNames);
-    for (int i = 0; i < srcChildren.length; ++i) {
-      assertTrue(resultNames[i].equals(CommonUtils.stripPrefixIfPresent(srcChildren[i],
-          PathUtils.normalizePath(dstTopLevelDirectory, "/"))));
-    }
+      return srcChildren.length == results.length;
+    }, WaitForOptions.defaults().setTimeoutMs(10000));
   }
 
   private void createEmptyFile(String path) throws IOException {
