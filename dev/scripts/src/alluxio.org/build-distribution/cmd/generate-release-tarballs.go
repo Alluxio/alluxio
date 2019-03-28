@@ -30,7 +30,7 @@ var (
 )
 
 func init() {
-	cmdRelease.Flags.StringVar(&hadoopDistributionsFlag, "hadoop-distributions", strings.Join(validHadoopDistributions(), ","), "a comma-separated list of hadoop distributions to generate Alluxio distributions for")
+	cmdRelease.Flags.StringVar(&hadoopDistributionsFlag, "hadoop-distributions", strings.Join(validHadoopDistributions(), ","), "a comma-separated list of hadoop distributions to generate Alluxio clients for")
 }
 
 func checkReleaseFlags() error {
@@ -60,16 +60,9 @@ func release(_ *cmdline.Env, _ []string) error {
 }
 
 func generateTarballs() error {
-	for _, distribution := range strings.Split(hadoopDistributionsFlag, ",") {
-		if distribution == "default" {
-			targetFlag = fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker)
-		} else {
-			targetFlag = fmt.Sprintf("alluxio-%v-%v-bin.tar.gz", versionMarker, distribution)
-		}
-		fmt.Printf("Generating distribution for %v at %v", distribution, targetFlag)
-		if err := generateTarball(distribution); err != nil {
-			return err
-		}
+	fmt.Printf("Generating tarball %v\n", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker))
+	if err := generateTarball(strings.Split(hadoopDistributionsFlag, ",")); err != nil {
+		return err
 	}
 	return nil
 }
