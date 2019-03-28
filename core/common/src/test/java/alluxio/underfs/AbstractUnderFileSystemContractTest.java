@@ -683,16 +683,13 @@ public abstract class AbstractUnderFileSystemContractTest {
       // Retry for some time to allow list operation eventual consistency for S3 and GCS.
       // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
       // https://cloud.google.com/storage/docs/consistency for more details.
-      // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
-      boolean srcDeleted = false;
-      for (int i = 0; i < 20; i++) {
-        srcDeleted = !mUfs.exists(src);
-        if (srcDeleted) {
-          break;
+      CommonUtils.waitFor("list after delete consistency", () -> {
+        try {
+          return !mUfs.exists(src);
+        } catch (IOException e) {
+          return false;
         }
-        CommonUtils.sleepMs(500);
-      }
-      assertTrue(srcDeleted);
+      }, WaitForOptions.defaults().setTimeoutMs(10000).setInterval(500));
     }
     // 2. Check the dst directory exists
     CommonUtils.waitFor("list after create consistency", () -> {
@@ -710,7 +707,7 @@ public abstract class AbstractUnderFileSystemContractTest {
         return false;
       }
       return srcChildren.length == results.length;
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
+    }, WaitForOptions.defaults().setTimeoutMs(10000).setInterval(500));
   }
 
   private void createEmptyFile(String path) throws IOException {
