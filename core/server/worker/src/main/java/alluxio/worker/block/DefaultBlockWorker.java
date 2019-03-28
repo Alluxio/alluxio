@@ -583,22 +583,19 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       StorageTierAssoc assoc = blockWorker.getStoreMeta().getStorageTierAssoc();
       for (int i = 0; i < assoc.size(); i++) {
         String tier = assoc.getAlias(i);
-        MetricsSystem.registerGaugeIfAbsent(
-            MetricsSystem.getMetricName(CAPACITY_TOTAL + TIER + tier),
-                () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L));
+        MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_TOTAL + TIER + tier),
+            () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L));
 
-        MetricsSystem.registerGaugeIfAbsent(
-            MetricsSystem.getMetricName(CAPACITY_USED + TIER + tier),
-                () -> blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
+        MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_USED + TIER + tier),
+            () -> blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
 
-        MetricsSystem.registerGaugeIfAbsent(
-            MetricsSystem.getMetricName(CAPACITY_FREE + TIER + tier),
-                () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L)
-                - blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
+        MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_FREE + TIER + tier),
+            () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L)
+	    - blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
       }
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(BLOCKS_CACHED),
-              () -> blockWorker.getStoreMetaFull().getNumberOfBlocks());
+          () -> blockWorker.getStoreMetaFull().getNumberOfBlocks());
     }
 
     private Metrics() {} // prevent instantiation
