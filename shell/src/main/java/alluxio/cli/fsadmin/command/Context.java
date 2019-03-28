@@ -14,6 +14,7 @@ package alluxio.cli.fsadmin.command;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.meta.MetaMasterConfigClient;
 
 import com.google.common.base.Preconditions;
 
@@ -26,6 +27,7 @@ public final class Context {
   private final FileSystemMasterClient mFsClient;
   private final BlockMasterClient mBlockClient;
   private final MetaMasterClient mMetaClient;
+  private final MetaMasterConfigClient mMetaConfigClient;
   private final PrintStream mPrintStream;
 
   /**
@@ -35,10 +37,12 @@ public final class Context {
    * @param printStream print stream to write to
    */
   public Context(FileSystemMasterClient fsClient, BlockMasterClient blockClient,
-      MetaMasterClient metaClient, PrintStream printStream) {
+      MetaMasterClient metaClient, MetaMasterConfigClient metaConfigClient,
+      PrintStream printStream) {
     mFsClient = Preconditions.checkNotNull(fsClient, "fsClient");
     mBlockClient = Preconditions.checkNotNull(blockClient, "blockClient");
     mMetaClient = Preconditions.checkNotNull(metaClient, "metaClient");
+    mMetaConfigClient = Preconditions.checkNotNull(metaConfigClient, "metaConfigClient");
     mPrintStream = Preconditions.checkNotNull(printStream, "printStream");
   }
 
@@ -61,6 +65,13 @@ public final class Context {
    */
   public MetaMasterClient getMetaClient() {
     return mMetaClient;
+  }
+
+  /**
+   * @return the meta master configuration client
+   */
+  public MetaMasterConfigClient getMetaConfigClient() {
+    return mMetaConfigClient;
   }
 
   /**
