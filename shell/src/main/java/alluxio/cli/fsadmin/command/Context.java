@@ -34,6 +34,7 @@ public final class Context {
    * @param fsClient filesystem master client
    * @param blockClient block master client
    * @param metaClient meta master client
+   * @param metaConfigClient meta configuration master client
    * @param printStream print stream to write to
    */
   public Context(FileSystemMasterClient fsClient, BlockMasterClient blockClient,
