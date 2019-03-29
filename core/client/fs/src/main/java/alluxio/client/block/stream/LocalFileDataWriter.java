@@ -74,12 +74,7 @@ public final class LocalFileDataWriter implements DataWriter {
     Closer closer = Closer.create();
     try {
       final BlockWorkerClient blockWorker = context.acquireBlockWorkerClient(address);
-      closer.register(new Closeable() {
-        @Override
-        public void close() throws IOException {
-          context.releaseBlockWorkerClient(address, blockWorker);
-        }
-      });
+      closer.register(() -> context.releaseBlockWorkerClient(address, blockWorker));
       int writerBufferSizeMessages =
           conf.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
       long fileBufferByes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
