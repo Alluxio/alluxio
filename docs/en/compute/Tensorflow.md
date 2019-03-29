@@ -33,29 +33,29 @@ and allow Tensorflow applications to access the data through Alluxio POSIX API.
 Create a folder at the root in Alluxio
 
 ```bash
-$ ./bin/alluxio fs mkdir /training-data
+./bin/alluxio fs mkdir /training-data
 ```
 
 Start the Alluxio-FUSE process. Create a folder `/mnt/fuse`, change its
 owner to the current user (`ec2-user` in this example), and modify its permissions to allow read and write.
 
 ```bash
-$ sudo mkdir -p /mnt/fuse
-$ sudo chown ec2-user:ec2-user /mnt/fuse
-$ chmod 664 /mnt/fuse
+sudo mkdir -p /mnt/fuse
+sudo chown ec2-user:ec2-user /mnt/fuse
+chmod 664 /mnt/fuse
 ```
 
 Run the Alluxio-FUSE shell to mount Alluxio folder `training-data` to the local folder
 `/mnt/fuse`.
 
 ```bash
-$ ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
+./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
 ```
 
 Check the status of the FUSE process with:
 
 ```bash
-$ ./integration/fuse/bin/alluxio-fuse stat
+./integration/fuse/bin/alluxio-fuse stat
 ```
 
 The mounted folder `/mnt/fuse` is ready for the deep learning frameworks to use, which would treat the Alluxio
@@ -72,7 +72,7 @@ For example, we suppose the ImageNet data is stored in an S3 bucket `s3a://allux
 We can mount it into path `/training-data/imagenet` by running:
 
 ```bash
-$ ./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
+./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
 ```
 
 Note this command takes options to pass the S3 credentials of the bucket. These credentials
@@ -81,16 +81,16 @@ are associated with the mounting point so that the future accesses will not requ
 If the data is not in a remote data storage, you can copy it to Alluxio namespace:
 
 ```bash
-$ wget http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
-$ ./bin/alluxio fs mkdir /trainning-data/imagenet 
-$ ./bin/alluxio fs copyFromLocal inception-2015-12-05.tgz /trainning-data/imagenet 
+wget http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
+./bin/alluxio fs mkdir /trainning-data/imagenet 
+./bin/alluxio fs copyFromLocal inception-2015-12-05.tgz /trainning-data/imagenet 
 ```
 
 Browse the data at the mounted folder; it should display the image net training data.
 
 ```bash
-$ cd /mnt/fuse
-$ ls
+cd /mnt/fuse
+ls
 ```
 
 To run the image recognition test, we need to download the 
@@ -98,7 +98,7 @@ To run the image recognition test, we need to download the
 and run it with our data directory.
 
 ```bash
-$ python classify_image.py --model_dir /mnt/fuse/imagenet/
+python classify_image.py --model_dir /mnt/fuse/imagenet/
 ```
 
 ## Examples: Tensorflow benchmark
@@ -107,7 +107,7 @@ Mount the ImageNet data stored in an S3 bucket into path `/training-data/imagene
 assuming the data is at the S3 path `s3a://alluxio-tensorflow-imagenet/`.
 
 ```bash
-$ ./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
+./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
 ```
 
 To access the training data in S3 via Alluxio, with the Alluxio FUSE,

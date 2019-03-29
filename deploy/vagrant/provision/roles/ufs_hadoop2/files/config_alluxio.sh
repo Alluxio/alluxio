@@ -6,10 +6,10 @@ UFS_MASTER=$(tail -n1 /alluxio/conf/workers)
 
 if [[ ${ALLUXIO_VERSION_LESSTHAN_1_1} == true ]]; then
   cat >> ~/.bashrc << EOF
-export ALLUXIO_UNDERFS_ADDRESS="hdfs://${UFS_MASTER}:9000"
+export ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="hdfs://${UFS_MASTER}:9000"
 EOF
 else
   cat >> /alluxio/conf/alluxio-env.sh << EOF
-ALLUXIO_UNDERFS_ADDRESS="hdfs://${UFS_MASTER}:9000"
+ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="hdfs://${UFS_MASTER}:9000"
 EOF
 fi

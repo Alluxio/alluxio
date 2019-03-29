@@ -2,7 +2,7 @@
 
 if [[ ${ALLUXIO_VERSION_LESSTHAN_1_1} == true ]]; then
   cat >> ~/.bashrc << EOF
-export ALLUXIO_UNDERFS_ADDRESS="swift://${SWIFT_CONTAINER}"
+export ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="swift://${SWIFT_CONTAINER}"
 
 export ALLUXIO_JAVA_OPTS+="
   -Dfs.swift.user=${SWIFT_USER}
@@ -15,7 +15,7 @@ export ALLUXIO_JAVA_OPTS+="
 EOF
 else
   cat >> /alluxio/conf/alluxio-env.sh << EOF
-ALLUXIO_UNDERFS_ADDRESS="swift://${SWIFT_CONTAINER}"
+ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="swift://${SWIFT_CONTAINER}"
 
 ALLUXIO_JAVA_OPTS+="
   -Dfs.swift.user=${SWIFT_USER}

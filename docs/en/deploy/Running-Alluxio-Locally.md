@@ -27,8 +27,8 @@ To run in standalone mode, do the following:
 * Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost` (i.e.,
 `alluxio.master.hostname=localhost`).
 
-* Set `alluxio.underfs.address` in `conf/alluxio-site.properties` to a tmp directory in the local
-  filesystem (e.g., `alluxio.underfs.address=/tmp`).
+* Set `alluxio.master.mount.table.root.ufs` in `conf/alluxio-site.properties` to a tmp directory in the local
+  filesystem (e.g., `alluxio.master.mount.table.root.ufs=/tmp`).
 
 * Turn on remote login service so that `ssh localhost` can succeed. To avoid the need to
 repeatedly input the password, you can add the public SSH key for the host into
@@ -43,7 +43,7 @@ details.
 > However, data in under storage will not be changed.
 
 ```bash
-$ ./bin/alluxio format
+./bin/alluxio format
 ```
 
 ## Start Alluxio Filesystem Locally
@@ -52,9 +52,9 @@ Simply run the following command to start Alluxio filesystem.
 
 ```bash
 # If you have not mounted the ramdisk or want to remount it (ie. to change the size)
-$ ./bin/alluxio-start.sh local SudoMount
+./bin/alluxio-start.sh local SudoMount
 # OR if you have already mounted the ramdisk
-$ ./bin/alluxio-start.sh local
+./bin/alluxio-start.sh local
 ```
 
 > NOTE: On Linux, this command may require to input password to get sudo privileges
@@ -99,7 +99,7 @@ alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 and then start Alluxio with `NoMount` option to use the above directory as its data storage:
 
 ```bash
-$ ./bin/alluxio-start.sh local NoMount
+./bin/alluxio-start.sh local NoMount
 ```
 
 Alternatively, you can also specify Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)
@@ -115,7 +115,7 @@ alluxio.worker.tieredstore.level0.dirs.path=/dev/shm
 followed by:
 
 ```bash
-$ ./bin/alluxio-start.sh local NoMount
+./bin/alluxio-start.sh local NoMount
 ```
 
 ### How can I avoid typing the password to run sudo?

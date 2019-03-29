@@ -11,7 +11,6 @@
 
 package alluxio.cli.fs;
 
-import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -21,11 +20,13 @@ import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -37,9 +38,12 @@ public final class FileSystemShell extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemShell.class);
 
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
-      .put("lsr", new String[] {"ls", "-R"})
-      .put("rmr", new String[] {"rm", "-R"})
-      .put("umount", new String[] {"unmount"})
+      .put("umount", new String[]{"unmount"})
+      .build();
+
+   // In order for a warning to be displayed for an unstable alias, it must also exist within the
+   // CMD_ALIAS map.
+  private static final Set<String> UNSTABLE_ALIAS = ImmutableSet.<String>builder()
       .build();
 
   /**
@@ -52,12 +56,7 @@ public final class FileSystemShell extends AbstractShell {
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
     if (!ConfigurationUtils.masterHostConfigured(conf)
         && argv.length > 0 && !argv[0].equals("help")) {
-      System.out.println(String.format(
-          "Cannot run alluxio fs shell; master hostname is not "
-              + "configured. Please modify %s to either set %s or configure zookeeper with "
-              + "%s=true and %s=[comma-separated zookeeper master addresses]",
-          Constants.SITE_PROPERTIES, PropertyKey.MASTER_HOSTNAME.toString(),
-          PropertyKey.ZOOKEEPER_ENABLED.toString(), PropertyKey.ZOOKEEPER_ADDRESS.toString()));
+      System.out.println(ConfigurationUtils.getMasterHostNotConfiguredMessage("Alluxio fs shell"));
       System.exit(1);
     }
 
@@ -75,7 +74,7 @@ public final class FileSystemShell extends AbstractShell {
    * @param alluxioConf Alluxio configuration
    */
   public FileSystemShell(InstancedConfiguration alluxioConf) {
-    super(CMD_ALIAS, alluxioConf);
+    super(CMD_ALIAS, UNSTABLE_ALIAS, alluxioConf);
   }
 
   @Override

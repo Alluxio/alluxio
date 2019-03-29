@@ -44,8 +44,8 @@ Hive可以使用存储在Alluxio中的文件来创建新表。设置非常直接
 这里有一个示例展示了在Alluxio上创建Hive的内部表。你可以从[http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/)下载数据文件（如：`ml-100k.zip`）。然后接下该文件，并且将文件`u.user`上传到Alluxio的`ml-100k/`下：
 
 ```bash
-$ bin/alluxio fs mkdir /ml-100k
-$ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port//ml-100k
+./bin/alluxio fs mkdir /ml-100k
+./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port//ml-100k
 ```
 然后创建新的内部表：
 
@@ -88,7 +88,7 @@ hive> select * from u_user;
 
 ### 在ALluxio中使用已经存储在HDFS中的表
 
-当Hive已经在使用并且管理着存储在HDFS中的表时，只要HDFS安装为Alluxio的底层存储系统，Alluxio也可以为Hive中的这些表提供服务。在这个例子中，我们假设HDFS集群已经安装为Alluxio根目录下的底层存储系统（例如，在`conf/alluxio-site.properties`中设置属性`alluxio.underfs.address=hdfs://namenode:port/`）。请参考[统一命名空间](Unified-and-Transparent-Namespace.html)以获取更多关于安装操作的细节。
+当Hive已经在使用并且管理着存储在HDFS中的表时，只要HDFS安装为Alluxio的底层存储系统，Alluxio也可以为Hive中的这些表提供服务。在这个例子中，我们假设HDFS集群已经安装为Alluxio根目录下的底层存储系统（例如，在`conf/alluxio-site.properties`中设置属性`alluxio.master.mount.table.root.ufs=hdfs://namenode:port/`）。请参考[统一命名空间](Unified-and-Transparent-Namespace.html)以获取更多关于安装操作的细节。
 
 #### 使用已存在的内部表的Hive命令行示例
 
@@ -198,10 +198,10 @@ alluxio.zookeeper.address=[zookeeper_hostname]:2181
 在Alluxio中为Hive创建相应目录：
 
 ```bash
-$ ./bin/alluxio fs mkdir /tmp
-$ ./bin/alluxio fs mkdir /user/hive/warehouse
-$ ./bin/alluxio fs chmod 775 /tmp
-$ ./bin/alluxio fs chmod 775 /user/hive/warehouse
+./bin/alluxio fs mkdir /tmp
+./bin/alluxio fs mkdir /user/hive/warehouse
+./bin/alluxio fs chmod 775 /tmp
+./bin/alluxio fs chmod 775 /user/hive/warehouse
 ```
 
 接着你可以根据[Hive documentation](https://cwiki.apache.org/confluence/display/Hive/GettingStarted)来使用Hive了。
@@ -247,7 +247,7 @@ hive> select * from u_user;
 您可以在Alluxio项目目录中运行以下命令：
 
 ```bash
-$ integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
+integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
 ```
 
 您可以使用`-h`来显示有关该命令的有用信息。

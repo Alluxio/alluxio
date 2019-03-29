@@ -22,7 +22,9 @@ import alluxio.grpc.WriteResponse;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -31,7 +33,6 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
-import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,13 +68,14 @@ public final class UfsFallbackBlockWriteHandler
    * Creates an instance of {@link UfsFallbackBlockWriteHandler}.
    *
    * @param blockWorker the block worker
+   * @param userInfo the authenticated user info
    */
-  UfsFallbackBlockWriteHandler(BlockWorker blockWorker,
-      UfsManager ufsManager, StreamObserver<WriteResponse> responseObserver) {
-    super(responseObserver);
+  UfsFallbackBlockWriteHandler(BlockWorker blockWorker, UfsManager ufsManager,
+      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo) {
+    super(responseObserver, userInfo);
     mWorker = blockWorker;
     mUfsManager = ufsManager;
-    mBlockWriteHandler = new BlockWriteHandler(blockWorker, responseObserver);
+    mBlockWriteHandler = new BlockWriteHandler(blockWorker, responseObserver, userInfo);
   }
 
   @Override
@@ -146,11 +148,11 @@ public final class UfsFallbackBlockWriteHandler
 
   @Override
   protected void writeBuf(BlockWriteRequestContext context,
-      StreamObserver<WriteResponse> responseObserver, ByteString buf, long pos) throws Exception {
+      StreamObserver<WriteResponse> responseObserver, DataBuffer buf, long pos) throws Exception {
     if (context.isWritingToLocal()) {
       // TODO(binfan): change signature of writeBuf to pass current offset and length of buffer.
       // Currently pos is the calculated offset after writeBuf succeeds.
-      long posBeforeWrite = pos - buf.size();
+      long posBeforeWrite = pos - buf.readableBytes();
       try {
         mBlockWriteHandler.writeBuf(context, responseObserver, buf, pos);
         return;
@@ -175,7 +177,7 @@ public final class UfsFallbackBlockWriteHandler
     if (context.getOutputStream() == null) {
       createUfsBlock(context);
     }
-    buf.writeTo(context.getOutputStream());
+    buf.readBytes(context.getOutputStream(), buf.readableBytes());
   }
 
   @Override

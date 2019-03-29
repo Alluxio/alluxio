@@ -13,7 +13,7 @@ Alluxio的管理员命令行接口为管理员提供了管理Alluxio文件系统
 您可以调用以下命令行来获取所有子命令：
  
 ```bash
-$ ./bin/alluxio fsadmin
+./bin/alluxio fsadmin
 Usage: alluxio fsadmin [generic options]
        [report]
        [ufs --mode <noAccess/readOnly/readWrite> <ufsPath>]
@@ -43,17 +43,17 @@ Usage: alluxio fsadmin [generic options]
 
 备份到默认备份文件夹（由`alluxio.master.backup.directory`）配置
 ```
-$ ./bin/alluxio fsadmin backup
+./bin/alluxio fsadmin backup
 Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
 ```
 备份到下存储中的特定目录。
 ```
-$ ./bin/alluxio fsadmin backup /alluxio/special_backups
+./bin/alluxio fsadmin backup /alluxio/special_backups
 Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz
 ```
 备份到主主机的本地文件系统的特定目录。
 ```
-$ ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
+./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
 Successfully backed up journal to file:///opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
 ```
 ### doctor
@@ -62,7 +62,7 @@ Successfully backed up journal to file:///opt/alluxio/backups/alluxio-backup-201
 
 ```bash
 # shows server-side configuration errors and warnings
-$ ./bin/alluxio fsadmin doctor configuration
+./bin/alluxio fsadmin doctor configuration
 ```
 
 ### report
@@ -71,19 +71,19 @@ $ ./bin/alluxio fsadmin doctor configuration
 
 ```bash
 # Report cluster summary
-$ ./bin/alluxio fsadmin report
+./bin/alluxio fsadmin report
 #
 # Report worker capacity information
-$ ./bin/alluxio fsadmin report capacity
+./bin/alluxio fsadmin report capacity
 #
 # Report runtime configuration information 
-$ ./bin/alluxio fsadmin report configuration 
+./bin/alluxio fsadmin report configuration 
 #
 # Report metrics information
-$ ./bin/alluxio fsadmin report metrics
+./bin/alluxio fsadmin report metrics
 #
 # Report under file system information
-$ ./bin/alluxio fsadmin report ufs
+./bin/alluxio fsadmin report ufs
 ```
 
 使用 `-h` 选项来获得更多信息。
@@ -95,7 +95,7 @@ $ ./bin/alluxio fsadmin report ufs
 例如，一个底层存储可以设为`readOnly`模式来禁止写入操作。 Alluxio将不会对底层存储尝试任何写入操作。
  
 ```bash
-$ ./bin/alluxio fsadmin ufs --mode readOnly hdfs://ns
+./bin/alluxio fsadmin ufs --mode readOnly hdfs://ns
 ```
 
 `fsadmin ufs`命令接受一个UFS URI作为参数。该参数需要是一个

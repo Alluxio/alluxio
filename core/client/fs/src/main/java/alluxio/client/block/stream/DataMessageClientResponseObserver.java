@@ -30,21 +30,23 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class DataMessageClientResponseObserver<ReqT, RespT>
-    implements ClientResponseObserver<ReqT, RespT>, DataMessageMarshallerProvider<RespT> {
+    extends DataMessageMarshallerProvider<ReqT, RespT>
+    implements ClientResponseObserver<ReqT, RespT> {
   private static final Logger LOG =
       LoggerFactory.getLogger(DataMessageClientResponseObserver.class);
 
   private final StreamObserver<RespT> mObserver;
-  private final DataMessageMarshaller<RespT> mMarshaller;
 
   /**
    * @param observer the original response observer
-   * @param marshaller the marshaller for the response
+   * @param requestMarshaller the marshaller for the request
+   * @param responseMarshaller the marshaller for the response
    */
   public DataMessageClientResponseObserver(StreamObserver<RespT> observer,
-      DataMessageMarshaller<RespT> marshaller) {
+      DataMessageMarshaller<ReqT> requestMarshaller,
+      DataMessageMarshaller<RespT> responseMarshaller) {
+    super(requestMarshaller, responseMarshaller);
     mObserver = observer;
-    mMarshaller = marshaller;
   }
 
   @Override
@@ -69,10 +71,5 @@ public class DataMessageClientResponseObserver<ReqT, RespT>
     } else {
       LOG.warn("{} does not implement ClientResponseObserver:beforeStart", mObserver);
     }
-  }
-
-  @Override
-  public DataMessageMarshaller<RespT> getMarshaller() {
-    return mMarshaller;
   }
 }

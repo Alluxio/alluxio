@@ -29,11 +29,11 @@ Alluxio server使用Java [ServiceLoader](https://docs.oracle.com/javase/7/docs/a
 
 建立一个新的底层存储连接涉及:
 
--实现所需的存储接口
+- 实现所需的存储接口
 
--声明服务实现
+- 声明服务实现
 
--将实现和传递依赖打包到一个uber JAR中
+- 将实现和传递依赖打包到一个uber JAR中
 
 参考的实现可以在[alluxio-extensions](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/tutorial)找到。
 本章剩余部分将介绍写一个新底层存储扩展的步骤。名为`DummyUnderFileSystem`的样例，使用maven作为build和依赖管理工具，并将所有操作转发到本地文件系统。

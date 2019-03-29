@@ -12,7 +12,6 @@
 package alluxio.master.journal.raft;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
@@ -167,12 +166,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    * @param conf raft journal configuration
    */
   private RaftJournalSystem(RaftJournalConfiguration conf) {
-    Preconditions.checkState(conf.getMaxLogSize() <= Integer.MAX_VALUE,
-        "{} has value {} but must not exceed {}", PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
-        conf.getMaxLogSize(), Integer.MAX_VALUE);
-    Preconditions.checkState(conf.getHeartbeatIntervalMs() < conf.getElectionTimeoutMs() / 2,
-        "Heartbeat interval (%sms) should be less than half of the election timeout (%sms)",
-        conf.getHeartbeatIntervalMs(), conf.getElectionTimeoutMs());
+    conf.validate();
     mConf = conf;
     mJournals = new ConcurrentHashMap<>();
     mSnapshotAllowed = new AtomicBoolean(true);
@@ -398,17 +392,18 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void startInternal() throws InterruptedException, IOException {
-    LOG.info("Starting Raft journal system");
+    List<Address> clusterAddresses = getClusterAddresses(mConf);
+    LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
+        clusterAddresses, getLocalAddress(mConf));
     long startTime = System.currentTimeMillis();
     try {
-      mServer.bootstrap(getClusterAddresses(mConf)).get();
+      mServer.bootstrap(clusterAddresses).get();
     } catch (ExecutionException e) {
-      String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP.getMessage(
-          Arrays.toString(getClusterAddresses(mConf).toArray()), e.getCause().toString());
+      String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP
+          .getMessage(Arrays.toString(clusterAddresses.toArray()), e.getCause().toString());
       throw new IOException(errorMessage, e.getCause());
     }
-    LOG.info("Started Raft Journal System in {}ms. Cluster addresses: {}. Local address: {}",
-        System.currentTimeMillis() - startTime, getClusterAddresses(mConf), getLocalAddress(mConf));
+    LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
   }
 
   @Override
@@ -437,8 +432,12 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void format() throws IOException {
-    FileUtils.deletePathRecursively(mConf.getPath().getAbsolutePath());
-    mConf.getPath().mkdirs();
+    if (mConf.getPath().isDirectory()) {
+      org.apache.commons.io.FileUtils.cleanDirectory(mConf.getPath());
+    } else {
+      FileUtils.delete(mConf.getPath().getAbsolutePath());
+      mConf.getPath().mkdirs();
+    }
   }
 
   /**

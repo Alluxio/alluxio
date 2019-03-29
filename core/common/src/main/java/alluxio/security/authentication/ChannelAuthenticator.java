@@ -16,17 +16,16 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnknownException;
+import alluxio.grpc.ChannelAuthenticationScheme;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
-import alluxio.util.SecurityUtils;
-import alluxio.grpc.GrpcChannelBuilder;
 
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
-import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
-import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.netty.NettyChannelBuilder;
@@ -34,18 +33,20 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.security.auth.Subject;
-import javax.security.sasl.SaslClient;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.net.SocketAddress;
 import java.util.UUID;
+
+import javax.security.auth.Subject;
 
 /**
  * Used to authenticate with the target host. Used internally by {@link GrpcChannelBuilder}.
  */
 public class ChannelAuthenticator {
   private static final Logger LOG = LoggerFactory.getLogger(ChannelAuthenticator.class);
+
+  /** Alluxio client configuration. */
+  private AlluxioConfiguration mConfiguration;
+
   /** Whether to use mParentSubject as authentication user. */
   protected boolean mUseSubject;
   /** Subject for authentication. */
@@ -65,8 +66,6 @@ public class ChannelAuthenticator {
   /** Internal ID used to identify the channel that is being authenticated. */
   protected UUID mChannelId;
 
-  private boolean mSecurityEnabled;
-
   /**
    * Creates {@link ChannelAuthenticator} instance.
    *
@@ -75,10 +74,10 @@ public class ChannelAuthenticator {
    */
   public ChannelAuthenticator(Subject subject, AlluxioConfiguration conf) {
     mUseSubject = true;
-    mChannelId = UUID.randomUUID();
     mParentSubject = subject;
+    mConfiguration = conf;
+    mChannelId = UUID.randomUUID();
     mAuthType = conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-    mSecurityEnabled = SecurityUtils.isSecurityEnabled(conf);
     mGrpcAuthTimeoutMs = conf.getMs(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT);
   }
 
@@ -106,78 +105,48 @@ public class ChannelAuthenticator {
    * Authenticates given {@link NettyChannelBuilder} instance. It attaches required interceptors to
    * the channel based on authentication type.
    *
+   * @param serverAddress the remote address to which the given channel has been opened
    * @param managedChannel the managed channel for whch authentication is taking place
-   * @param conf Alluxio configuration
    * @return channel that is augmented for authentication
    * @throws UnauthenticatedException
    */
-  public Channel authenticate(ManagedChannel managedChannel, AlluxioConfiguration conf)
+  public Channel authenticate(GrpcServerAddress serverAddress, ManagedChannel managedChannel)
       throws AlluxioStatusException {
     LOG.debug("Channel authentication initiated. ChannelId:{}, AuthType:{}, Target:{}", mChannelId,
-        mAuthType, managedChannel.authority());
+            mAuthType, managedChannel.authority());
 
     if (mAuthType == AuthType.NOSASL) {
       return managedChannel;
     }
 
-    AuthenticatedManagedChannel authenticatedChannel =
-        new AuthenticatedManagedChannel(managedChannel, conf);
-    return authenticatedChannel;
-  }
-
-  /**
-   * @param saslClient the Sasl client object that have been used for authentication
-   * @return the list of interceptors that are required for configured authentication
-   */
-  private List<ClientInterceptor> getInterceptors(SaslClient saslClient) {
-    if (!mSecurityEnabled) {
-      return Collections.emptyList();
-    }
-    List<ClientInterceptor> interceptorsList = new ArrayList<>();
-    switch (mAuthType) {
-      case NOSASL:
-        break;
-      case SIMPLE:
-      case CUSTOM:
-        // Plug channel id augmenting for SIMPLE/CUSTOM auth schemes.
-        interceptorsList.add(new ChannelIdInjector(mChannelId));
-        break;
-      default:
-        throw new RuntimeException(
-            String.format("Authentication type:%s not supported", mAuthType.name()));
-    }
-    return interceptorsList;
+    return new AuthenticatedManagedChannel(serverAddress, managedChannel);
   }
 
   private class AuthenticatedManagedChannel extends Channel implements AuthenticatedChannel {
+    private final GrpcServerAddress mServerAddress;
     private final ManagedChannel mManagedChannel;
-    private final AlluxioConfiguration mConf;
     private Channel mChannel;
     private boolean mAuthenticated;
 
-    AuthenticatedManagedChannel(ManagedChannel managedChannel, AlluxioConfiguration conf)
+    AuthenticatedManagedChannel(GrpcServerAddress serverAddress, ManagedChannel managedChannel)
         throws AlluxioStatusException {
+      mServerAddress = serverAddress;
       mManagedChannel = managedChannel;
-      mConf = conf;
       authenticate();
+      mAuthenticated = true;
     }
 
     public void authenticate() throws AlluxioStatusException {
       try {
-        // Create a channel for talking with target host's authentication service.
-        // Create SaslClient for authentication based on provided credentials.
-        SaslClient saslClient;
-        if (mUseSubject) {
-          saslClient = SaslParticipantProvider.Factory.create(mAuthType)
-              .createSaslClient(mParentSubject, mConf);
-        } else {
-          saslClient = SaslParticipantProvider.Factory.create(mAuthType).createSaslClient(mUserName,
-              mPassword, mImpersonationUser);
-        }
-
+        // Determine channel authentication scheme to use.
+        ChannelAuthenticationScheme authScheme =
+            getChannelAuthScheme(mParentSubject, mServerAddress.getSocketAddress());
+        // Create SaslHandler for talking with target host's authentication service.
+        SaslClientHandler saslClientHandler =
+            createSaslClientHandler(mServerAddress, authScheme, mParentSubject);
         // Create authentication scheme specific handshake handler.
         SaslHandshakeClientHandler handshakeClient =
-            SaslHandshakeClientHandler.Factory.create(mAuthType, saslClient);
+            new DefaultSaslHandshakeClientHandler(saslClientHandler);
         // Create driver for driving sasl traffic from client side.
         SaslStreamClientDriver clientDriver =
             new SaslStreamClientDriver(handshakeClient, mGrpcAuthTimeoutMs);
@@ -188,12 +157,8 @@ public class ChannelAuthenticator {
         // Start authentication traffic with the target.
         clientDriver.start(mChannelId.toString());
         // Authentication succeeded!
-        mAuthenticated = true;
-        mManagedChannel.notifyWhenStateChanged(ConnectivityState.READY, () -> {
-          mAuthenticated = false;
-        });
-        // Attach scheme specific interceptors to the channel.
-        mChannel = ClientInterceptors.intercept(mManagedChannel, getInterceptors(saslClient));
+        // Intercept authenticated channel with channel-Id injector.
+        mChannel = ClientInterceptors.intercept(mManagedChannel, new ChannelIdInjector(mChannelId));
       } catch (Exception exc) {
         String message = String.format(
             "Channel authentication failed. ChannelId: %s, AuthType: %s, Target: %s, Error: %s",
@@ -204,6 +169,56 @@ public class ChannelAuthenticator {
         } else {
           throw new UnknownException(message, exc);
         }
+      }
+    }
+
+    /**
+     * Determines transport level authentication scheme for given subject.
+     *
+     * @param subject the subject
+     * @param serverAddress the target server address
+     * @return the channel authentication scheme to use
+     * @throws UnauthenticatedException if configured authentication type is not supported
+     */
+    private ChannelAuthenticationScheme getChannelAuthScheme(Subject subject,
+        SocketAddress serverAddress) throws UnauthenticatedException {
+      switch (mAuthType) {
+        case NOSASL:
+          return ChannelAuthenticationScheme.NOSASL;
+        case SIMPLE:
+          return ChannelAuthenticationScheme.SIMPLE;
+        case CUSTOM:
+          return ChannelAuthenticationScheme.CUSTOM;
+        default:
+          throw new UnauthenticatedException(String.format(
+                  "Configured authentication type is not supported: %s", mAuthType.getAuthName()));
+      }
+    }
+
+    /**
+     * Create SaslClient handler for authentication.
+     *
+     * @param serverAddress target server address
+     * @param authScheme authentication scheme to use
+     * @param subject the subject to use
+     * @return the created {@link SaslClientHandler} instance
+     * @throws UnauthenticatedException
+     */
+    private SaslClientHandler createSaslClientHandler(GrpcServerAddress serverAddress,
+        ChannelAuthenticationScheme authScheme, Subject subject) throws UnauthenticatedException {
+      switch (authScheme) {
+        case SIMPLE:
+        case CUSTOM:
+          if (mUseSubject) {
+            return new alluxio.security.authentication.plain.SaslClientHandlerPlain(mParentSubject,
+                    mConfiguration);
+          } else {
+            return new alluxio.security.authentication.plain.SaslClientHandlerPlain(mUserName,
+                    mPassword, mImpersonationUser);
+          }
+        default:
+          throw new UnauthenticatedException(
+              String.format("Channel authentication scheme not supported: %s", authScheme.name()));
       }
     }
 

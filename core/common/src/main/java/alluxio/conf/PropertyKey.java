@@ -17,6 +17,7 @@ import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.Scope;
+import alluxio.grpc.WritePType;
 import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
 
@@ -28,8 +29,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
@@ -41,6 +40,9 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Configuration property keys. This class provides a set of pre-defined property keys.
@@ -494,18 +496,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   /**
    * UFS related properties.
-   *
-   * @deprecated since 1.5.0 and will be removed in 2.0. Use MASTER_MOUNT_TABLE_ROOT_UFS instead.
    */
-  @Deprecated
-  public static final PropertyKey UNDERFS_ADDRESS =
-      new Builder(Name.UNDERFS_ADDRESS)
-          .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
-          .setDescription("Under file storage address. This property is deprecated; "
-              + "use alluxio.master.mount.table.root.ufs instead")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
       new Builder(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE)
           .setDefaultValue(false)
@@ -753,6 +744,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The duration to wait for metadata consistency from the under "
               + "storage. This is only used by internal Alluxio operations which should be "
               + "successful, but may appear unsuccessful due to eventual consistency.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_S3A_DEFAULT_MODE =
+      new Builder(Name.UNDERFS_S3A_DEFAULT_MODE)
+          .setDefaultValue("0700")
+          .setDescription("Mode (in octal notation) for S3 objects if mode cannot be discovered.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -1060,8 +1058,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_UFS =
       new Builder(Template.MASTER_MOUNT_TABLE_UFS, "root")
-          .setDefaultValue(String.format("${%s}", Name.UNDERFS_ADDRESS))
-          .setDescription("The UFS mounted to Alluxio root mount point.")
+          .setDescription("The storage address of the UFS at the Alluxio root mount point.")
+          .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -1154,10 +1152,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
-          .setDescription("A comma-separated list of journal addresses for all masters in the "
-              + "cluster. The format is 'hostname1:port1,hostname2:port2,...'. Required when using "
-              + "the embedded journal")
-          .setDefaultValue(String.format("localhost:${%s}", Name.MASTER_EMBEDDED_JOURNAL_PORT))
+          .setDescription(String.format("A comma-separated list of journal addresses for all "
+              + "masters in the cluster. The format is 'hostname1:port1,hostname2:port2,...'. When "
+              + "left unset, Alluxio uses ${%s}:${%s} by default", Name.MASTER_HOSTNAME,
+              Name.MASTER_EMBEDDED_JOURNAL_PORT))
+          // We intentionally don't set a default value here. That way, we can use isSet() to check
+          // whether the user explicitly set these addresses. If they did, we determine job master
+          // embedded journal addresses using the same hostnames the user set here. Otherwise, we
+          // use jobMasterHostname:jobMasterEmbeddedJournalPort by default.
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
@@ -1256,10 +1258,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO =
       new Builder(Name.MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO)
-          .setDefaultValue("0.7")
+          .setDefaultValue("0.8")
           .setDescription("The low water mark for the inode cache, as a ratio from low water mark "
-              + "to total cache size. If this is 0.7 and the max size is 10 million, the low "
-              + "water mark value is 7 million. When the cache reaches the high "
+              + "to total cache size. If this is 0.8 and the max size is 10 million, the low "
+              + "water mark value is 8 million. When the cache reaches the high "
               + "water mark, the eviction process will evict down to the low water mark.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -1270,6 +1272,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The number of inodes to cache on-heap. "
               + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
               + "the on-heap inode cache")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
+      new Builder(Name.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
+          .setDefaultValue("true")
+          .setDescription("Whether to inherit the owner/group from the parent when creating a new "
+              + "inode path if empty")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -1478,7 +1488,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS =
       new Builder(Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS)
-          .setDefaultValue(0)
+          .setDefaultValue("5min")
+          .setDescription(String.format("Time to wait before starting the persistence job. "
+              + "When %s is set to %s, set to a big enough value "
+              + "to avoid conflicts between cache and through job.",
+              Name.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.ASYNC_THROUGH))
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_MAX_INTERVAL_MS =
       new Builder(Name.MASTER_PERSISTENCE_MAX_INTERVAL_MS)
@@ -1839,7 +1853,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "You will need to set a path to this socket. The AlluxioWorker needs to be "
               + "able to create the path. If " + Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID
               + " is set, the path should be the home directory for the domain socket. The full "
-              + "path for the domain socket with be <path>/<uuid>.")
+              + "path for the domain socket with be {path}/{uuid}.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -1989,6 +2003,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
+      new Builder(Name.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX)
+          .setDefaultValue(1024)
+          .setDescription("The maximum number of threads used to write blocks in the data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
+      new Builder(Name.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
+          .setDefaultValue(8)
+          .setDescription("When a client writes to a remote worker, the maximum number of "
+              + "data messages to buffer by the server for each request.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_NETWORK_FLOWCONTROL_WINDOW =
       new Builder(Name.WORKER_NETWORK_FLOWCONTROL_WINDOW)
           .setDefaultValue("2MB")
@@ -2066,6 +2095,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(0)
           .setDescription("How many threads to use for processing requests. Zero defaults to "
               + "#cpuCores * 2.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_READER_BUFFER_SIZE_BYTES =
+      new Builder(Name.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES)
+          .setDefaultValue("4MB")
+          .setDescription("When a client reads from a remote worker, the maximum amount of data"
+              + " not received by client allowed before the worker pauses sending more data."
+              + " If this value is lower than read chunk size, read performance may be impacted"
+              + " as worker waits more often for buffer to free up. Higher value will increase"
+              + " the memory consumed by each read request.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2615,9 +2655,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
-      new Builder(Name.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY)
-          .setDefaultValue("alluxio.client.file.policy.RoundRobinPolicy")
+  public static final PropertyKey USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY =
+      new Builder(Name.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY)
+          .setDefaultValue("alluxio.client.block.policy.RoundRobinPolicy")
           .setDescription("The default location policy for choosing workers for writing a "
               + "file's blocks using copyFromLocal command.")
           .setScope(Scope.CLIENT)
@@ -2729,19 +2769,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "writing data to Alluxio but fallback to write to UFS without stopping the "
               + "application. This property only works when the write type is ASYNC_THROUGH.")
           .setDefaultValue(false).build();
-  public static final PropertyKey USER_FILE_WRITE_LOCATION_POLICY =
-      new Builder(Name.USER_FILE_WRITE_LOCATION_POLICY)
-          .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
+  public static final PropertyKey USER_BLOCK_WRITE_LOCATION_POLICY =
+      new Builder(Name.USER_BLOCK_WRITE_LOCATION_POLICY)
+          .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
           .setDescription("The default location policy for choosing workers for writing a "
               + "file's blocks.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =
-      new Builder(Name.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES)
+  public static final PropertyKey USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES =
+      new Builder(Name.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES)
           .setDefaultValue("0MB")
-          .setDescription("The portion of space reserved in worker when user use the "
-              + "LocalFirstAvoidEvictionPolicy class as file write location policy.")
+          .setDescription("The portion of space reserved in a worker when using the "
+              + "LocalFirstAvoidEvictionPolicy class as block location policy.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -2845,7 +2885,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_KEEPALIVE_TIME_MS =
       new Builder(Name.USER_NETWORK_KEEPALIVE_TIME_MS)
-          .setDefaultValue(Integer.MAX_VALUE)
+          .setDefaultValue(Long.MAX_VALUE)
           .setDescription("The amount of time for a gRPC client (for block reads and block writes) "
               + "to wait for a response before pinging the server to see if it is still alive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3021,16 +3061,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
       new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
-          .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
+          .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
           .setDescription(String.format("When an Alluxio client reads a file from the UFS, it "
               + "delegates the read to an Alluxio worker. The client uses this policy to choose "
-              + "which worker to read through. Builtin choices: %s.", Arrays.asList(
+              + "which worker to read through. Built-in choices: %s.", Arrays.asList(
               javadocLink("alluxio.client.block.policy.DeterministicHashPolicy"),
-              javadocLink("alluxio.client.file.policy.LocalFirstAvoidEvictionPolicy"),
-              javadocLink("alluxio.client.file.policy.LocalFirstPolicy"),
-              javadocLink("alluxio.client.file.policy.MostAvailableFirstPolicy"),
-              javadocLink("alluxio.client.file.policy.RoundRobinPolicy"),
-              javadocLink("alluxio.client.file.policy.SpecificHostPolicy"))))
+              javadocLink("alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy"),
+              javadocLink("alluxio.client.block.policy.LocalFirstPolicy"),
+              javadocLink("alluxio.client.block.policy.MostAvailableFirstPolicy"),
+              javadocLink("alluxio.client.block.policy.RoundRobinPolicy"),
+              javadocLink("alluxio.client.block.policy.SpecificHostPolicy"))))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3319,56 +3359,118 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Job service
   //
   public static final PropertyKey JOB_MASTER_CLIENT_THREADS =
-      new Builder(Name.JOB_MASTER_CLIENT_THREADS).setDefaultValue(1024).build();
-  public static final PropertyKey JOB_MASTER_FINISHED_JOB_RETENTION_MS =
-      new Builder(Name.JOB_MASTER_FINISHED_JOB_RETENTION_MS).setDefaultValue(300000).build();
+      new Builder(Name.JOB_MASTER_CLIENT_THREADS)
+          .setDescription("The number of threads the Alluxio master uses to make requests to the "
+              + "job master.")
+          .setDefaultValue(1024)
+          .build();
+  public static final PropertyKey JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
+      new Builder(Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME)
+          .setDescription("The length of time the Alluxio Job Master should save information about "
+              + "completed jobs before they are discarded.")
+          .setDefaultValue("300sec")
+          .build();
   public static final PropertyKey JOB_MASTER_JOB_CAPACITY =
-      new Builder(Name.JOB_MASTER_JOB_CAPACITY).setDefaultValue(100000).build();
-  public static final PropertyKey JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS =
-      new Builder(Name.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS).setDefaultValue(1000).build();
-  public static final PropertyKey JOB_MASTER_WORKER_TIMEOUT_MS =
-      new Builder(Name.JOB_MASTER_WORKER_TIMEOUT_MS).setDefaultValue(60000).build();
+      new Builder(Name.JOB_MASTER_JOB_CAPACITY)
+          .setDescription("The total possible number of available job statuses in the job master. "
+              + "This value includes running and finished jobs which are have completed within "
+              + Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME + ".")
+          .setDefaultValue(100000)
+          .build();
+  public static final PropertyKey JOB_MASTER_WORKER_HEARTBEAT_INTERVAL =
+      new Builder(Name.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL)
+          .setDescription("The amount of time that the Alluxio job worker should wait in between "
+              + "heartbeats to the Job Master.")
+          .setDefaultValue("1sec")
+          .build();
+  public static final PropertyKey JOB_MASTER_WORKER_TIMEOUT =
+      new Builder(Name.JOB_MASTER_WORKER_TIMEOUT)
+          .setDescription("The time period after which the job master will mark a worker as lost "
+              + "without a subsequent heartbeat.")
+          .setDefaultValue("60sec")
+          .build();
   public static final PropertyKey JOB_MASTER_BIND_HOST =
       new Builder(Name.JOB_MASTER_BIND_HOST)
+          .setDescription("The host that the Alluxio job master will bind to.")
           .setDefaultValue("0.0.0.0")
           .build();
   public static final PropertyKey JOB_MASTER_HOSTNAME =
-      new Builder(Name.JOB_MASTER_HOSTNAME).setDefaultValue("${alluxio.master.hostname}").build();
-  public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL_MS =
-      new Builder(Name.JOB_MASTER_LOST_WORKER_INTERVAL_MS).setDefaultValue(1000).build();
+      new Builder(Name.JOB_MASTER_HOSTNAME)
+          .setDescription("The hostname of the Alluxio job master.")
+          .setDefaultValue("${alluxio.master.hostname}")
+          .build();
+  public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL =
+      new Builder(Name.JOB_MASTER_LOST_WORKER_INTERVAL)
+          .setDescription("The time interval the job master waits between checks for lost workers.")
+          .setDefaultValue("1sec")
+          .build();
   public static final PropertyKey JOB_MASTER_RPC_PORT =
-      new Builder(Name.JOB_MASTER_RPC_PORT).setDefaultValue(20001).build();
+      new Builder(Name.JOB_MASTER_RPC_PORT)
+          .setDescription("The RPC port that the job master uses.")
+          .setDefaultValue(20001)
+          .build();
   public static final PropertyKey JOB_MASTER_WEB_BIND_HOST =
-      new Builder(Name.JOB_MASTER_WEB_BIND_HOST).setDefaultValue("0.0.0.0").build();
+      new Builder(Name.JOB_MASTER_WEB_BIND_HOST)
+          .setDescription("The host that the job master web server binds to.")
+          .setDefaultValue("0.0.0.0")
+          .build();
   public static final PropertyKey JOB_MASTER_WEB_HOSTNAME =
       new Builder(Name.JOB_MASTER_WEB_HOSTNAME)
+          .setDescription("The hostname of the job master web server.")
           .setDefaultValue("${alluxio.job.master.hostname}")
           .build();
   public static final PropertyKey JOB_MASTER_WEB_PORT =
-      new Builder(Name.JOB_MASTER_WEB_PORT).setDefaultValue(20002).build();
+      new Builder(Name.JOB_MASTER_WEB_PORT)
+          .setDescription("The port the job master web server uses.")
+          .setDefaultValue(20002)
+          .build();
   public static final PropertyKey JOB_WORKER_BIND_HOST =
-      new Builder(Name.JOB_WORKER_BIND_HOST).setDefaultValue("0.0.0.0").build();
+      new Builder(Name.JOB_WORKER_BIND_HOST)
+          .setDescription("The host that the Alluxio job worker will bind to.")
+          .setDefaultValue("0.0.0.0")
+          .build();
   public static final PropertyKey JOB_WORKER_DATA_PORT =
-      new Builder(Name.JOB_WORKER_DATA_PORT).setDefaultValue(30002).build();
-  public static final PropertyKey JOB_WORKER_HOSTNAME = new Builder(Name.JOB_WORKER_HOSTNAME)
-      .setDescription("The hostname of Alluxio job worker.")
-      .setScope(Scope.WORKER)
-      .build();
+      new Builder(Name.JOB_WORKER_DATA_PORT)
+          .setDescription("The port the Alluxio Job worker uses to send data.")
+          .setDefaultValue(30002)
+          .build();
+  public static final PropertyKey JOB_WORKER_HOSTNAME =
+      new Builder(Name.JOB_WORKER_HOSTNAME)
+          .setDescription("The hostname of the Alluxio job worker.")
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey JOB_WORKER_RPC_PORT =
-      new Builder(Name.JOB_WORKER_RPC_PORT).setDefaultValue(30001).build();
+      new Builder(Name.JOB_WORKER_RPC_PORT)
+          .setDescription("The port the job worker uses to send RPCs")
+          .setDefaultValue(30001)
+          .build();
   public static final PropertyKey JOB_WORKER_WEB_BIND_HOST =
-      new Builder(Name.JOB_WORKER_WEB_BIND_HOST).setDefaultValue("0.0.0.0").build();
+      new Builder(Name.JOB_WORKER_WEB_BIND_HOST)
+          .setDescription("The host the job worker web server binds to.")
+          .setDefaultValue("0.0.0.0")
+          .build();
   public static final PropertyKey JOB_WORKER_WEB_PORT =
-      new Builder(Name.JOB_WORKER_WEB_PORT).setDefaultValue(30003).build();
-
+      new Builder(Name.JOB_WORKER_WEB_PORT)
+          .setDescription("The port the Alluxio job worker web server uses.")
+          .setDefaultValue(30003)
+          .build();
   public static final PropertyKey JOB_MASTER_RPC_ADDRESSES =
-      new Builder(Name.JOB_MASTER_RPC_ADDRESSES).build();
+      new Builder(Name.JOB_MASTER_RPC_ADDRESSES)
+          .setDescription(String.format("The list of RPC addresses to use for the job service "
+                  + "configured in non-zookeeper HA mode. If this property is not specifically "
+                  + "defined, it will first fall back to using %s, replacing those address "
+                  + "ports with the port defined by %s. Otherwise the addresses are inherited from "
+                  + "%s using the port defined in %s",
+              Name.MASTER_RPC_ADDRESSES, Name.JOB_MASTER_RPC_PORT,
+              Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, Name.JOB_MASTER_RPC_PORT))
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)
-          .setDescription("A comma-separated list of journal addresses for all job masters in the "
-              + "cluster. The format is 'hostname1:port1,hostname2:port2,...'. Defaults to the "
-              + "journal addresses set for the Alluxio masters, but with the job master embedded "
-              + "journal port.")
+          .setDescription(String.format("A comma-separated list of journal addresses for all job "
+              + "masters in the cluster. The format is 'hostname1:port1,hostname2:port2,...'. "
+              + "Defaults to the journal addresses set for the Alluxio masters (%s), but with the "
+              + "job master embedded journal port.", Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES))
           .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_PORT =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_PORT)
@@ -3500,7 +3602,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // UFS related properties
     //
-    public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
     public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
         "alluxio.underfs.allow.set.owner.failure";
     public static final String UNDERFS_CLEANUP_ENABLED = "alluxio.underfs.cleanup.enabled";
@@ -3536,6 +3637,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.s3a.bulk.delete.enabled";
     public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
         "alluxio.underfs.s3a.consistency.timeout";
+    public static final String UNDERFS_S3A_DEFAULT_MODE = "alluxio.underfs.s3a.default.mode";
     public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
         "alluxio.underfs.s3a.directory.suffix";
     public static final String UNDERFS_S3A_INHERIT_ACL = "alluxio.underfs.s3a.inherit_acl";
@@ -3686,6 +3788,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.cache.low.water.mark.ratio";
     public static final String MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
         "alluxio.master.metastore.inode.cache.max.size";
+    public static final String MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
+        "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval.ms";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
@@ -3821,6 +3925,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.async.cache.manager.threads.max";
     public static final String WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
         "alluxio.worker.network.block.reader.threads.max";
+    public static final String WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
+        "alluxio.worker.network.block.writer.threads.max";
+    public static final String WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
+        "alluxio.worker.network.writer.buffer.size.messages";
     public static final String WORKER_NETWORK_FLOWCONTROL_WINDOW =
         "alluxio.worker.network.flowcontrol.window";
     public static final String WORKER_NETWORK_KEEPALIVE_TIME_MS =
@@ -3841,6 +3949,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.netty.watermark.low";
     public static final String WORKER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.worker.network.netty.worker.threads";
+    public static final String WORKER_NETWORK_READER_BUFFER_SIZE_BYTES =
+        "alluxio.worker.network.reader.buffer.size";
     public static final String WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
         "alluxio.worker.network.reader.max.chunk.size.bytes";
     public static final String WORKER_NETWORK_SHUTDOWN_TIMEOUT =
@@ -3908,18 +4018,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // User related properties
     //
+    public static final String USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES =
+        "alluxio.user.block.avoid.eviction.policy.reserved.size.bytes";
     public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
         "alluxio.user.block.master.client.threads";
-    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
-        "alluxio.user.block.worker.client.pool.size";
-    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
-        "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
         "alluxio.user.block.size.bytes.default";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.block.worker.client.pool.gc.threshold";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
+        "alluxio.user.block.worker.client.pool.size";
     public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
         "alluxio.user.block.worker.client.read.retry";
+    public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
+        "alluxio.user.block.write.location.policy.class";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
@@ -3928,8 +4042,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
         "alluxio.user.file.cache.partially.read.block";
-    public static final String USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
-        "alluxio.user.file.copyfromlocal.write.location.policy.class";
+    public static final String USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY =
+        "alluxio.user.file.copyfromlocal.block.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =
@@ -3958,10 +4072,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.create.ttl";
     public static final String USER_FILE_CREATE_TTL_ACTION =
         "alluxio.user.file.create.ttl.action";
-    public static final String USER_FILE_WRITE_LOCATION_POLICY =
-        "alluxio.user.file.write.location.policy.class";
-    public static final String USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =
-        "alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes";
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
@@ -4066,18 +4176,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String JOB_MASTER_CLIENT_THREADS =
         "alluxio.job.master.client.threads";
-    public static final String JOB_MASTER_FINISHED_JOB_RETENTION_MS =
-        "alluxio.job.master.finished.job.retention.ms";
+    public static final String JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
+        "alluxio.job.master.finished.job.retention.time";
     public static final String JOB_MASTER_JOB_CAPACITY = "alluxio.job.master.job.capacity";
-    public static final String JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS =
-        "alluxio.job.master.worker.heartbeat.interval.ms";
-    public static final String JOB_MASTER_WORKER_TIMEOUT_MS =
-        "alluxio.job.master.worker.timeout.ms";
+    public static final String JOB_MASTER_WORKER_HEARTBEAT_INTERVAL =
+        "alluxio.job.master.worker.heartbeat.interval";
+    public static final String JOB_MASTER_WORKER_TIMEOUT =
+        "alluxio.job.master.worker.timeout";
 
     public static final String JOB_MASTER_BIND_HOST = "alluxio.job.master.bind.host";
     public static final String JOB_MASTER_HOSTNAME = "alluxio.job.master.hostname";
-    public static final String JOB_MASTER_LOST_WORKER_INTERVAL_MS =
-        "alluxio.job.master.lost.worker.interval.ms";
+    public static final String JOB_MASTER_LOST_WORKER_INTERVAL =
+        "alluxio.job.master.lost.worker.interval";
     public static final String JOB_MASTER_RPC_PORT = "alluxio.job.master.rpc.port";
     public static final String JOB_MASTER_WEB_BIND_HOST = "alluxio.job.master.web.bind.host";
     public static final String JOB_MASTER_WEB_HOSTNAME = "alluxio.job.master.web.hostname";

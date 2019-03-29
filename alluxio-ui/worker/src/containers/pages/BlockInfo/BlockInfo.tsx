@@ -96,7 +96,7 @@ export class BlockInfo extends React.Component<AllProps, IBlockInfoState> {
 
     if (loading) {
       return (
-        <div className="h-100 w-100 blockInfo-page">
+        <div className="blockInfo-page">
           <LoadingMessage/>
         </div>
       );

@@ -123,30 +123,30 @@ Using Alluxio's Java API, users can set the policy in `CreateFilePOptions` for w
 
 Users can override the default policy class in the
 [configuration file]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) at property
-`alluxio.user.file.write.location.policy.class`. The built-in policies include:
+`alluxio.user.block.write.location.policy.class`. The built-in policies include:
 
-* **LocalFirstPolicy (alluxio.client.file.policy.LocalFirstPolicy)**
+* **LocalFirstPolicy (alluxio.client.block.policy.LocalFirstPolicy)**
 
     Returns the local worker first, and if it does not have enough capacity of a block,
     randomly picks a worker from the active workers list. This is the default policy.
 
-* **MostAvailableFirstPolicy (alluxio.client.file.policy.MostAvailableFirstPolicy)**
+* **MostAvailableFirstPolicy (alluxio.client.block.policy.MostAvailableFirstPolicy)**
 
     Returns the worker with the most available bytes.
 
-* **RoundRobinPolicy (alluxio.client.file.policy.RoundRobinPolicy)**
+* **RoundRobinPolicy (alluxio.client.block.policy.RoundRobinPolicy)**
 
     Chooses the worker for the next block in a round-robin manner and skips workers that do not have
     enough capacity.
 
-* **SpecificHostPolicy (alluxio.client.file.policy.SpecificHostPolicy)**
+* **SpecificHostPolicy (alluxio.client.block.policy.SpecificHostPolicy)**
 
     Returns a worker with the specified host name. This policy cannot be set as default policy.
 
 Alluxio supports custom policies, so you can also develop your own policy appropriate for your
-workload by implementing interface `alluxio.client.file.policy.FileWriteLocationPolicy`. Note that a
-default policy must have an empty constructor. And to use `ASYNC_THROUGH` write type, all the blocks
-of a file must be written to the same worker.
+workload by implementing the interface `alluxio.client.block.policy.BlockLocationPolicy`. Note that a
+default policy must have a constructor which takes `alluxio.conf.AlluxioConfiguration`.
+To use `ASYNC_THROUGH` write type, all the blocks of a file must be written to the same worker.
 
 #### Write Tier
 
@@ -245,7 +245,7 @@ worker on each compute node.
 
 ### Install Python Client Library
 ```bash
-$ pip install alluxio
+pip install alluxio
 ```
 
 ### Example Usage
@@ -365,7 +365,7 @@ worker on each compute node.
 
 ### Install Go Client Library
 ```bash
-$ go get -d github.com/Alluxio/alluxio-go
+go get -d github.com/Alluxio/alluxio-go
 ```
 
 ### Example Usage

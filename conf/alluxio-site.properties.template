@@ -14,7 +14,7 @@
 
 # Common properties
 # alluxio.master.hostname=localhost
-# alluxio.underfs.address=${alluxio.work.dir}/underFSStorage
+# alluxio.master.mount.table.root.ufs=${alluxio.work.dir}/underFSStorage
 
 # Security properties
 # alluxio.security.authorization.permission.enabled=true

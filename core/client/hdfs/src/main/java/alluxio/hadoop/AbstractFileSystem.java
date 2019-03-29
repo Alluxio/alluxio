@@ -13,15 +13,15 @@ package alluxio.hadoop;
 
 import static java.util.stream.Collectors.toList;
 
-import alluxio.ClientContext;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioProperties;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -69,7 +69,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -90,9 +89,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   // Always tell Hadoop that we have 3x replication.
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
 
-  /** Flag for if the client has been initialized. */
-  private final AtomicBoolean mInitialized = new AtomicBoolean(false);
-
   protected FileSystem mFileSystem = null;
 
   private URI mUri = null;
@@ -109,7 +105,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   AbstractFileSystem(FileSystem fileSystem) {
     mFileSystem = fileSystem;
-    mInitialized.set(true);
   }
 
   /**
@@ -449,14 +444,29 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * Sets up a lazy connection to Alluxio through mFileSystem. This must be called before client
    * operations.
    *
-   * If it is called twice on the same object an exception will be thrown.
+   * If it is called twice on the same object concurrently, one of the thread will do the
+   * initialization work, the other will wait until initialization is done.
+   * If it is called after initialized, then this is a noop.
    */
   @Override
-  public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
+  public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf)
+      throws IOException {
+    initialize(uri, conf, null);
+  }
+
+  /**
+   * Initialize the {@link alluxio.hadoop.FileSystem}.
+   * @param uri file system Uri
+   * @param conf hadoop configuration
+   * @param alluxioConfiguration [optional] alluxio configuration
+   * @throws IOException
+   */
+  public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf,
+      @Nullable AlluxioConfiguration alluxioConfiguration)
+      throws IOException {
     Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
         PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
-    Preconditions.checkArgument(mInitialized.compareAndSet(false, true), "Cannot invoke "
-        + "initialize() more than once");
+
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
     HadoopUtils.addSwiftCredentials(conf);
@@ -475,11 +485,17 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     mUri = URI.create(mAlluxioHeader);
+
+    if (mFileSystem != null) {
+      return;
+    }
+
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
 
-    AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
+    AlluxioProperties alluxioProps =
+        (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
+            : ConfigurationUtils.defaults();
     AlluxioConfiguration alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioProps);
-
     Subject subject = getHadoopSubject();
     if (subject != null) {
       LOG.debug("Using Hadoop subject: {}", subject);
@@ -535,8 +551,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
       // Unset the embedded journal related configuration
       // to support alluxio URI has the highest priority
-      alluxioConfProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES.getName(),
-          PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES.getDefaultValue());
+      alluxioConfProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES.getName(), null);
       alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof MultiMasterAuthority) {
       MultiMasterAuthority authority = (MultiMasterAuthority) alluxioUri.getAuthority();

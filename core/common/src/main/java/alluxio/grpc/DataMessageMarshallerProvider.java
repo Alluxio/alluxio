@@ -12,10 +12,36 @@
 package alluxio.grpc;
 
 /**
- * A provider of {@link DataMessageMarshaller}.
+ * A provider of {@link DataMessageMarshaller} for a gRPC call.
  *
- * @param <T> type of the message
+ * @param <ReqT> type of the request message
+ * @param <ResT> type of the response message
  */
-public interface DataMessageMarshallerProvider<T>  {
-  DataMessageMarshaller<T> getMarshaller();
+public class DataMessageMarshallerProvider<ReqT, ResT>  {
+  private final DataMessageMarshaller<ReqT> mRequestMarshaller;
+  private final DataMessageMarshaller<ResT> mResponseMarshaller;
+
+  /**
+   * @param requestMarshaller the marshaller for the request, or null if not provided
+   * @param responseMarshaller the marshaller for the response, or null if not provided
+   */
+  public DataMessageMarshallerProvider(DataMessageMarshaller<ReqT> requestMarshaller,
+      DataMessageMarshaller<ResT> responseMarshaller) {
+    mRequestMarshaller = requestMarshaller;
+    mResponseMarshaller = responseMarshaller;
+  }
+
+  /**
+   * @return the request marshaller
+   */
+  public DataMessageMarshaller<ReqT> getRequestMarshaller() {
+    return mRequestMarshaller;
+  }
+
+  /**
+   * @return the response marshaller
+   */
+  public DataMessageMarshaller<ResT> getResponseMarshaller() {
+    return mResponseMarshaller;
+  }
 }

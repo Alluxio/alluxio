@@ -17,10 +17,13 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Chunk;
+import alluxio.grpc.DataMessage;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteRequestCommand;
+import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
+import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -69,6 +72,7 @@ public final class GrpcDataWriter implements DataWriter {
   private final WriteRequestCommand mPartialRequest;
   private final long mChunkSize;
   private final GrpcBlockingStream<WriteRequest, WriteResponse> mStream;
+  private final WriteRequestMarshaller mMarshaller;
 
   /**
    * The next pos to queue to the buffer.
@@ -87,8 +91,7 @@ public final class GrpcDataWriter implements DataWriter {
   public static GrpcDataWriter create(FileSystemContext context, WorkerNetAddress address,
       long id, long length, RequestType type, OutStreamOptions options)
       throws IOException {
-    AlluxioConfiguration conf = context.getConf();
-    long chunkSize = conf.getBytes(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES);
+    long chunkSize = context.getConf().getBytes(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES);
     BlockWorkerClient grpcClient = context.acquireBlockWorkerClient(address);
     try {
       return new GrpcDataWriter(context, address, id, length, chunkSize, type, options,
@@ -152,11 +155,21 @@ public final class GrpcDataWriter implements DataWriter {
     mPartialRequest = builder.buildPartial();
     mChunkSize = chunkSize;
     mClient = client;
-    mStream = new GrpcBlockingStream<>(mClient::writeBlock, mWriterBufferSizeMessages,
-        MoreObjects.toStringHelper(this)
-            .add("request", mPartialRequest)
-            .add("address", address)
-            .toString());
+    mMarshaller = new WriteRequestMarshaller();
+    if (conf.getBoolean(PropertyKey.USER_NETWORK_ZEROCOPY_ENABLED)) {
+      mStream = new GrpcDataMessageBlockingStream<>(
+          mClient::writeBlock, mWriterBufferSizeMessages,
+          MoreObjects.toStringHelper(this)
+              .add("request", mPartialRequest)
+              .add("address", address)
+              .toString(), mMarshaller, null);
+    } else {
+      mStream = new GrpcBlockingStream<>(mClient::writeBlock, mWriterBufferSizeMessages,
+          MoreObjects.toStringHelper(this)
+              .add("request", mPartialRequest)
+              .add("address", address)
+              .toString());
+    }
     mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest.toBuilder()).build(),
         mDataTimeoutMs);
   }
@@ -170,11 +183,16 @@ public final class GrpcDataWriter implements DataWriter {
   public void writeChunk(final ByteBuf buf) throws IOException {
     mPosToQueue += buf.readableBytes();
     try {
-      mStream.send(WriteRequest.newBuilder().setCommand(mPartialRequest).setChunk(
+      WriteRequest request = WriteRequest.newBuilder().setCommand(mPartialRequest).setChunk(
           Chunk.newBuilder()
               .setData(UnsafeByteOperations.unsafeWrap(buf.nioBuffer()))
-              .build()).build(),
-          mDataTimeoutMs);
+              .build()).build();
+      if (mStream instanceof GrpcDataMessageBlockingStream) {
+        ((GrpcDataMessageBlockingStream<WriteRequest, WriteResponse>) mStream)
+            .sendDataMessage(new DataMessage<>(request, new NettyDataBuffer(buf)), mDataTimeoutMs);
+      } else {
+        mStream.send(request, mDataTimeoutMs);
+      }
     } finally {
       buf.release();
     }

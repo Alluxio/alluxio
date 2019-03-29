@@ -21,7 +21,7 @@ priority: 1
 
 * 将`conf/alluxio-site.properties`中的`alluxio.master.hostname`设置为`localhost`(即`alluxio.master.hostname=localhost`)。
 
-* 将`conf/alluxio-site.properties`中的`alluxio.underfs.address`设置为一个本地文件系统上的临时文件夹（例如，`alluxio.underfs.address=/tmp`）。
+* 将`conf/alluxio-site.properties`中的`alluxio.master.mount.table.root.ufs`设置为一个本地文件系统上的临时文件夹（例如，`alluxio.master.mount.table.root.ufs=/tmp`）。
 
 * 开启远程登录服务，确保`ssh localhost`能成功。为了避免重复输入密码，你可以将本机的ssh公钥添加到`~/.ssh/authorized_keys`文件中。更多细节请参考[该指南](http://www.linuxproblem.org/art_9.html)。
 
@@ -33,7 +33,7 @@ priority: 1
 > 但是，底层数据不会改变。
 
 ```bash
-$ ./bin/alluxio format
+./bin/alluxio format
 ```
 
 # 第1步：本地启动Alluxio文件系统
@@ -41,7 +41,7 @@ $ ./bin/alluxio format
 简单运行如下的命令来启动Alluxio文件系统。
 
 ```bash
-$ ./bin/alluxio-start.sh local
+./bin/alluxio-start.sh local
 ```
 
 > 注意：用户在linux系统下运行上述命令需要输入密码来获取sudo权限,
@@ -81,7 +81,7 @@ alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 然后在不需要请求root权限的情况下启动Alluxio，使用上述的目录作为存储器：
 
 ```bash
-$ ./bin/alluxio-start.sh local NoMount
+./bin/alluxio-start.sh local NoMount
 ```
 
 另外，用户可以使用Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)存储数据，
@@ -96,7 +96,7 @@ alluxio.worker.tieredstore.level0.dirs.path=/dev/shm
 其次是：
 
 ```bash
-$ ./bin/alluxio-start.sh local NoMount
+./bin/alluxio-start.sh local NoMount
 ```
 
 ## 我怎样避免通过输入密码运行sudo命令？

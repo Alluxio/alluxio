@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio fs cp /hdfs/file1 /s3/
+./bin/alluxio fs cp /hdfs/file1 /s3/
 ```

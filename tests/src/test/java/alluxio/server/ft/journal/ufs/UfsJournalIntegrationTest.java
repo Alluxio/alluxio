@@ -162,7 +162,6 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     String ufsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     ufs.create(ufsRoot + "/xyz").close();
-    mFileSystem.loadMetadata(new AlluxioURI("/xyz"));
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/xyz"));
     mLocalAlluxioCluster.stopFS();
     loadMetadataTestUtil(status);
@@ -408,6 +407,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
    * Tests directory creation.
    */
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void directory() throws Exception {
     AlluxioURI directoryPath = new AlluxioURI("/xyz");
     mFileSystem.createDirectory(directoryPath);

@@ -25,7 +25,7 @@ Configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Assuming the GlusterFS bricks are co-located with Alluxio nodes, the GlusterFS volume is mounted at

@@ -29,13 +29,13 @@ Configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.underfs.address=swift://<bucket>/<folder>
+alluxio.master.mount.table.root.ufs=swift://<bucket>/<folder>
 alluxio.master.mount.table.root.option.fs.swift.user=<swift-user>
 alluxio.master.mount.table.root.option.fs.swift.tenant=<swift-tenant>
 alluxio.master.mount.table.root.option.fs.swift.password=<swift-user-password>
@@ -82,8 +82,8 @@ be deployed.
 Start an Alluxio cluster:
 
 ```bash
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -92,7 +92,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Run a simple example program:
 
 ```bash
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 Visit your Swift bucket to verify the files and directories created
@@ -105,17 +105,17 @@ by Alluxio exist. For this test, you should see files named like:
 To stop Alluxio, you can run:
 
 ```bash
-$ ./bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```
 
 ## Running functional tests
 
 For developers, to run functional tests against a Swift endpoint run:
 ```bash
-$ mvn test -DtestSwiftContainerKey=swift://<bucket> \
--Dfs.swift.user=<SWIFT_USER> -Dfs.swift.tenant=<SWIFT_TENANT> -Dfs.swift.password=<SWIFT_PASSWORD> \
--Dfs.swift.auth.url=<AUTH_URL> -Dfs.swift.use.public.url=<USE_PUBLIC> \
--Dfs.swift.auth.method=<AUTH_METHOD> 
+mvn test -DtestSwiftContainerKey=swift://<bucket> \
+    -Dfs.swift.user=<SWIFT_USER> -Dfs.swift.tenant=<SWIFT_TENANT> -Dfs.swift.password=<SWIFT_PASSWORD> \
+    -Dfs.swift.auth.url=<AUTH_URL> -Dfs.swift.use.public.url=<USE_PUBLIC> \
+    -Dfs.swift.auth.method=<AUTH_METHOD> 
 ```
 
 ## Advanced Setup

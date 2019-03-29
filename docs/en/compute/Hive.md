@@ -59,8 +59,8 @@ You can download a data file (e.g., `ml-100k.zip`) from
 Unzip this file and upload the file `u.user` into `ml-100k/` on Alluxio:
 
 ```bash
-$ bin/alluxio fs mkdir /ml-100k
-$ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
+./bin/alluxio fs mkdir /ml-100k
+./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
 ```
 
 View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
@@ -121,7 +121,7 @@ And you can see the query results from console:
 When Hive is already serving and managing the tables stored in HDFS,
 Alluxio can also serve them for Hive if HDFS is mounted as the under storage of Alluxio.
 In this example, we assume a HDFS cluster is mounted as the under storage of
-Alluxio root directory (i.e., property `alluxio.underfs.address=hdfs://namenode:port/`
+Alluxio root directory (i.e., property `alluxio.master.mount.table.root.ufs=hdfs://namenode:port/`
 is set in `conf/alluxio-site.properties`). Please refer to
 [unified namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }})
 for more details about Alluxio `mount` operation.
@@ -223,20 +223,12 @@ Alternatively, modify `conf/hive-site.xml` to have:
 
 ### Connect to Alluxio with HA
 
-> Tips：after Alluxio 1.8 (exclusive), there is an easier way to configure Hive to connect to Alluxio
- in fault tolerant mode with Zookeeper. Please follow the instructions in [HDFS API to connect to
- Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#Configure-Alluxio-Clients-for-HA).
-
-If you are running Alluxio in fault tolerant mode with a Zookeeper service running at
-`zkHost1:2181`, `zkHost2:2181` and `zkHost3:2181`, it requires setting
-set the Alluxio properties `alluxio.zookeeper.enabled` and `alluxio.zookeeper.address`
-
-One approach is to set in `alluxio-site.properties`.
+If you are running Alluxio in HA mode with internal leader election,
+set the Alluxio property `alluxio.master.rpc.addresses` in `alluxio-site.properties`.
 Ensure that this file is on the classpath of Hive.
 
 ```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
+alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
@@ -244,15 +236,23 @@ Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
 ```xml
 <configuration>
   <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+    <name>alluxio.master.rpc.addresses</name>
+    <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
   </property>
 </configuration>
 ```
+
+For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
+please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
+
+If Hive is set up by adding the above HA mode configuration, one can write URIs using the "`alluxio://`" scheme:
+
+```
+hive> alter table u_user set location "alluxio:///ml-100k";
+```
+
+Since Alluxio 2.0, one can directly use Alluxio HA-style authorities in Hive queries without any configuration setup.
+See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority) for more details.
 
 ### Experimental: Use Alluxio as the Default Filesystem
 
@@ -277,10 +277,10 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 Create Directories in Alluxio for Hive:
 
 ```bash
-$ ./bin/alluxio fs mkdir /tmp
-$ ./bin/alluxio fs mkdir /user/hive/warehouse
-$ ./bin/alluxio fs chmod 775 /tmp
-$ ./bin/alluxio fs chmod 775 /user/hive/warehouse
+./bin/alluxio fs mkdir /tmp
+./bin/alluxio fs mkdir /user/hive/warehouse
+./bin/alluxio fs chmod 775 /tmp
+./bin/alluxio fs chmod 775 /user/hive/warehouse
 ```
 
 Then you can follow the
@@ -334,7 +334,7 @@ setup correctly set up with Alluxio. The Hive integration checker can help you a
 You can run the following command in the Alluxio project directory:
 
 ```bash
-$ integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
+integration/checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
 ```
 
 You can use `-h` to display helpful information about the command.

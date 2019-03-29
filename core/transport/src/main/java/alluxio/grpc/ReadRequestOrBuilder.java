@@ -84,4 +84,21 @@ public interface ReadRequestOrBuilder extends
    * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
    */
   alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder getOpenUfsBlockOptionsOrBuilder();
+
+  /**
+   * <pre>
+   * Read receipt
+   * </pre>
+   *
+   * <code>optional int64 offset_received = 7;</code>
+   */
+  boolean hasOffsetReceived();
+  /**
+   * <pre>
+   * Read receipt
+   * </pre>
+   *
+   * <code>optional int64 offset_received = 7;</code>
+   */
+  long getOffsetReceived();
 }

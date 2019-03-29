@@ -21,6 +21,7 @@ import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
@@ -28,11 +29,13 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -45,6 +48,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -67,18 +71,72 @@ public final class ConfigurationUtils {
   private ConfigurationUtils() {} // prevent instantiation
 
   /**
+   * Gets the embedded journal addresses to use for the given service type (either master-raft or
+   * job-master-raft).
+   *
+   * @param conf configuration
+   * @param serviceType the service to get addresses for
+   * @return the addresses
+   */
+  public static List<InetSocketAddress> getEmbeddedJournalAddresses(AlluxioConfiguration conf,
+      ServiceType serviceType) {
+    Preconditions.checkState(
+        serviceType == ServiceType.MASTER_RAFT || serviceType == ServiceType.JOB_MASTER_RAFT);
+    if (serviceType == ServiceType.MASTER_RAFT) {
+      return getMasterEmbeddedJournalAddresses(conf);
+    }
+    return getJobMasterEmbeddedJournalAddresses(conf);
+  }
+
+  /**
+   * @param conf configuration
+   * @return the embedded journal addresses to use for the master
+   */
+  public static List<InetSocketAddress> getMasterEmbeddedJournalAddresses(
+      AlluxioConfiguration conf) {
+    PropertyKey property = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
+    if (conf.isSet(property)) {
+      return parseInetSocketAddresses(conf.getList(property, ","));
+    }
+    // Fall back on master_hostname:master_raft_port
+    return Arrays.asList(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RAFT, conf));
+  }
+
+  /**
+   * @param conf configuration
+   * @return the embedded journal addresses to use for the job master
+   */
+  public static List<InetSocketAddress> getJobMasterEmbeddedJournalAddresses(
+      AlluxioConfiguration conf) {
+    PropertyKey jobMasterProperty = PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES;
+    if (conf.isSet(jobMasterProperty)) {
+      return parseInetSocketAddresses(conf.getList(jobMasterProperty, ","));
+    }
+    // Fall back on using the master embedded journal addresses, with the job master port.
+    PropertyKey masterProperty = PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES;
+    int jobRaftPort = NetworkAddressUtils.getPort(ServiceType.JOB_MASTER_RAFT, conf);
+    if (conf.isSet(masterProperty)) {
+      return overridePort(getMasterEmbeddedJournalAddresses(conf), jobRaftPort);
+    }
+    // Fall back on job_master_hostname:job_master_raft_port.
+    return Arrays.asList(NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RAFT, conf));
+  }
+
+  /**
    * Gets the RPC addresses of all masters based on the configuration.
    *
    * @param conf the configuration to use
    * @return the master rpc addresses
    */
   public static List<InetSocketAddress> getMasterRpcAddresses(AlluxioConfiguration conf) {
+    // First check whether rpc addresses are explicitly configured.
     if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
       return parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES, ","));
-    } else {
-      int rpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.MASTER_RPC, conf);
-      return getRpcAddresses(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, rpcPort, conf);
     }
+
+    // Fall back on server-side journal configuration.
+    int rpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.MASTER_RPC, conf);
+    return overridePort(getEmbeddedJournalAddresses(conf, ServiceType.MASTER_RAFT), rpcPort);
   }
 
   /**
@@ -88,36 +146,27 @@ public final class ConfigurationUtils {
    * @return the job master rpc addresses
    */
   public static List<InetSocketAddress> getJobMasterRpcAddresses(AlluxioConfiguration conf) {
-    int jobRpcPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC,
-        conf);
+    // First check whether job rpc addresses are explicitly configured.
     if (conf.isSet(PropertyKey.JOB_MASTER_RPC_ADDRESSES)) {
       return parseInetSocketAddresses(
           conf.getList(PropertyKey.JOB_MASTER_RPC_ADDRESSES, ","));
-    } else if (conf.isSet(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)) {
-      return getRpcAddresses(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, jobRpcPort, conf);
-    } else if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
-      return getRpcAddresses(PropertyKey.MASTER_RPC_ADDRESSES, jobRpcPort, conf);
-    } else {
-      return getRpcAddresses(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, jobRpcPort, conf);
     }
+
+    int jobRpcPort =
+        NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, conf);
+    // Fall back on explicitly configured regular master rpc addresses.
+    if (conf.isSet(PropertyKey.MASTER_RPC_ADDRESSES)) {
+      List<InetSocketAddress> addrs =
+          parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_RPC_ADDRESSES, ","));
+      return overridePort(addrs, jobRpcPort);
+    }
+
+    // Fall back on server-side journal configuration.
+    return overridePort(getEmbeddedJournalAddresses(conf, ServiceType.JOB_MASTER_RAFT), jobRpcPort);
   }
 
-  /**
-   * @param addressesKey configuration key for a list of addresses
-   * @param overridePort the port to use
-   * @param conf the configuration to use
-   * @return a list of inet addresses using the hostnames from addressesKey with the port
-   *         overridePort
-   */
-  private static List<InetSocketAddress> getRpcAddresses(
-      PropertyKey addressesKey, int overridePort, AlluxioConfiguration conf) {
-    List<InetSocketAddress> addresses =
-        parseInetSocketAddresses(conf.getList(addressesKey, ","));
-    List<InetSocketAddress> newAddresses = new ArrayList<>(addresses.size());
-    for (InetSocketAddress addr : addresses) {
-      newAddresses.add(new InetSocketAddress(addr.getHostName(), overridePort));
-    }
-    return newAddresses;
+  private static List<InetSocketAddress> overridePort(List<InetSocketAddress> addrs, int port) {
+    return StreamUtils.map(addr -> new InetSocketAddress(addr.getHostString(), port), addrs);
   }
 
   /**
@@ -125,8 +174,7 @@ public final class ConfigurationUtils {
    * @return a list of InetSocketAddresses representing the given address strings
    */
   private static List<InetSocketAddress> parseInetSocketAddresses(List<String> addresses) {
-    List<InetSocketAddress> inetSocketAddresses =
-        new ArrayList<>(addresses.size());
+    List<InetSocketAddress> inetSocketAddresses = new ArrayList<>(addresses.size());
     for (String address : addresses) {
       try {
         inetSocketAddresses.add(NetworkAddressUtils.parseInetSocketAddress(address));
@@ -221,6 +269,37 @@ public final class ConfigurationUtils {
         && conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
     return conf.isSet(PropertyKey.JOB_MASTER_HOSTNAME) || usingZk
         || getJobMasterRpcAddresses(conf).size() > 1;
+  }
+
+  /**
+   * Returns a unified message for cases when the master hostname cannot be determined.
+   *
+   * @param serviceName the name of the service that couldn't run. i.e. Alluxio worker, fsadmin
+   *                    shell, etc.
+   * @return a string with the message
+   */
+  public static String getMasterHostNotConfiguredMessage(String serviceName) {
+    return getHostNotConfiguredMessage(serviceName, "master", PropertyKey.MASTER_HOSTNAME,
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
+  }
+
+  /**
+   * Returns a unified message for cases when the job master hostname cannot be determined.
+   *
+   * @param serviceName the name of the service that couldn't run. i.e. Alluxio worker, fsadmin
+   *                    shell, etc.
+   * @return a string with the message
+   */
+  public static String getJobMasterHostNotConfiguredMessage(String serviceName) {
+    return getHostNotConfiguredMessage(serviceName, "job master", PropertyKey.JOB_MASTER_HOSTNAME,
+        PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES);
+  }
+
+  private static String getHostNotConfiguredMessage(String serviceName, String masterName,
+      PropertyKey masterHostnameKey, PropertyKey embeddedJournalKey) {
+    return ExceptionMessage.UNABLE_TO_DETERMINE_MASTER_HOSTNAME.getMessage(serviceName, masterName,
+        masterHostnameKey.getName(), PropertyKey.ZOOKEEPER_ENABLED.getName(),
+        PropertyKey.ZOOKEEPER_ADDRESS.getName(), embeddedJournalKey.getName());
   }
 
   /**
@@ -400,7 +479,8 @@ public final class ConfigurationUtils {
     List<alluxio.grpc.ConfigProperty> clusterConfig;
 
     try {
-      channel = GrpcChannelBuilder.newBuilder(address, conf).disableAuthentication().build();
+      channel = GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf)
+          .disableAuthentication().build();
       MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
           MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
       clusterConfig =

@@ -48,7 +48,7 @@ create new directory `roles/ufs_{filesystem_name}` with structure:
 
 	|-- files
 	|---- compile_alluxio.sh    # how to compile Alluxio against this ufs
-	|---- config_alluxio.sh     # there are ufs related configurations in Alluxio like ALLUXIO_UNDERFS_ADDRESS
+	|---- config_alluxio.sh     # there are ufs related configurations in Alluxio like ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS
 	|---- ...
 	|-- tasks
 	|---- download_release.yml  # how to download the binary release of this ufs to a specific directory

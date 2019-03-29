@@ -11,6 +11,8 @@
 
 package alluxio.master;
 
+import alluxio.RuntimeConstants;
+
 /**
  * Enumeration of different checkpoint types used by the master.
  */
@@ -49,6 +51,8 @@ public enum CheckpointType {
         return type;
       }
     }
-    throw new IllegalStateException("Unknown checkpoint type id: " + id);
+    throw new IllegalStateException(String.format("Unknown checkpoint type id: %d. Was your "
+        + "checkpoint written by alluxio-1.x? See %s for instructions on how to upgrade from "
+        + "alluxio-1.x to alluxio-2.x", id, RuntimeConstants.ALLUXIO_2X_UPGRADE_DOC_URL));
   }
 }

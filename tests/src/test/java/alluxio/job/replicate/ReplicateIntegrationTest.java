@@ -99,7 +99,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
   // Tests that we send one request and log one message when job master is at capacity
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "0",
-      PropertyKey.Name.JOB_MASTER_FINISHED_JOB_RETENTION_MS, "0"})
+      PropertyKey.Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME, "0"})
   public void requestBackoffTest() throws Exception {
     String rootDir = "/backofftest";
     for (int i = 0; i < 10; i++) {

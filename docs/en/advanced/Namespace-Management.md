@@ -25,8 +25,8 @@ systems.
 
 ![unified]({{ '/img/screenshot_unified.png' | relativize_url }})
 
-The directory specified by the `alluxio.underfs.address` is mounted to the root of the Alluxio
-namespace. This directory identifies the "primary storage" for Alluxio.
+The directory specified by the `alluxio.master.mount.table.root.ufs` is mounted to the root of the
+Alluxio namespace. This directory identifies the "primary storage" for Alluxio.
 In addition, users can use the mounting API to add and remove data sources:
 
 ```java
@@ -81,7 +81,7 @@ The root mount point of the Alluxio namespace can be specified in `conf/alluxio-
 The following line is an example configuration where a HDFS path is at the root of the Alluxio namespace.
 
 ```
-alluxio.underfs.address=hdfs://HDFS_HOSTNAME:8020
+alluxio.master.mount.table.root.ufs=hdfs://HDFS_HOSTNAME:8020
 ```
 
 Mount options for the root mount point can be configured using the configuration prefix:
@@ -110,8 +110,8 @@ by using the mount command. The `--option` flag allows the user to pass addition
 to the mount operation, such as credentials for S3 storage.
 
 ```bash
-$ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
-$ ./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId> --option aws.secretKey=<secretKey>
+./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
+./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId> --option aws.secretKey=<secretKey>
   /mnt/s3 s3a://data-bucket/
 ```
 
@@ -175,7 +175,7 @@ If the UFS updates at a scheduled interval, you can manually trigger the sync co
 Set the sync interval to `0` by running the command:
 
 ```bash
-$ alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0
+alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0
 ```
 
 Then reset the sync interval back to the default value of `-1`,
@@ -223,54 +223,54 @@ and an instance of Alluxio is running locally.
 Create a temporary directory in the local file system that will be used as the under storage to mount:
 
 ```bash
-$ cd /tmp
-$ mkdir alluxio-demo
-$ touch alluxio-demo/hello
+cd /tmp
+mkdir alluxio-demo
+touch alluxio-demo/hello
 ```
 
 Mount the local directory created into Alluxio namespace and verify it appears in Alluxio:
 
 ```bash
-$ cd ${ALLUXIO_HOME}
-$ bin/alluxio fs mount /demo file:///tmp/alluxio-demo
+cd ${ALLUXIO_HOME}
+./bin/alluxio fs mount /demo file:///tmp/alluxio-demo
 Mounted file:///tmp/alluxio-demo at /demo
-$ bin/alluxio fs ls -R /
+./bin/alluxio fs ls -R /
 ... # note that the output should show /demo but not /demo/hello
 ```
 
 Verify that the metadata for content not created through Alluxio is loaded into Alluxio the first time it is accessed:
 
 ```bash
-$ bin/alluxio fs ls /demo/hello
+./bin/alluxio fs ls /demo/hello
 ... # should contain /demo/hello
 ```
 
 Create a file under the mounted directory and verify the file is created in the underlying file system with the same name:
 
 ```bash
-$ bin/alluxio fs touch /demo/hello2
+./bin/alluxio fs touch /demo/hello2
 /demo/hello2 has been created
-$ bin/alluxio fs persist /demo/hello2
+./bin/alluxio fs persist /demo/hello2
 persisted file /demo/hello2 with size 0
-$ ls /tmp/alluxio-demo
+ls /tmp/alluxio-demo
 hello hello2
 ```
 
 Rename a file in Alluxio and verify the corresponding file is also renamed in the underlying file system:
 
 ```bash
-$ bin/alluxio fs mv /demo/hello2 /demo/world
+./bin/alluxio fs mv /demo/hello2 /demo/world
 Renamed /demo/hello2 to /demo/world
-$ ls /tmp/alluxio-demo
+ls /tmp/alluxio-demo
 hello world
 ```
 
 Delete a file in Alluxio and verify the file is also deleted in the underlying file system:
 
 ```bash
-$ bin/alluxio fs rm /demo/world
+./bin/alluxio fs rm /demo/world
 /demo/world has been removed
-$ ls /tmp/alluxio-demo
+ls /tmp/alluxio-demo
 hello
 ```
 
@@ -278,13 +278,62 @@ Unmount the mounted directory and verify that the directory is removed from the 
 but is still preserved in the underlying file system:
 
 ```bash
-$ bin/alluxio fs unmount /demo
+./bin/alluxio fs unmount /demo
 Unmounted /demo
-$ bin/alluxio fs ls -R /
+./bin/alluxio fs ls -R /
 ... # should not contain /demo
-$ ls /tmp/alluxio-demo
+ls /tmp/alluxio-demo
 hello
 ```
+
+### Metadata Active Sync for HDFS
+In version 2.0, we introduced a new feature for maintaining synchronization between Alluxio space and the UFS when the UFS is HDFS.
+The feature, called active sync, listens for HDFS events and periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on the master.
+
+To enable active sync on a directory, issue the following Alluxio command.
+
+```bash
+$ bin/alluxio fs mkdir /syncdir
+$ bin/alluxio fs startSync /syncdir
+```
+
+You can control the active sync interval by changing the `alluxio.master.activesync.interval` option, the default is 30 seconds.
+
+To disable active sync on a directory, issue the following Alluxio command.
+
+```bash
+$ bin/alluxio fs stopSync /syncdir
+```
+
+You can also examine which directories are currently under active sync.
+
+```bash
+$ bin/alluxio fs getSyncPathList
+```
+
+#### Quiet period for Active Sync
+
+Active sync also tries to avoid syncing when the target directory is heavily used.
+It tries to look for a quiet period in UFS activity to start syncing between the UFS and the Alluxio space, to avoid overloading the UFS when it is busy.
+There are two configuration options that control this behavior.
+
+`alluxio.master.activesync.maxactivity` is the maximum number of activities in the UFS directory. 
+Activity is a heuristic based on the exponential moving average of number of events in a directory.
+For example, if a directory had 100, 10, 1 event in the past three intervals. 
+Its activity would be `100/10*10 + 10/10 + 1 = 3` 
+`alluxio.master.activesync.maxage` is the maximum number of intervals we will wait before synchronizing the UFS and the Alluxio space.
+
+The system guarantees that we will start syncing a directory if it is "quiet", or it has not been synced for a long period (period longer than the max age).
+
+For example, the following setting 
+
+```
+alluxio.master.activesync.interval=30secs
+alluxio.master.activesync.maxactivity=100
+alluxio.master.activesync.maxage=5
+```
+
+means that every 30 seconds, the system will count the number of events in the directory and calculate its activity. If the activity is less than 100, it will be considered a quiet period, and syncing will start for that directory. If the activity is greater than 100, and it has not synced for the last 5 intervals, or 5 * 30 = 150 seconds, it will start syncing the directory. It will not perform active sync if the activity is greater than 100 and it has synced at least once in the last 5 intervals.
 
 ### Unified Namespace
 
@@ -295,26 +344,26 @@ accounts and a HDFS service.
 Mount the first S3 bucket into Alluxio using its corresponding credentials `<accessKeyId1>` and `<secretKey1>` :
 
 ```java
-$ bin/alluxio fs mkdir /mnt
-$ bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId1> --option aws.secretKey=<secretKey1>  /mnt/s3bucket1 s3a://data-bucket1/
+./bin/alluxio fs mkdir /mnt
+./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId1> --option aws.secretKey=<secretKey1>  /mnt/s3bucket1 s3a://data-bucket1/
 ```
 
 Mount the second S3 bucket into Alluxio using its corresponding credentials `<accessKeyId2>` and `<secretKey2>`:
 
 ```java
-$ bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId2> --option aws.secretKey=<secretKey2>  /mnt/s3bucket2 s3a://data-bucket2/
+./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId2> --option aws.secretKey=<secretKey2>  /mnt/s3bucket2 s3a://data-bucket2/
 ```
 
 Mount the HDFS storage into Alluxio:
 
 ```java
-$ bin/alluxio fs mount /mnt/hdfs hdfs://<NAMENODE>:<PORT>/
+./bin/alluxio fs mount /mnt/hdfs hdfs://<NAMENODE>:<PORT>/
 ```
 
 All three directories are all contained in one space in Alluxio:
 
 ```bash
-$ bin/alluxio fs ls -R /
+./bin/alluxio fs ls -R /
 ... # should contain /mnt/s3bucket1, /mnt/s3bucket2, /mnt/hdfs
 ```
 
