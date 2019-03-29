@@ -76,7 +76,6 @@ public final class ConfigurationTestUtils {
           Joiner.on(',').join(newPaths));
     }
     // Sets up the journal folder
-    conf.put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
     conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, PathUtils.concatPath(workDirectory, "journal"));
     conf.put(PropertyKey.MASTER_METASTORE_DIR, PathUtils.concatPath(workDirectory, "metastore"));
 

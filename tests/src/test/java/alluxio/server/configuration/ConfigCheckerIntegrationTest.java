@@ -56,6 +56,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void multiMasters() throws Exception {
+    DeployMode deployMode = sJournalTypeRule.getMultiMasterDeployMode();
     PropertyKey key = PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS;
     Map<Integer, Map<PropertyKey, String>> masterProperties
         = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, key);
@@ -63,12 +64,14 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setClusterName("ConfigCheckerMultiMastersTest")
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(0)
-        .setDeployMode(MultiProcessCluster.DeployMode.ZOOKEEPER_HA)
+        .setDeployMode(deployMode)
         .setMasterProperties(masterProperties)
         .build();
     mCluster.start();
     ConfigCheckReport report = getReport();
-    assertEquals(ConfigStatus.WARN, report.getConfigStatus());
+    // When using embedded journal, the journal paths are different
+    assertEquals(deployMode.equals(DeployMode.ZOOKEEPER_HA)
+        ? ConfigStatus.WARN : ConfigStatus.FAILED, report.getConfigStatus());
     assertThat(report.getConfigWarns().toString(),
         CoreMatchers.containsString(key.getName()));
     mCluster.notifySuccess();
@@ -84,6 +87,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setNumMasters(1)
         .setNumWorkers(TEST_NUM_WORKERS)
         .setWorkerProperties(workerProperties)
+        .setDeployMode(DeployMode.EMBEDDED_NON_HA)
         .build();
 
     mCluster.start();
@@ -110,7 +114,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setClusterName("ConfigCheckerMultiNodesTest")
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(TEST_NUM_WORKERS)
-        .setDeployMode(MultiProcessCluster.DeployMode.ZOOKEEPER_HA)
+        .setDeployMode(sJournalTypeRule.getMultiMasterDeployMode())
         .setMasterProperties(masterProperties)
         .setWorkerProperties(workerProperties)
         .build();
@@ -124,6 +128,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void unsetVsSet() throws Exception {
+    DeployMode deployMode = sJournalTypeRule.getMultiMasterDeployMode();
     Map<Integer, Map<PropertyKey, String>> masterProperties = ImmutableMap.of(
         1, ImmutableMap.of(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION, "option"));
 
@@ -131,18 +136,26 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setClusterName("ConfigCheckerUnsetVsSet")
         .setNumMasters(2)
         .setNumWorkers(0)
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
+        .setDeployMode(deployMode)
         .setMasterProperties(masterProperties)
         .build();
     mCluster.start();
     ConfigCheckReport report = getReport();
     Map<Scope, List<InconsistentProperty>> errors = report.getConfigErrors();
     assertTrue(errors.containsKey(Scope.MASTER));
-    assertEquals(1, errors.get(Scope.MASTER).size());
-    InconsistentProperty property = errors.get(Scope.MASTER).get(0);
-    assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION.getName(), property.getName());
-    assertTrue(property.getValues().containsKey(Optional.of("option")));
-    assertTrue(property.getValues().containsKey(Optional.empty()));
+
+    if (deployMode.equals(DeployMode.ZOOKEEPER_HA)) {
+      assertEquals(1, errors.get(Scope.MASTER).size());
+      InconsistentProperty property = errors.get(Scope.MASTER).get(0);
+      assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION.getName(), property.getName());
+      assertTrue(property.getValues().containsKey(Optional.of("option")));
+      assertTrue(property.getValues().containsKey(Optional.empty()));
+    } else {
+      // When using embedded journal, the journal paths are different
+      assertEquals(2, errors.get(Scope.MASTER).size());
+      assertThat(report.getConfigErrors().toString(),
+          CoreMatchers.containsString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION.getName()));
+    }
     mCluster.notifySuccess();
   }
 

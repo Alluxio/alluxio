@@ -162,14 +162,22 @@ public final class MultiProcessCluster {
     mState = State.STARTED;
 
     mMasterAddresses = generateMasterAddresses(mNumMasters);
+    MasterNetAddress masterAddress = mMasterAddresses.get(0);
     LOG.info("Master addresses: {}", mMasterAddresses);
     switch (mDeployMode) {
-      case NON_HA:
-        MasterNetAddress masterAddress = mMasterAddresses.get(0);
+      case UFS_NON_HA:
         mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString());
         mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
         mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
         mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
+        break;
+      case EMBEDDED_NON_HA:
+        mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString());
+        mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
+        mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
+        mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
+        mProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
+            Integer.toString(masterAddress.getEmbeddedJournalPort()));
         break;
       case EMBEDDED_HA:
         List<String> journalAddresses = new ArrayList<>();
@@ -481,7 +489,6 @@ public final class MultiProcessCluster {
         MasterNetAddress address = mMasterAddresses.get(i);
         master.updateConf(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
             Integer.toString(address.getEmbeddedJournalPort()));
-
         File journalDir = new File(mWorkDir, "journal" + i);
         journalDir.mkdirs();
         master.updateConf(PropertyKey.MASTER_JOURNAL_FOLDER, journalDir.getAbsolutePath());
@@ -615,9 +622,10 @@ public final class MultiProcessCluster {
    */
   public synchronized MasterInquireClient getMasterInquireClient() {
     switch (mDeployMode) {
-      case NON_HA:
+      case UFS_NON_HA:
+      case EMBEDDED_NON_HA:
         Preconditions.checkState(mMasters.size() == 1,
-            "Running with multiple masters requires Zookeeper to be enabled");
+            "Running with multiple masters requires Zookeeper or Embedded Journal");
         return new SingleMasterInquireClient(new InetSocketAddress(
             mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));
       case EMBEDDED_HA:
@@ -704,7 +712,9 @@ public final class MultiProcessCluster {
    */
   public enum DeployMode {
     EMBEDDED_HA,
-    NON_HA, ZOOKEEPER_HA
+    EMBEDDED_NON_HA,
+    UFS_NON_HA,
+    ZOOKEEPER_HA
   }
 
   /**
@@ -719,7 +729,7 @@ public final class MultiProcessCluster {
     private int mNumMasters = 1;
     private int mNumWorkers = 1;
     private String mClusterName = "AlluxioMiniCluster";
-    private DeployMode mDeployMode = DeployMode.NON_HA;
+    private DeployMode mDeployMode = DeployMode.UFS_NON_HA;
     private boolean mNoFormat = false;
 
     // Should only be instantiated by newBuilder().

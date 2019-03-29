@@ -89,7 +89,9 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreSingleMaster() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_SINGLE)
         .setClusterName("backupRestoreSingle")
-        .setNumMasters(1).build();
+        .setDeployMode(sJournalTypeRule.getSingleMasterDeployMode())
+        .setNumMasters(1)
+        .build();
     backupRestoreTest(false);
   }
 
