@@ -598,7 +598,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS)
           .setDefaultValue(20)
           .setDescription("The number of threads in executor pool for parallel object store "
-              + "UFS operations.")
+              + "UFS operations, such as directory renames and deletes.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -729,11 +729,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_S3_UPLOAD_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_UPLOAD_THREADS_MAX)
           .setDefaultValue(20)
-          .setDescription("The maximum number of threads to use for uploading data to S3 for "
-              + "multipart uploads. These operations can be fairly expensive, so multiple "
-              + "threads are encouraged. However, this also splits the bandwidth between "
-              + "threads, meaning the overall latency for completing an upload will be higher "
-              + "for more threads.")
+          .setDescription("For an Alluxio worker, this is the maximum number of threads to use "
+              + "for uploading data to S3 for multipart uploads. These operations can be fairly "
+              + "expensive, so multiple threads are encouraged. However, this also splits the "
+              + "bandwidth between threads, meaning the overall latency for completing an upload "
+              + "will be higher for more threads. For the Alluxio master, this is the maximum "
+              + "number of threads used for the rename (copy) operation. It is recommended that "
+              + "value should be greater than or equal to "
+              + Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();

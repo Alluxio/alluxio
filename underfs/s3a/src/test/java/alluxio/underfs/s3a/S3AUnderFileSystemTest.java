@@ -74,8 +74,7 @@ public class S3AUnderFileSystemTest {
     mManager = Mockito.mock(TransferManager.class);
     mS3UnderFileSystem =
         new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient, BUCKET_NAME,
-            mExecutor, mManager, UnderFileSystemConfiguration.defaults(sConf), sConf, false,
-            mExecutor);
+            mExecutor, mManager, UnderFileSystemConfiguration.defaults(sConf), sConf, false);
   }
 
   @Test
