@@ -241,7 +241,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         .build();
 
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
-        service, transferManager, conf, alluxioConf, streamingUploadEnabled);
+        service, transferManager, conf, alluxioConf, streamingUploadEnabled, service);
   }
 
   /**
@@ -254,11 +254,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @param transferManager Transfer Manager for efficient I/O to S3
    * @param conf configuration for this S3A ufs
    * @param streamingUploadEnabled whether streaming upload is enabled
+   * @param service the executor service shared between transfer manager and super class
    */
   protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3Client amazonS3Client, String bucketName,
       ExecutorService executor, TransferManager transferManager, UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf, boolean streamingUploadEnabled) {
-    super(uri, conf, alluxioConf);
+      AlluxioConfiguration alluxioConf, boolean streamingUploadEnabled, ExecutorService service) {
+    super(uri, conf, alluxioConf, service);
     mClient = amazonS3Client;
     mBucketName = bucketName;
     mExecutor = MoreExecutors.listeningDecorator(executor);

@@ -80,9 +80,23 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
       AlluxioConfiguration alluxioConf) {
     super(uri, ufsConf, alluxioConf);
+    // Create an executor pool if the derived class does not instantiate one
     int numThreads = mAlluxioConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
-    mExecutorService = ExecutorServiceFactories.fixedThreadPool(
-        "alluxio-underfs-object-service-worker", numThreads).create();
+    mExecutorService = ExecutorServiceFactories
+        .fixedThreadPool("alluxio-underfs-object-service-worker", numThreads).create();
+  }
+
+  /**
+   * Constructs an {@link ObjectUnderFileSystem}.
+   *
+   * @param uri the {@link AlluxioURI} used to create this ufs
+   * @param ufsConf UFS configuration
+   * @param executorService the executor pool to use for concurrent operations
+   */
+  protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
+      AlluxioConfiguration alluxioConf, ExecutorService executorService) {
+    super(uri, ufsConf, alluxioConf);
+    mExecutorService = executorService;
   }
 
   /**
