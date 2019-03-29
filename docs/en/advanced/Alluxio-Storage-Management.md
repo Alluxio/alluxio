@@ -420,7 +420,7 @@ duration, such as a minute, in order for the the master to quickly identify the 
 
 Like many distributed file systems, each file in Alluxio consists of one or multiple blocks stored
 across the cluster. By default, Alluxio may adjust the replication level of different blocks
-dynamically and automatically based on the workload and storage capacity. For example, Alluxio may
+automatically based on the workload and storage capacity. For example, Alluxio may
 create more replicas of a particular block when more clients request to read this block with read
 type `CACHE` or `CACHE_PROMOTE`; Alluxio may also remove existing replicas when they are used less
 often to reclaim the space for data that is accessed more often ([Evictor in Alluxio Storage](#eviction-policies)).
@@ -433,7 +433,7 @@ transparent to users and applications accessing data stored in Alluxio.
 ### Active Replication
 
 In addition to the dynamic replication adjustment, Alluxio also provides APIs and command-line
-interfaces for users to maintain a target range of replication level for a file explicitly.
+interfaces for users to explicitly maintain a target range of replication levels for a file explicitly.
 Particularly, a user can configure the following two properties for a file in Alluxio:
 
 1. `alluxio.user.file.replication.min` is the minimum possible number of replicas of this file. Its
