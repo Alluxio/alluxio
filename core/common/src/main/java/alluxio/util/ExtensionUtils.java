@@ -33,8 +33,8 @@ public final class ExtensionUtils {
    * @return an array of files (one file per jar)
    */
   public static File[] listExtensions(String extensionDir) {
-    File[] extensions = new File(extensionDir).listFiles(file -> 
-        file.getPath().toLowerCase().endsWith(Constants.EXTENSION_JAR));
+    File[] extensions = new File(extensionDir).listFiles(file
+        -> file.getPath().toLowerCase().endsWith(Constants.EXTENSION_JAR));
     if (extensions == null) {
       // Directory does not exist
       return EMPTY_EXTENSIONS_LIST;
