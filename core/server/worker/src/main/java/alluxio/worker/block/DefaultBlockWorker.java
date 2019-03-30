@@ -46,7 +46,6 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
-import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -596,7 +595,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
             () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L)
                 - blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
       }
-
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(BLOCKS_CACHED),
           () -> blockWorker.getStoreMetaFull().getNumberOfBlocks());
     }
