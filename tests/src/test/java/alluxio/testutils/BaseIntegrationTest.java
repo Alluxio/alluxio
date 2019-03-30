@@ -12,8 +12,6 @@
 package alluxio.testutils;
 
 import alluxio.Constants;
-import alluxio.master.journal.JournalType;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.util.io.PathUtils;
 
 import org.apache.log4j.Appender;
@@ -24,11 +22,9 @@ import org.junit.AssumptionViolatedException;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
-import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.rules.Timeout;
 import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,43 +45,6 @@ public abstract class BaseIntegrationTest {
 
   @ClassRule
   public static JournalTypeRule sJournalTypeRule = new JournalTypeRule();
-
-  /**
-   * A rule that is used to enforce supported hadoop client versions before running this test.
-   * Value for system property, "alluxio.test.journal.type", is injected by surefire plugin.
-   */
-  public static class JournalTypeRule implements TestRule {
-    DeployMode mSingleMasterDeployMode;
-    DeployMode mMultiMasterDeployMode;
-
-    @Override
-    public Statement apply(Statement base, Description description) {
-      return new Statement() {
-        @Override
-        public void evaluate() throws Throwable {
-          String journalType = System.getProperty("alluxio.test.journal.type");
-          if (journalType == null || journalType.equals(JournalType.EMBEDDED.toString())) {
-            mSingleMasterDeployMode = DeployMode.EMBEDDED_NON_HA;
-            mMultiMasterDeployMode = DeployMode.EMBEDDED_HA;
-          } else if (journalType.equals(JournalType.UFS.toString())) {
-            mSingleMasterDeployMode = DeployMode.UFS_NON_HA;
-            mMultiMasterDeployMode = DeployMode.ZOOKEEPER_HA;
-          } else {
-            throw new AssumptionViolatedException("Journal type not supported. Skipping test!");
-          }
-          base.evaluate();
-        }
-      };
-    }
-
-    public DeployMode getSingleMasterDeployMode() {
-      return mSingleMasterDeployMode;
-    }
-
-    public DeployMode getMultiMasterDeployMode() {
-      return mMultiMasterDeployMode;
-    }
-  }
 
   private TestWatcher logHandler() {
     return new TestWatcher() {

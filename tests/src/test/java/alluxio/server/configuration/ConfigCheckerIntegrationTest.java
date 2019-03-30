@@ -25,6 +25,7 @@ import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.InconsistentProperty;
 
@@ -56,7 +57,8 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void multiMasters() throws Exception {
-    DeployMode deployMode = sJournalTypeRule.getMultiMasterDeployMode();
+    DeployMode deployMode = IntegrationTestUtils
+        .getDeployMode(sJournalTypeRule.getJournalType(), TEST_NUM_MASTERS);
     PropertyKey key = PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS;
     Map<Integer, Map<PropertyKey, String>> masterProperties
         = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, key);
@@ -114,7 +116,8 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setClusterName("ConfigCheckerMultiNodesTest")
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(TEST_NUM_WORKERS)
-        .setDeployMode(sJournalTypeRule.getMultiMasterDeployMode())
+        .setDeployMode(IntegrationTestUtils
+            .getDeployMode(sJournalTypeRule.getJournalType(), TEST_NUM_MASTERS))
         .setMasterProperties(masterProperties)
         .setWorkerProperties(workerProperties)
         .build();
@@ -128,7 +131,8 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void unsetVsSet() throws Exception {
-    DeployMode deployMode = sJournalTypeRule.getMultiMasterDeployMode();
+    DeployMode deployMode = IntegrationTestUtils
+        .getDeployMode(sJournalTypeRule.getJournalType(), 2);
     Map<Integer, Map<PropertyKey, String>> masterProperties = ImmutableMap.of(
         1, ImmutableMap.of(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION, "option"));
 

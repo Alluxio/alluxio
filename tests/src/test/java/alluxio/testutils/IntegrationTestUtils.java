@@ -25,9 +25,11 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterClientContext;
 import alluxio.master.NoopMaster;
 import alluxio.master.PortRegistry;
+import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
+import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptions;
 import alluxio.util.URIUtils;
@@ -158,7 +160,8 @@ public final class IntegrationTestUtils {
    */
   public static void reserveMasterPorts() {
     for (ServiceType service : Arrays.asList(ServiceType.MASTER_RPC, ServiceType.MASTER_WEB,
-        ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB, ServiceType.MASTER_RAFT, ServiceType.JOB_MASTER_RAFT)) {
+        ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB,
+        ServiceType.MASTER_RAFT, ServiceType.JOB_MASTER_RAFT)) {
       PropertyKey key = service.getPortKey();
       ServerConfiguration.set(key, PortRegistry.reservePort());
     }
@@ -166,6 +169,14 @@ public final class IntegrationTestUtils {
 
   public static void releaseMasterPorts() {
     PortRegistry.clear();
+  }
+
+  public static DeployMode getDeployMode(JournalType journalType, int numberOfMasters) {
+    if (journalType == JournalType.EMBEDDED) {
+      return numberOfMasters > 1 ? DeployMode.EMBEDDED_HA : DeployMode.EMBEDDED_NON_HA;
+    } else {
+      return numberOfMasters > 1 ? DeployMode.ZOOKEEPER_HA : DeployMode.UFS_NON_HA;
+    }
   }
 
   private IntegrationTestUtils() {} // This is a utils class not intended for instantiation

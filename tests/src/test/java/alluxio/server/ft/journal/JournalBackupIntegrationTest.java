@@ -33,6 +33,7 @@ import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -89,7 +90,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreSingleMaster() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_SINGLE)
         .setClusterName("backupRestoreSingle")
-        .setDeployMode(sJournalTypeRule.getSingleMasterDeployMode())
+        .setDeployMode(IntegrationTestUtils
+            .getDeployMode(sJournalTypeRule.getJournalType(), 1))
         .setNumMasters(1)
         .build();
     backupRestoreTest(false);
