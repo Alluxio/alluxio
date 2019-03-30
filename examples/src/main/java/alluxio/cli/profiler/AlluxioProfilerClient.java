@@ -20,6 +20,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.io.PathUtils;
 
 import java.io.IOException;
@@ -38,61 +39,71 @@ public class AlluxioProfilerClient extends ProfilerClient {
   }
 
   @Override
-  public void cleanup(String dir) throws IOException {
+  public void delete(String rawPath) throws IOException {
+    AlluxioURI path = new AlluxioURI(rawPath);
     try {
-      AlluxioURI path = new AlluxioURI(dir);
-      try {
-        if (!sDryRun) {
-          mClient.delete(path,
-              DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).build());
-        } else {
-          System.out.println("Delete: " + path);
-        }
-      } catch (FileDoesNotExistException e) {
-        // ok if it doesn't exist already
-      }
-
       if (!sDryRun) {
-        mClient.createDirectory(path,
-            CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
+        mClient.delete(path,
+            DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).build());
       } else {
-        System.out.println("create directory: " + path);
+        System.out.println("Delete: " + path);
       }
+    } catch (FileDoesNotExistException e) {
+      // ok
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
-
-    return;
   }
 
   @Override
-  public void createFiles(String dir, long numFiles, long filesPerDir, long fileSize) throws IOException {
-    int createdFiles = 0;
-    while (createdFiles < numFiles) {
-      try {
-        String subDir = PathUtils.concatPath(dir, createdFiles);
-        AlluxioURI subUri = new AlluxioURI(subDir);
-        if (!sDryRun) {
-          mClient.createDirectory(subUri,
-              CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
-        } else {
-          System.out.println("Create directory: " + subUri);
-        }
-        for (int j = 0; j < filesPerDir; j++) {
-          AlluxioURI filePath = new AlluxioURI(PathUtils.concatPath(subUri.getPath(), j));
-          if (!sDryRun) {
-            try (FileOutStream stream = mClient.createFile(filePath,
-                CreateFilePOptions.newBuilder().build())) {
-              writeOutput(stream, fileSize);
-            }
-          } else {
-            System.out.println("Create file: " + filePath);
-          }
-          createdFiles++;
-        }
+  public void createFile(String rawPath, long fileSize) throws IOException {
+
+    AlluxioURI path = new AlluxioURI(rawPath);
+    if (!sDryRun) {
+      try (FileOutStream stream = mClient.createFile(path,
+          CreateFilePOptions.newBuilder().build())) {
+        writeOutput(stream, fileSize);
+      } catch (FileDoesNotExistException e) {
+        // ok
       } catch (AlluxioException e) {
-        throw new RuntimeException(e);
+        throw new IOException(e);
       }
+    } else {
+      System.out.println("Create file: " + rawPath);
+    }
+  }
+
+  @Override
+  public void createDir(String rawPath) throws IOException {
+    AlluxioURI path = new AlluxioURI(rawPath);
+    if (!sDryRun) {
+      try {
+        mClient.createDirectory(path,
+            CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
+      } catch (FileDoesNotExistException e) {
+        // ok
+      } catch (AlluxioException e) {
+        throw new IOException(e);
+      }
+    } else {
+      System.out.println("Create directory: " + rawPath);
+    }
+  }
+
+  @Override
+  public void list(String rawPath) throws IOException {
+    if (!sDryRun) {
+      try {
+        mClient.listStatus(new AlluxioURI(rawPath), ListStatusPOptions.newBuilder()
+            .setRecursive(true)
+            .build());
+      } catch (FileDoesNotExistException e) {
+        // ok
+      } catch (AlluxioException e) {
+        throw new IOException(e);
+      }
+    } else {
+      System.out.println("List path: " + rawPath);
     }
   }
 }

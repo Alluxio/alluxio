@@ -33,30 +33,50 @@ public class ClientProfiler {
     hadoop,
   }
 
+  enum OperationType {
+    cleanup,
+    createFiles,
+    deleteFiles,
+    listFiles,
+  }
+
   @Parameter(names = {"-c", "--client"},
       description = "The type of client to profile.",
       required = true)
   private ClientType mClientType;
 
+  @Parameter(names = {"-op", "--operation"},
+      description = "The type of operation to perform on the filesystem.",
+      required = true)
+  private OperationType mOperation = OperationType.createFiles;
+
   /** The total number of files to create in the filesystem. */
-  @Parameter(names = {"-n"}, description = "total number of files to operate on in the filesystem.")
+  @Parameter(names = {"-n", "--num-files"}, description = "total number of files to operate on in"
+      + " the filesystem.")
   private int mNumFiles = 5000;
 
   /** The total amount of data to write across all files in the filesystem. */
-  @Parameter(names = {"-s"}, description = "Amount of data to write to use when profiling.")
+  @Parameter(names = {"-s", "--data-size"}, description = "Amount of data to write to use when " +
+      "profiling.")
   private String mDataParam = "128m";
   private long mDataSize;
 
   /** The number of threads performing concurrent client operations. */
-  @Parameter(names = {"-t"}, description = "total threads to perform operations concurrently")
-  private long mNumThreads = 1;
+  @Parameter(names = {"-t", "--num-threads"},
+      description = "total threads to perform operations concurrently")
+  private int mNumThreads = 1;
+
+  /** The number of threads performing concurrent client operations. */
+  @Parameter(names = {"-r", "--rate"}, description = "The max number of operations per second. -1"
+      + " for unlimited rate")
+  private int mOperationRate = -1;
 
   /** The base directory to store files. */
-  @Parameter(names = {"-d"}, description = "Base directory to store files")
+  @Parameter(names = {"-d", "--directory"}, description = "Base directory to store files")
   private String mDataDir = DEFAULT_DIR;
 
   @Parameter(names = {"--dump-interval"}, description = "Interval at which to collect heap dumps")
-  private String mDumpInterval = "10sec";
+  private String mDumpInterval = null;
 
   @Parameter(names = {"--dry"}, description = "Perform a dry run by simply printing all operations")
   private boolean mDryRun = false;
@@ -75,12 +95,41 @@ public class ClientProfiler {
   public void profile() throws IOException, InterruptedException {
     ProfilerClient.sDryRun = mDryRun;
     ProfilerClient client = ProfilerClient.Factory.create(mClientType.toString());
-    JvmHeapDumper dumper = new JvmHeapDumper(FormatUtils.parseTimeSize(mDumpInterval), "dumps",
-        "dump-" + mClientType.toString());
-    dumper.start();
-    client.cleanup(mDataDir);
-    client.createFiles(mDataDir, mNumFiles, 50, mDataSize / mNumFiles);
-    dumper.stopDumps();
+    if (mOperationRate == -1) {
+      mOperationRate = Integer.MAX_VALUE;
+    }
+    boolean heapDumpEnabled = mDumpInterval != null;
+    JvmHeapDumper dumper = null;
+    if (heapDumpEnabled) {
+      dumper = new JvmHeapDumper(FormatUtils.parseTimeSize(mDumpInterval), "dumps",
+          "dump-" + mClientType.toString());
+      dumper.start();
+    }
+    try {
+      switch (mOperation) {
+        case createFiles:
+          client.createFiles(mDataDir, mNumFiles, 50, mDataSize / mNumFiles, mNumThreads,
+              mOperationRate);
+          break;
+        case deleteFiles:
+          client.deleteFiles(mDataDir, mNumFiles, 50, mNumThreads, mOperationRate);
+          break;
+        case listFiles:
+          client.listFiles(mDataDir, mNumFiles, 50, mNumThreads, mOperationRate);
+          break;
+        case cleanup:
+          client.cleanup(mDataDir);
+          break;
+        default:
+          throw new IllegalArgumentException(String.format("%s is an invalid operationType", mOperation));
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    if (heapDumpEnabled) {
+      dumper.stopDumps();
+    }
   }
 
   private int parseArgs(String[] args) {

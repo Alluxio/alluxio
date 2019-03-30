@@ -11,8 +11,6 @@
 
 package alluxio.cli.profiler;
 
-import alluxio.util.io.PathUtils;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -34,44 +32,60 @@ public class HadoopProfilerClient extends ProfilerClient {
     }
   }
 
+  /**
+   * Delete an inode at the given path
+   *
+   * @param rawPath directory to clean
+   * @throws IOException
+   */
   @Override
-  public void cleanup(String dir) throws IOException {
+  public void createFile(String rawPath, long fileSize) throws IOException {
+    Path filePath = new Path(rawPath);
     if (!sDryRun) {
-      mClient.delete(new Path(dir), true);
+      try (FSDataOutputStream stream = mClient.create(filePath)) {
+        writeOutput(stream, fileSize);
+      }
     } else {
-      System.out.println("delete: " + dir);
+      System.out.println("create: " + filePath);
     }
+  }
 
+  /**
+   * Delete an inode at the given path
+   *
+   * @param rawPath directory to clean
+   * @throws IOException
+   */
+  @Override
+  public void createDir(String rawPath) throws IOException {
     if (!sDryRun) {
-      mClient.mkdirs(new Path(dir));
+      mClient.mkdirs(new Path(rawPath));
     } else {
-      System.out.println("create: " + dir);
+      System.out.println("create: " + rawPath);
+    }
+  }
+
+  /**
+   * Delete an inode at the given path
+   *
+   * @param rawPath directory to clean
+   * @throws IOException
+   */
+  @Override
+  public void delete(String rawPath) throws IOException {
+    if (!sDryRun) {
+      mClient.delete(new Path(rawPath), true);
+    } else {
+      System.out.println("delete: " + rawPath);
     }
   }
 
   @Override
-  public void createFiles(String dir, long numFiles, long filesPerDir, long fileSize)
-      throws IOException {
-    int createdFiles = 0;
-    while (createdFiles < numFiles) {
-      String subDir = PathUtils.concatPath(dir, createdFiles);
-      if (!sDryRun) {
-        mClient.mkdirs(new Path(subDir));
-
-      } else {
-        System.out.println("create: " + subDir);
-      }
-      for (int j = 0; j < filesPerDir; j++) {
-        Path filePath = new Path(PathUtils.concatPath(subDir, j));
-        if (!sDryRun) {
-          try (FSDataOutputStream stream = mClient.create(filePath)) {
-            writeOutput(stream, fileSize);
-          }
-        } else {
-          System.out.println("create: " + filePath);
-        }
-        createdFiles++;
-      }
+  public void list(String rawPath) throws IOException {
+    if (!sDryRun) {
+      mClient.listStatus(new Path(rawPath));
+    } else {
+      System.out.println("listStatus: " + rawPath);
     }
   }
 }
