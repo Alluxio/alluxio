@@ -34,7 +34,7 @@ public final class ExtensionUtils {
    */
   public static File[] listExtensions(String extensionDir) {
     File[] extensions = new File(extensionDir).listFiles(file -> 
-      file.getPath().toLowerCase().endsWith(Constants.EXTENSION_JAR));
+    	file.getPath().toLowerCase().endsWith(Constants.EXTENSION_JAR));
     if (extensions == null) {
       // Directory does not exist
       return EMPTY_EXTENSIONS_LIST;
