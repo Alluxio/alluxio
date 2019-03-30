@@ -284,6 +284,9 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void losePrimacy() {
+    if (!mServer.isRunning()) {
+      return;
+    }
     try {
       mRaftJournalWriter.close();
     } catch (IOException e) {

@@ -158,7 +158,7 @@ public final class IntegrationTestUtils {
    */
   public static void reserveMasterPorts() {
     for (ServiceType service : Arrays.asList(ServiceType.MASTER_RPC, ServiceType.MASTER_WEB,
-        ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB)) {
+        ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB, ServiceType.MASTER_RAFT, ServiceType.JOB_MASTER_RAFT)) {
       PropertyKey key = service.getPortKey();
       ServerConfiguration.set(key, PortRegistry.reservePort());
     }
