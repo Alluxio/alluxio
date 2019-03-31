@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -92,6 +93,7 @@ public final class LocalAlluxioMaster {
    * Starts the master.
    */
   public void start() {
+    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.MASTER);
     mMasterProcess = AlluxioMasterProcess.Factory.create();
     Runnable runMaster = new Runnable() {
       @Override

@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.JobWorkerProcess;
 
@@ -152,6 +153,7 @@ public final class LocalAlluxioJobCluster {
    * @throws ConnectionFailedException if network connection failed
    */
   private void startMaster() throws IOException, ConnectionFailedException {
+    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.JOB_MASTER);
     mMaster = AlluxioJobMasterProcess.Factory.create();
 
     ServerConfiguration

@@ -124,7 +124,9 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+    // TODO(lu) this property will cause the retries to be short and fail to connect
+    // to job master after job master started (job master takes longer to start when using raft)
+    //conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
     return conf;
   }
