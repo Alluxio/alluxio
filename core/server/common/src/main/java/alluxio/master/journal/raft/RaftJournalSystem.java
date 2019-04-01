@@ -292,6 +292,10 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       mAsyncJournalWriter.set(null);
       mRaftJournalWriter = null;
     }
+    if (!mServer.isRunning()) {
+      // When raft journal is stopped, fault tolerant master process will still trigger lose primacy
+      return;
+    }
     LOG.info("Shutting down Raft server");
     try {
       mServer.shutdown().get();
