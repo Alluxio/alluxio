@@ -284,6 +284,10 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void losePrimacy() {
+    if (!mServer.isRunning()) {
+      // Avoid duplicate shut down copycat server
+      return;
+    }
     try {
       mRaftJournalWriter.close();
     } catch (IOException e) {
@@ -291,10 +295,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     } finally {
       mAsyncJournalWriter.set(null);
       mRaftJournalWriter = null;
-    }
-    if (!mServer.isRunning()) {
-      // When raft journal is stopped, fault tolerant master process will still trigger lose primacy
-      return;
     }
     LOG.info("Shutting down Raft server");
     try {

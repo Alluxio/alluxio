@@ -105,6 +105,9 @@ public class RaftJournalWriter implements JournalWriter {
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
     mClosed = true;
     LOG.info("Closing journal writer. Last sequence numbers written/submitted/committed: {}/{}/{}",
         mNextSequenceNumberToWrite.get() - 1, mLastSubmittedSequenceNumber.get(),
