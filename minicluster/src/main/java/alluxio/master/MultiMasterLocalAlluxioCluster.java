@@ -122,6 +122,18 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     return mMasters.get(0);
   }
 
+  @Override
+  public void waitForMasterServing(int timeoutMs)
+      throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("Leader master is serving", () -> {
+      try {
+        return getLocalAlluxioMaster().isServing();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
+  }
+
   /**
    * @return index of leader master in {@link #mMasters}, or -1 if there is no leader temporarily
    */

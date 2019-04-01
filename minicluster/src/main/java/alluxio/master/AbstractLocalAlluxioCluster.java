@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.cli.Format;
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -79,6 +81,7 @@ public abstract class AbstractLocalAlluxioCluster {
     startMasters();
     startWorkers();
     startProxy();
+    waitForMasterServing(60 * Constants.SECOND_MS);
 
     // Reset contexts so that they pick up the updated configuration.
     reset();
@@ -273,6 +276,14 @@ public abstract class AbstractLocalAlluxioCluster {
    * @return the local Alluxio master
    */
   protected abstract LocalAlluxioMaster getLocalAlluxioMaster();
+
+  /**
+   * Waits for the leader master node to start serving.
+   *
+   * @param timeoutMs maximum amount of time to wait, in milliseconds
+   */
+  public abstract void waitForMasterServing(int timeoutMs)
+      throws TimeoutException, InterruptedException;
 
   /**
    * Gets the proxy process.

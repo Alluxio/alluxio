@@ -11,10 +11,12 @@
 
 package alluxio.master;
 
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.JobWorkerProcess;
 
@@ -24,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -56,7 +59,8 @@ public final class LocalAlluxioJobCluster {
    * @throws IOException if an I/O error occurs
    * @throws ConnectionFailedException if network connection failed
    */
-  public void start() throws IOException, ConnectionFailedException {
+  public void start() throws IOException, ConnectionFailedException,
+      TimeoutException, InterruptedException {
     LOG.info("Start Alluxio job service");
     setupTest();
     updateTestConf();
@@ -64,6 +68,7 @@ public final class LocalAlluxioJobCluster {
     TestUtils.waitForReady(mMaster);
     startWorker();
     TestUtils.waitForReady(mWorker);
+    waitForMasterServing(60 * Constants.SECOND_MS);
   }
 
   /**
@@ -144,6 +149,22 @@ public final class LocalAlluxioJobCluster {
    */
   public void setProperty(PropertyKey pk, String value) {
     mConfiguration.put(pk, value);
+  }
+
+  /**
+   * Waits for the job master node to start serving.
+   *
+   * @param timeoutMs maximum amount of time to wait, in milliseconds
+   */
+  public void waitForMasterServing(int timeoutMs)
+      throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("Job master process is serving", () -> {
+      try {
+        return mMaster.isServing();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
   }
 
   /**
