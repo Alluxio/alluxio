@@ -314,7 +314,7 @@ public class InodeLockList implements AutoCloseable {
   @Override
   public String toString() {
     String path =
-        getLockedInodes().stream().map(inode -> inode.getName()).collect(Collectors.joining("/"));
+        getLockedInodes().stream().map(Inode::getName).collect(Collectors.joining("/"));
     return String.format("Locked Inodes: <%s>%n"
         + "Entries: %s%n"
         + "Lock Mode: %s", path, mEntries, mLockMode);
