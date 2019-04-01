@@ -46,7 +46,6 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   private static final Logger LOG = LoggerFactory.getLogger(MultiMasterLocalAlluxioCluster.class);
 
   private RestartableTestingServer mCuratorServer = null;
-  private JournalType mJournalType;
   private int mNumOfMasters = 0;
 
   private final List<LocalAlluxioMaster> mMasters = new ArrayList<>();
@@ -55,22 +54,18 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * Runs a multi master local Alluxio cluster with a single worker.
    *
    * @param numMasters the number masters to run
-   * @param journalType the journal type to set in the cluster
    */
-  public MultiMasterLocalAlluxioCluster(int numMasters, JournalType journalType) {
-    this(numMasters, 1, journalType);
+  public MultiMasterLocalAlluxioCluster(int numMasters) {
+    this(numMasters, 1);
   }
 
   /**
    * @param numMasters the number of masters to run
    * @param numWorkers the number of workers to run
-   * @param journalType the journal type to set in the cluster
    */
-  public MultiMasterLocalAlluxioCluster(int numMasters, int numWorkers, JournalType journalType) {
+  public MultiMasterLocalAlluxioCluster(int numMasters, int numWorkers) {
     super(numWorkers);
     mNumOfMasters = numMasters;
-    // TODO(lu) support Embedded journal type
-    mJournalType = JournalType.UFS;
 
     try {
       mCuratorServer =
@@ -87,12 +82,10 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     setHostname();
     for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
         .testConfigurationDefaults(ServerConfiguration.global(), mHostname, mWorkDirectory,
-            mJournalType.toString()).entrySet()) {
+           JournalType.UFS.toString()).entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
-    if (mJournalType.equals(JournalType.UFS)) {
-      ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    }
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, 0);
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
     ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, 0);

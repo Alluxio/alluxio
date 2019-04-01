@@ -71,7 +71,7 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mMultiMasterLocalAlluxioCluster =
-        new MultiMasterLocalAlluxioCluster(2, sJournalTypeRule.getJournalType());
+        new MultiMasterLocalAlluxioCluster(2);
     mMultiMasterLocalAlluxioCluster.initConfiguration();
     ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec");
     ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec");
