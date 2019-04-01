@@ -69,7 +69,8 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   public MultiMasterLocalAlluxioCluster(int numMasters, int numWorkers, JournalType journalType) {
     super(numWorkers);
     mNumOfMasters = numMasters;
-    mJournalType = journalType;
+    // TODO(lu) support Embedded journal type
+    mJournalType = JournalType.UFS;
 
     try {
       mCuratorServer =
