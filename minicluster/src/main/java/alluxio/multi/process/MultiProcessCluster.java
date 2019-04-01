@@ -856,6 +856,12 @@ public final class MultiProcessCluster {
     return new Builder(reservedPorts);
   }
 
+  /**
+   * Gets the journal type from deploy mode.
+   *
+   * @param deployMode the given deploy mode
+   * @return the corresponding journal type
+   */
   private static JournalType getJournalTypeFromDeployMode(DeployMode deployMode) {
     switch (deployMode) {
       case UFS_NON_HA:

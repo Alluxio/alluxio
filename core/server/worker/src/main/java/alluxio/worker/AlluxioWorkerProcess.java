@@ -228,7 +228,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     // Start serving metrics system, this will not block
     MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
-    LOG.info("Worker: started serving metrics system");
+
     // Start each worker. This must be done before starting the web or RPC servers.
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
     // Consequence: worker id is granted

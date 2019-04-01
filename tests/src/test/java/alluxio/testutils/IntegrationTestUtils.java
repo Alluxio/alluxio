@@ -171,6 +171,14 @@ public final class IntegrationTestUtils {
     PortRegistry.clear();
   }
 
+  /**
+   * Gets the {@link alluxio.multi.process.MultiProcessCluster.DeployMode}
+   * from the given journal type and number of masters.
+   *
+   * @param journalType the given journal type
+   * @param numberOfMasters the number of masters
+   * @return the deploy mode
+   */
   public static DeployMode getDeployMode(JournalType journalType, int numberOfMasters) {
     if (journalType == JournalType.EMBEDDED) {
       return numberOfMasters > 1 ? DeployMode.EMBEDDED_HA : DeployMode.EMBEDDED_NON_HA;

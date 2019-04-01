@@ -22,7 +22,6 @@ import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.junit.Rule;
 
 public class FileSystemContractMkdirIntegrationTest extends AbstractContractMkdirTest {
-
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()

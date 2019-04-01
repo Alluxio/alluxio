@@ -45,6 +45,7 @@ public final class ConfigurationTestUtils {
    *
    * @param hostname the master hostname
    * @param workDirectory the work directory in which to configure the journal and tiered storage
+   * @param journalType the journal type to configure the related configuration
    * @return the configuration
    */
   public static Map<PropertyKey, String> testConfigurationDefaults(AlluxioConfiguration alluxioConf,
@@ -94,10 +95,6 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "50ms");
     conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "10ms");
 
-    // To keep tests fast, we should do more retries with a lower max wait time.
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "60");
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms");
-
     // Do not engage safe mode by default since the worker is connected when test starts.
     conf.put(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, "0sec");
 
@@ -124,12 +121,15 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    // TODO(lu) this property will cause the retries to be short and fail to connect
-    // to job master after job master started (job master takes longer to start when using raft)
+
     if (journalType.equals("UFS")) {
       // Raft journal system need longer to start, job worker connect should wait for longer time
       conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+      // To keep tests fast, we should do more retries with a lower max wait time.
+      conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "60");
+      conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms");
     }
+
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
     return conf;
   }

@@ -76,6 +76,9 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** Number of Alluxio workers in the cluster. */
   private final int mNumWorkers;
 
+  /** The journal type for the cluster. */
+  private JournalType mJournalType;
+
   /**
    * If true (default), we start the cluster before running a test method. Otherwise, the method
    * must start the cluster explicitly.
@@ -88,21 +91,20 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
 
-  private JournalType mJournalType;
-
   /**
    * Creates a new instance.
    *
    * @param startCluster whether or not to start the cluster before the test method starts
    * @param numWorkers the number of Alluxio workers to launch
+   * @param journalType the journal type of the cluster
    * @param configuration configuration for configuring the cluster
    */
   private LocalAlluxioClusterResource(boolean startCluster, int numWorkers,
-      Map<PropertyKey, String> configuration, JournalType journalType) {
+      JournalType journalType, Map<PropertyKey, String> configuration) {
     mStartCluster = startCluster;
     mNumWorkers = numWorkers;
-    mConfiguration.putAll(configuration);
     mJournalType = journalType;
+    mConfiguration.putAll(configuration);
     MetricsSystem.resetAllCounters();
   }
 
@@ -192,8 +194,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public static class Builder {
     private boolean mStartCluster;
     private int mNumWorkers;
-    private Map<PropertyKey, String> mConfiguration;
     private JournalType mJournalType;
+    private Map<PropertyKey, String> mConfiguration;
 
     /**
      * Constructs the builder with default values.
@@ -201,8 +203,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
     public Builder() {
       mStartCluster = true;
       mNumWorkers = 1;
-      mConfiguration = new HashMap<>();
       mJournalType = JournalType.EMBEDDED;
+      mConfiguration = new HashMap<>();
     }
 
     /**
@@ -222,6 +224,14 @@ public final class LocalAlluxioClusterResource implements TestRule {
     }
 
     /**
+     * @param journalType the journal type to set for this cluster
+     */
+    public Builder setJournalType(JournalType journalType) {
+      mJournalType = journalType;
+      return this;
+    }
+
+    /**
      * @param key the property key to set for the cluster
      * @param value the value to set it to
      */
@@ -231,19 +241,11 @@ public final class LocalAlluxioClusterResource implements TestRule {
     }
 
     /**
-     * @param journalType the journal type to set for this cluster
-     */
-    public Builder setJournalType(JournalType journalType) {
-      mJournalType = journalType;
-      return this;
-    }
-
-    /**
      * @return a {@link LocalAlluxioClusterResource} for the current builder values
      */
     public LocalAlluxioClusterResource build() {
       return new LocalAlluxioClusterResource(mStartCluster, mNumWorkers,
-          mConfiguration, mJournalType);
+          mJournalType, mConfiguration);
     }
   }
 

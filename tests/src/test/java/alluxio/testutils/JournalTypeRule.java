@@ -19,11 +19,11 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 /**
- * A rule that is used to enforce journal type before running this test.
+ * A rule that is used to enforce journal type before running tests.
  * Value for system property, "alluxio.test.journal.type", is injected by surefire plugin.
  */
 public final class JournalTypeRule implements TestRule {
-  JournalType mJournalType;
+  private JournalType mJournalType;
 
   @Override
   public Statement apply(Statement base, Description description) {

@@ -285,6 +285,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void losePrimacy() {
     if (!mServer.isRunning()) {
+      // When raft journal is stopped, fault tolerant master process will still trigger lose primacy
       return;
     }
     try {

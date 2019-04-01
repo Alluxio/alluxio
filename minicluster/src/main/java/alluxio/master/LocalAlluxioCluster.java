@@ -52,9 +52,11 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   /**
    * Runs a test Alluxio cluster with a single Alluxio worker.
+   *
+   * @param journalType the journal type to set in the cluster
    */
-  public LocalAlluxioCluster() {
-    this(1, JournalType.EMBEDDED);
+  public LocalAlluxioCluster(JournalType journalType) {
+    this(1, journalType);
   }
 
   /**

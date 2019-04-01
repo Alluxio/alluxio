@@ -64,9 +64,9 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, key);
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_MASTERS)
         .setClusterName("ConfigCheckerMultiMastersTest")
+        .setDeployMode(deployMode)
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(0)
-        .setDeployMode(deployMode)
         .setMasterProperties(masterProperties)
         .build();
     mCluster.start();
@@ -86,10 +86,11 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         = generatePropertyWithDifferentValues(TEST_NUM_WORKERS, key);
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_WORKERS)
         .setClusterName("ConfigCheckerMultiWorkersTest")
+        .setDeployMode(IntegrationTestUtils
+            .getDeployMode(sJournalTypeRule.getJournalType(), 1))
         .setNumMasters(1)
         .setNumWorkers(TEST_NUM_WORKERS)
         .setWorkerProperties(workerProperties)
-        .setDeployMode(DeployMode.EMBEDDED_NON_HA)
         .build();
 
     mCluster.start();
@@ -114,10 +115,10 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_NODES)
         .setClusterName("ConfigCheckerMultiNodesTest")
-        .setNumMasters(TEST_NUM_MASTERS)
-        .setNumWorkers(TEST_NUM_WORKERS)
         .setDeployMode(IntegrationTestUtils
             .getDeployMode(sJournalTypeRule.getJournalType(), TEST_NUM_MASTERS))
+        .setNumMasters(TEST_NUM_MASTERS)
+        .setNumWorkers(TEST_NUM_WORKERS)
         .setMasterProperties(masterProperties)
         .setWorkerProperties(workerProperties)
         .build();
@@ -138,9 +139,9 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_UNSET_VS_SET)
         .setClusterName("ConfigCheckerUnsetVsSet")
+        .setDeployMode(deployMode)
         .setNumMasters(2)
         .setNumWorkers(0)
-        .setDeployMode(deployMode)
         .setMasterProperties(masterProperties)
         .build();
     mCluster.start();

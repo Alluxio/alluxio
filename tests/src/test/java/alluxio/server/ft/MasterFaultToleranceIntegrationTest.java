@@ -280,8 +280,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
 
     // Create a new cluster, with no workers initially
     final MultiMasterLocalAlluxioCluster cluster
-        = new MultiMasterLocalAlluxioCluster(2, 0,
-        sJournalTypeRule.getJournalType());
+        = new MultiMasterLocalAlluxioCluster(2, 0, sJournalTypeRule.getJournalType());
     cluster.initConfiguration();
     cluster.start();
     try {
