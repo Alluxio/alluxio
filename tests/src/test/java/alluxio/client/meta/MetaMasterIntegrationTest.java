@@ -40,7 +40,9 @@ import java.util.List;
  */
 public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   @Rule
-  public LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource.Builder().build();
+  public LocalAlluxioClusterResource mResource
+      = new LocalAlluxioClusterResource.Builder()
+      .setJournalType(sJournalTypeRule.getJournalType()).build();
 
   private int mWebPort;
 

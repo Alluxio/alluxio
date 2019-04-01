@@ -16,6 +16,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.FileSystem;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.security.authentication.AuthType;
+import alluxio.testutils.JournalTypeRule;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.hadoop.conf.Configuration;
@@ -33,8 +34,12 @@ import java.net.URI;
  */
 public class FileSystemIntegrationTest {
   @ClassRule
+  public static JournalTypeRule sJournalTypeRule = new JournalTypeRule();
+
+  @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
           .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName())
           .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
           .build();

@@ -40,7 +40,7 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
 
   @Before
   public void before() throws Exception {
-    mLocalAlluxioCluster = new MultiMasterLocalAlluxioCluster(1);
+    mLocalAlluxioCluster = new MultiMasterLocalAlluxioCluster(1, sJournalTypeRule.getJournalType());
     mLocalAlluxioCluster.initConfiguration();
     mLocalAlluxioCluster.start();
     mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();

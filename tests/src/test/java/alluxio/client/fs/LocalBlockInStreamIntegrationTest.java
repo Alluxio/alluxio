@@ -45,7 +45,9 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
+
   private static FileSystem sFileSystem = null;
   private static CreateFilePOptions sWriteBoth;
   private static CreateFilePOptions sWriteAlluxio;

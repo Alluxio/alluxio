@@ -42,7 +42,8 @@ public final class FileInStreamConcurrencyIntegrationTest extends BaseIntegratio
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
   private static FileSystem sFileSystem = null;
   private static CreateFilePOptions sWriteAlluxio;
 

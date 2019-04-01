@@ -37,6 +37,7 @@ public final class JournalReplayIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
           .setProperty(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 0)
           .setNumWorkers(0)
           .build();

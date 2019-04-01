@@ -14,20 +14,26 @@ package alluxio.client.hadoop.contract;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.HadoopConfigurationUtils;
+import alluxio.testutils.JournalTypeRule;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.net.URL;
 
 public class FileSystemContractLoadedIntegrationTest extends AbstractFSContractTestBase {
+  @ClassRule
+  public static JournalTypeRule sJournalTypeRule = new JournalTypeRule();
+
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
           // Adding this fixed an error in allocating enough space in seekBigFile and PosBulkRead
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1k")
           .build();

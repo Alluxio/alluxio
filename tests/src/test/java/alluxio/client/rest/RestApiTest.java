@@ -32,6 +32,7 @@ public abstract class RestApiTest extends BaseIntegrationTest {
   // fix the test setup in SIMPLE mode.
   @Rule
   public LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource.Builder()
+      .setJournalType(sJournalTypeRule.getJournalType())
       .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
       .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
       .setProperty(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, "true")

@@ -48,8 +48,10 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.SECURITY_LOGIN_USERNAME,
-          TEST_USER).build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
+          .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER)
+          .build();
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER,

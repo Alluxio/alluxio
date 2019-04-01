@@ -24,6 +24,7 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.testutils.JournalTypeRule;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -31,14 +32,20 @@ import alluxio.worker.block.BlockWorker;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
 public class BlockMasterIntegrityIntegrationTest {
+  @ClassRule
+  public static JournalTypeRule sJournalTypeRule = new JournalTypeRule();
+
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
+
   private LocalAlluxioCluster mCluster;
 
   @Before

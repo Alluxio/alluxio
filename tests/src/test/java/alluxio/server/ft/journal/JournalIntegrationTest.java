@@ -24,11 +24,13 @@ import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.journal.JournalSystem;
+import alluxio.testutils.JournalTypeRule;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -45,9 +47,13 @@ import java.util.concurrent.atomic.AtomicReference;
 public class JournalIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(JournalIntegrationTest.class);
 
+  @ClassRule
+  public static JournalTypeRule sJournalTypeRule = new JournalTypeRule();
+
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
           .setProperty(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 0)
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE)
           .setNumWorkers(0)

@@ -79,6 +79,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
    */
   public RemoteReadIntegrationTest() {
     mLocalAlluxioClusterResource = new LocalAlluxioClusterResource.Builder()
+        .setJournalType(sJournalTypeRule.getJournalType())
         .setProperty(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100")
         .setProperty(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX, 2)
         .build();

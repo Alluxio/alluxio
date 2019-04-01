@@ -29,7 +29,8 @@ import org.junit.Test;
 public final class FileSystemConcurrencyTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
 
   private FileSystem mFileSystem;
 

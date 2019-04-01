@@ -236,7 +236,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {
     // Setup and start the alluxio-ft cluster.
-    MultiMasterLocalAlluxioCluster cluster = new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
+    MultiMasterLocalAlluxioCluster cluster = new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS,
+        sJournalTypeRule.getJournalType());
     cluster.initConfiguration();
     cluster.start();
     return cluster;

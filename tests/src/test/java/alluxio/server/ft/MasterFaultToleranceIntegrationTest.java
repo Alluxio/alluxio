@@ -83,7 +83,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   public final void before() throws Exception {
     // TODO(gpang): Implement multi-master cluster as a resource.
     mMultiMasterLocalAlluxioCluster =
-        new MultiMasterLocalAlluxioCluster(MASTERS);
+        new MultiMasterLocalAlluxioCluster(MASTERS, sJournalTypeRule.getJournalType());
     mMultiMasterLocalAlluxioCluster.initConfiguration();
     ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES);
     ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
@@ -279,7 +279,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     after();
 
     // Create a new cluster, with no workers initially
-    final MultiMasterLocalAlluxioCluster cluster = new MultiMasterLocalAlluxioCluster(2, 0);
+    final MultiMasterLocalAlluxioCluster cluster
+        = new MultiMasterLocalAlluxioCluster(2, 0,
+        sJournalTypeRule.getJournalType());
     cluster.initConfiguration();
     cluster.start();
     try {

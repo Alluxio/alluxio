@@ -137,6 +137,7 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH").build();
   private static URI sLocalAlluxioClusterUri = null;
 

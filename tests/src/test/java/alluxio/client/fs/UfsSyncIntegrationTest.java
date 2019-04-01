@@ -89,7 +89,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
 
   @After
   public void after() throws Exception {

@@ -48,7 +48,7 @@ public final class ConfigurationTestUtils {
    * @return the configuration
    */
   public static Map<PropertyKey, String> testConfigurationDefaults(AlluxioConfiguration alluxioConf,
-      String hostname, String workDirectory) {
+      String hostname, String workDirectory, String journalType) {
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.MASTER_HOSTNAME, hostname);
     conf.put(PropertyKey.WORKER_BIND_HOST, hostname);
@@ -126,7 +126,10 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
     // TODO(lu) this property will cause the retries to be short and fail to connect
     // to job master after job master started (job master takes longer to start when using raft)
-    //conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+    if (journalType.equals("UFS")) {
+      // Raft journal system need longer to start, job worker connect should wait for longer time
+      conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+    }
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
     return conf;
   }

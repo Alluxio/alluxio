@@ -52,7 +52,8 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
   private static final String SUB_FILE_PATH = PathUtils.concatPath(SUB_DIR_PATH, "subfile");
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
   private FileSystem mFileSystem = null;
   private UnderFileSystem mUfs;
   private String mAlternateUfsRoot;

@@ -45,7 +45,8 @@ import javax.security.sasl.AuthenticationException;
 public final class MasterClientAuthenticationIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

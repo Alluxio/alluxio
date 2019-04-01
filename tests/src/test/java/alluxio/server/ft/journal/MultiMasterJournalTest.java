@@ -29,7 +29,7 @@ public class MultiMasterJournalTest extends BaseIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    mCluster = new MultiMasterLocalAlluxioCluster(2, 0);
+    mCluster = new MultiMasterLocalAlluxioCluster(2, 0, sJournalTypeRule.getJournalType());
     mCluster.initConfiguration();
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 5);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 100);

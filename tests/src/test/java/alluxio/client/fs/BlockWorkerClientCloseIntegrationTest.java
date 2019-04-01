@@ -27,7 +27,8 @@ import org.junit.Test;
 public final class BlockWorkerClientCloseIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
 
   private WorkerNetAddress mWorkerNetAddress;
   private FileSystemContext mFsContext;

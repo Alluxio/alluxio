@@ -51,7 +51,8 @@ public class LostWorkerIntegrationTest extends BaseIntegrationTest {
   // We need this because LocalAlluxioJobCluster doesn't work without it.
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
 
   private LocalAlluxioJobCluster mLocalAlluxioJobCluster;
 

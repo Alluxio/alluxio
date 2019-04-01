@@ -28,6 +28,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.testutils.JournalTypeRule;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.commons.cli.CommandLine;
@@ -37,6 +38,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.reflections.Reflections;
@@ -61,9 +63,14 @@ import javax.annotation.Nullable;
 public final class FileSystemShellUtilsTest {
   public static final String TEST_DIR = "/testDir";
 
+  @ClassRule
+  public static JournalTypeRule sJournalTypeRule = new JournalTypeRule();
+
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
+          .build();
   private FileSystem mFileSystem = null;
 
   @Before

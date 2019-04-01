@@ -43,6 +43,7 @@ public class FileSystemStatisticsTest extends BaseIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           .build();
   private static org.apache.hadoop.fs.FileSystem.Statistics sStatistics;

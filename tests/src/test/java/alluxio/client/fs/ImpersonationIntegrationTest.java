@@ -65,6 +65,7 @@ public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
           .setProperty(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false)
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, CONNECTION_USER)
           .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS, 0)

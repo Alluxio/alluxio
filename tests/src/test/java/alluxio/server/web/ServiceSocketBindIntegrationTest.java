@@ -41,7 +41,9 @@ import java.nio.channels.SocketChannel;
 public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setStartCluster(false).build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
+          .setStartCluster(false).build();
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private BlockMasterClient mBlockMasterClient;
   private HttpURLConnection mMasterWebService;

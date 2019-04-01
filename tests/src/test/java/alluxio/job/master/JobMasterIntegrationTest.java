@@ -51,6 +51,7 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
           .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, 20)
           .setProperty(PropertyKey.JOB_MASTER_WORKER_TIMEOUT, WORKER_TIMEOUT_MS)
           .setProperty(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL, LOST_WORKER_INTERVAL_MS)

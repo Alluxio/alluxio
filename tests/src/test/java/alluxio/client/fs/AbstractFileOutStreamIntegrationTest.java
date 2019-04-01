@@ -77,7 +77,8 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   }
 
   private LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
-    LocalAlluxioClusterResource.Builder resource = new LocalAlluxioClusterResource.Builder();
+    LocalAlluxioClusterResource.Builder resource = new LocalAlluxioClusterResource.Builder()
+        .setJournalType(sJournalTypeRule.getJournalType());
     customizeClusterResource(resource);
     return resource.build();
   }

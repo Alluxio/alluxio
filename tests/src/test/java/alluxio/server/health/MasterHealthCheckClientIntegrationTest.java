@@ -27,7 +27,8 @@ public class MasterHealthCheckClientIntegrationTest extends BaseIntegrationTest 
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-          new LocalAlluxioClusterResource.Builder().build();
+          new LocalAlluxioClusterResource.Builder()
+              .setJournalType(sJournalTypeRule.getJournalType()).build();
 
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private HealthCheckClient mHealthCheckClient;

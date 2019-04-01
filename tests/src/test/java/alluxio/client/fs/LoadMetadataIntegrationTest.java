@@ -63,7 +63,8 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
 
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =

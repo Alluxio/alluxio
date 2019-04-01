@@ -18,9 +18,11 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.testutils.JournalTypeRule;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -33,11 +35,15 @@ import java.util.List;
  * Tests loading UFS metadata many times concurrently.
  */
 public final class ConcurrentFileSystemMasterLoadMetadataTest {
+  @ClassRule
+  public static JournalTypeRule sJournalTypeRule = new JournalTypeRule();
+
   private FileSystem mFileSystem;
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
 
   @Before
   public void before() {

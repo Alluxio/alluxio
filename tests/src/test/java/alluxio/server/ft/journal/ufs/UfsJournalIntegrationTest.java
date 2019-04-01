@@ -65,6 +65,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
           .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
               Integer.toString(Constants.KB))
           .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")

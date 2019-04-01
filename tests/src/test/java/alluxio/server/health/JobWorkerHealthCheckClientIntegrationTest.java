@@ -32,7 +32,9 @@ public class JobWorkerHealthCheckClientIntegrationTest extends BaseIntegrationTe
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.JOB_WORKER_RPC_PORT, 0)
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
+          .setProperty(PropertyKey.JOB_WORKER_RPC_PORT, 0)
           .build();
 
   private LocalAlluxioJobCluster mLocalAlluxioJobCluster = null;

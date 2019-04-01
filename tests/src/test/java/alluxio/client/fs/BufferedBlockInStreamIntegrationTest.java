@@ -43,7 +43,8 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
   private static FileSystem sFileSystem;
   private static String sTestPath = PathUtils.uniqPath();
 

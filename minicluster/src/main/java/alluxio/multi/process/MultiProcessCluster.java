@@ -206,9 +206,9 @@ public final class MultiProcessCluster {
 
     for (Entry<PropertyKey, String> entry :
         ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
-        NetworkAddressUtils.getLocalHostName(
-            (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-        mWorkDir.getAbsolutePath()).entrySet()) {
+        NetworkAddressUtils.getLocalHostName((int) ServerConfiguration
+            .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), mWorkDir.getAbsolutePath(),
+            getJournalTypeFromDeployMode(mDeployMode).toString()).entrySet()) {
       // Don't overwrite explicitly set properties.
       if (mProperties.containsKey(entry.getKey())) {
         continue;
@@ -854,5 +854,17 @@ public final class MultiProcessCluster {
    */
   public static Builder newBuilder(List<ReservedPort> reservedPorts) {
     return new Builder(reservedPorts);
+  }
+
+  private static JournalType getJournalTypeFromDeployMode(DeployMode deployMode) {
+    switch (deployMode) {
+      case UFS_NON_HA:
+      case ZOOKEEPER_HA:
+        return JournalType.UFS;
+      case EMBEDDED_HA:
+      case EMBEDDED_NON_HA:
+      default:
+        return JournalType.EMBEDDED;
+    }
   }
 }

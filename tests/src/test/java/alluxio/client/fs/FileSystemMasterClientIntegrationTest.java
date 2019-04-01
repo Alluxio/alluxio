@@ -42,6 +42,7 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
           .setProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, 30).build();
 
   @Test

@@ -38,7 +38,8 @@ public class FileSystemBlockLocationIntegrationTest extends BaseIntegrationTest 
   private static final int FILE_LEN = BLOCK_SIZE * 3;
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
   private static org.apache.hadoop.fs.FileSystem sTFS;
 
   @BeforeClass

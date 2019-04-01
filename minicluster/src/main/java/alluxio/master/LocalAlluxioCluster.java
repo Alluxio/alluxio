@@ -16,6 +16,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.master.journal.JournalType;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
@@ -47,18 +48,22 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   private LocalAlluxioMaster mMaster;
 
+  private JournalType mJournalType;
+
   /**
    * Runs a test Alluxio cluster with a single Alluxio worker.
    */
   public LocalAlluxioCluster() {
-    this(1);
+    this(1, JournalType.EMBEDDED);
   }
 
   /**
    * @param numWorkers the number of workers to run
+   * @param journalType the journal type to set in the cluster
    */
-  public LocalAlluxioCluster(int numWorkers) {
+  public LocalAlluxioCluster(int numWorkers, JournalType journalType) {
     super(numWorkers);
+    mJournalType = journalType;
   }
 
   @Override
@@ -123,11 +128,13 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     setAlluxioWorkDirectory();
     setHostname();
     for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
-        .testConfigurationDefaults(ServerConfiguration.global(), mHostname, mWorkDirectory)
-        .entrySet()) {
+        .testConfigurationDefaults(ServerConfiguration.global(), mHostname, mWorkDirectory,
+            mJournalType.toString()).entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
-    //ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+    if (mJournalType.equals(JournalType.UFS)) {
+      ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+    }
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);

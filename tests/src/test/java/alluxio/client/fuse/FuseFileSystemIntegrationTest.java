@@ -30,6 +30,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
+import alluxio.testutils.JournalTypeRule;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
@@ -56,6 +57,9 @@ import java.util.concurrent.TimeoutException;
  * Integration tests for {@link AlluxioFuseFileSystem}.
  */
 public class FuseFileSystemIntegrationTest {
+  @ClassRule
+  public static JournalTypeRule sJournalTypeRule = new JournalTypeRule();
+
   private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
   private static final int BLOCK_SIZE = 4 * Constants.KB;
 
@@ -64,6 +68,7 @@ public class FuseFileSystemIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType())
           .setProperty(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           .build();

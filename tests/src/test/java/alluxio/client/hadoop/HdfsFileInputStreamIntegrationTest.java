@@ -52,7 +52,8 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(sJournalTypeRule.getJournalType()).build();
   private FileSystem mFileSystem;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;
