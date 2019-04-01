@@ -81,7 +81,6 @@ public abstract class AbstractLocalAlluxioCluster {
     startMasters();
     startWorkers();
     startProxy();
-    waitForMasterServing(60 * Constants.SECOND_MS);
 
     // Reset contexts so that they pick up the updated configuration.
     reset();

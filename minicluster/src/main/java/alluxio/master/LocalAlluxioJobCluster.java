@@ -66,9 +66,9 @@ public final class LocalAlluxioJobCluster {
     updateTestConf();
     startMaster();
     TestUtils.waitForReady(mMaster);
+    waitForMasterServing(60 * Constants.SECOND_MS);
     startWorker();
     TestUtils.waitForReady(mWorker);
-    waitForMasterServing(60 * Constants.SECOND_MS);
   }
 
   /**
