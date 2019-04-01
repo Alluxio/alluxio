@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.cli.Format;
