@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -416,8 +416,8 @@ public class InodeTreePersistentState implements Journaled {
 
   private void applyUpdateInodeFile(UpdateInodeFileEntry entry) {
     MutableInode<?> inode = mInodeStore.getMutable(entry.getId()).get();
-    Preconditions.checkState(inode.isFile(),
-        "Encountered non-file id in update file entry %s", entry);
+    Preconditions.checkState(inode.isFile(), "Encountered non-file id in update file entry %s",
+        entry);
     if (entry.hasReplicationMax()) {
       if (entry.getReplicationMax() == alluxio.Constants.REPLICATION_MAX_INFINITY) {
         mReplicationLimitedFileIds.remove(inode.getId());
@@ -434,40 +434,28 @@ public class InodeTreePersistentState implements Journaled {
   ////
 
   private void applyAsyncPersist(AsyncPersistRequestEntry entry) {
-    applyUpdateInode(UpdateInodeEntry.newBuilder()
-        .setId(entry.getFileId())
-        .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
-        .build());
+    applyUpdateInode(UpdateInodeEntry.newBuilder().setId(entry.getFileId())
+        .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name()).build());
   }
 
   private void applyCompleteFile(CompleteFileEntry entry) {
-    applyUpdateInode(UpdateInodeEntry.newBuilder()
-        .setId(entry.getId())
-        .setLastModificationTimeMs(entry.getOpTimeMs())
-        .setOverwriteModificationTime(true)
-        .setUfsFingerprint(entry.getUfsFingerprint())
-        .build());
-    applyUpdateInodeFile(UpdateInodeFileEntry.newBuilder()
-        .setId(entry.getId())
-        .setLength(entry.getLength())
-        .addAllSetBlocks(entry.getBlockIdsList())
-        .build());
+    applyUpdateInode(UpdateInodeEntry.newBuilder().setId(entry.getId())
+        .setLastModificationTimeMs(entry.getOpTimeMs()).setOverwriteModificationTime(true)
+        .setUfsFingerprint(entry.getUfsFingerprint()).build());
+    applyUpdateInodeFile(UpdateInodeFileEntry.newBuilder().setId(entry.getId())
+        .setLength(entry.getLength()).addAllSetBlocks(entry.getBlockIdsList()).build());
   }
 
   private void applyInodeLastModificationTime(InodeLastModificationTimeEntry entry) {
     // This entry is deprecated, use UpdateInode instead.
-    applyUpdateInode(UpdateInodeEntry.newBuilder()
-        .setId(entry.getId())
-        .setLastModificationTimeMs(entry.getLastModificationTimeMs())
-        .build());
+    applyUpdateInode(UpdateInodeEntry.newBuilder().setId(entry.getId())
+        .setLastModificationTimeMs(entry.getLastModificationTimeMs()).build());
   }
 
   private void applyPersistDirectory(PersistDirectoryEntry entry) {
     // This entry is deprecated, use UpdateInode instead.
-    applyUpdateInode(UpdateInodeEntry.newBuilder()
-        .setId(entry.getId())
-        .setPersistenceState(PersistenceState.PERSISTED.name())
-        .build());
+    applyUpdateInode(UpdateInodeEntry.newBuilder().setId(entry.getId())
+        .setPersistenceState(PersistenceState.PERSISTED.name()).build());
   }
 
   private void applySetAttribute(SetAttributeEntry entry) {
@@ -614,12 +602,9 @@ public class InodeTreePersistentState implements Journaled {
     Preconditions.checkState(!entry.hasNewParentId(),
         "old-style rename entries should not have the newParentId field set");
     Path path = Paths.get(entry.getDstPath());
-    return RenameEntry.newBuilder()
-        .setId(entry.getId())
-        .setNewParentId(getIdFromPath(path.getParent()))
-        .setNewName(path.getFileName().toString())
-        .setOpTimeMs(entry.getOpTimeMs())
-        .build();
+    return RenameEntry.newBuilder().setId(entry.getId())
+        .setNewParentId(getIdFromPath(path.getParent())).setNewName(path.getFileName().toString())
+        .setOpTimeMs(entry.getOpTimeMs()).build();
   }
 
   private long getIdFromPath(Path path) {
@@ -676,12 +661,16 @@ public class InodeTreePersistentState implements Journaled {
 
   @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    // mTtlBuckets must come after mInodeStore so that it can query the inode store to resolve inode
+    // ids to inodes.
     JournalUtils.writeToCheckpoint(output, Arrays.asList(mInodeStore, mPinnedInodeFileIds,
         mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter));
   }
 
   @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
+    // mTtlBuckets must come after mInodeStore so that it can query the inode store to resolve inode
+    // ids to inodes.
     JournalUtils.restoreFromCheckpoint(input, Arrays.asList(mInodeStore, mPinnedInodeFileIds,
         mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter));
   }

@@ -42,7 +42,8 @@ public interface NoopJournaled extends Journaled {
 
   @Override
   default void writeToCheckpoint(OutputStream output) throws IOException {
-    // Just write a checkpoint type with no data.
+    // Just write a checkpoint type with no data. The stream constructor writes unbuffered to the
+    // underlying output, so we don't need to flush or close.
     new CheckpointOutputStream(output, CheckpointType.JOURNAL_ENTRY);
   }
 

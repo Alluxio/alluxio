@@ -147,7 +147,7 @@ public final class RocksStore implements Closeable {
     mDb = RocksDB.open(mDbOpts, mDbPath, cfDescriptors, columns);
     for (int i = 0; i < columns.size() - 1; i++) {
       // Skip the default column.
-      mColumnHandles.get(i).set(columns.get(i+1));
+      mColumnHandles.get(i).set(columns.get(i + 1));
     }
     LOG.info("Opened rocks database under path {}", mDbPath);
   }
@@ -159,7 +159,7 @@ public final class RocksStore implements Closeable {
    */
   public synchronized void writeToCheckpoint(OutputStream output)
       throws IOException, InterruptedException {
-    LOG.info("Writing rocksdb checkpoint");
+    LOG.info("Backing up rocks database to {}", mDbBackupPath);
     long startNano = System.nanoTime();
     CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS);
     try (BackupEngine backupEngine = BackupEngine.open(Env.getDefault(),

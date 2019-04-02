@@ -139,7 +139,7 @@ public final class JournalTool {
         State state = reader.advance();
         switch (state) {
           case CHECKPOINT:
-            CheckpointInputStream checkpoint = new CheckpointInputStream(reader.getCheckpoint());
+            CheckpointInputStream checkpoint = reader.getCheckpoint();
             System.out.printf("Checkpoint type %s, endId: %s%n", checkpoint.getType(),
                 reader.getNextSequenceNumber());
             if (checkpoint.getType() == CheckpointType.JOURNAL_ENTRY) {
