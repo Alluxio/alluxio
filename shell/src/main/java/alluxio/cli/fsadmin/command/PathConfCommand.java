@@ -17,56 +17,23 @@ import alluxio.cli.fsadmin.pathconf.ListCommand;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 /**
  * Manages path level configuration.
  */
 public final class PathConfCommand extends AbstractFsAdminCommand {
-  private enum SubCommand {
-    LIST("list", ListCommand.class),
-    ;
-
-    private final String mName;
-    private final Class<? extends Command> mClass;
-
-    /**
-     * @param name the sub-command's name
-     * @param cmdClass the sub-command's class
-     */
-    SubCommand(String name, Class<? extends Command> cmdClass) {
-      mName = name;
-      mClass = cmdClass;
-    }
-
-    /**
-     * @return the sub-command's name
-     */
-    public String getName() {
-      return mName;
-    }
-
-    /**
-     * @return the sub-command's class
-     */
-    public Class<? extends Command> getCommandClass() {
-      return mClass;
-    }
-  }
-
-  /** A map from sub-commands' names to the definition. */
-  private static final Map<String, SubCommand> SUB_COMMAND_MAP = new HashMap<>();
+  private static final Map<String, BiFunction<Context, AlluxioConfiguration, ? extends Command>>
+      SUB_COMMANDS = new HashMap<>();
 
   static {
-    for (SubCommand cmd : SubCommand.values()) {
-      SUB_COMMAND_MAP.put(cmd.getName(), cmd);
-    }
+    SUB_COMMANDS.put("list", ListCommand::new);
   }
 
   private Context mContext;
@@ -95,13 +62,10 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    if (!SUB_COMMAND_MAP.containsKey(args[0])) {
+    if (!SUB_COMMANDS.containsKey(args[0])) {
       throw new InvalidArgumentException("Unknown sub-command: " + args[0]);
     }
-    SubCommand subCmd = SUB_COMMAND_MAP.get(args[0]);
-    Command cmd = CommonUtils.createNewClassInstance(subCmd.getCommandClass(),
-        new Class<?>[]{Context.class, AlluxioConfiguration.class},
-        new Object[]{mContext, mConf});
+    Command cmd = SUB_COMMANDS.get(args[0]).apply(mContext, mConf);
     cmd.run(cl);
     return 0;
   }
@@ -109,8 +73,8 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
   @Override
   public String getUsage() {
     StringBuilder usage = new StringBuilder(getCommandName());
-    for (SubCommand cmd : SubCommand.values()) {
-      usage.append(" [").append(cmd.getName()).append("]");
+    for (String cmd : SUB_COMMANDS.keySet()) {
+      usage.append(" [").append(cmd).append("]");
     }
     return usage.toString();
   }
