@@ -184,7 +184,10 @@ public final class Metric implements Serializable {
    */
   public alluxio.grpc.Metric toProto() {
     alluxio.grpc.Metric.Builder metric = alluxio.grpc.Metric.newBuilder();
-    metric.setInstance(mInstanceType.toString()).setHostname(mHostname).setName(mName)
+    LOG.info("mInstanceType is {}, mName is {}", mInstanceType, mName);
+    metric.setInstance(mInstanceType.toString())
+        .setHostname(mHostname)
+        .setName(mName)
         .setValue(mValue).putAllTags(mTags);
 
     if (mInstanceId != null && !mInstanceId.isEmpty()) {
@@ -238,6 +241,7 @@ public final class Metric implements Serializable {
    * @return the created metric
    */
   public static Metric from(String fullName, double value) {
+    LOG.info("fullname is {}", fullName);
     String[] pieces = fullName.split("\\.");
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", fullName);
 

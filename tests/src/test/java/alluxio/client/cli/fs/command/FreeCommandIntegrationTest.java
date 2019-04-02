@@ -21,6 +21,8 @@ import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.grpc.WritePType;
 
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -64,6 +66,7 @@ public final class FreeCommandIntegrationTest extends AbstractFileSystemShellTes
     FileSystemTestUtils.createByteFile(mFileSystem, fileName, WritePType.CACHE_THROUGH, 10);
     assertEquals(0, mFsShell.run("free", fileName));
     assertFalse(isInMemoryTest(fileName));
+    assertTrue(false);
   }
 
   @Test
@@ -94,6 +97,8 @@ public final class FreeCommandIntegrationTest extends AbstractFileSystemShellTes
     String testDir =
         FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem, WritePType.CACHE_THROUGH);
     mFsShell.run("pin", testDir + "/foo/foobar1");
+    mFsShell.run("free", "-f", testDir + "/foo/*");
+    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString("sadsad"));
     assertEquals(0, mFsShell.run("free", "-f", testDir + "/foo/*"));
     assertFalse(isInMemoryTest(testDir + "/foo/foobar1"));
     assertFalse(isInMemoryTest(testDir + "/foo/foobar2"));

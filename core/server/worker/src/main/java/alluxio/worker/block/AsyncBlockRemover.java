@@ -101,7 +101,7 @@ public class AsyncBlockRemover {
         try {
           blockToBeRemoved = mBlocksToRemove.take();
           mBlockWorker.removeBlock(Sessions.MASTER_COMMAND_SESSION_ID, blockToBeRemoved);
-          LOG.debug("Block {} is removed in thread {}.", blockToBeRemoved, mThreadName);
+          LOG.info("Block {} is removed in thread {}.", blockToBeRemoved, mThreadName);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
           LOG.warn("{} got interrupted while it was cleaning block {}.",

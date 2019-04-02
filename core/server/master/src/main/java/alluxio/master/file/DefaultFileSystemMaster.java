@@ -2275,6 +2275,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   public void free(AlluxioURI path, FreeContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException {
+    LOG.info("free path {}", path.toString());
     Metrics.FREE_FILE_OPS.inc();
     // No need to syncMetadata before free.
     try (RpcContext rpcContext = createRpcContext();
@@ -2302,6 +2303,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   private void freeInternal(RpcContext rpcContext, LockedInodePath inodePath, FreeContext context)
       throws FileDoesNotExistException, UnexpectedAlluxioException,
       IOException, InvalidPathException, AccessControlException {
+    LOG.info("free internal path {}", inodePath.getUri().toString());
     Inode inode = inodePath.getInode();
     if (inode.isDirectory() && !context.getOptions().getRecursive()
         && mInodeStore.hasChildren(inode.asDirectory())) {

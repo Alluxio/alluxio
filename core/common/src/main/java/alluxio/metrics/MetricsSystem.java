@@ -434,9 +434,11 @@ public final class MetricsSystem {
   }
 
   private static List<Metric> allMetrics(MetricsSystem.InstanceType instanceType) {
+    LOG.info("instanceType is {}", instanceType);
     List<Metric> metrics = new ArrayList<>();
     for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
       if (entry.getKey().startsWith(instanceType.toString())) {
+        LOG.info("{} contains {} ?", entry.getKey(), instanceType.toString());
         Object value = entry.getValue().getValue();
         if (!(value instanceof Number)) {
           LOG.warn(
@@ -446,6 +448,7 @@ public final class MetricsSystem {
           continue;
         }
         metrics.add(Metric.from(entry.getKey(), ((Number) value).longValue()));
+        LOG.info("allWorkerMetrics add {}", entry.getKey());
       }
     }
     for (Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
@@ -456,9 +459,11 @@ public final class MetricsSystem {
       // least seconds. if the client's duration is too short (i.e. < 1s), then getOneMinuteRate
       // would return 0
       metrics.add(Metric.from(entry.getKey(), entry.getValue().getOneMinuteRate()));
+      LOG.info("allWorkerMetrics add meters {}", entry.getKey());
     }
     for (Entry<String, Timer> entry : METRIC_REGISTRY.getTimers().entrySet()) {
       metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount()));
+      LOG.info("allWorkerMetrics add timers {}", entry.getKey());
     }
     return metrics;
   }

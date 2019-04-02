@@ -12,9 +12,12 @@
 package alluxio.master.metastore.heap;
 
 import alluxio.collections.TwoKeyConcurrentMap;
+import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.metastore.BlockStore;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,6 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class HeapBlockStore implements BlockStore {
+  private static final Logger LOG = LoggerFactory.getLogger(HeapBlockStore.class);
   // Map from block id to block metadata.
   public final Map<Long, BlockMeta> mBlocks = new ConcurrentHashMap<>();
   // Map from block id to block locations.
@@ -98,5 +102,6 @@ public class HeapBlockStore implements BlockStore {
   @Override
   public void removeLocation(long blockId, long workerId) {
     mBlockLocations.removeInnerValue(blockId, workerId);
+    LOG.info("remove block id {} from mBlockLocations", blockId);
   }
 }

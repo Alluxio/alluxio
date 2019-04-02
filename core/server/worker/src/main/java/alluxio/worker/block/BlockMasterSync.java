@@ -31,8 +31,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -122,12 +124,17 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
     List<alluxio.grpc.Metric> metrics = new ArrayList<>();
+    LOG.info(Arrays.toString(MetricsSystem.allWorkerMetrics().stream().map(a -> a.getFullMetricName()).collect(Collectors.toList()).toArray()));
     for (Metric metric : MetricsSystem.allWorkerMetrics()) {
       metrics.add(metric.toProto());
     }
     try {
+      List<Long> removedBlocks = blockReport.getRemovedBlocks();
+      if (removedBlocks.size() != 0) {
+        LOG.info("worker heartbeat to Master about changes of removed blocks: " + Arrays.toString(removedBlocks.toArray()));
+      }
       cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
+          storeMeta.getUsedBytesOnTiers(), removedBlocks,
           blockReport.getAddedBlocks(), metrics);
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
@@ -177,6 +184,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       // Master requests blocks to be removed from Alluxio managed space.
       case Free:
+        LOG.info("Worker received free command, now is freeing " + Arrays.toString(cmd.getDataList().toArray()));
         mAsyncBlockRemover.addBlocksToDelete(cmd.getDataList());
         break;
       // No action required
