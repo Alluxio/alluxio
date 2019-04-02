@@ -419,7 +419,7 @@ main() {
   # ensure log/data dirs
   ensure_dirs
 
-  while getopts "ahNwmi:" o; do
+  while getopts "ahNwi:" o; do
     case "${o}" in
       a)
         async="true"
