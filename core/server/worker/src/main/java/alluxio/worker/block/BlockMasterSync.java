@@ -124,9 +124,17 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
     List<alluxio.grpc.Metric> metrics = new ArrayList<>();
-    LOG.info(Arrays.toString(MetricsSystem.allWorkerMetrics().stream().map(a -> a.getFullMetricName()).collect(Collectors.toList()).toArray()));
     for (Metric metric : MetricsSystem.allWorkerMetrics()) {
-      metrics.add(metric.toProto());
+      try {
+        metrics.add(metric.toProto());
+      } catch (NullPointerException e) {
+        if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+          // Skip adding metrics since process type in tests using LocalAlluxioCluster is not correct
+          break;
+        } else {
+          throw e;
+        }
+      }
     }
     try {
       List<Long> removedBlocks = blockReport.getRemovedBlocks();

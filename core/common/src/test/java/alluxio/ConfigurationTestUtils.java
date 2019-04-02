@@ -87,37 +87,38 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
     conf.put(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, "false");
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
-    //conf.put(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT, "2sec");
-    //conf.put(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT, "3sec");
-    //conf.put(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "3sec");
+    conf.put(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT, "2sec");
+    conf.put(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT, "3sec");
+    conf.put(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "3sec");
 
     // Shutdown journal tailer quickly. Graceful shutdown is unnecessarily slow.
-    //conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "50ms");
-    //conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "10ms");
+    conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "50ms");
+    conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "10ms");
 
     // Do not engage safe mode by default since the worker is connected when test starts.
-    //conf.put(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, "0sec");
+    conf.put(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, "0sec");
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
-    //conf.put(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250ms");
+    conf.put(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250ms");
 
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
-    //conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+    conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
     conf.put(PropertyKey.WEB_THREADS, "1");
     conf.put(PropertyKey.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../alluxio-ui"));
     conf.put(PropertyKey.WORKER_MEMORY_SIZE, "300MB");
+    conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
     conf.put(PropertyKey.WORKER_BLOCK_THREADS_MIN, "1");
     conf.put(PropertyKey.WORKER_BLOCK_THREADS_MAX, "2048");
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, "2");
 
     // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
-    //conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, "0ms");
-    //conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
+    conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, "0ms");
+    conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
 
@@ -127,10 +128,9 @@ public final class ConfigurationTestUtils {
       // To keep tests fast, we should do more retries with a lower max wait time.
       conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "60");
       conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms");
-      conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
     }
 
-    // conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s"); */
+    conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
     return conf;
   }
 
