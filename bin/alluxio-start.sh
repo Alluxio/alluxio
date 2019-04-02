@@ -589,7 +589,6 @@ main() {
     wait
   fi
 
-  echo -e "MONITOR NODES: \"${MONITOR_NODES}\""
   if [[ ! "${async}" ]]; then
     start_monitor "${ACTION}" "${MONITOR_NODES}"
   fi
