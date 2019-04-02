@@ -47,7 +47,7 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
     }
     UfsStatus status;
     try {
-      status = mUfs.getExistingStatus(mPath);
+      status = mUfs.getStatus(mPath);
       if (status == null) {
         System.err.format("Unable to get status for under file system path %s.%n", mPath);
         return TaskResult.FAILED;

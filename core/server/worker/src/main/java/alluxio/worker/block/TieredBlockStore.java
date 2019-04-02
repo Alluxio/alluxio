@@ -65,6 +65,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This class represents an object store that manages all the blocks in the local tiered storage.
  * This store exposes simple public APIs to operate blocks. Inside this store, it creates an
+ * This store exposes simple public APIs to operate blocks. Inside this store, it creates an
  * Allocator to decide where to put a new block, an Evictor to decide where to evict a stale block,
  * a BlockMetadataManager to maintain the status of the tiered storage, and a LockManager to
  * coordinate read/write on the same block.

@@ -1197,7 +1197,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         return ufs.isDirectory(ufsPath);
       } else {
         return ufs.isFile(ufsPath)
-            && ufs.getExistingFileStatus(ufsPath).getContentLength() == inode.asFile().getLength();
+            && ufs.getFileStatus(ufsPath).getContentLength() == inode.asFile().getLength();
       }
     }
   }
@@ -2214,7 +2214,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         // The destination was persisted in ufs.
         mUfsAbsentPathCache.processExisting(dstPath);
       }
-    } catch (IOException e) {
+    } catch (Throwable t) {
       // On failure, revert changes and throw exception.
       mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
           .setId(srcInode.getId())
@@ -2222,7 +2222,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           .setNewName(srcName)
           .setNewParentId(srcParentInode.getId())
           .build());
-      throw e;
+      throw t;
     }
 
     Metrics.PATHS_RENAMED.inc();
@@ -2772,7 +2772,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
                 ServerConfiguration.global()));
         // Check that the ufsPath exists and is a directory
-        if (!ufs.isExistingDirectory(ufsPath.toString())) {
+        if (!ufs.isDirectory(ufsPath.toString())) {
           throw new IOException(
               ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
         }

@@ -43,7 +43,13 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Alluxio stores data into an under layer file system. Any file system implementing this interface
- * can be a valid under layer file system
+ * can be a valid under layer file system.
+ *
+ * There are two sets of APIs in the under file system:
+ * (1) normal operations (e.g. create, renameFile, deleteFile)
+ * (2) operations deal with the eventual consistency issue.
+ * When confirmed by Alluxio metadata that an operation should succeed but may fail because of the
+ * under filesystem eventual consistency issue, please use the second set of APIs.
  */
 @PublicApi
 @ThreadSafe

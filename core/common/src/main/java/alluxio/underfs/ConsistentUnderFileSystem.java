@@ -23,8 +23,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Representing a consistent under filesystem
- * which does not have eventual consistency issue.
+ * Represents a consistent under filesystem
+ * which does not have eventual consistency issues.
  */
 public abstract class ConsistentUnderFileSystem extends BaseUnderFileSystem {
 
