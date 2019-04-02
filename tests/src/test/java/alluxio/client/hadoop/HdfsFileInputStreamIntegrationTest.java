@@ -25,6 +25,7 @@ import alluxio.grpc.WritePType;
 import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.hadoop.HdfsFileInputStream;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 
@@ -53,7 +54,7 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setJournalType(sJournalTypeRule.getJournalType()).build();
+          .setJournalType(IntegrationTestUtils.getSystemJournalType()).build();
   private FileSystem mFileSystem;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;

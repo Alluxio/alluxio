@@ -18,6 +18,7 @@ import alluxio.grpc.WritePType;
 import alluxio.hadoop.FileSystem;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.hadoop.conf.Configuration;
@@ -43,7 +44,7 @@ public class FileSystemStatisticsTest extends BaseIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setJournalType(sJournalTypeRule.getJournalType())
+          .setJournalType(IntegrationTestUtils.getSystemJournalType())
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           .build();
   private static org.apache.hadoop.fs.FileSystem.Statistics sStatistics;

@@ -21,6 +21,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -46,7 +47,7 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setJournalType(sJournalTypeRule.getJournalType()).build();
+          .setJournalType(IntegrationTestUtils.getSystemJournalType()).build();
 
   private static FileSystem sFileSystem = null;
   private static CreateFilePOptions sWriteBoth;

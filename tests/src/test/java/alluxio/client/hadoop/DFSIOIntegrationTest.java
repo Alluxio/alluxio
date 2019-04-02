@@ -17,6 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.FileSystem;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -137,7 +138,7 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setJournalType(sJournalTypeRule.getJournalType())
+          .setJournalType(IntegrationTestUtils.getSystemJournalType())
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH").build();
   private static URI sLocalAlluxioClusterUri = null;
 

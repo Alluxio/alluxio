@@ -172,6 +172,18 @@ public final class IntegrationTestUtils {
   }
 
   /**
+   * Gets the system configured journal type.
+   * Value for system property, "alluxio.test.journal.type", is injected by surefire plugin.
+   *
+   * @return the system configured journal type
+   */
+  public static JournalType getSystemJournalType() {
+    String journalType = System.getProperty("alluxio.test.journal.type");
+    return journalType != null && journalType.equals(JournalType.UFS.toString())
+        ? JournalType.UFS : JournalType.EMBEDDED;
+  }
+
+  /**
    * Gets the {@link alluxio.multi.process.MultiProcessCluster.DeployMode}
    * from the given journal type and number of masters.
    *

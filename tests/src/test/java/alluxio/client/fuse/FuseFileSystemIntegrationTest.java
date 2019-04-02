@@ -30,6 +30,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.JournalTypeRule;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
@@ -68,7 +69,7 @@ public class FuseFileSystemIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setJournalType(sJournalTypeRule.getJournalType())
+          .setJournalType(IntegrationTestUtils.getSystemJournalType())
           .setProperty(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           .build();

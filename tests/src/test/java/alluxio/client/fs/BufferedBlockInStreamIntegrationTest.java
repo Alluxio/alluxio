@@ -20,6 +20,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -44,7 +45,7 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setJournalType(sJournalTypeRule.getJournalType()).build();
+          .setJournalType(IntegrationTestUtils.getSystemJournalType()).build();
   private static FileSystem sFileSystem;
   private static String sTestPath = PathUtils.uniqPath();
 
