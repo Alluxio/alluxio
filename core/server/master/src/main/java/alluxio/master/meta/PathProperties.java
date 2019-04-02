@@ -144,7 +144,8 @@ public final class PathProperties implements DelegatingJournaled {
      * @param path the path
      * @param properties the new properties
      */
-    public void addProperties(Supplier<JournalContext> ctx, String path, Map<PropertyKey, String> properties) {
+    public void addProperties(Supplier<JournalContext> ctx, String path,
+        Map<PropertyKey, String> properties) {
       Map<String, String> newProperties = mProperties.getOrDefault(path, new HashMap<>());
       properties.forEach((key, value) -> newProperties.put(key.getName(), value));
       applyAndJournal(ctx, PathPropertiesEntry.newBuilder().setPath(path)
