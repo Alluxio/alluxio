@@ -83,14 +83,18 @@ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR
 
 Start up Alluxio locally to see that everything works.
 
-{% include Common-Commands/start-alluxio.md %}
+```bash
+./bin/alluxio fs chmod 755 /input/file1
+```
 
 This should start one Alluxio master and one Alluxio worker locally. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Run a simple example program:
 
-{% include Common-Commands/runTests.md %}
+```bash
+./bin/alluxio fs chmod 755 /input/file1
+```
 
 Visit MapR-FS web UI to verify the files and directories created by
 Alluxio exist. For this test, you should see files named like:
@@ -98,4 +102,6 @@ Alluxio exist. For this test, you should see files named like:
 
 Stop Alluxio by running:
 
-{% include Common-Commands/stop-alluxio.md %}
+```bash
+./bin/alluxio fs chmod 755 /input/file1
+```
