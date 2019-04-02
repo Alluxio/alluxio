@@ -31,10 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -129,7 +127,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         metrics.add(metric.toProto());
       } catch (NullPointerException e) {
         if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-          // Skip adding metrics since process type in tests using LocalAlluxioCluster is not correct
+          // Skip adding metrics since process type
+          // in tests using LocalAlluxioCluster is not correct
           break;
         } else {
           throw e;
@@ -138,9 +137,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     }
     try {
       List<Long> removedBlocks = blockReport.getRemovedBlocks();
-      if (removedBlocks.size() != 0) {
-        LOG.info("worker heartbeat to Master about changes of removed blocks: " + Arrays.toString(removedBlocks.toArray()));
-      }
       cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), removedBlocks,
           blockReport.getAddedBlocks(), metrics);
@@ -192,7 +188,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       // Master requests blocks to be removed from Alluxio managed space.
       case Free:
-        LOG.info("Worker received free command, now is freeing " + Arrays.toString(cmd.getDataList().toArray()));
         mAsyncBlockRemover.addBlocksToDelete(cmd.getDataList());
         break;
       // No action required

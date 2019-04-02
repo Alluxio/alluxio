@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.SystemErrRule;
 import alluxio.SystemOutRule;
 import alluxio.conf.PropertyKey;
-import alluxio.master.journal.JournalType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

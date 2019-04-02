@@ -854,9 +854,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       worker.updateLastUpdatedTimeMs();
 
       List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
-      if (toRemoveBlocks.size() != 0) {
-        LOG.info("worker heartbeat sent to worker with toRemoveBlocks size " + toRemoveBlocks.size());
-      }
       if (toRemoveBlocks.isEmpty()) {
         return Command.newBuilder().setCommandType(CommandType.Nothing).build();
       }

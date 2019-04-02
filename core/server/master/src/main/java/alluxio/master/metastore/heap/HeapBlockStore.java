@@ -12,10 +12,10 @@
 package alluxio.master.metastore.heap;
 
 import alluxio.collections.TwoKeyConcurrentMap;
-import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.metastore.BlockStore;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
