@@ -75,6 +75,29 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void multiMastersEmbeddedHA() throws Exception {
+    PropertyKey key = PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS;
+    Map<Integer, Map<PropertyKey, String>> masterProperties
+        = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, key);
+    mCluster = MultiProcessCluster
+        .newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_MASTERS_EMBEDDED_HA)
+        .setClusterName("ConfigCheckerMultiMastersEmbeddedHATest")
+        .setNumMasters(TEST_NUM_MASTERS)
+        .setNumWorkers(0)
+        .setDeployMode(DeployMode.EMBEDDED_HA)
+        .setMasterProperties(masterProperties)
+        .build();
+    mCluster.start();
+    ConfigCheckReport report = getReport();
+    // The master values of {@link PropertyKey#ALLUXIO_MASTER_JOURNAL_FOLDER} are different
+    // when using embedded HA
+    assertEquals(ConfigStatus.FAILED, report.getConfigStatus());
+    assertThat(report.getConfigWarns().toString(),
+        CoreMatchers.containsString(key.getName()));
+    mCluster.notifySuccess();
+  }
+
+  @Test
   public void multiWorkers() throws Exception {
     PropertyKey key = PropertyKey.WORKER_FREE_SPACE_TIMEOUT;
     Map<Integer, Map<PropertyKey, String>> workerProperties
