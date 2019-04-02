@@ -30,6 +30,7 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metastore.heap.HeapInodeStore;
@@ -40,6 +41,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,7 +52,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class CachingInodeStoreTest {
+public class CachingInodeStoreMockedBackingStoreTest {
   private static final long CACHE_SIZE = 20;
   private static final long TEST_INODE_ID = 5;
   private static final MutableInodeDirectory TEST_INODE_DIR =
@@ -297,6 +300,22 @@ public class CachingInodeStoreTest {
         CreateDirectoryContext.defaults());
     mStore.writeNewInode(dir);
     return dir;
+  }
+
+  @Test
+  public void backupRestore() throws Exception {
+    MutableInodeDirectory child = createInodeDir(10, 0);
+    mStore.writeNewInode(child);
+    mStore.addChild(0, child);
+    mStore
+        .writeInode(MutableInodeDirectory.create(1, 1, "blah", CreateDirectoryContext.defaults()));
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    mStore.writeToCheckpoint(baos);
+    mStore.restoreFromCheckpoint(
+        new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
+    assertEquals(child.getName(), mStore.get(child.getId()).get().getName());
+    assertEquals(child.getId(), mStore.getChild(0L, child.getName()).get().getId());
   }
 
   private void verifyNoBackingStoreReads() {

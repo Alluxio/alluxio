@@ -9,9 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
-
-import alluxio.master.CheckpointType;
+package alluxio.master.journal.checkpoint;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
