@@ -241,7 +241,6 @@ public final class Metric implements Serializable {
    * @return the created metric
    */
   public static Metric from(String fullName, double value) {
-    LOG.info("fullname is {}", fullName);
     String[] pieces = fullName.split("\\.");
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", fullName);
 
