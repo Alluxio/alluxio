@@ -37,6 +37,6 @@ public class SecondaryMasterTest extends BaseIntegrationTest {
     for (int i = 0; i < 10; i++) {
       fs.createDirectory(new AlluxioURI("/dir" + i));
     }
-    IntegrationTestUtils.waitForCheckpoint(Constants.FILE_SYSTEM_MASTER_NAME);
+    IntegrationTestUtils.waitForUfsJournalCheckpoint(Constants.FILE_SYSTEM_MASTER_NAME);
   }
 }

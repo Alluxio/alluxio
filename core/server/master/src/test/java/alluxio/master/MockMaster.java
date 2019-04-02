@@ -14,7 +14,7 @@ package alluxio.master;
 import alluxio.Server;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
-import alluxio.master.journal.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;

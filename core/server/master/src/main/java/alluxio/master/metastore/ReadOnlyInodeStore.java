@@ -157,9 +157,4 @@ public interface ReadOnlyInodeStore extends Closeable {
    */
   @VisibleForTesting
   Set<MutableInode<?>> allInodes();
-
-  @Override
-  default void close() {
-    // Do nothing by default.
-  }
 }

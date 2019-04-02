@@ -13,7 +13,7 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.journal.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;

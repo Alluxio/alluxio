@@ -204,10 +204,10 @@ public class InodeTree implements DelegatingJournaled {
   public InodeTree(InodeStore inodeStore, ContainerIdGenerable containerIdGenerator,
       InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable,
       InodeLockManager lockManager) {
-    mTtlBuckets = new TtlBucketList();
+    mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
+    mTtlBuckets = new TtlBucketList(mInodeStore);
     mInodeLockManager = lockManager;
     mState = new InodeTreePersistentState(inodeStore, mInodeLockManager, mTtlBuckets);
-    mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = directoryIdGenerator;
     mMountTable = mountTable;

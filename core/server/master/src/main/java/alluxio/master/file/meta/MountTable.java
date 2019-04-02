@@ -21,7 +21,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.journal.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
