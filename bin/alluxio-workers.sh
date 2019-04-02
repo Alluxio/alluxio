@@ -59,4 +59,6 @@ done
 # only show the log when all tasks run OK!
 if [[ ${has_error} -eq 0 ]]; then
     echo "All tasks finished"
+else
+    echo "There are task failures, look at ${ALLUXIO_TASK_LOG} for details."
 fi
