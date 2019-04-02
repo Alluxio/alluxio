@@ -44,6 +44,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -343,7 +344,9 @@ public final class AlluxioBlockStore {
         break;
       }
       workerAddressList.add(address);
-      workerOptions.getBlockWorkerInfos().removeAll(blockWorkersByHost.get(address.getHost()));
+      List<BlockWorkerInfo> updatedInfos = Lists.newArrayList(workerOptions.getBlockWorkerInfos());
+      updatedInfos.removeAll(blockWorkersByHost.get(address.getHost()));
+      workerOptions.setBlockWorkerInfos(updatedInfos);
     }
     if (workerAddressList.size() < initialReplicas) {
       throw new alluxio.exception.status.ResourceExhaustedException(String.format(

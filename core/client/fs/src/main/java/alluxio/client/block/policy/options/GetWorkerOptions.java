@@ -53,7 +53,7 @@ public final class GetWorkerOptions {
   /**
    * @return the list of block worker infos
    */
-  public List<BlockWorkerInfo> getBlockWorkerInfos() {
+  public Iterable<BlockWorkerInfo> getBlockWorkerInfos() {
     return mBlockWorkerInfos;
   }
 

@@ -22,9 +22,9 @@ import com.google.common.collect.Lists;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -60,9 +60,10 @@ public final class RoundRobinPolicy implements BlockLocationPolicy {
   @Override
   @Nullable
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
-    Set<WorkerNetAddress> eligibleAddresses =
-        options.getBlockWorkerInfos().stream().map(BlockWorkerInfo::getNetAddress)
-            .collect(Collectors.toSet());
+    Set<WorkerNetAddress> eligibleAddresses = new HashSet<>();
+    for (BlockWorkerInfo info : options.getBlockWorkerInfos()) {
+      eligibleAddresses.add(info.getNetAddress());
+    }
 
     WorkerNetAddress address = mBlockLocationCache.get(options.getBlockInfo().getBlockId());
     if (address != null && eligibleAddresses.contains(address)) {
