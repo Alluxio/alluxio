@@ -9,10 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.journal.checkpoint;
 
 import alluxio.RuntimeConstants;
-import alluxio.master.CheckpointType;
 
 import java.io.DataInputStream;
 import java.io.EOFException;

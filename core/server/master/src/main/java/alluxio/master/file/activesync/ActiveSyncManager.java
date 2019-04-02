@@ -23,7 +23,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
-import alluxio.master.journal.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File;

@@ -9,10 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal;
+package alluxio.master.journal.checkpoint;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -39,5 +38,5 @@ public interface Checkpointed {
    *
    * @param input an input stream with checkpoint data
    */
-  void restoreFromCheckpoint(InputStream input) throws IOException;
+  void restoreFromCheckpoint(CheckpointInputStream input) throws IOException;
 }
