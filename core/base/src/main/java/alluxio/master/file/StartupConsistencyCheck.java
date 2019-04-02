@@ -66,7 +66,7 @@ public final class StartupConsistencyCheck {
    * @return a result set to the running status
    */
   public static StartupConsistencyCheck running() {
-    return new StartupConsistencyCheck(Status.RUNNING, new ArrayList<AlluxioURI>());
+    return new StartupConsistencyCheck(Status.RUNNING, new ArrayList<>());
   }
 
   private final Status mStatus;
