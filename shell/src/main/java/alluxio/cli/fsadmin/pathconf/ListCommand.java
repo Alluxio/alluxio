@@ -49,7 +49,7 @@ public final class ListCommand extends AbstractFsAdminCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     Configuration conf = mMetaConfigClient.getConfiguration();
     for (String path : conf.getPathConf().keySet()) {
-      mPrintStream.print(path);
+      mPrintStream.println(path);
     }
     mPrintStream.close();
     return 0;
