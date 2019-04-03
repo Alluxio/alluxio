@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.cli.Format;
@@ -81,7 +82,7 @@ public abstract class AbstractLocalAlluxioCluster {
     startMasters();
     startWorkers();
     startProxy();
-
+    waitForMasterServing(60 * Constants.SECOND_MS);
     // Reset contexts so that they pick up the updated configuration.
     reset();
   }

@@ -80,7 +80,7 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, PathUtils.concatPath(workDirectory, "journal"));
     conf.put(PropertyKey.MASTER_METASTORE_DIR, PathUtils.concatPath(workDirectory, "metastore"));
 
-    conf.put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1MB");
+    conf.put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1KB");
     conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
     conf.put(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64");
     conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
@@ -105,12 +105,12 @@ public final class ConfigurationTestUtils {
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
-    conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+    //conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
     conf.put(PropertyKey.WEB_THREADS, "1");
     conf.put(PropertyKey.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../alluxio-ui"));
-    conf.put(PropertyKey.WORKER_MEMORY_SIZE, "300MB");
+    conf.put(PropertyKey.WORKER_MEMORY_SIZE, "100MB");
     conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
     conf.put(PropertyKey.WORKER_BLOCK_THREADS_MIN, "1");
     conf.put(PropertyKey.WORKER_BLOCK_THREADS_MAX, "2048");

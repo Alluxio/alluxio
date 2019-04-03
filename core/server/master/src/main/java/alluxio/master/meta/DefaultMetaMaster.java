@@ -39,7 +39,6 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientContext;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.journal.JournalType;
 import alluxio.master.journal.NoopJournaled;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
@@ -230,11 +229,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
         mDailyBackup.start();
       }
     } else {
-      boolean haEnabled = ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
-          || (ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_TYPE)
-          .equals(JournalType.EMBEDDED.toString())
-          && ConfigurationUtils.getEmbeddedJournalAddresses(ServerConfiguration.global(),
-          NetworkAddressUtils.ServiceType.MASTER_RAFT).size() > 1);
+      boolean haEnabled = ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
       if (haEnabled) {
         // Standby master should setup MetaMasterSync to communicate with the leader master
         RetryHandlingMetaMasterMasterClient metaMasterClient =

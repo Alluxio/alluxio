@@ -507,7 +507,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
           if (worker != null) {
             synchronized (worker) {
               worker.updateToRemovedBlock(true, blockId);
-              LOG.info("Adding block id {} to removed block on master side", blockId);
             }
           }
         }
@@ -878,9 +877,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @GuardedBy("workerInfo")
   private void processWorkerRemovedBlocks(MasterWorkerInfo workerInfo,
       Collection<Long> removedBlockIds) {
-    if (removedBlockIds.size() > 0) {
-      LOG.info("processing worker removed blocks of " + Arrays.toString(removedBlockIds.toArray()));
-    }
     for (long removedBlockId : removedBlockIds) {
       try (LockResource lr = lockBlock(removedBlockId)) {
         Optional<BlockMeta> block = mBlockStore.getBlock(removedBlockId);

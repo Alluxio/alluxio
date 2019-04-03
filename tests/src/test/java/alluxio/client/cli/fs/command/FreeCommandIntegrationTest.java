@@ -94,7 +94,6 @@ public final class FreeCommandIntegrationTest extends AbstractFileSystemShellTes
     String testDir =
         FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem, WritePType.CACHE_THROUGH);
     mFsShell.run("pin", testDir + "/foo/foobar1");
-    mFsShell.run("free", "-f", testDir + "/foo/*");
     assertEquals(0, mFsShell.run("free", "-f", testDir + "/foo/*"));
     assertFalse(isInMemoryTest(testDir + "/foo/foobar1"));
     assertFalse(isInMemoryTest(testDir + "/foo/foobar2"));

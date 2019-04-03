@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ConnectionFailedException;
@@ -66,7 +65,6 @@ public final class LocalAlluxioJobCluster {
     updateTestConf();
     startMaster();
     TestUtils.waitForReady(mMaster);
-    waitForMasterServing(60 * Constants.SECOND_MS);
     startWorker();
     TestUtils.waitForReady(mWorker);
   }
