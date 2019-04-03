@@ -435,7 +435,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void isMounted() throws Exception {
+  public void isMounted() {
     String s3Uri = "s3a://test/dir_1/dir-2";
     String hdfsUri = "hdfs://test";
 
