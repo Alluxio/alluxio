@@ -846,14 +846,10 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @VisibleForTesting
   boolean isMounted(String ufs) {
-    if (ufs.endsWith("/")) {
-      ufs = ufs.substring(0, ufs.length() - 1);
-    }
+    ufs = PathUtils.normalizePath(ufs, AlluxioURI.SEPARATOR);
     for (Map.Entry<String, MountPointInfo> entry : mFileSystemMaster.getMountTable().entrySet()) {
       String escaped = MetricsSystem.escape(new AlluxioURI(entry.getValue().getUfsUri()));
-      if (escaped.endsWith("/")) {
-        escaped = escaped.substring(0, escaped.length() - 1);
-      }
+      escaped = PathUtils.normalizePath(escaped, AlluxioURI.SEPARATOR);
       if (escaped.equals(ufs)) {
         return true;
       }
