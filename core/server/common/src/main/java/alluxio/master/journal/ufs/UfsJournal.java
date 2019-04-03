@@ -150,7 +150,8 @@ public class UfsJournal implements Journal {
     mCheckpointDir = URIUtils.appendPathOrDie(mLocation, CHECKPOINT_DIRNAME);
     mTmpDir = URIUtils.appendPathOrDie(mLocation, TMP_DIRNAME);
     mState = State.SECONDARY;
-    mTolerantCorruption = ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION);
+    mTolerantCorruption = ServerConfiguration
+        .getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION);
   }
 
   @Override
