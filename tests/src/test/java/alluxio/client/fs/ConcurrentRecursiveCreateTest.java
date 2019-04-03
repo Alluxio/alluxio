@@ -68,7 +68,7 @@ public class ConcurrentRecursiveCreateTest extends BaseIntegrationTest {
     CommonUtils.sleepMs(2 * Constants.SECOND_MS);
     executor.shutdownNow();
     assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
-    
+
     mClusterResource.get().restartMasters();
     fs = mClusterResource.get().getClient();
     fs.listStatus(new AlluxioURI("/"));
