@@ -915,52 +915,7 @@ private static final long serialVersionUID = 0L;
         leaderMasterAddress_ = other.leaderMasterAddress_;
         onChanged();
       }
-      if (masterAddressesBuilder_ == null) {
-        if (!other.masterAddresses_.isEmpty()) {
-          if (masterAddresses_.isEmpty()) {
-            masterAddresses_ = other.masterAddresses_;
-            bitField0_ = (bitField0_ & ~0x00000002);
-          } else {
-            ensureMasterAddressesIsMutable();
-            masterAddresses_.addAll(other.masterAddresses_);
-          }
-          onChanged();
-        }
-      } else {
-        if (!other.masterAddresses_.isEmpty()) {
-          if (masterAddressesBuilder_.isEmpty()) {
-            masterAddressesBuilder_.dispose();
-            masterAddressesBuilder_ = null;
-            masterAddresses_ = other.masterAddresses_;
-            bitField0_ = (bitField0_ & ~0x00000002);
-            masterAddressesBuilder_ = 
-              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getMasterAddressesFieldBuilder() : null;
-          } else {
-            masterAddressesBuilder_.addAllMessages(other.masterAddresses_);
-          }
-        }
-      }
-      if (other.hasRpcPort()) {
-        setRpcPort(other.getRpcPort());
-      }
-      if (other.hasSafeMode()) {
-        setSafeMode(other.getSafeMode());
-      }
-      if (other.hasStartTimeMs()) {
-        setStartTimeMs(other.getStartTimeMs());
-      }
-      if (other.hasUpTimeMs()) {
-        setUpTimeMs(other.getUpTimeMs());
-      }
-      if (other.hasVersion()) {
-        bitField0_ |= 0x00000040;
-        version_ = other.version_;
-        onChanged();
-      }
-      if (other.hasWebPort()) {
-        setWebPort(other.getWebPort());
-      }
+      updateMasterInfo(other);
       if (workerAddressesBuilder_ == null) {
         if (!other.workerAddresses_.isEmpty()) {
           if (workerAddresses_.isEmpty()) {
@@ -1000,6 +955,55 @@ private static final long serialVersionUID = 0L;
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
+    }
+
+    private void updateMasterInfo(alluxio.grpc.MasterInfo other) {
+      if (masterAddressesBuilder_ == null) {
+        if (!other.masterAddresses_.isEmpty()) {
+          if (masterAddresses_.isEmpty()) {
+            masterAddresses_ = other.masterAddresses_;
+            bitField0_ = (bitField0_ & ~0x00000002);
+          } else {
+            ensureMasterAddressesIsMutable();
+            masterAddresses_.addAll(other.masterAddresses_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.masterAddresses_.isEmpty()) {
+          if (masterAddressesBuilder_.isEmpty()) {
+            masterAddressesBuilder_.dispose();
+            masterAddressesBuilder_ = null;
+            masterAddresses_ = other.masterAddresses_;
+            bitField0_ = (bitField0_ & ~0x00000002);
+            masterAddressesBuilder_ =
+                    com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                            getMasterAddressesFieldBuilder() : null;
+          } else {
+            masterAddressesBuilder_.addAllMessages(other.masterAddresses_);
+          }
+        }
+      }
+      if (other.hasRpcPort()) {
+        setRpcPort(other.getRpcPort());
+      }
+      if (other.hasSafeMode()) {
+        setSafeMode(other.getSafeMode());
+      }
+      if (other.hasStartTimeMs()) {
+        setStartTimeMs(other.getStartTimeMs());
+      }
+      if (other.hasUpTimeMs()) {
+        setUpTimeMs(other.getUpTimeMs());
+      }
+      if (other.hasVersion()) {
+        bitField0_ |= 0x00000040;
+        version_ = other.version_;
+        onChanged();
+      }
+      if (other.hasWebPort()) {
+        setWebPort(other.getWebPort());
+      }
     }
 
     public final boolean isInitialized() {
