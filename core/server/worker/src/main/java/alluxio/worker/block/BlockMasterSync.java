@@ -127,8 +127,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         metrics.add(metric.toProto());
       } catch (NullPointerException e) {
         if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-          // Skip adding metrics since process type
-          // in tests using LocalAlluxioCluster is not correct
+          // Skip adding metrics since process type in tests
+          // using LocalAlluxioCluster may not be correct
           break;
         } else {
           throw e;
