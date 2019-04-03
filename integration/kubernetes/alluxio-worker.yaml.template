@@ -9,11 +9,14 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: alluxio-worker
 spec:
+  selector:
+    matchLabels:
+      name: alluxio-worker
   template:
     metadata:
       labels:
@@ -25,7 +28,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: alluxio-worker
-          image: alluxio/alluxio:1.6.1
+          image: alluxio/alluxio:latest
           resources:
             requests:
               cpu: "0.5"
