@@ -839,6 +839,10 @@ public final class AlluxioMasterRestServiceHandler {
     }, ServerConfiguration.global());
   }
 
+  /**
+   * @param ufs the ufs uri encoded by {@link MetricsSystem#escape(AlluxioURI)}
+   * @return whether the ufs uri is a mount point
+   */
   private boolean isMounted(String ufs) {
     for (Map.Entry<String, MountPointInfo> entry : mFileSystemMaster.getMountTable().entrySet()) {
       if (MetricsSystem.escape(new AlluxioURI(entry.getValue().getUfsUri())).equals(ufs)) {
