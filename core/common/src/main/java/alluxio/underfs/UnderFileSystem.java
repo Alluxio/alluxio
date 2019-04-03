@@ -280,7 +280,7 @@ public interface UnderFileSystem extends Closeable {
    * Deletes a directory from the under file system.
    *
    * Similar to {@link #deleteDirectory(String)} but
-   * deals with the write-then-delete eventual consistency issue.
+   * deals with the create-delete eventual consistency issue.
    *
    * @param path of the directory to delete
    * @return true if directory was found and deleted, false otherwise
@@ -291,7 +291,7 @@ public interface UnderFileSystem extends Closeable {
    * Deletes a directory from the under file system with the indicated name.
    *
    * Similar to {@link #deleteDirectory(String, DeleteOptions)} but
-   * deals with the write-then-delete eventual consistency issue.
+   * deals with the create-then-delete eventual consistency issue.
    *
    * @param path of the directory to delete
    * @param options for directory delete semantics
@@ -311,7 +311,7 @@ public interface UnderFileSystem extends Closeable {
    * Deletes a file from the under file system with the indicated name.
    *
    * Similar to {@link #deleteFile(String)} but
-   * deals with the write-then-delete eventual consistency issue.
+   * deals with the create-then-delete eventual consistency issue.
    *
    * @param path of the file to delete
    * @return true if file was found and deleted, false otherwise
@@ -596,7 +596,7 @@ public interface UnderFileSystem extends Closeable {
   /**
    * Opens an {@link InputStream} for a file in under filesystem at the indicated path.
    *
-   * Similar to {@link #open(String)} but
+   * Similar to {@link #open(fString)} but
    * deals with the write-then-read eventual consistency issue.
    *
    * @param path the file name
