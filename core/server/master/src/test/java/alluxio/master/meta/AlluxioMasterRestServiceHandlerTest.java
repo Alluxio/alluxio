@@ -22,10 +22,11 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
+import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.RuntimeConstants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.master.AlluxioMasterProcess;
@@ -35,7 +36,6 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.MasterMetrics;
@@ -45,6 +45,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.web.MasterWebServer;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -122,7 +123,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     registerMockUfs();
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
-    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
+    mFileSystemMaster = mock(FileSystemMaster.class);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(mMasterProcess.getMaster(FileSystemMaster.class)).thenReturn(mFileSystemMaster);
@@ -430,5 +431,20 @@ public final class AlluxioMasterRestServiceHandlerTest {
     } finally {
       response.close();
     }
+  }
+
+  @Test
+  public void isMounted() throws Exception {
+    String s3Uri = "s3a://test/dir_1/dir-2";
+    String hdfsUri = "hdfs://test";
+
+    Map<String, MountPointInfo> mountTable = new HashMap<>();
+    mountTable.put("/s3", new MountPointInfo().setUfsUri(s3Uri));
+    when(mFileSystemMaster.getMountTable()).thenReturn(mountTable);
+
+    assertFalse(mHandler.isMounted(s3Uri));
+    assertTrue(mHandler.isMounted(MetricsSystem.escape(new AlluxioURI(s3Uri))));
+    assertFalse(mHandler.isMounted(hdfsUri));
+    assertFalse(mHandler.isMounted(MetricsSystem.escape(new AlluxioURI(hdfsUri))));
   }
 }

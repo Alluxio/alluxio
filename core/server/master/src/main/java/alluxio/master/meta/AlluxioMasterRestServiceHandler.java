@@ -83,6 +83,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.qmino.miredot.annotations.ReturnType;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -843,7 +844,8 @@ public final class AlluxioMasterRestServiceHandler {
    * @param ufs the ufs uri encoded by {@link MetricsSystem#escape(AlluxioURI)}
    * @return whether the ufs uri is a mount point
    */
-  private boolean isMounted(String ufs) {
+  @VisibleForTesting
+  public boolean isMounted(String ufs) {
     for (Map.Entry<String, MountPointInfo> entry : mFileSystemMaster.getMountTable().entrySet()) {
       if (MetricsSystem.escape(new AlluxioURI(entry.getValue().getUfsUri())).equals(ufs)) {
         return true;
