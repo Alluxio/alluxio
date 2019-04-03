@@ -36,6 +36,7 @@ import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.MasterMetrics;
@@ -123,7 +124,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     registerMockUfs();
     mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
-    mFileSystemMaster = mock(FileSystemMaster.class);
+    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(mMasterProcess.getMaster(FileSystemMaster.class)).thenReturn(mFileSystemMaster);
@@ -440,11 +441,14 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
     Map<String, MountPointInfo> mountTable = new HashMap<>();
     mountTable.put("/s3", new MountPointInfo().setUfsUri(s3Uri));
-    when(mFileSystemMaster.getMountTable()).thenReturn(mountTable);
+    FileSystemMaster mockMaster = mock(FileSystemMaster.class);
+    when(mockMaster.getMountTable()).thenReturn(mountTable);
 
-    assertFalse(mHandler.isMounted(s3Uri));
-    assertTrue(mHandler.isMounted(MetricsSystem.escape(new AlluxioURI(s3Uri))));
-    assertFalse(mHandler.isMounted(hdfsUri));
-    assertFalse(mHandler.isMounted(MetricsSystem.escape(new AlluxioURI(hdfsUri))));
+    assertFalse(AlluxioMasterRestServiceHandler.isMounted(mockMaster, s3Uri));
+    assertTrue(AlluxioMasterRestServiceHandler.isMounted(mockMaster,
+        MetricsSystem.escape(new AlluxioURI(s3Uri))));
+    assertFalse(AlluxioMasterRestServiceHandler.isMounted(mockMaster, hdfsUri));
+    assertFalse(AlluxioMasterRestServiceHandler.isMounted(mockMaster,
+        MetricsSystem.escape(new AlluxioURI(hdfsUri))));
   }
 }
