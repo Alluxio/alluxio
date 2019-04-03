@@ -847,8 +847,15 @@ public final class AlluxioMasterRestServiceHandler {
    */
   @VisibleForTesting
   static boolean isMounted(FileSystemMaster master, String ufs) {
+    if (ufs.endsWith("/")) {
+      ufs = ufs.substring(0, ufs.length() - 1);
+    }
     for (Map.Entry<String, MountPointInfo> entry : master.getMountTable().entrySet()) {
-      if (MetricsSystem.escape(new AlluxioURI(entry.getValue().getUfsUri())).equals(ufs)) {
+      String escaped = MetricsSystem.escape(new AlluxioURI(entry.getValue().getUfsUri()));
+      if (escaped.endsWith("/")) {
+        escaped = escaped.substring(0, escaped.length() - 1);
+      }
+      if (escaped.equals(ufs)) {
         return true;
       }
     }

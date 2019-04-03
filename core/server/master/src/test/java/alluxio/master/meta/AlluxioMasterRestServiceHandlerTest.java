@@ -447,6 +447,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
     assertFalse(AlluxioMasterRestServiceHandler.isMounted(mockMaster, s3Uri));
     assertTrue(AlluxioMasterRestServiceHandler.isMounted(mockMaster,
         MetricsSystem.escape(new AlluxioURI(s3Uri))));
+    assertTrue(AlluxioMasterRestServiceHandler.isMounted(mockMaster,
+        MetricsSystem.escape(new AlluxioURI(s3Uri + "/"))));
     assertFalse(AlluxioMasterRestServiceHandler.isMounted(mockMaster, hdfsUri));
     assertFalse(AlluxioMasterRestServiceHandler.isMounted(mockMaster,
         MetricsSystem.escape(new AlluxioURI(hdfsUri))));
