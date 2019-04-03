@@ -58,7 +58,7 @@ alluxio.underfs.hdfs.prefixes=hdfs://,maprfs:///
 有多种方式配置Alluxio以使用MapR-FS作为底层文件系统。如果你需要将MapR-FS挂载到Alluxio的根目录，添加以下配置项到`conf/alluxio-site.properties`属性文件中：
 
 ```
-alluxio.underfs.address=maprfs:///<path in MapR-FS>/
+alluxio.master.mount.table.root.ufs=maprfs:///<path in MapR-FS>/
 ```
 
 也可以将MapR-FS中的某个目录挂载到Alluxio命名空间中：

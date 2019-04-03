@@ -29,6 +29,7 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
@@ -478,7 +479,8 @@ public final class ConfigurationUtils {
     List<alluxio.grpc.ConfigProperty> clusterConfig;
 
     try {
-      channel = GrpcChannelBuilder.newBuilder(address, conf).disableAuthentication().build();
+      channel = GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf)
+          .disableAuthentication().build();
       MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
           MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
       clusterConfig =

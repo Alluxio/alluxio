@@ -123,7 +123,7 @@ alluxio.master.mount.table.root.readonly:
 alluxio.master.mount.table.root.shared:
   'Whether Alluxio root mount point is shared.'
 alluxio.master.mount.table.root.ufs:
-  'The UFS mounted to Alluxio root mount point.'
+  'The storage address of the UFS at the Alluxio root mount point.'
 alluxio.master.periodic.block.integrity.check.interval:
   'The period for the block integrity check, disabled if <= 0.'
 alluxio.master.periodic.block.integrity.check.repair:

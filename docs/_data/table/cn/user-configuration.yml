@@ -48,7 +48,7 @@ alluxio.user.file.worker.client.threads:
   文件worker client从worker读取数据时使用的线程数目。
 alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes:
   当用户选择LocalFirstAvoidEvictionPolicy作为写文件数据块的定位机制时,用户需要配置worker预留一些数据量来保证数据的存储，默认是0MB。
-alluxio.user.file.write.location.policy.class:
+alluxio.user.block.write.location.policy.class:
   选择worker进行写文件数据块时的默认定位机制。
 alluxio.user.file.write.tier.default:
   数据块写入的默认存储层。可选值为整型数值。非负值代表从高层到底层的存储层（0代表第一层存储层，１代表第二层存储层，以此类推）。如果给定值大于存储层数量,这个数字代表最底层的存储层。负值代表从底层到高层的存储层（-1代表最底层存储层，-2代表次底层存储层，以此类推）如果给定值的绝对值大于存储层数量，这个数字代表最高层存储层。
@@ -99,7 +99,7 @@ alluxio.user.ufs.block.read.concurrency.max:
   一个Block Worker上的一个UFS块并发访问的最大个数。
 alluxio.user.ufs.block.read.location.policy:
   当Alluxio client从UFS读取文件时，它将读取委托给Alluxio worker。client使用此策略来选择要阅读哪个worker。
-  内置选择有：[<a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.file.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstPolicy.html">alluxio.client.file.policy.LocalFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/MostAvailableFirstPolicy.html">alluxio.client.file.policy.MostAvailableFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/RoundRobinPolicy.html">alluxio.client.file.policy.RoundRobinPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/SpecificHostPolicy.html">alluxio.client.file.policy.SpecificHostPolicy</a>]
+  内置选择有：[<a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstPolicy.html">alluxio.client.block.policy.LocalFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/MostAvailableFirstPolicy.html">alluxio.client.block.policy.MostAvailableFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/RoundRobinPolicy.html">alluxio.client.block.policy.RoundRobinPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/SpecificHostPolicy.html">alluxio.client.block.policy.SpecificHostPolicy</a>]
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
   当alluxio.user.ufs.block.read.location.policy设为alluxio.client.block.policy.DeterministicHashPolicy，这设定了hash shards的数量。
 alluxio.user.ufs.delegation.read.buffer.size.bytes:

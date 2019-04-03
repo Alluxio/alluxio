@@ -19,7 +19,6 @@ import static org.junit.Assume.assumeTrue;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.TieredIdentityUtils;
@@ -54,7 +53,6 @@ public class TieredIdentityTest {
     TieredIdentity id3 = TieredIdentityFactory.fromString("node=C,rack=rack2", mConfiguration);
     List<TieredIdentity> identities = Arrays.asList(id1, id2, id3);
 
-    boolean resolveIp = mConfiguration.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP);
     assertSame(id1, TieredIdentityUtils
         .nearest(TieredIdentityFactory.fromString("node=D,rack=rack1", mConfiguration), identities,
             mConfiguration).get());

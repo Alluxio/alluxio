@@ -45,6 +45,7 @@ public class PortCoordination {
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_NODES = allocate(2, 2);
   public static final List<ReservedPort> CONFIG_CHECKER_UNSET_VS_SET = allocate(2, 0);
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_MASTERS = allocate(2, 0);
+  public static final List<ReservedPort> CONFIG_CHECKER_MULTI_MASTERS_EMBEDDED_HA = allocate(2, 0);
 
   public static final List<ReservedPort> MULTI_PROCESS_SIMPLE_CLUSTER = allocate(1, 1);
   public static final List<ReservedPort> MULTI_PROCESS_ZOOKEEPER = allocate(3, 2);
@@ -56,6 +57,8 @@ public class PortCoordination {
   public static final List<ReservedPort> BACKUP_RESTORE_SINGLE = allocate(1, 1);
 
   public static final List<ReservedPort> ZOOKEEPER_FAILURE = allocate(1, 1);
+
+  public static final List<ReservedPort> CHECKPOINT = allocate(2, 0);
 
   public static final List<ReservedPort> BACKWARDS_COMPATIBILITY = allocate(1, 1);
 

@@ -15,9 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.master.CheckpointType;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader.State;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalReader;
 import alluxio.master.journal.ufs.UfsJournalSystem;
@@ -138,7 +139,7 @@ public final class JournalTool {
         State state = reader.advance();
         switch (state) {
           case CHECKPOINT:
-            CheckpointInputStream checkpoint = new CheckpointInputStream(reader.getCheckpoint());
+            CheckpointInputStream checkpoint = reader.getCheckpoint();
             System.out.printf("Checkpoint type %s, endId: %s%n", checkpoint.getType(),
                 reader.getNextSequenceNumber());
             if (checkpoint.getType() == CheckpointType.JOURNAL_ENTRY) {

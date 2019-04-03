@@ -207,7 +207,7 @@ public final class GrpcUtils {
    * @return wire representation of the file information
    */
   public static FileInfo fromProto(alluxio.grpc.FileInfo pInfo) {
-    return new FileInfo().setFileId(pInfo.getFileId()).setName(pInfo.getName())
+    FileInfo fileInfo = new FileInfo().setFileId(pInfo.getFileId()).setName(pInfo.getName())
         .setPath(pInfo.getPath()).setUfsPath(pInfo.getUfsPath()).setLength(pInfo.getLength())
         .setBlockSizeBytes(pInfo.getBlockSizeBytes()).setCreationTimeMs(pInfo.getCreationTimeMs())
         .setCompleted(pInfo.getCompleted()).setFolder(pInfo.getFolder())
@@ -227,6 +227,7 @@ public final class GrpcUtils {
             pInfo.hasDefaultAcl() ? ((DefaultAccessControlList) fromProto(pInfo.getDefaultAcl()))
                 : DefaultAccessControlList.EMPTY_DEFAULT_ACL)
         .setReplicationMax(pInfo.getReplicationMax()).setReplicationMin(pInfo.getReplicationMin());
+    return fileInfo;
   }
 
   /**

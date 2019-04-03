@@ -14,11 +14,11 @@ package alluxio.server.auth;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.master.MasterClientContext;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.exception.status.UnavailableException;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.testutils.BaseIntegrationTest;
@@ -98,7 +98,7 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
       LoginUserTestUtils.resetLoginUser("no-alluxio");
-      mThrown.expect(UnavailableException.class);
+      mThrown.expect(UnauthenticatedException.class);
       masterClient.connect();
     }
   }

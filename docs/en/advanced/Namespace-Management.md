@@ -25,8 +25,8 @@ systems.
 
 ![unified]({{ '/img/screenshot_unified.png' | relativize_url }})
 
-The directory specified by the `alluxio.underfs.address` is mounted to the root of the Alluxio
-namespace. This directory identifies the "primary storage" for Alluxio.
+The directory specified by the `alluxio.master.mount.table.root.ufs` is mounted to the root of the
+Alluxio namespace. This directory identifies the "primary storage" for Alluxio.
 In addition, users can use the mounting API to add and remove data sources:
 
 ```java
@@ -81,7 +81,7 @@ The root mount point of the Alluxio namespace can be specified in `conf/alluxio-
 The following line is an example configuration where a HDFS path is at the root of the Alluxio namespace.
 
 ```
-alluxio.underfs.address=hdfs://HDFS_HOSTNAME:8020
+alluxio.master.mount.table.root.ufs=hdfs://HDFS_HOSTNAME:8020
 ```
 
 Mount options for the root mount point can be configured using the configuration prefix:
@@ -285,6 +285,55 @@ Unmounted /demo
 ls /tmp/alluxio-demo
 hello
 ```
+
+### Metadata Active Sync for HDFS
+In version 2.0, we introduced a new feature for maintaining synchronization between Alluxio space and the UFS when the UFS is HDFS.
+The feature, called active sync, listens for HDFS events and periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on the master.
+
+To enable active sync on a directory, issue the following Alluxio command.
+
+```bash
+$ bin/alluxio fs mkdir /syncdir
+$ bin/alluxio fs startSync /syncdir
+```
+
+You can control the active sync interval by changing the `alluxio.master.activesync.interval` option, the default is 30 seconds.
+
+To disable active sync on a directory, issue the following Alluxio command.
+
+```bash
+$ bin/alluxio fs stopSync /syncdir
+```
+
+You can also examine which directories are currently under active sync.
+
+```bash
+$ bin/alluxio fs getSyncPathList
+```
+
+#### Quiet period for Active Sync
+
+Active sync also tries to avoid syncing when the target directory is heavily used.
+It tries to look for a quiet period in UFS activity to start syncing between the UFS and the Alluxio space, to avoid overloading the UFS when it is busy.
+There are two configuration options that control this behavior.
+
+`alluxio.master.activesync.maxactivity` is the maximum number of activities in the UFS directory. 
+Activity is a heuristic based on the exponential moving average of number of events in a directory.
+For example, if a directory had 100, 10, 1 event in the past three intervals. 
+Its activity would be `100/10*10 + 10/10 + 1 = 3` 
+`alluxio.master.activesync.maxage` is the maximum number of intervals we will wait before synchronizing the UFS and the Alluxio space.
+
+The system guarantees that we will start syncing a directory if it is "quiet", or it has not been synced for a long period (period longer than the max age).
+
+For example, the following setting 
+
+```
+alluxio.master.activesync.interval=30secs
+alluxio.master.activesync.maxactivity=100
+alluxio.master.activesync.maxage=5
+```
+
+means that every 30 seconds, the system will count the number of events in the directory and calculate its activity. If the activity is less than 100, it will be considered a quiet period, and syncing will start for that directory. If the activity is greater than 100, and it has not synced for the last 5 intervals, or 5 * 30 = 150 seconds, it will start syncing the directory. It will not perform active sync if the activity is greater than 100 and it has synced at least once in the last 5 intervals.
 
 ### Unified Namespace
 

@@ -8,7 +8,6 @@
 <!--[if gt IE 8]><!-->
 <html class="no-js">
 <!--<![endif]-->
-{% include base.html %}
 
 <head>
   <meta charset="utf-8">
@@ -17,11 +16,11 @@
   <title>{{ page.title }} - Alluxio {{site.ALLUXIO_MASTER_VERSION_SHORT}} Documentation</title>
   <meta name="description" content="">
 
-  <link rel="stylesheet" href="{{base}}/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{{site.baseurl}}/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
     crossorigin="anonymous">
-  <link rel="stylesheet" href="{{base}}/css/main.css">
-  <link rel="stylesheet" href="{{base}}/css/pygments-default.css">
+  <link rel="stylesheet" href="{{site.baseurl}}/css/pygments-default.css">
+  <link rel="stylesheet" href="{{site.baseurl}}/css/main.css">
 
   <script>
     (function (i, s, o, g, r, a, m) {
@@ -49,7 +48,7 @@
         <a href="/">
           <div class="brand" style="display:table;">
             <div style="position:relative;display:table-cell;vertical-align:middle;">
-              <img src="{{base}}/img/logo-white.png" alt="Alluxio Logo" style="height:34px;" />
+              <img src="{{site.baseurl}}/img/logo-white.png" alt="Alluxio Logo" style="height:34px;" />
               <div style="position:absolute;right:0;top:32px;text-shadow:none;">
                 <span class="navbar-brand mb-0 version">{{site.ALLUXIO_MASTER_VERSION_SHORT}}</span>
               </div>
@@ -103,6 +102,20 @@
               </div>
             </div>
             {% endfor %}
+            <!-- Generate the language selector at the top of the navigation bar -->
+            {% assign multiLanguagePages = site.pages | where:'name',page.name | sort:'languagePriority' %}
+            <li class="nav-item">
+              <div class="dropdown">
+                  <button class="btn dropdown-toggle active" type="button" id="LANGUAGE" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{page.languageName}}
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="LANGUAGE">
+                    {% for singleLanguage in multiLanguagePages %}
+                      <a href="{{site.baseurl}}{{singleLanguage.url}}" class="dropdown-item">{{singleLanguage.languageName}}</a>
+                    {% endfor %}    
+                  </div>
+              </div>
+            </li>
         </ul>
       </div>
       </div>
@@ -122,10 +135,10 @@
   </div>
   <!-- /container -->
 
-  <script src="{{base}}/js/vendor/jquery-3.3.1.min.js"></script>
-  <script src="{{base}}/js/vendor/popper.min.js"></script>
-  <script src="{{base}}/js/vendor/bootstrap.min.js"></script>
-  <script src="{{base}}/js/main.js"></script>
+  <script src="{{site.baseurl}}/js/vendor/jquery-3.3.1.min.js"></script>
+  <script src="{{site.baseurl}}/js/vendor/popper.min.js"></script>
+  <script src="{{site.baseurl}}/js/vendor/bootstrap.min.js"></script>
+  <script src="{{site.baseurl}}/js/main.js"></script>
 
 </body>
 

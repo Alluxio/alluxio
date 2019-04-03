@@ -27,8 +27,8 @@ To run in standalone mode, do the following:
 * Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost` (i.e.,
 `alluxio.master.hostname=localhost`).
 
-* Set `alluxio.underfs.address` in `conf/alluxio-site.properties` to a tmp directory in the local
-  filesystem (e.g., `alluxio.underfs.address=/tmp`).
+* Set `alluxio.master.mount.table.root.ufs` in `conf/alluxio-site.properties` to a tmp directory in the local
+  filesystem (e.g., `alluxio.master.mount.table.root.ufs=/tmp`).
 
 * Turn on remote login service so that `ssh localhost` can succeed. To avoid the need to
 repeatedly input the password, you can add the public SSH key for the host into
