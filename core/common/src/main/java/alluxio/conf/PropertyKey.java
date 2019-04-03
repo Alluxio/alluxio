@@ -1376,10 +1376,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_JOURNAL_SLIENT_CATCHUP =
-      new Builder(Name.MASTER_JOURNAL_SLIENT_CATCHUP)
+  public static final PropertyKey MASTER_JOURNAL_TOLERATE_CORRUPTION =
+      new Builder(Name.MASTER_JOURNAL_TOLERATE_CORRUPTION)
           .setDefaultValue(false)
-          .setDescription("Whether to disable exceptions thrown in journal catchup.")
+          .setDescription("Whether to tolerate master state corruption."
+              + "If enabled, exceptions from journal replaying when master gain leadership "
+              + "will be caught and logged. Master state is not guaranteed to be safe and up-to-date."
+              + "This property should be used sparingly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -3763,8 +3766,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
     public static final String MASTER_JOURNAL_INIT_FROM_BACKUP =
         "alluxio.master.journal.init.from.backup";
-    public static final String MASTER_JOURNAL_SLIENT_CATCHUP
-        = "alluxio.master.journal.slient.catchup";
+    public static final String MASTER_JOURNAL_TOLERATE_CORRUPTION
+        = "alluxio.master.journal.tolerate.corruption";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_FORMATTER_CLASS =
         "alluxio.master.journal.formatter.class";
