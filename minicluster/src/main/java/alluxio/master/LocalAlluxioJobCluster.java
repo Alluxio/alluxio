@@ -172,7 +172,6 @@ public final class LocalAlluxioJobCluster {
    * @throws ConnectionFailedException if network connection failed
    */
   private void startMaster() throws IOException, ConnectionFailedException {
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.JOB_MASTER);
     mMaster = AlluxioJobMasterProcess.Factory.create();
 
     ServerConfiguration
@@ -198,7 +197,6 @@ public final class LocalAlluxioJobCluster {
    * @throws ConnectionFailedException if network connection failed
    */
   private void startWorker() throws IOException, ConnectionFailedException {
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.JOB_WORKER);
     mWorker = JobWorkerProcess.Factory.create();
     Runnable runWorker = new Runnable() {
       @Override

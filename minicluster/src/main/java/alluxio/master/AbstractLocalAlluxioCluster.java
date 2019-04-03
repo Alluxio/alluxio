@@ -23,7 +23,6 @@ import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -104,7 +103,6 @@ public abstract class AbstractLocalAlluxioCluster {
    * Configures and starts the proxy.
    */
   private void startProxy() throws Exception {
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.PROXY);
     mProxyProcess = ProxyProcess.Factory.create();
     Runnable runProxy = () -> {
       try {
@@ -130,7 +128,6 @@ public abstract class AbstractLocalAlluxioCluster {
   public void startWorkers() throws Exception {
     mWorkers = new ArrayList<>();
     for (int i = 0; i < mNumWorkers; i++) {
-      CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.WORKER);
       mWorkers.add(WorkerProcess.Factory.create());
     }
 
