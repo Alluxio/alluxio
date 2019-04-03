@@ -11,6 +11,8 @@
 
 package alluxio.master.job;
 
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
@@ -82,8 +84,10 @@ public final class JobMasterTest {
     JobCoordinator coordinator = PowerMockito.mock(JobCoordinator.class);
     PowerMockito.mockStatic(JobCoordinator.class);
     Mockito.when(
-        JobCoordinator.create(Mockito.any(CommandManager.class), Mockito.any(UfsManager.class),
-            Mockito.anyList(), Mockito.anyLong(), Mockito.any(JobConfig.class), Mockito.any(null)))
+        JobCoordinator.create(Mockito.any(CommandManager.class),
+            Mockito.any(FileSystem.class), Mockito.any(FileSystemContext.class),
+            Mockito.any(UfsManager.class), Mockito.anyList(), Mockito.anyLong(),
+            Mockito.any(JobConfig.class), Mockito.any(null)))
         .thenReturn(coordinator);
     TestJobConfig jobConfig = new TestJobConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
@@ -97,8 +101,10 @@ public final class JobMasterTest {
     JobCoordinator coordinator = PowerMockito.mock(JobCoordinator.class);
     PowerMockito.mockStatic(JobCoordinator.class);
     Mockito.when(
-        JobCoordinator.create(Mockito.any(CommandManager.class), Mockito.any(UfsManager.class),
-            Mockito.anyList(), Mockito.anyLong(), Mockito.any(JobConfig.class), Mockito.any(null)))
+        JobCoordinator.create(Mockito.any(CommandManager.class),
+            Mockito.any(FileSystem.class), Mockito.any(FileSystemContext.class),
+            Mockito.any(UfsManager.class), Mockito.anyList(), Mockito.anyLong(),
+            Mockito.any(JobConfig.class), Mockito.any(null)))
         .thenReturn(coordinator);
     TestJobConfig jobConfig = new TestJobConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {

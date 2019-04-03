@@ -12,6 +12,8 @@
 package alluxio.master.job;
 
 import alluxio.Constants;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -90,6 +92,17 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
           return o.getWorkerAddress();
         }
       };
+
+  /**
+   * The Filesystem context that the job master uses for its client.
+   */
+  private final FileSystemContext mFsContext =
+      FileSystemContext.create(ServerConfiguration.global());
+
+  /**
+   * The FileSystem client the job master uses to select executors for jobs.
+   */
+  private final FileSystem mFileSystem = FileSystem.Factory.create(mFsContext);
 
   /**
    * The total number of jobs that the JobMaster may run at any moment.
@@ -227,8 +240,9 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
       }
     }
     long jobId = mJobIdGenerator.getNewJobId();
-    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mUfsManager,
-        getWorkerInfoList(), jobId, jobConfig, (jobInfo) -> {
+    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mFileSystem, mFsContext,
+        mUfsManager, getWorkerInfoList(), jobId, jobConfig,
+        (jobInfo) -> {
           Status status = jobInfo.getStatus();
           mFinishedJobs.remove(jobInfo);
           if (status.isFinished()) {

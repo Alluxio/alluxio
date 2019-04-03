@@ -11,6 +11,8 @@
 
 package alluxio.job;
 
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.underfs.UfsManager;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -20,16 +22,39 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class JobMasterContext {
+  private final FileSystem mFileSystem;
+  private final FileSystemContext mFsContext;
   private final long mJobId;
   private final UfsManager mUfsManager;
 
   /**
+   * Creates a new instance of {@link JobMasterContext}.
+   *
+   * @param filesystem the Alluxio client used to contact the master
+   * @param fsContext the filesystem client's underlying context
    * @param jobId the job id
    * @param ufsManager the UFS manager
    */
-  public JobMasterContext(long jobId, UfsManager ufsManager) {
+  public JobMasterContext(FileSystem filesystem, FileSystemContext fsContext, long jobId,
+      UfsManager ufsManager) {
+    mFsContext = fsContext;
+    mFileSystem = filesystem;
     mJobId = jobId;
     mUfsManager = ufsManager;
+  }
+
+  /**
+   * @return the {@link FileSystem} client
+   */
+  public FileSystem getFileSystem() {
+    return mFileSystem;
+  }
+
+  /**
+   * @return the FileSystemContext for the client
+   */
+  public FileSystemContext getFsContext() {
+    return mFsContext;
   }
 
   /**

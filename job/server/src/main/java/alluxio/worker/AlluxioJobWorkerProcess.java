@@ -11,6 +11,8 @@
 
 package alluxio.worker;
 
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
@@ -47,6 +49,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobWorkerProcess.class);
 
+  /** FileSystem client for jobs. */
+  private final FileSystem mFileSystem;
+
+  /** FileSystemContext for jobs. */
+  private final FileSystemContext mFsContext;
+
   /** The job worker. */
   private JobWorker mJobWorker;
 
@@ -81,9 +89,12 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
    */
   AlluxioJobWorkerProcess() {
     try {
+      mFsContext = FileSystemContext.create(ServerConfiguration.global());
+      mFileSystem = FileSystem.Factory.create(mFsContext);
+
       mStartTimeMs = System.currentTimeMillis();
       mUfsManager = new JobUfsManager();
-      mJobWorker = new JobWorker(mUfsManager);
+      mJobWorker = new JobWorker(mFileSystem, mFsContext, mUfsManager);
 
       // Setup web server
       mWebServer = new JobWorkerWebServer(ServiceType.JOB_WORKER_WEB.getServiceName(),
