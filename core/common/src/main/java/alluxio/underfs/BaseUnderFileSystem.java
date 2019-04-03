@@ -237,17 +237,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public UfsStatus[] listExistingStatus(String path) throws IOException {
-    return retryOnException(() -> listStatus(path), () -> "list status of " + path);
-  }
-
-  @Override
-  public UfsStatus[] listExistingStatus(String path, ListOptions options) throws IOException {
-    return retryOnException(() -> listStatus(path, options),
-        () -> "list status of " + path + " with options " + options);
-  }
-
-  @Override
   public InputStream open(String path) throws IOException {
     return open(path, OpenOptions.defaults());
   }

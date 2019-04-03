@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.OpenOptions;
 
 import java.io.IOException;
@@ -78,16 +77,6 @@ public abstract class ConsistentUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean isExistingDirectory(String path) throws IOException {
     return isDirectory(path);
-  }
-
-  @Override
-  public UfsStatus[] listExistingStatus(String path) throws IOException {
-    return listStatus(path);
-  }
-
-  @Override
-  public UfsStatus[] listExistingStatus(String path, ListOptions options) throws IOException {
-    return listStatus(path, options);
   }
 
   @Override

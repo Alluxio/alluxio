@@ -2439,7 +2439,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           } else {
             listOptions.setRecursive(false);
           }
-          UfsStatus[] children = ufs.listExistingStatus(ufsUri.toString(), listOptions);
+          UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
           // children can be null if the pathname does not denote a directory
           // or if the we do not have permission to listStatus on the directory in the ufs.
           if (children == null) {

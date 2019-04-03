@@ -236,16 +236,6 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public UfsStatus[] listExistingStatus(String path) throws IOException {
-    return mUfs.listStatus(path);
-  }
-
-  @Override
-  public UfsStatus[] listExistingStatus(String path, ListOptions options) throws IOException {
-    return mUfs.listStatus(path, options);
-  }
-
-  @Override
   public boolean mkdirs(String path) throws IOException {
     return mUfs.mkdirs(path);
   }

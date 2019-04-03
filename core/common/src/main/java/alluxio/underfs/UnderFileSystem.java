@@ -558,35 +558,6 @@ public interface UnderFileSystem extends Closeable {
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**
-   * Returns an array of statuses of the files and directories in the directory denoted by this
-   * abstract pathname.
-   *
-   * Similar to {@link #listStatus(String)} but
-   * deals with the write-then-list eventual consistency issue.
-   *
-   * @param path the abstract pathname to list
-   * @return An array with the statuses of the files and directories in the directory denoted by
-   *         this abstract pathname. The array will be empty if the directory is empty. Returns
-   *         {@code null} if this abstract pathname does not denote a directory.
-   */
-  UfsStatus[] listExistingStatus(String path) throws IOException;
-
-  /**
-   * Returns an array of statuses of the files and directories in the directory denoted by this
-   * abstract pathname, with options.
-   *
-   * Similar to {@link #listStatus(String, ListOptions)} but
-   * deals with the write-then-list eventual consistency issue.
-   *
-   * @param path the abstract pathname to list
-   * @param options for list directory
-   * @return An array of statuses naming the files and directories in the directory denoted by this
-   *         abstract pathname. The array will be empty if the directory is empty. Returns
-   *         {@code null} if this abstract pathname does not denote a directory.
-   */
-  UfsStatus[] listExistingStatus(String path, ListOptions options) throws IOException;
-
-  /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method
    * returns false. The method creates any necessary but nonexistent parent directories.
    *

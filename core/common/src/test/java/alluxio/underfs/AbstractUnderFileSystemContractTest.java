@@ -33,7 +33,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -453,17 +452,6 @@ public abstract class AbstractUnderFileSystemContractTest {
       assertTrue(resultNames[i].equals(CommonUtils.stripPrefixIfPresent(children[i],
           PathUtils.normalizePath(config.getTopLevelDirectory(), "/"))));
     }
-  }
-
-  @Test
-  public void createThenListExistingStatus() throws IOException {
-    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
-    int numCopies = prepareMultiBlockFile(testFile);
-    UfsStatus[] res = mUfs.listExistingStatus(testFile);
-    Assert.assertEquals(1, res.length);
-    Assert.assertTrue(res[0] instanceof UfsFileStatus);
-    Assert.assertEquals(numCopies * TEST_BYTES.length,
-        ((UfsFileStatus) res[0]).getContentLength());
   }
 
   @Test

@@ -132,7 +132,7 @@ public final class DailyMetadataBackup {
    * Deletes stale backup files to avoid consuming too many spaces.
    */
   private void deleteStaleBackups() throws Exception {
-    UfsStatus[] statuses = mUfs.listExistingStatus(mBackupDir);
+    UfsStatus[] statuses = mUfs.listStatus(mBackupDir);
     if (statuses.length <= mRetainedFiles) {
       return;
     }

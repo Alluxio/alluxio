@@ -591,37 +591,6 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     });
   }
 
-  @Override
-  public UfsStatus[] listExistingStatus(final String path) throws IOException {
-    return call(new UfsCallable<UfsStatus[]>() {
-      @Override
-      public UfsStatus[] call() throws IOException {
-        return filterInvalidPaths(mUnderFileSystem.listExistingStatus(path), path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("ListExistingStatus: path=%s", path);
-      }
-    });
-  }
-
-  @Override
-  public UfsStatus[] listExistingStatus(final String path, final ListOptions options)
-      throws IOException {
-    return call(new UfsCallable<UfsStatus[]>() {
-      @Override
-      public UfsStatus[] call() throws IOException {
-        return filterInvalidPaths(mUnderFileSystem.listExistingStatus(path, options), path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("ListExistingStatus: path=%s, options=%s", path, options);
-      }
-    });
-  }
-
   private UfsStatus[] filterInvalidPaths(UfsStatus[] statuses, String listedPath) {
     // This is a temporary fix to prevent us from choking on paths containing '?'.
     if (statuses == null) {
