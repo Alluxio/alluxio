@@ -378,11 +378,14 @@ public class UfsJournal implements Journal {
             return journalReader.getNextSequenceNumber();
         }
       } catch (IOException e) {
-        LOG.warn("{}: Failed to read from journal: {}", mMaster.getName(), e);
+        LOG.warn("{}: Attempt {} failed to read from journal: {}",
+            mMaster.getName(), retry.getAttemptCount(), e);
         if (retry.attempt()) {
           continue;
         }
-        throw new RuntimeException(e);
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_SLIENT_CATCHUP)) {
+          throw new RuntimeException(e);
+        }
       }
     }
   }
