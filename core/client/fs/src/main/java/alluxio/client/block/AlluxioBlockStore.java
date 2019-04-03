@@ -338,13 +338,13 @@ public final class AlluxioBlockStore {
 
     // Select N workers on different hosts where N is the value of initialReplicas for this block
     List<WorkerNetAddress> workerAddressList = new ArrayList<>();
+    List<BlockWorkerInfo> updatedInfos = Lists.newArrayList(workerOptions.getBlockWorkerInfos());
     for (int i = 0; i < initialReplicas; i++) {
       address = locationPolicy.getWorker(workerOptions);
       if (address == null) {
         break;
       }
       workerAddressList.add(address);
-      List<BlockWorkerInfo> updatedInfos = Lists.newArrayList(workerOptions.getBlockWorkerInfos());
       updatedInfos.removeAll(blockWorkersByHost.get(address.getHost()));
       workerOptions.setBlockWorkerInfos(updatedInfos);
     }
