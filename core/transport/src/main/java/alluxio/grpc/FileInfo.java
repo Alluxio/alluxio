@@ -1921,6 +1921,69 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.FileInfo other) {
       if (other == alluxio.grpc.FileInfo.getDefaultInstance()) return this;
+      updateFileInfo(other);
+
+      if (fileBlockInfosBuilder_ == null) {
+        if (!other.fileBlockInfos_.isEmpty()) {
+          if (fileBlockInfos_.isEmpty()) {
+            fileBlockInfos_ = other.fileBlockInfos_;
+            bitField0_ = (bitField0_ & ~0x00100000);
+          } else {
+            ensureFileBlockInfosIsMutable();
+            fileBlockInfos_.addAll(other.fileBlockInfos_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.fileBlockInfos_.isEmpty()) {
+          if (fileBlockInfosBuilder_.isEmpty()) {
+            fileBlockInfosBuilder_.dispose();
+            fileBlockInfosBuilder_ = null;
+            fileBlockInfos_ = other.fileBlockInfos_;
+            bitField0_ = (bitField0_ & ~0x00100000);
+            fileBlockInfosBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getFileBlockInfosFieldBuilder() : null;
+          } else {
+            fileBlockInfosBuilder_.addAllMessages(other.fileBlockInfos_);
+          }
+        }
+      }
+      if (other.hasTtlAction()) {
+        setTtlAction(other.getTtlAction());
+      }
+      if (other.hasMountId()) {
+        setMountId(other.getMountId());
+      }
+      if (other.hasInAlluxioPercentage()) {
+        setInAlluxioPercentage(other.getInAlluxioPercentage());
+      }
+      if (other.hasInMemoryPercentage()) {
+        setInMemoryPercentage(other.getInMemoryPercentage());
+      }
+      if (other.hasUfsFingerprint()) {
+        bitField0_ |= 0x02000000;
+        ufsFingerprint_ = other.ufsFingerprint_;
+        onChanged();
+      }
+      if (other.hasAcl()) {
+        mergeAcl(other.getAcl());
+      }
+      if (other.hasDefaultAcl()) {
+        mergeDefaultAcl(other.getDefaultAcl());
+      }
+      if (other.hasReplicationMax()) {
+        setReplicationMax(other.getReplicationMax());
+      }
+      if (other.hasReplicationMin()) {
+        setReplicationMin(other.getReplicationMin());
+      }
+      this.mergeUnknownFields(other.unknownFields);
+      onChanged();
+      return this;
+    }
+
+    private void updateFileInfo(alluxio.grpc.FileInfo other) {
       if (other.hasFileId()) {
         setFileId(other.getFileId());
       }
@@ -2000,64 +2063,6 @@ private static final long serialVersionUID = 0L;
       if (other.hasMountPoint()) {
         setMountPoint(other.getMountPoint());
       }
-      if (fileBlockInfosBuilder_ == null) {
-        if (!other.fileBlockInfos_.isEmpty()) {
-          if (fileBlockInfos_.isEmpty()) {
-            fileBlockInfos_ = other.fileBlockInfos_;
-            bitField0_ = (bitField0_ & ~0x00100000);
-          } else {
-            ensureFileBlockInfosIsMutable();
-            fileBlockInfos_.addAll(other.fileBlockInfos_);
-          }
-          onChanged();
-        }
-      } else {
-        if (!other.fileBlockInfos_.isEmpty()) {
-          if (fileBlockInfosBuilder_.isEmpty()) {
-            fileBlockInfosBuilder_.dispose();
-            fileBlockInfosBuilder_ = null;
-            fileBlockInfos_ = other.fileBlockInfos_;
-            bitField0_ = (bitField0_ & ~0x00100000);
-            fileBlockInfosBuilder_ = 
-              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getFileBlockInfosFieldBuilder() : null;
-          } else {
-            fileBlockInfosBuilder_.addAllMessages(other.fileBlockInfos_);
-          }
-        }
-      }
-      if (other.hasTtlAction()) {
-        setTtlAction(other.getTtlAction());
-      }
-      if (other.hasMountId()) {
-        setMountId(other.getMountId());
-      }
-      if (other.hasInAlluxioPercentage()) {
-        setInAlluxioPercentage(other.getInAlluxioPercentage());
-      }
-      if (other.hasInMemoryPercentage()) {
-        setInMemoryPercentage(other.getInMemoryPercentage());
-      }
-      if (other.hasUfsFingerprint()) {
-        bitField0_ |= 0x02000000;
-        ufsFingerprint_ = other.ufsFingerprint_;
-        onChanged();
-      }
-      if (other.hasAcl()) {
-        mergeAcl(other.getAcl());
-      }
-      if (other.hasDefaultAcl()) {
-        mergeDefaultAcl(other.getDefaultAcl());
-      }
-      if (other.hasReplicationMax()) {
-        setReplicationMax(other.getReplicationMax());
-      }
-      if (other.hasReplicationMin()) {
-        setReplicationMin(other.getReplicationMin());
-      }
-      this.mergeUnknownFields(other.unknownFields);
-      onChanged();
-      return this;
     }
 
     public final boolean isInitialized() {
