@@ -13,6 +13,7 @@ package alluxio.master.meta;
 
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.ConfigProperties;
 import alluxio.grpc.ConfigProperty;
@@ -66,7 +67,7 @@ public interface MetaMaster extends Master {
    * @param key the property key
    * @param value the property value
    */
-  void setPathConfiguration(String path, PropertyKey key, String value);
+  void setPathConfiguration(String path, PropertyKey key, String value) throws UnavailableException;
 
   /**
    * @return the addresses of live masters
