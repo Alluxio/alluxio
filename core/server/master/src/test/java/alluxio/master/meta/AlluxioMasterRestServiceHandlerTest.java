@@ -444,13 +444,18 @@ public final class AlluxioMasterRestServiceHandlerTest {
     FileSystemMaster mockMaster = mock(FileSystemMaster.class);
     when(mockMaster.getMountTable()).thenReturn(mountTable);
 
-    assertFalse(AlluxioMasterRestServiceHandler.isMounted(mockMaster, s3Uri));
-    assertTrue(AlluxioMasterRestServiceHandler.isMounted(mockMaster,
-        MetricsSystem.escape(new AlluxioURI(s3Uri))));
-    assertTrue(AlluxioMasterRestServiceHandler.isMounted(mockMaster,
-        MetricsSystem.escape(new AlluxioURI(s3Uri + "/"))));
-    assertFalse(AlluxioMasterRestServiceHandler.isMounted(mockMaster, hdfsUri));
-    assertFalse(AlluxioMasterRestServiceHandler.isMounted(mockMaster,
-        MetricsSystem.escape(new AlluxioURI(hdfsUri))));
+    AlluxioMasterProcess masterProcess = mock(AlluxioMasterProcess.class);
+    when(masterProcess.getMaster(FileSystemMaster.class)).thenReturn(mockMaster);
+
+    ServletContext context = mock(ServletContext.class);
+    when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
+        masterProcess);
+    AlluxioMasterRestServiceHandler handler = new AlluxioMasterRestServiceHandler(context);
+
+    assertFalse(handler.isMounted(s3Uri));
+    assertTrue(handler.isMounted(MetricsSystem.escape(new AlluxioURI(s3Uri))));
+    assertTrue(handler.isMounted(MetricsSystem.escape(new AlluxioURI(s3Uri + "/"))));
+    assertFalse(handler.isMounted(hdfsUri));
+    assertFalse(handler.isMounted(MetricsSystem.escape(new AlluxioURI(hdfsUri))));
   }
 }

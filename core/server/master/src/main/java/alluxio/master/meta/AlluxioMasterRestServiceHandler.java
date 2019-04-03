@@ -841,16 +841,15 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
-   * @param master the file system master
    * @param ufs the ufs uri encoded by {@link MetricsSystem#escape(AlluxioURI)}
    * @return whether the ufs uri is a mount point
    */
   @VisibleForTesting
-  static boolean isMounted(FileSystemMaster master, String ufs) {
+  boolean isMounted(String ufs) {
     if (ufs.endsWith("/")) {
       ufs = ufs.substring(0, ufs.length() - 1);
     }
-    for (Map.Entry<String, MountPointInfo> entry : master.getMountTable().entrySet()) {
+    for (Map.Entry<String, MountPointInfo> entry : mFileSystemMaster.getMountTable().entrySet()) {
       String escaped = MetricsSystem.escape(new AlluxioURI(entry.getValue().getUfsUri()));
       if (escaped.endsWith("/")) {
         escaped = escaped.substring(0, escaped.length() - 1);
@@ -972,7 +971,7 @@ public final class AlluxioMasterRestServiceHandler {
         alluxio.metrics.Metric metric =
             alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
-        if (isMounted(mFileSystemMaster, ufs)) {
+        if (isMounted(ufs)) {
           ufsReadSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
         }
       }
@@ -985,7 +984,7 @@ public final class AlluxioMasterRestServiceHandler {
         alluxio.metrics.Metric metric =
             alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
-        if (isMounted(mFileSystemMaster, ufs)) {
+        if (isMounted(ufs)) {
           ufsWriteSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
         }
       }
@@ -1001,7 +1000,7 @@ public final class AlluxioMasterRestServiceHandler {
           continue;
         }
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
-        if (isMounted(mFileSystemMaster, ufs)) {
+        if (isMounted(ufs)) {
           Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
           perUfsMap.put(ufs, (long) metric.getValue());
           ufsOpsMap.put(ufs, perUfsMap);
