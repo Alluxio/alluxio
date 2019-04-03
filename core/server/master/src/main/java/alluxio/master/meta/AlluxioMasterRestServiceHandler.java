@@ -12,9 +12,6 @@
 package alluxio.master.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.ConfigurationValueOptions;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.RestUtils;
@@ -23,6 +20,9 @@ import alluxio.StorageTierAssoc;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
@@ -66,15 +66,15 @@ import alluxio.wire.Capacity;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.MasterWebUILogs;
-import alluxio.wire.MasterWebUIMetrics;
-import alluxio.wire.MountPointInfo;
 import alluxio.wire.MasterWebUIBrowse;
 import alluxio.wire.MasterWebUIConfiguration;
 import alluxio.wire.MasterWebUIData;
 import alluxio.wire.MasterWebUIInit;
+import alluxio.wire.MasterWebUILogs;
+import alluxio.wire.MasterWebUIMetrics;
 import alluxio.wire.MasterWebUIOverview;
 import alluxio.wire.MasterWebUIWorkers;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -839,6 +839,15 @@ public final class AlluxioMasterRestServiceHandler {
     }, ServerConfiguration.global());
   }
 
+  private boolean isMounted(String ufs) {
+    for (Map.Entry<String, MountPointInfo> entry : mFileSystemMaster.getMountTable().entrySet()) {
+      if (MetricsSystem.escape(new AlluxioURI(entry.getValue().getUfsUri())).equals(ufs)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Gets Web UI metrics page data.
    *
@@ -936,14 +945,22 @@ public final class AlluxioMasterRestServiceHandler {
           .setTotalBytesWrittenUfsThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenUfsThroughput));
 
+      //
+      // For the per UFS metrics below, if a UFS has been unmounted, its metrics will still exist
+      // in the metrics system, but we don't show them in the UI. After remounting the UFS, the
+      // new metrics will be accumulated on its old values and shown in the UI.
+      //
+
       // cluster per UFS read
       Map<String, String> ufsReadSizeMap = new TreeMap<>();
       for (Map.Entry<String, Gauge> entry : mr
           .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_READ_UFS)).entrySet()) {
         alluxio.metrics.Metric metric =
             alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
-        ufsReadSizeMap.put(metric.getTags().get(WorkerMetrics.TAG_UFS),
-            FormatUtils.getSizeFromBytes((long) metric.getValue()));
+        String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
+        if (isMounted(ufs)) {
+          ufsReadSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
+        }
       }
       response.setUfsReadSize(ufsReadSizeMap);
 
@@ -953,8 +970,10 @@ public final class AlluxioMasterRestServiceHandler {
           .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_WRITTEN_UFS)).entrySet()) {
         alluxio.metrics.Metric metric =
             alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
-        ufsWriteSizeMap.put(metric.getTags().get(WorkerMetrics.TAG_UFS),
-            FormatUtils.getSizeFromBytes((long) metric.getValue()));
+        String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
+        if (isMounted(ufs)) {
+          ufsWriteSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
+        }
       }
       response.setUfsWriteSize(ufsWriteSizeMap);
 
@@ -968,10 +987,11 @@ public final class AlluxioMasterRestServiceHandler {
           continue;
         }
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
-        Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
-        perUfsMap.put(metric.getName().replaceFirst(WorkerMetrics.UFS_OP_PREFIX, ""),
-            (long) metric.getValue());
-        ufsOpsMap.put(ufs, perUfsMap);
+        if (isMounted(ufs)) {
+          Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
+          perUfsMap.put(ufs, (long) metric.getValue());
+          ufsOpsMap.put(ufs, perUfsMap);
+        }
       }
       response.setUfsOps(ufsOpsMap);
 
