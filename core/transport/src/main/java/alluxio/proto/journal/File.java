@@ -13099,71 +13099,76 @@ public final class File {
       }
       alluxio.proto.journal.File.InodeDirectoryEntry other = (alluxio.proto.journal.File.InodeDirectoryEntry) obj;
 
+      boolean result = equals(other);
+      return result;
+    }
+
+    private boolean equals(alluxio.proto.journal.File.InodeDirectoryEntry other) {
       boolean result = true;
       result = result && (hasId() == other.hasId());
       if (hasId()) {
         result = result && (getId()
-            == other.getId());
+                == other.getId());
       }
       result = result && (hasParentId() == other.hasParentId());
       if (hasParentId()) {
         result = result && (getParentId()
-            == other.getParentId());
+                == other.getParentId());
       }
       result = result && (hasName() == other.hasName());
       if (hasName()) {
         result = result && getName()
-            .equals(other.getName());
+                .equals(other.getName());
       }
       result = result && (hasPersistenceState() == other.hasPersistenceState());
       if (hasPersistenceState()) {
         result = result && getPersistenceState()
-            .equals(other.getPersistenceState());
+                .equals(other.getPersistenceState());
       }
       result = result && (hasPinned() == other.hasPinned());
       if (hasPinned()) {
         result = result && (getPinned()
-            == other.getPinned());
+                == other.getPinned());
       }
       result = result && (hasCreationTimeMs() == other.hasCreationTimeMs());
       if (hasCreationTimeMs()) {
         result = result && (getCreationTimeMs()
-            == other.getCreationTimeMs());
+                == other.getCreationTimeMs());
       }
       result = result && (hasLastModificationTimeMs() == other.hasLastModificationTimeMs());
       if (hasLastModificationTimeMs()) {
         result = result && (getLastModificationTimeMs()
-            == other.getLastModificationTimeMs());
+                == other.getLastModificationTimeMs());
       }
       result = result && (hasOwner() == other.hasOwner());
       if (hasOwner()) {
         result = result && getOwner()
-            .equals(other.getOwner());
+                .equals(other.getOwner());
       }
       result = result && (hasGroup() == other.hasGroup());
       if (hasGroup()) {
         result = result && getGroup()
-            .equals(other.getGroup());
+                .equals(other.getGroup());
       }
       result = result && (hasMode() == other.hasMode());
       if (hasMode()) {
         result = result && (getMode()
-            == other.getMode());
+                == other.getMode());
       }
       result = result && (hasMountPoint() == other.hasMountPoint());
       if (hasMountPoint()) {
         result = result && (getMountPoint()
-            == other.getMountPoint());
+                == other.getMountPoint());
       }
       result = result && (hasDirectChildrenLoaded() == other.hasDirectChildrenLoaded());
       if (hasDirectChildrenLoaded()) {
         result = result && (getDirectChildrenLoaded()
-            == other.getDirectChildrenLoaded());
+                == other.getDirectChildrenLoaded());
       }
       result = result && (hasTtl() == other.hasTtl());
       if (hasTtl()) {
         result = result && (getTtl()
-            == other.getTtl());
+                == other.getTtl());
       }
       result = result && (hasTtlAction() == other.hasTtlAction());
       if (hasTtlAction()) {
@@ -13172,12 +13177,12 @@ public final class File {
       result = result && (hasAcl() == other.hasAcl());
       if (hasAcl()) {
         result = result && getAcl()
-            .equals(other.getAcl());
+                .equals(other.getAcl());
       }
       result = result && (hasDefaultAcl() == other.hasDefaultAcl());
       if (hasDefaultAcl()) {
         result = result && getDefaultAcl()
-            .equals(other.getDefaultAcl());
+                .equals(other.getDefaultAcl());
       }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
