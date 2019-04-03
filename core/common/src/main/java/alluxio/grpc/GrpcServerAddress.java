@@ -27,7 +27,7 @@ public class GrpcServerAddress {
    * @param socketAddress physical address
    */
   public GrpcServerAddress(InetSocketAddress socketAddress) {
-    mHostName = socketAddress.getAddress().getHostName();
+    mHostName = socketAddress.getHostName();
     mSocketAddress = socketAddress;
   }
 
