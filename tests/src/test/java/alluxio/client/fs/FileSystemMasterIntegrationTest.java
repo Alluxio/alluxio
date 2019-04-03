@@ -930,7 +930,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         UfsDirectoryStatus("test", "owner", "group", (short) 511);
     Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any(),
         Matchers.any(AlluxioConfiguration.class))).thenReturn(mockUfs);
-    Mockito.when(mockUfs.isExistingDirectory(ufsBase)).thenReturn(true);
+    Mockito.when(mockUfs.isDirectory(ufsBase)).thenReturn(true);
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), ""))
         .thenReturn(new AlluxioURI(ufsBase));
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), "/dir1"))
