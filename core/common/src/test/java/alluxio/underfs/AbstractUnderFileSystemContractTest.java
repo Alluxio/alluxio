@@ -696,17 +696,20 @@ public abstract class AbstractUnderFileSystemContractTest {
       UfsStatus[] results;
       try {
         results = mUfs.listStatus(dstTopLevelDirectory);
+        if (srcChildren.length != results.length) {
+          return false;
+        }
         // Check nested files and directories in dst exist
         String[] resultNames = UfsStatus.convertToNames(results);
         Arrays.sort(resultNames);
         for (int i = 0; i < srcChildren.length; ++i) {
           assertTrue(resultNames[i].equals(CommonUtils.stripPrefixIfPresent(srcChildren[i],
-              PathUtils.normalizePath(dstTopLevelDirectory, "/"))));
+              PathUtils.normalizePath(config.getTopLevelDirectory(), "/"))));
         }
       } catch (IOException e) {
         return false;
       }
-      return srcChildren.length == results.length;
+      return true;
     }, WaitForOptions.defaults().setTimeoutMs(10000).setInterval(500));
   }
 
