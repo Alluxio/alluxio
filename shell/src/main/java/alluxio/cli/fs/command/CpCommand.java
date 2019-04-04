@@ -112,7 +112,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
   private int mCopyFromLocalBufferSize = COPY_FROM_LOCAL_BUFFER_SIZE_DEFAULT;
   private int mCopyToLocalBufferSize = COPY_TO_LOCAL_BUFFER_SIZE_DEFAULT;
   private int mThread = Runtime.getRuntime().availableProcessors() * 2;
-  private boolean mPreserveAttributes = false;
+  private boolean mPreservePermissions = false;
 
   /**
    * A thread pool executor for asynchronous copy.
@@ -329,7 +329,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       }
     }
     if (cl.hasOption(PRESERVE_OPTION.getLongOpt())) {
-      mPreserveAttributes = true;
+      mPreservePermissions = true;
     }
   }
 
@@ -556,7 +556,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
    */
   private void preserveAttributes(AlluxioURI srcPath, AlluxioURI dstPath)
       throws IOException, AlluxioException {
-    if (mPreserveAttributes) {
+    if (mPreservePermissions) {
       URIStatus srcStatus = mFileSystem.getStatus(srcPath);
       mFileSystem.setAttribute(dstPath, SetAttributePOptions.newBuilder()
           .setOwner(srcStatus.getOwner())
