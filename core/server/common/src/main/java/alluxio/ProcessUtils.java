@@ -67,6 +67,20 @@ public final class ProcessUtils {
    * @param args args for the format string
    */
   public static void fatalError(Logger logger, Throwable t, String format, Object... args) {
+    fatalErrorWithCheck(false, logger, t, format, args);
+  }
+
+  /**
+   * Logs a fatal error and then exits the system if not tolerant master metadata corruption.
+   *
+   * @param tolerantCorruption whether or not to tolerant master metadata corruption
+   * @param logger the logger to log to
+   * @param t the throwable causing the fatal error
+   * @param format the error message format string
+   * @param args args for the format string
+   */
+  public static void fatalErrorWithCheck(boolean tolerantCorruption,
+      Logger logger, Throwable t, String format, Object... args) {
     String message = String.format("Fatal error: " + format, args);
     if (t != null) {
       message += "\n" + ExceptionUtils.getStackTrace(t);
@@ -75,7 +89,9 @@ public final class ProcessUtils {
       throw new RuntimeException(message);
     }
     logger.error(message);
-    System.exit(-1);
+    if (!tolerantCorruption) {
+      System.exit(-1);
+    }
   }
 
   /**

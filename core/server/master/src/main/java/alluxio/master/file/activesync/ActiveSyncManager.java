@@ -234,8 +234,12 @@ public class ActiveSyncManager implements Journaled {
       apply(entry);
       context.get().append(Journal.JournalEntry.newBuilder().setAddSyncPoint(entry).build());
     } catch (Throwable t) {
-      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
-      throw t; // fatalError will usually system.exit
+      boolean tolerant = ServerConfiguration
+          .getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION);
+      ProcessUtils.fatalErrorWithCheck(tolerant, LOG, t, "Failed to apply %s", entry);
+      if (!tolerant) {
+        throw t; // fatalError will usually system.exit
+      }
     }
   }
 
@@ -249,8 +253,12 @@ public class ActiveSyncManager implements Journaled {
       apply(entry);
       context.get().append(Journal.JournalEntry.newBuilder().setRemoveSyncPoint(entry).build());
     } catch (Throwable t) {
-      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
-      throw t; // fatalError will usually system.exit
+      boolean tolerant = ServerConfiguration
+          .getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION);
+      ProcessUtils.fatalErrorWithCheck(tolerant, LOG, t, "Failed to apply %s", entry);
+      if (!tolerant) {
+        throw t; // fatalError will usually system.exit
+      }
     }
   }
 
