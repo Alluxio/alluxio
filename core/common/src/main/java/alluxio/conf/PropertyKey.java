@@ -1380,11 +1380,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_JOURNAL_TOLERATE_CORRUPTION)
           .setDefaultValue(false)
           .setDescription("Whether to tolerate master state corruption."
-              + "If enabled, exceptions from journal playing when master gain leadership "
-              + "will be caught and logged. Master will not exit, "
-              + "but its state is not guaranteed to be safe"
-              + "This property should be used sparingly.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+              + "If enabled, exceptions from applying journal to master metadata "
+              + "will be caught and logged. Master will not exit, but may encounter "
+              + "an unsafe and inconsistent state. This property should be used sparingly.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =
