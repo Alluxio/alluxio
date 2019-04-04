@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin;
 
 import alluxio.ClientContext;
+import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -82,6 +83,7 @@ public final class FileSystemAdminShell extends AbstractShell {
         new RetryHandlingFileSystemMasterClient(masterConfig),
         new RetryHandlingBlockMasterClient(masterConfig),
         new RetryHandlingMetaMasterClient(masterConfig),
+        new RetryHandlingMetaMasterConfigClient(masterConfig),
         System.out
     );
     return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(),
