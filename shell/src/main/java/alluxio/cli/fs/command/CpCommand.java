@@ -105,7 +105,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       Option.builder("p")
           .longOpt("preserve")
           .required(false)
-          .desc("Preserve file attributes when copying files. "
+          .desc("Preserve file permission attributes when copying files. "
               + "All ownership, permissions and ACLs will be preserved")
           .build();
 
