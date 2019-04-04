@@ -91,8 +91,6 @@ public class ActiveSyncManager implements Journaled {
   private FileSystemMaster mFileSystemMaster;
   // a local executor service used to launch polling threads
   private ExecutorService mExecutorService;
-  // Whether or not to tolerate the metadata corruption when failing to apply journal
-  private boolean mTolerateCorruption;
 
   /**
    * Constructs a Active Sync Manager.
@@ -114,8 +112,6 @@ public class ActiveSyncManager implements Journaled {
     // Executor Service for active syncing
     mExecutorService =
         Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    mTolerateCorruption = ServerConfiguration
-        .getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION);
   }
 
   /**
@@ -238,10 +234,8 @@ public class ActiveSyncManager implements Journaled {
       apply(entry);
       context.get().append(Journal.JournalEntry.newBuilder().setAddSyncPoint(entry).build());
     } catch (Throwable t) {
-      ProcessUtils.fatalError(mTolerateCorruption, LOG, t, "Failed to apply %s", entry);
-      if (!mTolerateCorruption) {
-        throw t; // fatalError will usually system.exit
-      }
+      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
+      throw t; // fatalError will usually system.exit
     }
   }
 
@@ -255,10 +249,8 @@ public class ActiveSyncManager implements Journaled {
       apply(entry);
       context.get().append(Journal.JournalEntry.newBuilder().setRemoveSyncPoint(entry).build());
     } catch (Throwable t) {
-      ProcessUtils.fatalError(mTolerateCorruption, LOG, t, "Failed to apply %s", entry);
-      if (!mTolerateCorruption) {
-        throw t; // fatalError will usually system.exit
-      }
+      ProcessUtils.fatalError(LOG, t, "Failed to apply %s", entry);
+      throw t; // fatalError will usually system.exit
     }
   }
 

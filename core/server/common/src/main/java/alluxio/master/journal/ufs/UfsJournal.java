@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
@@ -389,6 +390,13 @@ public class UfsJournal implements Journal {
         }
         if (!mTolerateCorruption) {
           throw new RuntimeException(e);
+        }
+      }  catch (Throwable t) {
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
+          ProcessUtils.fatalError(true,  LOG, t,
+              "%s: Failed to process journal entry when catching up.", mMaster.getName());
+        } else {
+          throw t;
         }
       }
     }

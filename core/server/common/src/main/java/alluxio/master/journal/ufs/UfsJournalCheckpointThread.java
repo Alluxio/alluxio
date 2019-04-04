@@ -186,6 +186,13 @@ public final class UfsJournalCheckpointThread extends Thread {
         mJournalReader = new UfsJournalReader(mJournal, nextSequenceNumber, false);
         quietPeriodWaited = false;
         continue;
+      } catch (Throwable t) {
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
+          ProcessUtils.fatalError(true,  LOG, t,
+              "%s: Failed to read or process a journal entry when catching up.", mMaster.getName());
+        } else {
+          throw t;
+        }
       }
 
       // Sleep for a while if no entry is found.

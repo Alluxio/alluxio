@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
@@ -103,7 +104,16 @@ public final class JournalUtils {
     JournalEntryStreamReader reader = new JournalEntryStreamReader(input);
     JournalEntry entry;
     while ((entry = reader.readEntry()) != null) {
-      journaled.processJournalEntry(entry);
+      try {
+        journaled.processJournalEntry(entry);
+      } catch (Throwable t) {
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
+          ProcessUtils.fatalError(true,  LOG, t,
+              "Failed to process journal entry %s from a journal checkpoint", entry);
+        } else {
+          throw t;
+        }
+      }
     }
   }
 

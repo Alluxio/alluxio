@@ -172,9 +172,12 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       LOG.trace("Applying entry to master {}: {} ", masterName, entry);
       master.processJournalEntry(entry);
     } catch (Throwable t) {
-      ProcessUtils.fatalError(ServerConfiguration.getBoolean(PropertyKey
-              .MASTER_JOURNAL_TOLERATE_CORRUPTION), LOG, t,
-          "Failed to apply journal entry to master %s. Entry: %s", masterName, entry);
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
+        ProcessUtils.fatalError(true,  LOG, t,
+            "Failed to apply journal entry to master %s. Entry: %s", entry);
+      } else {
+        throw t;
+      }
     }
   }
 
