@@ -98,8 +98,8 @@ public class UfsJournal implements Journal {
    * Null when in primary mode.
    */
   private UfsJournalCheckpointThread mTailerThread;
-  /** Whether to throw exceptions in journal catch up. */
-  private boolean mTolerantCorruption;
+  /** Whether to exit when encountering errors in journal catch up. */
+  private boolean mTolerateCorruption;
 
   private enum State {
     SECONDARY, PRIMARY, CLOSED;
@@ -150,7 +150,7 @@ public class UfsJournal implements Journal {
     mCheckpointDir = URIUtils.appendPathOrDie(mLocation, CHECKPOINT_DIRNAME);
     mTmpDir = URIUtils.appendPathOrDie(mLocation, TMP_DIRNAME);
     mState = State.SECONDARY;
-    mTolerantCorruption = ServerConfiguration
+    mTolerateCorruption = ServerConfiguration
         .getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION);
   }
 
@@ -387,7 +387,7 @@ public class UfsJournal implements Journal {
         if (retry.attempt()) {
           continue;
         }
-        if (!mTolerantCorruption) {
+        if (!mTolerateCorruption) {
           throw new RuntimeException(e);
         }
       }

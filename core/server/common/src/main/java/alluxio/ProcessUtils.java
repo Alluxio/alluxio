@@ -48,14 +48,14 @@ public final class ProcessUtils {
   }
 
   /**
-   * Logs a fatal error and then exits the system.
-   *
-   * @param logger the logger to log to
-   * @param format the error message format string
-   * @param args args for the format string
-   */
+    * Logs a fatal error and then exits the system.
+    *
+    * @param logger the logger to log to
+    * @param format the error message format string
+    * @param args args for the format string
+    */
   public static void fatalError(Logger logger, String format, Object... args) {
-    fatalError(logger, null, format, args);
+    fatalError(false, logger, null, format, args);
   }
 
   /**
@@ -67,19 +67,19 @@ public final class ProcessUtils {
    * @param args args for the format string
    */
   public static void fatalError(Logger logger, Throwable t, String format, Object... args) {
-    fatalErrorWithCheck(false, logger, t, format, args);
+    fatalError(false, logger, t, format, args);
   }
 
   /**
-   * Logs a fatal error and then exits the system if not tolerant master metadata corruption.
+   * Logs a fatal error and exits the system if required.
    *
-   * @param tolerantCorruption whether or not to tolerant master metadata corruption
+   * @param shouldTolerate if true, tolerate the error. Otherwise, exit the system
    * @param logger the logger to log to
    * @param t the throwable causing the fatal error
    * @param format the error message format string
    * @param args args for the format string
    */
-  public static void fatalErrorWithCheck(boolean tolerantCorruption,
+  public static void fatalError(boolean shouldTolerate,
       Logger logger, Throwable t, String format, Object... args) {
     String message = String.format("Fatal error: " + format, args);
     if (t != null) {
@@ -89,7 +89,7 @@ public final class ProcessUtils {
       throw new RuntimeException(message);
     }
     logger.error(message);
-    if (!tolerantCorruption) {
+    if (!shouldTolerate) {
       System.exit(-1);
     }
   }

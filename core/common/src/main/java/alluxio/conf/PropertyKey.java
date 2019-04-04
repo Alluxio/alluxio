@@ -1384,6 +1384,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "will be caught and logged. Master will not exit, but may encounter "
               + "an unsafe and inconsistent state. This property should be used sparingly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setIsHidden(true)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =

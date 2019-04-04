@@ -77,6 +77,7 @@ public class InodeTreePersistentState implements Journaled {
   private final InodeStore mInodeStore;
   private final InodeLockManager mInodeLockManager;
 
+  /** Whether or not to tolerate the metadata corruption when failing to apply journal. */
   private final boolean mTolerantCorruption;
 
   /**
@@ -177,7 +178,7 @@ public class InodeTreePersistentState implements Journaled {
       // Delete entries should always apply cleanly, but if it somehow fails, we are in a state
       // where we've journaled the delete, but failed to make the in-memory update. We don't yet
       // have a way to recover from this, so we give a fatal error.
-      ProcessUtils.fatalErrorWithCheck(mTolerantCorruption,
+      ProcessUtils.fatalError(mTolerantCorruption,
           LOG, t, "Failed to apply entry %s", entry);
     }
   }
@@ -211,7 +212,7 @@ public class InodeTreePersistentState implements Journaled {
       applyRename(entry);
       context.get().append(JournalEntry.newBuilder().setRename(entry).build());
     } catch (Throwable t) {
-      ProcessUtils.fatalErrorWithCheck(mTolerantCorruption, LOG, t, "Failed to apply %s", entry);
+      ProcessUtils.fatalError(mTolerantCorruption, LOG, t, "Failed to apply %s", entry);
       if (!mTolerantCorruption) {
         throw t; // fatalError will usually system.exit
       }
@@ -229,7 +230,7 @@ public class InodeTreePersistentState implements Journaled {
       applySetAcl(entry);
       context.get().append(JournalEntry.newBuilder().setSetAcl(entry).build());
     } catch (Throwable t) {
-      ProcessUtils.fatalErrorWithCheck(mTolerantCorruption, LOG, t, "Failed to apply %s", entry);
+      ProcessUtils.fatalError(mTolerantCorruption, LOG, t, "Failed to apply %s", entry);
       if (!mTolerantCorruption) {
         throw t; // fatalError will usually system.exit
       }
@@ -247,7 +248,7 @@ public class InodeTreePersistentState implements Journaled {
       applyUpdateInode(entry);
       context.get().append(JournalEntry.newBuilder().setUpdateInode(entry).build());
     } catch (Throwable t) {
-      ProcessUtils.fatalErrorWithCheck(mTolerantCorruption, LOG, t, "Failed to apply %s", entry);
+      ProcessUtils.fatalError(mTolerantCorruption, LOG, t, "Failed to apply %s", entry);
       if (!mTolerantCorruption) {
         throw t; // fatalError will usually system.exit
       }
@@ -265,7 +266,7 @@ public class InodeTreePersistentState implements Journaled {
       applyUpdateInodeDirectory(entry);
       context.get().append(JournalEntry.newBuilder().setUpdateInodeDirectory(entry).build());
     } catch (Throwable t) {
-      ProcessUtils.fatalErrorWithCheck(mTolerantCorruption, LOG, t, "Failed to apply %s", entry);
+      ProcessUtils.fatalError(mTolerantCorruption, LOG, t, "Failed to apply %s", entry);
       if (!mTolerantCorruption) {
         throw t; // fatalError will usually system.exit
       }
@@ -283,7 +284,7 @@ public class InodeTreePersistentState implements Journaled {
       applyUpdateInodeFile(entry);
       context.get().append(JournalEntry.newBuilder().setUpdateInodeFile(entry).build());
     } catch (Throwable t) {
-      ProcessUtils.fatalErrorWithCheck(mTolerantCorruption, LOG, t, "Failed to apply %s", entry);
+      ProcessUtils.fatalError(mTolerantCorruption, LOG, t, "Failed to apply %s", entry);
       if (!mTolerantCorruption) {
         throw t; // fatalError will usually system.exit
       }
@@ -301,7 +302,7 @@ public class InodeTreePersistentState implements Journaled {
       applyCreateInode(inode);
       context.get().append(inode.toJournalEntry());
     } catch (Throwable t) {
-      ProcessUtils.fatalErrorWithCheck(mTolerantCorruption, LOG, t, "Failed to apply %s", inode);
+      ProcessUtils.fatalError(mTolerantCorruption, LOG, t, "Failed to apply %s", inode);
       if (!mTolerantCorruption) {
         throw t; // fatalError will usually system.exit
       }
