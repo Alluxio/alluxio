@@ -96,13 +96,12 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   /**
    * The Filesystem context that the job master uses for its client.
    */
-  private final FileSystemContext mFsContext =
-      FileSystemContext.create(ServerConfiguration.global());
+  private final FileSystemContext mFsContext;
 
   /**
    * The FileSystem client the job master uses to select executors for jobs.
    */
-  private final FileSystem mFileSystem = FileSystem.Factory.create(mFsContext);
+  private final FileSystem mFileSystem;
 
   /**
    * The total number of jobs that the JobMaster may run at any moment.
@@ -156,11 +155,16 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
    * Creates a new instance of {@link JobMaster}.
    *
    * @param masterContext the context for Alluxio master
+   * @param filesystem the Alluxio filesystem client the job master uses to communicate
+   * @param fsContext the filesystem client's underlying context
    * @param ufsManager the ufs manager
    */
-  public JobMaster(MasterContext masterContext, UfsManager ufsManager) {
+  public JobMaster(MasterContext masterContext, FileSystem filesystem,
+      FileSystemContext fsContext, UfsManager ufsManager) {
     super(masterContext, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.JOB_MASTER_NAME));
+    mFileSystem = filesystem;
+    mFsContext = fsContext;
     mJobIdGenerator = new JobIdGenerator();
     mCommandManager = new CommandManager();
     mIdToJobCoordinator = new ConcurrentHashMap<>();
