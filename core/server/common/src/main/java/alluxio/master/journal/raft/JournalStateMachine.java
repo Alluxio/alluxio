@@ -219,13 +219,11 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       snapshotId = snapshotReader.readLong();
       JournalUtils.restoreFromCheckpoint(new CheckpointInputStream(srs), getStateMachines());
     } catch (Throwable t) {
-      boolean tolerate = ServerConfiguration
-          .getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION);
-      ProcessUtils.fatalError(tolerate, LOG, t, "Failed to install snapshot");
-      if (!tolerate) {
-        throw new RuntimeException(t);
-      } else {
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
+        ProcessUtils.fatalError(true, LOG, t, "Failed to install snapshot");
         return;
+      } else {
+        throw new RuntimeException(t);
       }
     }
 
