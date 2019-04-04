@@ -189,9 +189,9 @@ public final class MigrateDefinitionRunTaskTest {
    */
   private void runTask(String configSource, String commandSource, String commandDestination,
       WriteType writeType) throws Exception {
-    new MigrateDefinition(mMockFileSystemContext, mMockFileSystem).runTask(
+    new MigrateDefinition().runTask(
         new MigrateConfig(configSource, "", writeType.toString(), false, mDeleteSource),
         Lists.newArrayList(new MigrateCommand(commandSource, commandDestination)),
-        new JobWorkerContext(1, 1, mMockUfsManager));
+        new JobWorkerContext(mMockFileSystem, mMockFileSystemContext, 1, 1, mMockUfsManager));
   }
 }

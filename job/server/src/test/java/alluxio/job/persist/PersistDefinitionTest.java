@@ -11,6 +11,8 @@
 
 package alluxio.job.persist;
 
+import static org.mockito.Mockito.when;
+
 import alluxio.AlluxioURI;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
@@ -56,6 +58,8 @@ public final class PersistDefinitionTest {
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    when(mMockJobMasterContext.getFileSystem()).thenReturn(mMockFileSystem);
+    when(mMockJobMasterContext.getFsContext()).thenReturn(mMockFileSystemContext);
   }
 
   @Test
@@ -77,7 +81,7 @@ public final class PersistDefinitionTest {
     Mockito.when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
 
     Map<WorkerInfo, SerializableVoid> result =
-        new PersistDefinition(mMockFileSystemContext, mMockFileSystem).selectExecutors(config,
+        new PersistDefinition().selectExecutors(config,
             Lists.newArrayList(workerInfo), mMockJobMasterContext);
     Assert.assertEquals(1, result.size());
     Assert.assertEquals(workerInfo, result.keySet().iterator().next());
@@ -96,7 +100,7 @@ public final class PersistDefinitionTest {
     Mockito.when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
 
     try {
-      new PersistDefinition(mMockFileSystemContext, mMockFileSystem).selectExecutors(config,
+      new PersistDefinition().selectExecutors(config,
           Lists.newArrayList(new WorkerInfo()), mMockJobMasterContext);
     } catch (Exception e) {
       Assert.assertEquals("Block " + blockId + " does not exist", e.getMessage());

@@ -310,9 +310,10 @@ public final class MigrateDefinitionSelectExecutorsTest {
     setPathToNotExist("/dst");
 
     Map<WorkerInfo, ArrayList<MigrateCommand>> assignments =
-        new MigrateDefinition(mMockFileSystemContext, mMockFileSystem).selectExecutors(
+        new MigrateDefinition().selectExecutors(
             new MigrateConfig("/src", "/dst", "THROUGH", true, false),
-            ImmutableList.of(JOB_WORKER_3), new JobMasterContext(1, mMockUfsManager));
+            ImmutableList.of(JOB_WORKER_3), new JobMasterContext(mMockFileSystem,
+                mMockFileSystemContext, 1, mMockUfsManager));
 
     Assert.assertEquals(ImmutableMap.of(JOB_WORKER_3,
         new ArrayList<>(Arrays.asList(new MigrateCommand("/src", "/dst")))), assignments);
@@ -332,8 +333,9 @@ public final class MigrateDefinitionSelectExecutorsTest {
    */
   private Map<WorkerInfo, ArrayList<MigrateCommand>> assignMigrates(MigrateConfig config)
       throws Exception {
-    return new MigrateDefinition(mMockFileSystemContext, mMockFileSystem).selectExecutors(config,
-        JOB_WORKERS, new JobMasterContext(1, mMockUfsManager));
+    return new MigrateDefinition().selectExecutors(config,
+        JOB_WORKERS, new JobMasterContext(mMockFileSystem, mMockFileSystemContext, 1,
+            mMockUfsManager));
   }
 
   /**
