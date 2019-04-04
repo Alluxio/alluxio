@@ -45,7 +45,7 @@ import java.util.Map;
  * Tests {@link JobMaster}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({JobCoordinator.class})
+@PrepareForTest({JobCoordinator.class, FileSystemContext.class})
 public final class JobMasterTest {
   private static final int TEST_JOB_MASTER_JOB_CAPACITY = 100;
   private JobMaster mJobMaster;
@@ -57,8 +57,9 @@ public final class JobMasterTest {
   public void before() throws Exception {
     // Can't use ConfigurationRule due to conflicts with PowerMock.
     ServerConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, TEST_JOB_MASTER_JOB_CAPACITY);
-    mJobMaster =
-        new JobMaster(new MasterContext(new NoopJournalSystem()), Mockito.mock(UfsManager.class));
+    mJobMaster = new JobMaster(new MasterContext(new NoopJournalSystem()),
+        Mockito.mock(FileSystem.class), Mockito.mock(FileSystemContext.class),
+        Mockito.mock(UfsManager.class));
     mJobMaster.start(true);
   }
 
