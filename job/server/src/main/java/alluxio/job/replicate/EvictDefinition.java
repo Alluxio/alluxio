@@ -18,8 +18,8 @@ import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.RemoveBlockRequest;
 import alluxio.job.AbstractVoidJobDefinition;
-import alluxio.job.JobMasterContext;
-import alluxio.job.JobWorkerContext;
+import alluxio.job.RunTaskContext;
+import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -63,13 +63,14 @@ public final class EvictDefinition
 
   @Override
   public Map<WorkerInfo, SerializableVoid> selectExecutors(EvictConfig config,
-      List<WorkerInfo> jobWorkerInfoList, JobMasterContext jobMasterContext) throws Exception {
+      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
+      throws Exception {
     Preconditions.checkArgument(!jobWorkerInfoList.isEmpty(), "No worker is available");
 
     long blockId = config.getBlockId();
     int numReplicas = config.getReplicas();
 
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(jobMasterContext.getFsContext());
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(selectExecutorsContext.getFsContext());
     BlockInfo blockInfo = blockStore.getInfo(blockId);
 
     Set<String> hosts = new HashSet<>();
@@ -98,8 +99,8 @@ public final class EvictDefinition
    */
   @Override
   public SerializableVoid runTask(EvictConfig config, SerializableVoid args,
-      JobWorkerContext jobWorkerContext) throws Exception {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(jobWorkerContext.getFsContext());
+      RunTaskContext runTaskContext) throws Exception {
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(runTaskContext.getFsContext());
 
     long blockId = config.getBlockId();
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
@@ -121,7 +122,7 @@ public final class EvictDefinition
     RemoveBlockRequest request = RemoveBlockRequest.newBuilder().setBlockId(blockId).build();
     BlockWorkerClient blockWorker = null;
     try {
-      blockWorker = jobWorkerContext.getFsContext().acquireBlockWorkerClient(localNetAddress);
+      blockWorker = runTaskContext.getFsContext().acquireBlockWorkerClient(localNetAddress);
       blockWorker.removeBlock(request);
     } catch (NotFoundException e) {
       // Instead of throwing this exception, we continue here because the block to evict does not
@@ -129,7 +130,7 @@ public final class EvictDefinition
       LOG.warn("Failed to delete block {} on {}: block does not exist", blockId, localNetAddress);
     } finally {
       if (blockWorker != null) {
-        jobWorkerContext.getFsContext().releaseBlockWorkerClient(localNetAddress, blockWorker);
+        runTaskContext.getFsContext().releaseBlockWorkerClient(localNetAddress, blockWorker);
       }
     }
     return null;

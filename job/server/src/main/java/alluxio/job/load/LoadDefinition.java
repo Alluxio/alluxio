@@ -17,8 +17,8 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.job.AbstractVoidJobDefinition;
-import alluxio.job.JobMasterContext;
-import alluxio.job.JobWorkerContext;
+import alluxio.job.RunTaskContext;
+import alluxio.job.SelectExecutorsContext;
 import alluxio.job.load.LoadDefinition.LoadTask;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
@@ -58,14 +58,15 @@ public final class LoadDefinition
 
   @Override
   public Map<WorkerInfo, ArrayList<LoadTask>> selectExecutors(LoadConfig config,
-      List<WorkerInfo> jobWorkerInfoList, JobMasterContext jobMasterContext) throws Exception {
+      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
+      throws Exception {
     Map<String, WorkerInfo> jobWorkersByAddress = jobWorkerInfoList.stream()
         .collect(Collectors.toMap(info -> info.getAddress().getHost(), info -> info));
     // Filter out workers which have no local job worker available.
     List<String> missingJobWorkerHosts = new ArrayList<>();
     List<BlockWorkerInfo> workers = new ArrayList<>();
     for (BlockWorkerInfo worker :
-        AlluxioBlockStore.create(jobMasterContext.getFsContext()).getAllWorkers()) {
+        AlluxioBlockStore.create(selectExecutorsContext.getFsContext()).getAllWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
         workers.add(worker);
       } else {
@@ -76,7 +77,7 @@ public final class LoadDefinition
     // Mapping from worker to block ids which that worker is supposed to load.
     Multimap<WorkerInfo, LoadTask> assignments = LinkedListMultimap.create();
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
-    for (FileBlockInfo blockInfo : jobMasterContext
+    for (FileBlockInfo blockInfo : selectExecutorsContext
         .getFileSystem().getStatus(uri).getFileBlockInfos()) {
       List<String> workersWithoutBlock = getWorkersWithoutBlock(workers, blockInfo);
       int neededReplicas = config.getReplication() - blockInfo.getBlockInfo().getLocations().size();
@@ -119,10 +120,10 @@ public final class LoadDefinition
 
   @Override
   public SerializableVoid runTask(LoadConfig config, ArrayList<LoadTask> tasks,
-      JobWorkerContext jobWorkerContext) throws Exception {
+      RunTaskContext runTaskContext) throws Exception {
     for (LoadTask task : tasks) {
       JobUtils
-          .loadBlock(jobWorkerContext.getFileSystem(), jobWorkerContext.getFsContext(),
+          .loadBlock(runTaskContext.getFileSystem(), runTaskContext.getFsContext(),
               config.getFilePath(), task.getBlockId());
       LOG.info("Loaded block " + task.getBlockId());
     }

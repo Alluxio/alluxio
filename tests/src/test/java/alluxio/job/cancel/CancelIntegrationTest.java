@@ -16,8 +16,8 @@ import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.JobConfig;
 import alluxio.job.JobDefinitionRegistry;
 import alluxio.job.JobIntegrationTest;
-import alluxio.job.JobMasterContext;
-import alluxio.job.JobWorkerContext;
+import alluxio.job.RunTaskContext;
+import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.WorkerInfo;
 
@@ -45,7 +45,8 @@ public final class CancelIntegrationTest extends JobIntegrationTest {
       extends AbstractVoidJobDefinition<CancelTestConfig, Integer> {
     @Override
     public Map<WorkerInfo, Integer> selectExecutors(CancelTestConfig config,
-        List<WorkerInfo> jobWorkerInfoList, JobMasterContext jobMasterContext) throws Exception {
+        List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
+        throws Exception {
       Map<WorkerInfo, Integer> result = new HashMap<>();
       for (WorkerInfo info : jobWorkerInfoList) {
         result.put(info, 0);
@@ -55,7 +56,7 @@ public final class CancelIntegrationTest extends JobIntegrationTest {
 
     @Override
     public SerializableVoid runTask(CancelTestConfig config, Integer args,
-        JobWorkerContext jobWorkerContext) throws Exception {
+        RunTaskContext runTaskContext) throws Exception {
       // wait until interruption
       Thread.sleep(1000 * Constants.SECOND_MS);
       return null;
