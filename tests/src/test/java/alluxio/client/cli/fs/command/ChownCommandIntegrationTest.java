@@ -16,16 +16,8 @@ import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.exception.AlluxioException;
-<<<<<<< HEAD
-import alluxio.security.group.GroupMappingService;
-||||||| parent of 0b76b474c2... Add an option to cp command to preserve file attributes
-import alluxio.grpc.WritePType;
-import alluxio.security.group.GroupMappingService;
-=======
-import alluxio.grpc.WritePType;
->>>>>>> 0b76b474c2... Add an option to cp command to preserve file attributes
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.exception.AlluxioException;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;

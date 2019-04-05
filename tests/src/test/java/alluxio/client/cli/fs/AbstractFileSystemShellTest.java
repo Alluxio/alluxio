@@ -27,15 +27,7 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.security.LoginUserTestUtils;
-<<<<<<< HEAD
-||||||| parent of 0b76b474c2... Add an option to cp command to preserve file attributes
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
-=======
 import alluxio.security.group.GroupMappingService;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
->>>>>>> 0b76b474c2... Add an option to cp command to preserve file attributes
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
