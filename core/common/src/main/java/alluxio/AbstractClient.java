@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.channels.UnresolvedAddressException;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -212,6 +213,16 @@ public abstract class AbstractClient implements Client {
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
+      if (mAddress.isUnresolved()) {
+        // Sometimes the acquired addressed wasn't resolved, retry resolving before
+        // using it to connect.
+        LOG.info("Retry resolving address {}", mAddress);
+        // Creates a new InetSocketAddress to force resolving the hostname again.
+        mAddress = new InetSocketAddress(mAddress.getHostName(), mAddress.getPort());
+        if (mAddress.isUnresolved()) {
+          LOG.warn("Failed to resolve address on retry {}", mAddress);
+        }
+      }
       try {
         beforeConnect();
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
@@ -362,7 +373,8 @@ public abstract class AbstractClient implements Client {
         AlluxioStatusException se = AlluxioStatusException.fromStatusRuntimeException(e);
         if (se.getStatus() == Status.UNAVAILABLE
             || se.getStatus() == Status.CANCELED
-            || se.getStatus() == Status.UNAUTHENTICATED) {
+            || se.getStatus() == Status.UNAUTHENTICATED
+            || e.getCause() instanceof UnresolvedAddressException) {
           ex = se;
         } else {
           throw se;
