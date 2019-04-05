@@ -542,12 +542,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // journaled, so the root will be re-mounted based on configuration whenever the master
         // starts.
         long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
+        ufsResource.get().connectFromMaster(
+            NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
             MountOptions.defaults()
                 .setShared(ufsResource.get().isObjectStorage() && Configuration
                     .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
                 .setProperties(rootUfsConf));
-      } catch (FileAlreadyExistsException | InvalidPathException e) {
+      } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
         throw new IllegalStateException(e);
       }
     }
