@@ -57,7 +57,7 @@ public final class ReplicateDefinition
 
   @Override
   public Map<WorkerInfo, SerializableVoid> selectExecutors(ReplicateConfig config,
-      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
+      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
       throws Exception {
     Preconditions.checkArgument(!jobWorkerInfoList.isEmpty(), "No worker is available");
 
@@ -65,7 +65,7 @@ public final class ReplicateDefinition
     int numReplicas = config.getReplicas();
     Preconditions.checkArgument(numReplicas > 0);
 
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(selectExecutorsContext.getFsContext());
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context.getFsContext());
     BlockInfo blockInfo = blockStore.getInfo(blockId);
 
     Set<String> hosts = new HashSet<>();
@@ -94,8 +94,8 @@ public final class ReplicateDefinition
    */
   @Override
   public SerializableVoid runTask(ReplicateConfig config, SerializableVoid arg,
-      RunTaskContext runTaskContext) throws Exception {
-    JobUtils.loadBlock(runTaskContext.getFileSystem(), runTaskContext.getFsContext(),
+      RunTaskContext context) throws Exception {
+    JobUtils.loadBlock(context.getFileSystem(), context.getFsContext(),
         config.getPath(), config.getBlockId());
     return null;
   }

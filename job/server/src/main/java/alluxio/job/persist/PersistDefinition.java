@@ -64,7 +64,7 @@ public final class PersistDefinition
 
   @Override
   public Map<WorkerInfo, SerializableVoid> selectExecutors(PersistConfig config,
-      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
+      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
       throws Exception {
     if (jobWorkerInfoList.isEmpty()) {
       throw new RuntimeException("No worker is available");
@@ -72,9 +72,9 @@ public final class PersistDefinition
 
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
     List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(selectExecutorsContext.getFsContext()).getAllWorkers();
+        AlluxioBlockStore.create(context.getFsContext()).getAllWorkers();
     BlockWorkerInfo workerWithMostBlocks = JobUtils.getWorkerWithMostBlocks(alluxioWorkerInfoList,
-        selectExecutorsContext.getFileSystem().getStatus(uri).getFileBlockInfos());
+        context.getFileSystem().getStatus(uri).getFileBlockInfos());
 
     // Map the best Alluxio worker to a job worker.
     Map<WorkerInfo, SerializableVoid> result = Maps.newHashMap();
@@ -97,12 +97,12 @@ public final class PersistDefinition
 
   @Override
   public SerializableVoid runTask(PersistConfig config, SerializableVoid args,
-      RunTaskContext runTaskContext) throws Exception {
+      RunTaskContext context) throws Exception {
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
     String ufsPath = config.getUfsPath();
 
     // check if the file is persisted in UFS and delete it, if we are overwriting it
-    UfsManager.UfsClient ufsClient = runTaskContext.getUfsManager().get(config.getMountId());
+    UfsManager.UfsClient ufsClient = context.getUfsManager().get(config.getMountId());
     try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       if (ufs == null) {
@@ -119,7 +119,7 @@ public final class PersistDefinition
         }
       }
 
-      URIStatus uriStatus = runTaskContext.getFileSystem().getStatus(uri);
+      URIStatus uriStatus = context.getFileSystem().getStatus(uri);
       if (!uriStatus.isCompleted()) {
         throw new IOException("Cannot persist an incomplete Alluxio file: " + uri);
       }
@@ -127,7 +127,7 @@ public final class PersistDefinition
       try (Closer closer = Closer.create()) {
         OpenFilePOptions options =
             OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
-        FileInStream in = closer.register(runTaskContext.getFileSystem().openFile(uri, options));
+        FileInStream in = closer.register(context.getFileSystem().openFile(uri, options));
         AlluxioURI dstPath = new AlluxioURI(ufsPath);
         // Create ancestor directories from top to the bottom. We cannot use recursive create
         // parents here because the permission for the ancestors can be different.
@@ -137,7 +137,7 @@ public final class PersistDefinition
         // Stop at the Alluxio root because the mapped directory of Alluxio root in UFS may not
         // exist.
         while (!ufs.isDirectory(curUfsPath.toString()) && curAlluxioPath != null) {
-          URIStatus curDirStatus = runTaskContext.getFileSystem().getStatus(curAlluxioPath);
+          URIStatus curDirStatus = context.getFileSystem().getStatus(curAlluxioPath);
           ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
               MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
                   .setOwner(curDirStatus.getOwner())

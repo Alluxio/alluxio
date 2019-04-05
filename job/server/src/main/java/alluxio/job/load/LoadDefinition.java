@@ -58,7 +58,7 @@ public final class LoadDefinition
 
   @Override
   public Map<WorkerInfo, ArrayList<LoadTask>> selectExecutors(LoadConfig config,
-      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
+      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
       throws Exception {
     Map<String, WorkerInfo> jobWorkersByAddress = jobWorkerInfoList.stream()
         .collect(Collectors.toMap(info -> info.getAddress().getHost(), info -> info));
@@ -66,7 +66,7 @@ public final class LoadDefinition
     List<String> missingJobWorkerHosts = new ArrayList<>();
     List<BlockWorkerInfo> workers = new ArrayList<>();
     for (BlockWorkerInfo worker :
-        AlluxioBlockStore.create(selectExecutorsContext.getFsContext()).getAllWorkers()) {
+        AlluxioBlockStore.create(context.getFsContext()).getAllWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
         workers.add(worker);
       } else {
@@ -77,7 +77,7 @@ public final class LoadDefinition
     // Mapping from worker to block ids which that worker is supposed to load.
     Multimap<WorkerInfo, LoadTask> assignments = LinkedListMultimap.create();
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
-    for (FileBlockInfo blockInfo : selectExecutorsContext
+    for (FileBlockInfo blockInfo : context
         .getFileSystem().getStatus(uri).getFileBlockInfos()) {
       List<String> workersWithoutBlock = getWorkersWithoutBlock(workers, blockInfo);
       int neededReplicas = config.getReplication() - blockInfo.getBlockInfo().getLocations().size();
@@ -120,10 +120,10 @@ public final class LoadDefinition
 
   @Override
   public SerializableVoid runTask(LoadConfig config, ArrayList<LoadTask> tasks,
-      RunTaskContext runTaskContext) throws Exception {
+      RunTaskContext context) throws Exception {
     for (LoadTask task : tasks) {
       JobUtils
-          .loadBlock(runTaskContext.getFileSystem(), runTaskContext.getFsContext(),
+          .loadBlock(context.getFileSystem(), context.getFsContext(),
               config.getFilePath(), task.getBlockId());
       LOG.info("Loaded block " + task.getBlockId());
     }

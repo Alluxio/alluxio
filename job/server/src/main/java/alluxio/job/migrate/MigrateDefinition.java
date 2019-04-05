@@ -156,30 +156,30 @@ public final class MigrateDefinition
    */
   @Override
   public Map<WorkerInfo, ArrayList<MigrateCommand>> selectExecutors(MigrateConfig config,
-      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
+      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
       throws Exception {
     AlluxioURI source = new AlluxioURI(config.getSource());
     AlluxioURI destination = new AlluxioURI(config.getDestination());
     if (source.equals(destination)) {
       return new HashMap<>();
     }
-    checkMigrateValid(config, selectExecutorsContext.getFileSystem());
+    checkMigrateValid(config, context.getFileSystem());
     Preconditions.checkState(!jobWorkerInfoList.isEmpty(), "No workers are available");
 
     List<URIStatus> allPathStatuses =
-        getPathStatuses(source, selectExecutorsContext.getFileSystem());
+        getPathStatuses(source, context.getFileSystem());
     ConcurrentMap<WorkerInfo, ArrayList<MigrateCommand>> assignments = Maps.newConcurrentMap();
     ConcurrentMap<String, WorkerInfo> hostnameToWorker = Maps.newConcurrentMap();
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
       hostnameToWorker.put(workerInfo.getAddress().getHost(), workerInfo);
     }
     List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(selectExecutorsContext.getFsContext()).getAllWorkers();
+        AlluxioBlockStore.create(context.getFsContext()).getAllWorkers();
     // Assign each file to the worker with the most block locality.
     for (URIStatus status : allPathStatuses) {
       if (status.isFolder()) {
         migrateDirectory(status.getPath(), source.getPath(), destination.getPath(),
-            selectExecutorsContext.getFileSystem());
+            context.getFileSystem());
       } else {
         WorkerInfo bestJobWorker = getBestJobWorker(status, alluxioWorkerInfoList,
             jobWorkerInfoList, hostnameToWorker);
@@ -274,20 +274,20 @@ public final class MigrateDefinition
    */
   @Override
   public SerializableVoid runTask(MigrateConfig config, ArrayList<MigrateCommand> commands,
-      RunTaskContext runTaskContext) throws Exception {
+      RunTaskContext context) throws Exception {
     WriteType writeType = config.getWriteType() == null
         ? ServerConfiguration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
         : WriteType.valueOf(config.getWriteType());
     for (MigrateCommand command : commands) {
       migrate(command, writeType.toProto(), config.isDeleteSource(),
-          runTaskContext.getFileSystem());
+          context.getFileSystem());
     }
     // Try to delete the source directory if it is empty.
     if (config.isDeleteSource() && !hasFiles(new AlluxioURI(config.getSource()),
-        runTaskContext.getFileSystem())) {
+        context.getFileSystem())) {
       try {
         LOG.debug("Deleting {}", config.getSource());
-        runTaskContext.getFileSystem().delete(new AlluxioURI(config.getSource()),
+        context.getFileSystem().delete(new AlluxioURI(config.getSource()),
             DeletePOptions.newBuilder().setRecursive(true).build());
       } catch (FileDoesNotExistException e) {
         // It's already deleted, possibly by another worker.
