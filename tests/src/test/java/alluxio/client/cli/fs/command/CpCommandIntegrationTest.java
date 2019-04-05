@@ -14,28 +14,52 @@ package alluxio.client.cli.fs.command;
 import static org.hamcrest.CoreMatchers.containsString;
 
 import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
+import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
+import alluxio.grpc.SetAclAction;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.security.authorization.AclAction;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.AclEntryType;
+import alluxio.security.authorization.Mode;
 import alluxio.util.io.BufferUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Tests for cp command.
  */
 public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest {
+
+  @Rule
+  public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
+      .of(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName()),
+      ServerConfiguration.global());
 
   /**
    * Tests copying a file to a new location.
@@ -136,6 +160,103 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
         equals(new AlluxioURI("/copy/foobar2"), new AlluxioURI(testDir + "/foo/foobar2")));
     Assert.assertTrue(
         equals(new AlluxioURI("/copy/foobar3"), new AlluxioURI(testDir + "/bar/foobar3")));
+  }
+
+  /**
+   * Tests copying a file with attributes preserved.
+   */
+  @Test
+  public void copyFileWithPreservedAttributes() throws Exception {
+    InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
+    // avoid chown on UFS since test might not be run with root
+    conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    mFsShell = new FileSystemShell(conf);
+
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    AlluxioURI srcFile = new AlluxioURI(testDir + "/foobar4");
+    String owner = TEST_USER_1.getUser();
+    String group = "staff";
+    short mode = 0422;
+    List<AclEntry> entries = new ArrayList<>();
+    entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
+        .setSubject(TEST_USER_2.getUser()).addAction(AclAction.READ).addAction(AclAction.WRITE)
+        .addAction(AclAction.EXECUTE).build());
+    entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(group)
+        .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
+    mFileSystem.setAttribute(srcFile,
+        SetAttributePOptions.newBuilder()
+            .setOwner(owner).setGroup(group)
+            .setMode(new Mode(mode).toProto())
+            .setPinned(true)
+            .setReplicationMin(2)
+            .setReplicationMax(4)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(12345))
+            .build());
+    mFileSystem.setAcl(srcFile, SetAclAction.MODIFY, entries);
+    int ret = mFsShell.run("cp", "-p", testDir + "/foobar4", testDir + "/bar");
+    AlluxioURI dstFile = new AlluxioURI(testDir + "/bar/foobar4");
+    Assert.assertEquals(0, ret);
+    Assert.assertTrue(mFileSystem.exists(dstFile));
+    verifyPreservedAttributes(srcFile, dstFile);
+  }
+
+  /**
+   * Tests copying a folder with attributes preserved.
+   */
+  @Test
+  public void copyDirectoryWithPreservedAttributes() throws Exception {
+    InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
+    conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    mFsShell = new FileSystemShell(conf);
+
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String newDir = "/copy";
+    String subDir = "/foo";
+    String file = "/foobar4";
+    String owner = TEST_USER_1.getUser();
+    String group = "staff";
+    short mode = 0422;
+    List<AclEntry> entries = new ArrayList<>();
+    entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
+        .setSubject(TEST_USER_2.getUser()).addAction(AclAction.READ).addAction(AclAction.WRITE)
+        .addAction(AclAction.EXECUTE).build());
+    entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(group)
+        .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
+    AlluxioURI srcDir = new AlluxioURI(testDir);
+    mFileSystem.setAttribute(srcDir,
+        SetAttributePOptions.newBuilder().setRecursive(true)
+            .setOwner(owner).setGroup(group)
+            .setMode(new Mode(mode).toProto())
+            .setPinned(true)
+            .setReplicationMin(2)
+            .setReplicationMax(4)
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(12345))
+            .build());
+    mFileSystem.setAcl(srcDir, SetAclAction.MODIFY, entries,
+        SetAclPOptions.newBuilder().setRecursive(true).build());
+    int ret = mFsShell.run("cp", "-R",  "-p", testDir, newDir);
+    AlluxioURI dstDir = new AlluxioURI(newDir);
+    Assert.assertEquals(0, ret);
+    Assert.assertTrue(mFileSystem.exists(dstDir));
+    verifyPreservedAttributes(srcDir, dstDir);
+    verifyPreservedAttributes(srcDir.join(subDir), dstDir.join(subDir));
+    verifyPreservedAttributes(srcDir.join(file), dstDir.join(file));
+  }
+
+  private void verifyPreservedAttributes(AlluxioURI src, AlluxioURI dst)
+      throws IOException, AlluxioException {
+    URIStatus srcStatus = mFileSystem.getStatus(src);
+    URIStatus dstStatus = mFileSystem.getStatus(dst);
+    Assert.assertEquals(srcStatus.getOwner(), dstStatus.getOwner());
+    Assert.assertEquals(srcStatus.getGroup(), dstStatus.getGroup());
+    Assert.assertEquals(srcStatus.getMode(), dstStatus.getMode());
+    Assert.assertEquals(srcStatus.getAcl(), dstStatus.getAcl());
+    Assert.assertNotEquals(srcStatus.getTtl(), dstStatus.getTtl());
+    if (!srcStatus.isFolder()) {
+      Assert.assertNotEquals(srcStatus.getReplicationMin(), dstStatus.getReplicationMin());
+      Assert.assertNotEquals(srcStatus.getReplicationMax(), dstStatus.getReplicationMax());
+    }
+    Assert.assertNotEquals(srcStatus.isPinned(), dstStatus.isPinned());
   }
 
   /**
