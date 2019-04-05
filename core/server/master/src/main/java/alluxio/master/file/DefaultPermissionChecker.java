@@ -75,7 +75,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
 
     // collects existing inodes info on the path. Note that, not all the components of the path have
     // corresponding inodes.
-    List<InodeView> inodeList = (List<InodeView>) (List<?>) inodePath.getInodeList();
+    List<? extends InodeView> inodeList = inodePath.getInodeList();
 
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
@@ -96,7 +96,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
     }
 
     // collects inodes info on the path
-    List<InodeView> inodeList = (List<InodeView>) (List<?>) inodePath.getInodeList();
+    List<? extends InodeView> inodeList = inodePath.getInodeList();
 
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
@@ -165,7 +165,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
   private void checkOwner(LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     // collects inodes info on the path
-    List<InodeView> inodeList = (List<InodeView>) (List<?>) inodePath.getInodeList();
+    List<? extends InodeView> inodeList = inodePath.getInodeList();
 
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
@@ -208,7 +208,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
    * @throws AccessControlException if permission checking fails
    */
   protected void checkInodeList(String user, List<String> groups, Mode.Bits bits, String path,
-      List<InodeView> inodeList, boolean checkIsOwner) throws AccessControlException {
+      List<? extends InodeView> inodeList, boolean checkIsOwner) throws AccessControlException {
     int size = inodeList.size();
     Preconditions.checkArgument(size > 0,
         PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
