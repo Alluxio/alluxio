@@ -30,7 +30,14 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.exception.status.InvalidArgumentException;
+<<<<<<< HEAD
 import alluxio.util.CommonUtils;
+||||||| parent of 0b76b474c2... Add an option to cp command to preserve file attributes
+=======
+import alluxio.grpc.SetAclAction;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.security.authorization.Mode;
+>>>>>>> 0b76b474c2... Add an option to cp command to preserve file attributes
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
@@ -87,6 +94,50 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .type(Number.class)
           .desc("Number of threads used to copy files in parallel, default value is CPU cores * 2")
           .build();
+<<<<<<< HEAD
+||||||| parent of 0b76b474c2... Add an option to cp command to preserve file attributes
+  public static final Option BUFFER_SIZE_OPTION =
+      Option.builder()
+          .longOpt("buffersize")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("buffer size")
+          .type(Number.class)
+          .desc("Read buffer size in bytes, "
+              + "default is 8MB when copying from local, "
+              + "and 64MB when copying to local")
+          .build();
+
+  private int mCopyFromLocalBufferSize = COPY_FROM_LOCAL_BUFFER_SIZE_DEFAULT;
+  private int mCopyToLocalBufferSize = COPY_TO_LOCAL_BUFFER_SIZE_DEFAULT;
+  private int mThread = Runtime.getRuntime().availableProcessors() * 2;
+=======
+  public static final Option BUFFER_SIZE_OPTION =
+      Option.builder()
+          .longOpt("buffersize")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("buffer size")
+          .type(Number.class)
+          .desc("Read buffer size in bytes, "
+              + "default is 8MB when copying from local, "
+              + "and 64MB when copying to local")
+          .build();
+  private static final Option PRESERVE_OPTION =
+      Option.builder("p")
+          .longOpt("preserve")
+          .required(false)
+          .desc("Preserve file permission attributes when copying files. "
+              + "All ownership, permissions and ACLs will be preserved")
+          .build();
+
+  private int mCopyFromLocalBufferSize = COPY_FROM_LOCAL_BUFFER_SIZE_DEFAULT;
+  private int mCopyToLocalBufferSize = COPY_TO_LOCAL_BUFFER_SIZE_DEFAULT;
+  private int mThread = Runtime.getRuntime().availableProcessors() * 2;
+  private boolean mPreservePermissions = false;
+>>>>>>> 0b76b474c2... Add an option to cp command to preserve file attributes
 
   /**
    * A thread pool executor for asynchronous copy.
@@ -277,12 +328,70 @@ public final class CpCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
+<<<<<<< HEAD
+||||||| parent of 0b76b474c2... Add an option to cp command to preserve file attributes
+    if (cl.hasOption(BUFFER_SIZE_OPTION.getLongOpt())) {
+      try {
+        int bufSize = ((Number) cl.getParsedOptionValue(BUFFER_SIZE_OPTION.getLongOpt()))
+            .intValue();
+        if (bufSize < 0) {
+          throw new InvalidArgumentException(BUFFER_SIZE_OPTION.getLongOpt() + " must be > 0");
+        }
+        mCopyFromLocalBufferSize = bufSize;
+        mCopyToLocalBufferSize = bufSize;
+      } catch (ParseException e) {
+        throw new InvalidArgumentException("Failed to parse option "
+            + BUFFER_SIZE_OPTION.getLongOpt() + " into an integer", e);
+      }
+    }
+    if (cl.hasOption(THREAD_OPTION.getLongOpt())) {
+      try {
+        mThread = ((Number) cl.getParsedOptionValue(THREAD_OPTION.getLongOpt())).intValue();
+        if (mThread <= 0) {
+          throw new InvalidArgumentException(THREAD_OPTION.getLongOpt() + " must be > 0");
+        }
+      } catch (ParseException e) {
+        throw new InvalidArgumentException("Failed to parse option " + THREAD_OPTION.getLongOpt()
+            + " into an integer", e);
+      }
+    }
+=======
+    if (cl.hasOption(BUFFER_SIZE_OPTION.getLongOpt())) {
+      try {
+        int bufSize = ((Number) cl.getParsedOptionValue(BUFFER_SIZE_OPTION.getLongOpt()))
+            .intValue();
+        if (bufSize < 0) {
+          throw new InvalidArgumentException(BUFFER_SIZE_OPTION.getLongOpt() + " must be > 0");
+        }
+        mCopyFromLocalBufferSize = bufSize;
+        mCopyToLocalBufferSize = bufSize;
+      } catch (ParseException e) {
+        throw new InvalidArgumentException("Failed to parse option "
+            + BUFFER_SIZE_OPTION.getLongOpt() + " into an integer", e);
+      }
+    }
+    if (cl.hasOption(THREAD_OPTION.getLongOpt())) {
+      try {
+        mThread = ((Number) cl.getParsedOptionValue(THREAD_OPTION.getLongOpt())).intValue();
+        if (mThread <= 0) {
+          throw new InvalidArgumentException(THREAD_OPTION.getLongOpt() + " must be > 0");
+        }
+      } catch (ParseException e) {
+        throw new InvalidArgumentException("Failed to parse option " + THREAD_OPTION.getLongOpt()
+            + " into an integer", e);
+      }
+    }
+    if (cl.hasOption(PRESERVE_OPTION.getLongOpt())) {
+      mPreservePermissions = true;
+    }
+>>>>>>> 0b76b474c2... Add an option to cp command to preserve file attributes
   }
 
   @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION)
-        .addOption(THREAD_OPTION);
+        .addOption(THREAD_OPTION)
+        .addOption(PRESERVE_OPTION);
   }
 
   @Override
@@ -463,6 +572,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         System.out.println("Created directory: " + dstPath);
       }
 
+      preserveAttributes(srcPath, dstPath);
       List<String> errorMessages = new ArrayList<>();
       for (URIStatus status : statuses) {
         try {
@@ -500,6 +610,26 @@ public final class CpCommand extends AbstractFileSystemCommand {
         throw e;
       }
       System.out.println(String.format(COPY_SUCCEED_MESSAGE, srcPath, dstPath));
+    }
+    preserveAttributes(srcPath, dstPath);
+  }
+
+  /**
+   * Preserves attributes from the source file to the target file.
+   *
+   * @param srcPath the source path
+   * @param dstPath the destination path in the Alluxio filesystem
+   */
+  private void preserveAttributes(AlluxioURI srcPath, AlluxioURI dstPath)
+      throws IOException, AlluxioException {
+    if (mPreservePermissions) {
+      URIStatus srcStatus = mFileSystem.getStatus(srcPath);
+      mFileSystem.setAttribute(dstPath, SetAttributePOptions.newBuilder()
+          .setOwner(srcStatus.getOwner())
+          .setGroup(srcStatus.getGroup())
+          .setMode(new Mode((short) srcStatus.getMode()).toProto())
+          .build());
+      mFileSystem.setAcl(dstPath, SetAclAction.REPLACE, srcStatus.getAcl().getEntries());
     }
   }
 
