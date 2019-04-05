@@ -374,10 +374,29 @@ public class UfsJournal implements Journal {
       try {
         switch (journalReader.advance()) {
           case CHECKPOINT:
-            mMaster.restoreFromCheckpoint(journalReader.getCheckpoint());
+            try {
+              mMaster.restoreFromCheckpoint(journalReader.getCheckpoint());
+            }  catch (Throwable t) {
+              if (mTolerateCorruption) {
+                ProcessUtils.fatalError(true,  LOG, t,
+                    "%s: Failed to restore from check point", mMaster.getName());
+              } else {
+                throw t;
+              }
+            }
             break;
           case LOG:
-            mMaster.processJournalEntry(journalReader.getEntry());
+            JournalEntry entry = journalReader.getEntry();
+            try {
+              mMaster.processJournalEntry(entry);
+            }  catch (Throwable t) {
+              if (mTolerateCorruption) {
+                ProcessUtils.fatalError(true,  LOG, t,
+                    "%s: Failed to process journal entry %s", mMaster.getName(), entry);
+              } else {
+                throw t;
+              }
+            }
             break;
           default:
             return journalReader.getNextSequenceNumber();
@@ -388,16 +407,7 @@ public class UfsJournal implements Journal {
         if (retry.attempt()) {
           continue;
         }
-        if (!mTolerateCorruption) {
-          throw new RuntimeException(e);
-        }
-      }  catch (Throwable t) {
-        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
-          ProcessUtils.fatalError(true,  LOG, t,
-              "%s: Failed to process journal entry when catching up.", mMaster.getName());
-        } else {
-          throw t;
-        }
+        throw new RuntimeException(e);
       }
     }
   }

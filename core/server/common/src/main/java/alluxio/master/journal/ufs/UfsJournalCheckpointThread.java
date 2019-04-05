@@ -16,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.Master;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalUtils;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.ExceptionUtils;
@@ -55,6 +56,8 @@ public final class UfsJournalCheckpointThread extends Thread {
   private final long mCheckpointPeriodEntries;
   /** Object for sycnhronizing accesses to mCheckpointing. */
   private final Object mCheckpointingLock = new Object();
+  /** Whether or not to tolerate metadata corruption. */
+  private final boolean mTolerateCorruption;
   /** Whether we are currently creating a checkpoint. */
   @GuardedBy("mCheckpointingLock")
   private boolean mCheckpointing = false;
@@ -90,6 +93,8 @@ public final class UfsJournalCheckpointThread extends Thread {
     mJournalReader = new UfsJournalReader(mJournal, 0, false);
     mCheckpointPeriodEntries = ServerConfiguration.getLong(
         PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+    mTolerateCorruption = ServerConfiguration
+        .getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION);
   }
 
   /**
@@ -159,12 +164,28 @@ public final class UfsJournalCheckpointThread extends Thread {
         switch (mJournalReader.advance()) {
           case CHECKPOINT:
             LOG.debug("{}: Restoring from checkpoint", mMaster.getName());
-            mMaster.restoreFromCheckpoint(mJournalReader.getCheckpoint());
+            try {
+              mMaster.restoreFromCheckpoint(mJournalReader.getCheckpoint());
+            } catch (Throwable t) {
+              JournalUtils.handleJournalReplayFailure(LOG, t,
+                    "%s: Failed to process check point", mMaster.getName());
+              if (!mTolerateCorruption) {
+                throw t;
+              }
+            }
             LOG.debug("{}: Finished restoring from checkpoint", mMaster.getName());
             break;
           case LOG:
             entry = mJournalReader.getEntry();
-            mMaster.processJournalEntry(entry);
+            try {
+              mMaster.processJournalEntry(entry);
+            } catch (Throwable t) {
+              JournalUtils.handleJournalReplayFailure(LOG, t,
+                  "%s: Failed to read or process journal entry %s.", mMaster.getName(), entry);
+              if (!mTolerateCorruption) {
+                throw t;
+              }
+            }
             if (quietPeriodWaited) {
               LOG.info("Quiet period interrupted by new journal entry");
               quietPeriodWaited = false;
@@ -186,13 +207,6 @@ public final class UfsJournalCheckpointThread extends Thread {
         mJournalReader = new UfsJournalReader(mJournal, nextSequenceNumber, false);
         quietPeriodWaited = false;
         continue;
-      } catch (Throwable t) {
-        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
-          ProcessUtils.fatalError(true,  LOG, t,
-              "%s: Failed to read or process a journal entry when catching up.", mMaster.getName());
-        } else {
-          throw t;
-        }
       }
 
       // Sleep for a while if no entry is found.

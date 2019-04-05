@@ -55,7 +55,7 @@ public final class ProcessUtils {
     * @param args args for the format string
     */
   public static void fatalError(Logger logger, String format, Object... args) {
-    fatalError(false, logger, null, format, args);
+    fatalError(logger, null, format, args);
   }
 
   /**
@@ -67,20 +67,6 @@ public final class ProcessUtils {
    * @param args args for the format string
    */
   public static void fatalError(Logger logger, Throwable t, String format, Object... args) {
-    fatalError(false, logger, t, format, args);
-  }
-
-  /**
-   * Logs a fatal error and exits the system if required.
-   *
-   * @param shouldTolerate if true, tolerate the error. Otherwise, exit the system
-   * @param logger the logger to log to
-   * @param t the throwable causing the fatal error
-   * @param format the error message format string
-   * @param args args for the format string
-   */
-  public static void fatalError(boolean shouldTolerate,
-      Logger logger, Throwable t, String format, Object... args) {
     String message = String.format("Fatal error: " + format, args);
     if (t != null) {
       message += "\n" + ExceptionUtils.getStackTrace(t);
@@ -89,9 +75,7 @@ public final class ProcessUtils {
       throw new RuntimeException(message);
     }
     logger.error(message);
-    if (!shouldTolerate) {
-      System.exit(-1);
-    }
+    System.exit(-1);
   }
 
   /**

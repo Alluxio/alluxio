@@ -13,7 +13,6 @@ package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
@@ -27,6 +26,7 @@ import alluxio.util.StreamUtils;
 
 import com.esotericsoftware.kryo.io.OutputChunked;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,10 +107,9 @@ public final class JournalUtils {
       try {
         journaled.processJournalEntry(entry);
       } catch (Throwable t) {
-        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
-          ProcessUtils.fatalError(true,  LOG, t,
-              "Failed to process journal entry %s from a journal checkpoint", entry);
-        } else {
+        handleJournalReplayFailure(LOG, t,
+            "Failed to process journal entry %s from a journal checkpoint", entry);
+        if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
           throw t;
         }
       }
@@ -164,6 +163,29 @@ public final class JournalUtils {
             "Unrecognized checkpoint name: %s. Existing components: %s", nextEntry.getName(), Arrays
                 .toString(StreamUtils.map(Checkpointed::getCheckpointName, components).toArray())));
       }
+    }
+  }
+
+  /**
+   * Logs a fatal error and exits the system if required.
+   *
+   * @param logger the logger to log to
+   * @param t the throwable causing the fatal error
+   * @param format the error message format string
+   * @param args args for the format string
+   */
+  public static void handleJournalReplayFailure(
+      Logger logger, Throwable t, String format, Object... args) {
+    String message = String.format("Fatal error: " + format, args);
+    if (t != null) {
+      message += "\n" + ExceptionUtils.getStackTrace(t);
+    }
+    if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+      throw new RuntimeException(message);
+    }
+    logger.error(message);
+    if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
+      System.exit(-1);
     }
   }
 

@@ -172,10 +172,9 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       LOG.trace("Applying entry to master {}: {} ", masterName, entry);
       master.processJournalEntry(entry);
     } catch (Throwable t) {
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
-        ProcessUtils.fatalError(true,  LOG, t,
-            "Failed to apply journal entry to master %s. Entry: %s", entry);
-      } else {
+      JournalUtils.handleJournalReplayFailure(LOG, t,
+          "Failed to apply journal entry to master %s. Entry: %s", entry);
+      if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
         throw t;
       }
     }
@@ -219,11 +218,12 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       snapshotId = snapshotReader.readLong();
       JournalUtils.restoreFromCheckpoint(new CheckpointInputStream(srs), getStateMachines());
     } catch (Throwable t) {
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
-        ProcessUtils.fatalError(true, LOG, t, "Failed to install snapshot");
-        return;
-      } else {
+      JournalUtils.handleJournalReplayFailure(LOG, t,
+          "Failed to install snapshot");
+      if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
         throw new RuntimeException(t);
+      } else {
+        return;
       }
     }
 
