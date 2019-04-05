@@ -44,7 +44,7 @@ snapshot of all metrics in JSON format.
 For example, this command get the metrics in JSON format from the master process running locally:
 
 ```bash
-$ curl 127.0.0.1:19999/metrics/json/
+curl 127.0.0.1:19999/metrics/json/
 ```
 
 ## Sample Sink Setup

@@ -15,12 +15,13 @@ import alluxio.AlluxioURI;
 import alluxio.client.Cancelable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.policy.LocalFirstPolicy;
+import alluxio.client.block.policy.LocalFirstPolicy;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
@@ -130,12 +131,18 @@ public final class JobUtils {
     URIStatus status = fs.getStatus(new AlluxioURI(path));
 
     OpenFilePOptions openOptions =
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE)
-            .setFileReadLocationPolicy(LocalFirstPolicy.class.getCanonicalName()).build();
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
 
     AlluxioConfiguration conf = ServerConfiguration.global();
     InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
+    // Set read location policy always to loca first for loading blocks for job tasks
+    inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
+        LocalFirstPolicy.class.getCanonicalName(), conf));
+
     OutStreamOptions outOptions = OutStreamOptions.defaults(conf);
+    // Set write location policy always to local first for loading blocks for job tasks
+    outOptions.setLocationPolicy(BlockLocationPolicy.Factory.create(
+        LocalFirstPolicy.class.getCanonicalName(), conf));
 
     // use -1 to reuse the existing block size for this block
     try (OutputStream outputStream =

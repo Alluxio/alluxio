@@ -26,7 +26,7 @@ Alluxio通过[统一命名空间](Unified-and-Transparent-Namespace.html)统一�
 若要在Alluxio中使用七牛Kodo作为底层文件系统，一定要修改`conf/alluxio-site.properties`配置文件。首先要指定一个已有的存储空间和其中的目录作为底层文件系统，可以在`conf/alluxio-site.properties`中添加如下语句指定它。
 
 ```
-alluxio.underfs.address=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
+alluxio.master.mount.table.root.ufs=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
 ```
 七牛不支持直接在管理控制台进行文件夹的管理，但是跟其他云厂商相同，我们默认使用`/`来对文件进行区隔。若配置 KODO_DIRECTORY 后，会在 Kodo 生成 以 KODO_DIRECTORY/ 为前缀的文件。
 
@@ -60,7 +60,7 @@ Kodo 可以安装在 Alluxio 命名空间中的嵌套目录中，以统一访问
 [Mount 命令](Command-Line-Interface.html#mount)可以实现这一目的。例如，下面的命令将Kodo容器内部的目录挂载到 Alluxio的`/kodo`目录:
 
 ```bash 
-$ ./bin/alluxio fs mount --option fs.kodo.accesskey=<KODO_ACCESS_KEY> \
+./bin/alluxio fs mount --option fs.kodo.accesskey=<KODO_ACCESS_KEY> \
   --option fs.kodo.secretkey=<KODO_SECRET_KEY> \
   --option alluxio.underfs.kodo.downloadhost=<KODO_DOWNLOAD_HOST> \
   --option alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT> \
@@ -72,8 +72,8 @@ $ ./bin/alluxio fs mount --option fs.kodo.accesskey=<KODO_ACCESS_KEY> \
 配置完成后，你可以在本地启动 Alluxio，观察一切是否正常运行:
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 该命令应当会启动一个 Alluxio master 和一个 Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看 master UI。
@@ -81,7 +81,7 @@ $ bin/alluxio-start.sh local
 接着，你可以运行一个简单的示例程序:
 
 ```bash
-$ bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 运行成功后，访问你的 Kodo 目录`KODO://<KODO_BUCKET>/<KODO_DIRECTORY>`，确认其中包含了由 Alluxio 创建的文件和目录。在该测试中，创建的文件名称应像`KODO_BUCKET/KODO_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`这样。
@@ -89,6 +89,6 @@ $ bin/alluxio runTests
 运行以下命令停止 Alluxio:
 
 ```bash
-$ bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```
 

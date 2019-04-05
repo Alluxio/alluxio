@@ -22,10 +22,11 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
+import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.RuntimeConstants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.master.AlluxioMasterProcess;
@@ -45,6 +46,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.web.MasterWebServer;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -430,5 +432,30 @@ public final class AlluxioMasterRestServiceHandlerTest {
     } finally {
       response.close();
     }
+  }
+
+  @Test
+  public void isMounted() {
+    String s3Uri = "s3a://test/dir_1/dir-2";
+    String hdfsUri = "hdfs://test";
+
+    Map<String, MountPointInfo> mountTable = new HashMap<>();
+    mountTable.put("/s3", new MountPointInfo().setUfsUri(s3Uri));
+    FileSystemMaster mockMaster = mock(FileSystemMaster.class);
+    when(mockMaster.getMountTable()).thenReturn(mountTable);
+
+    AlluxioMasterProcess masterProcess = mock(AlluxioMasterProcess.class);
+    when(masterProcess.getMaster(FileSystemMaster.class)).thenReturn(mockMaster);
+
+    ServletContext context = mock(ServletContext.class);
+    when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
+        masterProcess);
+    AlluxioMasterRestServiceHandler handler = new AlluxioMasterRestServiceHandler(context);
+
+    assertFalse(handler.isMounted(s3Uri));
+    assertTrue(handler.isMounted(MetricsSystem.escape(new AlluxioURI(s3Uri))));
+    assertTrue(handler.isMounted(MetricsSystem.escape(new AlluxioURI(s3Uri + "/"))));
+    assertFalse(handler.isMounted(hdfsUri));
+    assertFalse(handler.isMounted(MetricsSystem.escape(new AlluxioURI(hdfsUri))));
   }
 }

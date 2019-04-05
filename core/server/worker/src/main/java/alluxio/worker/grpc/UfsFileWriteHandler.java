@@ -20,6 +20,7 @@ import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -60,9 +61,11 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
    * Creates an instance of {@link UfsFileWriteHandler}.
    *
    * @param ufsManager the file data manager
+   * @param userInfo the authenticated user info
    */
-  UfsFileWriteHandler(UfsManager ufsManager, StreamObserver<WriteResponse> responseObserver) {
-    super(responseObserver);
+  UfsFileWriteHandler(UfsManager ufsManager, StreamObserver<WriteResponse> responseObserver,
+      AuthenticatedUserInfo userInfo) {
+    super(responseObserver, userInfo);
     mUfsManager = ufsManager;
   }
 

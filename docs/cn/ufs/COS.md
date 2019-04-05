@@ -26,7 +26,7 @@ Alluxio通过[统一命名空间](Unified-and-Transparent-Namespace.html)统一�
 若要在Alluxio中使用COS作为底层文件系统，需修改conf/alluxio-site.properties配置文件。首先要指定一个已有的COS bucket和其中的目录作为底层文件系统，可以在conf/alluxio-site.properties中添加如下语句指定它：
 
 ```
-alluxio.underfs.address=cos://<COS_ALLUXIO_BUCKET>/<COS_DATA>/
+alluxio.master.mount.table.root.ufs=cos://<COS_ALLUXIO_BUCKET>/<COS_DATA>/
 ```
 
 接着，需要指定COS的配置信息以便访问COS，在`conf/alluxio-site.properties`中添加：
@@ -57,8 +57,8 @@ COS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多�
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master UI。
@@ -66,7 +66,7 @@ $ bin/alluxio-start.sh local
 接着，你可以运行一个简单的示例程序：
 
 ```bash
-$ bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 运行成功后，访问你的COS目录`cos://<COS_ALLUXIO_BUCKET>/<COS_DATA>`，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像`COS_ALLUXIO_BUCKET/COS_DATA/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`这样。。
@@ -74,5 +74,5 @@ $ bin/alluxio runTests
 运行以下命令停止Alluxio：
 
 ```bash
-$ bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```

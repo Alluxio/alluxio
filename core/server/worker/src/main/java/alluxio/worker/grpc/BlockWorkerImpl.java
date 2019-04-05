@@ -29,7 +29,10 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.IdUtils;
+import alluxio.util.SecurityUtils;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.AsyncCacheRequestManager;
 import alluxio.worker.block.BlockWorker;
@@ -37,6 +40,7 @@ import alluxio.worker.block.BlockWorker;
 import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.MethodDescriptor;
+import io.grpc.Status;
 import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
@@ -98,7 +102,8 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
           new DataMessageServerStreamObserver<>(callStreamObserver, mReadResponseMarshaller);
     }
     BlockReadHandler readHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
-        mWorkerProcess.getWorker(BlockWorker.class), callStreamObserver);
+        mWorkerProcess.getWorker(BlockWorker.class), callStreamObserver,
+        getAuthenticatedUserInfo());
     callStreamObserver.setOnReadyHandler(readHandler::onReady);
     return readHandler;
   }
@@ -112,23 +117,25 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
       responseObserver =
           new DataMessageServerRequestObserver<>(responseObserver, mWriteRequestMarshaller, null);
     }
-    DelegationWriteHandler handler = new DelegationWriteHandler(mWorkerProcess, responseObserver);
+    DelegationWriteHandler handler =
+        new DelegationWriteHandler(mWorkerProcess, responseObserver, getAuthenticatedUserInfo());
     serverResponseObserver.setOnCancelHandler(handler::onCancel);
     return handler;
   }
 
   @Override
   public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
-          StreamObserver<OpenLocalBlockResponse> responseObserver) {
-    return new ShortCircuitBlockReadHandler(mWorkerProcess.getWorker(BlockWorker.class),
-        responseObserver);
+      StreamObserver<OpenLocalBlockResponse> responseObserver) {
+    ShortCircuitBlockReadHandler handler = new ShortCircuitBlockReadHandler(
+        mWorkerProcess.getWorker(BlockWorker.class), responseObserver, getAuthenticatedUserInfo());
+    return handler;
   }
 
   @Override
   public StreamObserver<CreateLocalBlockRequest> createLocalBlock(
       StreamObserver<CreateLocalBlockResponse> responseObserver) {
     ShortCircuitBlockWriteHandler handler = new ShortCircuitBlockWriteHandler(
-        mWorkerProcess.getWorker(BlockWorker.class), responseObserver);
+        mWorkerProcess.getWorker(BlockWorker.class), responseObserver, getAuthenticatedUserInfo());
     ServerCallStreamObserver<CreateLocalBlockResponse> serverCallStreamObserver =
         (ServerCallStreamObserver<CreateLocalBlockResponse>) responseObserver;
     serverCallStreamObserver.setOnCancelHandler(handler::onCancel);
@@ -152,5 +159,23 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
       mWorkerProcess.getWorker(BlockWorker.class).removeBlock(sessionId, request.getBlockId());
       return RemoveBlockResponse.getDefaultInstance();
     }, "removeBlock", "request=%s", responseObserver, request);
+  }
+
+  /**
+   * @return {@link AuthenticatedUserInfo} that defines the user that has been authorized
+   */
+  private AuthenticatedUserInfo getAuthenticatedUserInfo() {
+    try {
+      if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
+        return new AuthenticatedUserInfo(
+            AuthenticatedClientUser.getClientUser(ServerConfiguration.global()),
+            AuthenticatedClientUser.getConnectionUser(ServerConfiguration.global()),
+            AuthenticatedClientUser.getAuthMethod(ServerConfiguration.global()));
+      } else {
+        return new AuthenticatedUserInfo();
+      }
+    } catch (Exception e) {
+      throw Status.UNAUTHENTICATED.withDescription(e.toString()).asRuntimeException();
+    }
   }
 }

@@ -12,13 +12,13 @@
 package alluxio.master.meta;
 
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.master.Master;
 import alluxio.wire.Address;
-import alluxio.wire.BackupOptions;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 
@@ -37,7 +37,7 @@ public interface MetaMaster extends Master {
    * @param options method options
    * @return the uri of the created backup
    */
-  BackupResponse backup(BackupOptions options) throws IOException;
+  BackupResponse backup(BackupPOptions options) throws IOException;
 
   /**
    * @return the server-side configuration checker report

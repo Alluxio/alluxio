@@ -1,3 +1,3 @@
 ```bash
-$ mvn test -PswiftTest -pl tests
+mvn test -PswiftTest -pl tests
 ```

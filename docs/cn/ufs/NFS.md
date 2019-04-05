@@ -20,14 +20,14 @@ priority: 5
 您需要修改`conf/alluxio-site.properties`配置Alluxio，以使用NFS作为其底层存储系统。如果该配置文件不存在，请从模板创建该配置文件。
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 假定所有NFS客户端与Alluxio部署在同样的节点上，且NFS挂载在`/mnt/nfs`，那以下的环境变量要添加到`conf/alluxio-site.properties`配置文件中：
 
 ```
 alluxio.master.hostname=localhost
-alluxio.underfs.address=/mnt/nfs
+alluxio.master.mount.table.root.ufs=/mnt/nfs
 ```
 
 ## 使用NFS运行Alluxio
@@ -35,8 +35,8 @@ alluxio.underfs.address=/mnt/nfs
 简单地运行以下命令来启动Alluxio文件系统：
 
 ```bash
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 要验证Alluxio是否正在运行，你可以访问**[http://localhost:19999](http://localhost:19999)**，或者查看`logs`下的日志。
@@ -44,7 +44,7 @@ $ ./bin/alluxio-start.sh local
 接着，你可以运行一个简单的示例程序：
 
 ```bash
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 运行成功后，访问你的NFS volume，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像下面这样：
@@ -56,5 +56,5 @@ $ ./bin/alluxio runTests
 你可以在任何时间运行以下命令停止Alluxio：
 
 ```bash
-$ ./bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```

@@ -11,6 +11,8 @@
 
 package alluxio.job.command;
 
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.grpc.TaskInfo;
@@ -44,24 +46,29 @@ import java.util.concurrent.TimeUnit;
  * Tests {@link CommandHandlingExecutor}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TaskExecutorManager.class, WorkerNetAddress.class})
+@PrepareForTest({TaskExecutorManager.class, WorkerNetAddress.class, FileSystemContext.class})
 public final class CommandHandlingExecutorTest {
   private CommandHandlingExecutor mCommandHandlingExecutor;
   private JobMasterClient mJobMasterClient;
   private long mWorkerId;
   private TaskExecutorManager mTaskExecutorManager;
   private UfsManager mUfsManager;
+  private FileSystemContext mFileSystemContext;
+  private FileSystem mFileSystem;
 
   @Before
   public void before() {
+
     mWorkerId = 0;
     mJobMasterClient = Mockito.mock(JobMasterClient.class);
     mTaskExecutorManager = PowerMockito.mock(TaskExecutorManager.class);
     WorkerNetAddress workerNetAddress = PowerMockito.mock(WorkerNetAddress.class);
     mUfsManager = Mockito.mock(UfsManager.class);
+    mFileSystemContext = Mockito.mock(FileSystemContext.class);
+    mFileSystem = Mockito.mock(FileSystem.class);
     mCommandHandlingExecutor =
-        new CommandHandlingExecutor(mTaskExecutorManager, mUfsManager, mJobMasterClient,
-            workerNetAddress);
+        new CommandHandlingExecutor(mTaskExecutorManager, mFileSystem, mFileSystemContext,
+            mUfsManager, mJobMasterClient, workerNetAddress);
   }
 
   @Test

@@ -38,7 +38,7 @@ every node.
 On the master node of the installation, create the `conf/alluxio-site.properties` configuration file from the template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 This configuration file (`conf/alluxio-site.properties`) is read by all Alluxio masters and Alluxio
@@ -46,10 +46,10 @@ workers. The configuration parameters which must be set are:
 - `alluxio.master.hostname=<MASTER_HOSTNAME>`
   - This is set to the hostname of the master node.
   - Examples: `alluxio.master.hostname=1.2.3.4`, `alluxio.master.hostname=node1.a.com`
-- `alluxio.underfs.address=<STORAGE_URI>`
+- `alluxio.master.mount.table.root.ufs=<STORAGE_URI>`
   - This is set to the URI of the shared storage system to mount to the Alluxio root. This shared
   shared storage system must be accessible by the master node and all worker nodes.
-  - Examples: `alluxio.underfs.address=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.underfs.address=s3a://bucket/dir/`
+  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3a://bucket/dir/`
 
 This is the minimal configuration to start Alluxio, but additional configuration may be added.
 
@@ -59,7 +59,7 @@ to use the `copyDir` shell command on the master node. In order to do so, add th
 hostnames of all the worker nodes to the `conf/workers` file. Then run:
 
 ```bash
-$ ./bin/alluxio copyDir conf/
+./bin/alluxio copyDir conf/
 ```
 
 This will copy the `conf/` directory to all the workers specified in the `conf/workers` file. Once
@@ -74,7 +74,7 @@ Before Alluxio can be started for the first time, the journal must be formatted.
 On the master node, format Alluxio with the following command:
 
 ```bash
-$ ./bin/alluxio format
+./bin/alluxio format
 ```
 
 ### Launch Alluxio
@@ -85,7 +85,7 @@ with all the hostnames of the workers.
 On the master node, start the Alluxio cluster with the following command:
 
 ```bash
-$ ./bin/alluxio-start.sh all SudoMount
+./bin/alluxio-start.sh all SudoMount
 ```
 
 This will start the master on the node you are running it on, and start all the workers on all the
@@ -99,7 +99,7 @@ page of the Alluxio master.
 Alluxio comes with a simple program that writes and reads sample files in Alluxio. Run the sample program with:
 
 ```bash
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 ## Alluxio HA Cluster
@@ -135,7 +135,7 @@ Each Alluxio node (masters and workers) must be configured for HA. On each Allux
 create the `conf/alluxio-site.properties` configuration file from the template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Add the following properties to the `conf/alluxio-site.properties` file:
@@ -143,10 +143,10 @@ Add the following properties to the `conf/alluxio-site.properties` file:
   - This must be set to the correct externally visible hostname for each master node.
   (Workers ignore this parameter when `alluxio.zookeeper.enabled` is enabled)
   - Examples: `alluxio.master.hostname=1.2.3.4`, `alluxio.master.hostname=node1.a.com`
-- `alluxio.underfs.address=<STORAGE_URI>`
+- `alluxio.master.mount.table.root.ufs=<STORAGE_URI>`
   - This is set to the URI of the shared storage system to mount to the Alluxio root. This shared
   shared storage system must be accessible by all master nodes and all worker nodes.
-  - Examples: `alluxio.underfs.address=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.underfs.address=s3a://bucket/dir/`
+  - Examples: `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, `alluxio.master.mount.table.root.ufs=s3a://bucket/dir/`
   
 ### Setting up HA cluster with internal leader election
 
@@ -211,7 +211,7 @@ Before Alluxio can be started for the first time, the journal must be formatted.
 On any master node, format Alluxio with the following command:
 
 ```bash
-$ ./bin/alluxio format
+./bin/alluxio format
 ```
 
 ### Launch Alluxio
@@ -223,7 +223,7 @@ will allow the start scripts to start the appropriate processes on the appropria
 On the master node, start the Alluxio cluster with the following command:
 
 ```bash
-$ ./bin/alluxio-start.sh all SudoMount
+./bin/alluxio-start.sh all SudoMount
 ```
 
 This will start Alluxio masters on all the nodes specified in `conf/masters`, and start the workers on all the
@@ -235,7 +235,7 @@ To verify that Alluxio is running, you can visit the web UI of the leader master
 leader master, run:
 
 ```bash
-$ ./bin/alluxio fs leader
+./bin/alluxio fs leader
 ```
 
 Then, visit `http://<LEADER_HOSTNAME>:19999` to see the status page of the Alluxio leader master.
@@ -243,7 +243,7 @@ Then, visit `http://<LEADER_HOSTNAME>:19999` to see the status page of the Allux
 Alluxio comes with a simple program that writes and reads sample files in Alluxio. Run the sample program with:
 
 ```bash
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 ### Configure Alluxio Clients for HA
@@ -273,7 +273,7 @@ For example, if using Hadoop, you can configure the properties in `core-site.xml
 Hadoop CLI with an Alluxio URI.
 
 ```bash
-$ hadoop fs -ls alluxio:///directory
+hadoop fs -ls alluxio:///directory
 ```
 
 #### HA Authority
@@ -308,7 +308,7 @@ worker hostnames in the `conf/workers` file, and list all the masters in the `co
 Then, you can stop Alluxio with:
 
 ```bash
-$ ./bin/alluxio-stop.sh all
+./bin/alluxio-stop.sh all
 ```
 
 This will stop all the processes on all nodes listed in `conf/workers` and `conf/masters`.
@@ -316,38 +316,38 @@ This will stop all the processes on all nodes listed in `conf/workers` and `conf
 You can stop just the masters and just the workers with the following commands:
 
 ```bash
-$ ./bin/alluxio-stop.sh masters # stops all masters in conf/masters
-$ ./bin/alluxio-stop.sh workers # stops all workers in conf/workers
+./bin/alluxio-stop.sh masters # stops all masters in conf/masters
+./bin/alluxio-stop.sh workers # stops all workers in conf/workers
 ```
 
 If you do not want to use `ssh` to login to all the nodes and stop all the processes, you can run
 commands on each node individually to stop each component. For any node, you can stop a master or worker with:
 
 ```bash
-$ ./bin/alluxio-stop.sh master # stops the local master
-$ ./bin/alluxio-stop.sh worker # stops the local worker
+./bin/alluxio-stop.sh master # stops the local master
+./bin/alluxio-stop.sh worker # stops the local worker
 ```
 
 Starting Alluxio is similar. If `conf/workers` and `conf/masters` are both populated, you can start
 the cluster with:
 
 ```bash
-$ ./bin/alluxio-start.sh all SudoMount
+./bin/alluxio-start.sh all SudoMount
 ```
 
 You can start just the masters and just the workers with the following commands:
 
 ```bash
-$ ./bin/alluxio-start.sh masters           # starts all masters in conf/masters
-$ ./bin/alluxio-start.sh workers SudoMount # starts all workers in conf/workers
+./bin/alluxio-start.sh masters           # starts all masters in conf/masters
+./bin/alluxio-start.sh workers SudoMount # starts all workers in conf/workers
 ```
 
 If you do not want to use `ssh` to login to all the nodes and start all the processes, you can run
 commands on each node individually to start each component. For any node, you can start a master or worker with:
 
 ```bash
-$ ./bin/alluxio-start.sh master           # starts the local master
-$ ./bin/alluxio-start.sh worker SudoMount # starts the local worker
+./bin/alluxio-start.sh master           # starts the local master
+./bin/alluxio-start.sh worker SudoMount # starts the local worker
 ```
 
 ### Format the Journal
@@ -355,7 +355,7 @@ $ ./bin/alluxio-start.sh worker SudoMount # starts the local worker
 On any master node, format the Alluxio journal with the following command:
 
 ```bash
-$ ./bin/alluxio format
+./bin/alluxio format
 ```
 
 > Formatting the journal will delete all metadata from Alluxio. However, the data in under storage will be untouched.

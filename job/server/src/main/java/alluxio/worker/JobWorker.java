@@ -12,6 +12,8 @@
 package alluxio.worker;
 
 import alluxio.ClientContext;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -51,6 +53,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class JobWorker extends AbstractWorker {
   private static final Logger LOG = LoggerFactory.getLogger(JobWorker.class);
 
+  /** FileSystem client for jobs. */
+  private final FileSystem mFileSystem;
+  /** FileSystemContext for jobs. */
+  private final FileSystemContext mFsContext;
   /** Client for job master communication. */
   private final JobMasterClient mJobMasterClient;
   /** The manager for the all the local task execution. */
@@ -65,9 +71,11 @@ public final class JobWorker extends AbstractWorker {
    *
    * @param ufsManager the ufs manager
    */
-  JobWorker(UfsManager ufsManager) {
+  JobWorker(FileSystem filesystem, FileSystemContext fsContext, UfsManager ufsManager) {
     super(
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("job-worker-heartbeat-%d", true)));
+    mFileSystem = filesystem;
+    mFsContext = fsContext;
     mUfsManager = ufsManager;
     mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
@@ -103,9 +111,9 @@ public final class JobWorker extends AbstractWorker {
 
     mCommandHandlingService = getExecutorService().submit(
         new HeartbeatThread(HeartbeatContext.JOB_WORKER_COMMAND_HANDLING,
-            new CommandHandlingExecutor(mTaskExecutorManager, mUfsManager, mJobMasterClient,
-                address),
-            ServerConfiguration.getInt(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL_MS),
+            new CommandHandlingExecutor(mTaskExecutorManager, mFileSystem, mFsContext, mUfsManager,
+                mJobMasterClient, address),
+            (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL),
             ServerConfiguration.global()));
   }
 

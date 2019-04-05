@@ -20,14 +20,15 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.SetAclAction;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.security.authorization.Mode;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
@@ -100,10 +101,18 @@ public final class CpCommand extends AbstractFileSystemCommand {
               + "default is 8MB when copying from local, "
               + "and 64MB when copying to local")
           .build();
+  private static final Option PRESERVE_OPTION =
+      Option.builder("p")
+          .longOpt("preserve")
+          .required(false)
+          .desc("Preserve file permission attributes when copying files. "
+              + "All ownership, permissions and ACLs will be preserved")
+          .build();
 
   private int mCopyFromLocalBufferSize = COPY_FROM_LOCAL_BUFFER_SIZE_DEFAULT;
   private int mCopyToLocalBufferSize = COPY_TO_LOCAL_BUFFER_SIZE_DEFAULT;
   private int mThread = Runtime.getRuntime().availableProcessors() * 2;
+  private boolean mPreservePermissions = false;
 
   /**
    * A thread pool executor for asynchronous copy.
@@ -319,12 +328,16 @@ public final class CpCommand extends AbstractFileSystemCommand {
             + " into an integer", e);
       }
     }
+    if (cl.hasOption(PRESERVE_OPTION.getLongOpt())) {
+      mPreservePermissions = true;
+    }
   }
 
   @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION)
-        .addOption(THREAD_OPTION);
+        .addOption(THREAD_OPTION)
+        .addOption(PRESERVE_OPTION);
   }
 
   @Override
@@ -495,6 +508,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         System.out.println("Created directory: " + dstPath);
       }
 
+      preserveAttributes(srcPath, dstPath);
       List<String> errorMessages = new ArrayList<>();
       for (URIStatus status : statuses) {
         try {
@@ -531,6 +545,26 @@ public final class CpCommand extends AbstractFileSystemCommand {
       }
       System.out.println(String.format(COPY_SUCCEED_MESSAGE, srcPath, dstPath));
     }
+    preserveAttributes(srcPath, dstPath);
+  }
+
+  /**
+   * Preserves attributes from the source file to the target file.
+   *
+   * @param srcPath the source path
+   * @param dstPath the destination path in the Alluxio filesystem
+   */
+  private void preserveAttributes(AlluxioURI srcPath, AlluxioURI dstPath)
+      throws IOException, AlluxioException {
+    if (mPreservePermissions) {
+      URIStatus srcStatus = mFileSystem.getStatus(srcPath);
+      mFileSystem.setAttribute(dstPath, SetAttributePOptions.newBuilder()
+          .setOwner(srcStatus.getOwner())
+          .setGroup(srcStatus.getGroup())
+          .setMode(new Mode((short) srcStatus.getMode()).toProto())
+          .build());
+      mFileSystem.setAcl(dstPath, SetAclAction.REPLACE, srcStatus.getAcl().getEntries());
+    }
   }
 
   /**
@@ -566,11 +600,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
 
     FileOutStream os = null;
     try (Closer closer = Closer.create()) {
-      CreateFilePOptions createOptions = CreateFilePOptions.newBuilder()
-          .setFileWriteLocationPolicy(mFsContext.getConf().get(
-                  PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY))
-          .build();
-      os = closer.register(mFileSystem.createFile(dstPath, createOptions));
+      os = closer.register(mFileSystem.createFile(dstPath));
       FileInputStream in = closer.register(new FileInputStream(src));
       FileChannel channel = closer.register(in.getChannel());
       ByteBuffer buf = ByteBuffer.allocate(mCopyFromLocalBufferSize);

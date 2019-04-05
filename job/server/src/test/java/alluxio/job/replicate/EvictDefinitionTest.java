@@ -11,7 +11,10 @@
 
 package alluxio.job.replicate;
 
+import static org.mockito.Mockito.when;
+
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.job.JobMasterContext;
 import alluxio.job.util.SerializableVoid;
@@ -53,6 +56,7 @@ public final class EvictDefinitionTest {
   private static final WorkerInfo WORKER_INFO_3 = new WorkerInfo().setAddress(ADDRESS_3);
   private static final Map<WorkerInfo, SerializableVoid> EMPTY = Maps.newHashMap();
 
+  private FileSystem mMockFileSystem;
   private FileSystemContext mMockFileSystemContext;
   private AlluxioBlockStore mMockBlockStore;
   private JobMasterContext mMockJobMasterContext;
@@ -61,7 +65,10 @@ public final class EvictDefinitionTest {
   public void before() {
     mMockJobMasterContext = Mockito.mock(JobMasterContext.class);
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    mMockFileSystem = PowerMockito.mock(FileSystem.class);
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
+    when(mMockJobMasterContext.getFileSystem()).thenReturn(mMockFileSystem);
+    when(mMockJobMasterContext.getFsContext()).thenReturn(mMockFileSystemContext);
   }
 
   /**
@@ -77,12 +84,12 @@ public final class EvictDefinitionTest {
       throws Exception {
     BlockInfo blockInfo = new BlockInfo().setBlockId(TEST_BLOCK_ID);
     blockInfo.setLocations(blockLocations);
-    Mockito.when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(blockInfo);
+    when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(blockInfo);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
 
     EvictConfig config = new EvictConfig(TEST_BLOCK_ID, replicas);
-    EvictDefinition definition = new EvictDefinition(mMockFileSystemContext);
+    EvictDefinition definition = new EvictDefinition();
     return definition.selectExecutors(config, workerInfoList, mMockJobMasterContext);
   }
 

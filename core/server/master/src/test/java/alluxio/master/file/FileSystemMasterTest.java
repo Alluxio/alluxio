@@ -49,8 +49,6 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadDescendantPType;
-import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -72,7 +70,6 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAclContext;
@@ -1215,43 +1212,6 @@ public final class FileSystemMasterTest {
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
-  }
-
-  @Test
-  public void loadMetadata() throws Exception {
-    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
-
-    // Create ufs file.
-    Files.createFile(Paths.get(ufsMount.join("file").getPath()));
-
-    // Created nested file.
-    Files.createDirectory(Paths.get(ufsMount.join("nested").getPath()));
-    Files.createFile(Paths.get(ufsMount.join("nested").join("file").getPath()));
-
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
-        MountContext.defaults());
-
-    // Test simple file.
-    AlluxioURI uri = new AlluxioURI("/mnt/local/file");
-    mFileSystemMaster.loadMetadata(uri,
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)));
-    assertNotNull(mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT));
-
-    // Test nested file.
-    uri = new AlluxioURI("/mnt/local/nested/file");
-    try {
-      mFileSystemMaster.loadMetadata(uri, LoadMetadataContext
-          .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)));
-      fail("loadMetadata() without recursive, for a nested file should fail.");
-    } catch (FileDoesNotExistException e) {
-      // Expected case.
-    }
-
-    // Test the nested file with recursive flag.
-    mFileSystemMaster.loadMetadata(uri,
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
-    assertNotNull(mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT));
   }
 
   @Test
@@ -2579,92 +2539,6 @@ public final class FileSystemMasterTest {
     assertEquals(PersistenceState.LOST.name(), fileInfo.getPersistenceState());
     // Check with getPersistenceState.
     assertEquals(PersistenceState.LOST, mFileSystemMaster.getPersistenceState(fileId));
-  }
-
-  /**
-   * Tests load metadata logic.
-   */
-  @Test
-  public void testLoadMetadata() throws Exception {
-    FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
-
-    // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
-    try {
-      mFileSystemMaster.createDirectory(new AlluxioURI("alluxio:/a"),
-          CreateDirectoryContext.defaults());
-      fail("createDirectory was expected to fail with FileAlreadyExistsException");
-    } catch (FileAlreadyExistsException e) {
-      assertEquals(
-          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a")),
-          e.getMessage());
-    }
-
-    FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f1").toString());
-    FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f2").toString());
-
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a/f1"),
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
-
-    // This should not throw file exists exception those a/f1 is loaded.
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)
-            .setLoadDescendantType(LoadDescendantPType.ONE)));
-
-    // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
-    try {
-      mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f2"), CreateFileContext.defaults());
-      fail("createDirectory was expected to fail with FileAlreadyExistsException");
-    } catch (FileAlreadyExistsException e) {
-      assertEquals(
-          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a/f2")),
-          e.getMessage());
-    }
-
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)
-            .setLoadDescendantType(LoadDescendantPType.ONE)));
-  }
-
-  /**
-   * Tests ufs load with ACL.
-   * Currently, it respects the ufs permissions instead of the default ACL for loadMetadata.
-   * We may change that in the future, and change this test.
-   * TODO(david): update this test when we respect default ACL for loadmetadata
-   */
-  @Test
-  public void loadMetadataWithACL() throws Exception {
-    FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
-    AlluxioURI uri = new AlluxioURI("/a");
-    mFileSystemMaster.loadMetadata(uri,
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
-    List<AclEntry> aclEntryList = new ArrayList<>();
-    aclEntryList.add(AclEntry.fromCliString("default:user::r-x"));
-    mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, aclEntryList,
-        SetAclContext.defaults());
-
-    FileInfo infoparent = mFileSystemMaster.getFileInfo(uri,
-        GetStatusContext.defaults());
-
-    FileUtils.createFile(Paths.get(mUnderFS).resolve("a/b/file1").toString());
-    uri = new AlluxioURI("/a/b/file1");
-    mFileSystemMaster.loadMetadata(uri,
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
-    FileInfo info = mFileSystemMaster.getFileInfo(uri,
-        GetStatusContext.defaults());
-    Assert.assertTrue(info.convertAclToStringEntries().contains("user::r-x"));
-  }
-
-  /**
-   * Tests load root metadata. It should not fail.
-   */
-  @Test
-  public void loadRoot() throws Exception {
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/"),
-        LoadMetadataContext.defaults());
   }
 
   @Test

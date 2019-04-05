@@ -34,6 +34,7 @@ import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -43,7 +44,6 @@ import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -368,6 +368,8 @@ public class BaseFileSystem implements FileSystem {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (UnavailableException e) {
       throw e;
+    } catch (UnauthenticatedException e) {
+      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     } finally {
@@ -400,45 +402,6 @@ public class BaseFileSystem implements FileSystem {
     } finally {
       mFsContext.releaseMasterClient(masterClient);
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @deprecated since version 1.1 and will be removed in version 2.0
-   */
-  @Deprecated
-  @Override
-  public void loadMetadata(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
-    loadMetadata(path, LoadMetadataPOptions.getDefaultInstance());
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @deprecated since version 1.1 and will be removed in version 2.0
-   */
-  @Deprecated
-  @Override
-  public void loadMetadata(AlluxioURI path, LoadMetadataPOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
-//    checkUri(path);
-//    options = FileSystemOptions.loadMetadataDefaults(mFsContext.getConf())
-//         .toBuilder().mergeFrom(options).build();
-//    FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
-//    try {
-//      masterClient.loadMetadata(path, options);
-//      LOG.debug("Loaded metadata {}, options: {}", path.getPath(), options);
-//    } catch (NotFoundException e) {
-//      throw new FileDoesNotExistException(e.getMessage());
-//    } catch (UnavailableException e) {
-//      throw e;
-//    } catch (AlluxioStatusException e) {
-//      throw e.toAlluxioException();
-//    } finally {
-//      mFsContext.releaseMasterClient(masterClient);
-//    }
   }
 
   @Override

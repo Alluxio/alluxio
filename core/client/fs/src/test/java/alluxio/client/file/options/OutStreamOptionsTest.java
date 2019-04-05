@@ -18,14 +18,14 @@ import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
+import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.client.file.policy.LocalFirstPolicy;
-import alluxio.client.file.policy.RoundRobinPolicy;
+import alluxio.client.block.policy.LocalFirstPolicy;
+import alluxio.client.block.policy.RoundRobinPolicy;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -111,7 +111,7 @@ public class OutStreamOptionsTest {
   public void fields() throws Exception {
     Random random = new Random();
     long blockSize = random.nextLong();
-    FileWriteLocationPolicy locationPolicy = new RoundRobinPolicy(mConf);
+    BlockLocationPolicy locationPolicy = new RoundRobinPolicy(mConf);
     String owner = CommonUtils.randomAlphaNumString(10);
     String group = CommonUtils.randomAlphaNumString(10);
     Mode mode = new Mode((short) random.nextInt());

@@ -451,12 +451,21 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf)
       throws IOException {
+    initialize(uri, conf, null);
+  }
+
+  /**
+   * Initialize the {@link alluxio.hadoop.FileSystem}.
+   * @param uri file system Uri
+   * @param conf hadoop configuration
+   * @param alluxioConfiguration [optional] alluxio configuration
+   * @throws IOException
+   */
+  public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf,
+      @Nullable AlluxioConfiguration alluxioConfiguration)
+      throws IOException {
     Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
         PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
-
-    if (mFileSystem != null) {
-      return;
-    }
 
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
@@ -476,11 +485,17 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     mUri = URI.create(mAlluxioHeader);
+
+    if (mFileSystem != null) {
+      return;
+    }
+
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
 
-    AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
+    AlluxioProperties alluxioProps =
+        (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
+            : ConfigurationUtils.defaults();
     AlluxioConfiguration alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioProps);
-
     Subject subject = getHadoopSubject();
     if (subject != null) {
       LOG.debug("Using Hadoop subject: {}", subject);

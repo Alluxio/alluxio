@@ -15,10 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.BaseFileSystem;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.JobMasterContext;
@@ -54,26 +50,10 @@ public final class LoadDefinition
   private static final Logger LOG = LoggerFactory.getLogger(LoadDefinition.class);
   private static final int MAX_BUFFER_SIZE = 500 * Constants.MB;
 
-  private final FileSystem mFileSystem;
-  private final FileSystemContext mFsContext;
-
   /**
    * Constructs a new {@link LoadDefinition}.
    */
   public LoadDefinition() {
-    mFsContext = FileSystemContext.create(ServerConfiguration.global());
-    mFileSystem = BaseFileSystem.create(mFsContext);
-  }
-
-  /**
-   * Constructs a new {@link LoadDefinition} with FileSystem context and instance.
-   *
-   * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
-   * @param fileSystem the {@link FileSystem} client
-   */
-  public LoadDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
-    mFsContext = fsContext;
-    mFileSystem = fileSystem;
   }
 
   @Override
@@ -85,7 +65,7 @@ public final class LoadDefinition
     List<String> missingJobWorkerHosts = new ArrayList<>();
     List<BlockWorkerInfo> workers = new ArrayList<>();
     for (BlockWorkerInfo worker :
-        AlluxioBlockStore.create(mFsContext).getAllWorkers()) {
+        AlluxioBlockStore.create(jobMasterContext.getFsContext()).getAllWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
         workers.add(worker);
       } else {
@@ -96,7 +76,8 @@ public final class LoadDefinition
     // Mapping from worker to block ids which that worker is supposed to load.
     Multimap<WorkerInfo, LoadTask> assignments = LinkedListMultimap.create();
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
-    for (FileBlockInfo blockInfo : mFileSystem.getStatus(uri).getFileBlockInfos()) {
+    for (FileBlockInfo blockInfo : jobMasterContext
+        .getFileSystem().getStatus(uri).getFileBlockInfos()) {
       List<String> workersWithoutBlock = getWorkersWithoutBlock(workers, blockInfo);
       int neededReplicas = config.getReplication() - blockInfo.getBlockInfo().getLocations().size();
       if (workersWithoutBlock.size() < neededReplicas) {
@@ -141,7 +122,8 @@ public final class LoadDefinition
       JobWorkerContext jobWorkerContext) throws Exception {
     for (LoadTask task : tasks) {
       JobUtils
-          .loadBlock(mFileSystem, mFsContext, config.getFilePath(), task.getBlockId());
+          .loadBlock(jobWorkerContext.getFileSystem(), jobWorkerContext.getFsContext(),
+              config.getFilePath(), task.getBlockId());
       LOG.info("Loaded block " + task.getBlockId());
     }
     return null;

@@ -26,7 +26,7 @@ priority: 2
 开发Alluxio需要Java 8，如果你不确定你系统上的Java版本，可以运行以下命令确认：
 
 ```bash
-$ java -version
+java -version
 ```
 
 如果你还未安装Java，从[Java SDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html)下载并安装。
@@ -57,8 +57,8 @@ Alluxio源码托管在GitHub上，仓库地址为[Alluxio repository](https://gi
 在fork Alluxio源代码库后，你需要从该fork创建一个本地的副本，这会将该fork里的文件拷贝到你的本地电脑。使用以下命令创建副本：
 
 ```bash
-$ git clone https://github.com/YOUR-USERNAME/alluxio.git
-$ cd alluxio
+git clone https://github.com/YOUR-USERNAME/alluxio.git
+cd alluxio
 ```
 
 这会将副本拷贝在`alluxio/`目录下。
@@ -66,13 +66,13 @@ $ cd alluxio
 为了将远程的Alluxio源码改动更新到你本地的副本中，你需要创建一个指向远程Alluxio源代码库的源。在刚拷贝的副本的目录下，运行：
 
 ```bash
-$ git remote add upstream https://github.com/Alluxio/alluxio.git
+git remote add upstream https://github.com/Alluxio/alluxio.git
 ```
 
 运行以下命令可以查看远程仓库的url：
 
 ```bash
-$ git remote -v
+git remote -v
 ```
 
 这会显示`origin`（你的fork）以及`upstream`（Alluxio仓库）的url。
@@ -88,7 +88,7 @@ $ git remote -v
 在本地副本目录下，运行以下命令编译Alluxio：
 
 ```bash
-$ mvn clean install
+mvn clean install
 ```
 
 该命令会编译整个Alluxio，并且运行所有测试，这可能会花费几分钟。
@@ -96,7 +96,7 @@ $ mvn clean install
 如果你仅仅只需要重新编译，而不需要运行检查和测试，可以运行：
 
 ```bash
-$ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
+mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
 ```
 
 这应该用不到一分钟。
@@ -127,13 +127,13 @@ Alluxio的ticket中有许多不同的等级，它们分别是：**New Contributo
 首先，确保你在本地副本的`master`分支下，运行以下命令切换到`master`分支：
 
 ```bash
-$ git checkout master
+git checkout master
 ```
 
 接着，你应当确保你的`master`分支里的代码与最新的Alluxio源码同步，可以通过以下命令获取所有的代码更新：
 
 ```bash
-$ git pull upstream master
+git pull upstream master
 ```
 
 这将会获取到Alluxio项目中所有的更新，并合并到你的本地`master`分支里。
@@ -141,7 +141,7 @@ $ git pull upstream master
 现在，你可以新建一个分支来进行之前领取的**New Contributor**任务啦！运行以下命令创建一个名为**awesome_feature**的分支：
 
 ```bash
-$ git checkout -b awesome_feature
+git checkout -b awesome_feature
 ```
 
 这会创建该分支，并且切换到该分支下。现在，你可以修改相应的代码来完成该任务啦！
@@ -151,13 +151,13 @@ $ git checkout -b awesome_feature
 在你处理该任务时，可以为修改的代码提交本地的commit，这在你完成了一个阶段性的修改时特别有用。运行以下命令将一个文件标记为准备提交阶段：
 
 ```bash
-$ git add <file to stage>
+git add <file to stage>
 ```
 
 一旦所有需要的文件都进入准备提交阶段后，可以运行以下命令提交包含这些修改的一个commit：
 
 ```bash
-$ git commit -m "<concise but descriptive commit message>"
+git commit -m "<concise but descriptive commit message>"
 ```
 
 如果想了解更多信息，请参考该[commit提交指南](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository)。
@@ -169,7 +169,7 @@ $ git commit -m "<concise but descriptive commit message>"
 在你提交了所有需要的本地commit后，你可以将这些commit推送到你的GitHub源代码库中。对于**awesome_feature**分支，运行以下命令推送到GitHub上：
 
 ```bash
-$ git push origin awesome_feature
+git push origin awesome_feature
 ```
 
 这将会把你本地的**awesome_feature**分支下的所有commit推送到你的GitHub上Alluxio fork的**awesome_feature**分支中。
@@ -207,9 +207,9 @@ If the issue is from new contributor tasks, prefix the number "#1234" with repos
 在该过程中，某些开发者可能会请求你修改某些部分。要进行修改的话，只需简单地在该pull request对应的本地分支下进行修改，接着提交本地commit，接着推送到对应的远程分支，然后这个pull request就会自动更新了。详细操作步骤如下：
 
 ```bash
-$ git add <modified files>
-$ git commit -m "<another commit message>"
-$ git push origin awesome_feature
+git add <modified files>
+git commit -m "<another commit message>"
+git push origin awesome_feature
 ```
 
 在该pull request中的所有评论和问题都被处理完成后，审查者们会回复一个**LGTM**。在至少有两个**LGTM**后，一个管理员将会将你的pull request合并到Alluxio源码中。

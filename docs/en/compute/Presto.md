@@ -51,7 +51,7 @@ Put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into directory
 (this directory may differ across versions) on all Presto servers. Restart Presto service:
 
 ```bash
-$ ${PRESTO_HOME}/bin/launcher restart
+${PRESTO_HOME}/bin/launcher restart
 ```
 
 After completing the basic configuration,
@@ -69,8 +69,8 @@ You can download a data file (e.g., `ml-100k.zip`) from
 Unzip this file and upload the file `u.user` into `/ml-100k/` on Alluxio:
 
 ```bash
-$ bin/alluxio fs mkdir /ml-100k
-$ bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
+./bin/alluxio fs mkdir /ml-100k
+./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
 ```
 
 Create an external Hive table from existing files in Alluxio.
@@ -97,7 +97,7 @@ Ensure your Hive metastore service is running. Hive metastore listens on port `9
 default. If it is not running,
 
 ```bash
-$ ${HIVE_HOME}/bin/hive --service metastore
+${HIVE_HOME}/bin/hive --service metastore
 ```
 
 ### Start Presto server
@@ -106,7 +106,7 @@ Start your Presto server. Presto server runs on port `8080` by default (set by
 `http-server.http.port` in `${PRESTO_HOME}/etc/config.properties` ):
 
 ```bash
-$ ${PRESTO_HOME}/bin/launcher run
+${PRESTO_HOME}/bin/launcher run
 ```
 
 ### Query tables using Presto
@@ -119,7 +119,7 @@ directly).
 Run a single query (replace `localhost:8080` with your actual Presto server hostname and port):
 
 ```bash
-$ ./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
+./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
 ```
 
 And you can see the query results from console:

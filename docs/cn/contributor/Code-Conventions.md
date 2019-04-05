@@ -40,8 +40,8 @@ priority: 2
 - 运行所有单元测试
 
 ```bash
-$ cd ${ALLUXIO_HOME}
-$ mvn test
+cd ${ALLUXIO_HOME}
+mvn test
 ```
 
 这会使用本地文件系统作为底层文件系统。
@@ -49,28 +49,28 @@ $ mvn test
 - 运行单个单元测试
 
 ```bash
-$ mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
+mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
 ```
 
 - 要运行特定模块的单元测试, 在想要的子模块下执行`maven test`命令。例如，要运行HDFS UFS模块测试，执行以下命令
 
 ```bash
-$ mvn test -pl underfs/hdfs
+mvn test -pl underfs/hdfs
 ```
 
 您可以指定运行模块单元测试的Hadoop版本, 我们会创建该版本的模拟HDFS服务来进行测试：
 
 ```bash
 # build and run test on HDFS under filesystem module for Hadoop 2.7.0
-$ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
+mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
 # build and run test on HDFS under filesystem module for Hadoop 3.0.0
-$ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
+mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 ```
 
 您也可以使用一个正在运行的HDFS服务来对Alluxio的HDFS 底层文件系统进行更加全面的测试：
 
 ```bash
-$ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
+mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
 ```
 
 - 要想日志输出到STDOUT, 在mvn命令后添加以下参数：
@@ -91,8 +91,8 @@ $ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/a
 要使得MacOS上允许的文件数和进程数增加，运行以下命令
 
 ```bash
-$ sudo launchctl limit maxfiles 32768 32768
-$ sudo launchctl limit maxproc 32768 32768
+sudo launchctl limit maxfiles 32768 32768
+sudo launchctl limit maxproc 32768 32768
 ```
 
 同时建议关闭本地Alluxio文件夹的spotlight定位服务。否则，你的Mac在单元测试时将会一直挂起来尝试重新定位文件系统。去`System Preferences > Spotlight > Privacy`，点击`+`键，浏览你本地Alluxio的目录，点击`Choose`将其添加到排除列表。
@@ -117,7 +117,7 @@ $ sudo launchctl limit maxproc 32768 32768
 -  为验证编码风格符合标准，你在提交pull request之前应该先运行[checkstyle](http://checkstyle.sourceforge.net)，并且保证没有警告：
 
 ```bash
-$ mvn checkstyle:checkstyle
+mvn checkstyle:checkstyle
 ```
 
 ## 日志约定
@@ -190,13 +190,13 @@ if (LOG.isDebugEnabled()) {
 Alluxio使用Thrift来完成客户端与服务端的RPC通信。`common/src/thrift/`目录下的`.thrift`文件，其一方面用于自动生成客户端调用RPC的Java代码，另一方面用于实现服务端的RPC。要想更改一个Thrift定义，你首先必须要[安装Thrift的编译器](https://thrift.apache.org/docs/install/)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
 
 ```bash
-$ brew install thrift
+brew install thrift
 ```
 
 然后重新生成Java代码，运行
 
 ```bash
-$ bin/alluxio thriftGen
+./bin/alluxio thriftGen
 ```
 
 ## 更改Protocol Buffer消息
@@ -204,7 +204,7 @@ $ bin/alluxio thriftGen
 Alluxio使用Protocol Buffer来读写日志消息。`servers/src/proto/journal/`目录下的`.proto`文件用于为Protocol Buffer消息自动生成Java定义。如果需要修改这些消息，首先要读取[更新消息类型](https://developers.google.com/protocol-buffers/docs/proto#updating)从而保证你的修改不会破坏向后兼容性。然后请[安装protoc](https://github.com/google/protobuf#protocol-buffers---googles-data-interchange-format)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
 
 ```bash
-$ mvn compile -Pgenerate
+mvn compile -Pgenerate
 ```
 
 ## bin/alluxio目录下的命令列表
