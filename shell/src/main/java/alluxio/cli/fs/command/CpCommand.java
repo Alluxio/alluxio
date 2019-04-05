@@ -22,6 +22,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -30,6 +31,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -87,6 +89,14 @@ public final class CpCommand extends AbstractFileSystemCommand {
           .type(Number.class)
           .desc("Number of threads used to copy files in parallel, default value is CPU cores * 2")
           .build();
+  private static final Option PRESERVE_OPTION =
+      Option.builder("p")
+          .longOpt("preserve")
+          .required(false)
+          .desc("Preserve file ownership and permissions when copying files.")
+          .build();
+
+  private boolean mPreservePermissions = false;
 
   /**
    * A thread pool executor for asynchronous copy.
@@ -277,12 +287,16 @@ public final class CpCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
+    if (cl.hasOption(PRESERVE_OPTION.getLongOpt())) {
+      mPreservePermissions = true;
+    }
   }
 
   @Override
   public Options getOptions() {
     return new Options().addOption(RECURSIVE_OPTION)
-        .addOption(THREAD_OPTION);
+        .addOption(THREAD_OPTION)
+        .addOption(PRESERVE_OPTION);
   }
 
   @Override
@@ -463,6 +477,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         System.out.println("Created directory: " + dstPath);
       }
 
+      preserveAttributes(srcPath, dstPath);
       List<String> errorMessages = new ArrayList<>();
       for (URIStatus status : statuses) {
         try {
@@ -500,6 +515,24 @@ public final class CpCommand extends AbstractFileSystemCommand {
         throw e;
       }
       System.out.println(String.format(COPY_SUCCEED_MESSAGE, srcPath, dstPath));
+    }
+    preserveAttributes(srcPath, dstPath);
+  }
+
+  /**
+   * Preserves attributes from the source file to the target file.
+   *
+   * @param srcPath the source path
+   * @param dstPath the destination path in the Alluxio filesystem
+   */
+  private void preserveAttributes(AlluxioURI srcPath, AlluxioURI dstPath)
+      throws IOException, AlluxioException {
+    if (mPreservePermissions) {
+      URIStatus srcStatus = mFileSystem.getStatus(srcPath);
+      mFileSystem.setAttribute(dstPath, SetAttributeOptions.defaults()
+          .setOwner(srcStatus.getOwner())
+          .setGroup(srcStatus.getGroup())
+          .setMode(new Mode((short) srcStatus.getMode())));
     }
   }
 
