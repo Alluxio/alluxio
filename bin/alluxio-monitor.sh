@@ -209,19 +209,19 @@ main() {
   case "${ACTION}" in
     all)
       prepare_monitor "Starting to monitor ${CYAN}all remote${NC} services."
-      run_monitors "masters" "${HOSTS}" "${MODE}"
-      run_monitors "job_masters" "${HOSTS}" "${MODE}"
-      run_monitors "workers" "${HOSTS}" "${MODE}"
-      run_monitors "job_workers" "${HOSTS}" "${MODE}"
-      run_monitors "proxies" "${HOSTS}" "${MODE}"
+      run_monitors "master"     "" "${MODE}"
+      run_monitors "job_master" "" "${MODE}"
+      run_monitors "worker"     "" "${MODE}"
+      run_monitors "job_worker" "" "${MODE}"
+      run_monitors "proxy"      "" "${MODE}"
       ;;
     local)
       prepare_monitor "Starting to monitor ${CYAN}all local${NC} services."
-      run_monitor "master" "${MODE}"
-      run_monitor "job_master" "${MODE}"
-      run_monitor "worker" "${MODE}"
-      run_monitor "job_worker" "${MODE}"
-      run_monitor "proxy"  "${MODE}"
+      run_monitor "master"      "${MODE}"
+      run_monitor "job_master"  "${MODE}"
+      run_monitor "worker"      "${MODE}"
+      run_monitor "job_worker"  "${MODE}"
+      run_monitor "proxy"       "${MODE}"
       ;;
     master)
       prepare_monitor "Starting to monitor the ${CYAN}master${NC} service."
