@@ -75,16 +75,13 @@ public final class WorkerUfsManager extends AbstractUfsManager {
             .setShared(info.getProperties().getShared())
             .createMountSpecificConf(info.getProperties().getPropertiesMap()));
     UfsClient ufsClient = super.get(mountId);
-    try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
-      UnderFileSystem ufs = ufsResource.get();
-      ufs.connectFromWorker(
-          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC,
-              ServerConfiguration.global()));
-    } catch (IOException e) {
-      removeMount(mountId);
-      throw new UnavailableException(
-          String.format("Failed to connect to UFS %s with id %d", info.getUri(), mountId), e);
-    }
     return ufsClient;
+  }
+
+  @Override
+  protected void connectUfs(UnderFileSystem fs) throws IOException {
+    fs.connectFromWorker(
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC,
+            ServerConfiguration.global()));
   }
 }
