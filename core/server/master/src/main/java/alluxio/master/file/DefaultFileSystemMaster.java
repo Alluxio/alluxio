@@ -154,7 +154,6 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
