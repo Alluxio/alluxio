@@ -44,6 +44,8 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 /**
  * This class forwards all calls to the {@link UnderFileSystem} interface to an internal
  * implementation. For methods which throw an {@link IOException}, it is implied that an
@@ -454,6 +456,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     });
   }
 
+  @Nullable;
   private UfsStatus[] filterInvalidPaths(UfsStatus[] statuses, String listedPath) {
     // This is a temporary fix to prevent us from choking on paths containing '?'.
     if (statuses == null) {
