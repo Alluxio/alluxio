@@ -136,7 +136,7 @@ public interface FileSystem extends Closeable {
         AlluxioConfiguration conf = context.getConf();
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
         //Collections.sort(keys, Comparator.comparing(PropertyKey::getName));
-	keys.sort(Comparator.comparing(PropertyKey::getName));
+        keys.sort(Comparator.comparing(PropertyKey::getName));
         for (PropertyKey key : keys) {
           String value = conf.getOrDefault(key, null);
           Source source = conf.getSource(key);
