@@ -11,9 +11,9 @@
 
 package alluxio.worker.block.evictor;
 
-import static org.junit.assertNotNull;
-import static org.junit.assertTrue;
-import static org.junit.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
