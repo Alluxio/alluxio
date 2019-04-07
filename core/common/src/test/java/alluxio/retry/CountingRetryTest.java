@@ -12,6 +12,7 @@
 package alluxio.retry;
 
 import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 /**
