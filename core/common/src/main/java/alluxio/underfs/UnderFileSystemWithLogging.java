@@ -456,7 +456,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     });
   }
 
-  @Nullable;
+  @Nullable
   private UfsStatus[] filterInvalidPaths(UfsStatus[] statuses, String listedPath) {
     // This is a temporary fix to prevent us from choking on paths containing '?'.
     if (statuses == null) {
