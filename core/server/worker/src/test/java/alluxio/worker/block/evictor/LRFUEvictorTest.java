@@ -11,6 +11,10 @@
 
 package alluxio.worker.block.evictor;
 
+import static org.junit.assertNotNull;
+import static org.junit.assertTrue;
+import static org.junit.assertEquals;
+
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockMetadataManager;
@@ -22,9 +26,6 @@ import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.allocator.MaxFreeAllocator;
 import alluxio.worker.block.meta.StorageDir;
 
-import static org.junit.assertNotNull;
-import static org.junit.assertTrue;
-import static org.junit.assertEquals;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
