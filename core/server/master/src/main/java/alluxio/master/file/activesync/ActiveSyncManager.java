@@ -57,6 +57,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -283,6 +284,8 @@ public class ActiveSyncManager implements Journaled {
    * @param syncPoint sync point to stop
    * @return the path resolution result if successfully passed all checks
    */
+
+  @Nullable
   public MountTable.Resolution resolveSyncPoint(AlluxioURI syncPoint) throws InvalidPathException {
     if (!mSyncPathList.contains(syncPoint)) {
       LOG.debug("syncPoint not found {}", syncPoint.getPath());
