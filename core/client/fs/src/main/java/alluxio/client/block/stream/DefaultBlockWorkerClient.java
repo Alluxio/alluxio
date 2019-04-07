@@ -137,7 +137,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       DataMessageMarshaller<ReadResponse> marshaller =
           ((DataMessageMarshallerProvider<ReadRequest, ReadResponse>) responseObserver)
               .getResponseMarshaller();
-      Preconditions.checkNotNull(marshaller,"marshaller");
+      Preconditions.checkNotNull(marshaller);
       return mStreamingAsyncStub
           .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
               BlockWorkerGrpc.getReadBlockMethod().toBuilder()
