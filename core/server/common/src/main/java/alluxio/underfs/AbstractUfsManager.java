@@ -136,6 +136,11 @@ public abstract class AbstractUfsManager implements UfsManager {
     }
   }
 
+  /**
+   * Takes any necessary actions required to establish a connection to the under file system.
+   * The implementation will either call {@link UnderFileSystem#connectFromMaster(String)} or
+   *  {@link UnderFileSystem#connectFromWorker(String)} depending on the running process.
+   */
   protected abstract void connectUfs(UnderFileSystem fs) throws IOException;
 
   @Override
