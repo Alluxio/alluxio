@@ -207,7 +207,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
    * @throws AccessControlException if permission checking fails
    */
   protected void checkInodeList(String user, List<String> groups, Mode.Bits bits, String path,
-      List<? extends InodeView> inodeList, boolean checkIsOwner) throws AccessControlException {
+      List<InodeView> inodeList, boolean checkIsOwner) throws AccessControlException {
     int size = inodeList.size();
     Preconditions.checkArgument(size > 0,
         PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
