@@ -48,12 +48,12 @@ public final class ProcessUtils {
   }
 
   /**
-    * Logs a fatal error and then exits the system.
-    *
-    * @param logger the logger to log to
-    * @param format the error message format string
-    * @param args args for the format string
-    */
+   * Logs a fatal error and then exits the system.
+   *
+   * @param logger the logger to log to
+   * @param format the error message format string
+   * @param args args for the format string
+   */
   public static void fatalError(Logger logger, String format, Object... args) {
     fatalError(logger, null, format, args);
   }

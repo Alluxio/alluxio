@@ -11,12 +11,12 @@
 
 package alluxio.master;
 
-import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
+import alluxio.master.journal.JournalUtils;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.collect.Maps;
@@ -102,7 +102,7 @@ public class BackupManager {
         try {
           master.processJournalEntry(entry);
         } catch (Throwable t) {
-          ProcessUtils.fatalError(mTolerantCorruption,
+          JournalUtils.handleJournalReplayFailure(
               LOG, t, "Failed to process journal entry %s when init from backup", entry);
           if (!mTolerantCorruption) {
             throw t;

@@ -11,7 +11,6 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
@@ -21,6 +20,7 @@ import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.MasterJournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.ExponentialTimeBoundedRetry;
@@ -374,26 +374,16 @@ public class UfsJournal implements Journal {
       try {
         switch (journalReader.advance()) {
           case CHECKPOINT:
-            try {
-              mMaster.restoreFromCheckpoint(journalReader.getCheckpoint());
-            }  catch (Throwable t) {
-              if (mTolerateCorruption) {
-                ProcessUtils.fatalError(true,  LOG, t,
-                    "%s: Failed to restore from check point", mMaster.getName());
-              } else {
-                throw t;
-              }
-            }
+            mMaster.restoreFromCheckpoint(journalReader.getCheckpoint());
             break;
           case LOG:
             JournalEntry entry = journalReader.getEntry();
             try {
               mMaster.processJournalEntry(entry);
             }  catch (Throwable t) {
-              if (mTolerateCorruption) {
-                ProcessUtils.fatalError(true,  LOG, t,
+              JournalUtils.handleJournalReplayFailure(LOG, t,
                     "%s: Failed to process journal entry %s", mMaster.getName(), entry);
-              } else {
+              if (!mTolerateCorruption) {
                 throw t;
               }
             }
@@ -402,8 +392,7 @@ public class UfsJournal implements Journal {
             return journalReader.getNextSequenceNumber();
         }
       } catch (IOException e) {
-        LOG.warn("{}: Attempt {} failed to read from journal: {}",
-            mMaster.getName(), retry.getAttemptCount(), e);
+        LOG.warn("{}: Failed to read from journal: {}", mMaster.getName(), e);
         if (retry.attempt()) {
           continue;
         }

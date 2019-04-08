@@ -164,15 +164,7 @@ public final class UfsJournalCheckpointThread extends Thread {
         switch (mJournalReader.advance()) {
           case CHECKPOINT:
             LOG.debug("{}: Restoring from checkpoint", mMaster.getName());
-            try {
-              mMaster.restoreFromCheckpoint(mJournalReader.getCheckpoint());
-            } catch (Throwable t) {
-              JournalUtils.handleJournalReplayFailure(LOG, t,
-                    "%s: Failed to process check point", mMaster.getName());
-              if (!mTolerateCorruption) {
-                throw t;
-              }
-            }
+            mMaster.restoreFromCheckpoint(mJournalReader.getCheckpoint());
             LOG.debug("{}: Finished restoring from checkpoint", mMaster.getName());
             break;
           case LOG:
