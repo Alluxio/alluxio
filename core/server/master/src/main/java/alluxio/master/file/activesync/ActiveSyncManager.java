@@ -192,7 +192,7 @@ public class ActiveSyncManager implements Journaled {
                       LOG.warn("IOException encountered during active sync while starting {}", e);
                     }
                   }
-          )).get();
+          ));
         }
       } catch (Exception e) {
         LOG.warn("exception encountered during initial sync {}", e);
