@@ -77,8 +77,7 @@ public final class LoadDefinition
     // Mapping from worker to block ids which that worker is supposed to load.
     Multimap<WorkerInfo, LoadTask> assignments = LinkedListMultimap.create();
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
-    for (FileBlockInfo blockInfo : context
-        .getFileSystem().getStatus(uri).getFileBlockInfos()) {
+    for (FileBlockInfo blockInfo : context.getFileSystem().getStatus(uri).getFileBlockInfos()) {
       List<String> workersWithoutBlock = getWorkersWithoutBlock(workers, blockInfo);
       int neededReplicas = config.getReplication() - blockInfo.getBlockInfo().getLocations().size();
       if (workersWithoutBlock.size() < neededReplicas) {
@@ -122,9 +121,8 @@ public final class LoadDefinition
   public SerializableVoid runTask(LoadConfig config, ArrayList<LoadTask> tasks,
       RunTaskContext context) throws Exception {
     for (LoadTask task : tasks) {
-      JobUtils
-          .loadBlock(context.getFileSystem(), context.getFsContext(),
-              config.getFilePath(), task.getBlockId());
+      JobUtils.loadBlock(
+          context.getFileSystem(), context.getFsContext(), config.getFilePath(), task.getBlockId());
       LOG.info("Loaded block " + task.getBlockId());
     }
     return null;

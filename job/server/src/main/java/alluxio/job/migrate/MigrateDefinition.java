@@ -156,8 +156,7 @@ public final class MigrateDefinition
    */
   @Override
   public Map<WorkerInfo, ArrayList<MigrateCommand>> selectExecutors(MigrateConfig config,
-      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
-      throws Exception {
+      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
     AlluxioURI source = new AlluxioURI(config.getSource());
     AlluxioURI destination = new AlluxioURI(config.getDestination());
     if (source.equals(destination)) {
@@ -166,8 +165,7 @@ public final class MigrateDefinition
     checkMigrateValid(config, context.getFileSystem());
     Preconditions.checkState(!jobWorkerInfoList.isEmpty(), "No workers are available");
 
-    List<URIStatus> allPathStatuses =
-        getPathStatuses(source, context.getFileSystem());
+    List<URIStatus> allPathStatuses = getPathStatuses(source, context.getFileSystem());
     ConcurrentMap<WorkerInfo, ArrayList<MigrateCommand>> assignments = Maps.newConcurrentMap();
     ConcurrentMap<String, WorkerInfo> hostnameToWorker = Maps.newConcurrentMap();
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
@@ -181,8 +179,8 @@ public final class MigrateDefinition
         migrateDirectory(status.getPath(), source.getPath(), destination.getPath(),
             context.getFileSystem());
       } else {
-        WorkerInfo bestJobWorker = getBestJobWorker(status, alluxioWorkerInfoList,
-            jobWorkerInfoList, hostnameToWorker);
+        WorkerInfo bestJobWorker =
+            getBestJobWorker(status, alluxioWorkerInfoList, jobWorkerInfoList, hostnameToWorker);
         String destinationPath =
             computeTargetPath(status.getPath(), source.getPath(), destination.getPath());
         assignments.putIfAbsent(bestJobWorker, Lists.newArrayList());

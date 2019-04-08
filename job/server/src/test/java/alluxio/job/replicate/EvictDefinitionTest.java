@@ -42,8 +42,7 @@ import java.util.Map;
  * Tests {@link EvictDefinition}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class,
-    JobServerContext.class})
+@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, JobServerContext.class})
 public final class EvictDefinitionTest {
   private static final long TEST_BLOCK_ID = 1L;
   private static final WorkerNetAddress ADDRESS_1 =
