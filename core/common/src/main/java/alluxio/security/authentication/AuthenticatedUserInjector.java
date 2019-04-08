@@ -70,6 +70,12 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
     };
   }
 
+  /**
+   * Authenticates given call against auth-server state.
+   * Fails the call if it's not originating from an authenticated client channel.
+   * It sets thread-local authentication information for the call with the user information
+   * that is kept on auth-server.
+   */
   private <ReqT, RespT> boolean authenticateCall(ServerCall<ReqT, RespT> call, Metadata headers) {
     // Try to fetch channel Id from the metadata.
     UUID channelId = headers.get(ChannelIdInjector.S_CLIENT_ID_KEY);
@@ -77,22 +83,24 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
     if (channelId != null) {
       try {
         // Fetch authenticated username for this channel and set it.
-        String userName = mAuthenticationServer.getUserNameForChannel(channelId);
-        if (userName != null) {
-          AuthenticatedClientUser.set(userName);
+        AuthenticatedUserInfo userInfo = mAuthenticationServer.getUserInfoForChannel(channelId);
+        if (userInfo != null) {
+          AuthenticatedClientUser.set(userInfo.getAuthorizedUserName());
+          AuthenticatedClientUser.setConnectionUser(userInfo.getConnectionUserName());
+          AuthenticatedClientUser.setAuthMethod(userInfo.getAuthMethod());
         } else {
           AuthenticatedClientUser.remove();
         }
         callAuthenticated = true;
       } catch (UnauthenticatedException e) {
-        LOG.debug("Channel:{} is not authenticated for call:{}", channelId.toString(),
-            call.getMethodDescriptor().getFullMethodName());
-        call.close(Status.UNAUTHENTICATED, headers);
+        String message = String.format("Channel: %s is not authenticated for call: %s",
+            channelId.toString(), call.getMethodDescriptor().getFullMethodName());
+        call.close(Status.UNAUTHENTICATED.withDescription(message), headers);
       }
     } else {
-      LOG.debug("Channel Id is missing for call:{}.",
+      String message = String.format("Channel Id is missing for call: %s.",
           call.getMethodDescriptor().getFullMethodName());
-      call.close(Status.UNAUTHENTICATED, headers);
+      call.close(Status.UNAUTHENTICATED.withDescription(message), headers);
     }
     return callAuthenticated;
   }

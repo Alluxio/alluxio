@@ -99,11 +99,12 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.journal.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.InodeStore.InodeStoreArgs;
@@ -186,7 +187,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -436,8 +436,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mTimeSeriesStore = new TimeSeriesStore();
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
-    mJournaledComponents =
-        Arrays.asList(mInodeTree, mDirectoryIdGenerator, mMountTable, mUfsManager, mSyncManager);
+    mJournaledComponents = new ArrayList<Journaled>() {
+      {
+        add(mInodeTree);
+        add(mDirectoryIdGenerator);
+        add(mMountTable);
+        add(mUfsManager);
+        add(mSyncManager);
+      }
+    };
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -506,7 +513,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public void restoreFromCheckpoint(InputStream input) throws IOException {
+  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     JournalUtils.restoreFromCheckpoint(input, mJournaledComponents);
   }
 

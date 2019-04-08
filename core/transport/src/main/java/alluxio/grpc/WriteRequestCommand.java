@@ -236,18 +236,30 @@ private static final long serialVersionUID = 0L;
   public static final int CREATE_UFS_FILE_OPTIONS_FIELD_NUMBER = 6;
   private alluxio.proto.dataserver.Protocol.CreateUfsFileOptions createUfsFileOptions_;
   /**
+   * <pre>
+   * Cancel, close and error will be handled by standard gRPC stream APIs.
+   * </pre>
+   *
    * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
    */
   public boolean hasCreateUfsFileOptions() {
     return ((bitField0_ & 0x00000020) == 0x00000020);
   }
   /**
+   * <pre>
+   * Cancel, close and error will be handled by standard gRPC stream APIs.
+   * </pre>
+   *
    * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
    */
   public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getCreateUfsFileOptions() {
     return createUfsFileOptions_ == null ? alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.getDefaultInstance() : createUfsFileOptions_;
   }
   /**
+   * <pre>
+   * Cancel, close and error will be handled by standard gRPC stream APIs.
+   * </pre>
+   *
    * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
    */
   public alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder getCreateUfsFileOptionsOrBuilder() {
@@ -257,30 +269,18 @@ private static final long serialVersionUID = 0L;
   public static final int CREATE_UFS_BLOCK_OPTIONS_FIELD_NUMBER = 7;
   private alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions createUfsBlockOptions_;
   /**
-   * <pre>
-   * Cancel, close and error will be handled by standard gRPC stream APIs.
-   * </pre>
-   *
    * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
    */
   public boolean hasCreateUfsBlockOptions() {
     return ((bitField0_ & 0x00000040) == 0x00000040);
   }
   /**
-   * <pre>
-   * Cancel, close and error will be handled by standard gRPC stream APIs.
-   * </pre>
-   *
    * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
    */
   public alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions getCreateUfsBlockOptions() {
     return createUfsBlockOptions_ == null ? alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions.getDefaultInstance() : createUfsBlockOptions_;
   }
   /**
-   * <pre>
-   * Cancel, close and error will be handled by standard gRPC stream APIs.
-   * </pre>
-   *
    * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
    */
   public alluxio.proto.dataserver.Protocol.CreateUfsBlockOptionsOrBuilder getCreateUfsBlockOptionsOrBuilder() {
@@ -957,12 +957,20 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.proto.dataserver.Protocol.CreateUfsFileOptions, alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.Builder, alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder> createUfsFileOptionsBuilder_;
     /**
+     * <pre>
+     * Cancel, close and error will be handled by standard gRPC stream APIs.
+     * </pre>
+     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
      */
     public boolean hasCreateUfsFileOptions() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
+     * <pre>
+     * Cancel, close and error will be handled by standard gRPC stream APIs.
+     * </pre>
+     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
      */
     public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getCreateUfsFileOptions() {
@@ -973,6 +981,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Cancel, close and error will be handled by standard gRPC stream APIs.
+     * </pre>
+     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
      */
     public Builder setCreateUfsFileOptions(alluxio.proto.dataserver.Protocol.CreateUfsFileOptions value) {
@@ -989,6 +1001,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Cancel, close and error will be handled by standard gRPC stream APIs.
+     * </pre>
+     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
      */
     public Builder setCreateUfsFileOptions(
@@ -1003,6 +1019,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Cancel, close and error will be handled by standard gRPC stream APIs.
+     * </pre>
+     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
      */
     public Builder mergeCreateUfsFileOptions(alluxio.proto.dataserver.Protocol.CreateUfsFileOptions value) {
@@ -1023,6 +1043,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Cancel, close and error will be handled by standard gRPC stream APIs.
+     * </pre>
+     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
      */
     public Builder clearCreateUfsFileOptions() {
@@ -1036,6 +1060,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * Cancel, close and error will be handled by standard gRPC stream APIs.
+     * </pre>
+     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
      */
     public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.Builder getCreateUfsFileOptionsBuilder() {
@@ -1044,6 +1072,10 @@ private static final long serialVersionUID = 0L;
       return getCreateUfsFileOptionsFieldBuilder().getBuilder();
     }
     /**
+     * <pre>
+     * Cancel, close and error will be handled by standard gRPC stream APIs.
+     * </pre>
+     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
      */
     public alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder getCreateUfsFileOptionsOrBuilder() {
@@ -1055,6 +1087,10 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+     * <pre>
+     * Cancel, close and error will be handled by standard gRPC stream APIs.
+     * </pre>
+     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
@@ -1075,20 +1111,12 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions, alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions.Builder, alluxio.proto.dataserver.Protocol.CreateUfsBlockOptionsOrBuilder> createUfsBlockOptionsBuilder_;
     /**
-     * <pre>
-     * Cancel, close and error will be handled by standard gRPC stream APIs.
-     * </pre>
-     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
      */
     public boolean hasCreateUfsBlockOptions() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
-     * <pre>
-     * Cancel, close and error will be handled by standard gRPC stream APIs.
-     * </pre>
-     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
      */
     public alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions getCreateUfsBlockOptions() {
@@ -1099,10 +1127,6 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <pre>
-     * Cancel, close and error will be handled by standard gRPC stream APIs.
-     * </pre>
-     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
      */
     public Builder setCreateUfsBlockOptions(alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions value) {
@@ -1119,10 +1143,6 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <pre>
-     * Cancel, close and error will be handled by standard gRPC stream APIs.
-     * </pre>
-     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
      */
     public Builder setCreateUfsBlockOptions(
@@ -1137,10 +1157,6 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <pre>
-     * Cancel, close and error will be handled by standard gRPC stream APIs.
-     * </pre>
-     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
      */
     public Builder mergeCreateUfsBlockOptions(alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions value) {
@@ -1161,10 +1177,6 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <pre>
-     * Cancel, close and error will be handled by standard gRPC stream APIs.
-     * </pre>
-     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
      */
     public Builder clearCreateUfsBlockOptions() {
@@ -1178,10 +1190,6 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <pre>
-     * Cancel, close and error will be handled by standard gRPC stream APIs.
-     * </pre>
-     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
      */
     public alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions.Builder getCreateUfsBlockOptionsBuilder() {
@@ -1190,10 +1198,6 @@ private static final long serialVersionUID = 0L;
       return getCreateUfsBlockOptionsFieldBuilder().getBuilder();
     }
     /**
-     * <pre>
-     * Cancel, close and error will be handled by standard gRPC stream APIs.
-     * </pre>
-     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
      */
     public alluxio.proto.dataserver.Protocol.CreateUfsBlockOptionsOrBuilder getCreateUfsBlockOptionsOrBuilder() {
@@ -1205,10 +1209,6 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <pre>
-     * Cancel, close and error will be handled by standard gRPC stream APIs.
-     * </pre>
-     *
      * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<

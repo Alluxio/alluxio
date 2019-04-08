@@ -35,7 +35,7 @@ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.underfs.address=swift://<bucket>/<folder>
+alluxio.master.mount.table.root.ufs=swift://<bucket>/<folder>
 alluxio.master.mount.table.root.option.fs.swift.user=<swift-user>
 alluxio.master.mount.table.root.option.fs.swift.tenant=<swift-tenant>
 alluxio.master.mount.table.root.option.fs.swift.password=<swift-user-password>

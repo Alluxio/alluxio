@@ -37,7 +37,7 @@ spec:
     requests:
       storage: 1Gi
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: alluxio-master
@@ -57,7 +57,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: alluxio-master
-          image: alluxio/alluxio:1.6.1
+          image: alluxio/alluxio:latest
           resources:
             requests:
               cpu: "0.5"
@@ -82,14 +82,8 @@ spec:
           volumeMounts:
             - name: alluxio-journal
               mountPath: /journal
-            - name: alluxio-domain
-              mountPath: /opt/domain
       restartPolicy: Always
       volumes:
         - name: alluxio-journal
           persistentVolumeClaim:
             claimName: alluxio-pv-claim
-        - name: alluxio-domain
-          hostPath:
-            path: /tmp/domain
-            type: Directory

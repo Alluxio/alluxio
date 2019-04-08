@@ -7,7 +7,7 @@ option java_outer_classname = "FsCommonProto";
 package alluxio.grpc.fscommon;
 
 enum LoadDescendantPType {
-    NONE = 0;
-    ONE = 1;
-    ALL = 2;
+  NONE = 0;
+  ONE = 1;
+  ALL = 2;
 }

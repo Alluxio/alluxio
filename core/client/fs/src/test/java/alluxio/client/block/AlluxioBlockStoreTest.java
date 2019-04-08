@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -37,6 +38,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.DummyCloseableResource;
@@ -101,6 +103,7 @@ public final class AlluxioBlockStoreTest {
       .setHost(WORKER_HOSTNAME_REMOTE);
   private ClientCallStreamObserver mStreamObserver;
   private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(4);
+  private StreamObserver<OpenLocalBlockResponse> mResponseObserver;
 
   /**
    * A mock class used to return controlled result when selecting workers.
@@ -337,16 +340,15 @@ public final class AlluxioBlockStoreTest {
 
     // Mock away gRPC usage.
     OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder().setPath("/tmp").build();
-    when(mWorkerClient.openLocalBlock(any(StreamObserver.class)))
-            .thenAnswer(new Answer() {
-              public Object answer(InvocationOnMock invocation) {
-                StreamObserver<OpenLocalBlockResponse> observer =
-                        invocation.getArgumentAt(0, StreamObserver.class);
-                observer.onNext(response);
-                observer.onCompleted();
-                return mStreamObserver;
-              }
-            });
+    when(mWorkerClient.openLocalBlock(any(StreamObserver.class))).thenAnswer(invocation -> {
+      mResponseObserver = invocation.getArgumentAt(0, StreamObserver.class);
+      return mStreamObserver;
+    });
+    doAnswer(invocation -> {
+      mResponseObserver.onNext(response);
+      mResponseObserver.onCompleted();
+      return null;
+    }).when(mStreamObserver).onNext(any(OpenLocalBlockRequest.class));
 
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
         .asList(new BlockLocation().setWorkerAddress(remote),

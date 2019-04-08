@@ -12,10 +12,6 @@
 package alluxio.job.replicate;
 
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.file.BaseFileSystem;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.JobMasterContext;
 import alluxio.job.JobWorkerContext;
@@ -47,27 +43,11 @@ public final class ReplicateDefinition
     extends AbstractVoidJobDefinition<ReplicateConfig, SerializableVoid> {
   private static final Logger LOG = LoggerFactory.getLogger(ReplicateDefinition.class);
 
-  private final FileSystem mFileSystem;
-  private final FileSystemContext mFsContext;
-
   /**
-   * Constructs a new {@link ReplicateDefinition} instance with FileSystem context and instance.
+   * Constructs a new {@link ReplicateDefinition}.
    *
    */
   public ReplicateDefinition() {
-    mFsContext = FileSystemContext.create(ServerConfiguration.global());
-    mFileSystem = BaseFileSystem.create(mFsContext);
-  }
-
-  /**
-   * Constructs a new {@link ReplicateDefinition} instance.
-   *
-   * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
-   * @param fileSystem the {@link FileSystem} client
-   */
-  public ReplicateDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
-    mFsContext = fsContext;
-    mFileSystem = fileSystem;
   }
 
   @Override
@@ -84,7 +64,7 @@ public final class ReplicateDefinition
     int numReplicas = config.getReplicas();
     Preconditions.checkArgument(numReplicas > 0);
 
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(jobMasterContext.getFsContext());
     BlockInfo blockInfo = blockStore.getInfo(blockId);
 
     Set<String> hosts = new HashSet<>();
@@ -114,7 +94,8 @@ public final class ReplicateDefinition
   @Override
   public SerializableVoid runTask(ReplicateConfig config, SerializableVoid arg,
       JobWorkerContext jobWorkerContext) throws Exception {
-    JobUtils.loadBlock(mFileSystem, mFsContext, config.getPath(), config.getBlockId());
+    JobUtils.loadBlock(jobWorkerContext.getFileSystem(), jobWorkerContext.getFsContext(),
+        config.getPath(), config.getBlockId());
     return null;
   }
 }

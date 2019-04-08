@@ -598,7 +598,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS)
           .setDefaultValue(20)
           .setDescription("The number of threads in executor pool for parallel object store "
-              + "UFS operations.")
+              + "UFS operations, such as directory renames and deletes.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -729,11 +729,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_S3_UPLOAD_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_UPLOAD_THREADS_MAX)
           .setDefaultValue(20)
-          .setDescription("The maximum number of threads to use for uploading data to S3 for "
-              + "multipart uploads. These operations can be fairly expensive, so multiple "
-              + "threads are encouraged. However, this also splits the bandwidth between "
-              + "threads, meaning the overall latency for completing an upload will be higher "
-              + "for more threads.")
+          .setDescription("For an Alluxio worker, this is the maximum number of threads to use "
+              + "for uploading data to S3 for multipart uploads. These operations can be fairly "
+              + "expensive, so multiple threads are encouraged. However, this also splits the "
+              + "bandwidth between threads, meaning the overall latency for completing an upload "
+              + "will be higher for more threads. For the Alluxio master, this is the maximum "
+              + "number of threads used for the rename (copy) operation. It is recommended that "
+              + "value should be greater than or equal to "
+              + Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -2095,6 +2098,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(0)
           .setDescription("How many threads to use for processing requests. Zero defaults to "
               + "#cpuCores * 2.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_READER_BUFFER_SIZE_BYTES =
+      new Builder(Name.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES)
+          .setDefaultValue("4MB")
+          .setDescription("When a client reads from a remote worker, the maximum amount of data"
+              + " not received by client allowed before the worker pauses sending more data."
+              + " If this value is lower than read chunk size, read performance may be impacted"
+              + " as worker waits more often for buffer to free up. Higher value will increase"
+              + " the memory consumed by each read request.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3938,6 +3952,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.netty.watermark.low";
     public static final String WORKER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.worker.network.netty.worker.threads";
+    public static final String WORKER_NETWORK_READER_BUFFER_SIZE_BYTES =
+        "alluxio.worker.network.reader.buffer.size";
     public static final String WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
         "alluxio.worker.network.reader.max.chunk.size.bytes";
     public static final String WORKER_NETWORK_SHUTDOWN_TIMEOUT =

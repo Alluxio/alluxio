@@ -26,7 +26,7 @@ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 修改`conf/alluxio-site.properties`配置文件的内容包括：
   
 ```properties
-alluxio.underfs.address=swift://<container>/<folder>
+alluxio.master.mount.table.root.ufs=swift://<container>/<folder>
 fs.swift.user=<swift-user>
 fs.swift.tenant=<swift-tenant>
 fs.swift.password=<swift-user-password>

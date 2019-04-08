@@ -28,6 +28,7 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -668,6 +669,48 @@ public abstract class AbstractUnderFileSystemContractTest {
     assertTrue(mUfs.isFile(testDirDstChild));
     assertTrue(mUfs.isDirectory(testDirDstNested));
     assertTrue(mUfs.isFile(testDirDstNestedChild));
+  }
+
+  @Test
+  public void renameLargeDirectory() throws Exception {
+    LargeDirectoryConfig config = prepareLargeDirectoryTest();
+    String dstTopLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "topLevelDirMoved");
+    mUfs.renameDirectory(config.getTopLevelDirectory(), dstTopLevelDirectory);
+
+    // 1. Check the src directory no longer exists
+    String[] srcChildren = config.getChildren();
+    for (String src : srcChildren) {
+      // Retry for some time to allow list operation eventual consistency for S3 and GCS.
+      // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
+      // https://cloud.google.com/storage/docs/consistency for more details.
+      CommonUtils.waitFor("list after delete consistency", () -> {
+        try {
+          return !mUfs.exists(src);
+        } catch (IOException e) {
+          return false;
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(10000).setInterval(500));
+    }
+    // 2. Check the dst directory exists
+    CommonUtils.waitFor("list after create consistency", () -> {
+      UfsStatus[] results;
+      try {
+        results = mUfs.listStatus(dstTopLevelDirectory);
+        if (srcChildren.length != results.length) {
+          return false;
+        }
+        // Check nested files and directories in dst exist
+        String[] resultNames = UfsStatus.convertToNames(results);
+        Arrays.sort(resultNames);
+        for (int i = 0; i < srcChildren.length; ++i) {
+          assertTrue(resultNames[i].equals(CommonUtils.stripPrefixIfPresent(srcChildren[i],
+              PathUtils.normalizePath(config.getTopLevelDirectory(), "/"))));
+        }
+      } catch (IOException e) {
+        return false;
+      }
+      return true;
+    }, WaitForOptions.defaults().setTimeoutMs(10000).setInterval(500));
   }
 
   private void createEmptyFile(String path) throws IOException {

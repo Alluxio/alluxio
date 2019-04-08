@@ -173,6 +173,7 @@
 
   <modules>
     <module>alluxio-ui</module>
+    <module>alluxio-shaded-hadoop</module>
     <module>assembly</module>
     <module>core</module>
     <module>examples</module>

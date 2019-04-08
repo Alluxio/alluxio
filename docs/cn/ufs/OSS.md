@@ -26,7 +26,7 @@ Alluxio通过[统一命名空间](Unified-and-Transparent-Namespace.html)统一�
 若要在Alluxio中使用OSS作为底层文件系统，一定要修改`conf/alluxio-site.properties`配置文件。首先要指定一个已有的OSS bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-site.properties`中添加如下语句指定它：
 
 ```
-alluxio.underfs.address=oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
+alluxio.master.mount.table.root.ufs=oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
 ```
 
 接着，需要指定Aliyun证书以便访问OSS，在`conf/alluxio-site.properties`中添加：

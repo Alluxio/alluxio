@@ -23,6 +23,7 @@ import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.exception.AccessControlException;
+import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.UfsPMode;
 import alluxio.grpc.UpdateUfsModePOptions;
@@ -100,7 +101,9 @@ public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
     MetaMasterClient metaClient =
         new RetryHandlingMetaMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
-    AlluxioURI backupURI = metaClient.backup(backup.getAbsolutePath(), true).getBackupUri();
+    AlluxioURI backupURI = metaClient.backup(BackupPOptions.newBuilder()
+        .setTargetDirectory(backup.getAbsolutePath())
+        .setLocalFileSystem(true).build()).getBackupUri();
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupURI);
     mCluster.formatAndRestartMasters();
   }

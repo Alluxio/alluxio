@@ -25,6 +25,10 @@ import (
 	"v.io/x/lib/cmdline"
 )
 
+const (
+	// The version of the hadoop client that the Alluxio client will be built for
+	defaultHadoopClient = "hadoop-2.7"
+)
 var (
 	cmdSingle = &cmdline.Command{
 		Name:   "single",
@@ -53,7 +57,7 @@ func single(_ *cmdline.Env, _ []string) error {
 	if err := checkRootFlags(); err != nil {
 		return err
 	}
-	if err := generateTarball(hadoopDistributionFlag); err != nil {
+	if err := generateTarball([]string{hadoopDistributionFlag}); err != nil {
 		return err
 	}
 	return nil
@@ -94,7 +98,7 @@ func symlink(oldname, newname string) {
 }
 
 func getCommonMvnArgs(hadoopVersion version) []string {
-	args := []string{"clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pmesos"}
+	args := []string{"-T", "2C", "-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pmesos"}
 	if mvnArgsFlag != "" {
 		for _, arg := range strings.Split(mvnArgsFlag, ",") {
 			args = append(args, arg)
@@ -247,8 +251,11 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
 }
 
-func generateTarball(hadoopDistribution string) error {
-	hadoopVersion := hadoopDistributions[hadoopDistribution]
+func generateTarball(hadoopClients []string) error {
+	hadoopVersion, ok := hadoopDistributions[defaultHadoopClient]
+	if !ok {
+		return fmt.Errorf("hadoop distribution %s not recognized\n", defaultHadoopClient)
+	}
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -325,10 +332,6 @@ func generateTarball(hadoopDistribution string) error {
 	}
 
 	addAdditionalFiles(srcPath, dstPath, hadoopVersion, version)
-	hadoopVersion, ok = hadoopDistributions[hadoopDistribution]
-	if !ok {
-		return fmt.Errorf("hadoop distribution %s not recognized\n", hadoopDistribution)
-	}
 
 	chdir(cwd)
 	run("creating the distribution tarball", "tar", "-czvf", tarball, dstDir)

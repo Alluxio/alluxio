@@ -27,7 +27,7 @@ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 ```
 alluxio.master.hostname=localhost
-alluxio.underfs.address=/mnt/nfs
+alluxio.master.mount.table.root.ufs=/mnt/nfs
 ```
 
 ## 使用NFS运行Alluxio

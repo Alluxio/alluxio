@@ -1,3 +1,3 @@
 ```properties
-alluxio.underfs.address=swift://<swift-container>
+alluxio.master.mount.table.root.ufs=swift://<swift-container>
 ```

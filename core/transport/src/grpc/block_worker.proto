@@ -55,6 +55,9 @@ message ReadRequest {
 
   // This is only set for UFS block read.
   optional alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;
+
+  // Read receipt
+  optional int64 offset_received = 7;
 }
 
 // The read response.
@@ -73,9 +76,9 @@ message WriteRequestCommand {
   // This is only applicable for block write.
   optional int32 tier = 4;
   optional bool flush = 5;
+  // Cancel, close and error will be handled by standard gRPC stream APIs.
   optional alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;
   optional alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;
-  // Cancel, close and error will be handled by standard gRPC stream APIs.
 }
 
 // The write request.

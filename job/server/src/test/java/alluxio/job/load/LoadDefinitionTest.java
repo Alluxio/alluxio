@@ -86,6 +86,8 @@ public class LoadDefinitionTest {
         .thenReturn(ClientContext.create(ServerConfiguration.global()));
     PowerMockito.when(mMockFsContext.getConf())
         .thenReturn(ServerConfiguration.global());
+    Mockito.when(mMockJobMasterContext.getFileSystem()).thenReturn(mMockFileSystem);
+    Mockito.when(mMockJobMasterContext.getFsContext()).thenReturn(mMockFsContext);
   }
 
   @Test
@@ -95,7 +97,7 @@ public class LoadDefinitionTest {
     createFileWithNoLocations(TEST_URI, numBlocks);
     LoadConfig config = new LoadConfig(TEST_URI, replication);
     Map<WorkerInfo, ArrayList<LoadTask>> assignments =
-        new LoadDefinition(mMockFsContext, mMockFileSystem).selectExecutors(config,
+        new LoadDefinition().selectExecutors(config,
             JOB_WORKERS, mMockJobMasterContext);
     // Check that we are loading the right number of blocks.
     int totalBlockLoads = 0;
@@ -113,7 +115,7 @@ public class LoadDefinitionTest {
     createFileWithNoLocations(TEST_URI, 10);
     LoadConfig config = new LoadConfig(TEST_URI, 1);
     Map<WorkerInfo, ArrayList<LoadTask>> assignments =
-        new LoadDefinition(mMockFsContext, mMockFileSystem).selectExecutors(config,
+        new LoadDefinition().selectExecutors(config,
             JOB_WORKERS, mMockJobMasterContext);
     Assert.assertEquals(1, assignments.size());
     Assert.assertEquals(10, assignments.values().iterator().next().size());
@@ -124,7 +126,7 @@ public class LoadDefinitionTest {
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 5); // set replication to 5
     try {
-      new LoadDefinition(mMockFsContext, mMockFileSystem).selectExecutors(config,
+      new LoadDefinition().selectExecutors(config,
           JOB_WORKERS, mMockJobMasterContext);
       Assert.fail();
     } catch (Exception e) {
@@ -142,7 +144,7 @@ public class LoadDefinitionTest {
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 2); // set replication to 2
     try {
-      new LoadDefinition(mMockFsContext, mMockFileSystem).selectExecutors(config,
+      new LoadDefinition().selectExecutors(config,
           JOB_WORKERS, mMockJobMasterContext);
       Assert.fail();
     } catch (Exception e) {

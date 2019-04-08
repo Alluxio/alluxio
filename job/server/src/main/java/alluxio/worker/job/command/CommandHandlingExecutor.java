@@ -11,6 +11,8 @@
 
 package alluxio.worker.job.command;
 
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.CancelTaskCommand;
@@ -50,6 +52,8 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(CommandHandlingExecutor.class);
   private static final int DEFAULT_COMMAND_HANDLING_POOL_SIZE = 4;
 
+  private final FileSystem mFileSystem;
+  private final FileSystemContext mFsContext;
   private final JobMasterClient mMasterClient;
   private final TaskExecutorManager mTaskExecutorManager;
   private final WorkerNetAddress mWorkerNetAddress;
@@ -64,12 +68,17 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
    * Creates a new instance of {@link CommandHandlingExecutor}.
    *
    * @param taskExecutorManager the {@link TaskExecutorManager}
+   * @param filesystem the Alluxio client used to contact the master
+   * @param fsContext the filesystem client's underlying context
    * @param ufsManager the {@link UfsManager}
    * @param masterClient the {@link JobMasterClient}
    * @param workerNetAddress the connection info for this worker
    */
-  public CommandHandlingExecutor(TaskExecutorManager taskExecutorManager, UfsManager ufsManager,
+  public CommandHandlingExecutor(TaskExecutorManager taskExecutorManager,
+      FileSystem filesystem, FileSystemContext fsContext, UfsManager ufsManager,
       JobMasterClient masterClient, WorkerNetAddress workerNetAddress) {
+    mFileSystem = filesystem;
+    mFsContext = fsContext;
     mTaskExecutorManager = Preconditions.checkNotNull(taskExecutorManager, "taskExecutorManager");
     mUfsManager = Preconditions.checkNotNull(ufsManager, "ufsManager");
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
@@ -123,7 +132,8 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
           if (command.hasTaskArgs()) {
             taskArgs = SerializationUtils.deserialize(command.getTaskArgs().toByteArray());
           }
-          JobWorkerContext context = new JobWorkerContext(jobId, taskId, mUfsManager);
+          JobWorkerContext context =
+              new JobWorkerContext(mFileSystem, mFsContext, jobId, taskId, mUfsManager);
           LOG.info("Received run task " + taskId + " for job " + jobId + " on worker "
               + JobWorkerIdRegistry.getWorkerId());
           mTaskExecutorManager.executeTask(jobId, taskId, jobConfig, taskArgs, context);

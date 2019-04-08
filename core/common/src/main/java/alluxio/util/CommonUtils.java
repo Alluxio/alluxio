@@ -28,6 +28,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.io.Closer;
+import io.grpc.StatusRuntimeException;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -402,12 +403,13 @@ public final class CommonUtils {
 
   /**
    * Gets the root cause of an exception.
+   * It stops at encountering gRPC's StatusRuntimeException.
    *
    * @param e the exception
    * @return the root cause
    */
   public static Throwable getRootCause(Throwable e) {
-    while (e.getCause() != null) {
+    while (e.getCause() != null && !(e.getCause() instanceof StatusRuntimeException)) {
       e = e.getCause();
     }
     return e;

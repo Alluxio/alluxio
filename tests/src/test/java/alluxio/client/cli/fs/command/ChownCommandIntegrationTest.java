@@ -18,83 +18,24 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
-import alluxio.security.group.GroupMappingService;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * Tests for chown command.
  */
 public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTest {
-  /*
-   * The user and group mappings for testing are:
-   *    alice -> alice,staff
-   *    bob   -> bob,staff
-   */
-  private static final TestUser TEST_USER_1 =
-      new TestUser("alice", "alice,staff");
-  private static final TestUser TEST_USER_2 =
-      new TestUser("bob", "bob,staff");
 
   @Rule
   public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
       .of(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName()),
       ServerConfiguration.global());
-
-  /**
-   * A simple structure to represent a user and its groups.
-   */
-  private static final class TestUser {
-    private String mUser;
-    private String mGroup;
-
-    TestUser(String user, String group) {
-      mUser = user;
-      mGroup = group;
-    }
-
-    String getUser() {
-      return mUser;
-    }
-
-    String getGroup() {
-      return mGroup;
-    }
-  }
-
-  /**
-   * Test class implements {@link GroupMappingService} providing user-to-groups mapping.
-   */
-  public static class FakeUserGroupsMapping implements GroupMappingService {
-    private HashMap<String, String> mUserGroups = new HashMap<>();
-
-    /**
-     * Constructor of {@link FakeUserGroupsMapping} to put the user and groups in user-to-groups
-     * HashMap.
-     */
-    public FakeUserGroupsMapping() {
-      mUserGroups.put(TEST_USER_1.getUser(), TEST_USER_1.getGroup());
-      mUserGroups.put(TEST_USER_2.getUser(), TEST_USER_2.getGroup());
-    }
-
-    @Override
-    public List<String> getGroups(String user) throws IOException {
-      if (mUserGroups.containsKey(user)) {
-        return Lists.newArrayList(mUserGroups.get(user).split(","));
-      }
-      return new ArrayList<>();
-    }
-  }
 
   @Test
   public void chown() throws IOException, AlluxioException {

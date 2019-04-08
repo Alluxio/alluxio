@@ -78,9 +78,9 @@ public final class GrpcDataReader implements DataReader {
     mReaderBufferSizeMessages = alluxioConf
         .getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
     mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
-
-    mClient = mContext.acquireBlockWorkerClient(address);
     mMarshaller = new ReadResponseMarshaller();
+    mClient = mContext.acquireBlockWorkerClient(address);
+
     try {
       if (alluxioConf.getBoolean(PropertyKey.USER_NETWORK_ZEROCOPY_ENABLED)) {
         mStream = new GrpcDataMessageBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
@@ -141,6 +141,13 @@ public final class GrpcDataReader implements DataReader {
       return null;
     }
     mPosToRead += buffer.readableBytes();
+    try {
+      mStream.send(mReadRequest.toBuilder().setOffsetReceived(mPosToRead).build());
+    } catch (Exception e) {
+      // nothing is done as the receipt is sent at best effort
+      LOG.debug("Failed to send receipt of data to worker {} for request {}: {}.", mAddress,
+          mReadRequest, e.getMessage());
+    }
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
     return buffer;
   }

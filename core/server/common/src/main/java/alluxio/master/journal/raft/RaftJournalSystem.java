@@ -284,6 +284,10 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void losePrimacy() {
+    if (!mServer.isRunning()) {
+      // Avoid duplicate shut down copycat server
+      return;
+    }
     try {
       mRaftJournalWriter.close();
     } catch (IOException e) {
@@ -432,8 +436,12 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void format() throws IOException {
-    FileUtils.deletePathRecursively(mConf.getPath().getAbsolutePath());
-    mConf.getPath().mkdirs();
+    if (mConf.getPath().isDirectory()) {
+      org.apache.commons.io.FileUtils.cleanDirectory(mConf.getPath());
+    } else {
+      FileUtils.delete(mConf.getPath().getAbsolutePath());
+      mConf.getPath().mkdirs();
+    }
   }
 
   /**

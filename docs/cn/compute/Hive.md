@@ -88,7 +88,7 @@ hive> select * from u_user;
 
 ### 在ALluxio中使用已经存储在HDFS中的表
 
-当Hive已经在使用并且管理着存储在HDFS中的表时，只要HDFS安装为Alluxio的底层存储系统，Alluxio也可以为Hive中的这些表提供服务。在这个例子中，我们假设HDFS集群已经安装为Alluxio根目录下的底层存储系统（例如，在`conf/alluxio-site.properties`中设置属性`alluxio.underfs.address=hdfs://namenode:port/`）。请参考[统一命名空间](Unified-and-Transparent-Namespace.html)以获取更多关于安装操作的细节。
+当Hive已经在使用并且管理着存储在HDFS中的表时，只要HDFS安装为Alluxio的底层存储系统，Alluxio也可以为Hive中的这些表提供服务。在这个例子中，我们假设HDFS集群已经安装为Alluxio根目录下的底层存储系统（例如，在`conf/alluxio-site.properties`中设置属性`alluxio.master.mount.table.root.ufs=hdfs://namenode:port/`）。请参考[统一命名空间](Unified-and-Transparent-Namespace.html)以获取更多关于安装操作的细节。
 
 #### 使用已存在的内部表的Hive命令行示例
 

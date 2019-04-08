@@ -23,6 +23,8 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.metrics.MetricsSystem;
@@ -38,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -216,14 +219,38 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   @Override
   public void close() {
     Closer closer = Closer.create();
+    // Close the backing store last so that cache eviction threads don't hit errors.
+    closer.register(mBackingStore);
     closer.register(mInodeCache);
     closer.register(mEdgeCache);
-    closer.register(mBackingStore);
     try {
       closer.close();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.CACHING_INODE_STORE;
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    LOG.info("Flushing inodes to backing store");
+    mInodeCache.flush();
+    mEdgeCache.flush();
+    LOG.info("Finished flushing inodes to backing store");
+    mBackingStore.writeToCheckpoint(output);
+  }
+
+  @Override
+  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
+    mInodeCache.clear();
+    mEdgeCache.clear();
+    mListingCache.clear();
+    mBackingStore.restoreFromCheckpoint(input);
+    mBackingStoreEmpty = false;
   }
 
   /**
@@ -265,32 +292,33 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     protected void flushEntries(List<Entry> entries) {
       mBackingStoreEmpty = false;
       boolean useBatch = entries.size() > 0 && mBackingStore.supportsBatchWrite();
-      WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null;
-      for (Entry entry : entries) {
-        Long inodeId = entry.mKey;
-        Optional<LockResource> lockOpt = mLockManager.tryLockInode(inodeId, LockMode.WRITE);
-        if (!lockOpt.isPresent()) {
-          continue;
-        }
-        try (LockResource lr = lockOpt.get()) {
-          if (entry.mValue == null) {
-            if (useBatch) {
-              batch.removeInode(inodeId);
-            } else {
-              mBackingStore.remove(inodeId);
-            }
-          } else {
-            if (useBatch) {
-              batch.writeInode(entry.mValue);
-            } else {
-              mBackingStore.writeInode(entry.mValue);
-            }
+      try (WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null) {
+        for (Entry entry : entries) {
+          Long inodeId = entry.mKey;
+          Optional<LockResource> lockOpt = mLockManager.tryLockInode(inodeId, LockMode.WRITE);
+          if (!lockOpt.isPresent()) {
+            continue;
           }
-          entry.mDirty = false;
+          try (LockResource lr = lockOpt.get()) {
+            if (entry.mValue == null) {
+              if (useBatch) {
+                batch.removeInode(inodeId);
+              } else {
+                mBackingStore.remove(inodeId);
+              }
+            } else {
+              if (useBatch) {
+                batch.writeInode(entry.mValue);
+              } else {
+                mBackingStore.writeInode(entry.mValue);
+              }
+            }
+            entry.mDirty = false;
+          }
         }
-      }
-      if (useBatch) {
-        batch.commit();
+        if (useBatch) {
+          batch.commit();
+        }
       }
     }
 
@@ -399,33 +427,34 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     protected void flushEntries(List<Entry> entries) {
       mBackingStoreEmpty = false;
       boolean useBatch = entries.size() > 0 && mBackingStore.supportsBatchWrite();
-      WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null;
-      for (Entry entry : entries) {
-        Edge edge = entry.mKey;
-        Optional<LockResource> lockOpt = mLockManager.tryLockEdge(edge, LockMode.WRITE);
-        if (!lockOpt.isPresent()) {
-          continue;
-        }
-        try (LockResource lr = lockOpt.get()) {
-          Long value = entry.mValue;
-          if (value == null) {
-            if (useBatch) {
-              batch.removeChild(edge.getId(), edge.getName());
-            } else {
-              mBackingStore.removeChild(edge.getId(), edge.getName());
-            }
-          } else {
-            if (useBatch) {
-              batch.addChild(edge.getId(), edge.getName(), value);
-            } else {
-              mBackingStore.addChild(edge.getId(), edge.getName(), value);
-            }
+      try (WriteBatch batch = useBatch ? mBackingStore.createWriteBatch() : null) {
+        for (Entry entry : entries) {
+          Edge edge = entry.mKey;
+          Optional<LockResource> lockOpt = mLockManager.tryLockEdge(edge, LockMode.WRITE);
+          if (!lockOpt.isPresent()) {
+            continue;
           }
-          entry.mDirty = false;
+          try (LockResource lr = lockOpt.get()) {
+            Long value = entry.mValue;
+            if (value == null) {
+              if (useBatch) {
+                batch.removeChild(edge.getId(), edge.getName());
+              } else {
+                mBackingStore.removeChild(edge.getId(), edge.getName());
+              }
+            } else {
+              if (useBatch) {
+                batch.addChild(edge.getId(), edge.getName(), value);
+              } else {
+                mBackingStore.addChild(edge.getId(), edge.getName(), value);
+              }
+            }
+            entry.mDirty = false;
+          }
         }
-      }
-      if (useBatch) {
-        batch.commit();
+        if (useBatch) {
+          batch.commit();
+        }
       }
     }
 
@@ -653,6 +682,12 @@ public final class CachingInodeStore implements InodeStore, Closeable {
         return mEdgeCache.getChildIds(inodeId).values();
       }
       return loadChildren(inodeId, entry).values();
+    }
+
+    public void clear() {
+      mMap.clear();
+      mWeight.set(0);
+      mEvictionHead = mMap.entrySet().iterator();
     }
 
     private Map<String, Long> loadChildren(Long inodeId, ListingCacheEntry entry) {
