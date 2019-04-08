@@ -61,7 +61,7 @@ to enable short-circuit. Short-circuit writes are then enabled if the worker UUI
 filesystem.
 ```properties
 alluxio.worker.data.server.domain.socket.as.uuid=true
-alluxio.worker.data.server.domain.socket.address=/tmp/domain
+alluxio.worker.data.server.domain.socket.address=/opt/domain
 ```
 
 ### Provision a Persistent Volume
