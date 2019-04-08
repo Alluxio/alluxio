@@ -108,7 +108,7 @@ public final class JobCoordinator {
       FileSystemContext fsContext, UfsManager ufsManager,
       List<WorkerInfo> workerInfoList, Long jobId, JobConfig jobConfig,
       Function<JobInfo, Void> statusChangeCallback) throws JobDoesNotExistException {
-    Preconditions.checkNotNull(commandManager);
+    Preconditions.checkNotNull(commandManager, "commandManager");
     JobCoordinator jobCoordinator = new JobCoordinator(commandManager, filesystem, fsContext,
         ufsManager, workerInfoList, jobId, jobConfig, statusChangeCallback);
     jobCoordinator.start();
