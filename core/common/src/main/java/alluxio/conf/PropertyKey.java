@@ -614,17 +614,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS =
       new Builder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS)
           .setDefaultValue("50ms")
-          .setDescription("Block eventual-consistency-related operations "
-              + "automatically retry for transient errors with an exponential backoff. "
-              + "This property determines the base time in the exponential backoff.")
+          .setDescription("To handle eventually consistent storage semantics "
+              + "for certain under storages, Alluxio will perform retries "
+              + "when under storage metadata doesn't match Alluxio's expectations. "
+              + "These retries use exponential backoff. "
+              + "This property determines the base time for the exponential backoff.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM =
       new Builder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM)
           .setDefaultValue(20)
-          .setDescription("Block eventual-consistency-related operations "
-              + "automatically retry for transient errors with an exponential backoff. "
+          .setDescription("To handle eventually consistent storage semantics "
+              + "for certain under storages, Alluxio will perform retries "
+              + "when under storage metadata doesn't match Alluxio's expectations. "
+              + "These retries use exponential backoff. "
               + "This property determines the maximum number of retries.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -632,8 +636,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS =
       new Builder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS)
           .setDefaultValue("30sec")
-          .setDescription("Block eventual-consistency-related operations "
-              + "automatically retry for transient errors with an exponential backoff. "
+          .setDescription("To handle eventually consistent storage semantics "
+              + "for certain under storages, Alluxio will perform retries "
+              + "when under storage metadata doesn't match Alluxio's expectations. "
+              + "These retries use exponential backoff. "
               + "This property determines the maximum wait time in the backoff.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)

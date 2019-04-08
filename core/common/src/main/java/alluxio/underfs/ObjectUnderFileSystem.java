@@ -16,6 +16,8 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -26,6 +28,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -369,8 +372,25 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  public OutputStream createNonexistingFile(String path) throws IOException {
+    return retryOnException(() -> create(path, CreateOptions.defaults(mAlluxioConf)),
+        () -> "create file " + path);
+  }
+
+  @Override
+  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
+    return retryOnException(() -> create(path, options),
+        () -> "create file " + path + " with options " + options);
+  }
+
+  @Override
   public boolean deleteFile(String path) throws IOException {
     return deleteObject(stripPrefixIfPresent(path));
+  }
+
+  @Override
+  public boolean deleteExistingFile(String path) throws IOException {
+    return retryOnFalse(() -> deleteFile(path), () -> "delete existing file " + path);
   }
 
   @Override
@@ -413,6 +433,18 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public boolean deleteExistingDirectory(String path) throws IOException {
+    return retryOnFalse(() -> deleteDirectory(path, DeleteOptions.defaults()),
+        () -> "delete directory " + path);
+  }
+
+  @Override
+  public boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException {
+    return retryOnFalse(() -> deleteDirectory(path, options),
+        () -> String.format("delete directory %s with options %s", path, options));
   }
 
   /**
@@ -459,6 +491,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     throw new FileNotFoundException(path);
   }
 
+  @Override
+  public  UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
+    return retryOnException(() -> getDirectoryStatus(path),
+        () -> "get status of directory " + path);
+  }
+
   // Not supported
   @Override
   @Nullable
@@ -497,6 +535,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  public  UfsFileStatus getExistingFileStatus(String path) throws IOException {
+    return retryOnException(() -> getFileStatus(path), () -> "get status of file " + path);
+  }
+
+  @Override
   public UfsStatus getStatus(String path) throws IOException {
     if (isRoot(path)) {
       return getDirectoryStatus(path);
@@ -512,6 +555,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  public UfsStatus getExistingStatus(String path) throws IOException {
+    return retryOnException(() -> getStatus(path),
+        () -> "get status of " + path);
+  }
+
+  @Override
   public boolean isDirectory(String path) throws IOException {
     // Root is always a folder
     if (isRoot(path)) {
@@ -522,6 +571,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return true;
     }
     return getObjectListingChunkForPath(path, true) != null;
+  }
+
+  @Override
+  public boolean isExistingDirectory(String path) throws IOException {
+    return retryOnException(() -> isDirectory(path),
+        () -> "check if " + path + "is a directory");
   }
 
   @Override
@@ -584,6 +639,17 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  public InputStream openExistingFile(String path) throws IOException {
+    return retryOnException(() -> open(path), () -> "open file " + path);
+  }
+
+  @Override
+  public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
+    return retryOnException(() -> open(path, options),
+        () -> "open file " + path + " with options " + options);
+  }
+
+  @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
     UfsStatus[] children = listInternal(src, ListOptions.defaults());
     if (children == null) {
@@ -628,6 +694,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return deleteDirectory(src, DeleteOptions.defaults().setRecursive(true));
   }
 
+  @Override
+  public boolean renameRenamableDirectory(String src, String dst) throws IOException {
+    return retryOnFalse(() -> renameDirectory(src, dst),
+        () -> "rename directory from " + src + " to " + dst);
+  }
+
   /**
    * File paths added to a {@link RenameBuffer} will be renamed concurrently.
    */
@@ -670,6 +742,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     // Source is a file and Destination does not exist
     return copyObject(stripPrefixIfPresent(src), stripPrefixIfPresent(dst))
         && deleteObject(stripPrefixIfPresent(src));
+  }
+
+  @Override
+  public boolean renameRenamableFile(String src, String dst) throws IOException {
+    return retryOnFalse(() -> renameFile(src, dst),
+        () -> "rename file from " + src + " to " + dst);
   }
 
   @Override
@@ -1032,5 +1110,73 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return stripedKey;
     }
     return CommonUtils.stripPrefixIfPresent(path, PATH_SEPARATOR);
+  }
+
+  /**
+   * Represents a under filesystem operation.
+   */
+  private interface UfsOperation<T> {
+    /**
+     * Applies this operation.
+     *
+     * @return the result of this operation
+     */
+    T apply() throws IOException;
+  }
+
+  /**
+   * Retries the given under filesystem operation when it throws exceptions
+   * to resolve eventual consistency issue.
+   *
+   * @param op the under filesystem operation to retry
+   * @param description the description regarding the operation
+   * @return the operation result if operation succeed or returned true
+   */
+  private <T> T retryOnException(UfsOperation<T> op,
+      Supplier<String> description) throws IOException {
+    RetryPolicy retryPolicy = getRetryPolicy();
+    IOException thrownException = null;
+    while (retryPolicy.attempt()) {
+      try {
+        return op.apply();
+      } catch (IOException e) {
+        LOG.debug("Attempt {} to {} failed with exception : {}", retryPolicy.getAttemptCount(),
+            description.get(), e.toString());
+        thrownException = e;
+      }
+    }
+    throw thrownException;
+  }
+
+  /**
+   * Retries the given under filesystem operation when it throws exceptions or return false
+   * to resolve eventual consistency issue.
+   *
+   * @param op the under filesystem operation to retry
+   * @param description the description regarding the operation
+   * @return the operation result if operation succeed or returned true
+   */
+  private boolean retryOnFalse(UfsOperation<Boolean> op,
+      Supplier<String> description) throws IOException {
+    RetryPolicy retryPolicy = getRetryPolicy();
+    while (retryPolicy.attempt()) {
+      if (op.apply()) {
+        return true;
+      } else {
+        LOG.debug("Attempt {} failed to {} ", retryPolicy.getAttemptCount(),
+            description.get());
+      }
+    }
+    return false;
+  }
+
+  /**
+   * @return the retry policy to use
+   */
+  private RetryPolicy getRetryPolicy() {
+    return new ExponentialBackoffRetry(
+        (int) mUfsConf.getMs(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS),
+        (int) mUfsConf.getMs(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS),
+        mUfsConf.getInt(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM));
   }
 }

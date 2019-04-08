@@ -683,10 +683,10 @@ public abstract class AbstractUnderFileSystemContractTest {
   }
 
   @Test
-  public void RenameRenamableFile() throws IOException {
+  public void enameRenamableFile() throws IOException {
     String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "renameFileSrc");
     String testFileDst = PathUtils.concatPath(mUnderfsAddress, "renameFileDst");
-    int numCopies = prepareMultiBlockFile(testFileSrc);
+    prepareMultiBlockFile(testFileSrc);
     mUfs.renameRenamableFile(testFileSrc, testFileDst);
     assertFalse(mUfs.isFile(testFileSrc));
     assertTrue(mUfs.isFile(testFileDst));
