@@ -11,13 +11,12 @@
 
 package alluxio.master.file;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.LockedInodePath;
@@ -75,7 +74,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
 
     // collects existing inodes info on the path. Note that, not all the components of the path have
     // corresponding inodes.
-    List<? extends InodeView> inodeList = inodePath.getInodeList();
+    List<InodeView> inodeList = inodePath.getInodeViewList();
 
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
@@ -96,7 +95,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
     }
 
     // collects inodes info on the path
-    List<? extends InodeView> inodeList = inodePath.getInodeList();
+    List<InodeView> inodeList = inodePath.getInodeViewList();
 
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
@@ -111,7 +110,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
       return Mode.Bits.NONE;
     }
     // collects inodes info on the path
-    List<Inode> inodeList = inodePath.getInodeList();
+    List<InodeView> inodeList = inodePath.getInodeViewList();
 
     // collects user and groups
     try {
@@ -165,7 +164,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
   private void checkOwner(LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     // collects inodes info on the path
-    List<? extends InodeView> inodeList = inodePath.getInodeList();
+    List<InodeView> inodeList = inodePath.getInodeViewList();
 
     // collects user and groups
     String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
@@ -267,7 +266,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
    * @return the permission
    */
   private Mode.Bits getPermissionInternal(String user, List<String> groups, String path,
-      List<Inode> inodeList) {
+      List<InodeView> inodeList) {
     int size = inodeList.size();
     Preconditions.checkArgument(size > 0,
         PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
@@ -286,7 +285,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
       }
     }
 
-    Inode inode = inodeList.get(inodeList.size() - 1);
+    InodeView inode = inodeList.get(inodeList.size() - 1);
     if (inode == null) {
       return Mode.Bits.NONE;
     }
