@@ -131,6 +131,13 @@ If using peristent volumes for Alluxio master, the status of the volume should c
 kubectl get pv alluxio-journal-volume
 ```
 
+### Access the Web UI
+
+The Alluxio UI can be accessed from outside the kubernetes cluster using port forwarding.
+```bash
+kubectl port-forward alluxio-master-0 19999:19999
+```
+
 ### Verify
 
 Once ready, access the Alluxio CLI from the master pod and run basic I/O tests.
