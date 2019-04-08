@@ -47,9 +47,10 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * There are two sets of APIs in the under file system:
  * (1) normal operations (e.g. create, renameFile, deleteFile)
- * (2) operations deal with the eventual consistency issue.
+ * (2) operations deal with the eventual consistency issue
+ * (e.g. createNonexistingFile, renameRenamableFile)
  * When confirmed by Alluxio metadata that an operation should succeed but may fail because of the
- * under filesystem eventual consistency issue, please use the second set of APIs.
+ * under filesystem eventual consistency issue, use the second set of APIs.
  */
 @PublicApi
 @ThreadSafe

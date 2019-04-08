@@ -373,8 +373,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream createNonexistingFile(String path) throws IOException {
-    return retryOnException(() -> create(path, CreateOptions.defaults(mAlluxioConf)),
-        () -> "create file " + path);
+    return retryOnException(() -> create(path), () -> "create file " + path);
   }
 
   @Override
@@ -437,14 +436,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public boolean deleteExistingDirectory(String path) throws IOException {
-    return retryOnFalse(() -> deleteDirectory(path, DeleteOptions.defaults()),
-        () -> "delete directory " + path);
+    return retryOnFalse(() -> deleteDirectory(path), () -> "delete directory " + path);
   }
 
   @Override
   public boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException {
     return retryOnFalse(() -> deleteDirectory(path, options),
-        () -> String.format("delete directory %s with options %s", path, options));
+        () -> "delete directory " + path + " with options " + options);
   }
 
   /**
@@ -576,7 +574,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean isExistingDirectory(String path) throws IOException {
     return retryOnException(() -> isDirectory(path),
-        () -> "check if " + path + "is a directory");
+        () -> "check if " + path + " is a directory");
   }
 
   @Override
@@ -1113,9 +1111,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Represents a under filesystem operation.
+   * Represents an object store operation.
    */
-  private interface UfsOperation<T> {
+  private interface ObjectStoreOperation<T> {
     /**
      * Applies this operation.
      *
@@ -1125,14 +1123,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Retries the given under filesystem operation when it throws exceptions
+   * Retries the given object store operation when it throws exceptions
    * to resolve eventual consistency issue.
    *
-   * @param op the under filesystem operation to retry
+   * @param op the object store operation to retry
    * @param description the description regarding the operation
-   * @return the operation result if operation succeed or returned true
+   * @return the operation result if operation succeed
    */
-  private <T> T retryOnException(UfsOperation<T> op,
+  private <T> T retryOnException(ObjectStoreOperation<T> op,
       Supplier<String> description) throws IOException {
     RetryPolicy retryPolicy = getRetryPolicy();
     IOException thrownException = null;
@@ -1149,21 +1147,21 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Retries the given under filesystem operation when it throws exceptions or return false
+   * Retries the given object store operation when it returns false
    * to resolve eventual consistency issue.
    *
-   * @param op the under filesystem operation to retry
+   * @param op the object store operation to retry
    * @param description the description regarding the operation
-   * @return the operation result if operation succeed or returned true
+   * @return the operation result if operation returned true
    */
-  private boolean retryOnFalse(UfsOperation<Boolean> op,
+  private boolean retryOnFalse(ObjectStoreOperation<Boolean> op,
       Supplier<String> description) throws IOException {
     RetryPolicy retryPolicy = getRetryPolicy();
     while (retryPolicy.attempt()) {
       if (op.apply()) {
         return true;
       } else {
-        LOG.debug("Attempt {} failed to {} ", retryPolicy.getAttemptCount(),
+        LOG.debug("Failed in attempt {} to {} ", retryPolicy.getAttemptCount(),
             description.get());
       }
     }

@@ -84,7 +84,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public OutputStream createNonexistingFile(String path) throws IOException {
-    return create(path, CreateOptions.defaults(mAlluxioConf));
+    return create(path);
   }
 
   @Override
@@ -94,7 +94,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public boolean deleteExistingDirectory(String path) throws IOException {
-    return deleteDirectory(path, DeleteOptions.defaults());
+    return deleteDirectory(path);
   }
 
   @Override
@@ -295,17 +295,5 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
    */
   protected static String validatePath(String path) {
     return new AlluxioURI(path).toString();
-  }
-
-  /**
-   * Represents a under filesystem operation.
-   */
-  private interface UfsOperation<T> {
-    /**
-     * Applies this operation.
-     *
-     * @return the result of this operation
-     */
-    T apply() throws IOException;
   }
 }
