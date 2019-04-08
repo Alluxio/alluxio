@@ -30,7 +30,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.job.JobWorkerContext;
+import alluxio.job.JobServerContext;
+import alluxio.job.RunTaskContext;
 import alluxio.underfs.UfsManager;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
@@ -56,7 +57,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * Unit tests for {@link MigrateDefinition#runTask(MigrateConfig, ArrayList, JobWorkerContext)}.
+ * Unit tests for {@link MigrateDefinition#runTask(MigrateConfig, ArrayList, RunTaskContext)}.
  */
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(Parameterized.class)
@@ -192,6 +193,7 @@ public final class MigrateDefinitionRunTaskTest {
     new MigrateDefinition().runTask(
         new MigrateConfig(configSource, "", writeType.toString(), false, mDeleteSource),
         Lists.newArrayList(new MigrateCommand(commandSource, commandDestination)),
-        new JobWorkerContext(mMockFileSystem, mMockFileSystemContext, 1, 1, mMockUfsManager));
+        new RunTaskContext(1, 1,
+            new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));
   }
 }
