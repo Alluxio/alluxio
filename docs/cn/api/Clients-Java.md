@@ -137,4 +137,4 @@ in.close();
 
 ### Javadoc
 
-有关其他API信息，请参阅[Alluxio javadocs]（http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html）。
+有关其他API信息，请参阅[Alluxio javadocs](http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html).
