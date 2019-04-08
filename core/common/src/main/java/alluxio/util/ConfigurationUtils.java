@@ -23,7 +23,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.conf.path.PathConfiguration;
-import alluxio.conf.path.PrefixPathConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
@@ -582,7 +581,7 @@ public final class ConfigurationUtils {
       pathConfs.put(path, new InstancedConfiguration(properties, true));
     });
     LOG.info("Alluxio client has loaded path level configurations");
-    return new PrefixPathConfiguration(pathConfs);
+    return PathConfiguration.create(pathConfs);
   }
 
   private static boolean shouldLoadClusterConfiguration(AlluxioConfiguration conf) {
