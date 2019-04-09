@@ -52,14 +52,15 @@ import java.util.Set;
  * but in mode 2, since /a is the prefix of /a/b, both properties will be shown for /a/b.
  */
 public final class ShowCommand extends AbstractFsAdminCommand {
-  public static final String RESOLVE_OPTION_NAME = "resolve";
+  public static final String ALL_OPTION_NAME = "all";
 
-  private static final Option RESOLVE_OPTION =
+  private static final Option ALL_OPTION =
       Option.builder()
-          .longOpt(RESOLVE_OPTION_NAME)
+          .longOpt(ALL_OPTION_NAME)
           .required(false)
           .hasArg(false)
-          .desc("Whether to show all path level configurations applicable to the path")
+          .desc("Whether to show all path level configurations applicable to the path, including"
+              + " those set on ancestor paths")
           .build();
 
   /**
@@ -78,7 +79,7 @@ public final class ShowCommand extends AbstractFsAdminCommand {
   @Override
   public Options getOptions() {
     return new Options()
-        .addOption(RESOLVE_OPTION);
+        .addOption(ALL_OPTION);
   }
 
   @Override
@@ -95,16 +96,16 @@ public final class ShowCommand extends AbstractFsAdminCommand {
     String targetPath = cl.getArgs()[1];
     Configuration configuration = mMetaConfigClient.getConfiguration();
 
-    if (cl.hasOption(RESOLVE_OPTION_NAME)) {
+    if (cl.hasOption(ALL_OPTION_NAME)) {
       Set<PropertyKey> pathPropertyKeys = new HashSet<>();
       Map<String, AlluxioConfiguration> pathConfMap = new HashMap<>();
 
       configuration.getPathConf().forEach((path, conf) -> {
         AlluxioProperties properties = new AlluxioProperties();
         conf.forEach(property -> {
-          pathPropertyKeys.add(PropertyKey.fromString(property.getName()));
-          properties.set(PropertyKey.fromString(property.getName()),
-              property.getValue());
+          PropertyKey key = PropertyKey.fromString(property.getName());
+          pathPropertyKeys.add(key);
+          properties.set(key, property.getValue());
         });
         pathConfMap.put(path, new InstancedConfiguration(properties));
       });
@@ -118,14 +119,12 @@ public final class ShowCommand extends AbstractFsAdminCommand {
           mPrintStream.println(format(key.getName(), conf.get(key)));
         });
       });
-    } else {
-      if (configuration.getPathConf().containsKey(targetPath)) {
-        List<Property> properties = configuration.getPathConf().get(targetPath);
-        properties.sort(Comparator.comparing(Property::getName));
-        properties.forEach(property -> {
-          mPrintStream.println(format(property.getName(), property.getValue()));
-        });
-      }
+    } else if (configuration.getPathConf().containsKey(targetPath)) {
+      List<Property> properties = configuration.getPathConf().get(targetPath);
+      properties.sort(Comparator.comparing(Property::getName));
+      properties.forEach(property -> {
+        mPrintStream.println(format(property.getName(), property.getValue()));
+      });
     }
     mPrintStream.close();
     return 0;
@@ -133,7 +132,10 @@ public final class ShowCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
-    return "show [--" + RESOLVE_OPTION_NAME + "] <path>";
+    return String.format("show [--%s] <path>\n"
+        + "\t--%s: %s\n",
+        ALL_OPTION_NAME,
+        ALL_OPTION_NAME, ALL_OPTION.getDescription());
   }
 
   @Override
