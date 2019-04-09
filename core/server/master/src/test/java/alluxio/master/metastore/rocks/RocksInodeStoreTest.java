@@ -45,7 +45,7 @@ public class RocksInodeStoreTest {
 
   @Test
   public void toStringEntries() throws IOException {
-    RocksInodeStore store = new RocksInodeStore(mFolder.newFile().getAbsolutePath());
+    RocksInodeStore store = new RocksInodeStore(mFolder.newFolder().getAbsolutePath());
     assertEquals("", store.toStringEntries());
 
     store.writeInode(MutableInodeDirectory.create(1, 0, "dir", CreateDirectoryContext.defaults()));
