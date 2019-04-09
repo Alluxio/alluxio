@@ -36,7 +36,7 @@ cd spark-2.4.0-bin-hadoop2.7
 
 If running the `count` example, download the Alluxio examples jar.
 ```bash
-wget https://alluxio-examples.s3.amazonaws.com/spark/alluxio-examples_2.12-1.0.jar
+wget https://alluxio-documentation.s3.amazonaws.com/examples/spark/alluxio-examples_2.12-1.0.jar
 cp <path_to_alluxio_examples>/alluxio-examples_2.12-1.0.jar jars/
 ```
 Note: Any jar copied to the `jars` directory is included in the Spark Docker image when built.
