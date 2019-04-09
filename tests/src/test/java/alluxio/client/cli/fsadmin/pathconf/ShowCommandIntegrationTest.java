@@ -113,7 +113,7 @@ public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
   @Test
   public void showResolveDir0() throws Exception {
     try (FileSystemAdminShell shell = new FileSystemAdminShell(setPathConfigurations())) {
-      int ret = shell.run("pathConf", "show", "--resolve", DIR0);
+      int ret = shell.run("pathConf", "show", "--all", DIR0);
       Assert.assertEquals(0, ret);
       String output = mOutput.toString();
       Assert.assertEquals("", output);
@@ -123,7 +123,7 @@ public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
   @Test
   public void showResolveDir1() throws Exception {
     try (FileSystemAdminShell shell = new FileSystemAdminShell(setPathConfigurations())) {
-      int ret = shell.run("pathConf", "show", "--resolve", DIR1);
+      int ret = shell.run("pathConf", "show", "--all", DIR1);
       Assert.assertEquals(0, ret);
       String expected = format(PROPERTY_KEY11, PROPERTY_VALUE11) + "\n"
           + format(PROPERTY_KEY12, PROPERTY_VALUE12) + "\n";
@@ -135,7 +135,7 @@ public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
   @Test
   public void showResolveDir2() throws Exception {
     try (FileSystemAdminShell shell = new FileSystemAdminShell(setPathConfigurations())) {
-      int ret = shell.run("pathConf", "show", "--resolve", DIR2);
+      int ret = shell.run("pathConf", "show", "--all", DIR2);
       Assert.assertEquals(0, ret);
       String expected = format(PROPERTY_KEY11, PROPERTY_VALUE11) + "\n"
           + format(PROPERTY_KEY2, PROPERTY_VALUE2) + "\n";
@@ -147,7 +147,7 @@ public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
   @Test
   public void showResolveDir3() throws Exception {
     try (FileSystemAdminShell shell = new FileSystemAdminShell(setPathConfigurations())) {
-      int ret = shell.run("pathConf", "show", "--resolve", DIR3);
+      int ret = shell.run("pathConf", "show", "--all", DIR3);
       Assert.assertEquals(0, ret);
       String expected = format(PROPERTY_KEY11, PROPERTY_VALUE11) + "\n"
           + format(PROPERTY_KEY2, PROPERTY_VALUE2) + "\n";
