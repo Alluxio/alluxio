@@ -145,6 +145,8 @@ public class TieredBlockStore implements BlockStore {
     }
 
     mStorageTierAssoc = new WorkerStorageTierAssoc();
+
+    processFailedToInitializeStorage(mMetaManager.getFailedToInitializeStorageOnTiers());
   }
 
   @Override
@@ -973,10 +975,30 @@ public class TieredBlockStore implements BlockStore {
   public void removeDir(StorageDir dir) {
     // TODO(feng): Add a command for manually removing directory
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      String tierAlias = dir.getParentTier().getTierAlias();
       dir.getParentTier().removeStorageDir(dir);
       synchronized (mBlockStoreEventListeners) {
         for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
           dir.getBlockIds().forEach(listener::onBlockLost);
+          listener.onStorageLost(tierAlias, dir.getDirPath());
+        }
+      }
+    }
+  }
+
+  /**
+   * Processes the failed to initialize storage.
+   *
+   * @param failedStorage the failed to initialize storage to process
+   */
+  private void processFailedToInitializeStorage(Map<String, List<String>> failedStorage) {
+    synchronized (mBlockStoreEventListeners) {
+      for (Map.Entry<String, List<String>> entry : failedStorage.entrySet()) {
+        String tierAlias = entry.getKey();
+        for (String storage : entry.getValue()) {
+          for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+            listener.onStorageLost(tierAlias, storage);
+          }
         }
       }
     }

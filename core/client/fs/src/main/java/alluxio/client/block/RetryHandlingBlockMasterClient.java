@@ -20,6 +20,7 @@ import alluxio.grpc.GetBlockMasterInfoPOptions;
 import alluxio.grpc.GetCapacityBytesPOptions;
 import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetWorkerInfoListPOptions;
+import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
@@ -27,6 +28,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerLostStorageInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -97,6 +99,14 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       }
       return result;
     });
+  }
+
+  @Override
+  public List<WorkerLostStorageInfo> getWorkerLostStorage() throws IOException {
+    return retryRPC(() ->
+        mClient.getWorkerLostStorage(GetWorkerLostStoragePOptions.getDefaultInstance())
+        .getWorkerLostStorageInfoList().stream().map(GrpcUtils::fromProto)
+            .collect(Collectors.toList()));
   }
 
   /**

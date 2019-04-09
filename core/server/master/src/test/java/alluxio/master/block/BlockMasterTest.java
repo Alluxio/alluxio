@@ -216,7 +216,7 @@ public class BlockMasterTest {
     // Check that the worker heartbeat tells the worker to remove the block.
     Map<String, Long> memUsage = ImmutableMap.of("MEM", 0L);
     alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(worker1, null, memUsage,
-        NO_BLOCKS, NO_BLOCKS_ON_TIERS, mMetrics);
+        NO_BLOCKS, NO_BLOCKS_ON_TIERS, null, mMetrics);
     assertEquals(ImmutableList.of(1L), heartBeat.getDataList());
   }
 
@@ -232,7 +232,7 @@ public class BlockMasterTest {
 
     // Check that the worker heartbeat tells the worker to remove the blocks.
     alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(worker, null, memUsage, NO_BLOCKS,
-        NO_BLOCKS_ON_TIERS, mMetrics);
+        NO_BLOCKS_ON_TIERS, null, mMetrics);
     assertEquals(orphanedBlocks, heartBeat.getDataList());
   }
 
@@ -247,7 +247,7 @@ public class BlockMasterTest {
     // Update used bytes with a worker heartbeat.
     Map<String, Long> newUsedBytesOnTiers = ImmutableMap.of("MEM", 50L);
     mBlockMaster.workerHeartbeat(worker, null, newUsedBytesOnTiers, NO_BLOCKS, NO_BLOCKS_ON_TIERS,
-        mMetrics);
+        null, mMetrics);
 
     WorkerInfo workerInfo = Iterables.getOnlyElement(mBlockMaster.getWorkerInfoList());
     assertEquals(50, workerInfo.getUsedBytes());
@@ -265,7 +265,7 @@ public class BlockMasterTest {
 
     // Indicate that blockId is removed on the worker.
     mBlockMaster.workerHeartbeat(worker, null, ImmutableMap.of("MEM", 0L),
-        ImmutableList.of(blockId), NO_BLOCKS_ON_TIERS, mMetrics);
+        ImmutableList.of(blockId), NO_BLOCKS_ON_TIERS, null, mMetrics);
     assertTrue(mBlockMaster.getBlockInfo(blockId).getLocations().isEmpty());
   }
 
@@ -288,7 +288,7 @@ public class BlockMasterTest {
     // Send a heartbeat from worker2 saying that it's added blockId.
     List<Long> addedBlocks = ImmutableList.of(blockId);
     mBlockMaster.workerHeartbeat(worker2, null, ImmutableMap.of("MEM", 0L), NO_BLOCKS,
-        ImmutableMap.of("MEM", addedBlocks), mMetrics);
+        ImmutableMap.of("MEM", addedBlocks), null, mMetrics);
 
     // The block now has two locations.
     assertEquals(2, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -296,7 +296,7 @@ public class BlockMasterTest {
 
   @Test
   public void unknownWorkerHeartbeatTriggersRegisterRequest() {
-    Command heartBeat = mBlockMaster.workerHeartbeat(0, null, null, null, null, mMetrics);
+    Command heartBeat = mBlockMaster.workerHeartbeat(0, null, null, null, null, null, mMetrics);
     assertEquals(Command.newBuilder().setCommandType(CommandType.Register).build(), heartBeat);
   }
 

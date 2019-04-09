@@ -35,10 +35,13 @@ import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import alluxio.wire.WorkerLostStorageInfo;
 import com.google.common.net.HostAndPort;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -312,6 +315,21 @@ public final class GrpcUtils {
     workerNetAddress.setDomainSocketPath(workerNetPAddress.getDomainSocketPath());
     workerNetAddress.setTieredIdentity(fromProto(workerNetPAddress.getTieredIdentity()));
     return workerNetAddress;
+  }
+
+  /**
+   * Converts a proto type to a wire type.
+   *
+   * @param storageInfo the worker lost storage info to convert
+   * @return the converted wire type
+   */
+  public static WorkerLostStorageInfo fromProto(alluxio.grpc.WorkerLostStorageInfo storageInfo) {
+    Map<String, List<String>> lostStorageOnTiers = new HashMap<>();
+    for (Map.Entry<String, StorageList> entry : storageInfo.getLostStorageOnTiersMap().entrySet()) {
+      lostStorageOnTiers.put(entry.getKey(), new ArrayList<>(entry.getValue().getStorageList()));
+    }
+    return new WorkerLostStorageInfo().setWorkerAddress(fromProto(storageInfo.getAddress()))
+        .setLostStorageOnTier(lostStorageOnTiers);
   }
 
   /**
@@ -616,6 +634,20 @@ public final class GrpcUtils {
   public static alluxio.grpc.UfsInfo toProto(UfsInfo ufsInfo) {
     return alluxio.grpc.UfsInfo.newBuilder().setUri(ufsInfo.getUri().toString())
         .setProperties(ufsInfo.getMountOptions()).build();
+  }
+
+  /**
+   * @param storageInfo wire type
+   * @return proto representation of given wire type
+   */
+  public static alluxio.grpc.WorkerLostStorageInfo toProto(WorkerLostStorageInfo storageInfo) {
+    Map<String, StorageList> lostStorageOnTiers = new HashMap<>();
+    for (Map.Entry<String, List<String>> entry : storageInfo.getLostStorageOnTiers().entrySet()) {
+      lostStorageOnTiers.put(entry.getKey(),
+          StorageList.newBuilder().addAllStorage(entry.getValue()).build());
+    }
+    return alluxio.grpc.WorkerLostStorageInfo.newBuilder().setAddress(toProto(storageInfo.getWorkerAddress()))
+        .putAllLostStorageOnTiers(lostStorageOnTiers).build();
   }
 
   /**

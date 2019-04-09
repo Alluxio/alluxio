@@ -116,6 +116,19 @@ private static final long serialVersionUID = 0L;
             bitField0_ |= 0x00000002;
             break;
           }
+          case 50: {
+            if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+              removedStorageOnTiers_ = com.google.protobuf.MapField.newMapField(
+                  RemovedStorageOnTiersDefaultEntryHolder.defaultEntry);
+              mutable_bitField0_ |= 0x00000020;
+            }
+            com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.StorageList>
+            removedStorageOnTiers__ = input.readMessage(
+                RemovedStorageOnTiersDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            removedStorageOnTiers_.getMutableMap().put(
+                removedStorageOnTiers__.getKey(), removedStorageOnTiers__.getValue());
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -144,6 +157,8 @@ private static final long serialVersionUID = 0L;
         return internalGetUsedBytesOnTiers();
       case 4:
         return internalGetAddedBlocksOnTiers();
+      case 6:
+        return internalGetRemovedStorageOnTiers();
       default:
         throw new RuntimeException(
             "Invalid map field number: " + number);
@@ -419,6 +434,82 @@ private static final long serialVersionUID = 0L;
     return options_ == null ? alluxio.grpc.BlockHeartbeatPOptions.getDefaultInstance() : options_;
   }
 
+  public static final int REMOVEDSTORAGEONTIERS_FIELD_NUMBER = 6;
+  private static final class RemovedStorageOnTiersDefaultEntryHolder {
+    static final com.google.protobuf.MapEntry<
+        java.lang.String, alluxio.grpc.StorageList> defaultEntry =
+            com.google.protobuf.MapEntry
+            .<java.lang.String, alluxio.grpc.StorageList>newDefaultInstance(
+                alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockHeartbeatPRequest_RemovedStorageOnTiersEntry_descriptor, 
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "",
+                com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                alluxio.grpc.StorageList.getDefaultInstance());
+  }
+  private com.google.protobuf.MapField<
+      java.lang.String, alluxio.grpc.StorageList> removedStorageOnTiers_;
+  private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.StorageList>
+  internalGetRemovedStorageOnTiers() {
+    if (removedStorageOnTiers_ == null) {
+      return com.google.protobuf.MapField.emptyMapField(
+          RemovedStorageOnTiersDefaultEntryHolder.defaultEntry);
+    }
+    return removedStorageOnTiers_;
+  }
+
+  public int getRemovedStorageOnTiersCount() {
+    return internalGetRemovedStorageOnTiers().getMap().size();
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   */
+
+  public boolean containsRemovedStorageOnTiers(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    return internalGetRemovedStorageOnTiers().getMap().containsKey(key);
+  }
+  /**
+   * Use {@link #getRemovedStorageOnTiersMap()} instead.
+   */
+  @java.lang.Deprecated
+  public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getRemovedStorageOnTiers() {
+    return getRemovedStorageOnTiersMap();
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   */
+
+  public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getRemovedStorageOnTiersMap() {
+    return internalGetRemovedStorageOnTiers().getMap();
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   */
+
+  public alluxio.grpc.StorageList getRemovedStorageOnTiersOrDefault(
+      java.lang.String key,
+      alluxio.grpc.StorageList defaultValue) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, alluxio.grpc.StorageList> map =
+        internalGetRemovedStorageOnTiers().getMap();
+    return map.containsKey(key) ? map.get(key) : defaultValue;
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   */
+
+  public alluxio.grpc.StorageList getRemovedStorageOnTiersOrThrow(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, alluxio.grpc.StorageList> map =
+        internalGetRemovedStorageOnTiers().getMap();
+    if (!map.containsKey(key)) {
+      throw new java.lang.IllegalArgumentException();
+    }
+    return map.get(key);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -452,6 +543,12 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       output.writeMessage(5, getOptions());
     }
+    com.google.protobuf.GeneratedMessageV3
+      .serializeStringMapTo(
+        output,
+        internalGetRemovedStorageOnTiers(),
+        RemovedStorageOnTiersDefaultEntryHolder.defaultEntry,
+        6);
     unknownFields.writeTo(output);
   }
 
@@ -497,6 +594,16 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(5, getOptions());
     }
+    for (java.util.Map.Entry<java.lang.String, alluxio.grpc.StorageList> entry
+         : internalGetRemovedStorageOnTiers().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.StorageList>
+      removedStorageOnTiers__ = RemovedStorageOnTiersDefaultEntryHolder.defaultEntry.newBuilderForType()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build();
+      size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, removedStorageOnTiers__);
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -529,6 +636,8 @@ private static final long serialVersionUID = 0L;
       result = result && getOptions()
           .equals(other.getOptions());
     }
+    result = result && internalGetRemovedStorageOnTiers().equals(
+        other.internalGetRemovedStorageOnTiers());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -560,6 +669,10 @@ private static final long serialVersionUID = 0L;
     if (hasOptions()) {
       hash = (37 * hash) + OPTIONS_FIELD_NUMBER;
       hash = (53 * hash) + getOptions().hashCode();
+    }
+    if (!internalGetRemovedStorageOnTiers().getMap().isEmpty()) {
+      hash = (37 * hash) + REMOVEDSTORAGEONTIERS_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetRemovedStorageOnTiers().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -674,6 +787,8 @@ private static final long serialVersionUID = 0L;
           return internalGetUsedBytesOnTiers();
         case 4:
           return internalGetAddedBlocksOnTiers();
+        case 6:
+          return internalGetRemovedStorageOnTiers();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -687,6 +802,8 @@ private static final long serialVersionUID = 0L;
           return internalGetMutableUsedBytesOnTiers();
         case 4:
           return internalGetMutableAddedBlocksOnTiers();
+        case 6:
+          return internalGetMutableRemovedStorageOnTiers();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -729,6 +846,7 @@ private static final long serialVersionUID = 0L;
         optionsBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000010);
+      internalGetMutableRemovedStorageOnTiers().clear();
       return this;
     }
 
@@ -774,6 +892,8 @@ private static final long serialVersionUID = 0L;
       } else {
         result.options_ = optionsBuilder_.build();
       }
+      result.removedStorageOnTiers_ = internalGetRemovedStorageOnTiers();
+      result.removedStorageOnTiers_.makeImmutable();
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -836,6 +956,8 @@ private static final long serialVersionUID = 0L;
       if (other.hasOptions()) {
         mergeOptions(other.getOptions());
       }
+      internalGetMutableRemovedStorageOnTiers().mergeFrom(
+          other.internalGetRemovedStorageOnTiers());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -1424,6 +1546,129 @@ private static final long serialVersionUID = 0L;
         options_ = null;
       }
       return optionsBuilder_;
+    }
+
+    private com.google.protobuf.MapField<
+        java.lang.String, alluxio.grpc.StorageList> removedStorageOnTiers_;
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.StorageList>
+    internalGetRemovedStorageOnTiers() {
+      if (removedStorageOnTiers_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            RemovedStorageOnTiersDefaultEntryHolder.defaultEntry);
+      }
+      return removedStorageOnTiers_;
+    }
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.StorageList>
+    internalGetMutableRemovedStorageOnTiers() {
+      onChanged();;
+      if (removedStorageOnTiers_ == null) {
+        removedStorageOnTiers_ = com.google.protobuf.MapField.newMapField(
+            RemovedStorageOnTiersDefaultEntryHolder.defaultEntry);
+      }
+      if (!removedStorageOnTiers_.isMutable()) {
+        removedStorageOnTiers_ = removedStorageOnTiers_.copy();
+      }
+      return removedStorageOnTiers_;
+    }
+
+    public int getRemovedStorageOnTiersCount() {
+      return internalGetRemovedStorageOnTiers().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+     */
+
+    public boolean containsRemovedStorageOnTiers(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetRemovedStorageOnTiers().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getRemovedStorageOnTiersMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getRemovedStorageOnTiers() {
+      return getRemovedStorageOnTiersMap();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+     */
+
+    public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getRemovedStorageOnTiersMap() {
+      return internalGetRemovedStorageOnTiers().getMap();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+     */
+
+    public alluxio.grpc.StorageList getRemovedStorageOnTiersOrDefault(
+        java.lang.String key,
+        alluxio.grpc.StorageList defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, alluxio.grpc.StorageList> map =
+          internalGetRemovedStorageOnTiers().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+     */
+
+    public alluxio.grpc.StorageList getRemovedStorageOnTiersOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, alluxio.grpc.StorageList> map =
+          internalGetRemovedStorageOnTiers().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public Builder clearRemovedStorageOnTiers() {
+      internalGetMutableRemovedStorageOnTiers().getMutableMap()
+          .clear();
+      return this;
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+     */
+
+    public Builder removeRemovedStorageOnTiers(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableRemovedStorageOnTiers().getMutableMap()
+          .remove(key);
+      return this;
+    }
+    /**
+     * Use alternate mutation accessors instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, alluxio.grpc.StorageList>
+    getMutableRemovedStorageOnTiers() {
+      return internalGetMutableRemovedStorageOnTiers().getMutableMap();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+     */
+    public Builder putRemovedStorageOnTiers(
+        java.lang.String key,
+        alluxio.grpc.StorageList value) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      if (value == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableRemovedStorageOnTiers().getMutableMap()
+          .put(key, value);
+      return this;
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+     */
+
+    public Builder putAllRemovedStorageOnTiers(
+        java.util.Map<java.lang.String, alluxio.grpc.StorageList> values) {
+      internalGetMutableRemovedStorageOnTiers().getMutableMap()
+          .putAll(values);
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

@@ -27,6 +27,8 @@ import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetUsedBytesPResponse;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerInfoListPResponse;
+import alluxio.grpc.GetWorkerLostStoragePOptions;
+import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.GrpcUtils;
 
@@ -158,5 +160,16 @@ public final class BlockMasterClientServiceHandler
                       .map(GrpcUtils::toProto).collect(Collectors.toList()))
               .build();
         }, "getWorkerInfoList", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void getWorkerLostStorage(GetWorkerLostStoragePOptions options,
+      StreamObserver<GetWorkerLostStoragePResponse> responseObserver) {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetWorkerLostStoragePResponse>) () ->
+            GetWorkerLostStoragePResponse.newBuilder()
+                .addAllWorkerLostStorageInfo(mBlockMaster.getWorkerLostStorage().stream()
+                  .map(GrpcUtils::toProto).collect(Collectors.toList())).build(),
+        "getWorkerLostStorage", "options=%s", responseObserver, options);
   }
 }

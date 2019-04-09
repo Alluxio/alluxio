@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,15 +59,24 @@ public final class BlockMetadataManager {
 
   private final StorageTierAssoc mStorageTierAssoc;
 
+  private final Map<String, List<String>> mFailedToInitializeStorageOnTiers;
+
   private BlockMetadataManager() {
     try {
       mStorageTierAssoc = new WorkerStorageTierAssoc();
       mAliasToTiers = new HashMap<>(mStorageTierAssoc.size());
       mTiers = new ArrayList<>(mStorageTierAssoc.size());
+      mFailedToInitializeStorageOnTiers = new HashMap<>();
       for (int tierOrdinal = 0; tierOrdinal < mStorageTierAssoc.size(); tierOrdinal++) {
         StorageTier tier = StorageTier.newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal));
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
+        if (tier.getFailedToInitializeDirs().size() != 0) {
+          List<String> failedStorages = mFailedToInitializeStorageOnTiers
+              .getOrDefault(tier.getTierAlias(), new ArrayList<>());
+          failedStorages.addAll(tier.getFailedToInitializeDirs());
+          mFailedToInitializeStorageOnTiers.put(tier.getTierAlias(), failedStorages);
+        }
       }
     } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
       throw new RuntimeException(e);
@@ -240,6 +250,13 @@ public final class BlockMetadataManager {
           ExceptionMessage.GET_DIR_FROM_NON_SPECIFIC_LOCATION.getMessage(location));
     }
     return getTier(location.tierAlias()).getDir(location.dir());
+  }
+
+  /**
+   * @return the failed to initialize storage on tiers
+   */
+  public Map<String, List<String>> getFailedToInitializeStorageOnTiers() {
+    return Collections.unmodifiableMap(mFailedToInitializeStorageOnTiers);
   }
 
   /**

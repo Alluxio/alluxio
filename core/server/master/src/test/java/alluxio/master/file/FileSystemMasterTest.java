@@ -300,7 +300,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat1 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), null, mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat1);
     assertFalse(mBlockMaster.getLostBlocks().contains(blockId));
@@ -1665,7 +1665,7 @@ public final class FileSystemMasterTest {
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), null, mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1689,7 +1689,7 @@ public final class FileSystemMasterTest {
 
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), null, mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1712,7 +1712,7 @@ public final class FileSystemMasterTest {
             .newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), null, mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1740,7 +1740,7 @@ public final class FileSystemMasterTest {
 
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), null, mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -2106,7 +2106,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat2 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), null, mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat2);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -2159,7 +2159,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), null, mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -2194,7 +2194,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat3 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), null, mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat3);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -2248,7 +2248,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), null, mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());

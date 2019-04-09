@@ -25,6 +25,7 @@ import alluxio.grpc.Metric;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.StorageList;
 import alluxio.grpc.TierList;
 import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
@@ -132,13 +133,15 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
    * @param addedBlocks a mapping from storage tier alias to added blocks
+   * @param removedStorage a mapping from storage tier alias to removed storage list
    * @param metrics a list of worker metrics
    * @return an optional command for the worker to execute
    */
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> capacityBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final List<Long> removedBlocks, final Map<String, List<Long>> addedBlocks,
-      final List<Metric> metrics) throws IOException {
+      final Map<String, List<String>> removedStorage, final List<Metric> metrics)
+      throws IOException {
     final BlockHeartbeatPOptions options = BlockHeartbeatPOptions.newBuilder()
         .addAllMetrics(metrics).putAllCapacityBytesOnTiers(capacityBytesOnTiers).build();
     Map<String, TierList> addedBlocksMap = new HashMap<>(addedBlocks.size());
@@ -146,9 +149,15 @@ public final class BlockMasterClient extends AbstractMasterClient {
       addedBlocksMap.put(blockEntry.getKey(),
           TierList.newBuilder().addAllTiers(blockEntry.getValue()).build());
     }
+    Map<String, StorageList> removedStorageMap = new HashMap<>(removedStorage.size());
+    for (Map.Entry<String, List<String>> storageEntry : removedStorage.entrySet()) {
+      removedStorageMap.put(storageEntry.getKey(),
+          StorageList.newBuilder().addAllStorage(storageEntry.getValue()).build());
+    }
     final BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder().setWorkerId(workerId)
         .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
-        .putAllAddedBlocksOnTiers(addedBlocksMap).setOptions(options).build();
+        .putAllAddedBlocksOnTiers(addedBlocksMap).setOptions(options)
+        .putAllRemovedStorageOnTiers(removedStorageMap).build();
 
     return retryRPC(() -> mClient.blockHeartbeat(request).getCommand());
   }

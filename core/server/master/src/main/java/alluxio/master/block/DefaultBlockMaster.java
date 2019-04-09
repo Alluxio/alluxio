@@ -64,6 +64,7 @@ import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerLostStorageInfo;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
@@ -471,6 +472,19 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   }
 
   @Override
+  public List<WorkerLostStorageInfo> getWorkerLostStorage() {
+    List<WorkerLostStorageInfo> workerLostStorageList = new ArrayList<>();
+    for (MasterWorkerInfo worker : mWorkers) {
+      synchronized (worker) {
+        workerLostStorageList.add(new WorkerLostStorageInfo()
+            .setWorkerAddress(worker.getWorkerAddress())
+            .setLostStorageOnTier(worker.getRemovedStorages()));
+      }
+    }
+    return workerLostStorageList;
+  }
+
+  @Override
   public void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException {
     try (JournalContext journalContext = createJournalContext()) {
       for (long blockId : blockIds) {
@@ -831,7 +845,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
-      Map<String, List<Long>> addedBlocksOnTiers, List<Metric> metrics) {
+      Map<String, List<Long>> addedBlocksOnTiers,
+      Map<String, List<String>> removedStorageOnTiers,
+      List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
@@ -845,6 +861,10 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocksOnTiers);
       processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
+
+      if (removedStorageOnTiers != null) {
+        worker.removeStorage(removedStorageOnTiers);
+      }
 
       if (capacityBytesOnTiers != null) {
         worker.updateCapacityBytes(capacityBytesOnTiers);

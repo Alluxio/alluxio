@@ -70,6 +70,8 @@ public final class MasterWorkerInfo {
   private Set<Long> mBlocks;
   /** ids of blocks the worker should remove. */
   private Set<Long> mToRemoveBlocks;
+  /** Mapping from tier alias to removed directory paths. */
+  private Map<String, List<String>> mRemovedStorageOnTiers;
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -88,6 +90,7 @@ public final class MasterWorkerInfo {
     mUsedBytesOnTiers = new HashMap<>();
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
+    mRemovedStorageOnTiers = new HashMap<>();
   }
 
   /**
@@ -173,6 +176,31 @@ public final class MasterWorkerInfo {
   public void removeBlock(long blockId) {
     mBlocks.remove(blockId);
     mToRemoveBlocks.remove(blockId);
+  }
+
+  /**
+   * Removes a storage from this worker.
+   *
+   * @param tierAlias the tier alias
+   * @param dirPath the removed directory path
+   */
+  public void removeStorage(String tierAlias, String dirPath) {
+    List<String> paths = mRemovedStorageOnTiers.getOrDefault(tierAlias, new ArrayList<>());
+    paths.add(dirPath);
+    mRemovedStorageOnTiers.put(tierAlias, paths);
+  }
+
+  /**
+   * Records the removed storage.
+   *
+   * @param removedStorage the removed storage to add
+   */
+  public void removeStorage(Map<String, List<String>> removedStorage) {
+    for (Map.Entry<String, List<String>> entry : removedStorage.entrySet()) {
+      List<String> paths = mRemovedStorageOnTiers.getOrDefault(entry.getKey(), new ArrayList<>());
+      paths.addAll(entry.getValue());
+      mRemovedStorageOnTiers.put(entry.getKey(), paths);
+    }
   }
 
   /**
@@ -330,11 +358,19 @@ public final class MasterWorkerInfo {
     return freeCapacityBytes;
   }
 
+  /**
+   * @return the map from tier alias to removed directory paths in this worker
+   */
+  public Map<String, List<String>> getRemovedStorages() {
+    return Collections.unmodifiableMap(mRemovedStorageOnTiers);
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
-        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("blocks", mBlocks).toString();
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("blocks", mBlocks)
+        .add("removedStorageOnTiers", mRemovedStorageOnTiers).toString();
   }
 
   /**

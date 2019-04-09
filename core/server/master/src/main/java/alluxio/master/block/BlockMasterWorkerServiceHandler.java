@@ -25,6 +25,7 @@ import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
+import alluxio.grpc.StorageList;
 import alluxio.grpc.TierList;
 import alluxio.metrics.Metric;
 import alluxio.grpc.GrpcUtils;
@@ -72,15 +73,20 @@ public final class BlockMasterWorkerServiceHandler
     for (Map.Entry<String, TierList> blockEntry : addedBlocksOnTiers.entrySet()) {
       addedBlocksOnTiersMap.put(blockEntry.getKey(), blockEntry.getValue().getTiersList());
     }
+    final Map<String, StorageList> removedStorageOnTiers = request.getRemovedStorageOnTiersMap();
+    Map<String, List<String>> removedStorageOnTiersMap = new HashMap<>();
+    for (Map.Entry<String, StorageList> storageEntry : removedStorageOnTiers.entrySet()) {
+      removedStorageOnTiersMap.put(storageEntry.getKey(), storageEntry.getValue().getStorageList());
+    }
     final BlockHeartbeatPOptions options = request.getOptions();
     final List<Metric> metrics =
         options.getMetricsList().stream().map(Metric::fromProto).collect(Collectors.toList());
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () -> {
-      return BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
-          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiersMap, metrics))
-          .build();
-    }, "blockHeartbeat", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
+        BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
+          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiersMap,
+          removedStorageOnTiersMap, metrics)).build(),
+        "blockHeartbeat", "request=%s", responseObserver, request);
   }
 
   @Override

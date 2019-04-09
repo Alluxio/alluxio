@@ -98,6 +98,16 @@ message GetWorkerInfoListPResponse {
   repeated WorkerInfo workerInfos = 1;
 }
 
+message WorkerLostStorageInfo {
+  optional grpc.WorkerNetAddress address = 1;
+  map<string, StorageList> lostStorageOnTiers = 2;
+}
+
+message GetWorkerLostStoragePOptions {}
+message GetWorkerLostStoragePResponse {
+  repeated WorkerLostStorageInfo workerLostStorageInfo = 1;
+}
+
 /**
  * This interface contains block master service endpoints for Alluxio clients.
  */
@@ -132,10 +142,19 @@ service BlockMasterClientService {
    * Returns a list of workers information for report CLI.
    */
   rpc GetWorkerReport(GetWorkerReportPOptions) returns (GetWorkerInfoListPResponse);
+
+  /**
+   * Returns a list of worker lost storage information
+   */
+  rpc GetWorkerLostStorage(GetWorkerLostStoragePOptions) returns (GetWorkerLostStoragePResponse);
 }
 
 message TierList {
   repeated int64 tiers = 1;
+}
+
+message StorageList {
+  repeated string storage = 1;
 }
 
 message BlockHeartbeatPOptions {
@@ -152,7 +171,9 @@ message BlockHeartbeatPRequest {
   /** the map of added blocks on all tiers */
   map<string, TierList> addedBlocksOnTiers = 4;
   optional BlockHeartbeatPOptions options = 5;
+  map<string, StorageList> removedStorageOnTiers = 6;
 }
+
 message BlockHeartbeatPResponse {
   optional grpc.Command command = 1;
 }

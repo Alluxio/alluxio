@@ -26,6 +26,7 @@ import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerLostStorageInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -82,6 +83,13 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   List<WorkerInfo> getWorkerReport(GetWorkerReportOptions options)
       throws UnavailableException, InvalidArgumentException;
+
+  /**
+   * Gets the list of worker lost storage information.
+   *
+   * @return a list of {@link WorkerLostStorageInfo} objects
+   */
+  List<WorkerLostStorageInfo> getWorkerLostStorage();
 
   /**
    * Removes blocks from workers.
@@ -183,12 +191,15 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param usedBytesOnTiers a mapping from tier alias to the used bytes
    * @param removedBlockIds a list of block ids removed from this worker
    * @param addedBlocksOnTiers a mapping from tier alias to the added blocks
+   * @param removedStorageOnTiers a mapping from tier alias to the removed storages
    * @param metrics worker metrics
    * @return an optional command for the worker to execute
    */
   Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
-      Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds, Map<String,
-      List<Long>> addedBlocksOnTiers, List<Metric> metrics);
+      Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
+      Map<String, List<Long>> addedBlocksOnTiers,
+      Map<String, List<String>> removedStorageOnTiers,
+      List<Metric> metrics);
 
   /**
    * @return the block ids of lost blocks in Alluxio

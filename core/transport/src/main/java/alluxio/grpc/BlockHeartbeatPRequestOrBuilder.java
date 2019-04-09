@@ -169,4 +169,38 @@ public interface BlockHeartbeatPRequestOrBuilder extends
    * <code>optional .alluxio.grpc.block.BlockHeartbeatPOptions options = 5;</code>
    */
   alluxio.grpc.BlockHeartbeatPOptionsOrBuilder getOptionsOrBuilder();
+
+  /**
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   */
+  int getRemovedStorageOnTiersCount();
+  /**
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   */
+  boolean containsRemovedStorageOnTiers(
+      java.lang.String key);
+  /**
+   * Use {@link #getRemovedStorageOnTiersMap()} instead.
+   */
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, alluxio.grpc.StorageList>
+  getRemovedStorageOnTiers();
+  /**
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   */
+  java.util.Map<java.lang.String, alluxio.grpc.StorageList>
+  getRemovedStorageOnTiersMap();
+  /**
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   */
+
+  alluxio.grpc.StorageList getRemovedStorageOnTiersOrDefault(
+      java.lang.String key,
+      alluxio.grpc.StorageList defaultValue);
+  /**
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   */
+
+  alluxio.grpc.StorageList getRemovedStorageOnTiersOrThrow(
+      java.lang.String key);
 }
