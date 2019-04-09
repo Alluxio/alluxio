@@ -38,12 +38,11 @@ ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 echo "Executing the following command on all master nodes and logging to ${ALLUXIO_TASK_LOG}: $@" | tee -a ${ALLUXIO_TASK_LOG}
 
 N=0
-HA_ENABLED=$(${BIN}/alluxio getConf alluxio.zookeeper.enabled)
+HA_ENABLED=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
 JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
 if [[ ${JOURNAL_TYPE} == "EMBEDDED" ]]; then
   HA_ENABLED="true"
 fi
-
 for master in ${HOSTLIST[@]}; do
   echo "[${master}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}
   if [[ ${HA_ENABLED} == "true" || ${N} -eq 0 ]]; then
