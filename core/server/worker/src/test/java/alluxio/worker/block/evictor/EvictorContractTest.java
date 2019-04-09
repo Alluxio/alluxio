@@ -10,6 +10,9 @@
  */
 
 package alluxio.worker.block.evictor;
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockStoreLocation;
@@ -20,9 +23,6 @@ import alluxio.worker.block.meta.StorageTier;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
 import org.junit.After;
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
