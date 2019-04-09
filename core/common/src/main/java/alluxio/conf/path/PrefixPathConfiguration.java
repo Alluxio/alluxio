@@ -81,9 +81,8 @@ public final class PrefixPathConfiguration implements PathConfiguration {
   @Override
   public Set<PropertyKey> getAllPropertyKeys(AlluxioURI path) {
     Set<PropertyKey> keys = new HashSet<>();
-    mMatcher.match(path).ifPresent(patterns ->
-      patterns.forEach(pattern ->
-          keys.addAll(mConf.get(pattern).userKeySet())));
+    mMatcher.match(path).ifPresent(patterns -> patterns.forEach(pattern ->
+        keys.addAll(mConf.get(pattern).userKeySet())));
     return keys;
   }
 }
