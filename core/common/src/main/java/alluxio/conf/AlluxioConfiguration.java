@@ -82,6 +82,11 @@ public interface AlluxioConfiguration {
   Set<PropertyKey> keySet();
 
   /**
+   * @return the keys set by user
+   */
+  Set<PropertyKey> userKeySet();
+
+  /**
    * Gets the integer representation of the value for the given key.
    *
    * @param key the key to get the value for

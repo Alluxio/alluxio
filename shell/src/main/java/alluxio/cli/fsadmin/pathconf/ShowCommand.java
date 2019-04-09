@@ -32,10 +32,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Show path level configurations.
@@ -97,14 +95,12 @@ public final class ShowCommand extends AbstractFsAdminCommand {
     Configuration configuration = mMetaConfigClient.getConfiguration();
 
     if (cl.hasOption(ALL_OPTION_NAME)) {
-      Set<PropertyKey> pathPropertyKeys = new HashSet<>();
       Map<String, AlluxioConfiguration> pathConfMap = new HashMap<>();
 
       configuration.getPathConf().forEach((path, conf) -> {
         AlluxioProperties properties = new AlluxioProperties();
         conf.forEach(property -> {
           PropertyKey key = PropertyKey.fromString(property.getName());
-          pathPropertyKeys.add(key);
           properties.set(key, property.getValue());
         });
         pathConfMap.put(path, new InstancedConfiguration(properties));
@@ -112,7 +108,7 @@ public final class ShowCommand extends AbstractFsAdminCommand {
       PathConfiguration pathConf = PathConfiguration.create(pathConfMap);
 
       AlluxioURI targetUri = new AlluxioURI(targetPath);
-      List<PropertyKey> propertyKeys = new ArrayList<>(pathPropertyKeys);
+      List<PropertyKey> propertyKeys = new ArrayList<>(pathConf.getAllPropertyKeys(targetUri));
       propertyKeys.sort(Comparator.comparing(PropertyKey::getName));
       propertyKeys.forEach(key -> {
         pathConf.getConfiguration(targetUri, key).ifPresent(conf -> {
@@ -132,8 +128,8 @@ public final class ShowCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
-    return String.format("show [--%s] <path>\n"
-        + "\t--%s: %s\n",
+    return String.format("show [--%s] <path>%n"
+        + "\t--%s: %s%n",
         ALL_OPTION_NAME,
         ALL_OPTION_NAME, ALL_OPTION.getDescription());
   }

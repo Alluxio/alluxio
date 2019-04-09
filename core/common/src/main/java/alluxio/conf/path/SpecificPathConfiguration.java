@@ -94,6 +94,11 @@ public final class SpecificPathConfiguration implements AlluxioConfiguration {
   }
 
   @Override
+  public Set<PropertyKey> userKeySet() {
+    return mPathConf.getAllPropertyKeys(mPath);
+  }
+
+  @Override
   public int getInt(PropertyKey key) {
     return conf(key).getInt(key);
   }

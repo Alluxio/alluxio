@@ -203,6 +203,13 @@ public class AlluxioProperties {
   }
 
   /**
+   * @return the key set of user set properties
+   */
+  public Set<PropertyKey> userKeySet() {
+    return new HashSet<>(mUserProps.keySet());
+  }
+
+  /**
    * Iterates over all the key value pairs and performs the given action.
    *
    * @param action the operation to perform on each key value pair
