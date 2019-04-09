@@ -40,7 +40,7 @@ public interface PathConfiguration {
    * @param path the Alluxio path
    * @return all property keys in the path level configuration that is applicable to path
    */
-  Set<PropertyKey> getAllPropertyKeys(AlluxioURI path);
+  Set<PropertyKey> getPropertyKeys(AlluxioURI path);
 
   /**
    * Factory method to create an implementation of {@link PathConfiguration}.

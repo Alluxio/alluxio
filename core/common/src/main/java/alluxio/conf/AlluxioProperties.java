@@ -18,6 +18,7 @@ import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -199,14 +200,14 @@ public class AlluxioProperties {
   public Set<PropertyKey> keySet() {
     Set<PropertyKey> keySet = new HashSet<>(PropertyKey.defaultKeys());
     keySet.addAll(mUserProps.keySet());
-    return keySet;
+    return Collections.unmodifiableSet(keySet);
   }
 
   /**
    * @return the key set of user set properties
    */
   public Set<PropertyKey> userKeySet() {
-    return new HashSet<>(mUserProps.keySet());
+    return Collections.unmodifiableSet(mUserProps.keySet());
   }
 
   /**

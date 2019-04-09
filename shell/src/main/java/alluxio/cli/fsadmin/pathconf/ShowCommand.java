@@ -40,8 +40,8 @@ import java.util.Map;
  *
  * <p>
  * It has two modes:
- * 1. only show configurations for the specific path;
- * 2. show all configurations applicable to the path.
+ * 1. without option "--all", only show configurations for the specific path;
+ * 2. with option "--all", show all configurations applicable to the path.
  * <p>
  * For example, suppose there are two path level configurations:
  * /a: property1=value1
@@ -62,7 +62,7 @@ public final class ShowCommand extends AbstractFsAdminCommand {
           .build();
 
   /**
-   * @param context     fsadmin command context
+   * @param context fsadmin command context
    * @param alluxioConf Alluxio configuration
    */
   public ShowCommand(Context context, AlluxioConfiguration alluxioConf) {
@@ -76,8 +76,7 @@ public final class ShowCommand extends AbstractFsAdminCommand {
 
   @Override
   public Options getOptions() {
-    return new Options()
-        .addOption(ALL_OPTION);
+    return new Options().addOption(ALL_OPTION);
   }
 
   @Override
@@ -108,7 +107,7 @@ public final class ShowCommand extends AbstractFsAdminCommand {
       PathConfiguration pathConf = PathConfiguration.create(pathConfMap);
 
       AlluxioURI targetUri = new AlluxioURI(targetPath);
-      List<PropertyKey> propertyKeys = new ArrayList<>(pathConf.getAllPropertyKeys(targetUri));
+      List<PropertyKey> propertyKeys = new ArrayList<>(pathConf.getPropertyKeys(targetUri));
       propertyKeys.sort(Comparator.comparing(PropertyKey::getName));
       propertyKeys.forEach(key -> {
         pathConf.getConfiguration(targetUri, key).ifPresent(conf -> {
