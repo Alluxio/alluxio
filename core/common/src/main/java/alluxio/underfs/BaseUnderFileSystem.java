@@ -83,31 +83,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path) throws IOException {
-    return create(path);
-  }
-
-  @Override
-  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
-    return create(path, options);
-  }
-
-  @Override
-  public boolean deleteExistingDirectory(String path) throws IOException {
-    return deleteDirectory(path);
-  }
-
-  @Override
-  public boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException {
-    return deleteDirectory(path, options);
-  }
-
-  @Override
-  public boolean deleteExistingFile(String path) throws IOException {
-    return deleteFile(path);
-  }
-
-  @Override
   public boolean exists(String path) throws IOException {
     return isFile(path) || isDirectory(path);
   }
@@ -121,16 +96,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
     // Noop here by default
-  }
-
-  @Override
-  public  UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
-    return getDirectoryStatus(path);
-  }
-
-  @Override
-  public  UfsFileStatus getExistingFileStatus(String path) throws IOException {
-    return getFileStatus(path);
   }
 
   @Override
@@ -164,16 +129,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public List<String> getPhysicalStores() {
     return new ArrayList<>(Arrays.asList(mUri.getRootPath()));
-  }
-
-  @Override
-  public UfsStatus getExistingStatus(String path) throws IOException {
-    return getStatus(path);
-  }
-
-  @Override
-  public boolean isExistingDirectory(String path) throws IOException {
-    return isDirectory(path);
   }
 
   @Override
@@ -228,26 +183,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public InputStream open(String path) throws IOException {
     return open(path, OpenOptions.defaults());
-  }
-
-  @Override
-  public InputStream openExistingFile(String path) throws IOException {
-    return open(path);
-  }
-
-  @Override
-  public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
-    return open(path, options);
-  }
-
-  @Override
-  public boolean renameRenamableDirectory(String src, String dst) throws IOException {
-    return renameDirectory(src, dst);
-  }
-
-  @Override
-  public boolean renameRenamableFile(String src, String dst) throws IOException {
-    return renameFile(src, dst);
   }
 
   @Override
