@@ -111,7 +111,7 @@ public final class PersistDefinition
       if (ufs.exists(ufsPath)) {
         if (config.isOverwrite()) {
           LOG.info("File {} is already persisted in UFS. Removing it.", config.getFilePath());
-          ufs.deleteFile(ufsPath);
+          ufs.deleteExistingFile(ufsPath);
         } else {
           throw new IOException("File " + config.getFilePath()
               + " is already persisted in UFS, to overwrite the file, please set the overwrite flag"
@@ -158,7 +158,7 @@ public final class PersistDefinition
           }
         }
         OutputStream out = closer.register(
-            ufs.create(dstPath.toString(),
+            ufs.createNonexistingFile(dstPath.toString(),
                 CreateOptions.defaults(ServerConfiguration.global()).setOwner(uriStatus.getOwner())
                 .setGroup(uriStatus.getGroup()).setMode(new Mode((short) uriStatus.getMode()))));
         bytesWritten = IOUtils.copyLarge(in, out);

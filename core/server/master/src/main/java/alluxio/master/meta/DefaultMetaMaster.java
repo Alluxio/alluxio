@@ -283,7 +283,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
         }
       } catch (Throwable t) {
         try {
-          ufs.deleteFile(backupFilePath);
+          ufs.deleteExistingFile(backupFilePath);
         } catch (Throwable t2) {
           LOG.error("Failed to clean up failed backup at {}", backupFilePath, t2);
           t.addSuppressed(t2);

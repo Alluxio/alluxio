@@ -157,7 +157,7 @@ public final class DailyMetadataBackup {
     for (int i = 0; i < toDeleteFileNum; i++) {
       String toDeleteFile = PathUtils.concatPath(mBackupDir,
           timeToFile.pollFirstEntry().getValue());
-      mUfs.deleteFile(toDeleteFile);
+      mUfs.deleteExistingFile(toDeleteFile);
     }
     LOG.info("Deleted {} stale metadata backup files at {}", toDeleteFileNum, mBackupDir);
   }
