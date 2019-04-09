@@ -11,8 +11,6 @@
 
 package alluxio.worker.job.command;
 
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.CancelTaskCommand;
@@ -21,8 +19,8 @@ import alluxio.grpc.RunTaskCommand;
 import alluxio.grpc.TaskInfo;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.job.JobConfig;
-import alluxio.job.JobWorkerContext;
-import alluxio.underfs.UfsManager;
+import alluxio.job.JobServerContext;
+import alluxio.job.RunTaskContext;
 import alluxio.worker.job.JobMasterClient;
 import alluxio.job.util.SerializationUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -52,8 +50,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(CommandHandlingExecutor.class);
   private static final int DEFAULT_COMMAND_HANDLING_POOL_SIZE = 4;
 
-  private final FileSystem mFileSystem;
-  private final FileSystemContext mFsContext;
+  private final JobServerContext mServerContext;
   private final JobMasterClient mMasterClient;
   private final TaskExecutorManager mTaskExecutorManager;
   private final WorkerNetAddress mWorkerNetAddress;
@@ -61,26 +58,20 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   private final ExecutorService mCommandHandlingService =
       Executors.newFixedThreadPool(DEFAULT_COMMAND_HANDLING_POOL_SIZE,
           ThreadFactoryUtils.build("command-handling-service-%d", true));
-  /** The manager for all ufs. */
-  private UfsManager mUfsManager;
 
   /**
    * Creates a new instance of {@link CommandHandlingExecutor}.
    *
+   * @param jobServerContext the job worker's context used to execute tasks
    * @param taskExecutorManager the {@link TaskExecutorManager}
-   * @param filesystem the Alluxio client used to contact the master
-   * @param fsContext the filesystem client's underlying context
-   * @param ufsManager the {@link UfsManager}
    * @param masterClient the {@link JobMasterClient}
    * @param workerNetAddress the connection info for this worker
    */
-  public CommandHandlingExecutor(TaskExecutorManager taskExecutorManager,
-      FileSystem filesystem, FileSystemContext fsContext, UfsManager ufsManager,
-      JobMasterClient masterClient, WorkerNetAddress workerNetAddress) {
-    mFileSystem = filesystem;
-    mFsContext = fsContext;
+  public CommandHandlingExecutor(JobServerContext jobServerContext,
+      TaskExecutorManager taskExecutorManager, JobMasterClient masterClient,
+      WorkerNetAddress workerNetAddress) {
+    mServerContext = Preconditions.checkNotNull(jobServerContext);
     mTaskExecutorManager = Preconditions.checkNotNull(taskExecutorManager, "taskExecutorManager");
-    mUfsManager = Preconditions.checkNotNull(ufsManager, "ufsManager");
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
   }
@@ -132,8 +123,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
           if (command.hasTaskArgs()) {
             taskArgs = SerializationUtils.deserialize(command.getTaskArgs().toByteArray());
           }
-          JobWorkerContext context =
-              new JobWorkerContext(mFileSystem, mFsContext, jobId, taskId, mUfsManager);
+          RunTaskContext context = new RunTaskContext(jobId, taskId, mServerContext);
           LOG.info("Received run task " + taskId + " for job " + jobId + " on worker "
               + JobWorkerIdRegistry.getWorkerId());
           mTaskExecutorManager.executeTask(jobId, taskId, jobConfig, taskArgs, context);
@@ -150,7 +140,8 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
         try {
           JobWorkerIdRegistry.registerWorker(mMasterClient, mWorkerNetAddress);
         } catch (ConnectionFailedException | IOException e) {
-          throw Throwables.propagate(e);
+          Throwables.throwIfUnchecked(e);
+          throw new RuntimeException(e);
         }
       } else {
         throw new RuntimeException("unsupported command type:" + mCommand.toString());

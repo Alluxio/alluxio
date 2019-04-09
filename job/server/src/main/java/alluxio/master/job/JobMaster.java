@@ -30,6 +30,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobConfig;
+import alluxio.job.JobServerContext;
 import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.meta.JobInfo;
 import alluxio.job.meta.MasterWorkerInfo;
@@ -96,12 +97,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   /**
    * The Filesystem context that the job master uses for its client.
    */
-  private final FileSystemContext mFsContext;
-
-  /**
-   * The FileSystem client the job master uses to select executors for jobs.
-   */
-  private final FileSystem mFileSystem;
+  private final JobServerContext mJobServerContext;
 
   /**
    * The total number of jobs that the JobMaster may run at any moment.
@@ -147,11 +143,6 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private final SortedSet<JobInfo> mFinishedJobs;
 
   /**
-   * The manager for all ufs.
-   */
-  private UfsManager mUfsManager;
-
-  /**
    * Creates a new instance of {@link JobMaster}.
    *
    * @param masterContext the context for Alluxio master
@@ -163,13 +154,11 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
       FileSystemContext fsContext, UfsManager ufsManager) {
     super(masterContext, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.JOB_MASTER_NAME));
-    mFileSystem = filesystem;
-    mFsContext = fsContext;
+    mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mJobIdGenerator = new JobIdGenerator();
     mCommandManager = new CommandManager();
     mIdToJobCoordinator = new ConcurrentHashMap<>();
     mFinishedJobs = new ConcurrentSkipListSet<>();
-    mUfsManager = ufsManager;
   }
 
   @Override
@@ -244,8 +233,8 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
       }
     }
     long jobId = mJobIdGenerator.getNewJobId();
-    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mFileSystem, mFsContext,
-        mUfsManager, getWorkerInfoList(), jobId, jobConfig,
+    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
+        getWorkerInfoList(), jobId, jobConfig,
         (jobInfo) -> {
           Status status = jobInfo.getStatus();
           mFinishedJobs.remove(jobInfo);

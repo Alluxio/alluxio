@@ -18,32 +18,36 @@ import alluxio.underfs.UfsManager;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The context of worker-side resources and information.
+ * The context is used by job to access master-side resources and information.
  */
 @ThreadSafe
-public final class JobWorkerContext {
+public class JobServerContext {
+
+  /** The Alluxio filesystem client that all threads should use in this process. */
   private final FileSystem mFileSystem;
+  /** The underlying context for the filesystem client. */
   private final FileSystemContext mFsContext;
-  private final long mJobId;
-  private final int mTaskId;
+  /** The manager for all ufs. */
   private final UfsManager mUfsManager;
 
   /**
-   * Creates a new instance of {@link JobWorkerContext}.
+   * Creates a new instance of {@link JobServerContext}.
    *
-   * @param filesystem the filesystem client that is used when running jobs
+   * @param filesystem the Alluxio client used to contact the master
    * @param fsContext the filesystem client's underlying context
-   * @param jobId the job id
-   * @param taskId the task id
    * @param ufsManager the UFS manager
    */
-  public JobWorkerContext(FileSystem filesystem, FileSystemContext fsContext, long jobId,
-      int taskId, UfsManager ufsManager) {
+  public JobServerContext(FileSystem filesystem, FileSystemContext fsContext,
+      UfsManager ufsManager) {
     mFsContext = fsContext;
     mFileSystem = filesystem;
-    mJobId = jobId;
-    mTaskId = taskId;
     mUfsManager = ufsManager;
+  }
+
+  JobServerContext(JobServerContext ctx) {
+    mFsContext = ctx.mFsContext;
+    mFileSystem = ctx.mFileSystem;
+    mUfsManager = ctx.mUfsManager;
   }
 
   /**
@@ -58,20 +62,6 @@ public final class JobWorkerContext {
    */
   public FileSystemContext getFsContext() {
     return mFsContext;
-  }
-
-  /**
-   * @return the job id
-   */
-  public long getJobId() {
-    return mJobId;
-  }
-
-  /**
-   * @return the task id
-   */
-  public int getTaskId() {
-    return mTaskId;
   }
 
   /**

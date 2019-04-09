@@ -11,18 +11,16 @@
 
 package alluxio.master.job;
 
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.job.JobConfig;
 import alluxio.job.JobDefinition;
 import alluxio.job.JobDefinitionRegistry;
-import alluxio.job.JobMasterContext;
+import alluxio.job.JobServerContext;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.job.SelectExecutorsContext;
 import alluxio.job.meta.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
-import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Function;
@@ -50,12 +48,8 @@ public final class JobCoordinator {
   private final JobInfo mJobInfo;
   private final CommandManager mCommandManager;
 
-  /**
-   * The filesystem context and client which will be used in job contexts for
-   * {@link JobDefinition#selectExecutors(JobConfig, List, JobMasterContext)}.
-   */
-  private final FileSystemContext mFsContext;
-  private final FileSystem mFileSystem;
+  /** The context containing containing the necessary references to schedule jobs. */
+  private final JobServerContext mJobServerContext;
 
   /**
    * List of all job workers at the time when the job was started. If this coordinator was created
@@ -72,21 +66,14 @@ public final class JobCoordinator {
    * was created to represent an already-completed job, this map will be empty.
    */
   private final Map<Long, Integer> mWorkerIdToTaskId = Maps.newHashMap();
-  /**
-   * The manager for all ufs.
-   */
-  private UfsManager mUfsManager;
 
-  private JobCoordinator(CommandManager commandManager, FileSystem filesystem,
-      FileSystemContext fsContext, UfsManager ufsManager,
+  private JobCoordinator(CommandManager commandManager, JobServerContext jobServerContext,
       List<WorkerInfo> workerInfoList, Long jobId, JobConfig jobConfig,
       Function<JobInfo, Void> statusChangeCallback) {
     Preconditions.checkNotNull(jobConfig);
-    mFileSystem = filesystem;
-    mFsContext = fsContext;
+    mJobServerContext = jobServerContext;
     mJobInfo = new JobInfo(jobId, jobConfig, statusChangeCallback);
     mCommandManager = commandManager;
-    mUfsManager = ufsManager;
     mWorkersInfoList = workerInfoList;
   }
 
@@ -94,9 +81,7 @@ public final class JobCoordinator {
    * Creates a new instance of the {@link JobCoordinator}.
    *
    * @param commandManager the command manager
-   * @param filesystem The Alluxio filesystem client to be used to communicate with the master
-   * @param fsContext the filesystem client's underlying context
-   * @param ufsManager the ufs manager
+   * @param jobServerContext the context with information used to select executors
    * @param workerInfoList the list of workers to use
    * @param jobId the job Id
    * @param jobConfig configuration for the job
@@ -104,13 +89,13 @@ public final class JobCoordinator {
    * @return the created coordinator
    * @throws JobDoesNotExistException when the job definition doesn't exist
    */
-  public static JobCoordinator create(CommandManager commandManager, FileSystem filesystem,
-      FileSystemContext fsContext, UfsManager ufsManager,
-      List<WorkerInfo> workerInfoList, Long jobId, JobConfig jobConfig,
-      Function<JobInfo, Void> statusChangeCallback) throws JobDoesNotExistException {
-    Preconditions.checkNotNull(commandManager);
-    JobCoordinator jobCoordinator = new JobCoordinator(commandManager, filesystem, fsContext,
-        ufsManager, workerInfoList, jobId, jobConfig, statusChangeCallback);
+  public static JobCoordinator create(CommandManager commandManager,
+      JobServerContext jobServerContext, List<WorkerInfo> workerInfoList, Long jobId,
+      JobConfig jobConfig, Function<JobInfo, Void> statusChangeCallback)
+      throws JobDoesNotExistException {
+    Preconditions.checkNotNull(commandManager, "commandManager");
+    JobCoordinator jobCoordinator = new JobCoordinator(commandManager, jobServerContext,
+        workerInfoList, jobId, jobConfig, statusChangeCallback);
     jobCoordinator.start();
     // start the coordinator, create the tasks
     return jobCoordinator;
@@ -121,14 +106,14 @@ public final class JobCoordinator {
     LOG.info("Starting job {}", mJobInfo.getJobConfig());
     JobDefinition<JobConfig, ?, ?> definition =
         JobDefinitionRegistry.INSTANCE.getJobDefinition(mJobInfo.getJobConfig());
-    JobMasterContext context =
-        new JobMasterContext(mFileSystem, mFsContext, mJobInfo.getId(), mUfsManager);
+    SelectExecutorsContext context =
+        new SelectExecutorsContext(mJobInfo.getId(), mJobServerContext);
     Map<WorkerInfo, ?> taskAddressToArgs;
     try {
       taskAddressToArgs =
           definition.selectExecutors(mJobInfo.getJobConfig(), mWorkersInfoList, context);
     } catch (Exception e) {
-      LOG.warn("Failed to select executor.", e.getMessage());
+      LOG.warn("Failed to select executor. {})", e.getMessage());
       LOG.debug("Exception: ", e);
       mJobInfo.setStatus(Status.FAILED);
       mJobInfo.setErrorMessage(e.getMessage());

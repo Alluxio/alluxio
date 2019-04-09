@@ -172,8 +172,7 @@ public class ActiveSyncManager implements Journaled {
     // attempt to restart from a past txid, if this fails, it will result in MissingEventException
     // therefore forces a sync
     for (long mountId: mFilterMap.keySet()) {
-      long txId = mStartingTxIdMap.containsKey(mountId)
-          ? mStartingTxIdMap.get(mountId) : SyncInfo.INVALID_TXID;
+      long txId = mStartingTxIdMap.getOrDefault(mountId, SyncInfo.INVALID_TXID);
       launchPollingThread(mountId, txId);
 
       try {

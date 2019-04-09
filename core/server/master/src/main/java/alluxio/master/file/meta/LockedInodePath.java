@@ -212,6 +212,13 @@ public class LockedInodePath implements Closeable {
   }
 
   /**
+   * @return a copy of the list of existing inodes, from the root
+   */
+  public List<InodeView> getInodeViewList() {
+    return new ArrayList<>(mExistingInodes);
+  }
+
+  /**
    * @return the number of existing inodes in this path. This could be out of date if the current
    *         thread has added or deleted inodes since the last call to traverse()
    */

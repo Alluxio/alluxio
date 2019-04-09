@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
+import alluxio.job.JobServerContext;
 import alluxio.job.TestJobConfig;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.master.MasterContext;
@@ -86,8 +87,7 @@ public final class JobMasterTest {
     PowerMockito.mockStatic(JobCoordinator.class);
     Mockito.when(
         JobCoordinator.create(Mockito.any(CommandManager.class),
-            Mockito.any(FileSystem.class), Mockito.any(FileSystemContext.class),
-            Mockito.any(UfsManager.class), Mockito.anyList(), Mockito.anyLong(),
+            Mockito.any(JobServerContext.class), Mockito.anyList(), Mockito.anyLong(),
             Mockito.any(JobConfig.class), Mockito.any(null)))
         .thenReturn(coordinator);
     TestJobConfig jobConfig = new TestJobConfig("/test");
@@ -103,8 +103,7 @@ public final class JobMasterTest {
     PowerMockito.mockStatic(JobCoordinator.class);
     Mockito.when(
         JobCoordinator.create(Mockito.any(CommandManager.class),
-            Mockito.any(FileSystem.class), Mockito.any(FileSystemContext.class),
-            Mockito.any(UfsManager.class), Mockito.anyList(), Mockito.anyLong(),
+            Mockito.any(JobServerContext.class), Mockito.anyList(), Mockito.anyLong(),
             Mockito.any(JobConfig.class), Mockito.any(null)))
         .thenReturn(coordinator);
     TestJobConfig jobConfig = new TestJobConfig("/test");
