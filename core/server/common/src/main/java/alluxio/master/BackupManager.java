@@ -11,8 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
@@ -52,16 +50,11 @@ public class BackupManager {
 
   private final MasterRegistry mRegistry;
 
-  /** Whether or not to tolerate the metadata corruption when failing to apply journal. */
-  private final boolean mTolerantCorruption;
-
   /**
    * @param registry a master registry containing the masters to backup or restore
    */
   public BackupManager(MasterRegistry registry) {
     mRegistry = registry;
-    mTolerantCorruption = ServerConfiguration
-        .getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION);
   }
 
   /**
@@ -104,9 +97,6 @@ public class BackupManager {
         } catch (Throwable t) {
           JournalUtils.handleJournalReplayFailure(
               LOG, t, "Failed to process journal entry %s when init from backup", entry);
-          if (!mTolerantCorruption) {
-            throw t;
-          }
         }
         try (JournalContext jc = master.createJournalContext()) {
           jc.append(entry);

@@ -109,9 +109,6 @@ public final class JournalUtils {
       } catch (Throwable t) {
         handleJournalReplayFailure(LOG, t,
             "Failed to process journal entry %s from a journal checkpoint", entry);
-        if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
-          throw t;
-        }
       }
     }
   }
@@ -174,9 +171,9 @@ public final class JournalUtils {
    * @param format the error message format string
    * @param args args for the format string
    */
-  public static void handleJournalReplayFailure(
-      Logger logger, Throwable t, String format, Object... args) {
-    String message = String.format("Fatal error: " + format, args);
+  public static void handleJournalReplayFailure(Logger logger, Throwable t,
+      String format, Object... args) throws RuntimeException {
+    String message = String.format("Journal replay error: " + format, args);
     if (t != null) {
       message += "\n" + ExceptionUtils.getStackTrace(t);
     }
@@ -186,6 +183,7 @@ public final class JournalUtils {
     logger.error(message);
     if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
       System.exit(-1);
+      throw new RuntimeException(t);
     }
   }
 

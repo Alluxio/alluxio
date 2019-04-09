@@ -56,8 +56,6 @@ public final class UfsJournalCheckpointThread extends Thread {
   private final long mCheckpointPeriodEntries;
   /** Object for sycnhronizing accesses to mCheckpointing. */
   private final Object mCheckpointingLock = new Object();
-  /** Whether or not to tolerate metadata corruption. */
-  private final boolean mTolerateCorruption;
   /** Whether we are currently creating a checkpoint. */
   @GuardedBy("mCheckpointingLock")
   private boolean mCheckpointing = false;
@@ -93,8 +91,6 @@ public final class UfsJournalCheckpointThread extends Thread {
     mJournalReader = new UfsJournalReader(mJournal, 0, false);
     mCheckpointPeriodEntries = ServerConfiguration.getLong(
         PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
-    mTolerateCorruption = ServerConfiguration
-        .getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION);
   }
 
   /**
@@ -174,9 +170,6 @@ public final class UfsJournalCheckpointThread extends Thread {
             } catch (Throwable t) {
               JournalUtils.handleJournalReplayFailure(LOG, t,
                   "%s: Failed to read or process journal entry %s.", mMaster.getName(), entry);
-              if (!mTolerateCorruption) {
-                throw t;
-              }
             }
             if (quietPeriodWaited) {
               LOG.info("Quiet period interrupted by new journal entry");
