@@ -611,30 +611,36 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
-      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS)
+  public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS =
+      new Builder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS)
           .setDefaultValue("50ms")
-          .setDescription("Block reads from an object store automatically retry for transient "
-              + "errors with an exponential backoff. This property determines the base time in the "
-              + "exponential backoff. Only applicable for S3A.")
+          .setDescription("To handle eventually consistent storage semantics "
+              + "for certain under storages, Alluxio will perform retries "
+              + "when under storage metadata doesn't match Alluxio's expectations. "
+              + "These retries use exponential backoff. "
+              + "This property determines the base time for the exponential backoff.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
-      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM)
+  public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM =
+      new Builder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM)
           .setDefaultValue(20)
-          .setDescription("Block reads from an object store automatically retry for transient "
-              + "errors with an exponential backoff. This property determines the maximum number of"
-              + " retries. Only applicable for S3A.")
+          .setDescription("To handle eventually consistent storage semantics "
+              + "for certain under storages, Alluxio will perform retries "
+              + "when under storage metadata doesn't match Alluxio's expectations. "
+              + "These retries use exponential backoff. "
+              + "This property determines the maximum number of retries.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
-      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS)
+  public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS =
+      new Builder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS)
           .setDefaultValue("30sec")
-          .setDescription("Block reads from an object store automatically retry for transient "
-              + "errors with an exponential backoff. This property determines the maximum wait time"
-              + " in the backoff. Only applicable for S3A.")
+          .setDescription("To handle eventually consistent storage semantics "
+              + "for certain under storages, Alluxio will perform retries "
+              + "when under storage metadata doesn't match Alluxio's expectations. "
+              + "These retries use exponential backoff. "
+              + "This property determines the maximum wait time in the backoff.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -3609,6 +3615,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.allow.set.owner.failure";
     public static final String UNDERFS_CLEANUP_ENABLED = "alluxio.underfs.cleanup.enabled";
     public static final String UNDERFS_CLEANUP_INTERVAL = "alluxio.underfs.cleanup.interval";
+    public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS =
+        "alluxio.underfs.eventual.consistency.retry.base.sleep";
+    public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM =
+        "alluxio.underfs.eventual.consistency.retry.max.num";
+    public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS =
+        "alluxio.underfs.eventual.consistency.retry.max.sleep";
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
     public static final String UNDERFS_GCS_DIRECTORY_SUFFIX =
         "alluxio.underfs.gcs.directory.suffix";
@@ -3625,12 +3637,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.object.store.mount.shared.publicly";
     public static final String UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
         "alluxio.underfs.object.store.multi.range.chunk.size";
-    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
-        "alluxio.underfs.object.store.read.retry.base.sleep";
-    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
-        "alluxio.underfs.object.store.read.retry.max.num";
-    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
-        "alluxio.underfs.object.store.read.retry.max.sleep";
     public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
     public static final String UNDERFS_OSS_CONNECT_TIMEOUT =
         "alluxio.underfs.oss.connection.timeout";

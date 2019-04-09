@@ -163,8 +163,8 @@ public final class FileDataManagerTest {
 
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     fileInfo.setUfsPath(dstPath);
-    when(mUfs.create(dstPath)).thenReturn(outputStream);
-    when(mUfs.create(anyString(), any(CreateOptions.class)))
+    when(mUfs.createNonexistingFile(dstPath)).thenReturn(outputStream);
+    when(mUfs.createNonexistingFile(anyString(), any(CreateOptions.class)))
         .thenReturn(outputStream);
     when(mMockFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(
         new URIStatus(fileInfo));
@@ -244,8 +244,8 @@ public final class FileDataManagerTest {
 
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     fileInfo.setUfsPath(dstPath);
-    when(mUfs.create(dstPath)).thenReturn(outputStream);
-    when(mUfs.create(anyString(), any(CreateOptions.class)))
+    when(mUfs.createNonexistingFile(dstPath)).thenReturn(outputStream);
+    when(mUfs.createNonexistingFile(anyString(), any(CreateOptions.class)))
         .thenReturn(outputStream);
     when(mMockFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(
         new URIStatus(fileInfo));
@@ -281,8 +281,8 @@ public final class FileDataManagerTest {
 
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     fileInfo.setUfsPath(dstPath);
-    when(mUfs.create(dstPath)).thenReturn(outputStream);
-    when(mUfs.create(anyString(), any(CreateOptions.class)))
+    when(mUfs.createNonexistingFile(dstPath)).thenReturn(outputStream);
+    when(mUfs.createNonexistingFile(anyString(), any(CreateOptions.class)))
         .thenReturn(outputStream);
     when(mMockFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(
         new URIStatus(fileInfo));
