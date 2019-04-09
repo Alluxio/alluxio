@@ -173,7 +173,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       master.processJournalEntry(entry);
     } catch (Throwable t) {
       JournalUtils.handleJournalReplayFailure(LOG, t,
-          "Failed to apply journal entry to master %s. Entry: %s", entry);
+          "Failed to apply journal entry to master %s. Entry: %s", masterName, entry);
     }
   }
 
