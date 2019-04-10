@@ -11,6 +11,8 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status;
+
 /**
  * Exception indicating that and operation was attempted past the valid range. E.g., seeking or
  * reading past end of file.
@@ -33,14 +35,14 @@ public class OutOfRangeException extends AlluxioStatusException {
    * @param message the exception message
    */
   public OutOfRangeException(String message) {
-    super(STATUS, message);
+    super(STATUS.withDescription(message));
   }
 
   /**
    * @param cause the cause of the exception
    */
   public OutOfRangeException(Throwable cause) {
-    super(STATUS, cause);
+    super(STATUS.withDescription(cause.getMessage()).withCause(cause));
   }
 
   /**
@@ -48,6 +50,6 @@ public class OutOfRangeException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public OutOfRangeException(String message, Throwable cause) {
-    super(STATUS, message, cause);
+    super(STATUS.withDescription(message).withCause(cause));
   }
 }

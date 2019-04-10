@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
-import alluxio.exception.status.CanceledException;
+import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.WriteRequest;
@@ -155,7 +155,7 @@ public final class GrpcBlockingStreamTest {
   @Test
   public void sendFailsAfterClosed() throws Exception {
     mStream.close();
-    mThrown.expect(CanceledException.class);
+    mThrown.expect(CancelledException.class);
     mThrown.expectMessage(containsString(TEST_MESSAGE));
 
     mStream.send(WriteRequest.newBuilder().build(), TIMEOUT);
@@ -167,7 +167,7 @@ public final class GrpcBlockingStreamTest {
   @Test
   public void sendFailsAfterCanceled() throws Exception {
     mStream.cancel();
-    mThrown.expect(CanceledException.class);
+    mThrown.expect(CancelledException.class);
     mThrown.expectMessage(containsString(TEST_MESSAGE));
 
     mStream.send(WriteRequest.newBuilder().build(), TIMEOUT);
@@ -179,7 +179,7 @@ public final class GrpcBlockingStreamTest {
   @Test
   public void receiveFailsAfterCanceled() throws Exception {
     mStream.cancel();
-    mThrown.expect(CanceledException.class);
+    mThrown.expect(CancelledException.class);
     mThrown.expectMessage(containsString(TEST_MESSAGE));
 
     mStream.receive(TIMEOUT);

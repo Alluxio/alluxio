@@ -11,32 +11,34 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status;
+
 /**
  * Exception indicating that an operation was cancelled (typically by the caller).
  */
-public class CanceledException extends AlluxioStatusException {
+public class CancelledException extends AlluxioStatusException {
   private static final long serialVersionUID = 7530942095354551886L;
-  private static final Status STATUS = Status.CANCELED;
+  private static final Status STATUS = Status.CANCELLED;
 
   /**
    * @param message the exception message
    */
-  public CanceledException(String message) {
-    super(STATUS, message);
+  public CancelledException(String message) {
+    super(STATUS.withDescription(message));
   }
 
   /**
    * @param cause the cause of the exception
    */
-  public CanceledException(Throwable cause) {
-    super(STATUS, cause);
+  public CancelledException(Throwable cause) {
+    super(STATUS.withDescription(cause.getMessage()).withCause(cause));
   }
 
   /**
    * @param message the exception message
    * @param cause the cause of the exception
    */
-  public CanceledException(String message, Throwable cause) {
-    super(STATUS, message, cause);
+  public CancelledException(String message, Throwable cause) {
+    super(STATUS.withDescription(message).withCause(cause));
   }
 }

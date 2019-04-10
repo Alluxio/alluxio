@@ -16,7 +16,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
-import alluxio.exception.status.Status;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
@@ -35,6 +34,7 @@ import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -371,9 +371,9 @@ public abstract class AbstractClient implements Client {
         return rpc.call();
       } catch (StatusRuntimeException e) {
         AlluxioStatusException se = AlluxioStatusException.fromStatusRuntimeException(e);
-        if (se.getStatus() == Status.UNAVAILABLE
-            || se.getStatus() == Status.CANCELED
-            || se.getStatus() == Status.UNAUTHENTICATED
+        if (se.getStatusCode() == Status.Code.UNAVAILABLE
+            || se.getStatusCode() == Status.Code.CANCELLED
+            || se.getStatusCode() == Status.Code.UNAUTHENTICATED
             || e.getCause() instanceof UnresolvedAddressException) {
           ex = se;
         } else {
