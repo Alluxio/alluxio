@@ -84,8 +84,7 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
     Map<String, List<String>> pathsOnTiers = new HashMap<>();
     for (Pair<String, String> tierPath : mCapacityBytesOnDirs.keySet()) {
       String tier = tierPath.getFirst();
-      pathsOnTiers.computeIfAbsent(tier, k -> new ArrayList<>());
-      pathsOnTiers.get(tier).add(tierPath.getSecond());
+      pathsOnTiers.computeIfAbsent(tier, k -> new ArrayList<>()).add(tierPath.getSecond());
     }
     return pathsOnTiers;
   }
