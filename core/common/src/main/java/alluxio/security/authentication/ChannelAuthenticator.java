@@ -164,8 +164,8 @@ public class ChannelAuthenticator {
             "Channel authentication failed. ChannelId: %s, AuthType: %s, Target: %s, Error: %s",
             mChannelId, mAuthType, mManagedChannel.authority(), exc.toString());
         if (exc instanceof AlluxioStatusException) {
-          throw AlluxioStatusException.from(((AlluxioStatusException) exc).getStatus(), message,
-              exc);
+          throw AlluxioStatusException.from(
+              ((AlluxioStatusException) exc).getStatus().withDescription(message).withCause(exc));
         } else {
           throw new UnknownException(message, exc);
         }

@@ -15,13 +15,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.Status;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.SettableFuture;
+import io.grpc.Status;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -314,7 +314,7 @@ public final class AsyncJournalWriter {
       ticket.waitCompleted();
     } catch (InterruptedException ie) {
       // Interpret interruption as cancellation.
-      throw new AlluxioStatusException(Status.CANCELED, ie);
+      throw new AlluxioStatusException(Status.CANCELLED.withCause(ie));
     } catch (ExecutionException ee) {
       // Filter, journal specific exception codes.
       Throwable cause = ee.getCause();
@@ -325,7 +325,7 @@ public final class AsyncJournalWriter {
         throw (JournalClosedException) cause;
       }
       // Not expected. throw internal error.
-      throw new AlluxioStatusException(Status.INTERNAL, ee);
+      throw new AlluxioStatusException(Status.INTERNAL.withCause(ee));
     } finally {
       /**
        * Client can only try to reacquire the permit it has given
