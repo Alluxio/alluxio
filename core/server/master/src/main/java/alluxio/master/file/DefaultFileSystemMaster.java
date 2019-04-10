@@ -126,7 +126,6 @@ import alluxio.util.SecurityUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.CommonOptions;
@@ -3000,8 +2999,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         try (CloseableResource<UnderFileSystem> ufsResource =
             mUfsManager.get(mountId).acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
-          ufs.connectFromMaster(
-              NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
           // Check that the ufsPath exists and is a directory
           if (!ufs.isDirectory(ufsPath.toString())) {
             throw new IOException(
