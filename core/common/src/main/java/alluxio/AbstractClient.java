@@ -197,7 +197,7 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    AlluxioStatusException connectFailReason = null;
+    IOException lastConnectFailure = null;
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
 
     while (retryPolicy.attempt()) {
@@ -242,9 +242,7 @@ public abstract class AbstractClient implements Client {
       } catch (IOException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
-        if (e instanceof UnauthenticatedException) {
-          connectFailReason = (AlluxioStatusException) e;
-        }
+        lastConnectFailure = e;
       }
     }
     // Reaching here indicates that we did not successfully connect.
@@ -259,12 +257,15 @@ public abstract class AbstractClient implements Client {
               retryPolicy.getAttemptCount()));
     }
 
-    if (connectFailReason != null) {
-      throw connectFailReason;
+    /**
+     * Throw as-is if {@link UnauthenticatedException} occurred.
+     */
+    if (lastConnectFailure instanceof UnauthenticatedException) {
+      throw (AlluxioStatusException) lastConnectFailure;
     }
 
     throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
-        getServiceName(), mAddress, retryPolicy.getAttemptCount()));
+        getServiceName(), mAddress, retryPolicy.getAttemptCount()), lastConnectFailure);
   }
 
   /**
