@@ -12,12 +12,12 @@
 package alluxio.client.block.stream;
 
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.CanceledException;
+import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
-import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
 import alluxio.resource.LockResource;
 
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
@@ -92,7 +92,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
    */
   public void send(ReqT request, long timeoutMs) throws IOException {
     if (mClosed || mCanceled || mClosedFromRemote) {
-      throw new CanceledException(formatErrorMessage(
+      throw new CancelledException(formatErrorMessage(
           "Failed to send request %s: stream is already closed or canceled.", request));
     }
     try (LockResource lr = new LockResource(mLock)) {
@@ -108,7 +108,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
           }
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
-          throw new CanceledException(formatErrorMessage(
+          throw new CancelledException(formatErrorMessage(
               "Failed to send request %s: interrupted while waiting for server.", request), e);
         }
       }
@@ -124,7 +124,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
    */
   public void send(ReqT request) throws IOException {
     if (mClosed || mCanceled || mClosedFromRemote) {
-      throw new CanceledException(formatErrorMessage(
+      throw new CancelledException(formatErrorMessage(
           "Failed to send request %s: stream is already closed or canceled.", request));
     }
     try (LockResource lr = new LockResource(mLock)) {
@@ -147,7 +147,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
       return null;
     }
     if (mCanceled) {
-      throw new CanceledException(formatErrorMessage("Stream is already canceled."));
+      throw new CancelledException(formatErrorMessage("Stream is already canceled."));
     }
     try {
       Object response = mResponses.poll(timeoutMs, TimeUnit.MILLISECONDS);
@@ -163,7 +163,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
       return (ResT) response;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new CanceledException(formatErrorMessage("Interrupted while waiting for response."), e);
+      throw new CancelledException(
+          formatErrorMessage("Interrupted while waiting for response."), e);
     }
   }
 
@@ -247,7 +248,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
     AlluxioStatusException ex;
     if (t instanceof StatusRuntimeException) {
       ex = AlluxioStatusException.fromStatusRuntimeException((StatusRuntimeException) t);
-      if (ex.getStatus() == Status.CANCELED) {
+      if (ex.getStatusCode() == Status.Code.CANCELLED) {
         // Streams are canceled when server is shutdown. Convert it to UnavailableException for
         // client to retry.
         ex = new UnavailableException(formatErrorMessage("Stream is canceled by server."), ex);
@@ -257,8 +258,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
     }
     // attaches description to the exception while maintaining the cause
     return (AlluxioStatusException) AlluxioStatusException
-        .from(ex.getStatus(), formatErrorMessage(ex.getMessage()))
-        .initCause(ex.getCause());
+        .from(ex.getStatus().withDescription(formatErrorMessage(ex.getMessage())));
   }
 
   private String formatErrorMessage(String format, Object... args) {
