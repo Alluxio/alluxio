@@ -16,9 +16,11 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -70,5 +72,17 @@ public final class PrefixPathConfiguration implements PathConfiguration {
       }
     }
     return Optional.empty();
+  }
+
+  /**
+   * @param path the Alluxio path
+   * @return all property keys applicable to path including ancestor paths' configurations
+   */
+  @Override
+  public Set<PropertyKey> getPropertyKeys(AlluxioURI path) {
+    Set<PropertyKey> keys = new HashSet<>();
+    mMatcher.match(path).ifPresent(patterns -> patterns.forEach(pattern ->
+        keys.addAll(mConf.get(pattern).userKeySet())));
+    return keys;
   }
 }

@@ -14,11 +14,13 @@ package alluxio.cli.fsadmin.command;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.pathconf.ListCommand;
+import alluxio.cli.fsadmin.pathconf.ShowCommand;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -34,6 +36,7 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
 
   static {
     SUB_COMMANDS.put("list", ListCommand::new);
+    SUB_COMMANDS.put("show", ShowCommand::new);
   }
 
   private Context mContext;
@@ -57,6 +60,15 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+  }
+
+  @Override
+  public Options getOptions() {
+    Options options = new Options();
+    SUB_COMMANDS.forEach((cmd, constructor) ->
+        constructor.apply(mContext, mConf).getOptions().getOptions().forEach(
+            option -> options.addOption(option)));
+    return options;
   }
 
   @Override

@@ -193,6 +193,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   @Override
+  public Set<PropertyKey> userKeySet() {
+    return mProperties.userKeySet();
+  }
+
+  @Override
   public int getInt(PropertyKey key) {
     String rawValue = get(key);
 

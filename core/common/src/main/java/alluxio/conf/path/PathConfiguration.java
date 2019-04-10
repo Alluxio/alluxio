@@ -15,7 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Path level configuration.
@@ -33,4 +35,20 @@ public interface PathConfiguration {
    * @return the chosen configuration matching the path and containing the key
    */
   Optional<AlluxioConfiguration> getConfiguration(AlluxioURI path, PropertyKey key);
+
+  /**
+   * @param path the Alluxio path
+   * @return all property keys in the path level configuration that is applicable to path
+   */
+  Set<PropertyKey> getPropertyKeys(AlluxioURI path);
+
+  /**
+   * Factory method to create an implementation of {@link PathConfiguration}.
+   *
+   * @param pathConf the map from paths to path level configurations
+   * @return the implementation of {@link PathConfiguration}
+   */
+  static PathConfiguration create(Map<String, AlluxioConfiguration> pathConf) {
+    return new PrefixPathConfiguration(pathConf);
+  }
 }
