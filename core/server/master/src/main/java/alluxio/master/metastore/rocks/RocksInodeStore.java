@@ -11,8 +11,6 @@
 
 package alluxio.master.metastore.rocks;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
@@ -64,7 +62,6 @@ public class RocksInodeStore implements InodeStore {
   private final WriteOptions mDisableWAL;
   private final ReadOptions mReadPrefixSameAsStart;
 
-  private final AlluxioConfiguration mConf;
   private final RocksStore mRocksStore;
 
   private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
@@ -73,14 +70,12 @@ public class RocksInodeStore implements InodeStore {
   /**
    * Creates and initializes a rocks block store.
    *
-   * @param args inode store arguments
+   * @param baseDir the base directory in which to store inode metadata
    */
-  public RocksInodeStore(InodeStoreArgs args) {
-    mConf = args.getConf();
+  public RocksInodeStore(String baseDir) {
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
-    String baseDir = mConf.get(PropertyKey.MASTER_METASTORE_DIR);
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
