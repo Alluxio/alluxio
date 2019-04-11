@@ -16,12 +16,18 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
+import alluxio.grpc.RemovePathConfigurationPRequest;
+import alluxio.grpc.RemovePathConfigurationPResponse;
 import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.grpc.SetPathConfigurationPResponse;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This class is a gRPC handler for meta master RPCs.
@@ -62,5 +68,22 @@ public final class MetaMasterConfigurationServiceHandler
       mMetaMaster.setPathConfiguration(path, PropertyKey.fromString(key), value);
       return SetPathConfigurationPResponse.getDefaultInstance();
     }, "setPathConfiguration", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void removePathConfiguration(RemovePathConfigurationPRequest request,
+      StreamObserver<RemovePathConfigurationPResponse> responseObserver) {
+    String path = request.getPath();
+    List<String> keys = request.getKeysList();
+
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<RemovePathConfigurationPResponse>) () -> {
+      Set<PropertyKey> keySet = new HashSet<>();
+      for (String key : keys) {
+        keySet.add(PropertyKey.fromString(key));
+      }
+      mMetaMaster.removePathConfiguration(path, keySet);
+      return RemovePathConfigurationPResponse.getDefaultInstance();
+    }, "removePathConfiguration", "request=%s", responseObserver, request);
   }
 }

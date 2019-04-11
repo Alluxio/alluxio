@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The interface of meta master.
@@ -68,6 +69,14 @@ public interface MetaMaster extends Master {
    * @param value the property value
    */
   void setPathConfiguration(String path, PropertyKey key, String value) throws UnavailableException;
+
+  /**
+   * Sets a property for a path pattern.
+   *
+   * @param path the path pattern
+   * @param keys the property keys
+   */
+  void removePathConfiguration(String path, Set<PropertyKey> keys) throws UnavailableException;
 
   /**
    * @return the addresses of live masters
