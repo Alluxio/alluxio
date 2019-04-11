@@ -55,7 +55,8 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
         ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-        AlluxioTestDirectory.createTemporaryDirectory("tiered_identity_test").getAbsolutePath());
+        AlluxioTestDirectory.createTemporaryDirectory("tiered_identity_test").getAbsolutePath(),
+            sJournalTypeRule.getJournalType().toString());
     map.put(PropertyKey.WORKER_RPC_PORT, "0");
     map.put(PropertyKey.WORKER_WEB_PORT, "0");
 

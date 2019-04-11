@@ -56,19 +56,23 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void multiMasters() throws Exception {
+    DeployMode deployMode = MultiProcessCluster
+        .getDeployMode(sJournalTypeRule.getJournalType(), TEST_NUM_MASTERS);
     PropertyKey key = PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS;
     Map<Integer, Map<PropertyKey, String>> masterProperties
         = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, key);
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_MASTERS)
         .setClusterName("ConfigCheckerMultiMastersTest")
+        .setDeployMode(deployMode)
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(0)
-        .setDeployMode(MultiProcessCluster.DeployMode.ZOOKEEPER_HA)
         .setMasterProperties(masterProperties)
         .build();
     mCluster.start();
     ConfigCheckReport report = getReport();
-    assertEquals(ConfigStatus.WARN, report.getConfigStatus());
+    // When using embedded journal, the journal paths are different
+    assertEquals(deployMode.equals(DeployMode.ZOOKEEPER_HA)
+        ? ConfigStatus.WARN : ConfigStatus.FAILED, report.getConfigStatus());
     assertThat(report.getConfigWarns().toString(),
         CoreMatchers.containsString(key.getName()));
     mCluster.notifySuccess();
@@ -104,6 +108,8 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         = generatePropertyWithDifferentValues(TEST_NUM_WORKERS, key);
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_WORKERS)
         .setClusterName("ConfigCheckerMultiWorkersTest")
+        .setDeployMode(MultiProcessCluster
+            .getDeployMode(sJournalTypeRule.getJournalType(), 1))
         .setNumMasters(1)
         .setNumWorkers(TEST_NUM_WORKERS)
         .setWorkerProperties(workerProperties)
@@ -131,9 +137,10 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_NODES)
         .setClusterName("ConfigCheckerMultiNodesTest")
+        .setDeployMode(MultiProcessCluster
+            .getDeployMode(sJournalTypeRule.getJournalType(), TEST_NUM_MASTERS))
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(TEST_NUM_WORKERS)
-        .setDeployMode(MultiProcessCluster.DeployMode.ZOOKEEPER_HA)
         .setMasterProperties(masterProperties)
         .setWorkerProperties(workerProperties)
         .build();
@@ -147,25 +154,35 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void unsetVsSet() throws Exception {
+    DeployMode deployMode = MultiProcessCluster
+        .getDeployMode(sJournalTypeRule.getJournalType(), 2);
     Map<Integer, Map<PropertyKey, String>> masterProperties = ImmutableMap.of(
         1, ImmutableMap.of(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION, "option"));
 
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_UNSET_VS_SET)
         .setClusterName("ConfigCheckerUnsetVsSet")
+        .setDeployMode(deployMode)
         .setNumMasters(2)
         .setNumWorkers(0)
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setMasterProperties(masterProperties)
         .build();
     mCluster.start();
     ConfigCheckReport report = getReport();
     Map<Scope, List<InconsistentProperty>> errors = report.getConfigErrors();
     assertTrue(errors.containsKey(Scope.MASTER));
-    assertEquals(1, errors.get(Scope.MASTER).size());
-    InconsistentProperty property = errors.get(Scope.MASTER).get(0);
-    assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION.getName(), property.getName());
-    assertTrue(property.getValues().containsKey(Optional.of("option")));
-    assertTrue(property.getValues().containsKey(Optional.empty()));
+
+    if (deployMode.equals(DeployMode.ZOOKEEPER_HA)) {
+      assertEquals(1, errors.get(Scope.MASTER).size());
+      InconsistentProperty property = errors.get(Scope.MASTER).get(0);
+      assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION.getName(), property.getName());
+      assertTrue(property.getValues().containsKey(Optional.of("option")));
+      assertTrue(property.getValues().containsKey(Optional.empty()));
+    } else {
+      // When using embedded journal, the journal paths are different
+      assertEquals(2, errors.get(Scope.MASTER).size());
+      assertThat(report.getConfigErrors().toString(),
+          CoreMatchers.containsString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION.getName()));
+    }
     mCluster.notifySuccess();
   }
 

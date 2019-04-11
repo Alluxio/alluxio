@@ -31,7 +31,6 @@ import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.multi.process.MultiProcessCluster;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.master.MasterTestUtils;
@@ -75,7 +74,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
           .put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "100")
           .put(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
-          .put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "32")
+          .put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "65")
           .put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec").build(),
           ServerConfiguration.global());
 
@@ -108,6 +107,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     MultiProcessCluster cluster =
         MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_STOP_SINGLE_MASTER)
             .setClusterName("singleMasterJournalStopIntegration")
+            .setDeployMode(MultiProcessCluster.getDeployMode(sJournalTypeRule.getJournalType(), 1))
             .setNumWorkers(0)
             .setNumMasters(1)
             .build();
@@ -137,9 +137,10 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     MultiProcessCluster cluster =
         MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_STOP_MULTI_MASTER)
             .setClusterName("multiMasterJournalStopIntegration")
+            .setDeployMode(MultiProcessCluster
+                .getDeployMode(sJournalTypeRule.getJournalType(), TEST_NUM_MASTERS))
             .setNumWorkers(0)
             .setNumMasters(TEST_NUM_MASTERS)
-            .setDeployMode(DeployMode.ZOOKEEPER_HA)
             // Cannot go lower than 2x the tick time. Curator testing cluster tick time is 3s and
             // cannot be overridden until later versions of Curator.
             .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "6s")
