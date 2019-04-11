@@ -11,7 +11,7 @@
 
 package alluxio.underfs.options;
 
-import static org.junit.Assert;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.test.util.CommonUtils;
 
