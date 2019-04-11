@@ -112,7 +112,7 @@ public final class JournalTool {
     Files.createDirectories(Paths.get(sOutputDir));
     UfsJournal journal =
         new UfsJournalSystem(getJournalLocation(), 0).createJournal(new NoopMaster(sMaster));
-    try (PrintStream entryStream =
+    try (PrintStream out =
              new PrintStream(new BufferedOutputStream(new FileOutputStream(sJournalEntryFile)));
          JournalReader reader = new UfsJournalReader(journal, sStart, true)) {
       boolean done = false;
@@ -128,8 +128,8 @@ public final class JournalTool {
             break;
           case LOG:
             JournalEntry entry = reader.getEntry();
-            entryStream.println(ENTRY_SEPARATOR);
-            entryStream.print(entry);
+            out.println(ENTRY_SEPARATOR);
+            out.print(entry);
             break;
           case DONE:
             done = true;

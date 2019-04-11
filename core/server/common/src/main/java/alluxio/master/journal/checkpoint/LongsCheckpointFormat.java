@@ -32,9 +32,8 @@ public class LongsCheckpointFormat implements CheckpointFormat {
     LongsCheckpointReader reader = createReader(in);
     Optional<Long> longOpt;
     while ((longOpt = reader.nextLong()).isPresent()) {
-      out.printf("%d ", longOpt.get());
+      out.printf("%d%n", longOpt.get());
     }
-    out.println();
   }
 
   /**

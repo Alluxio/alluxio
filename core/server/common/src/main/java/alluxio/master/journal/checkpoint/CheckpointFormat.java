@@ -14,6 +14,8 @@ package alluxio.master.journal.checkpoint;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Interface for checkpoint formats.
  *
@@ -37,5 +39,6 @@ public interface CheckpointFormat {
   /**
    * Interface for checkpoint readers.
    */
+  @NotThreadSafe
   interface CheckpointReader {}
 }

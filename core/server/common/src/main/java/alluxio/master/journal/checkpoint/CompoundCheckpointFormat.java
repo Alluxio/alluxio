@@ -40,10 +40,10 @@ public class CompoundCheckpointFormat implements CheckpointFormat {
     Optional<Entry> entryOpt;
     while ((entryOpt = reader.nextCheckpoint()).isPresent()) {
       Entry entry = entryOpt.get();
-      out.printf("--- Begin checkpoint for %s ---", entry.getName());
+      out.printf("--- Begin checkpoint for %s ---%n", entry.getName());
       CheckpointFormat format = entry.getStream().getType().getCheckpointFormat();
       format.parseToHumanReadable(entry.getStream(), out);
-      out.printf("--- End checkpoint for %s ---", entry.getName());
+      out.printf("--- End checkpoint for %s ---%n", entry.getName());
     }
   }
 
