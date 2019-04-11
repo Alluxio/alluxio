@@ -20,10 +20,12 @@ import alluxio.proto.journal.File.UfsMode;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableResource;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -102,6 +104,11 @@ public final class MasterUfsManager extends AbstractUfsManager implements Journa
    * Constructs the instance of {@link MasterUfsManager}.
    */
   public MasterUfsManager() {}
+
+  protected void connectUfs(UnderFileSystem fs) throws IOException {
+    fs.connectFromMaster(
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
+  }
 
   @Override
   public void addMount(long mountId, final AlluxioURI ufsUri,
