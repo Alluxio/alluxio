@@ -16,6 +16,7 @@ import alluxio.wire.Configuration;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Set;
 
 /**
  * Interface for a meta master config client.
@@ -34,4 +35,12 @@ public interface MetaMasterConfigClient extends Closeable {
    * @param value the property value
    */
   void setPathConfiguration(String path, PropertyKey key, String value) throws IOException;
+
+  /**
+   * Removes properties for a path.
+   *
+   * @param path the path
+   * @param keys the property keys
+   */
+  void removePathConfiguration(String path, Set<PropertyKey> keys) throws IOException;
 }

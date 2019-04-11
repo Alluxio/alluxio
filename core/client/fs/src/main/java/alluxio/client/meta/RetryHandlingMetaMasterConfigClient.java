@@ -16,12 +16,15 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
+import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.Configuration;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -73,5 +76,15 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   public void setPathConfiguration(String path, PropertyKey key, String value) throws IOException {
     retryRPC(() -> mClient.setPathConfiguration(SetPathConfigurationPRequest.newBuilder()
         .setPath(path).setKey(key.getName()).setValue(value).build()));
+  }
+
+  @Override
+  public void removePathConfiguration(String path, Set<PropertyKey> keys) throws IOException {
+    Set<String> keySet = new HashSet<>();
+    for (PropertyKey key : keys) {
+      keySet.add(key.getName());
+    }
+    retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
+        .setPath(path).addAllKeys(keySet).build()));
   }
 }
