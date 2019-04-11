@@ -56,8 +56,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void multiMasters() throws Exception {
-    DeployMode deployMode = MultiProcessCluster
-        .getDeployMode(sJournalTypeRule.getJournalType(), TEST_NUM_MASTERS);
+    DeployMode deployMode = MultiProcessCluster.getDeployMode(TEST_NUM_MASTERS);
     PropertyKey key = PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS;
     Map<Integer, Map<PropertyKey, String>> masterProperties
         = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, key);
@@ -108,8 +107,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         = generatePropertyWithDifferentValues(TEST_NUM_WORKERS, key);
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_WORKERS)
         .setClusterName("ConfigCheckerMultiWorkersTest")
-        .setDeployMode(MultiProcessCluster
-            .getDeployMode(sJournalTypeRule.getJournalType(), 1))
+        .setDeployMode(MultiProcessCluster.getDeployMode(1))
         .setNumMasters(1)
         .setNumWorkers(TEST_NUM_WORKERS)
         .setWorkerProperties(workerProperties)
@@ -138,7 +136,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_NODES)
         .setClusterName("ConfigCheckerMultiNodesTest")
         .setDeployMode(MultiProcessCluster
-            .getDeployMode(sJournalTypeRule.getJournalType(), TEST_NUM_MASTERS))
+            .getDeployMode(TEST_NUM_MASTERS))
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(TEST_NUM_WORKERS)
         .setMasterProperties(masterProperties)
@@ -154,8 +152,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void unsetVsSet() throws Exception {
-    DeployMode deployMode = MultiProcessCluster
-        .getDeployMode(sJournalTypeRule.getJournalType(), 2);
+    DeployMode deployMode = MultiProcessCluster.getDeployMode(2);
     Map<Integer, Map<PropertyKey, String>> masterProperties = ImmutableMap.of(
         1, ImmutableMap.of(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION, "option"));
 

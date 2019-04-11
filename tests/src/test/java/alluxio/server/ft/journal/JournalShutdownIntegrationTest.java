@@ -107,7 +107,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     MultiProcessCluster cluster =
         MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_STOP_SINGLE_MASTER)
             .setClusterName("singleMasterJournalStopIntegration")
-            .setDeployMode(MultiProcessCluster.getDeployMode(sJournalTypeRule.getJournalType(), 1))
+            .setDeployMode(MultiProcessCluster.getDeployMode(1))
             .setNumWorkers(0)
             .setNumMasters(1)
             .build();
@@ -137,8 +137,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     MultiProcessCluster cluster =
         MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_STOP_MULTI_MASTER)
             .setClusterName("multiMasterJournalStopIntegration")
-            .setDeployMode(MultiProcessCluster
-                .getDeployMode(sJournalTypeRule.getJournalType(), TEST_NUM_MASTERS))
+            .setDeployMode(MultiProcessCluster.getDeployMode(TEST_NUM_MASTERS))
             .setNumWorkers(0)
             .setNumMasters(TEST_NUM_MASTERS)
             // Cannot go lower than 2x the tick time. Curator testing cluster tick time is 3s and

@@ -721,13 +721,15 @@ public final class MultiProcessCluster {
   }
 
   /**
-   * Gets the {@link DeployMode} from the given journal type and number of masters.
+   * Gets the {@link DeployMode} from the number of masters and
+   * {@link PropertyKey#MASTER_JOURNAL_TYPE}.
    *
-   * @param journalType the given journal type
    * @param numberOfMasters the number of masters
    * @return the deploy mode
    */
-  public static DeployMode getDeployMode(JournalType journalType, int numberOfMasters) {
+  public static DeployMode getDeployMode(int numberOfMasters) {
+    JournalType journalType = ServerConfiguration
+        .getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
     if (journalType == JournalType.EMBEDDED) {
       return numberOfMasters > 1 ? MultiProcessCluster.DeployMode.EMBEDDED_HA
           : MultiProcessCluster.DeployMode.EMBEDDED_NON_HA;
