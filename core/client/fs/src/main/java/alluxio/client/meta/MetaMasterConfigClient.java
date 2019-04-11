@@ -16,6 +16,8 @@ import alluxio.wire.Configuration;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -31,10 +33,22 @@ public interface MetaMasterConfigClient extends Closeable {
    * Sets a property for a path.
    *
    * @param path the path
-   * @param key the property key
+   * @param key the proeprty key
    * @param value the property value
    */
-  void setPathConfiguration(String path, PropertyKey key, String value) throws IOException;
+  default void setPathConfiguration(String path, PropertyKey key, String value) throws IOException {
+    Map<PropertyKey, String> properties = new HashMap<>();
+    properties.put(key, value);
+    setPathConfiguration(path, properties);
+  }
+
+  /**
+   * Sets properties for a path.
+   *
+   * @param path the path
+   * @param properties the properties
+   */
+  void setPathConfiguration(String path, Map<PropertyKey, String> properties) throws IOException;
 
   /**
    * Removes properties for a path.

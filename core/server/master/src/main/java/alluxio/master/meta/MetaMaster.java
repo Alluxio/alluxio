@@ -64,16 +64,15 @@ public interface MetaMaster extends Master {
   /**
    * Sets a property for a path pattern.
    *
-   * @param path the path pattern
-   * @param key the property key
-   * @param value the property value
+   * @param path the path
+   * @param properties the properties for path
    */
-  void setPathConfiguration(String path, PropertyKey key, String value) throws UnavailableException;
+  void setPathConfiguration(String path, Map<PropertyKey, String> properties) throws UnavailableException;
 
   /**
    * Sets a property for a path pattern.
    *
-   * @param path the path pattern
+   * @param path the path
    * @param keys the property keys
    */
   void removePathConfiguration(String path, Set<PropertyKey> keys) throws UnavailableException;

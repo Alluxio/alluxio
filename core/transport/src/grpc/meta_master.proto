@@ -115,9 +115,8 @@ message GetMetricsPResponse {
 message SetPathConfigurationPOptions {}
 message SetPathConfigurationPRequest {
   required string path = 1;
-  required string key = 2;
-  required string value = 3;
-  optional SetPathConfigurationPOptions options = 4;
+  map<string, string> properties = 2;
+  optional SetPathConfigurationPOptions options = 3;
 }
 message SetPathConfigurationPResponse {}
 

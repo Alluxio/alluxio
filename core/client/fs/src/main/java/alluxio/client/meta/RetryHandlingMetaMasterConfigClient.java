@@ -23,7 +23,9 @@ import alluxio.master.MasterClientContext;
 import alluxio.wire.Configuration;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -73,9 +75,12 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   }
 
   @Override
-  public void setPathConfiguration(String path, PropertyKey key, String value) throws IOException {
+  public void setPathConfiguration(String path, Map<PropertyKey, String> properties)
+      throws IOException {
+    Map<String, String> props = new HashMap<>();
+    properties.forEach((key, value) -> props.put(key.getName(), value));
     retryRPC(() -> mClient.setPathConfiguration(SetPathConfigurationPRequest.newBuilder()
-        .setPath(path).setKey(key.getName()).setValue(value).build()));
+        .setPath(path).putAllProperties(props).build()));
   }
 
   @Override

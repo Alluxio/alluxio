@@ -25,8 +25,10 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -60,12 +62,13 @@ public final class MetaMasterConfigurationServiceHandler
   public void setPathConfiguration(SetPathConfigurationPRequest request,
       StreamObserver<SetPathConfigurationPResponse> responseObserver) {
     String path = request.getPath();
-    String key = request.getKey();
-    String value = request.getValue();
+    Map<String, String> properties = request.getPropertiesMap();
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<SetPathConfigurationPResponse>) () ->
     {
-      mMetaMaster.setPathConfiguration(path, PropertyKey.fromString(key), value);
+      Map<PropertyKey, String> props = new HashMap<>();
+      properties.forEach((key, value) -> props.put(PropertyKey.fromString(key), value));
+      mMetaMaster.setPathConfiguration(path, props);
       return SetPathConfigurationPResponse.getDefaultInstance();
     }, "setPathConfiguration", "request=%s", responseObserver, request);
   }
