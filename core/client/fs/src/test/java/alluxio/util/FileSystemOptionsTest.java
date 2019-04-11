@@ -20,7 +20,7 @@ import alluxio.grpc.MountPOptions;
 import alluxio.grpc.SetAclPOptions;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.aseertFalse;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
