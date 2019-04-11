@@ -19,9 +19,9 @@ import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.SetAclPOptions;
 
-import org.junit.Assert.assertNotNull;
-import org.junit.Assert.aseertFalse;
-import org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.aseertFalse;
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
