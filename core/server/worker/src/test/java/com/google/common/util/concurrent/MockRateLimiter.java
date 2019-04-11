@@ -86,7 +86,7 @@ public final class MockRateLimiter {
     }
 
     private void sleepMicros(String caption, long micros) {
-      mInstant += MICROSECONDS.toNanos(micros);
+      mInstant += micros;
       mEvents.add(caption + String.format(Locale.ROOT, "%3.2f", (micros / 1000000.0)));
     }
 
