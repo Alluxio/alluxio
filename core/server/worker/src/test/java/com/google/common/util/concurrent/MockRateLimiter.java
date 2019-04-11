@@ -72,12 +72,12 @@ public final class MockRateLimiter {
    * U1.0 means the (U)ser caused the ticker to sleep for a second.
    */
   private static class FakeSleepingTicker extends SleepingStopwatch {
-    private long mInstant = 0L;
+    private long mInstantMicros = 0L;
     private final List<String> mEvents = new ArrayList<>();
 
     @Override
     public long readMicros() {
-      return mInstant;
+      return mInstantMicros;
     }
 
     private void sleepMillis(int millis) {
@@ -85,7 +85,7 @@ public final class MockRateLimiter {
     }
 
     private void sleepMicros(String caption, long micros) {
-      mInstant += micros;
+      mInstantMicros += micros;
       mEvents.add(caption + String.format(Locale.ROOT, "%3.2f", (micros / 1000000.0)));
     }
 
