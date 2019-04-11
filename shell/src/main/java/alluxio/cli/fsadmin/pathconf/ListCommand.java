@@ -22,6 +22,9 @@ import alluxio.wire.Configuration;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Lists paths that have path level configuration.
@@ -48,10 +51,11 @@ public final class ListCommand extends AbstractFsAdminCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     Configuration conf = mMetaConfigClient.getConfiguration();
-    for (String path : conf.getPathConf().keySet()) {
+    List<String> paths = new ArrayList<>(conf.getPathConf().keySet());
+    Collections.sort(paths);
+    for (String path : paths) {
       mPrintStream.println(path);
     }
-    mPrintStream.close();
     return 0;
   }
 

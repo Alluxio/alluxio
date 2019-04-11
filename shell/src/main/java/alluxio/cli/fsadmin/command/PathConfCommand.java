@@ -13,6 +13,7 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fsadmin.pathconf.AddCommand;
 import alluxio.cli.fsadmin.pathconf.ListCommand;
 import alluxio.cli.fsadmin.pathconf.ShowCommand;
 import alluxio.conf.AlluxioConfiguration;
@@ -37,6 +38,7 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
   static {
     SUB_COMMANDS.put("list", ListCommand::new);
     SUB_COMMANDS.put("show", ShowCommand::new);
+    SUB_COMMANDS.put("add", AddCommand::new);
   }
 
   private Context mContext;

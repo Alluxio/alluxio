@@ -146,10 +146,12 @@ public final class PathProperties implements DelegatingJournaled {
      */
     public void addProperties(Supplier<JournalContext> ctx, String path,
         Map<PropertyKey, String> properties) {
-      Map<String, String> newProperties = mProperties.getOrDefault(path, new HashMap<>());
-      properties.forEach((key, value) -> newProperties.put(key.getName(), value));
-      applyAndJournal(ctx, PathPropertiesEntry.newBuilder().setPath(path)
-          .putAllProperties(newProperties).build());
+      if (!properties.isEmpty()) {
+        Map<String, String> newProperties = mProperties.getOrDefault(path, new HashMap<>());
+        properties.forEach((key, value) -> newProperties.put(key.getName(), value));
+        applyAndJournal(ctx, PathPropertiesEntry.newBuilder().setPath(path)
+            .putAllProperties(newProperties).build());
+      }
     }
 
     /**
@@ -163,8 +165,12 @@ public final class PathProperties implements DelegatingJournaled {
       if (mProperties.containsKey(path)) {
         Map<String, String> newProperties = mProperties.get(path);
         keys.forEach(key -> newProperties.remove(key.getName()));
-        applyAndJournal(ctx, PathPropertiesEntry.newBuilder()
-            .setPath(path).putAllProperties(newProperties).build());
+        if (newProperties.isEmpty()) {
+          applyAndJournal(ctx, RemovePathPropertiesEntry.newBuilder().setPath(path).build());
+        } else {
+          applyAndJournal(ctx, PathPropertiesEntry.newBuilder()
+              .setPath(path).putAllProperties(newProperties).build());
+        }
       }
     }
 

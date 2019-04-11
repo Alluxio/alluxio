@@ -64,7 +64,7 @@ public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
   }
 
   private String format(PropertyKey key, String value) {
-    return key.getName() + " = " + value;
+    return key.getName() + "=" + value;
   }
 
   @Test
