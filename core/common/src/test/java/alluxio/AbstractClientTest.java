@@ -12,8 +12,6 @@
 package alluxio;
 
 import static alluxio.exception.ExceptionMessage.INCOMPATIBLE_VERSION;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.status.UnavailableException;
@@ -21,7 +19,6 @@ import alluxio.grpc.ServiceType;
 import alluxio.retry.CountingRetry;
 import alluxio.util.ConfigurationUtils;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -40,6 +37,7 @@ public final class AbstractClientTest {
 
   private static class BaseTestClient extends AbstractClient {
     private long mRemoteServiceVersion;
+
     protected BaseTestClient() {
       super(ClientContext.create(new InstancedConfiguration(ConfigurationUtils.defaults())), null,
           () -> new CountingRetry(1));

@@ -11,7 +11,6 @@
 
 package com.google.common.util.concurrent;
 
-import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.common.util.concurrent.RateLimiter.SleepingStopwatch;
