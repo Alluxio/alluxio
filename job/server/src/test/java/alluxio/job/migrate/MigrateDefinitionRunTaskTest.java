@@ -39,7 +39,6 @@ import alluxio.wire.FileInfo;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -168,16 +167,14 @@ public final class MigrateDefinitionRunTaskTest {
    * Tests that the worker writes with the specified write type.
    */
   @Test
-  @Ignore
-  // TODO(ggezer) Fix.
   public void writeTypeTest() throws Exception {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.CACHE_THROUGH);
     verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
-        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)).build());
+        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build()));
 
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.MUST_CACHE);
     verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
-        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)).build());
+        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build()));
   }
 
   /**

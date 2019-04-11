@@ -45,7 +45,6 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.MockRateLimiter;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 
@@ -126,8 +125,6 @@ public final class FileDataManagerTest {
   /**
    * Tests the rate limiting functionality for asynchronous persistence.
    */
-  // TODO(ggezer) Fix.
-  @Ignore
   @Test
   public void persistFileRateLimiting() throws Exception {
     ServerConfiguration.set(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
