@@ -21,34 +21,36 @@ public enum CheckpointType {
    * This format sequentially writes delimited journal entries one after another using
    * the protocol buffer writeDelimitedTo method.
    */
-  JOURNAL_ENTRY(0),
+  JOURNAL_ENTRY(0, new JournalCheckpointFormat()),
   /**
    * This format uses kryo's chunked encoding to write multiple [checkpoint_name, checkpoint_bytes]
    * entries to the output stream.
    */
-  COMPOUND(1),
+  COMPOUND(1, new CompoundCheckpointFormat()),
   /**
    * A series of longs written by {@link java.io.DataOutputStream}.
    */
-  LONGS(2),
+  LONGS(2, new LongsCheckpointFormat()),
   /**
    * A RocksDB backup in .tar.gz format.
    */
-  ROCKS(3),
+  ROCKS(3, new TarballCheckpointFormat()),
   /**
    * This format sequentially writes delimited InodeMeta.Inode protocol buffers one after another
    * using the protocol buffer writeDelimitedTo method.
    */
-  INODE_PROTOS(4),
+  INODE_PROTOS(4, new InodeProtosCheckpointFormat()),
   /**
    * A checkpoint consisting of a single long value written by a data output stream.
    */
-  LONG(5);
+  LONG(5, new LongCheckpointFormat());
 
   private final long mId;
+  private final CheckpointFormat mCheckpointFormat;
 
-  CheckpointType(long id) {
+  CheckpointType(long id, CheckpointFormat checkpointFormat) {
     mId = id;
+    mCheckpointFormat = checkpointFormat;
   }
 
   /**
@@ -56,6 +58,13 @@ public enum CheckpointType {
    */
   public long getId() {
     return mId;
+  }
+
+  /**
+   * @return the checkpoint format
+   */
+  public CheckpointFormat getCheckpointFormat() {
+    return mCheckpointFormat;
   }
 
   /**

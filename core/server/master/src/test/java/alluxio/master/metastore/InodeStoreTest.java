@@ -17,10 +17,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.ConfigurationRule;
 import alluxio.concurrent.LockMode;
-import alluxio.conf.ConfigurationBuilder;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.meta.Edge;
@@ -30,7 +30,6 @@ import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
-import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metastore.InodeStore.WriteBatch;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
@@ -39,6 +38,7 @@ import alluxio.resource.LockResource;
 
 import com.google.common.collect.Iterables;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -56,20 +56,18 @@ public class InodeStoreTest {
 
   @Parameters
   public static Iterable<Function<InodeLockManager, InodeStore>> parameters() throws Exception {
-    InstancedConfiguration conf = new ConfigurationBuilder()
-        .setProperty(PropertyKey.MASTER_METASTORE_DIR,
-            AlluxioTestDirectory.createTemporaryDirectory("inode-store-test"))
-        .setProperty(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE)
-        .build();
-    Function<InodeLockManager, InodeStoreArgs> argsFn = lm -> new InodeStoreArgs(lm, conf);
+    String dir =
+        AlluxioTestDirectory.createTemporaryDirectory("inode-store-test").getAbsolutePath();
     return Arrays.asList(
-        lockManager -> new HeapInodeStore(argsFn.apply(lockManager)),
-        lockManager -> new RocksInodeStore(argsFn.apply(lockManager)),
-        lockManager -> {
-          InodeStoreArgs args = argsFn.apply(lockManager);
-          return new CachingInodeStore(new RocksInodeStore(args), args);
-        });
+        lockManager -> new HeapInodeStore(),
+        lockManager -> new RocksInodeStore(dir),
+        lockManager -> new CachingInodeStore(new RocksInodeStore(dir), lockManager));
   }
+
+  @Rule
+  public ConfigurationRule mConf =
+      new ConfigurationRule(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE,
+          Long.toString(CACHE_SIZE), ServerConfiguration.global());
 
   private final MutableInodeDirectory mRoot = inodeDir(0, -1, "");
 
