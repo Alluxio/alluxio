@@ -121,6 +121,14 @@ message SetPathConfigurationPRequest {
 }
 message SetPathConfigurationPResponse {}
 
+message RemovePathConfigurationPOptions {}
+message RemovePathConfigurationPRequest {
+  required string path = 1;
+  repeated string keys = 2;
+  optional RemovePathConfigurationPOptions options = 3;
+}
+message RemovePathConfigurationPResponse {}
+
 /**
   * This interface contains meta master service endpoints for Alluxio clients
   * to query cluster configuration.
@@ -132,9 +140,14 @@ service MetaMasterConfigurationService {
   rpc GetConfiguration(GetConfigurationPOptions) returns (GetConfigurationPResponse);
 
   /**
-   * Sets a property for a path pattern.
+   * Sets a property for a path.
    */
   rpc SetPathConfiguration(SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
+
+  /**
+   * Removes properties for a path.
+   */
+  rpc RemovePathConfiguration(RemovePathConfigurationPRequest) returns (RemovePathConfigurationPResponse);
 }
 
 /**
