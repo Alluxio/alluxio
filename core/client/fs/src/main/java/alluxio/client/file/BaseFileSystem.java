@@ -155,7 +155,7 @@ public class BaseFileSystem implements FileSystem {
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.createDirectoryDefaults(mFsContext.getConf())
+    options = FileSystemOptions.createDirectoryDefaults(mFsContext.getConf(path))
         .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
@@ -184,7 +184,7 @@ public class BaseFileSystem implements FileSystem {
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.createFileDefaults(mFsContext.getConf())
+    options = FileSystemOptions.createFileDefaults(mFsContext.getConf(path))
         .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     URIStatus status;
@@ -204,7 +204,7 @@ public class BaseFileSystem implements FileSystem {
     }
 
     OutStreamOptions outStreamOptions =
-        new OutStreamOptions(options, mFsContext.getConf());
+        new OutStreamOptions(options, mFsContext.getConf(path));
     outStreamOptions.setUfsPath(status.getUfsPath());
     outStreamOptions.setMountId(status.getMountId());
     outStreamOptions.setAcl(status.getAcl());
@@ -226,7 +226,7 @@ public class BaseFileSystem implements FileSystem {
   public void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.deleteDefaults(mFsContext.getConf())
+    options = FileSystemOptions.deleteDefaults(mFsContext.getConf(path))
         .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
@@ -256,7 +256,7 @@ public class BaseFileSystem implements FileSystem {
   public boolean exists(AlluxioURI path, ExistsPOptions options)
       throws InvalidPathException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.existsDefaults(mFsContext.getConf())
+    options = FileSystemOptions.existsDefaults(mFsContext.getConf(path))
         .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
@@ -288,7 +288,7 @@ public class BaseFileSystem implements FileSystem {
   public void free(AlluxioURI path, FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.freeDefaults(mFsContext.getConf())
+    options = FileSystemOptions.freeDefaults(mFsContext.getConf(path))
         .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
@@ -324,7 +324,7 @@ public class BaseFileSystem implements FileSystem {
               location -> finalWorkerHosts.get(HostAndPort.fromString(location).getHost()))
                 .filter(Objects::nonNull).collect(toList());
         }
-        if (locations.isEmpty() && mFsContext.getConf()
+        if (locations.isEmpty() && mFsContext.getConf(path)
             .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
           // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
           locations.addAll(getHostWorkerMap().values());
@@ -358,7 +358,7 @@ public class BaseFileSystem implements FileSystem {
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.getStatusDefaults(mFsContext.getConf())
+    options = FileSystemOptions.getStatusDefaults(mFsContext.getConf(path))
         .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
@@ -384,7 +384,7 @@ public class BaseFileSystem implements FileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.listStatusDefaults(mFsContext.getConf())
+    options = FileSystemOptions.listStatusDefaults(mFsContext.getConf(path))
         .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     // TODO(calvin): Fix the exception handling in the master
@@ -411,7 +411,7 @@ public class BaseFileSystem implements FileSystem {
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws IOException, AlluxioException {
     checkUri(alluxioPath);
-    options = FileSystemOptions.mountDefaults(mFsContext.getConf())
+    options = FileSystemOptions.mountDefaults(mFsContext.getConf(alluxioPath))
         .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
@@ -465,7 +465,7 @@ public class BaseFileSystem implements FileSystem {
   public void persist(final AlluxioURI path, ScheduleAsyncPersistencePOptions options)
     throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.scheduleAsyncPersistDefaults(mFsContext.getConf())
+    options = FileSystemOptions.scheduleAsyncPersistDefaults(mFsContext.getConf(path))
         .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
@@ -513,7 +513,7 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(src);
     checkUri(dst);
-    options = FileSystemOptions.renameDefaults(mFsContext.getConf())
+    options = FileSystemOptions.renameDefaults(mFsContext.getConf(dst))
         .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
@@ -541,7 +541,7 @@ public class BaseFileSystem implements FileSystem {
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.setAclDefaults(mFsContext.getConf())
+    options = FileSystemOptions.setAclDefaults(mFsContext.getConf(path))
         .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
@@ -637,7 +637,7 @@ public class BaseFileSystem implements FileSystem {
   public void unmount(AlluxioURI path, UnmountPOptions options)
       throws IOException, AlluxioException {
     checkUri(path);
-    options = FileSystemOptions.unmountDefaults(mFsContext.getConf())
+    options = FileSystemOptions.unmountDefaults(mFsContext.getConf(path))
         .toBuilder().mergeFrom(options).build();
     FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
     try {
