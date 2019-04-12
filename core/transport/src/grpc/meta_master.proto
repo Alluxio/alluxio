@@ -144,7 +144,7 @@ service MetaMasterConfigurationService {
   rpc SetPathConfiguration(SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
 
   /**
-   * Removes properties for a path, if the keys are empty, it means removing all properties.
+   * Removes properties for a path, if the keys are empty, it means remove all properties.
    */
   rpc RemovePathConfiguration(RemovePathConfigurationPRequest) returns (RemovePathConfigurationPResponse);
 }

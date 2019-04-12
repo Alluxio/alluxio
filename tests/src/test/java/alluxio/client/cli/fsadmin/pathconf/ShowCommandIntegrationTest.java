@@ -11,6 +11,7 @@
 
 package alluxio.client.cli.fsadmin.pathconf;
 
+import alluxio.AlluxioURI;
 import alluxio.cli.fsadmin.FileSystemAdminShell;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -53,9 +54,9 @@ public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
     FileSystemContext metaCtx = FileSystemContext.create(ServerConfiguration.global());
     MetaMasterConfigClient client = new RetryHandlingMetaMasterConfigClient(
         MasterClientContext.newBuilder(metaCtx.getClientContext()).build());
-    client.setPathConfiguration(DIR1, PROPERTY_KEY11, PROPERTY_VALUE11);
-    client.setPathConfiguration(DIR1, PROPERTY_KEY12, PROPERTY_VALUE12);
-    client.setPathConfiguration(DIR2, PROPERTY_KEY2, PROPERTY_VALUE2);
+    client.setPathConfiguration(new AlluxioURI(DIR1), PROPERTY_KEY11, PROPERTY_VALUE11);
+    client.setPathConfiguration(new AlluxioURI(DIR1), PROPERTY_KEY12, PROPERTY_VALUE12);
+    client.setPathConfiguration(new AlluxioURI(DIR2), PROPERTY_KEY2, PROPERTY_VALUE2);
     InetSocketAddress address = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
         .getAddress();
     FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
