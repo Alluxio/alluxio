@@ -2198,11 +2198,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
     renameInternal(rpcContext, srcInodePath, dstInodePath, false, options);
-
-    RenameEntry rename =
-        RenameEntry.newBuilder().setId(srcInode.getId()).setDstPath(dstInodePath.getUri().getPath())
-            .setOpTimeMs(options.getOperationTimeMs()).build();
-    rpcContext.journal(JournalEntry.newBuilder().setRename(rename).build());
   }
 
   /**
@@ -2224,8 +2219,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // 1. Change the source inode name to the destination name.
     // 2. Insert the source inode into the destination parent.
     // 3. Do UFS operations if necessary.
-    // 4. Remove the source inode (reverting the name) from the source parent.
-    // 5. Set the last modification times for both source and destination parent inodes.
+    // 4. Journal the rename operation before the source path is visible
+    // 5. Remove the source inode (reverting the name) from the source parent.
+    // 6. Set the last modification times for both source and destination parent inodes.
 
     Inode<?> srcInode = srcInodePath.getInode();
     AlluxioURI srcPath = srcInodePath.getUri();
@@ -2308,10 +2304,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw e;
     }
 
-    // TODO(jiri): A crash between now and the time the rename operation is journaled will result in
-    // an inconsistency between Alluxio and UFS.
+    // 4. Journal the rename operation before the source path is visible
+    if (!replayed) {
+      RenameEntry rename = RenameEntry.newBuilder().setId(srcInode.getId())
+          .setDstPath(dstInodePath.getUri().getPath())
+          .setOpTimeMs(options.getOperationTimeMs()).build();
+      rpcContext.journal(JournalEntry.newBuilder().setRename(rename).build());
+    }
 
-    // 4. Remove the source inode (reverting the name) from the source parent. The name must be
+    // 5. Remove the source inode (reverting the name) from the source parent. The name must be
     // reverted or removeChild will not be able to find the appropriate child entry since it is
     // keyed on the original name.
     srcInode.setName(srcName);
@@ -2326,11 +2327,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       srcInode.setName(srcName);
       srcInode.setParentId(srcParentInode.getId());
+
+      if (!replayed) {
+        // Revert the rename
+        RenameEntry revertRename = RenameEntry.newBuilder().setId(srcInode.getId())
+            .setDstPath(srcInodePath.getUri().getPath())
+            .setOpTimeMs(options.getOperationTimeMs()).build();
+        rpcContext.journal(JournalEntry.newBuilder().setRename(revertRename).build());
+      }
       throw new IOException("Failed to remove source path " + srcPath + " from parent");
     }
     srcInode.setName(dstName);
 
-    // 5. Set the last modification times for both source and destination parent inodes.
+    // 6. Set the last modification times for both source and destination parent inodes.
     // Note this step relies on setLastModificationTimeMs being thread safe to guarantee the
     // correct behavior when multiple files are being renamed within a directory.
     dstParentInode.setLastModificationTimeMs(options.getOperationTimeMs());
