@@ -73,7 +73,7 @@ public final class AddCommand extends AbstractFsAdminCommand {
     Map<PropertyKey, String> properties = new HashMap<>();
     if (cl.hasOption(PROPERTY_OPTION_NAME)) {
       Maps.fromProperties(cl.getOptionProperties(PROPERTY_OPTION_NAME)).forEach((key, value) ->
-        properties.put(PropertyKey.fromString(key), value));
+          properties.put(PropertyKey.fromString(key), value));
       mMetaConfigClient.setPathConfiguration(path, properties);
     }
     return 0;

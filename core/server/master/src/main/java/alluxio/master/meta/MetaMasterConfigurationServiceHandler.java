@@ -81,16 +81,16 @@ public final class MetaMasterConfigurationServiceHandler
 
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RemovePathConfigurationPResponse>) () -> {
-      Set<PropertyKey> keySet = new HashSet<>();
-      for (String key : keys) {
-        keySet.add(PropertyKey.fromString(key));
-      }
-      if (keySet.isEmpty()) {
-        mMetaMaster.removePathConfiguration(path);
-      } else {
-        mMetaMaster.removePathConfiguration(path, keySet);
-      }
-      return RemovePathConfigurationPResponse.getDefaultInstance();
-    }, "removePathConfiguration", "request=%s", responseObserver, request);
+        Set<PropertyKey> keySet = new HashSet<>();
+        for (String key : keys) {
+          keySet.add(PropertyKey.fromString(key));
+        }
+        if (keySet.isEmpty()) {
+          mMetaMaster.removePathConfiguration(path);
+        } else {
+          mMetaMaster.removePathConfiguration(path, keySet);
+        }
+        return RemovePathConfigurationPResponse.getDefaultInstance();
+      }, "removePathConfiguration", "request=%s", responseObserver, request);
   }
 }
