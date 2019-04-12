@@ -92,4 +92,10 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
     retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
         .setPath(path).addAllKeys(keySet).build()));
   }
+
+  @Override
+  public void removePathConfiguration(String path) throws IOException {
+    retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
+        .setPath(path).build()));
+  }
 }

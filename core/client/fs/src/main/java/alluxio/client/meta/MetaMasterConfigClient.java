@@ -57,4 +57,11 @@ public interface MetaMasterConfigClient extends Closeable {
    * @param keys the property keys
    */
   void removePathConfiguration(String path, Set<PropertyKey> keys) throws IOException;
+
+  /**
+   * Removes all properties for a path.
+   *
+   * @param path the path
+   */
+  void removePathConfiguration(String path) throws IOException;
 }

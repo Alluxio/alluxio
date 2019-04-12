@@ -85,7 +85,11 @@ public final class MetaMasterConfigurationServiceHandler
       for (String key : keys) {
         keySet.add(PropertyKey.fromString(key));
       }
-      mMetaMaster.removePathConfiguration(path, keySet);
+      if (keySet.isEmpty()) {
+        mMetaMaster.removePathConfiguration(path);
+      } else {
+        mMetaMaster.removePathConfiguration(path, keySet);
+      }
       return RemovePathConfigurationPResponse.getDefaultInstance();
     }, "removePathConfiguration", "request=%s", responseObserver, request);
   }

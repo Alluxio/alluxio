@@ -370,6 +370,13 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
+  public void removePathConfiguration(String path) throws UnavailableException {
+    try (JournalContext ctx = createJournalContext()) {
+      mPathProperties.removeAll(ctx, path);
+    }
+  }
+
+  @Override
   public List<Address> getMasterAddresses() {
     return mMasterConfigStore.getLiveNodeAddresses();
   }

@@ -62,7 +62,7 @@ public interface MetaMaster extends Master {
   Map<String, ConfigProperties> getPathConfiguration(GetConfigurationPOptions options);
 
   /**
-   * Sets a property for a path pattern.
+   * Sets properties for a path.
    *
    * @param path the path
    * @param properties the properties for path
@@ -70,12 +70,19 @@ public interface MetaMaster extends Master {
   void setPathConfiguration(String path, Map<PropertyKey, String> properties) throws UnavailableException;
 
   /**
-   * Sets a property for a path pattern.
+   * Removes properties for a path.
    *
    * @param path the path
    * @param keys the property keys
    */
   void removePathConfiguration(String path, Set<PropertyKey> keys) throws UnavailableException;
+
+  /**
+   * Removes all properties for a path.
+   *
+   * @param path the path
+   */
+  void removePathConfiguration(String path) throws UnavailableException;
 
   /**
    * @return the addresses of live masters
