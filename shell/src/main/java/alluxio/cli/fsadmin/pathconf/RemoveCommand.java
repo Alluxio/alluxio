@@ -33,13 +33,13 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
   public static final String KEYS_OPTION_NAME = "keys";
 
   private static final Option KEYS_OPTION =
-    Option.builder()
-        .longOpt(KEYS_OPTION_NAME)
-        .required(false)
-        .hasArg(true)
-        .numberOfArgs(1)
-        .desc("properties keys to be removed from this path's configurations, separated by comma")
-        .build();
+      Option.builder()
+          .longOpt(KEYS_OPTION_NAME)
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .desc("properties keys to be removed from this path's configurations, separated by comma")
+          .build();
 
   /**
    * @param context fsadmin command context

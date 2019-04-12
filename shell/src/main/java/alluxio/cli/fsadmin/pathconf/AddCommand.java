@@ -34,15 +34,15 @@ public final class AddCommand extends AbstractFsAdminCommand {
   public static final String PROPERTY_OPTION_NAME = "property";
 
   private static final Option PROPERTY_OPTION =
-    Option.builder()
-        .longOpt(PROPERTY_OPTION_NAME)
-        .required(false)
-        .hasArg(true)
-        .numberOfArgs(2)
-        .argName("key=value")
-        .valueSeparator('=')
-        .desc("property associated with the path")
-        .build();
+      Option.builder()
+          .longOpt(PROPERTY_OPTION_NAME)
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(2)
+          .argName("key=value")
+          .valueSeparator('=')
+          .desc("property associated with the path")
+          .build();
 
   /**
    * @param context fsadmin command context
