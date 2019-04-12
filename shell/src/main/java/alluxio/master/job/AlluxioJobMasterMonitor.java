@@ -9,12 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.jobmaster;
+package alluxio.master.job;
 
 import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.master.MasterHealthCheckClient;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -40,9 +41,19 @@ public final class AlluxioJobMasterMonitor {
       LOG.warn("ignoring arguments");
     }
     AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    HealthCheckClient client = new JobMasterHealthCheckClient(
-        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, conf),
-        () -> new ExponentialBackoffRetry(50, 100, 2), conf);
+    HealthCheckClient client;
+    // Only the primary master serves RPCs, so if we're configured for HA, fall back to simply
+    // checking for the running process.
+    if (ConfigurationUtils.isHaMode(conf)) {
+      client = new MasterHealthCheckClient.Builder(conf)
+          .withAlluxioMasterName(MasterHealthCheckClient.MasterType.JOB_MASTER)
+          .build();
+    } else {
+      client = new JobMasterRpcHealthCheckClient(NetworkAddressUtils
+          .getConnectAddress(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, conf),
+          () -> new ExponentialBackoffRetry(50, 100, 2), conf);
+    }
+
     if (!client.isServing()) {
       System.exit(1);
     }

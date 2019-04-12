@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.jobworker;
+package alluxio.worker.job;
 
 import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
@@ -43,7 +43,7 @@ public final class AlluxioJobWorkerMonitor {
 
     HealthCheckClient client = new JobWorkerHealthCheckClient(
         NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.JOB_WORKER_RPC, conf),
-        () -> new ExponentialBackoffRetry(50, 100, 2), conf);
+        () -> new ExponentialBackoffRetry(50, 500, 10), conf);
     if (!client.isServing()) {
       System.exit(1);
     }

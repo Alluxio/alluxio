@@ -39,7 +39,14 @@ public final class AlluxioMasterMonitor {
     }
 
     AlluxioConfiguration alluxioConf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    HealthCheckClient client = new MasterHealthCheckClient.Builder(alluxioConf).build();
+
+    MasterHealthCheckClient.Builder builder = new MasterHealthCheckClient.Builder(alluxioConf);
+    if (ConfigurationUtils.isHaMode(alluxioConf)) {
+      builder.withProcessCheck(true);
+    } else {
+      builder.withProcessCheck(false);
+    }
+    HealthCheckClient client = builder.build();
     if (!client.isServing()) {
       System.exit(1);
     }

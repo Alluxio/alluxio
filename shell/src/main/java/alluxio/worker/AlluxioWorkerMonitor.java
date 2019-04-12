@@ -43,7 +43,7 @@ public final class AlluxioWorkerMonitor {
 
     HealthCheckClient client = new WorkerHealthCheckClient(
         NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC, conf),
-        () -> new ExponentialBackoffRetry(50, 100, 2), conf);
+        () -> new ExponentialBackoffRetry(50, 500, 10), conf);
     if (!client.isServing()) {
       System.exit(1);
     }
