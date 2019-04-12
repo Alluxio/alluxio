@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin.pathconf;
 
+import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
@@ -69,7 +70,7 @@ public final class AddCommand extends AbstractFsAdminCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    String path = cl.getArgs()[1];
+    AlluxioURI path = new AlluxioURI(cl.getArgs()[1]);
     Map<PropertyKey, String> properties = new HashMap<>();
     if (cl.hasOption(PROPERTY_OPTION_NAME)) {
       Maps.fromProperties(cl.getOptionProperties(PROPERTY_OPTION_NAME)).forEach((key, value) ->

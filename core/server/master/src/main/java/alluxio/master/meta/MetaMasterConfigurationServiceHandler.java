@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * This class is a gRPC handler for meta master RPCs.
@@ -81,14 +80,10 @@ public final class MetaMasterConfigurationServiceHandler
 
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RemovePathConfigurationPResponse>) () -> {
-        Set<PropertyKey> keySet = new HashSet<>();
-        for (String key : keys) {
-          keySet.add(PropertyKey.fromString(key));
-        }
-        if (keySet.isEmpty()) {
+        if (keys.isEmpty()) {
           mMetaMaster.removePathConfiguration(path);
         } else {
-          mMetaMaster.removePathConfiguration(path, keySet);
+          mMetaMaster.removePathConfiguration(path, new HashSet<>(keys));
         }
         return RemovePathConfigurationPResponse.getDefaultInstance();
       }, "removePathConfiguration", "request=%s", responseObserver, request);

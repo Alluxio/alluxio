@@ -344,7 +344,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     mPathProperties.get().forEach((path, properties) -> {
       List<ConfigProperty> configPropertyList = new ArrayList<>();
       properties.forEach((key, value) ->
-          configPropertyList.add(ConfigProperty.newBuilder().setName(key.getName())
+          configPropertyList.add(ConfigProperty.newBuilder().setName(key)
               .setSource(Source.PATH_DEFAULT.toString()).setValue(value).build()));
       ConfigProperties configProperties = ConfigProperties.newBuilder().addAllProperties(
           configPropertyList).build();
@@ -362,7 +362,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public void removePathConfiguration(String path, Set<PropertyKey> keys)
+  public void removePathConfiguration(String path, Set<String> keys)
       throws UnavailableException {
     try (JournalContext ctx = createJournalContext()) {
       mPathProperties.remove(ctx, path, keys);

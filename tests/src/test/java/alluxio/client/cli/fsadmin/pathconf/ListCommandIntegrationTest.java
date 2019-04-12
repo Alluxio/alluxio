@@ -36,7 +36,7 @@ public class ListCommandIntegrationTest extends AbstractShellIntegrationTest {
   private static final String DIR1 = "/path/to/dir1";
   private static final PropertyKey PROPERTY_KEY1 = PropertyKey.USER_FILE_READ_TYPE_DEFAULT;
   private static final String PROPERTY_VALUE1 = ReadType.NO_CACHE.toString();
-  private static final String DIR2 = "/path/to/dir2/";
+  private static final String DIR2 = "/path/to/dir2";
   private static final PropertyKey PROPERTY_KEY2 = PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT;
   private static final String PROPERTY_VALUE2 = WriteType.THROUGH.toString();
 

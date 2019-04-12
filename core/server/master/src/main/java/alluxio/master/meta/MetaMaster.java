@@ -76,7 +76,7 @@ public interface MetaMaster extends Master {
    * @param path the path
    * @param keys the property keys
    */
-  void removePathConfiguration(String path, Set<PropertyKey> keys) throws UnavailableException;
+  void removePathConfiguration(String path, Set<String> keys) throws UnavailableException;
 
   /**
    * Removes all properties for a path.

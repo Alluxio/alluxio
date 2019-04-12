@@ -34,12 +34,12 @@ import java.net.InetSocketAddress;
  */
 public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
   private static final String DIR0 = "/a";
-  private static final String DIR1 = "/a/b/";
+  private static final String DIR1 = "/a/b";
   private static final PropertyKey PROPERTY_KEY11 = PropertyKey.USER_FILE_READ_TYPE_DEFAULT;
   private static final String PROPERTY_VALUE11 = ReadType.NO_CACHE.toString();
   private static final PropertyKey PROPERTY_KEY12 = PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT;
   private static final String PROPERTY_VALUE12 = WriteType.MUST_CACHE.toString();
-  private static final String DIR2 = "/a/b/c/";
+  private static final String DIR2 = "/a/b/c";
   private static final PropertyKey PROPERTY_KEY2 = PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT;
   private static final String PROPERTY_VALUE2 = WriteType.THROUGH.toString();
   private static final String DIR3 = "/a/b/c/d";

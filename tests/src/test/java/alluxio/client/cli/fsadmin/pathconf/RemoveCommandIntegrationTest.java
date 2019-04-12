@@ -25,14 +25,14 @@ import org.junit.Test;
  * Tests for pathConf remove command.
  */
 public class RemoveCommandIntegrationTest extends AbstractShellIntegrationTest {
-  private static final String DIR1 = "/a/b/";
+  private static final String DIR1 = "/a/b";
   private static final PropertyKey PROPERTY_KEY11 = PropertyKey.USER_FILE_READ_TYPE_DEFAULT;
   private static final String PROPERTY_VALUE11 = ReadType.NO_CACHE.toString();
   private static final PropertyKey PROPERTY_KEY12 = PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT;
   private static final String PROPERTY_VALUE12 = WriteType.MUST_CACHE.toString();
   private static final PropertyKey PROPERTY_KEY13 = PropertyKey.USER_HEARTBEAT_INTERVAL_MS;
   private static final String PROPERTY_VALUE13 = "2sec";
-  private static final String DIR2 = "/a/b/c/";
+  private static final String DIR2 = "/a/b/c";
   private static final PropertyKey PROPERTY_KEY2 = PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT;
   private static final String PROPERTY_VALUE2 = WriteType.THROUGH.toString();
 
