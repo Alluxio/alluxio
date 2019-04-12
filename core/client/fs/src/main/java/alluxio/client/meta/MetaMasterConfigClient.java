@@ -37,7 +37,8 @@ public interface MetaMasterConfigClient extends Closeable {
    * @param key the property key
    * @param value the property value
    */
-  default void setPathConfiguration(AlluxioURI path, PropertyKey key, String value) throws IOException {
+  default void setPathConfiguration(AlluxioURI path, PropertyKey key, String value)
+      throws IOException {
     Map<PropertyKey, String> properties = new HashMap<>();
     properties.put(key, value);
     setPathConfiguration(path, properties);
@@ -49,7 +50,8 @@ public interface MetaMasterConfigClient extends Closeable {
    * @param path the path
    * @param properties the properties
    */
-  void setPathConfiguration(AlluxioURI path, Map<PropertyKey, String> properties) throws IOException;
+  void setPathConfiguration(AlluxioURI path, Map<PropertyKey, String> properties)
+      throws IOException;
 
   /**
    * Removes properties for a path.

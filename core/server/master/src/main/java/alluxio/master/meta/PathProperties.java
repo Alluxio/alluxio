@@ -148,6 +148,7 @@ public final class PathProperties implements DelegatingJournaled {
     }
 
     /**
+     * @param path the path
      * @return a copy of the internal properties for path or empty if configurations for the path
      *    do not exist
      */
@@ -157,7 +158,6 @@ public final class PathProperties implements DelegatingJournaled {
       }
       return new HashMap<>();
     }
-
 
     @Override
     public boolean processJournalEntry(Journal.JournalEntry entry) {
