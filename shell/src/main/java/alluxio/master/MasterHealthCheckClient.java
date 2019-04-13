@@ -162,7 +162,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
 
     @Override
     public void run() {
-      if (isServing()) {
+      if (super.isServing()) {
         mIsServing.set(true);
       }
     }
