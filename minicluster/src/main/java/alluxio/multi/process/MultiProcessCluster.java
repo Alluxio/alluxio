@@ -171,15 +171,7 @@ public final class MultiProcessCluster {
         mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
         mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
         break;
-      case EMBEDDED_NON_HA:
-        mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString());
-        mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
-        mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
-        mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
-        mProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
-            Integer.toString(masterAddress.getEmbeddedJournalPort()));
-        break;
-      case EMBEDDED_HA:
+      case EMBEDDED:
         List<String> journalAddresses = new ArrayList<>();
         List<String> rpcAddresses = new ArrayList<>();
         for (MasterNetAddress address : mMasterAddresses) {
@@ -484,7 +476,7 @@ public final class MultiProcessCluster {
    */
   public synchronized void updateDeployMode(DeployMode mode) {
     mDeployMode = mode;
-    if (mDeployMode == DeployMode.EMBEDDED_HA) {
+    if (mDeployMode == DeployMode.EMBEDDED) {
       // Ensure that the journal properties are set correctly.
       for (int i = 0; i < mMasters.size(); i++) {
         Master master = mMasters.get(i);
@@ -558,7 +550,7 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(address.getWebPort()));
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
         Integer.toString(address.getEmbeddedJournalPort()));
-    if (mDeployMode.equals(DeployMode.EMBEDDED_HA)) {
+    if (mDeployMode.equals(DeployMode.EMBEDDED)) {
       File journalDir = new File(mWorkDir, "journal" + i);
       journalDir.mkdirs();
       conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, journalDir.getAbsolutePath());
@@ -605,7 +597,7 @@ public final class MultiProcessCluster {
    * Formats the cluster journal.
    */
   public synchronized void formatJournal() throws IOException {
-    if (mDeployMode == DeployMode.EMBEDDED_HA) {
+    if (mDeployMode == DeployMode.EMBEDDED) {
       for (Master master : mMasters) {
         File journalDir = new File(master.getConf().get(PropertyKey.MASTER_JOURNAL_FOLDER));
         FileUtils.deleteDirectory(journalDir);
@@ -628,17 +620,21 @@ public final class MultiProcessCluster {
   public synchronized MasterInquireClient getMasterInquireClient() {
     switch (mDeployMode) {
       case UFS_NON_HA:
-      case EMBEDDED_NON_HA:
         Preconditions.checkState(mMasters.size() == 1,
             "Running with multiple masters requires Zookeeper or Embedded Journal");
         return new SingleMasterInquireClient(new InetSocketAddress(
             mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));
-      case EMBEDDED_HA:
-        List<InetSocketAddress> addresses = new ArrayList<>(mMasterAddresses.size());
-        for (MasterNetAddress address : mMasterAddresses) {
-          addresses.add(new InetSocketAddress(address.getHostname(), address.getRpcPort()));
+      case EMBEDDED:
+        if (mMasterAddresses.size() > 1) {
+          List<InetSocketAddress> addresses = new ArrayList<>(mMasterAddresses.size());
+          for (MasterNetAddress address : mMasterAddresses) {
+            addresses.add(new InetSocketAddress(address.getHostname(), address.getRpcPort()));
+          }
+          return new PollingMasterInquireClient(addresses, ServerConfiguration.global());
+        } else {
+          return new SingleMasterInquireClient(new InetSocketAddress(
+              mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));
         }
-        return new PollingMasterInquireClient(addresses, ServerConfiguration.global());
       case ZOOKEEPER_HA:
         return ZkMasterInquireClient.getClient(mCuratorServer.getConnectString(),
             ServerConfiguration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
@@ -716,7 +712,7 @@ public final class MultiProcessCluster {
    * Deploy mode for the cluster.
    */
   public enum DeployMode {
-    EMBEDDED_HA, EMBEDDED_NON_HA,
+    EMBEDDED,
     UFS_NON_HA, ZOOKEEPER_HA
   }
 
@@ -731,8 +727,7 @@ public final class MultiProcessCluster {
     JournalType journalType = ServerConfiguration
         .getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
     if (journalType == JournalType.EMBEDDED) {
-      return numberOfMasters > 1 ? MultiProcessCluster.DeployMode.EMBEDDED_HA
-          : MultiProcessCluster.DeployMode.EMBEDDED_NON_HA;
+      return DeployMode.EMBEDDED;
     } else {
       return numberOfMasters > 1 ? MultiProcessCluster.DeployMode.ZOOKEEPER_HA
           : MultiProcessCluster.DeployMode.UFS_NON_HA;
@@ -750,8 +745,7 @@ public final class MultiProcessCluster {
       case UFS_NON_HA:
       case ZOOKEEPER_HA:
         return JournalType.UFS;
-      case EMBEDDED_HA:
-      case EMBEDDED_NON_HA:
+      case EMBEDDED:
       default:
         return JournalType.EMBEDDED;
     }

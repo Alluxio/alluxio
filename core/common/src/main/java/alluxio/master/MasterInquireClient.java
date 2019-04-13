@@ -78,12 +78,13 @@ public interface MasterInquireClient {
             conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
             conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH),
             conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT));
-      } else if (ConfigurationUtils.getMasterRpcAddresses(conf).size() > 1) {
-        return new PollingMasterInquireClient(
-            ConfigurationUtils.getMasterRpcAddresses(conf), conf);
       } else {
-        return new SingleMasterInquireClient(
-            NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf));
+        List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(conf);
+        if (addresses.size() > 1) {
+          return new PollingMasterInquireClient(addresses, conf);
+        } else {
+          return new SingleMasterInquireClient(addresses.get(0));
+        }
       }
     }
 

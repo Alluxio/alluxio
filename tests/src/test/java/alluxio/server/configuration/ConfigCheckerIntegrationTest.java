@@ -87,7 +87,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         .setClusterName("ConfigCheckerMultiMastersEmbeddedHATest")
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(0)
-        .setDeployMode(DeployMode.EMBEDDED_HA)
+        .setDeployMode(DeployMode.EMBEDDED)
         .setMasterProperties(masterProperties)
         .build();
     mCluster.start();
