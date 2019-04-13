@@ -1004,19 +1004,8 @@ public final class AlluxioMasterRestServiceHandler {
       }
       response.setUfsOps(ufsOpsMap);
 
-      Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-          return !(name.endsWith("Ops"));
-        }
-      });
-
-      Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-          return name.endsWith("Ops");
-        }
-      });
+      Map<String, Counter> counters = mr.getCounters((name, metric) -> !(name.endsWith("Ops")));
+      Map<String, Counter> rpcInvocations = mr.getCounters((name, metric) -> name.endsWith("Ops"));
 
       Map<String, Metric> operations = new TreeMap<>();
       // Remove the instance name from the metrics.
