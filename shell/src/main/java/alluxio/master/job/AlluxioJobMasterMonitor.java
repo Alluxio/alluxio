@@ -51,7 +51,7 @@ public final class AlluxioJobMasterMonitor {
     } else {
       client = new JobMasterRpcHealthCheckClient(NetworkAddressUtils
           .getConnectAddress(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, conf),
-          () -> new ExponentialBackoffRetry(50, 100, 2), conf);
+          () -> new ExponentialBackoffRetry(50, 500, 130), conf);
     }
 
     if (!client.isServing()) {
