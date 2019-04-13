@@ -20,13 +20,13 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
 import alluxio.metrics.Metric;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.wire.WorkerLostStorageInfo;
 
 import java.util.List;
 import java.util.Map;

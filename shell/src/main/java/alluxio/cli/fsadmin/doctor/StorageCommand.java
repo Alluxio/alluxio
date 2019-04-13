@@ -12,7 +12,8 @@
 package alluxio.cli.fsadmin.doctor;
 
 import alluxio.client.block.BlockMasterClient;
-import alluxio.wire.WorkerLostStorageInfo;
+import alluxio.grpc.StorageList;
+import alluxio.grpc.WorkerLostStorageInfo;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -43,15 +44,15 @@ public class StorageCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    List<WorkerLostStorageInfo> workerLostStorageInfo = mBlockMasterClient.getWorkerLostStorage();
-    for (WorkerLostStorageInfo info : workerLostStorageInfo) {
-      Map<String, List<String>> lostStorageOnTiers = info.getLostStorageOnTiers();
-      if (lostStorageOnTiers.size() != 0) {
+    List<WorkerLostStorageInfo> workerLostStorageList = mBlockMasterClient.getWorkerLostStorage();
+    for (WorkerLostStorageInfo info : workerLostStorageList) {
+      Map<String, StorageList> lostStorageMap = info.getLostStorageMap();
+      if (lostStorageMap.size() != 0) {
         mPrintStream.printf("The following directories are lost in worker %s: %n",
-            info.getWorkerAddress().getHost());
-        for (Map.Entry<String, List<String>> tierStorage : lostStorageOnTiers.entrySet()) {
+            info.getAddress().getHost());
+        for (Map.Entry<String, StorageList> tierStorage : lostStorageMap.entrySet()) {
           String tier = tierStorage.getKey();
-          for (String storage : tierStorage.getValue()) {
+          for (String storage : tierStorage.getValue().getStorageList()) {
             mPrintStream.printf("Tier %s: %s%n", tier, storage);
           }
         }

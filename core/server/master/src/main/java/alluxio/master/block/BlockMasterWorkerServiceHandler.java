@@ -73,10 +73,10 @@ public final class BlockMasterWorkerServiceHandler
     for (Map.Entry<String, TierList> blockEntry : addedBlocksOnTiers.entrySet()) {
       addedBlocksOnTiersMap.put(blockEntry.getKey(), blockEntry.getValue().getTiersList());
     }
-    final Map<String, StorageList> removedStorageOnTiers = request.getRemovedStorageOnTiersMap();
-    Map<String, List<String>> removedStorageOnTiersMap = new HashMap<>();
-    for (Map.Entry<String, StorageList> storageEntry : removedStorageOnTiers.entrySet()) {
-      removedStorageOnTiersMap.put(storageEntry.getKey(), storageEntry.getValue().getStorageList());
+    final Map<String, StorageList> lostStorage = request.getLostStorageMap();
+    Map<String, List<String>> lostStorageMap = new HashMap<>();
+    for (Map.Entry<String, StorageList> storageEntry : lostStorage.entrySet()) {
+      lostStorageMap.put(storageEntry.getKey(), storageEntry.getValue().getStorageList());
     }
     final BlockHeartbeatPOptions options = request.getOptions();
     final List<Metric> metrics =
@@ -85,7 +85,7 @@ public final class BlockMasterWorkerServiceHandler
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
           capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiersMap,
-          removedStorageOnTiersMap, metrics)).build(),
+            lostStorageMap, metrics)).build(),
         "blockHeartbeat", "request=%s", responseObserver, request);
   }
 

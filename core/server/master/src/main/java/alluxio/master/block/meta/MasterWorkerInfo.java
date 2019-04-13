@@ -70,8 +70,8 @@ public final class MasterWorkerInfo {
   private Set<Long> mBlocks;
   /** ids of blocks the worker should remove. */
   private Set<Long> mToRemoveBlocks;
-  /** Mapping from tier alias to removed directory paths. */
-  private Map<String, List<String>> mRemovedStorageOnTiers;
+  /** Mapping from tier alias to lost storage paths. */
+  private Map<String, List<String>> mLostStorage;
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -90,7 +90,7 @@ public final class MasterWorkerInfo {
     mUsedBytesOnTiers = new HashMap<>();
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
-    mRemovedStorageOnTiers = new HashMap<>();
+    mLostStorage = new HashMap<>();
   }
 
   /**
@@ -179,27 +179,27 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Removes a storage from this worker.
+   * Adds a new worker lost storage paths.
    *
    * @param tierAlias the tier alias
-   * @param dirPath the removed directory path
+   * @param dirPath the lost storage path
    */
-  public void removeStorage(String tierAlias, String dirPath) {
-    List<String> paths = mRemovedStorageOnTiers.getOrDefault(tierAlias, new ArrayList<>());
+  public void addLostStorage(String tierAlias, String dirPath) {
+    List<String> paths = mLostStorage.getOrDefault(tierAlias, new ArrayList<>());
     paths.add(dirPath);
-    mRemovedStorageOnTiers.put(tierAlias, paths);
+    mLostStorage.put(tierAlias, paths);
   }
 
   /**
-   * Records the removed storage.
+   * Adds new worker lost storage paths.
    *
-   * @param removedStorage the removed storage to add
+   * @param lostStorage the lost storage to add
    */
-  public void removeStorage(Map<String, List<String>> removedStorage) {
-    for (Map.Entry<String, List<String>> entry : removedStorage.entrySet()) {
-      List<String> paths = mRemovedStorageOnTiers.getOrDefault(entry.getKey(), new ArrayList<>());
+  public void addLostStorage(Map<String, List<String>> lostStorage) {
+    for (Map.Entry<String, List<String>> entry : lostStorage.entrySet()) {
+      List<String> paths = mLostStorage.getOrDefault(entry.getKey(), new ArrayList<>());
       paths.addAll(entry.getValue());
-      mRemovedStorageOnTiers.put(entry.getKey(), paths);
+      mLostStorage.put(entry.getKey(), paths);
     }
   }
 
@@ -359,10 +359,10 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return the map from tier alias to removed directory paths in this worker
+   * @return the map from tier alias to lost storage paths in this worker
    */
-  public Map<String, List<String>> getRemovedStorages() {
-    return Collections.unmodifiableMap(mRemovedStorageOnTiers);
+  public Map<String, List<String>> getLostStorage() {
+    return Collections.unmodifiableMap(mLostStorage);
   }
 
   @Override
@@ -370,7 +370,7 @@ public final class MasterWorkerInfo {
     return MoreObjects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("blocks", mBlocks)
-        .add("removedStorageOnTiers", mRemovedStorageOnTiers).toString();
+        .add("lostStorage", mLostStorage).toString();
   }
 
   /**

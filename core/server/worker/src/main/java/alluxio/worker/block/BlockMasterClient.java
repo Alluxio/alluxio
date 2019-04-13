@@ -133,14 +133,14 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
    * @param addedBlocks a mapping from storage tier alias to added blocks
-   * @param removedStorage a mapping from storage tier alias to removed storage list
+   * @param lostStorage a mapping from storage tier alias to a list of lost storage paths
    * @param metrics a list of worker metrics
    * @return an optional command for the worker to execute
    */
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> capacityBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final List<Long> removedBlocks, final Map<String, List<Long>> addedBlocks,
-      final Map<String, List<String>> removedStorage, final List<Metric> metrics)
+      final Map<String, List<String>> lostStorage, final List<Metric> metrics)
       throws IOException {
     final BlockHeartbeatPOptions options = BlockHeartbeatPOptions.newBuilder()
         .addAllMetrics(metrics).putAllCapacityBytesOnTiers(capacityBytesOnTiers).build();
@@ -149,15 +149,15 @@ public final class BlockMasterClient extends AbstractMasterClient {
       addedBlocksMap.put(blockEntry.getKey(),
           TierList.newBuilder().addAllTiers(blockEntry.getValue()).build());
     }
-    Map<String, StorageList> removedStorageMap = new HashMap<>(removedStorage.size());
-    for (Map.Entry<String, List<String>> storageEntry : removedStorage.entrySet()) {
-      removedStorageMap.put(storageEntry.getKey(),
+    Map<String, StorageList> lostStorageMap = new HashMap<>(lostStorage.size());
+    for (Map.Entry<String, List<String>> storageEntry : lostStorage.entrySet()) {
+      lostStorageMap.put(storageEntry.getKey(),
           StorageList.newBuilder().addAllStorage(storageEntry.getValue()).build());
     }
     final BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder().setWorkerId(workerId)
         .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
         .putAllAddedBlocksOnTiers(addedBlocksMap).setOptions(options)
-        .putAllRemovedStorageOnTiers(removedStorageMap).build();
+        .putAllLostStorage(lostStorageMap).build();
 
     return retryRPC(() -> mClient.blockHeartbeat(request).getCommand());
   }

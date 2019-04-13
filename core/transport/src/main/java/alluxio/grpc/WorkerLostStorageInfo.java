@@ -64,15 +64,15 @@ private static final long serialVersionUID = 0L;
           }
           case 18: {
             if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-              lostStorageOnTiers_ = com.google.protobuf.MapField.newMapField(
-                  LostStorageOnTiersDefaultEntryHolder.defaultEntry);
+              lostStorage_ = com.google.protobuf.MapField.newMapField(
+                  LostStorageDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000002;
             }
             com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.StorageList>
-            lostStorageOnTiers__ = input.readMessage(
-                LostStorageOnTiersDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            lostStorageOnTiers_.getMutableMap().put(
-                lostStorageOnTiers__.getKey(), lostStorageOnTiers__.getValue());
+            lostStorage__ = input.readMessage(
+                LostStorageDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            lostStorage_.getMutableMap().put(
+                lostStorage__.getKey(), lostStorage__.getValue());
             break;
           }
         }
@@ -97,7 +97,7 @@ private static final long serialVersionUID = 0L;
       int number) {
     switch (number) {
       case 2:
-        return internalGetLostStorageOnTiers();
+        return internalGetLostStorage();
       default:
         throw new RuntimeException(
             "Invalid map field number: " + number);
@@ -132,76 +132,92 @@ private static final long serialVersionUID = 0L;
     return address_ == null ? alluxio.grpc.WorkerNetAddress.getDefaultInstance() : address_;
   }
 
-  public static final int LOSTSTORAGEONTIERS_FIELD_NUMBER = 2;
-  private static final class LostStorageOnTiersDefaultEntryHolder {
+  public static final int LOSTSTORAGE_FIELD_NUMBER = 2;
+  private static final class LostStorageDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
         java.lang.String, alluxio.grpc.StorageList> defaultEntry =
             com.google.protobuf.MapEntry
             .<java.lang.String, alluxio.grpc.StorageList>newDefaultInstance(
-                alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_WorkerLostStorageInfo_LostStorageOnTiersEntry_descriptor, 
+                alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_WorkerLostStorageInfo_LostStorageEntry_descriptor, 
                 com.google.protobuf.WireFormat.FieldType.STRING,
                 "",
                 com.google.protobuf.WireFormat.FieldType.MESSAGE,
                 alluxio.grpc.StorageList.getDefaultInstance());
   }
   private com.google.protobuf.MapField<
-      java.lang.String, alluxio.grpc.StorageList> lostStorageOnTiers_;
+      java.lang.String, alluxio.grpc.StorageList> lostStorage_;
   private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.StorageList>
-  internalGetLostStorageOnTiers() {
-    if (lostStorageOnTiers_ == null) {
+  internalGetLostStorage() {
+    if (lostStorage_ == null) {
       return com.google.protobuf.MapField.emptyMapField(
-          LostStorageOnTiersDefaultEntryHolder.defaultEntry);
+          LostStorageDefaultEntryHolder.defaultEntry);
     }
-    return lostStorageOnTiers_;
+    return lostStorage_;
   }
 
-  public int getLostStorageOnTiersCount() {
-    return internalGetLostStorageOnTiers().getMap().size();
+  public int getLostStorageCount() {
+    return internalGetLostStorage().getMap().size();
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorageOnTiers = 2;</code>
+   * <pre>
+   ** a map from tier alias to the lost storage paths
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
    */
 
-  public boolean containsLostStorageOnTiers(
+  public boolean containsLostStorage(
       java.lang.String key) {
     if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetLostStorageOnTiers().getMap().containsKey(key);
+    return internalGetLostStorage().getMap().containsKey(key);
   }
   /**
-   * Use {@link #getLostStorageOnTiersMap()} instead.
+   * Use {@link #getLostStorageMap()} instead.
    */
   @java.lang.Deprecated
-  public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getLostStorageOnTiers() {
-    return getLostStorageOnTiersMap();
+  public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getLostStorage() {
+    return getLostStorageMap();
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorageOnTiers = 2;</code>
+   * <pre>
+   ** a map from tier alias to the lost storage paths
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
    */
 
-  public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getLostStorageOnTiersMap() {
-    return internalGetLostStorageOnTiers().getMap();
+  public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getLostStorageMap() {
+    return internalGetLostStorage().getMap();
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorageOnTiers = 2;</code>
+   * <pre>
+   ** a map from tier alias to the lost storage paths
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
    */
 
-  public alluxio.grpc.StorageList getLostStorageOnTiersOrDefault(
+  public alluxio.grpc.StorageList getLostStorageOrDefault(
       java.lang.String key,
       alluxio.grpc.StorageList defaultValue) {
     if (key == null) { throw new java.lang.NullPointerException(); }
     java.util.Map<java.lang.String, alluxio.grpc.StorageList> map =
-        internalGetLostStorageOnTiers().getMap();
+        internalGetLostStorage().getMap();
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
   /**
-   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorageOnTiers = 2;</code>
+   * <pre>
+   ** a map from tier alias to the lost storage paths
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
    */
 
-  public alluxio.grpc.StorageList getLostStorageOnTiersOrThrow(
+  public alluxio.grpc.StorageList getLostStorageOrThrow(
       java.lang.String key) {
     if (key == null) { throw new java.lang.NullPointerException(); }
     java.util.Map<java.lang.String, alluxio.grpc.StorageList> map =
-        internalGetLostStorageOnTiers().getMap();
+        internalGetLostStorage().getMap();
     if (!map.containsKey(key)) {
       throw new java.lang.IllegalArgumentException();
     }
@@ -226,8 +242,8 @@ private static final long serialVersionUID = 0L;
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
         output,
-        internalGetLostStorageOnTiers(),
-        LostStorageOnTiersDefaultEntryHolder.defaultEntry,
+        internalGetLostStorage(),
+        LostStorageDefaultEntryHolder.defaultEntry,
         2);
     unknownFields.writeTo(output);
   }
@@ -242,14 +258,14 @@ private static final long serialVersionUID = 0L;
         .computeMessageSize(1, getAddress());
     }
     for (java.util.Map.Entry<java.lang.String, alluxio.grpc.StorageList> entry
-         : internalGetLostStorageOnTiers().getMap().entrySet()) {
+         : internalGetLostStorage().getMap().entrySet()) {
       com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.StorageList>
-      lostStorageOnTiers__ = LostStorageOnTiersDefaultEntryHolder.defaultEntry.newBuilderForType()
+      lostStorage__ = LostStorageDefaultEntryHolder.defaultEntry.newBuilderForType()
           .setKey(entry.getKey())
           .setValue(entry.getValue())
           .build();
       size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, lostStorageOnTiers__);
+          .computeMessageSize(2, lostStorage__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -272,8 +288,8 @@ private static final long serialVersionUID = 0L;
       result = result && getAddress()
           .equals(other.getAddress());
     }
-    result = result && internalGetLostStorageOnTiers().equals(
-        other.internalGetLostStorageOnTiers());
+    result = result && internalGetLostStorage().equals(
+        other.internalGetLostStorage());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -289,9 +305,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + ADDRESS_FIELD_NUMBER;
       hash = (53 * hash) + getAddress().hashCode();
     }
-    if (!internalGetLostStorageOnTiers().getMap().isEmpty()) {
-      hash = (37 * hash) + LOSTSTORAGEONTIERS_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetLostStorageOnTiers().hashCode();
+    if (!internalGetLostStorage().getMap().isEmpty()) {
+      hash = (37 * hash) + LOSTSTORAGE_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetLostStorage().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -403,7 +419,7 @@ private static final long serialVersionUID = 0L;
         int number) {
       switch (number) {
         case 2:
-          return internalGetLostStorageOnTiers();
+          return internalGetLostStorage();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -414,7 +430,7 @@ private static final long serialVersionUID = 0L;
         int number) {
       switch (number) {
         case 2:
-          return internalGetMutableLostStorageOnTiers();
+          return internalGetMutableLostStorage();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -451,7 +467,7 @@ private static final long serialVersionUID = 0L;
         addressBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000001);
-      internalGetMutableLostStorageOnTiers().clear();
+      internalGetMutableLostStorage().clear();
       return this;
     }
 
@@ -484,8 +500,8 @@ private static final long serialVersionUID = 0L;
       } else {
         result.address_ = addressBuilder_.build();
       }
-      result.lostStorageOnTiers_ = internalGetLostStorageOnTiers();
-      result.lostStorageOnTiers_.makeImmutable();
+      result.lostStorage_ = internalGetLostStorage();
+      result.lostStorage_.makeImmutable();
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -531,8 +547,8 @@ private static final long serialVersionUID = 0L;
       if (other.hasAddress()) {
         mergeAddress(other.getAddress());
       }
-      internalGetMutableLostStorageOnTiers().mergeFrom(
-          other.internalGetLostStorageOnTiers());
+      internalGetMutableLostStorage().mergeFrom(
+          other.internalGetLostStorage());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -680,94 +696,114 @@ private static final long serialVersionUID = 0L;
     }
 
     private com.google.protobuf.MapField<
-        java.lang.String, alluxio.grpc.StorageList> lostStorageOnTiers_;
+        java.lang.String, alluxio.grpc.StorageList> lostStorage_;
     private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.StorageList>
-    internalGetLostStorageOnTiers() {
-      if (lostStorageOnTiers_ == null) {
+    internalGetLostStorage() {
+      if (lostStorage_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
-            LostStorageOnTiersDefaultEntryHolder.defaultEntry);
+            LostStorageDefaultEntryHolder.defaultEntry);
       }
-      return lostStorageOnTiers_;
+      return lostStorage_;
     }
     private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.StorageList>
-    internalGetMutableLostStorageOnTiers() {
+    internalGetMutableLostStorage() {
       onChanged();;
-      if (lostStorageOnTiers_ == null) {
-        lostStorageOnTiers_ = com.google.protobuf.MapField.newMapField(
-            LostStorageOnTiersDefaultEntryHolder.defaultEntry);
+      if (lostStorage_ == null) {
+        lostStorage_ = com.google.protobuf.MapField.newMapField(
+            LostStorageDefaultEntryHolder.defaultEntry);
       }
-      if (!lostStorageOnTiers_.isMutable()) {
-        lostStorageOnTiers_ = lostStorageOnTiers_.copy();
+      if (!lostStorage_.isMutable()) {
+        lostStorage_ = lostStorage_.copy();
       }
-      return lostStorageOnTiers_;
+      return lostStorage_;
     }
 
-    public int getLostStorageOnTiersCount() {
-      return internalGetLostStorageOnTiers().getMap().size();
+    public int getLostStorageCount() {
+      return internalGetLostStorage().getMap().size();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorageOnTiers = 2;</code>
+     * <pre>
+     ** a map from tier alias to the lost storage paths
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
      */
 
-    public boolean containsLostStorageOnTiers(
+    public boolean containsLostStorage(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetLostStorageOnTiers().getMap().containsKey(key);
+      return internalGetLostStorage().getMap().containsKey(key);
     }
     /**
-     * Use {@link #getLostStorageOnTiersMap()} instead.
+     * Use {@link #getLostStorageMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getLostStorageOnTiers() {
-      return getLostStorageOnTiersMap();
+    public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getLostStorage() {
+      return getLostStorageMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorageOnTiers = 2;</code>
+     * <pre>
+     ** a map from tier alias to the lost storage paths
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
      */
 
-    public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getLostStorageOnTiersMap() {
-      return internalGetLostStorageOnTiers().getMap();
+    public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getLostStorageMap() {
+      return internalGetLostStorage().getMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorageOnTiers = 2;</code>
+     * <pre>
+     ** a map from tier alias to the lost storage paths
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
      */
 
-    public alluxio.grpc.StorageList getLostStorageOnTiersOrDefault(
+    public alluxio.grpc.StorageList getLostStorageOrDefault(
         java.lang.String key,
         alluxio.grpc.StorageList defaultValue) {
       if (key == null) { throw new java.lang.NullPointerException(); }
       java.util.Map<java.lang.String, alluxio.grpc.StorageList> map =
-          internalGetLostStorageOnTiers().getMap();
+          internalGetLostStorage().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorageOnTiers = 2;</code>
+     * <pre>
+     ** a map from tier alias to the lost storage paths
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
      */
 
-    public alluxio.grpc.StorageList getLostStorageOnTiersOrThrow(
+    public alluxio.grpc.StorageList getLostStorageOrThrow(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
       java.util.Map<java.lang.String, alluxio.grpc.StorageList> map =
-          internalGetLostStorageOnTiers().getMap();
+          internalGetLostStorage().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
       }
       return map.get(key);
     }
 
-    public Builder clearLostStorageOnTiers() {
-      internalGetMutableLostStorageOnTiers().getMutableMap()
+    public Builder clearLostStorage() {
+      internalGetMutableLostStorage().getMutableMap()
           .clear();
       return this;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorageOnTiers = 2;</code>
+     * <pre>
+     ** a map from tier alias to the lost storage paths
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
      */
 
-    public Builder removeLostStorageOnTiers(
+    public Builder removeLostStorage(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableLostStorageOnTiers().getMutableMap()
+      internalGetMutableLostStorage().getMutableMap()
           .remove(key);
       return this;
     }
@@ -776,28 +812,36 @@ private static final long serialVersionUID = 0L;
      */
     @java.lang.Deprecated
     public java.util.Map<java.lang.String, alluxio.grpc.StorageList>
-    getMutableLostStorageOnTiers() {
-      return internalGetMutableLostStorageOnTiers().getMutableMap();
+    getMutableLostStorage() {
+      return internalGetMutableLostStorage().getMutableMap();
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorageOnTiers = 2;</code>
+     * <pre>
+     ** a map from tier alias to the lost storage paths
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
      */
-    public Builder putLostStorageOnTiers(
+    public Builder putLostStorage(
         java.lang.String key,
         alluxio.grpc.StorageList value) {
       if (key == null) { throw new java.lang.NullPointerException(); }
       if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableLostStorageOnTiers().getMutableMap()
+      internalGetMutableLostStorage().getMutableMap()
           .put(key, value);
       return this;
     }
     /**
-     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorageOnTiers = 2;</code>
+     * <pre>
+     ** a map from tier alias to the lost storage paths
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
      */
 
-    public Builder putAllLostStorageOnTiers(
+    public Builder putAllLostStorage(
         java.util.Map<java.lang.String, alluxio.grpc.StorageList> values) {
-      internalGetMutableLostStorageOnTiers().getMutableMap()
+      internalGetMutableLostStorage().getMutableMap()
           .putAll(values);
       return this;
     }

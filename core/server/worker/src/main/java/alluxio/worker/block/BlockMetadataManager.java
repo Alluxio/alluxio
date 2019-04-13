@@ -59,23 +59,24 @@ public final class BlockMetadataManager {
 
   private final StorageTierAssoc mStorageTierAssoc;
 
-  private final Map<String, List<String>> mFailedToInitializeStorageOnTiers;
+  /** A map from tier alias to a list of failed to initialize storage directories. */
+  private final Map<String, List<String>> mFailedToInitializeStorageDirs;
 
   private BlockMetadataManager() {
     try {
       mStorageTierAssoc = new WorkerStorageTierAssoc();
       mAliasToTiers = new HashMap<>(mStorageTierAssoc.size());
       mTiers = new ArrayList<>(mStorageTierAssoc.size());
-      mFailedToInitializeStorageOnTiers = new HashMap<>();
+      mFailedToInitializeStorageDirs = new HashMap<>();
       for (int tierOrdinal = 0; tierOrdinal < mStorageTierAssoc.size(); tierOrdinal++) {
         StorageTier tier = StorageTier.newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal));
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
         if (tier.getFailedToInitializeDirs().size() != 0) {
-          List<String> failedStorages = mFailedToInitializeStorageOnTiers
+          List<String> failedStorage = mFailedToInitializeStorageDirs
               .getOrDefault(tier.getTierAlias(), new ArrayList<>());
-          failedStorages.addAll(tier.getFailedToInitializeDirs());
-          mFailedToInitializeStorageOnTiers.put(tier.getTierAlias(), failedStorages);
+          failedStorage.addAll(tier.getFailedToInitializeDirs());
+          mFailedToInitializeStorageDirs.put(tier.getTierAlias(), failedStorage);
         }
       }
     } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
@@ -253,10 +254,10 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * @return the failed to initialize storage on tiers
+   * @return the failed to initialize storage paths on tiers
    */
-  public Map<String, List<String>> getFailedToInitializeStorageOnTiers() {
-    return Collections.unmodifiableMap(mFailedToInitializeStorageOnTiers);
+  public Map<String, List<String>> getFailedToInitializeStorageDirs() {
+    return Collections.unmodifiableMap(mFailedToInitializeStorageDirs);
   }
 
   /**

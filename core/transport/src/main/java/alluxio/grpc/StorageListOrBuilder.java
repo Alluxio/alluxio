@@ -8,19 +8,35 @@ public interface StorageListOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
+   * <pre>
+   ** a lost worker storage path 
+   * </pre>
+   *
    * <code>repeated string storage = 1;</code>
    */
   java.util.List<java.lang.String>
       getStorageList();
   /**
+   * <pre>
+   ** a lost worker storage path 
+   * </pre>
+   *
    * <code>repeated string storage = 1;</code>
    */
   int getStorageCount();
   /**
+   * <pre>
+   ** a lost worker storage path 
+   * </pre>
+   *
    * <code>repeated string storage = 1;</code>
    */
   java.lang.String getStorage(int index);
   /**
+   * <pre>
+   ** a lost worker storage path 
+   * </pre>
+   *
    * <code>repeated string storage = 1;</code>
    */
   com.google.protobuf.ByteString

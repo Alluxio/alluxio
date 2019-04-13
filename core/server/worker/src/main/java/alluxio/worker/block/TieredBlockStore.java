@@ -146,7 +146,7 @@ public class TieredBlockStore implements BlockStore {
 
     mStorageTierAssoc = new WorkerStorageTierAssoc();
 
-    processFailedToInitializeStorage(mMetaManager.getFailedToInitializeStorageOnTiers());
+    processFailedToInitializeStorageDirs(mMetaManager.getFailedToInitializeStorageDirs());
   }
 
   @Override
@@ -991,7 +991,7 @@ public class TieredBlockStore implements BlockStore {
    *
    * @param failedStorage the failed to initialize storage to process
    */
-  private void processFailedToInitializeStorage(Map<String, List<String>> failedStorage) {
+  private void processFailedToInitializeStorageDirs(Map<String, List<String>> failedStorage) {
     synchronized (mBlockStoreEventListeners) {
       for (Map.Entry<String, List<String>> entry : failedStorage.entrySet()) {
         String tierAlias = entry.getKey();

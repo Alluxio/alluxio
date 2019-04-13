@@ -100,7 +100,8 @@ message GetWorkerInfoListPResponse {
 
 message WorkerLostStorageInfo {
   optional grpc.WorkerNetAddress address = 1;
-  map<string, StorageList> lostStorageOnTiers = 2;
+  /** a map from tier alias to the lost storage paths*/
+  map<string, StorageList> lostStorage = 2;
 }
 
 message GetWorkerLostStoragePOptions {}
@@ -154,6 +155,7 @@ message TierList {
 }
 
 message StorageList {
+  /** a lost worker storage path */
   repeated string storage = 1;
 }
 
@@ -171,7 +173,8 @@ message BlockHeartbeatPRequest {
   /** the map of added blocks on all tiers */
   map<string, TierList> addedBlocksOnTiers = 4;
   optional BlockHeartbeatPOptions options = 5;
-  map<string, StorageList> removedStorageOnTiers = 6;
+  /** the map of lost storage paths on all tiers */
+  map<string, StorageList> lostStorage = 6;
 }
 
 message BlockHeartbeatPResponse {

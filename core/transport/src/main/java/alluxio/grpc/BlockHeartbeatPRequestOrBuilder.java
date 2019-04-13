@@ -171,36 +171,56 @@ public interface BlockHeartbeatPRequestOrBuilder extends
   alluxio.grpc.BlockHeartbeatPOptionsOrBuilder getOptionsOrBuilder();
 
   /**
-   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
    */
-  int getRemovedStorageOnTiersCount();
+  int getLostStorageCount();
   /**
-   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
    */
-  boolean containsRemovedStorageOnTiers(
+  boolean containsLostStorage(
       java.lang.String key);
   /**
-   * Use {@link #getRemovedStorageOnTiersMap()} instead.
+   * Use {@link #getLostStorageMap()} instead.
    */
   @java.lang.Deprecated
   java.util.Map<java.lang.String, alluxio.grpc.StorageList>
-  getRemovedStorageOnTiers();
+  getLostStorage();
   /**
-   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
    */
   java.util.Map<java.lang.String, alluxio.grpc.StorageList>
-  getRemovedStorageOnTiersMap();
+  getLostStorageMap();
   /**
-   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
    */
 
-  alluxio.grpc.StorageList getRemovedStorageOnTiersOrDefault(
+  alluxio.grpc.StorageList getLostStorageOrDefault(
       java.lang.String key,
       alluxio.grpc.StorageList defaultValue);
   /**
-   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; removedStorageOnTiers = 6;</code>
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
    */
 
-  alluxio.grpc.StorageList getRemovedStorageOnTiersOrThrow(
+  alluxio.grpc.StorageList getLostStorageOrThrow(
       java.lang.String key);
 }

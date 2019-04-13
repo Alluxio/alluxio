@@ -32,8 +32,11 @@ import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.StorageList;
+import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -64,7 +67,6 @@ import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.wire.WorkerLostStorageInfo;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
@@ -476,9 +478,14 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     List<WorkerLostStorageInfo> workerLostStorageList = new ArrayList<>();
     for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
-        workerLostStorageList.add(new WorkerLostStorageInfo()
-            .setWorkerAddress(worker.getWorkerAddress())
-            .setLostStorageOnTier(worker.getRemovedStorages()));
+        Map<String, StorageList> lostStorage = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : worker.getLostStorage().entrySet()) {
+          lostStorage.put(entry.getKey(),
+              StorageList.newBuilder().addAllStorage(entry.getValue()).build());
+        }
+        workerLostStorageList.add(WorkerLostStorageInfo.newBuilder()
+            .setAddress(GrpcUtils.toProto(worker.getWorkerAddress()))
+            .putAllLostStorage(lostStorage).build());
       }
     }
     return workerLostStorageList;
@@ -863,7 +870,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
       if (removedStorageOnTiers != null) {
-        worker.removeStorage(removedStorageOnTiers);
+        worker.addLostStorage(removedStorageOnTiers);
       }
 
       if (capacityBytesOnTiers != null) {

@@ -168,8 +168,7 @@ public final class BlockMasterClientServiceHandler
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<GetWorkerLostStoragePResponse>) () ->
             GetWorkerLostStoragePResponse.newBuilder()
-                .addAllWorkerLostStorageInfo(mBlockMaster.getWorkerLostStorage().stream()
-                  .map(GrpcUtils::toProto).collect(Collectors.toList())).build(),
+                .addAllWorkerLostStorageInfo(mBlockMaster.getWorkerLostStorage()).build(),
         "getWorkerLostStorage", "options=%s", responseObserver, options);
   }
 }

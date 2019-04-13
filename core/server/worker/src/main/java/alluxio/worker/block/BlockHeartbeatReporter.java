@@ -39,10 +39,10 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   private final Map<String, List<Long>> mAddedBlocks;
 
   /**
-   * Map of storage tier alias to a list of directories
-   * that were removed in the last hearbeat period.
+   * Map of storage tier alias to a list of storage paths
+   * that were lost in the last hearbeat period.
    */
-  private final Map<String, List<String>> mRemovedStorages;
+  private final Map<String, List<String>> mLostStorage;
 
   /**
    * Creates a new instance of {@link BlockHeartbeatReporter}.
@@ -51,7 +51,7 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
     mLock = new Object();
     mRemovedBlocks = new ArrayList<>(100);
     mAddedBlocks = new HashMap<>(20);
-    mRemovedStorages = new HashMap<>();
+    mLostStorage = new HashMap<>();
   }
 
   /**
@@ -65,11 +65,11 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
       // Copy added and removed blocks
       Map<String, List<Long>> addedBlocks = new HashMap<>(mAddedBlocks);
       List<Long> removedBlocks = new ArrayList<>(mRemovedBlocks);
-      Map<String, List<String>> removedStorage = new HashMap<>(mRemovedStorages);
+      Map<String, List<String>> removedStorage = new HashMap<>(mLostStorage);
       // Clear added and removed blocks
       mAddedBlocks.clear();
       mRemovedBlocks.clear();
-      mRemovedStorages.clear();
+      mLostStorage.clear();
       return new BlockHeartbeatReport(addedBlocks, removedBlocks, removedStorage);
     }
   }
@@ -122,9 +122,9 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   @Override
   public void onStorageLost(String tierAlias, String dirPath) {
     synchronized (mLock) {
-      List<String> storagesList = mRemovedStorages.getOrDefault(tierAlias, new ArrayList<>());
+      List<String> storagesList = mLostStorage.getOrDefault(tierAlias, new ArrayList<>());
       storagesList.add(dirPath);
-      mRemovedStorages.put(tierAlias, storagesList);
+      mLostStorage.put(tierAlias, storagesList);
     }
   }
 

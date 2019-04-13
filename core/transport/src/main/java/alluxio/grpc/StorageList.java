@@ -89,6 +89,10 @@ private static final long serialVersionUID = 0L;
   public static final int STORAGE_FIELD_NUMBER = 1;
   private com.google.protobuf.LazyStringList storage_;
   /**
+   * <pre>
+   ** a lost worker storage path 
+   * </pre>
+   *
    * <code>repeated string storage = 1;</code>
    */
   public com.google.protobuf.ProtocolStringList
@@ -96,18 +100,30 @@ private static final long serialVersionUID = 0L;
     return storage_;
   }
   /**
+   * <pre>
+   ** a lost worker storage path 
+   * </pre>
+   *
    * <code>repeated string storage = 1;</code>
    */
   public int getStorageCount() {
     return storage_.size();
   }
   /**
+   * <pre>
+   ** a lost worker storage path 
+   * </pre>
+   *
    * <code>repeated string storage = 1;</code>
    */
   public java.lang.String getStorage(int index) {
     return storage_.get(index);
   }
   /**
+   * <pre>
+   ** a lost worker storage path 
+   * </pre>
+   *
    * <code>repeated string storage = 1;</code>
    */
   public com.google.protobuf.ByteString
@@ -425,6 +441,10 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
+     * <pre>
+     ** a lost worker storage path 
+     * </pre>
+     *
      * <code>repeated string storage = 1;</code>
      */
     public com.google.protobuf.ProtocolStringList
@@ -432,18 +452,30 @@ private static final long serialVersionUID = 0L;
       return storage_.getUnmodifiableView();
     }
     /**
+     * <pre>
+     ** a lost worker storage path 
+     * </pre>
+     *
      * <code>repeated string storage = 1;</code>
      */
     public int getStorageCount() {
       return storage_.size();
     }
     /**
+     * <pre>
+     ** a lost worker storage path 
+     * </pre>
+     *
      * <code>repeated string storage = 1;</code>
      */
     public java.lang.String getStorage(int index) {
       return storage_.get(index);
     }
     /**
+     * <pre>
+     ** a lost worker storage path 
+     * </pre>
+     *
      * <code>repeated string storage = 1;</code>
      */
     public com.google.protobuf.ByteString
@@ -451,6 +483,10 @@ private static final long serialVersionUID = 0L;
       return storage_.getByteString(index);
     }
     /**
+     * <pre>
+     ** a lost worker storage path 
+     * </pre>
+     *
      * <code>repeated string storage = 1;</code>
      */
     public Builder setStorage(
@@ -464,6 +500,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     ** a lost worker storage path 
+     * </pre>
+     *
      * <code>repeated string storage = 1;</code>
      */
     public Builder addStorage(
@@ -477,6 +517,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     ** a lost worker storage path 
+     * </pre>
+     *
      * <code>repeated string storage = 1;</code>
      */
     public Builder addAllStorage(
@@ -488,6 +532,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     ** a lost worker storage path 
+     * </pre>
+     *
      * <code>repeated string storage = 1;</code>
      */
     public Builder clearStorage() {
@@ -497,6 +545,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     ** a lost worker storage path 
+     * </pre>
+     *
      * <code>repeated string storage = 1;</code>
      */
     public Builder addStorageBytes(

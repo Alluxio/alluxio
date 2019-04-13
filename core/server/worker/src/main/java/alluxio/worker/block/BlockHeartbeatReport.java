@@ -27,23 +27,23 @@ public final class BlockHeartbeatReport {
   /** List of block ids removed in the last heartbeat period. */
   private final List<Long> mRemovedBlocks;
   /**
-   * Map of storage tier alias to a list of directories
+   * Map of storage tier alias to a list of lost storage paths
    * that were removed in the last hearbeat period.
    */
-  private final Map<String, List<String>> mRemovedStorage;
+  private final Map<String, List<String>> mLostStorage;
 
   /**
    * Creates a new instance of {@link BlockHeartbeatReport}.
    *
    * @param addedBlocks added blocks
    * @param removedBlocks remove blocks
-   * @param removedStorage removed storage
+   * @param lostStorage lost storage
    */
   public BlockHeartbeatReport(Map<String, List<Long>> addedBlocks,
-      List<Long> removedBlocks, Map<String, List<String>> removedStorage) {
+      List<Long> removedBlocks, Map<String, List<String>> lostStorage) {
     mAddedBlocks = addedBlocks;
     mRemovedBlocks = removedBlocks;
-    mRemovedStorage = removedStorage;
+    mLostStorage = lostStorage;
   }
 
   /**
@@ -65,12 +65,12 @@ public final class BlockHeartbeatReport {
   }
 
   /**
-   * Gets the directory paths which were removed from this worker
+   * Gets the storage paths which were lost
    * in the heartbeat this report represents.
    *
-   * @return a map from storage tier alias to removed storage
+   * @return a map from storage tier alias to lost storage paths
    */
-  public Map<String, List<String>> getRemovedStorage() {
-    return Collections.unmodifiableMap(mRemovedStorage);
+  public Map<String, List<String>> getLostStorage() {
+    return Collections.unmodifiableMap(mLostStorage);
   }
 }

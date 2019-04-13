@@ -13,12 +13,12 @@ package alluxio.client.block;
 
 import alluxio.Client;
 import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerLostStorageInfo;
 
 import java.io.IOException;
 import java.util.List;
