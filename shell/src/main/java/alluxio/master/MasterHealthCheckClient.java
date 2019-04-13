@@ -118,7 +118,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
      * @param masterType the Alluxio master type
      * @return an instance of the builder
      */
-    public Builder withAlluxioMasterName(MasterType masterType) {
+    public Builder withAlluxioMasterType(MasterType masterType) {
       mAlluxioMasterType = masterType;
       return this;
     }

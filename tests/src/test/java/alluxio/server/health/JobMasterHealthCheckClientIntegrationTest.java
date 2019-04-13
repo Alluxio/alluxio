@@ -67,7 +67,7 @@ public class JobMasterHealthCheckClientIntegrationTest extends BaseIntegrationTe
     mHealthCheckClient = new MasterHealthCheckClient.Builder(ServerConfiguration.global())
         .withRetryPolicy(() -> new CountingRetry(1))
         .withProcessCheck(false)
-        .withAlluxioMasterName(MasterHealthCheckClient.MasterType.JOB_MASTER)
+        .withAlluxioMasterType(MasterHealthCheckClient.MasterType.JOB_MASTER)
         .build();
     Assert.assertTrue(mHealthCheckClient.isServing());
   }
@@ -78,7 +78,7 @@ public class JobMasterHealthCheckClientIntegrationTest extends BaseIntegrationTe
     mHealthCheckClient = new MasterHealthCheckClient.Builder(ServerConfiguration.global())
         .withRetryPolicy(() -> new CountingRetry(1))
         .withProcessCheck(false)
-        .withAlluxioMasterName(MasterHealthCheckClient.MasterType.JOB_MASTER)
+        .withAlluxioMasterType(MasterHealthCheckClient.MasterType.JOB_MASTER)
         .build();
     Assert.assertFalse(mHealthCheckClient.isServing());
   }

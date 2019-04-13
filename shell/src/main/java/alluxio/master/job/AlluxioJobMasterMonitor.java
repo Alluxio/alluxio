@@ -46,7 +46,7 @@ public final class AlluxioJobMasterMonitor {
     // checking for the running process.
     if (ConfigurationUtils.isHaMode(conf)) {
       client = new MasterHealthCheckClient.Builder(conf)
-          .withAlluxioMasterName(MasterHealthCheckClient.MasterType.JOB_MASTER)
+          .withAlluxioMasterType(MasterHealthCheckClient.MasterType.JOB_MASTER)
           .build();
     } else {
       client = new JobMasterRpcHealthCheckClient(NetworkAddressUtils
