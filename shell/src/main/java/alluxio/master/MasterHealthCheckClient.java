@@ -246,13 +246,22 @@ public class MasterHealthCheckClient implements HealthCheckClient {
   @Override
   public boolean isServing() {
     try {
-      ServiceType rpcService = ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE;
-      InetSocketAddress connectAddr = NetworkAddressUtils
-          .getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC, mConf);
-      if (MasterType.JOB_MASTER == mAlluxioMasterType) {
-        rpcService = ServiceType.JOB_MASTER_CLIENT_SERVICE;
-        connectAddr = NetworkAddressUtils
-            .getConnectAddress(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, mConf);
+      ServiceType rpcService;
+      InetSocketAddress connectAddr;
+      switch (mAlluxioMasterType) {
+        case MASTER:
+          rpcService = ServiceType.FILE_SYSTEM_MASTER_CLIENT_SERVICE;
+          connectAddr = NetworkAddressUtils
+            .getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC, mConf);
+          break;
+        case JOB_MASTER:
+          rpcService = ServiceType.JOB_MASTER_CLIENT_SERVICE;
+          connectAddr = NetworkAddressUtils
+              .getConnectAddress(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, mConf);
+          break;
+        default:
+          throw new IllegalArgumentException(
+              String.format("Master type %s is invalid", mAlluxioMasterType));
       }
       MasterServingHealthCheck masterRpcCheck =
           new MasterServingHealthCheck(connectAddr, rpcService,
