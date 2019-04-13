@@ -176,11 +176,12 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param usedBytesOnTiers a mapping from storage tier alias to the used byes
    * @param currentBlocksOnTiers a mapping from storage tier alias to a list of blocks
    * @param options the options that may contain worker configuration
+   * @param lostStorage a mapping from storage tier alias to a list of lost storage paths
    * @throws NotFoundException if workerId cannot be found
    */
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers,
+      Map<String, List<Long>> currentBlocksOnTiers, Map<String, List<String>> lostStorage,
       RegisterWorkerPOptions options) throws NotFoundException;
 
   /**
@@ -191,14 +192,14 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param usedBytesOnTiers a mapping from tier alias to the used bytes
    * @param removedBlockIds a list of block ids removed from this worker
    * @param addedBlocksOnTiers a mapping from tier alias to the added blocks
-   * @param removedStorageOnTiers a mapping from tier alias to the removed storages
+   * @param lostStorage a mapping from tier alias to lost storage paths
    * @param metrics worker metrics
    * @return an optional command for the worker to execute
    */
   Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
       Map<String, List<Long>> addedBlocksOnTiers,
-      Map<String, List<String>> removedStorageOnTiers,
+      Map<String, List<String>> lostStorage,
       List<Metric> metrics);
 
   /**

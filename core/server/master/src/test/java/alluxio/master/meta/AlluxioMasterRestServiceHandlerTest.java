@@ -83,6 +83,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(83).setDataPort(84).setWebPort(85);
   private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
+  private static final Map<String, List<String>> NO_LOST_STORAGE = ImmutableMap.of();
 
   private static final long UFS_SPACE_TOTAL = 100L;
   private static final long UFS_SPACE_USED = 25L;
@@ -137,10 +138,10 @@ public final class AlluxioMasterRestServiceHandlerTest {
     List<String> tiers = Arrays.asList("MEM", "SSD");
 
     mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
-        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS,
+        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
-        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS,
+        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
 
     String filesPinnedProperty =

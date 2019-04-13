@@ -2673,13 +2673,15 @@ public final class FileSystemMasterTest {
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>(), RegisterWorkerPOptions.getDefaultInstance());
+        new HashMap<String, List<Long>>(), new HashMap<String, List<String>>(),
+        RegisterWorkerPOptions.getDefaultInstance());
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>(), RegisterWorkerPOptions.getDefaultInstance());
+        new HashMap<String, List<Long>>(), new HashMap<String, List<String>>(),
+        RegisterWorkerPOptions.getDefaultInstance());
   }
 
   private void stopServices() throws Exception {

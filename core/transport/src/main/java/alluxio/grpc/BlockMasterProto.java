@@ -240,6 +240,11 @@ public final class BlockMasterProto {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_block_RegisterWorkerPRequest_CurrentBlocksOnTiersEntry_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_block_RegisterWorkerPRequest_LostStorageEntry_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_block_RegisterWorkerPRequest_LostStorageEntry_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_block_RegisterWorkerPResponse_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -347,7 +352,7 @@ public final class BlockMasterProto {
       ".block.GetWorkerIdPOptions\"(\n\024GetWorkerI" +
       "dPResponse\022\020\n\010workerId\030\001 \001(\003\"G\n\026Register" +
       "WorkerPOptions\022-\n\007configs\030\001 \003(\0132\034.alluxi" +
-      "o.grpc.ConfigProperty\"\351\004\n\026RegisterWorker" +
+      "o.grpc.ConfigProperty\"\220\006\n\026RegisterWorker" +
       "PRequest\022\020\n\010workerId\030\001 \001(\003\022\024\n\014storageTie" +
       "rs\030\002 \003(\t\022\\\n\021totalBytesOnTiers\030\003 \003(\0132A.al" +
       "luxio.grpc.block.RegisterWorkerPRequest." +
@@ -357,59 +362,64 @@ public final class BlockMasterProto {
       "rrentBlocksOnTiers\030\005 \003(\0132D.alluxio.grpc." +
       "block.RegisterWorkerPRequest.CurrentBloc" +
       "ksOnTiersEntry\022;\n\007options\030\006 \001(\0132*.alluxi" +
-      "o.grpc.block.RegisterWorkerPOptions\0328\n\026T" +
-      "otalBytesOnTiersEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va" +
-      "lue\030\002 \001(\003:\0028\001\0327\n\025UsedBytesOnTiersEntry\022\013" +
-      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\003:\0028\001\032Y\n\031Curren" +
-      "tBlocksOnTiersEntry\022\013\n\003key\030\001 \001(\t\022+\n\005valu" +
-      "e\030\002 \001(\0132\034.alluxio.grpc.block.TierList:\0028" +
-      "\001\"\031\n\027RegisterWorkerPResponse*\252\001\n\024BlockMa" +
-      "sterInfoField\022\022\n\016CAPACITY_BYTES\020\001\022\033\n\027CAP" +
-      "ACITY_BYTES_ON_TIERS\020\002\022\016\n\nFREE_BYTES\020\003\022\023" +
-      "\n\017LIVE_WORKER_NUM\020\004\022\023\n\017LOST_WORKER_NUM\020\005" +
-      "\022\016\n\nUSED_BYTES\020\006\022\027\n\023USED_BYTES_ON_TIERS\020" +
-      "\007*9\n\013WorkerRange\022\007\n\003ALL\020\001\022\010\n\004LIVE\020\002\022\010\n\004L" +
-      "OST\020\003\022\r\n\tSPECIFIED\020\004*\320\001\n\017WorkerInfoField" +
-      "\022\013\n\007ADDRESS\020\001\022\031\n\025WORKER_CAPACITY_BYTES\020\002" +
-      "\022\"\n\036WORKER_CAPACITY_BYTES_ON_TIERS\020\003\022\006\n\002" +
-      "ID\020\004\022\024\n\020LAST_CONTACT_SEC\020\005\022\021\n\rSTART_TIME" +
-      "_MS\020\006\022\t\n\005STATE\020\007\022\025\n\021WORKER_USED_BYTES\020\010\022" +
-      "\036\n\032WORKER_USED_BYTES_ON_TIERS\020\t2\255\006\n\030Bloc" +
-      "kMasterClientService\022c\n\014GetBlockInfo\022(.a" +
-      "lluxio.grpc.block.GetBlockInfoPRequest\032)" +
-      ".alluxio.grpc.block.GetBlockInfoPRespons" +
-      "e\022u\n\022GetBlockMasterInfo\022..alluxio.grpc.b" +
-      "lock.GetBlockMasterInfoPOptions\032/.alluxi" +
-      "o.grpc.block.GetBlockMasterInfoPResponse" +
-      "\022o\n\020GetCapacityBytes\022,.alluxio.grpc.bloc" +
-      "k.GetCapacityBytesPOptions\032-.alluxio.grp" +
-      "c.block.GetCapacityBytesPResponse\022c\n\014Get" +
-      "UsedBytes\022(.alluxio.grpc.block.GetUsedBy" +
-      "tesPOptions\032).alluxio.grpc.block.GetUsed" +
-      "BytesPResponse\022r\n\021GetWorkerInfoList\022-.al" +
-      "luxio.grpc.block.GetWorkerInfoListPOptio" +
-      "ns\032..alluxio.grpc.block.GetWorkerInfoLis" +
-      "tPResponse\022n\n\017GetWorkerReport\022+.alluxio." +
-      "grpc.block.GetWorkerReportPOptions\032..all" +
-      "uxio.grpc.block.GetWorkerInfoListPRespon" +
-      "se\022{\n\024GetWorkerLostStorage\0220.alluxio.grp" +
-      "c.block.GetWorkerLostStoragePOptions\0321.a" +
-      "lluxio.grpc.block.GetWorkerLostStoragePR" +
-      "esponse2\245\004\n\030BlockMasterWorkerService\022i\n\016" +
-      "BlockHeartbeat\022*.alluxio.grpc.block.Bloc" +
-      "kHeartbeatPRequest\032+.alluxio.grpc.block." +
-      "BlockHeartbeatPResponse\022`\n\013CommitBlock\022\'" +
-      ".alluxio.grpc.block.CommitBlockPRequest\032" +
-      "(.alluxio.grpc.block.CommitBlockPRespons" +
-      "e\022o\n\020CommitBlockInUfs\022,.alluxio.grpc.blo" +
-      "ck.CommitBlockInUfsPRequest\032-.alluxio.gr" +
-      "pc.block.CommitBlockInUfsPResponse\022`\n\013Ge" +
-      "tWorkerId\022\'.alluxio.grpc.block.GetWorker" +
-      "IdPRequest\032(.alluxio.grpc.block.GetWorke" +
-      "rIdPResponse\022i\n\016RegisterWorker\022*.alluxio" +
-      ".grpc.block.RegisterWorkerPRequest\032+.all" +
-      "uxio.grpc.block.RegisterWorkerPResponseB" +
-      "\"\n\014alluxio.grpcB\020BlockMasterProtoP\001"
+      "o.grpc.block.RegisterWorkerPOptions\022P\n\013l" +
+      "ostStorage\030\007 \003(\0132;.alluxio.grpc.block.Re" +
+      "gisterWorkerPRequest.LostStorageEntry\0328\n" +
+      "\026TotalBytesOnTiersEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005" +
+      "value\030\002 \001(\003:\0028\001\0327\n\025UsedBytesOnTiersEntry" +
+      "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\003:\0028\001\032Y\n\031Curr" +
+      "entBlocksOnTiersEntry\022\013\n\003key\030\001 \001(\t\022+\n\005va" +
+      "lue\030\002 \001(\0132\034.alluxio.grpc.block.TierList:" +
+      "\0028\001\032S\n\020LostStorageEntry\022\013\n\003key\030\001 \001(\t\022.\n\005" +
+      "value\030\002 \001(\0132\037.alluxio.grpc.block.Storage" +
+      "List:\0028\001\"\031\n\027RegisterWorkerPResponse*\252\001\n\024" +
+      "BlockMasterInfoField\022\022\n\016CAPACITY_BYTES\020\001" +
+      "\022\033\n\027CAPACITY_BYTES_ON_TIERS\020\002\022\016\n\nFREE_BY" +
+      "TES\020\003\022\023\n\017LIVE_WORKER_NUM\020\004\022\023\n\017LOST_WORKE" +
+      "R_NUM\020\005\022\016\n\nUSED_BYTES\020\006\022\027\n\023USED_BYTES_ON" +
+      "_TIERS\020\007*9\n\013WorkerRange\022\007\n\003ALL\020\001\022\010\n\004LIVE" +
+      "\020\002\022\010\n\004LOST\020\003\022\r\n\tSPECIFIED\020\004*\320\001\n\017WorkerIn" +
+      "foField\022\013\n\007ADDRESS\020\001\022\031\n\025WORKER_CAPACITY_" +
+      "BYTES\020\002\022\"\n\036WORKER_CAPACITY_BYTES_ON_TIER" +
+      "S\020\003\022\006\n\002ID\020\004\022\024\n\020LAST_CONTACT_SEC\020\005\022\021\n\rSTA" +
+      "RT_TIME_MS\020\006\022\t\n\005STATE\020\007\022\025\n\021WORKER_USED_B" +
+      "YTES\020\010\022\036\n\032WORKER_USED_BYTES_ON_TIERS\020\t2\255" +
+      "\006\n\030BlockMasterClientService\022c\n\014GetBlockI" +
+      "nfo\022(.alluxio.grpc.block.GetBlockInfoPRe" +
+      "quest\032).alluxio.grpc.block.GetBlockInfoP" +
+      "Response\022u\n\022GetBlockMasterInfo\022..alluxio" +
+      ".grpc.block.GetBlockMasterInfoPOptions\032/" +
+      ".alluxio.grpc.block.GetBlockMasterInfoPR" +
+      "esponse\022o\n\020GetCapacityBytes\022,.alluxio.gr" +
+      "pc.block.GetCapacityBytesPOptions\032-.allu" +
+      "xio.grpc.block.GetCapacityBytesPResponse" +
+      "\022c\n\014GetUsedBytes\022(.alluxio.grpc.block.Ge" +
+      "tUsedBytesPOptions\032).alluxio.grpc.block." +
+      "GetUsedBytesPResponse\022r\n\021GetWorkerInfoLi" +
+      "st\022-.alluxio.grpc.block.GetWorkerInfoLis" +
+      "tPOptions\032..alluxio.grpc.block.GetWorker" +
+      "InfoListPResponse\022n\n\017GetWorkerReport\022+.a" +
+      "lluxio.grpc.block.GetWorkerReportPOption" +
+      "s\032..alluxio.grpc.block.GetWorkerInfoList" +
+      "PResponse\022{\n\024GetWorkerLostStorage\0220.allu" +
+      "xio.grpc.block.GetWorkerLostStoragePOpti" +
+      "ons\0321.alluxio.grpc.block.GetWorkerLostSt" +
+      "oragePResponse2\245\004\n\030BlockMasterWorkerServ" +
+      "ice\022i\n\016BlockHeartbeat\022*.alluxio.grpc.blo" +
+      "ck.BlockHeartbeatPRequest\032+.alluxio.grpc" +
+      ".block.BlockHeartbeatPResponse\022`\n\013Commit" +
+      "Block\022\'.alluxio.grpc.block.CommitBlockPR" +
+      "equest\032(.alluxio.grpc.block.CommitBlockP" +
+      "Response\022o\n\020CommitBlockInUfs\022,.alluxio.g" +
+      "rpc.block.CommitBlockInUfsPRequest\032-.all" +
+      "uxio.grpc.block.CommitBlockInUfsPRespons" +
+      "e\022`\n\013GetWorkerId\022\'.alluxio.grpc.block.Ge" +
+      "tWorkerIdPRequest\032(.alluxio.grpc.block.G" +
+      "etWorkerIdPResponse\022i\n\016RegisterWorker\022*." +
+      "alluxio.grpc.block.RegisterWorkerPReques" +
+      "t\032+.alluxio.grpc.block.RegisterWorkerPRe" +
+      "sponseB\"\n\014alluxio.grpcB\020BlockMasterProto" +
+      "P\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -675,7 +685,7 @@ public final class BlockMasterProto {
     internal_static_alluxio_grpc_block_RegisterWorkerPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_block_RegisterWorkerPRequest_descriptor,
-        new java.lang.String[] { "WorkerId", "StorageTiers", "TotalBytesOnTiers", "UsedBytesOnTiers", "CurrentBlocksOnTiers", "Options", });
+        new java.lang.String[] { "WorkerId", "StorageTiers", "TotalBytesOnTiers", "UsedBytesOnTiers", "CurrentBlocksOnTiers", "Options", "LostStorage", });
     internal_static_alluxio_grpc_block_RegisterWorkerPRequest_TotalBytesOnTiersEntry_descriptor =
       internal_static_alluxio_grpc_block_RegisterWorkerPRequest_descriptor.getNestedTypes().get(0);
     internal_static_alluxio_grpc_block_RegisterWorkerPRequest_TotalBytesOnTiersEntry_fieldAccessorTable = new
@@ -693,6 +703,12 @@ public final class BlockMasterProto {
     internal_static_alluxio_grpc_block_RegisterWorkerPRequest_CurrentBlocksOnTiersEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_block_RegisterWorkerPRequest_CurrentBlocksOnTiersEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_alluxio_grpc_block_RegisterWorkerPRequest_LostStorageEntry_descriptor =
+      internal_static_alluxio_grpc_block_RegisterWorkerPRequest_descriptor.getNestedTypes().get(3);
+    internal_static_alluxio_grpc_block_RegisterWorkerPRequest_LostStorageEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_block_RegisterWorkerPRequest_LostStorageEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_block_RegisterWorkerPResponse_descriptor =
       getDescriptor().getMessageTypes().get(33);

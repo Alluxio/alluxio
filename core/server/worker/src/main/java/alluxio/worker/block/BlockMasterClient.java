@@ -170,13 +170,15 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used bytes
    * @param currentBlocksOnTiers mapping from storage tier alias to the list of list of blocks
+   * @param lostStorage mapping from storage tier alias to the list of lost storage paths
    * @param configList a list of configurations
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
   public void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-      final Map<String, List<Long>> currentBlocksOnTiers, final List<ConfigProperty> configList)
-      throws IOException {
+      final Map<String, List<Long>> currentBlocksOnTiers,
+      final Map<String, List<String>> lostStorage,
+      final List<ConfigProperty> configList) throws IOException {
 
     final RegisterWorkerPOptions options =
         RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
@@ -185,9 +187,15 @@ public final class BlockMasterClient extends AbstractMasterClient {
       currentBlockOnTiersMap.put(blockEntry.getKey(),
           TierList.newBuilder().addAllTiers(blockEntry.getValue()).build());
     }
+    Map<String, StorageList> lostStorageMap = new HashMap<>(lostStorage.size());
+    for (Map.Entry<String, List<String>> storageEntry : lostStorage.entrySet()) {
+      lostStorageMap.put(storageEntry.getKey(),
+          StorageList.newBuilder().addAllStorage(storageEntry.getValue()).build());
+    }
     final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
         .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)
         .putAllUsedBytesOnTiers(usedBytesOnTiers).putAllCurrentBlocksOnTiers(currentBlockOnTiersMap)
+        .putAllLostStorage(lostStorageMap)
         .setOptions(options).build();
 
     retryRPC(() -> {

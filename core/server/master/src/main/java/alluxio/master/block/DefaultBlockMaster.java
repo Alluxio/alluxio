@@ -808,7 +808,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers,
+      Map<String, List<Long>> currentBlocksOnTiers, Map<String, List<String>> lostStorage,
       RegisterWorkerPOptions options) throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
@@ -835,6 +835,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       processWorkerRemovedBlocks(worker, removedBlocks);
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
       processWorkerOrphanedBlocks(worker);
+      worker.addLostStorage(lostStorage);
     }
     if (options.getConfigsCount() > 0) {
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
@@ -853,7 +854,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
       Map<String, List<Long>> addedBlocksOnTiers,
-      Map<String, List<String>> removedStorageOnTiers,
+      Map<String, List<String>> lostStorage,
       List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
@@ -869,8 +870,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       processWorkerAddedBlocks(worker, addedBlocksOnTiers);
       processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
-      if (removedStorageOnTiers != null) {
-        worker.addLostStorage(removedStorageOnTiers);
+      if (lostStorage != null) {
+        worker.addLostStorage(lostStorage);
       }
 
       if (capacityBytesOnTiers != null) {

@@ -233,6 +233,8 @@ message RegisterWorkerPRequest {
   /** the map of list of blocks on each tier */
   map<string, TierList> currentBlocksOnTiers = 5;
   optional RegisterWorkerPOptions options = 6;
+  /** the map of tier alias to a list of lost storage paths. */
+  map<string, StorageList> lostStorage = 7;
 }
 message RegisterWorkerPResponse {}
 

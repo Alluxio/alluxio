@@ -138,11 +138,16 @@ public final class BlockMasterWorkerServiceHandler
     for (Map.Entry<String, TierList> blockEntry : currentBlocksOnTiers.entrySet()) {
       currentBlocksOnTiersMap.put(blockEntry.getKey(), blockEntry.getValue().getTiersList());
     }
+    final Map<String, StorageList> lostStorage = request.getLostStorageMap();
+    Map<String, List<String>> lostStorageMap = new HashMap<>();
+    for (Map.Entry<String, StorageList> storageEntry : lostStorage.entrySet()) {
+      lostStorageMap.put(storageEntry.getKey(), storageEntry.getValue().getStorageList());
+    }
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-              currentBlocksOnTiersMap, options);
+              currentBlocksOnTiersMap, lostStorageMap, options);
           return RegisterWorkerPResponse.getDefaultInstance();
         }, "registerWorker", "request=%s", responseObserver, request);
   }

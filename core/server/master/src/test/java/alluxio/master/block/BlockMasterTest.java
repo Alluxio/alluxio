@@ -70,6 +70,7 @@ public class BlockMasterTest {
 
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
   private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
+  private static final Map<String, List<String>> NO_LOST_STORAGE = ImmutableMap.of();
 
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
@@ -134,9 +135,9 @@ public class BlockMasterTest {
     Map<String, Long> worker1UsedBytesOnTiers = ImmutableMap.of("MEM", 1L, "SSD", 2L);
     Map<String, Long> worker2UsedBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L);
     mBlockMaster.workerRegister(worker1, tiers, worker1TotalBytesOnTiers, worker1UsedBytesOnTiers,
-        NO_BLOCKS_ON_TIERS, RegisterWorkerPOptions.getDefaultInstance());
+        NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE, RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.workerRegister(worker2, tiers, worker2TotalBytesOnTiers, worker2UsedBytesOnTiers,
-        NO_BLOCKS_ON_TIERS, RegisterWorkerPOptions.getDefaultInstance());
+        NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE, RegisterWorkerPOptions.getDefaultInstance());
 
     // Check that byte counts are summed correctly.
     assertEquals(3030, mBlockMaster.getCapacityBytes());
@@ -156,6 +157,30 @@ public class BlockMasterTest {
         ImmutableMap.of("MEM", 100L),
         ImmutableMap.of("MEM", 10L),
         NO_BLOCKS_ON_TIERS,
+        NO_LOST_STORAGE,
+        RegisterWorkerPOptions.getDefaultInstance());
+
+    // Advance the block master's clock by an hour so that worker appears lost.
+    mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
+
+    // Run the lost worker detector.
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+
+    // Make sure the worker is detected as lost.
+    List<WorkerInfo> info = mBlockMaster.getLostWorkersInfoList();
+    assertEquals(worker1, Iterables.getOnlyElement(info).getId());
+  }
+
+  @Test
+  public void detectLostStorage() throws Exception {
+    // Register a worker.
+    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+    mBlockMaster.workerRegister(worker1,
+        ImmutableList.of("MEM"),
+        ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 10L),
+        NO_BLOCKS_ON_TIERS,
+        NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
 
     // Advance the block master's clock by an hour so that worker appears lost.
@@ -178,6 +203,7 @@ public class BlockMasterTest {
         ImmutableMap.of("MEM", 100L),
         ImmutableMap.of("MEM", 10L),
         NO_BLOCKS_ON_TIERS,
+        NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
 
     // Advance the block master's clock by an hour so that the worker appears lost.
@@ -193,6 +219,7 @@ public class BlockMasterTest {
         ImmutableMap.of("MEM", 100L),
         ImmutableMap.of("MEM", 10L),
         NO_BLOCKS_ON_TIERS,
+        NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
 
     // Check that there are no longer any lost workers and there is a live worker.
@@ -206,7 +233,7 @@ public class BlockMasterTest {
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     long blockId = 1L;
     mBlockMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.commitBlock(worker1, 50L, "MEM", blockId, 20L);
 
@@ -227,7 +254,7 @@ public class BlockMasterTest {
     List<Long> orphanedBlocks = Arrays.asList(1L, 2L);
     Map<String, Long> memUsage = ImmutableMap.of("MEM", 10L);
     mBlockMaster.workerRegister(worker, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        memUsage, ImmutableMap.of("MEM", orphanedBlocks),
+        memUsage, ImmutableMap.of("MEM", orphanedBlocks), NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
 
     // Check that the worker heartbeat tells the worker to remove the blocks.
@@ -242,7 +269,8 @@ public class BlockMasterTest {
     long worker = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     Map<String, Long> initialUsedBytesOnTiers = ImmutableMap.of("MEM", 50L);
     mBlockMaster.workerRegister(worker, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        initialUsedBytesOnTiers, NO_BLOCKS_ON_TIERS, RegisterWorkerPOptions.getDefaultInstance());
+        initialUsedBytesOnTiers, NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
+        RegisterWorkerPOptions.getDefaultInstance());
 
     // Update used bytes with a worker heartbeat.
     Map<String, Long> newUsedBytesOnTiers = ImmutableMap.of("MEM", 50L);
@@ -258,7 +286,7 @@ public class BlockMasterTest {
     // Create a worker.
     long worker = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     mBlockMaster.workerRegister(worker, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
     long blockId = 1L;
     mBlockMaster.commitBlock(worker, 50L, "MEM", blockId, 20L);
@@ -274,11 +302,11 @@ public class BlockMasterTest {
     // Create two workers.
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     mBlockMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
     long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
     mBlockMaster.workerRegister(worker2, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
 
     // Commit blockId to worker1.
@@ -313,7 +341,7 @@ public class BlockMasterTest {
     long blockId = 1L;
     long blockLength = 20L;
     mBlockMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.commitBlock(worker1, 50L, "MEM", blockId, blockLength);
 

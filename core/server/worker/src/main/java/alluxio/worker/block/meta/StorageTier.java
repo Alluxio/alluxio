@@ -54,7 +54,8 @@ public final class StorageTier {
   /** Total capacity of all StorageDirs in bytes. */
   private long mCapacityBytes;
   private List<StorageDir> mDirs;
-  private List<String> mFailedToInitializeDirs;
+  /** The lost storage paths that are failed to initialize or lost. */
+  private List<String> mLostStorage;
 
   private StorageTier(String tierAlias) {
     mTierAlias = tierAlias;
@@ -79,7 +80,7 @@ public final class StorageTier {
     String[] dirQuotas = rawDirQuota.split(",");
 
     mDirs = new ArrayList<>(dirPaths.length);
-    mFailedToInitializeDirs = new ArrayList<>();
+    mLostStorage = new ArrayList<>();
 
     long totalCapacity = 0;
     for (int i = 0; i < dirPaths.length; i++) {
@@ -91,7 +92,7 @@ public final class StorageTier {
         mDirs.add(dir);
       } catch (IOException e) {
         LOG.error("Unable to initialize storage directory at {}: {}", dirPaths[i], e.getMessage());
-        mFailedToInitializeDirs.add(dirPaths[i]);
+        mLostStorage.add(dirPaths[i]);
         continue;
       }
 
@@ -231,10 +232,10 @@ public final class StorageTier {
   }
 
   /**
-   * @return a list of failed to initialize directories
+   * @return a list of lost storage paths
    */
-  public List<String> getFailedToInitializeDirs() {
-    return Collections.unmodifiableList(mFailedToInitializeDirs);
+  public List<String> getLostStorage() {
+    return Collections.unmodifiableList(mLostStorage);
   }
 
   /**
@@ -245,5 +246,6 @@ public final class StorageTier {
     if (mDirs.remove(dir)) {
       mCapacityBytes -=  dir.getCapacityBytes();
     }
+    mLostStorage.add(dir.getDirPath());
   }
 }

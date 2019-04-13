@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,25 +58,15 @@ public final class BlockMetadataManager {
 
   private final StorageTierAssoc mStorageTierAssoc;
 
-  /** A map from tier alias to a list of failed to initialize storage directories. */
-  private final Map<String, List<String>> mFailedToInitializeStorageDirs;
-
   private BlockMetadataManager() {
     try {
       mStorageTierAssoc = new WorkerStorageTierAssoc();
       mAliasToTiers = new HashMap<>(mStorageTierAssoc.size());
       mTiers = new ArrayList<>(mStorageTierAssoc.size());
-      mFailedToInitializeStorageDirs = new HashMap<>();
       for (int tierOrdinal = 0; tierOrdinal < mStorageTierAssoc.size(); tierOrdinal++) {
         StorageTier tier = StorageTier.newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal));
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
-        if (tier.getFailedToInitializeDirs().size() != 0) {
-          List<String> failedStorage = mFailedToInitializeStorageDirs
-              .getOrDefault(tier.getTierAlias(), new ArrayList<>());
-          failedStorage.addAll(tier.getFailedToInitializeDirs());
-          mFailedToInitializeStorageDirs.put(tier.getTierAlias(), failedStorage);
-        }
       }
     } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
       throw new RuntimeException(e);
@@ -251,13 +240,6 @@ public final class BlockMetadataManager {
           ExceptionMessage.GET_DIR_FROM_NON_SPECIFIC_LOCATION.getMessage(location));
     }
     return getTier(location.tierAlias()).getDir(location.dir());
-  }
-
-  /**
-   * @return the failed to initialize storage paths on tiers
-   */
-  public Map<String, List<String>> getFailedToInitializeStorageDirs() {
-    return Collections.unmodifiableMap(mFailedToInitializeStorageDirs);
   }
 
   /**

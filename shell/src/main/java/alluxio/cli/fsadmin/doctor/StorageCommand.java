@@ -53,7 +53,7 @@ public class StorageCommand {
         for (Map.Entry<String, StorageList> tierStorage : lostStorageMap.entrySet()) {
           String tier = tierStorage.getKey();
           for (String storage : tierStorage.getValue().getStorageList()) {
-            mPrintStream.printf("Tier %s: %s%n", tier, storage);
+            mPrintStream.printf("%s (%s)%n", storage, tier);
           }
         }
       }

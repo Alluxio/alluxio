@@ -79,6 +79,7 @@ public final class ReplicationCheckerTest {
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
   private static final List<Metric> NO_METRICS = ImmutableList.of();
   private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
+  private static final Map<String, List<String>> NO_LOST_STORAGE = ImmutableMap.of();
   private static final Map<Long, Integer> EMPTY = ImmutableMap.of();
 
   /**
@@ -210,7 +211,7 @@ public final class ReplicationCheckerTest {
     if (!mKnownWorkers.contains(workerId)) {
       // Do not re-register works, otherwise added block will be removed
       mBlockMaster.workerRegister(workerId, ImmutableList.of("MEM"), ImmutableMap.of("MEM", 100L),
-          ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
+          ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
           RegisterWorkerPOptions.getDefaultInstance());
       mKnownWorkers.add(workerId);
     }
@@ -305,7 +306,7 @@ public final class ReplicationCheckerTest {
         .setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(workerId, Collections.singletonList("MEM"),
         ImmutableMap.of("MEM", 100L), ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS,
-        RegisterWorkerPOptions.getDefaultInstance());
+        NO_LOST_STORAGE, RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.commitBlock(workerId, 50L, "MEM", blockId, 20L);
 
     // Indicate that blockId is removed on the worker.
