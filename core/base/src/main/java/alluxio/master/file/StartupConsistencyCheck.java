@@ -52,7 +52,7 @@ public final class StartupConsistencyCheck {
    * @return a result set to the disabled status
    */
   public static StartupConsistencyCheck notStarted() {
-    return new StartupConsistencyCheck(Status.NOT_STARTED, new ArrayList<AlluxioURI>());
+    return new StartupConsistencyCheck(Status.NOT_STARTED, new ArrayList<>());
   }
 
   /**
