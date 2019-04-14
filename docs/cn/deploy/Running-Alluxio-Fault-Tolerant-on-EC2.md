@@ -39,7 +39,6 @@ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.
 docs/_includes/Running-Alluxio-Fault-Tolerant-on-EC2/install-vagrant.md
 ```
 
-
 另外，你可以选择手动安装[pip](https://pip.pypa.io/en/latest/installing/)，之后进入`deploy/vagrant`目录，运行：
 
 ```bash
@@ -57,7 +56,6 @@ sudo pip install -r pip-req.txt
 ```bash
 docs/_includes/Running-Alluxio-Fault-Tolerant-on-EC2/access-keys.md
 ```
-
 
 接着生成EC2
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)。确保将私钥文件的
