@@ -10,6 +10,7 @@
  */
 
 package alluxio.security;
+
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
