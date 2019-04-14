@@ -125,7 +125,7 @@ public final class LRFUEvictor extends AbstractEvictor {
 
   @Override
   protected Iterator<Long> getBlockIterator() {
-	  return Iterators.transform(getSortedCRF().iterator(), Entry::getKey);
+	return Iterators.transform(getSortedCRF().iterator(), Entry::getKey);
   }
 
   /**
