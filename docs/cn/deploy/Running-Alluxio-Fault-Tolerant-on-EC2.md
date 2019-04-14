@@ -39,7 +39,6 @@ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.
 docs/_includes/Running-Alluxio-Fault-Tolerant-on-EC2/install-vagrant.md
 ```
 
-
 另外，你可以选择手动安装[pip](https://pip.pypa.io/en/latest/installing/)，之后进入`deploy/vagrant`目录，运行：
 
 ```bash
