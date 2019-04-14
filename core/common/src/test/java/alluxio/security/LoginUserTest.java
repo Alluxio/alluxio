@@ -10,6 +10,8 @@
  */
 
 package alluxio.security;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
@@ -17,7 +19,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthType;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,8 +56,8 @@ public final class LoginUserTest {
 
     User loginUser = LoginUser.get(mConfiguration);
 
-    Assert.assertNotNull(loginUser);
-    Assert.assertEquals(System.getProperty("user.name"), loginUser.getName());
+    assertNotNull(loginUser);
+    assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
   /**
@@ -70,8 +71,8 @@ public final class LoginUserTest {
 
     User loginUser = LoginUser.get(mConfiguration);
 
-    Assert.assertNotNull(loginUser);
-    Assert.assertEquals("alluxio-user", loginUser.getName());
+    assertNotNull(loginUser);
+    assertEquals("alluxio-user", loginUser.getName());
   }
 
   /**
@@ -86,8 +87,8 @@ public final class LoginUserTest {
     User loginUser = LoginUser.get(mConfiguration);
 
     // The user list is considered as a single user name.
-    Assert.assertNotNull(loginUser);
-    Assert.assertEquals("alluxio-user, superuser", loginUser.getName());
+    assertNotNull(loginUser);
+    assertEquals("alluxio-user, superuser", loginUser.getName());
   }
 
   /**
@@ -102,8 +103,8 @@ public final class LoginUserTest {
 
     User loginUser = LoginUser.get(mConfiguration);
 
-    Assert.assertNotNull(loginUser);
-    Assert.assertEquals(System.getProperty("user.name"), loginUser.getName());
+    assertNotNull(loginUser);
+    assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
   /**
@@ -115,8 +116,8 @@ public final class LoginUserTest {
 
     User loginUser = LoginUser.get(mConfiguration);
 
-    Assert.assertNotNull(loginUser);
-    Assert.assertEquals(System.getProperty("user.name"), loginUser.getName());
+    assertNotNull(loginUser);
+    assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
   /**
@@ -130,8 +131,8 @@ public final class LoginUserTest {
 
     User loginUser = LoginUser.get(mConfiguration);
 
-    Assert.assertNotNull(loginUser);
-    Assert.assertEquals("alluxio-user", loginUser.getName());
+    assertNotNull(loginUser);
+    assertEquals("alluxio-user", loginUser.getName());
   }
 
   /**
@@ -146,8 +147,8 @@ public final class LoginUserTest {
 
     User loginUser = LoginUser.get(mConfiguration);
 
-    Assert.assertNotNull(loginUser);
-    Assert.assertEquals(System.getProperty("user.name"), loginUser.getName());
+    assertNotNull(loginUser);
+    assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
   // TODO(dong): getKerberosLoginUserTest()
