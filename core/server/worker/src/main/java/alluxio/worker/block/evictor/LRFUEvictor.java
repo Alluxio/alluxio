@@ -125,13 +125,7 @@ public final class LRFUEvictor extends AbstractEvictor {
 
   @Override
   protected Iterator<Long> getBlockIterator() {
-    return Iterators.transform(getSortedCRF().iterator(),
-        new Function<Map.Entry<Long, Double>, Long>() {
-          @Override
-          public Long apply(Entry<Long, Double> input) {
-            return input.getKey();
-          }
-        });
+	  return Iterators.transform(getSortedCRF().iterator(), Entry::getKey);
   }
 
   /**
