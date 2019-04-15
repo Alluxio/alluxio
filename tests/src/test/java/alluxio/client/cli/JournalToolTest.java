@@ -50,7 +50,8 @@ import java.util.List;
  * Tests for {@link JournalTool}.
  */
 public class JournalToolTest extends BaseIntegrationTest {
-  private final int CHECKPOINT_SIZE = 100;
+  private static final int CHECKPOINT_SIZE = 100;
+
   private final ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
 
   @Rule
