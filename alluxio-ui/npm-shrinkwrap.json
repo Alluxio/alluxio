@@ -7290,12 +7290,14 @@
         "balanced-match": {
           "version": "1.0.0",
           "resolved": false,
-          "integrity": "sha1-ibTRmasr7kneFk6gK4nORi1xt2c="
+          "integrity": "sha1-ibTRmasr7kneFk6gK4nORi1xt2c=",
+          "optional": true
         },
         "brace-expansion": {
           "version": "1.1.11",
           "resolved": false,
           "integrity": "sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==",
+          "optional": true,
           "requires": {
             "balanced-match": "^1.0.0",
             "concat-map": "0.0.1"
@@ -7310,17 +7312,20 @@
         "code-point-at": {
           "version": "1.1.0",
           "resolved": false,
-          "integrity": "sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c="
+          "integrity": "sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=",
+          "optional": true
         },
         "concat-map": {
           "version": "0.0.1",
           "resolved": false,
-          "integrity": "sha1-2Klr13/Wjfd5OnMDajug1UBdR3s="
+          "integrity": "sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=",
+          "optional": true
         },
         "console-control-strings": {
           "version": "1.1.0",
           "resolved": false,
-          "integrity": "sha1-PXz0Rk22RG6mRL9LOVB/mFEAjo4="
+          "integrity": "sha1-PXz0Rk22RG6mRL9LOVB/mFEAjo4=",
+          "optional": true
         },
         "core-util-is": {
           "version": "1.0.2",
@@ -7437,7 +7442,8 @@
         "inherits": {
           "version": "2.0.3",
           "resolved": false,
-          "integrity": "sha1-Yzwsg+PaQqUC9SRmAiSA9CCCYd4="
+          "integrity": "sha1-Yzwsg+PaQqUC9SRmAiSA9CCCYd4=",
+          "optional": true
         },
         "ini": {
           "version": "1.3.5",
@@ -7449,6 +7455,7 @@
           "version": "1.0.0",
           "resolved": false,
           "integrity": "sha1-754xOG8DGn8NZDr4L95QxFfvAMs=",
+          "optional": true,
           "requires": {
             "number-is-nan": "^1.0.0"
           }
@@ -7463,6 +7470,7 @@
           "version": "3.0.4",
           "resolved": false,
           "integrity": "sha512-yJHVQEhyqPLUTgt9B83PXu6W3rx4MvvHvSUvToogpwoGDOUQ+yDrR0HRot+yOCdCO7u4hX3pWft6kWBBcqh0UA==",
+          "optional": true,
           "requires": {
             "brace-expansion": "^1.1.7"
           }
@@ -7470,12 +7478,14 @@
         "minimist": {
           "version": "0.0.8",
           "resolved": false,
-          "integrity": "sha1-hX/Kv8M5fSYluCKCYuhqp6ARsF0="
+          "integrity": "sha1-hX/Kv8M5fSYluCKCYuhqp6ARsF0=",
+          "optional": true
         },
         "minipass": {
           "version": "2.3.5",
           "resolved": false,
           "integrity": "sha512-Gi1W4k059gyRbyVUZQ4mEqLm0YIUiGYfvxhF6SIlk3ui1WVxMTGfGdQ2SInh3PDrRTVvPKgULkpJtT4RH10+VA==",
+          "optional": true,
           "requires": {
             "safe-buffer": "^5.1.2",
             "yallist": "^3.0.0"
@@ -7494,6 +7504,7 @@
           "version": "0.5.1",
           "resolved": false,
           "integrity": "sha1-MAV0OOrGz3+MR2fzhkjWaX11yQM=",
+          "optional": true,
           "requires": {
             "minimist": "0.0.8"
           }
@@ -7574,7 +7585,8 @@
         "number-is-nan": {
           "version": "1.0.1",
           "resolved": false,
-          "integrity": "sha1-CXtgK1NCKlIsGvuHkDGDNpQaAR0="
+          "integrity": "sha1-CXtgK1NCKlIsGvuHkDGDNpQaAR0=",
+          "optional": true
         },
         "object-assign": {
           "version": "4.1.1",
@@ -7586,6 +7598,7 @@
           "version": "1.4.0",
           "resolved": false,
           "integrity": "sha1-WDsap3WWHUsROsF9nFC6753Xa9E=",
+          "optional": true,
           "requires": {
             "wrappy": "1"
           }
@@ -7707,6 +7720,7 @@
           "version": "1.0.2",
           "resolved": false,
           "integrity": "sha1-EYvfW4zcUaKn5w0hHgfisLmxB9M=",
+          "optional": true,
           "requires": {
             "code-point-at": "^1.0.0",
             "is-fullwidth-code-point": "^1.0.0",
@@ -18257,12 +18271,14 @@
             "balanced-match": {
               "version": "1.0.0",
               "resolved": false,
-              "integrity": "sha1-ibTRmasr7kneFk6gK4nORi1xt2c="
+              "integrity": "sha1-ibTRmasr7kneFk6gK4nORi1xt2c=",
+              "optional": true
             },
             "brace-expansion": {
               "version": "1.1.11",
               "resolved": false,
               "integrity": "sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==",
+              "optional": true,
               "requires": {
                 "balanced-match": "^1.0.0",
                 "concat-map": "0.0.1"
@@ -18277,17 +18293,20 @@
             "code-point-at": {
               "version": "1.1.0",
               "resolved": false,
-              "integrity": "sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c="
+              "integrity": "sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=",
+              "optional": true
             },
             "concat-map": {
               "version": "0.0.1",
               "resolved": false,
-              "integrity": "sha1-2Klr13/Wjfd5OnMDajug1UBdR3s="
+              "integrity": "sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=",
+              "optional": true
             },
             "console-control-strings": {
               "version": "1.1.0",
               "resolved": false,
-              "integrity": "sha1-PXz0Rk22RG6mRL9LOVB/mFEAjo4="
+              "integrity": "sha1-PXz0Rk22RG6mRL9LOVB/mFEAjo4=",
+              "optional": true
             },
             "core-util-is": {
               "version": "1.0.2",
@@ -18404,7 +18423,8 @@
             "inherits": {
               "version": "2.0.3",
               "resolved": false,
-              "integrity": "sha1-Yzwsg+PaQqUC9SRmAiSA9CCCYd4="
+              "integrity": "sha1-Yzwsg+PaQqUC9SRmAiSA9CCCYd4=",
+              "optional": true
             },
             "ini": {
               "version": "1.3.5",
@@ -18416,6 +18436,7 @@
               "version": "1.0.0",
               "resolved": false,
               "integrity": "sha1-754xOG8DGn8NZDr4L95QxFfvAMs=",
+              "optional": true,
               "requires": {
                 "number-is-nan": "^1.0.0"
               }
@@ -18430,6 +18451,7 @@
               "version": "3.0.4",
               "resolved": false,
               "integrity": "sha512-yJHVQEhyqPLUTgt9B83PXu6W3rx4MvvHvSUvToogpwoGDOUQ+yDrR0HRot+yOCdCO7u4hX3pWft6kWBBcqh0UA==",
+              "optional": true,
               "requires": {
                 "brace-expansion": "^1.1.7"
               }
@@ -18541,7 +18563,8 @@
             "number-is-nan": {
               "version": "1.0.1",
               "resolved": false,
-              "integrity": "sha1-CXtgK1NCKlIsGvuHkDGDNpQaAR0="
+              "integrity": "sha1-CXtgK1NCKlIsGvuHkDGDNpQaAR0=",
+              "optional": true
             },
             "object-assign": {
               "version": "4.1.1",
@@ -18553,6 +18576,7 @@
               "version": "1.4.0",
               "resolved": false,
               "integrity": "sha1-WDsap3WWHUsROsF9nFC6753Xa9E=",
+              "optional": true,
               "requires": {
                 "wrappy": "1"
               }
@@ -18674,6 +18698,7 @@
               "version": "1.0.2",
               "resolved": false,
               "integrity": "sha1-EYvfW4zcUaKn5w0hHgfisLmxB9M=",
+              "optional": true,
               "requires": {
                 "code-point-at": "^1.0.0",
                 "is-fullwidth-code-point": "^1.0.0",
