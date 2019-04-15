@@ -1794,6 +1794,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
+  // File system master related properties
+  //
+  public static final PropertyKey MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_PACKET_LENGTH =
+      new Builder(Name.MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_PACKET_LENGTH)
+          .setDefaultValue(10000)
+          .setDescription(
+              "Length of items on each list-status response packet.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
+  //
   // Worker related properties
   //
   public static final PropertyKey WORKER_ALLOCATOR_CLASS =
@@ -3910,6 +3922,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
+
+    //
+    // File system master related properties
+    //
+    public static final String MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_PACKET_LENGTH =
+        "alluxio.master.filesystem.liststatus.result.packet.length";
 
     //
     // Secondary master related properties

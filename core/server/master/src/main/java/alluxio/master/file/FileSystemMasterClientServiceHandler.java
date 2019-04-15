@@ -13,6 +13,8 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CheckConsistencyPRequest;
 import alluxio.grpc.CheckConsistencyPResponse;
@@ -28,7 +30,6 @@ import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.DeletePResponse;
-import alluxio.grpc.FileInfo;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
@@ -45,7 +46,6 @@ import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GetSyncPathListPResponse;
-import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.MountPOptions;
@@ -93,6 +93,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
+import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -226,16 +227,56 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void listStatus(ListStatusPRequest request,
       StreamObserver<ListStatusPResponse> responseObserver) {
-    String path = request.getPath();
-    ListStatusPOptions options = request.getOptions();
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<ListStatusPResponse>) () -> {
-      List<FileInfo> result = new ArrayList<>();
-      for (alluxio.wire.FileInfo fileInfo : mFileSystemMaster.listStatus(new AlluxioURI(path),
-          ListStatusContext.create(options.toBuilder()))) {
-        result.add(GrpcUtils.toProto(fileInfo));
-      }
-      return ListStatusPResponse.newBuilder().addAllFileInfos(result).build();
-    }, "ListStatus", "path=%s, options=%s", responseObserver, path, options);
+
+    // Receive {@link alluxio.wire.FileInfo} items from master.
+    List<alluxio.wire.FileInfo> fileInfoList;
+    try {
+      fileInfoList = RpcUtils.callAndReturn(LOG,
+          () -> mFileSystemMaster.listStatus(new AlluxioURI(request.getPath()),
+              ListStatusContext.create(request.getOptions().toBuilder())),
+          "ListStatus", false, "request: %s", responseObserver, request);
+    } catch (StatusException se) {
+      responseObserver.onError(se);
+      return;
+    }
+
+    // Stream results back in chunks.
+    final int resultPacketLength =
+        ServerConfiguration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_PACKET_LENGTH);
+
+    // Current position in the master fileInfo list.
+    int currentIdx = 0;
+    do {
+      // How many remaining items to stream.
+      int remainingItemCount = fileInfoList.size() - currentIdx;
+      // Start index in the master fileInfo list for the next packet.
+      int nextStartIdx = currentIdx;
+      // How many results to stream in this round.
+      int nextItemCount = Math.min(resultPacketLength, remainingItemCount);
+
+      String packetDescription =
+          String.format("ListStatus packet. Item count: %s, Remaining item count: %s",
+              nextItemCount, remainingItemCount);
+
+      // Stream back the next packet.
+      RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<ListStatusPResponse>() {
+        @Override
+        public ListStatusPResponse call() throws Exception {
+          return ListStatusPResponse.newBuilder()
+              .addAllFileInfos(fileInfoList.subList(nextStartIdx, nextStartIdx + nextItemCount)
+                  .stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
+              .build();
+        }
+
+        @Override
+        public void exceptionCaught(Throwable throwable) {
+          responseObserver.onError(throwable);
+        }
+      }, "ListStatus", true, remainingItemCount == 0, packetDescription, responseObserver);
+
+      // Update current index to fileInfo master list.
+      currentIdx += nextItemCount;
+    } while (currentIdx < fileInfoList.size());
   }
 
   @Override
