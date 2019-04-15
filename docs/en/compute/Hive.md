@@ -121,7 +121,7 @@ And you can see the query results from console:
 When Hive is already serving and managing the tables stored in HDFS,
 Alluxio can also serve them for Hive if HDFS is mounted as the under storage of Alluxio.
 In this example, we assume a HDFS cluster is mounted as the under storage of
-Alluxio root directory (i.e., property `alluxio.underfs.address=hdfs://namenode:port/`
+Alluxio root directory (i.e., property `alluxio.master.mount.table.root.ufs=hdfs://namenode:port/`
 is set in `conf/alluxio-site.properties`). Please refer to
 [unified namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }})
 for more details about Alluxio `mount` operation.
@@ -251,7 +251,7 @@ If Hive is set up by adding the above HA mode configuration, one can write URIs 
 hive> alter table u_user set location "alluxio:///ml-100k";
 ```
 
-Since Alluxio 2.0, one can directly use Alluxio HA-style authorities in Hive queries without any configuration setup. 
+Since Alluxio 2.0, one can directly use Alluxio HA-style authorities in Hive queries without any configuration setup.
 See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority) for more details.
 
 ### Experimental: Use Alluxio as the Default Filesystem

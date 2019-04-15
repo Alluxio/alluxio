@@ -158,7 +158,9 @@ public final class UfsJournalCheckpointThread extends Thread {
       try {
         switch (mJournalReader.advance()) {
           case CHECKPOINT:
+            LOG.debug("{}: Restoring from checkpoint", mMaster.getName());
             mMaster.restoreFromCheckpoint(mJournalReader.getCheckpoint());
+            LOG.debug("{}: Finished restoring from checkpoint", mMaster.getName());
             break;
           case LOG:
             entry = mJournalReader.getEntry();
@@ -172,8 +174,7 @@ public final class UfsJournalCheckpointThread extends Thread {
             break;
         }
       } catch (IOException e) {
-        LOG.warn("{}: Failed to read or process the journal entry with error {}.",
-            mMaster.getName(), e.getMessage());
+        LOG.error("{}: Failed to read or process a journal entry.", mMaster.getName(), e);
         try {
           mJournalReader.close();
         } catch (IOException ee) {
@@ -284,7 +285,7 @@ public final class UfsJournalCheckpointThread extends Thread {
           nextSequenceNumber);
       mNextSequenceNumberToCheckpoint = nextSequenceNumber;
     } catch (IOException e) {
-      LOG.warn("{}: Failed to checkpoint with error {}.", mMaster.getName(), e.getMessage());
+      LOG.error("{}: Failed to checkpoint.", mMaster.getName(), e);
     }
   }
 }

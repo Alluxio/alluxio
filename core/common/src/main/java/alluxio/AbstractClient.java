@@ -16,10 +16,11 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
-import alluxio.exception.status.Status;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.metrics.CommonMetrics;
@@ -33,12 +34,14 @@ import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.channels.UnresolvedAddressException;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -194,7 +197,9 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
+    IOException lastConnectFailure = null;
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
+
     while (retryPolicy.attempt()) {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
@@ -208,12 +213,22 @@ public abstract class AbstractClient implements Client {
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
+      if (mAddress.isUnresolved()) {
+        // Sometimes the acquired addressed wasn't resolved, retry resolving before
+        // using it to connect.
+        LOG.info("Retry resolving address {}", mAddress);
+        // Creates a new InetSocketAddress to force resolving the hostname again.
+        mAddress = new InetSocketAddress(mAddress.getHostName(), mAddress.getPort());
+        if (mAddress.isUnresolved()) {
+          LOG.warn("Failed to resolve address on retry {}", mAddress);
+        }
+      }
       try {
         beforeConnect();
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
-            .newBuilder(mAddress, mContext.getConf())
+            .newBuilder(new GrpcServerAddress(mAddress), mContext.getConf())
             .setSubject(mContext.getSubject())
             .build();
         // Create stub for version service on host
@@ -227,6 +242,7 @@ public abstract class AbstractClient implements Client {
       } catch (IOException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
+        lastConnectFailure = e;
       }
     }
     // Reaching here indicates that we did not successfully connect.
@@ -240,8 +256,16 @@ public abstract class AbstractClient implements Client {
           String.format("Failed to determine address for %s after %s attempts", getServiceName(),
               retryPolicy.getAttemptCount()));
     }
+
+    /**
+     * Throw as-is if {@link UnauthenticatedException} occurred.
+     */
+    if (lastConnectFailure instanceof UnauthenticatedException) {
+      throw (AlluxioStatusException) lastConnectFailure;
+    }
+
     throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
-        getServiceName(), mAddress, retryPolicy.getAttemptCount()));
+        getServiceName(), mAddress, retryPolicy.getAttemptCount()), lastConnectFailure);
   }
 
   /**
@@ -348,9 +372,10 @@ public abstract class AbstractClient implements Client {
         return rpc.call();
       } catch (StatusRuntimeException e) {
         AlluxioStatusException se = AlluxioStatusException.fromStatusRuntimeException(e);
-        if (se.getStatus() == Status.UNAVAILABLE
-            || se.getStatus() == Status.CANCELED
-            || se.getStatus() == Status.UNAUTHENTICATED) {
+        if (se.getStatusCode() == Status.Code.UNAVAILABLE
+            || se.getStatusCode() == Status.Code.CANCELLED
+            || se.getStatusCode() == Status.Code.UNAUTHENTICATED
+            || e.getCause() instanceof UnresolvedAddressException) {
           ex = se;
         } else {
           throw se;

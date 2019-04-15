@@ -12,29 +12,37 @@
 package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.master.CheckpointType;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointOutputStream;
+import alluxio.master.journal.checkpoint.CheckpointType;
+import alluxio.master.journal.checkpoint.Checkpointed;
+import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader;
+import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader.Entry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.StreamUtils;
 
-import com.esotericsoftware.kryo.io.InputChunked;
 import com.esotericsoftware.kryo.io.OutputChunked;
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Utility methods for working with the Alluxio journal.
  */
 public final class JournalUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(JournalUtils.class);
 
   /**
    * Returns a URI for the configured location for the specified journal.
@@ -56,22 +64,24 @@ public final class JournalUtils {
   /**
    * Writes a checkpoint of the entries in the given iterable.
    *
-   * This is the complement of {@link #restoreJournalEntryCheckpoint(InputStream, Journaled)}.
+   * This is the complement of
+   * {@link #restoreJournalEntryCheckpoint(CheckpointInputStream, Journaled)}.
    *
    * @param output the stream to write to
    * @param iterable the iterable for fetching journal entries
    */
   public static void writeJournalEntryCheckpoint(OutputStream output, JournalEntryIterable iterable)
       throws IOException, InterruptedException {
-    CheckpointOutputStream cos = new CheckpointOutputStream(output, CheckpointType.JOURNAL_ENTRY);
+    output = new CheckpointOutputStream(output, CheckpointType.JOURNAL_ENTRY);
     Iterator<JournalEntry> it = iterable.getJournalEntryIterator();
+    LOG.info("Write journal entry checkpoint");
     while (it.hasNext()) {
       if (Thread.interrupted()) {
         throw new InterruptedException();
       }
-      it.next().writeDelimitedTo(cos);
+      it.next().writeDelimitedTo(output);
     }
-    cos.flush();
+    output.flush();
   }
 
   /**
@@ -83,14 +93,14 @@ public final class JournalUtils {
    * @param input the stream to read from
    * @param journaled the object to restore
    */
-  public static void restoreJournalEntryCheckpoint(InputStream input, Journaled journaled)
+  public static void restoreJournalEntryCheckpoint(CheckpointInputStream input, Journaled journaled)
       throws IOException {
-    CheckpointInputStream cis = new CheckpointInputStream(input);
-    Preconditions.checkState(cis.getType() == CheckpointType.JOURNAL_ENTRY,
+    Preconditions.checkState(input.getType() == CheckpointType.JOURNAL_ENTRY,
         "Unrecognized checkpoint type when restoring %s: %s", journaled.getCheckpointName(),
-        cis.getType());
+        input.getType());
     journaled.resetState();
-    JournalEntryStreamReader reader = new JournalEntryStreamReader(cis);
+    LOG.info("Reading journal entries");
+    JournalEntryStreamReader reader = new JournalEntryStreamReader(input);
     JournalEntry entry;
     while ((entry = reader.readEntry()) != null) {
       journaled.processJournalEntry(entry);
@@ -100,15 +110,15 @@ public final class JournalUtils {
   /**
    * Writes a composite checkpoint for the given checkpointed components.
    *
-   * This is the complement of {@link #restoreFromCheckpoint(InputStream, List)}.
+   * This is the complement of {@link #restoreFromCheckpoint(CheckpointInputStream, List)}.
    *
    * @param output the stream to write to
    * @param components the components to checkpoint
    */
   public static void writeToCheckpoint(OutputStream output, List<? extends Checkpointed> components)
       throws IOException, InterruptedException {
-    CheckpointOutputStream cos = new CheckpointOutputStream(output, CheckpointType.COMPOUND);
-    OutputChunked chunked = new OutputChunked(cos);
+    OutputChunked chunked = new OutputChunked(
+        new CheckpointOutputStream(output, CheckpointType.COMPOUND), 64 * Constants.KB);
     for (Checkpointed component : components) {
       chunked.writeString(component.getCheckpointName().toString());
       component.writeToCheckpoint(chunked);
@@ -125,26 +135,23 @@ public final class JournalUtils {
    * @param input the stream to read from
    * @param components the components to restore
    */
-  public static void restoreFromCheckpoint(InputStream input,
+  public static void restoreFromCheckpoint(CheckpointInputStream input,
       List<? extends Checkpointed> components) throws IOException {
-    CheckpointInputStream cis = new CheckpointInputStream(input);
-    InputChunked chunked = new PatchedInputChunked(input);
-    Preconditions.checkState(cis.getType() == CheckpointType.COMPOUND,
-        "Unexpected checkpoint type: %s", cis.getType());
-    while (!chunked.eof()) {
-      CheckpointName name = CheckpointName.valueOf(chunked.readString());
+    CompoundCheckpointReader reader = new CompoundCheckpointReader(input);
+    Optional<Entry> next;
+    while ((next = reader.nextCheckpoint()).isPresent()) {
+      Entry nextEntry = next.get();
       boolean found = false;
       for (Checkpointed component : components) {
-        if (component.getCheckpointName().equals(name)) {
-          component.restoreFromCheckpoint(chunked);
-          chunked.nextChunks();
+        if (component.getCheckpointName().equals(nextEntry.getName())) {
+          component.restoreFromCheckpoint(nextEntry.getStream());
           found = true;
           break;
         }
       }
       if (!found) {
-        throw new RuntimeException(
-            String.format("Unrecognized checkpoint name: %s. Existing components: %s", name, Arrays
+        throw new RuntimeException(String.format(
+            "Unrecognized checkpoint name: %s. Existing components: %s", nextEntry.getName(), Arrays
                 .toString(StreamUtils.map(Checkpointed::getCheckpointName, components).toArray())));
       }
     }

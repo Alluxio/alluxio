@@ -11,15 +11,14 @@
 
 package alluxio.master.metastore.rocks;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
 import alluxio.proto.meta.InodeMeta;
-import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
@@ -38,16 +37,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -65,37 +62,44 @@ public class RocksInodeStore implements InodeStore {
   private final WriteOptions mDisableWAL;
   private final ReadOptions mReadPrefixSameAsStart;
 
-  private final AlluxioConfiguration mConf;
-  private final String mDbPath;
+  private final RocksStore mRocksStore;
 
-  private RocksDB mDb;
-  private ColumnFamilyHandle mDefaultColumn;
-  private ColumnFamilyHandle mInodesColumn;
-  private ColumnFamilyHandle mEdgesColumn;
+  private final AtomicReference<ColumnFamilyHandle> mInodesColumn = new AtomicReference<>();
+  private final AtomicReference<ColumnFamilyHandle> mEdgesColumn = new AtomicReference<>();
 
   /**
    * Creates and initializes a rocks block store.
    *
-   * @param args inode store arguments
+   * @param baseDir the base directory in which to store inode metadata
    */
-  public RocksInodeStore(InodeStoreArgs args) {
-    mConf = args.getConf();
-    mDbPath = PathUtils.concatPath(mConf.get(PropertyKey.MASTER_METASTORE_DIR), INODES_DB_NAME);
+  public RocksInodeStore(String baseDir) {
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
-    try {
-      initDb();
-    } catch (RocksDBException e) {
-      throw new RuntimeException(e);
-    }
+    String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
+    String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
+    ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
+        .setMemTableConfig(new HashLinkedListMemTableConfig())
+        .setCompressionType(CompressionType.NO_COMPRESSION)
+        .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
+    List<ColumnFamilyDescriptor> columns = Arrays.asList(
+        new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), cfOpts),
+        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), cfOpts));
+    DBOptions dbOpts = new DBOptions()
+        // Concurrent memtable write is not supported for hash linked list memtable
+        .setAllowConcurrentMemtableWrite(false)
+        .setMaxOpenFiles(-1)
+        .setCreateIfMissing(true)
+        .setCreateMissingColumnFamilies(true);
+    mRocksStore = new RocksStore(dbPath, backupPath, columns, dbOpts,
+        Arrays.asList(mInodesColumn, mEdgesColumn));
   }
 
   @Override
   public void remove(Long inodeId) {
     try {
       byte[] id = Longs.toByteArray(inodeId);
-      mDb.delete(mInodesColumn, mDisableWAL, id);
+      db().delete(mInodesColumn.get(), mDisableWAL, id);
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -104,7 +108,7 @@ public class RocksInodeStore implements InodeStore {
   @Override
   public void writeInode(MutableInode<?> inode) {
     try {
-      mDb.put(mInodesColumn, mDisableWAL, Longs.toByteArray(inode.getId()),
+      db().put(mInodesColumn.get(), mDisableWAL, Longs.toByteArray(inode.getId()),
           inode.toProto().toByteArray());
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -118,17 +122,13 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public void clear() {
-    try {
-      initDb();
-    } catch (RocksDBException e) {
-      throw new RuntimeException(e);
-    }
+    mRocksStore.clear();
   }
 
   @Override
   public void addChild(long parentId, String childName, Long childId) {
     try {
-      mDb.put(mEdgesColumn, mDisableWAL, RocksUtils.toByteArray(parentId, childName),
+      db().put(mEdgesColumn.get(), mDisableWAL, RocksUtils.toByteArray(parentId, childName),
           Longs.toByteArray(childId));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -138,7 +138,7 @@ public class RocksInodeStore implements InodeStore {
   @Override
   public void removeChild(long parentId, String name) {
     try {
-      mDb.delete(mEdgesColumn, mDisableWAL, RocksUtils.toByteArray(parentId, name));
+      db().delete(mEdgesColumn.get(), mDisableWAL, RocksUtils.toByteArray(parentId, name));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -148,7 +148,7 @@ public class RocksInodeStore implements InodeStore {
   public Optional<MutableInode<?>> getMutable(long id) {
     byte[] inode;
     try {
-      inode = mDb.get(mInodesColumn, Longs.toByteArray(id));
+      inode = db().get(mInodesColumn.get(), Longs.toByteArray(id));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -164,32 +164,22 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public Iterable<Long> getChildIds(Long inodeId) {
-    RocksIterator iter = mDb.newIterator(mEdgesColumn, mReadPrefixSameAsStart);
-    iter.seek(Longs.toByteArray(inodeId));
-    return () -> new Iterator<Long>() {
-      @Override
-      public boolean hasNext() {
-        return iter.isValid();
+    List<Long> ids = new ArrayList<>();
+    try (RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart)) {
+      iter.seek(Longs.toByteArray(inodeId));
+      while (iter.isValid()) {
+        ids.add(Longs.fromByteArray(iter.value()));
+        iter.next();
       }
-
-      @Override
-      public Long next() {
-        try {
-          return Longs.fromByteArray(iter.value());
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        } finally {
-          iter.next();
-        }
-      }
-    };
+    }
+    return ids;
   }
 
   @Override
   public Optional<Long> getChildId(Long inodeId, String name) {
     byte[] id;
     try {
-      id = mDb.get(mEdgesColumn, RocksUtils.toByteArray(inodeId, name));
+      id = db().get(mEdgesColumn.get(), RocksUtils.toByteArray(inodeId, name));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -213,22 +203,24 @@ public class RocksInodeStore implements InodeStore {
 
   @Override
   public boolean hasChildren(InodeDirectoryView inode) {
-    RocksIterator iter = mDb.newIterator(mEdgesColumn, mReadPrefixSameAsStart);
-    iter.seek(Longs.toByteArray(inode.getId()));
-    return iter.isValid();
+    try (RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart)) {
+      iter.seek(Longs.toByteArray(inode.getId()));
+      return iter.isValid();
+    }
   }
 
   @Override
   public Set<EdgeEntry> allEdges() {
     Set<EdgeEntry> edges = new HashSet<>();
-    RocksIterator iter = mDb.newIterator(mEdgesColumn);
-    iter.seekToFirst();
-    while (iter.isValid()) {
-      long parentId = RocksUtils.readLong(iter.key(), 0);
-      String childName = new String(iter.key(), Longs.BYTES, iter.key().length - Longs.BYTES);
-      long childId = Longs.fromByteArray(iter.value());
-      edges.add(new EdgeEntry(parentId, childName, childId));
-      iter.next();
+    try (RocksIterator iter = db().newIterator(mEdgesColumn.get())) {
+      iter.seekToFirst();
+      while (iter.isValid()) {
+        long parentId = RocksUtils.readLong(iter.key(), 0);
+        String childName = new String(iter.key(), Longs.BYTES, iter.key().length - Longs.BYTES);
+        long childId = Longs.fromByteArray(iter.value());
+        edges.add(new EdgeEntry(parentId, childName, childId));
+        iter.next();
+      }
     }
     return edges;
   }
@@ -236,11 +228,12 @@ public class RocksInodeStore implements InodeStore {
   @Override
   public Set<MutableInode<?>> allInodes() {
     Set<MutableInode<?>> inodes = new HashSet<>();
-    RocksIterator iter = mDb.newIterator(mInodesColumn);
-    iter.seekToFirst();
-    while (iter.isValid()) {
-      inodes.add(getMutable(Longs.fromByteArray(iter.key())).get());
-      iter.next();
+    try (RocksIterator iter = db().newIterator(mInodesColumn.get())) {
+      iter.seekToFirst();
+      while (iter.isValid()) {
+        inodes.add(getMutable(Longs.fromByteArray(iter.key())).get());
+        iter.next();
+      }
     }
     return inodes;
   }
@@ -250,13 +243,28 @@ public class RocksInodeStore implements InodeStore {
     return true;
   }
 
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.ROCKS_INODE_STORE;
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    mRocksStore.writeToCheckpoint(output);
+  }
+
+  @Override
+  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
+    mRocksStore.restoreFromCheckpoint(input);
+  }
+
   private class RocksWriteBatch implements WriteBatch {
     private final org.rocksdb.WriteBatch mBatch = new org.rocksdb.WriteBatch();
 
     @Override
     public void writeInode(MutableInode<?> inode) {
       try {
-        mBatch.put(mInodesColumn, Longs.toByteArray(inode.getId()),
+        mBatch.put(mInodesColumn.get(), Longs.toByteArray(inode.getId()),
             inode.toProto().toByteArray());
       } catch (RocksDBException e) {
         throw new RuntimeException(e);
@@ -266,7 +274,7 @@ public class RocksInodeStore implements InodeStore {
     @Override
     public void removeInode(Long key) {
       try {
-        mBatch.delete(mInodesColumn, Longs.toByteArray(key));
+        mBatch.delete(mInodesColumn.get(), Longs.toByteArray(key));
       } catch (RocksDBException e) {
         throw new RuntimeException(e);
       }
@@ -275,7 +283,7 @@ public class RocksInodeStore implements InodeStore {
     @Override
     public void addChild(Long parentId, String childName, Long childId) {
       try {
-        mBatch.put(mEdgesColumn, RocksUtils.toByteArray(parentId, childName),
+        mBatch.put(mEdgesColumn.get(), RocksUtils.toByteArray(parentId, childName),
             Longs.toByteArray(childId));
       } catch (RocksDBException e) {
         throw new RuntimeException(e);
@@ -285,7 +293,7 @@ public class RocksInodeStore implements InodeStore {
     @Override
     public void removeChild(Long parentId, String childName) {
       try {
-        mBatch.delete(mEdgesColumn, RocksUtils.toByteArray(parentId, childName));
+        mBatch.delete(mEdgesColumn.get(), RocksUtils.toByteArray(parentId, childName));
       } catch (RocksDBException e) {
         throw new RuntimeException(e);
       }
@@ -294,72 +302,25 @@ public class RocksInodeStore implements InodeStore {
     @Override
     public void commit() {
       try {
-        mDb.write(mDisableWAL, mBatch);
+        db().write(mDisableWAL, mBatch);
       } catch (RocksDBException e) {
         throw new RuntimeException(e);
       }
     }
-  }
 
-  private void initDb() throws RocksDBException {
-    if (mDb != null) {
-      try {
-        // Column handles must be closed before closing the db, or an exception gets thrown.
-        mDefaultColumn.close();
-        mInodesColumn.close();
-        mEdgesColumn.close();
-        mDb.close();
-      } catch (Throwable t) {
-        LOG.error("Failed to close previous rocks database at {}", mDbPath, t);
-      }
+    @Override
+    public void close() {
+      mBatch.close();
     }
-
-    Path path = Paths.get(mDbPath);
-    try {
-      if (Files.exists(path)) {
-        FileUtils.deletePathRecursively(mDbPath);
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(
-          String.format("Failed to clear metastore directory (%s): %s", mDbPath, e.toString()), e);
-    }
-    try {
-      Files.createDirectory(path);
-    } catch (IOException e) {
-      throw new RuntimeException(
-          String.format("Failed to create metastore directory (%s): %s", mDbPath, e.toString()), e);
-    }
-    ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
-        .setMemTableConfig(new HashLinkedListMemTableConfig())
-        .setCompressionType(CompressionType.NO_COMPRESSION)
-        .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
-
-    List<ColumnFamilyDescriptor> cfDescriptors = Arrays.asList(
-        new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, cfOpts),
-        new ColumnFamilyDescriptor(INODES_COLUMN.getBytes(), cfOpts),
-        new ColumnFamilyDescriptor(EDGES_COLUMN.getBytes(), cfOpts)
-    );
-
-    DBOptions options = new DBOptions()
-        // Concurrent memtable write is not supported for hash linked list memtable
-        .setAllowConcurrentMemtableWrite(false)
-        .setMaxOpenFiles(-1)
-        .setCreateIfMissing(true)
-        .setCreateMissingColumnFamilies(true);
-
-    // a list which will hold the handles for the column families once the db is opened
-    List<ColumnFamilyHandle> columns = new ArrayList<>();
-    mDb = RocksDB.open(options, mDbPath, cfDescriptors, columns);
-    mDefaultColumn = columns.get(0);
-    mInodesColumn = columns.get(1);
-    mEdgesColumn = columns.get(2);
-
-    LOG.info("Created new rocks database under path {}", mDbPath);
   }
 
   @Override
   public void close() {
-    mDb.close();
+    mRocksStore.close();
+  }
+
+  private RocksDB db() {
+    return mRocksStore.getDb();
   }
 
   /**
@@ -368,30 +329,32 @@ public class RocksInodeStore implements InodeStore {
    */
   public String toStringEntries() {
     StringBuilder sb = new StringBuilder();
-    RocksIterator inodeIter = mDb.newIterator(mInodesColumn);
-    inodeIter.seekToFirst();
-    while (inodeIter.isValid()) {
-      MutableInode<?> inode;
-      try {
-        inode = MutableInode.fromProto(InodeMeta.Inode.parseFrom(inodeIter.value()));
-      } catch (Exception e) {
-        throw new RuntimeException(e);
+    try (RocksIterator inodeIter =
+        db().newIterator(mInodesColumn.get(), new ReadOptions().setTotalOrderSeek(true))) {
+      inodeIter.seekToFirst();
+      while (inodeIter.isValid()) {
+        MutableInode<?> inode;
+        try {
+          inode = MutableInode.fromProto(InodeMeta.Inode.parseFrom(inodeIter.value()));
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+        sb.append("Inode " + Longs.fromByteArray(inodeIter.key()) + ": " + inode + "\n");
+        inodeIter.next();
       }
-      sb.append("Inode " + Longs.fromByteArray(inodeIter.key()) + ": " + inode + "\n");
-      inodeIter.next();
     }
-    inodeIter.close();
-    RocksIterator edgeIter = mDb.newIterator(mEdgesColumn);
-    edgeIter.seekToFirst();
-    while (edgeIter.isValid()) {
-      byte[] key = edgeIter.key();
-      byte[] id = new byte[Longs.BYTES];
-      byte[] name = new byte[key.length - Longs.BYTES];
-      System.arraycopy(key, 0, id, 0, Longs.BYTES);
-      System.arraycopy(key, Longs.BYTES, name, 0, key.length - Longs.BYTES);
-      sb.append(String.format("<%s,%s>->%s%n", Longs.fromByteArray(id), new String(name),
-          Longs.fromByteArray(edgeIter.value())));
-      edgeIter.next();
+    try (RocksIterator edgeIter = db().newIterator(mEdgesColumn.get())) {
+      edgeIter.seekToFirst();
+      while (edgeIter.isValid()) {
+        byte[] key = edgeIter.key();
+        byte[] id = new byte[Longs.BYTES];
+        byte[] name = new byte[key.length - Longs.BYTES];
+        System.arraycopy(key, 0, id, 0, Longs.BYTES);
+        System.arraycopy(key, Longs.BYTES, name, 0, key.length - Longs.BYTES);
+        sb.append(String.format("<%s,%s>->%s%n", Longs.fromByteArray(id), new String(name),
+            Longs.fromByteArray(edgeIter.value())));
+        edgeIter.next();
+      }
     }
     return sb.toString();
   }

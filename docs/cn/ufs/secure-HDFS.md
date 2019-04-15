@@ -50,7 +50,7 @@ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 接着修改`conf/alluxio-site.properties`文件，将底层存储系统的地址设置为HDFS namenode的地址以及你想挂载到Alluxio的HDFS目录。例如，若你的HDFS namenode是在本地默认端口运行，并且将HDFS根目录映射到Alluxio，则该地址为`hdfs://localhost:9000`，或者，若仅仅映射HDFS的`/alluxio/data`目录到Alluxio，则地址为`hdfs://localhost:9000/alluxio/data`。
 
 ```
-alluxio.underfs.address=hdfs://NAMENODE:PORT
+alluxio.master.mount.table.root.ufs=hdfs://NAMENODE:PORT
 ```
 
 ### HDFS配置文件
@@ -115,7 +115,7 @@ javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: 
 ./bin/alluxio runTests
 ```
 
-为了这个测试能成功运行，你需要保证Alluxio cli登入的用户对挂载到Alluxio的HDFS目录有读/写的访问权限。默认情况下，登入的用户是当前主机OS的用户。要改变默认配置，可以设置`./conf/alluxio-site.properties`文件中的`alluxio.security.login.username`的值为想要的用户名。HDFS目录在`alluxio.underfs.address`属性里声明。
+为了这个测试能成功运行，你需要保证Alluxio cli登入的用户对挂载到Alluxio的HDFS目录有读/写的访问权限。默认情况下，登入的用户是当前主机OS的用户。要改变默认配置，可以设置`./conf/alluxio-site.properties`文件中的`alluxio.security.login.username`的值为想要的用户名。HDFS目录在`alluxio.master.mount.table.root.ufs`属性里声明。
 
 运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像这样：`/default_tests_files/Basic_CACHE_THROUGH`。
 

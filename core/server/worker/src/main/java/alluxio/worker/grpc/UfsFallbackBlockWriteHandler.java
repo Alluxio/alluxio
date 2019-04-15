@@ -24,6 +24,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -67,13 +68,14 @@ public final class UfsFallbackBlockWriteHandler
    * Creates an instance of {@link UfsFallbackBlockWriteHandler}.
    *
    * @param blockWorker the block worker
+   * @param userInfo the authenticated user info
    */
-  UfsFallbackBlockWriteHandler(BlockWorker blockWorker,
-      UfsManager ufsManager, StreamObserver<WriteResponse> responseObserver) {
-    super(responseObserver);
+  UfsFallbackBlockWriteHandler(BlockWorker blockWorker, UfsManager ufsManager,
+      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo) {
+    super(responseObserver, userInfo);
     mWorker = blockWorker;
     mUfsManager = ufsManager;
-    mBlockWriteHandler = new BlockWriteHandler(blockWorker, responseObserver);
+    mBlockWriteHandler = new BlockWriteHandler(blockWorker, responseObserver, userInfo);
   }
 
   @Override
@@ -118,7 +120,7 @@ public final class UfsFallbackBlockWriteHandler
         context.setOutputStream(null);
       }
       if (context.getUfsResource() != null) {
-        context.getUfsResource().get().deleteFile(context.getUfsPath());
+        context.getUfsResource().get().deleteExistingFile(context.getUfsPath());
       }
     }
     if (context.getUfsResource() != null) {

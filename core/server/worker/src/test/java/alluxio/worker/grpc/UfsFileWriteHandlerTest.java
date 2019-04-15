@@ -49,11 +49,11 @@ public final class UfsFileWriteHandlerTest extends AbstractWriteHandlerTest {
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     UfsClient ufsClient = new UfsClient(() -> mockUfs, AlluxioURI.EMPTY_URI);
     Mockito.when(ufsManager.get(TEST_MOUNT_ID)).thenReturn(ufsClient);
-    Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
-        .thenReturn(mOutputStream)
+    Mockito.when(mockUfs.createNonexistingFile(Mockito.anyString(),
+        Mockito.any(CreateOptions.class))).thenReturn(mOutputStream)
         .thenReturn(new FileOutputStream(mFile, true));
     mResponseObserver = Mockito.mock(StreamObserver.class);
-    mWriteHandler = new UfsFileWriteHandler(ufsManager, mResponseObserver);
+    mWriteHandler = new UfsFileWriteHandler(ufsManager, mResponseObserver, mUserInfo);
     setupResponseTrigger();
   }
 

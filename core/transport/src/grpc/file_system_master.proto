@@ -62,9 +62,7 @@ message CompleteFilePRequest {
 message OpenFilePOptions {
   optional ReadPType readType = 1;
   optional int32 maxUfsReadConcurrency = 2;
-  optional string fileReadLocationPolicy = 3;
-  optional int32 hashingNumberOfShards = 4;
-  optional FileSystemMasterCommonPOptions commonOptions = 5;
+  optional FileSystemMasterCommonPOptions commonOptions = 3;
 }
 
 message CreateDirectoryPResponse {}
@@ -91,10 +89,9 @@ message CreateFilePOptions {
   optional int32 replicationMax = 4;
   optional int32 replicationMin = 5;
   optional int32 replicationDurable = 6;
-  optional string fileWriteLocationPolicy = 7;
-  optional int32 writeTier = 8;
-  optional WritePType writeType = 9;
-  optional FileSystemMasterCommonPOptions commonOptions = 10;
+  optional int32 writeTier = 7;
+  optional WritePType writeType = 8;
+  optional FileSystemMasterCommonPOptions commonOptions = 9;
 }
 message CreateFilePRequest {
   /** the path of the file */

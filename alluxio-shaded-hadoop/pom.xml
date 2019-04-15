@@ -1,0 +1,225 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-parent</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>alluxio-shaded-hadoop</artifactId>
+  <packaging>jar</packaging>
+  <name>Alluxio Shaded HDFS</name>
+  <version>${ufs.hadoop.version}</version>
+  <description>Alluxio shaded hadoop</description>
+
+  <properties>
+    <!-- The build path need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
+    <build.path>${project.parent.basedir}/build</build.path>
+    <ufs.hadoop.version>2.2.0</ufs.hadoop.version>
+    <shading.prefix>alluxio.shaded.hdfs</shading.prefix>
+    <!-- Composite jar name with both hadoop version and project version included -->
+    <lib.jar.name>${project.artifactId}-${ufs.hadoop.version}-${project.version}.jar</lib.jar.name>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+    <!-- using older version to match dependency version from Hadoop -->
+    <groupId>com.google.guava</groupId>
+    <artifactId>guava</artifactId>
+    <version>14.0.1</version>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <!-- Profile to build this UFS module connecting to hdfs 1 -->
+    <profile>
+      <!-- Decouple hadoop profiles: hadoop-1 to indicate north bound and ufs-hadoop-1 to indicate the south bound -->
+      <id>ufs-hadoop-1</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+          <version>${ufs.hadoop.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- Profile to build this UFS module connecting to hdfs 2, this is the default profile -->
+    <profile>
+      <!-- Decouple hadoop profiles: hadoop-2 to indicate north bound and ufs-hadoop-2 to indicate the south bound -->
+      <id>ufs-hadoop-2</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${ufs.hadoop.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs</artifactId>
+          <version>${ufs.hadoop.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- Profile to build this UFS module connecting to hdfs 3 -->
+    <profile>
+      <id>ufs-hadoop-3</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${ufs.hadoop.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs-client</artifactId>
+          <version>${ufs.hadoop.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>shade-alluxio</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <!-- Since we don't shade all artifacts, we need to promote the transitive dependencies -->
+              <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+              <relocations>
+                <relocation>
+                  <pattern>com.google</pattern>
+                  <shadedPattern>${shading.prefix}.com.google</shadedPattern>
+                  <excludes>
+                    <exclude>com.google.inject.**</exclude>
+                  </excludes>
+                </relocation>
+                <relocation>
+                  <pattern>org.objectweb.asm</pattern>
+                  <shadedPattern>${shading.prefix}.org.objectweb.asm</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.jboss.netty</pattern>
+                  <shadedPattern>${shading.prefix}.org.jboss.netty</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io.netty</pattern>
+                  <shadedPattern>${shading.prefix}.io.netty</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.curator</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.curator</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.http</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.http</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.httpclient</pattern>
+                  <shadedPattern>${shading.prefix}.org.apache.commons.httpclient</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.htrace</pattern>
+                  <shadedPattern>${shading.prefix}.org.htrace</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.codehaus.jackson</pattern>
+                  <shadedPattern>${shading.prefix}.org.codehaus.jackson</shadedPattern>
+                </relocation>
+              </relocations>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
+              <artifactSet>
+                <includes>
+                  <include>com.google.guava:*</include>
+                  <include>com.google.protobuf:*</include>
+                  <include>com.google.code.findbugs:*</include>
+                  <include>asm:asm</include>
+                  <include>io.netty:netty:*</include>
+                  <include>io.netty:netty-all:*</include>
+                  <include>org.apache.curator:*</include>
+                  <include>org.apache.hadoop:*</include>
+                  <include>org.htrace:htrace-core</include>
+                  <include>net.java.dev.jets3t:jets3t</include>
+                  <include>org.apache.httpcomponents:*</include>
+                  <include>commons-httpclient:commons-httpclient</include>
+                  <include>org.codehaus.jackson:*</include>
+                </includes>
+                <excludes>
+                  <exclude>org.slf4j:*</exclude>
+                  <exclude>log4j:*</exclude>
+                </excludes>
+              </artifactSet>
+
+              <filters>
+                <!-- Exclude signatures -->
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>commons-httpclient:commons-httpclient</artifact>
+                  <excludes>
+                    <exclude>META-INF/LICENSE.txt</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

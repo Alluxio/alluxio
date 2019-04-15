@@ -45,7 +45,7 @@ pointing to an AWS S3 endpoint.
 All the fields to be modified in `conf/alluxio-site.properties` file are listed here:
 
 ```properties
-alluxio.underfs.address=s3a://<MINIO_BUCKET>/<MINIO_DIRECTORY>
+alluxio.master.mount.table.root.ufs=s3a://<MINIO_BUCKET>/<MINIO_DIRECTORY>
 alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
 alluxio.underfs.s3.disable.dns.buckets=true
 alluxio.underfs.s3a.inherit_acl=false
@@ -86,7 +86,7 @@ See below for a few common cases and their resolutions.
 
 If a message like this is returned, then you'll need to double check the name of the bucket in the
 `alluxio-site.properties` file and make sure that it exists in Minio.
-The property for the bucket name is controlled by [`alluxio.underfs.address`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.underfs.address)
+The property for the bucket name is controlled by [`alluxio.master.mount.table.root.ufs`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.master.mount.table.root.ufs)
 
 ```
 Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.services.s3.model.AmazonS3Exception: The specified bucket does not exist (Service: Amazon S3; Status Code: 404; Error Code: NoSuchBucke

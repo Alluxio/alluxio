@@ -12,6 +12,8 @@
 package alluxio.worker;
 
 import alluxio.ClientContext;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -21,6 +23,7 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.job.JobServerContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ThreadFactoryUtils;
@@ -51,24 +54,23 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class JobWorker extends AbstractWorker {
   private static final Logger LOG = LoggerFactory.getLogger(JobWorker.class);
 
+  private final JobServerContext mJobServerContext;
   /** Client for job master communication. */
   private final JobMasterClient mJobMasterClient;
   /** The manager for the all the local task execution. */
   private final TaskExecutorManager mTaskExecutorManager;
   /** The service that handles commands sent from master. */
   private Future<?> mCommandHandlingService;
-  /** The manager for all ufs. */
-  private UfsManager mUfsManager;
 
   /**
    * Creates a new instance of {@link JobWorker}.
    *
    * @param ufsManager the ufs manager
    */
-  JobWorker(UfsManager ufsManager) {
+  JobWorker(FileSystem filesystem, FileSystemContext fsContext, UfsManager ufsManager) {
     super(
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("job-worker-heartbeat-%d", true)));
-    mUfsManager = ufsManager;
+    mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     mTaskExecutorManager = new TaskExecutorManager();
@@ -103,7 +105,7 @@ public final class JobWorker extends AbstractWorker {
 
     mCommandHandlingService = getExecutorService().submit(
         new HeartbeatThread(HeartbeatContext.JOB_WORKER_COMMAND_HANDLING,
-            new CommandHandlingExecutor(mTaskExecutorManager, mUfsManager, mJobMasterClient,
+            new CommandHandlingExecutor(mJobServerContext, mTaskExecutorManager, mJobMasterClient,
                 address),
             (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL),
             ServerConfiguration.global()));

@@ -202,7 +202,7 @@ public class UfsInputStreamManager {
       boolean reuse) throws IOException {
     if (!ufs.isSeekable() || !CACHE_ENABLED) {
       // not able to cache, always return a new input stream
-      return ufs.open(path, openOptions);
+      return ufs.openExistingFile(path, openOptions);
     }
 
     // explicit cache cleanup
@@ -240,7 +240,8 @@ public class UfsInputStreamManager {
         final long newId = nextId;
         try {
           inputStream = mUnderFileInputStreamCache.get(nextId, () -> {
-            SeekableUnderFileInputStream ufsStream = (SeekableUnderFileInputStream) ufs.open(path,
+            SeekableUnderFileInputStream ufsStream
+                = (SeekableUnderFileInputStream) ufs.openExistingFile(path,
                 OpenOptions.defaults().setOffset(openOptions.getOffset()));
             LOG.debug("Created the under file input stream resource of {}", newId);
             return new CachedSeekableInputStream(ufsStream, newId, fileId, path);
@@ -249,7 +250,8 @@ public class UfsInputStreamManager {
           LOG.warn("Failed to create a new cached ufs instream of file id {} and path {}", fileId,
               path);
           // fall back to a ufs creation.
-          return ufs.open(path, OpenOptions.defaults().setOffset(openOptions.getOffset()));
+          return ufs.openExistingFile(path,
+              OpenOptions.defaults().setOffset(openOptions.getOffset()));
         }
       }
 

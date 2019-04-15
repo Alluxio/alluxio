@@ -50,6 +50,13 @@ public final class JobUfsManager extends AbstractUfsManager {
   }
 
   @Override
+  protected void connectUfs(UnderFileSystem fs) throws IOException {
+    fs.connectFromWorker(
+        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.JOB_WORKER_RPC,
+            ServerConfiguration.global()));
+  }
+
+  @Override
   public UfsClient get(long mountId) throws NotFoundException, UnavailableException {
     try {
       return super.get(mountId);

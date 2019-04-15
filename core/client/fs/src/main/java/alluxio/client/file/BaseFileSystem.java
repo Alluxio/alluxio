@@ -34,6 +34,7 @@ import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -366,6 +367,8 @@ public class BaseFileSystem implements FileSystem {
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (UnavailableException e) {
+      throw e;
+    } catch (UnauthenticatedException e) {
       throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();

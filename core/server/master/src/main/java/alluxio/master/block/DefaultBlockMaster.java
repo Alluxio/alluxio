@@ -40,11 +40,10 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
-import alluxio.master.journal.CheckpointName;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.BlockStore.Block;
-import alluxio.master.metastore.BlockStore.BlockStoreArgs;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
@@ -247,8 +246,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
-    mBlockStore = masterContext.getBlockStoreFactory()
-        .apply(new BlockStoreArgs(ServerConfiguration.global()));
+    mBlockStore = masterContext.getBlockStoreFactory().get();
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);

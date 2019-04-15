@@ -32,6 +32,7 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
@@ -473,7 +474,8 @@ public final class ConfigurationUtils {
     try {
       LOG.info("Alluxio client (version {}) is trying to load configuration from meta master {}",
           RuntimeConstants.VERSION, address);
-      channel = GrpcChannelBuilder.newBuilder(address, conf).disableAuthentication().build();
+      channel = GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf)
+          .disableAuthentication().build();
       MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
           MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
       GetConfigurationPResponse response = client.getConfiguration(

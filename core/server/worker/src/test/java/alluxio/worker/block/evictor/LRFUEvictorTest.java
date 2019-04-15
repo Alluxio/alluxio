@@ -11,6 +11,10 @@
 
 package alluxio.worker.block.evictor;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.worker.block.BlockMetadataManager;
@@ -22,7 +26,6 @@ import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.allocator.MaxFreeAllocator;
 import alluxio.worker.block.meta.StorageDir;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -166,12 +169,12 @@ public class LRFUEvictorTest {
     for (int i = 0; i < nDir; i++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(bottomTierDirCapacity[0], anyDirInBottomTier, mManagerView);
-      Assert.assertNotNull(plan);
-      Assert.assertTrue(plan.toMove().isEmpty());
-      Assert.assertEquals(1, plan.toEvict().size());
+      assertNotNull(plan);
+      assertTrue(plan.toMove().isEmpty());
+      assertEquals(1, plan.toEvict().size());
       long toEvictBlockId = plan.toEvict().get(0).getFirst();
       long objectBlockId = blockCRF.get(i).getKey();
-      Assert.assertEquals(objectBlockId + " " + toEvictBlockId, objectBlockId, toEvictBlockId);
+      assertEquals(objectBlockId + " " + toEvictBlockId, objectBlockId, toEvictBlockId);
       // update CRF of the chosen block in case that it is chosen again
       for (int j = 0; j < nDir; j++) {
         access(toEvictBlockId);
@@ -222,12 +225,12 @@ public class LRFUEvictorTest {
     for (int i = 0; i < nDir; i++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
-      Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
-      Assert.assertEquals(0, plan.toEvict().size());
-      Assert.assertEquals(1, plan.toMove().size());
+      assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
+      assertEquals(0, plan.toEvict().size());
+      assertEquals(1, plan.toMove().size());
       long blockId = plan.toMove().get(0).getBlockId();
       long objectBlockId = blockCRF.get(i).getKey();
-      Assert.assertEquals(objectBlockId, blockId);
+      assertEquals(objectBlockId, blockId);
       // update CRF of the chosen block in case that it is chosen again
       for (int j = 0; j < nDir; j++) {
         access(objectBlockId);
@@ -299,18 +302,18 @@ public class LRFUEvictorTest {
     for (int i = 0; i < nDirInFirstTier; i++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
-      Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
+      assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       // block with minimum CRF in the first tier needs to be moved to the second tier
-      Assert.assertEquals(1, plan.toMove().size());
+      assertEquals(1, plan.toMove().size());
       long blockIdMovedInFirstTier = plan.toMove().get(0).getBlockId();
       long objectBlockIdInFirstTier = blocksInFirstTier.get(i);
-      Assert.assertEquals(objectBlockIdInFirstTier, blockIdMovedInFirstTier);
+      assertEquals(objectBlockIdInFirstTier, blockIdMovedInFirstTier);
       // cached block with minimum CRF in the second tier will be evicted to hold blocks moved
       // from first tier
-      Assert.assertEquals(1, plan.toEvict().size());
+      assertEquals(1, plan.toEvict().size());
       long blockIdEvictedInSecondTier = plan.toEvict().get(0).getFirst();
       long objectBlockIdInSecondTier = blocksInSecondTier.get(i);
-      Assert.assertEquals(objectBlockIdInSecondTier, blockIdEvictedInSecondTier);
+      assertEquals(objectBlockIdInSecondTier, blockIdEvictedInSecondTier);
       // update CRF of the chosen blocks in case that they are chosen again
       for (int j = 0; j < totalBlocks; j++) {
         access(blockIdMovedInFirstTier);

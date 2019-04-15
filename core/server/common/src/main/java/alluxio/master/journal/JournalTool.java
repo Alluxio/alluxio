@@ -15,13 +15,17 @@ import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.master.CheckpointType;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader.State;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader;
+import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader.Entry;
+import alluxio.master.journal.checkpoint.TarballCheckpointFormat.TarballCheckpointReader;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalReader;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -33,22 +37,27 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Tool for reading the journal entries given a range of sequence numbers. It reads binary journal
- * entries and prints human-readable ones to standard out. Example usage below.
+ * Tool for converting a ufs journal to a human-readable format.
  *
  * <pre>
  * java -cp \
  *   assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
- *   alluxio.master.journal.JournalTool -master FileSystemMaster -start 0x100 -end 0x109
- * java -cp \
- *   assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
- *   alluxio.master.journal.JournalTool -journalFile YourJournalFilePath
+ *   alluxio.master.journal.JournalTool -master FileSystemMaster -outputDir my-journal
  * </pre>
  */
 @NotThreadSafe
@@ -58,36 +67,34 @@ public final class JournalTool {
   private static final String ENTRY_SEPARATOR = StringUtils.repeat('-', 80);
   private static final int EXIT_FAILED = -1;
   private static final int EXIT_SUCCEEDED = 0;
-  private static final Options OPTIONS =
-      new Options()
-          .addOption("help", false, "Show help for this test.")
-          .addOption("master", true, "The name of the master (e.g. FileSystemMaster, BlockMaster). "
+  private static final Options OPTIONS = new Options()
+      .addOption("help", false, "Show help for this command.")
+      .addOption("master", true,
+          "The name of the master (e.g. FileSystemMaster, BlockMaster). "
               + "Set to FileSystemMaster by default.")
-          .addOption("start", true,
-              "The start log sequence number (inclusive). Set to 0 by default.")
-          .addOption("end", true,
-              "The end log sequence number (exclusive). Set to +inf by default.")
-          .addOption("journalFile", true,
-              "If set, only read journal from this file. -master is ignored when -journalFile is "
-                  + "set.");
+      .addOption("start", true,
+          "The start log sequence number (inclusive). Set to 0 by default.")
+      .addOption("end", true,
+          "The end log sequence number (exclusive). Set to +inf by default.")
+      .addOption("outputDir", true,
+          "The output directory to write journal content to. Default: journal_dump-${timestamp}");
 
   private static boolean sHelp;
   private static String sMaster;
   private static long sStart;
   private static long sEnd;
-  private static String sJournalFile;
+  private static String sOutputDir;
+  private static String sCheckpointsDir;
+  private static String sJournalEntryFile;
 
   private JournalTool() {} // prevent instantiation
 
   /**
-   * Reads a journal via
-   * {@code java -cp \
-   * assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
-   * alluxio.master.journal.JournalTool -master BlockMaster -start 0x100 -end 0x109}.
+   * Dumps a ufs journal in human-readable format.
    *
    * @param args arguments passed to the tool
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     if (!parseInputArgs(args)) {
       usage();
       System.exit(EXIT_FAILED);
@@ -97,69 +104,32 @@ public final class JournalTool {
       System.exit(EXIT_SUCCEEDED);
     }
 
-    if (sJournalFile != null && !sJournalFile.isEmpty()) {
-      parseJournalFile();
-    } else {
-      readFromJournal();
-    }
+    dumpJournal();
   }
 
-  private static void parseJournalFile() {
-    URI location;
-    try {
-      location = new URI(sJournalFile);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-
-    try (JournalFileParser parser = JournalFileParser.Factory.create(location)) {
-      JournalEntry entry;
-      while ((entry = parser.next()) != null) {
-        if (entry.getSequenceNumber() < sStart) {
-          continue;
-        }
-        if (entry.getSequenceNumber() >= sEnd) {
-          break;
-        }
-        System.out.println(ENTRY_SEPARATOR);
-        System.out.print(entry);
-      }
-    } catch (Exception e) {
-      LOG.error("Failed to get next journal entry.", e);
-    }
-  }
-
-  private static void readFromJournal() {
+  private static void dumpJournal() throws IOException {
+    System.out.printf("Dumping journal to %s%n", sOutputDir);
+    Files.createDirectories(Paths.get(sOutputDir));
     UfsJournal journal =
         new UfsJournalSystem(getJournalLocation(), 0).createJournal(new NoopMaster(sMaster));
-    try (JournalReader reader = new UfsJournalReader(journal, sStart, true)) {
+    try (PrintStream out =
+             new PrintStream(new BufferedOutputStream(new FileOutputStream(sJournalEntryFile)));
+         JournalReader reader = new UfsJournalReader(journal, sStart, true)) {
       boolean done = false;
-      while (!done) {
+      while (!done && reader.getNextSequenceNumber() < sEnd) {
         State state = reader.advance();
         switch (state) {
           case CHECKPOINT:
-            CheckpointInputStream checkpoint = new CheckpointInputStream(reader.getCheckpoint());
-            System.out.printf("Checkpoint type %s, endId: %s%n", checkpoint.getType(),
-                reader.getNextSequenceNumber());
-            if (checkpoint.getType() == CheckpointType.JOURNAL_ENTRY) {
-              System.out.println("START_CHECKPOINT");
-              JournalEntryStreamReader checkpointReader = new JournalEntryStreamReader(checkpoint);
-              JournalEntry entry;
-              while ((entry = checkpointReader.readEntry()) != null) {
-                System.out.println(ENTRY_SEPARATOR);
-                System.out.print(entry);
-              }
-              System.out.println("END_CHECKPOINT");
+            try (CheckpointInputStream checkpoint = reader.getCheckpoint()) {
+              Path dir = Paths.get(sCheckpointsDir + "-" + reader.getNextSequenceNumber());
+              Files.createDirectories(dir);
+              readCheckpoint(checkpoint, dir);
             }
-            checkpoint.close();
             break;
           case LOG:
             JournalEntry entry = reader.getEntry();
-            System.out.println(ENTRY_SEPARATOR);
-            System.out.print(entry);
-            if (entry.getSequenceNumber() >= sEnd) {
-              done = true;
-            }
+            out.println(ENTRY_SEPARATOR);
+            out.print(entry);
             break;
           case DONE:
             done = true;
@@ -169,7 +139,50 @@ public final class JournalTool {
         }
       }
     } catch (Exception e) {
-      LOG.error("Failed to read next journal entry.", e);
+      LOG.error("Failed to read from journal.", e);
+    }
+  }
+
+  private static void readCheckpoint(CheckpointInputStream checkpoint, Path path)
+      throws IOException {
+    LOG.debug("Reading checkpoint of type %s to %s%n", checkpoint.getType().name(), path);
+    switch (checkpoint.getType()) {
+      case COMPOUND:
+        readCompoundCheckpoint(checkpoint, path);
+        break;
+      case ROCKS:
+        readRocksCheckpoint(checkpoint, path);
+        break;
+      default:
+        readRegularCheckpoint(checkpoint, path);
+        break;
+    }
+  }
+
+  private static void readCompoundCheckpoint(CheckpointInputStream checkpoint, Path path)
+      throws IOException {
+    Files.createDirectories(path);
+    CompoundCheckpointReader reader = new CompoundCheckpointReader(checkpoint);
+    Optional<Entry> entryOpt;
+    while ((entryOpt = reader.nextCheckpoint()).isPresent()) {
+      Entry entry = entryOpt.get();
+      Path checkpointPath = path.resolve(entry.getName().toString());
+      LOG.debug("Reading checkpoint for %s to %s%n", entry.getName(), checkpointPath);
+      readCheckpoint(entry.getStream(), checkpointPath);
+    }
+  }
+
+  private static void readRocksCheckpoint(CheckpointInputStream checkpoint, Path path)
+      throws IOException {
+    TarballCheckpointReader reader = new TarballCheckpointReader(checkpoint);
+    reader.unpackToDirectory(path);
+  }
+
+  private static void readRegularCheckpoint(CheckpointInputStream checkpoint, Path path)
+      throws IOException {
+    try (PrintStream out =
+        new PrintStream(new BufferedOutputStream(new FileOutputStream(path.toFile())))) {
+      checkpoint.getType().getCheckpointFormat().parseToHumanReadable(checkpoint, out);
     }
   }
 
@@ -208,7 +221,11 @@ public final class JournalTool {
     sMaster = cmd.getOptionValue("master", "FileSystemMaster");
     sStart = Long.decode(cmd.getOptionValue("start", "0"));
     sEnd = Long.decode(cmd.getOptionValue("end", Long.valueOf(Long.MAX_VALUE).toString()));
-    sJournalFile = cmd.getOptionValue("journalFile", "");
+    sOutputDir =
+        new File(cmd.getOptionValue("outputDir", "journal_dump-" + System.currentTimeMillis()))
+            .getAbsolutePath();
+    sCheckpointsDir = PathUtils.concatPath(sOutputDir, "checkpoints");
+    sJournalEntryFile = PathUtils.concatPath(sOutputDir, "edits.txt");
     return true;
   }
 
@@ -216,9 +233,10 @@ public final class JournalTool {
    * Prints the usage.
    */
   private static void usage() {
-    new HelpFormatter().printHelp("java -cp alluxio-" + RuntimeConstants.VERSION
+    new HelpFormatter().printHelp(
+        "java -cp alluxio-" + RuntimeConstants.VERSION
             + "-jar-with-dependencies.jar alluxio.master.journal.JournalTool",
-        "Read an Alluxio journal and write it to stdout in a human-readable format.", OPTIONS, "",
-        true);
+        "Read an Alluxio journal and write it to a directory in a human-readable format.", OPTIONS,
+        "", true);
   }
 }

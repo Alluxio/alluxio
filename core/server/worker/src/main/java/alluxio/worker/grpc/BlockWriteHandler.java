@@ -19,6 +19,7 @@ import alluxio.grpc.WriteResponse;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -53,9 +54,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
    *
    * @param blockWorker the block worker
    * @param responseObserver the stream observer for the write response
+   * @param userInfo the authenticated user info
    */
-  BlockWriteHandler(BlockWorker blockWorker, StreamObserver<WriteResponse> responseObserver) {
-    super(responseObserver);
+  BlockWriteHandler(BlockWorker blockWorker, StreamObserver<WriteResponse> responseObserver,
+      AuthenticatedUserInfo userInfo) {
+    super(responseObserver, userInfo);
     mWorker = blockWorker;
   }
 

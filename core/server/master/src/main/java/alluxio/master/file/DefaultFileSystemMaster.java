@@ -99,14 +99,14 @@ import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.journal.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
-import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.TimeSeriesStore;
 import alluxio.metrics.MasterMetrics;
@@ -153,7 +153,6 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -186,7 +185,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -415,8 +413,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
     mInodeLockManager = new InodeLockManager();
-    InodeStore inodeStore = masterContext.getInodeStoreFactory()
-        .apply(new InodeStoreArgs(mInodeLockManager, ServerConfiguration.global()));
+    InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(mInodeLockManager);
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
     mInodeTree = new InodeTree(inodeStore, mBlockMaster,
         mDirectoryIdGenerator, mMountTable, mInodeLockManager);
@@ -436,8 +433,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     mTimeSeriesStore = new TimeSeriesStore();
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
-    mJournaledComponents =
-        Arrays.asList(mInodeTree, mDirectoryIdGenerator, mMountTable, mUfsManager, mSyncManager);
+    mJournaledComponents = new ArrayList<Journaled>() {
+      {
+        add(mInodeTree);
+        add(mDirectoryIdGenerator);
+        add(mMountTable);
+        add(mUfsManager);
+        add(mSyncManager);
+      }
+    };
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -506,7 +510,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public void restoreFromCheckpoint(InputStream input) throws IOException {
+  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     JournalUtils.restoreFromCheckpoint(input, mJournaledComponents);
   }
 
@@ -2202,9 +2206,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
           boolean success;
           if (srcInode.isFile()) {
-            success = ufs.renameFile(ufsSrcPath, ufsDstUri);
+            success = ufs.renameRenamableFile(ufsSrcPath, ufsDstUri);
           } else {
-            success = ufs.renameDirectory(ufsSrcPath, ufsDstUri);
+            success = ufs.renameRenamableDirectory(ufsSrcPath, ufsDstUri);
           }
           if (!success) {
             throw new IOException(
@@ -2214,7 +2218,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         // The destination was persisted in ufs.
         mUfsAbsentPathCache.processExisting(dstPath);
       }
-    } catch (Exception e) {
+    } catch (Throwable t) {
       // On failure, revert changes and throw exception.
       mInodeTree.rename(rpcContext, RenameEntry.newBuilder()
           .setId(srcInode.getId())
@@ -2222,7 +2226,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           .setNewName(srcName)
           .setNewParentId(srcParentInode.getId())
           .build());
-      throw e;
+      throw t;
     }
 
     Metrics.PATHS_RENAMED.inc();
@@ -2516,7 +2520,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
       ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
       if (context.getUfsStatus() == null) {
-        context.setUfsStatus(ufs.getFileStatus(ufsUri.toString()));
+        context.setUfsStatus(ufs.getExistingFileStatus(ufsUri.toString()));
       }
       ufsLength = ((UfsFileStatus) context.getUfsStatus()).getContentLength();
 
@@ -2612,7 +2616,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       if (context.getUfsStatus() == null) {
-        context.setUfsStatus(ufs.getDirectoryStatus(ufsUri.toString()));
+        context.setUfsStatus(ufs.getExistingDirectoryStatus(ufsUri.toString()));
       }
       Pair<AccessControlList, DefaultAccessControlList> aclPair =
           ufs.getAclPair(ufsUri.toString());
@@ -2768,9 +2772,6 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try (CloseableResource<UnderFileSystem> ufsResource =
           mUfsManager.get(mountId).acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
-        ufs.connectFromMaster(
-            NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-                ServerConfiguration.global()));
         // Check that the ufsPath exists and is a directory
         if (!ufs.isDirectory(ufsPath.toString())) {
           throw new IOException(
@@ -3628,7 +3629,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           if (ufs.isObjectStorage()) {
-            LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. "
+            LOG.debug("setOwner/setMode is not supported to object storage UFS via Alluxio. "
                 + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
           } else {
             String owner = null;
@@ -4073,7 +4074,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
               UnderFileSystem ufs = ufsResource.get();
               String ufsPath = resolution.getUri().toString();
-              if (!ufs.renameFile(tempUfsPath, ufsPath)) {
+              if (!ufs.renameRenamableFile(tempUfsPath, ufsPath)) {
                 throw new IOException(
                     String.format("Failed to rename %s to %s.", tempUfsPath, ufsPath));
               }
@@ -4258,7 +4259,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     final String errMessage = "Failed to delete UFS file {}.";
     if (!ufsPath.isEmpty()) {
       try {
-        if (!ufs.deleteFile(ufsPath)) {
+        if (!ufs.deleteExistingFile(ufsPath)) {
           LOG.warn(errMessage, ufsPath);
         }
       } catch (IOException e) {

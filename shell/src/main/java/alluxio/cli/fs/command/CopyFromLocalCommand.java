@@ -11,12 +11,17 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
+  private static final Logger LOG = LoggerFactory.getLogger(CopyFromLocalCommand.class);
 
   private CpCommand mCpCommand;
 
@@ -37,7 +43,19 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
    */
   public CopyFromLocalCommand(FileSystemContext fsContext) {
     super(fsContext);
-    mCpCommand = new CpCommand(fsContext);
+    // The copyFromLocal command needs its own filesystem context because we overwrite the
+    // block location policy configuration.
+    // The original one can't be closed because it may still be in-use within the same shell.
+    InstancedConfiguration conf = new InstancedConfiguration(fsContext.getConf().copyProperties());
+    conf.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
+        conf.get(PropertyKey.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY));
+    LOG.debug(String.format("copyFromLocal block write location policy is %s from property %s",
+        conf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
+        PropertyKey.Name.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY));
+    FileSystemContext updatedCtx = FileSystemContext.create(conf);
+    mFsContext = updatedCtx;
+    mFileSystem = FileSystem.Factory.create(updatedCtx);
+    mCpCommand = new CpCommand(updatedCtx);
   }
 
   @Override

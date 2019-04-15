@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.Status;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
@@ -28,6 +27,8 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.io.Closer;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -402,12 +403,13 @@ public final class CommonUtils {
 
   /**
    * Gets the root cause of an exception.
+   * It stops at encountering gRPC's StatusRuntimeException.
    *
    * @param e the exception
    * @return the root cause
    */
   public static Throwable getRootCause(Throwable e) {
-    while (e.getCause() != null) {
+    while (e.getCause() != null && !(e.getCause() instanceof StatusRuntimeException)) {
       e = e.getCause();
     }
     return e;
@@ -566,7 +568,7 @@ public final class CommonUtils {
   public static void unwrapResponse(Protocol.Response response) throws AlluxioStatusException {
     Status status = ProtoUtils.fromProto(response.getStatus());
     if (status != Status.OK) {
-      throw AlluxioStatusException.from(status, response.getMessage());
+      throw AlluxioStatusException.from(status.withDescription(response.getMessage()));
     }
   }
 
@@ -580,8 +582,8 @@ public final class CommonUtils {
       throws AlluxioStatusException {
     Status status = ProtoUtils.fromProto(response.getStatus());
     if (status != Status.OK) {
-      throw AlluxioStatusException.from(status, String
-          .format("Channel to %s: %s", channel.remoteAddress(), response.getMessage()));
+      throw AlluxioStatusException.from(status.withDescription(
+          String.format("Channel to %s: %s", channel.remoteAddress(), response.getMessage())));
     }
   }
 

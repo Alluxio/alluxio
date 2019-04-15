@@ -598,7 +598,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS)
           .setDefaultValue(20)
           .setDescription("The number of threads in executor pool for parallel object store "
-              + "UFS operations.")
+              + "UFS operations, such as directory renames and deletes.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -611,30 +611,36 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
-      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS)
+  public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS =
+      new Builder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS)
           .setDefaultValue("50ms")
-          .setDescription("Block reads from an object store automatically retry for transient "
-              + "errors with an exponential backoff. This property determines the base time in the "
-              + "exponential backoff. Only applicable for S3A.")
+          .setDescription("To handle eventually consistent storage semantics "
+              + "for certain under storages, Alluxio will perform retries "
+              + "when under storage metadata doesn't match Alluxio's expectations. "
+              + "These retries use exponential backoff. "
+              + "This property determines the base time for the exponential backoff.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
-      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM)
+  public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM =
+      new Builder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM)
           .setDefaultValue(20)
-          .setDescription("Block reads from an object store automatically retry for transient "
-              + "errors with an exponential backoff. This property determines the maximum number of"
-              + " retries. Only applicable for S3A.")
+          .setDescription("To handle eventually consistent storage semantics "
+              + "for certain under storages, Alluxio will perform retries "
+              + "when under storage metadata doesn't match Alluxio's expectations. "
+              + "These retries use exponential backoff. "
+              + "This property determines the maximum number of retries.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
-      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS)
+  public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS =
+      new Builder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS)
           .setDefaultValue("30sec")
-          .setDescription("Block reads from an object store automatically retry for transient "
-              + "errors with an exponential backoff. This property determines the maximum wait time"
-              + " in the backoff. Only applicable for S3A.")
+          .setDescription("To handle eventually consistent storage semantics "
+              + "for certain under storages, Alluxio will perform retries "
+              + "when under storage metadata doesn't match Alluxio's expectations. "
+              + "These retries use exponential backoff. "
+              + "This property determines the maximum wait time in the backoff.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -729,11 +735,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_S3_UPLOAD_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_UPLOAD_THREADS_MAX)
           .setDefaultValue(20)
-          .setDescription("The maximum number of threads to use for uploading data to S3 for "
-              + "multipart uploads. These operations can be fairly expensive, so multiple "
-              + "threads are encouraged. However, this also splits the bandwidth between "
-              + "threads, meaning the overall latency for completing an upload will be higher "
-              + "for more threads.")
+          .setDescription("For an Alluxio worker, this is the maximum number of threads to use "
+              + "for uploading data to S3 for multipart uploads. These operations can be fairly "
+              + "expensive, so multiple threads are encouraged. However, this also splits the "
+              + "bandwidth between threads, meaning the overall latency for completing an upload "
+              + "will be higher for more threads. For the Alluxio master, this is the maximum "
+              + "number of threads used for the rename (copy) operation. It is recommended that "
+              + "value should be greater than or equal to "
+              + Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -1762,6 +1771,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
+  // Secondary master related properties
+  //
+  public static final PropertyKey SECONDARY_MASTER_METASTORE_DIR =
+      new Builder(Name.SECONDARY_MASTER_METASTORE_DIR)
+          .setDefaultValue(String.format("${%s}/secondary-metastore", Name.WORK_DIR))
+          .setDescription(
+              "The secondary master metastore work directory. Only some metastores need disk.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.NONE)
+          .build();
+
+  //
   // Worker related properties
   //
   public static final PropertyKey WORKER_ALLOCATOR_CLASS =
@@ -2095,6 +2116,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(0)
           .setDescription("How many threads to use for processing requests. Zero defaults to "
               + "#cpuCores * 2.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_READER_BUFFER_SIZE_BYTES =
+      new Builder(Name.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES)
+          .setDefaultValue("4MB")
+          .setDescription("When a client reads from a remote worker, the maximum amount of data"
+              + " not received by client allowed before the worker pauses sending more data."
+              + " If this value is lower than read chunk size, read performance may be impacted"
+              + " as worker waits more often for buffer to free up. Higher value will increase"
+              + " the memory consumed by each read request.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2644,9 +2676,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
-      new Builder(Name.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY)
-          .setDefaultValue("alluxio.client.file.policy.RoundRobinPolicy")
+  public static final PropertyKey USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY =
+      new Builder(Name.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY)
+          .setDefaultValue("alluxio.client.block.policy.RoundRobinPolicy")
           .setDescription("The default location policy for choosing workers for writing a "
               + "file's blocks using copyFromLocal command.")
           .setScope(Scope.CLIENT)
@@ -2758,19 +2790,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "writing data to Alluxio but fallback to write to UFS without stopping the "
               + "application. This property only works when the write type is ASYNC_THROUGH.")
           .setDefaultValue(false).build();
-  public static final PropertyKey USER_FILE_WRITE_LOCATION_POLICY =
-      new Builder(Name.USER_FILE_WRITE_LOCATION_POLICY)
-          .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
+  public static final PropertyKey USER_BLOCK_WRITE_LOCATION_POLICY =
+      new Builder(Name.USER_BLOCK_WRITE_LOCATION_POLICY)
+          .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
           .setDescription("The default location policy for choosing workers for writing a "
               + "file's blocks.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =
-      new Builder(Name.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES)
+  public static final PropertyKey USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES =
+      new Builder(Name.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES)
           .setDefaultValue("0MB")
-          .setDescription("The portion of space reserved in worker when user use the "
-              + "LocalFirstAvoidEvictionPolicy class as file write location policy.")
+          .setDescription("The portion of space reserved in a worker when using the "
+              + "LocalFirstAvoidEvictionPolicy class as block location policy.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3050,16 +3082,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
       new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
-          .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
+          .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
           .setDescription(String.format("When an Alluxio client reads a file from the UFS, it "
               + "delegates the read to an Alluxio worker. The client uses this policy to choose "
-              + "which worker to read through. Builtin choices: %s.", Arrays.asList(
+              + "which worker to read through. Built-in choices: %s.", Arrays.asList(
               javadocLink("alluxio.client.block.policy.DeterministicHashPolicy"),
-              javadocLink("alluxio.client.file.policy.LocalFirstAvoidEvictionPolicy"),
-              javadocLink("alluxio.client.file.policy.LocalFirstPolicy"),
-              javadocLink("alluxio.client.file.policy.MostAvailableFirstPolicy"),
-              javadocLink("alluxio.client.file.policy.RoundRobinPolicy"),
-              javadocLink("alluxio.client.file.policy.SpecificHostPolicy"))))
+              javadocLink("alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy"),
+              javadocLink("alluxio.client.block.policy.LocalFirstPolicy"),
+              javadocLink("alluxio.client.block.policy.MostAvailableFirstPolicy"),
+              javadocLink("alluxio.client.block.policy.RoundRobinPolicy"),
+              javadocLink("alluxio.client.block.policy.SpecificHostPolicy"))))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3595,6 +3627,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.allow.set.owner.failure";
     public static final String UNDERFS_CLEANUP_ENABLED = "alluxio.underfs.cleanup.enabled";
     public static final String UNDERFS_CLEANUP_INTERVAL = "alluxio.underfs.cleanup.interval";
+    public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS =
+        "alluxio.underfs.eventual.consistency.retry.base.sleep";
+    public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM =
+        "alluxio.underfs.eventual.consistency.retry.max.num";
+    public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS =
+        "alluxio.underfs.eventual.consistency.retry.max.sleep";
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
     public static final String UNDERFS_GCS_DIRECTORY_SUFFIX =
         "alluxio.underfs.gcs.directory.suffix";
@@ -3611,12 +3649,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.object.store.mount.shared.publicly";
     public static final String UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
         "alluxio.underfs.object.store.multi.range.chunk.size";
-    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
-        "alluxio.underfs.object.store.read.retry.base.sleep";
-    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
-        "alluxio.underfs.object.store.read.retry.max.num";
-    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
-        "alluxio.underfs.object.store.read.retry.max.sleep";
     public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
     public static final String UNDERFS_OSS_CONNECT_TIMEOUT =
         "alluxio.underfs.oss.connection.timeout";
@@ -3867,6 +3899,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.temporary.file.gc.threshold";
 
     //
+    // Secondary master related properties
+    //
+    public static final String SECONDARY_MASTER_METASTORE_DIR =
+        "alluxio.secondary.master.metastore.dir";
+
+    //
     // Worker related properties
     //
     public static final String WORKER_ALLOCATOR_CLASS = "alluxio.worker.allocator.class";
@@ -3938,6 +3976,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.netty.watermark.low";
     public static final String WORKER_NETWORK_NETTY_WORKER_THREADS =
         "alluxio.worker.network.netty.worker.threads";
+    public static final String WORKER_NETWORK_READER_BUFFER_SIZE_BYTES =
+        "alluxio.worker.network.reader.buffer.size";
     public static final String WORKER_NETWORK_READER_MAX_CHUNK_SIZE_BYTES =
         "alluxio.worker.network.reader.max.chunk.size.bytes";
     public static final String WORKER_NETWORK_SHUTDOWN_TIMEOUT =
@@ -4005,18 +4045,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // User related properties
     //
+    public static final String USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES =
+        "alluxio.user.block.avoid.eviction.policy.reserved.size.bytes";
     public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
         "alluxio.user.block.master.client.threads";
-    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
-        "alluxio.user.block.worker.client.pool.size";
-    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
-        "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
         "alluxio.user.block.size.bytes.default";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.block.worker.client.pool.gc.threshold";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
+        "alluxio.user.block.worker.client.pool.size";
     public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
         "alluxio.user.block.worker.client.read.retry";
+    public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
+        "alluxio.user.block.write.location.policy.class";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
@@ -4025,8 +4069,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
         "alluxio.user.file.cache.partially.read.block";
-    public static final String USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
-        "alluxio.user.file.copyfromlocal.write.location.policy.class";
+    public static final String USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY =
+        "alluxio.user.file.copyfromlocal.block.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
     public static final String USER_FILE_MASTER_CLIENT_THREADS =
@@ -4055,10 +4099,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.create.ttl";
     public static final String USER_FILE_CREATE_TTL_ACTION =
         "alluxio.user.file.create.ttl.action";
-    public static final String USER_FILE_WRITE_LOCATION_POLICY =
-        "alluxio.user.file.write.location.policy.class";
-    public static final String USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =
-        "alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes";
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";

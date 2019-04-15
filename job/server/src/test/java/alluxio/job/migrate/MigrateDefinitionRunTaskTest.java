@@ -30,7 +30,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.job.JobWorkerContext;
+import alluxio.job.JobServerContext;
+import alluxio.job.RunTaskContext;
 import alluxio.underfs.UfsManager;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
@@ -38,7 +39,6 @@ import alluxio.wire.FileInfo;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -56,7 +56,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * Unit tests for {@link MigrateDefinition#runTask(MigrateConfig, ArrayList, JobWorkerContext)}.
+ * Unit tests for {@link MigrateDefinition#runTask(MigrateConfig, ArrayList, RunTaskContext)}.
  */
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(Parameterized.class)
@@ -167,16 +167,14 @@ public final class MigrateDefinitionRunTaskTest {
    * Tests that the worker writes with the specified write type.
    */
   @Test
-  @Ignore
-  // TODO(ggezer) Fix.
   public void writeTypeTest() throws Exception {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.CACHE_THROUGH);
     verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
-        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)).build());
+        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build()));
 
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.MUST_CACHE);
     verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
-        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)).build());
+        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build()));
   }
 
   /**
@@ -189,9 +187,10 @@ public final class MigrateDefinitionRunTaskTest {
    */
   private void runTask(String configSource, String commandSource, String commandDestination,
       WriteType writeType) throws Exception {
-    new MigrateDefinition(mMockFileSystemContext, mMockFileSystem).runTask(
+    new MigrateDefinition().runTask(
         new MigrateConfig(configSource, "", writeType.toString(), false, mDeleteSource),
         Lists.newArrayList(new MigrateCommand(commandSource, commandDestination)),
-        new JobWorkerContext(1, 1, mMockUfsManager));
+        new RunTaskContext(1, 1,
+            new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));
   }
 }

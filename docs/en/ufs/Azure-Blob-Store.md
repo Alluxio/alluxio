@@ -43,7 +43,7 @@ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```
-alluxio.underfs.address=wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
+alluxio.master.mount.table.root.ufs=wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
 Specify credentials for the Azure account of the root mount point by adding the following

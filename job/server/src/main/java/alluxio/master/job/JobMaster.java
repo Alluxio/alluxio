@@ -12,6 +12,8 @@
 package alluxio.master.job;
 
 import alluxio.Constants;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -28,6 +30,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobConfig;
+import alluxio.job.JobServerContext;
 import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.meta.JobInfo;
 import alluxio.job.meta.MasterWorkerInfo;
@@ -92,6 +95,11 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
       };
 
   /**
+   * The Filesystem context that the job master uses for its client.
+   */
+  private final JobServerContext mJobServerContext;
+
+  /**
    * The total number of jobs that the JobMaster may run at any moment.
    */
   private final long mCapacity = ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
@@ -135,24 +143,22 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private final SortedSet<JobInfo> mFinishedJobs;
 
   /**
-   * The manager for all ufs.
-   */
-  private UfsManager mUfsManager;
-
-  /**
    * Creates a new instance of {@link JobMaster}.
    *
    * @param masterContext the context for Alluxio master
+   * @param filesystem the Alluxio filesystem client the job master uses to communicate
+   * @param fsContext the filesystem client's underlying context
    * @param ufsManager the ufs manager
    */
-  public JobMaster(MasterContext masterContext, UfsManager ufsManager) {
+  public JobMaster(MasterContext masterContext, FileSystem filesystem,
+      FileSystemContext fsContext, UfsManager ufsManager) {
     super(masterContext, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.JOB_MASTER_NAME));
+    mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mJobIdGenerator = new JobIdGenerator();
     mCommandManager = new CommandManager();
     mIdToJobCoordinator = new ConcurrentHashMap<>();
     mFinishedJobs = new ConcurrentSkipListSet<>();
-    mUfsManager = ufsManager;
   }
 
   @Override
@@ -227,8 +233,9 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
       }
     }
     long jobId = mJobIdGenerator.getNewJobId();
-    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mUfsManager,
-        getWorkerInfoList(), jobId, jobConfig, (jobInfo) -> {
+    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
+        getWorkerInfoList(), jobId, jobConfig,
+        (jobInfo) -> {
           Status status = jobInfo.getStatus();
           mFinishedJobs.remove(jobInfo);
           if (status.isFinished()) {

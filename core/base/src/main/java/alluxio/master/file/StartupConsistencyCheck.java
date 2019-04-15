@@ -45,7 +45,7 @@ public final class StartupConsistencyCheck {
    * @return a result set to the disabled status
    */
   public static StartupConsistencyCheck disabled() {
-    return new StartupConsistencyCheck(Status.DISABLED, new ArrayList<AlluxioURI>());
+    return new StartupConsistencyCheck(Status.DISABLED, new ArrayList<>());
   }
 
   /**
@@ -59,14 +59,14 @@ public final class StartupConsistencyCheck {
    * @return a result set to the failed status
    */
   public static StartupConsistencyCheck failed() {
-    return new StartupConsistencyCheck(Status.FAILED, new ArrayList<AlluxioURI>());
+    return new StartupConsistencyCheck(Status.FAILED, new ArrayList<>());
   }
 
   /**
    * @return a result set to the running status
    */
   public static StartupConsistencyCheck running() {
-    return new StartupConsistencyCheck(Status.RUNNING, new ArrayList<AlluxioURI>());
+    return new StartupConsistencyCheck(Status.RUNNING, new ArrayList<>());
   }
 
   private final Status mStatus;

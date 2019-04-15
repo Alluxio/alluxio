@@ -30,11 +30,13 @@ import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
 import alluxio.security.LoginUserTestUtils;
+import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 
@@ -43,6 +45,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -56,6 +61,61 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
   protected JobMaster mJobMaster;
   protected LocalAlluxioJobCluster mLocalAlluxioJobCluster = null;
   protected JobShell mJobShell = null;
+
+  /*
+   * The user and group mappings for testing are:
+   *    alice -> alice,staff
+   *    bob   -> bob,staff
+   */
+  protected static final TestUser TEST_USER_1 =
+      new TestUser("alice", "alice,staff");
+  protected static final TestUser TEST_USER_2 =
+      new TestUser("bob", "bob,staff");
+
+  /**
+   * A simple structure to represent a user and its groups.
+   */
+  protected static final class TestUser {
+    private String mUser;
+    private String mGroup;
+
+    TestUser(String user, String group) {
+      mUser = user;
+      mGroup = group;
+    }
+
+    public String getUser() {
+      return mUser;
+    }
+
+    public String getGroup() {
+      return mGroup;
+    }
+  }
+
+  /**
+   * Test class implements {@link GroupMappingService} providing user-to-groups mapping.
+   */
+  public static class FakeUserGroupsMapping implements GroupMappingService {
+    private HashMap<String, String> mUserGroups = new HashMap<>();
+
+    /**
+     * Constructor of {@link FakeUserGroupsMapping} to put the user and groups in user-to-groups
+     * HashMap.
+     */
+    public FakeUserGroupsMapping() {
+      mUserGroups.put(TEST_USER_1.getUser(), TEST_USER_1.getGroup());
+      mUserGroups.put(TEST_USER_2.getUser(), TEST_USER_2.getGroup());
+    }
+
+    @Override
+    public List<String> getGroups(String user) throws IOException {
+      if (mUserGroups.containsKey(user)) {
+        return Lists.newArrayList(mUserGroups.get(user).split(","));
+      }
+      return new ArrayList<>();
+    }
+  }
 
   @Before
   public final void before() throws Exception {

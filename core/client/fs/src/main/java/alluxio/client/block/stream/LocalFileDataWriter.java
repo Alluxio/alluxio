@@ -71,15 +71,10 @@ public final class LocalFileDataWriter implements DataWriter {
     AlluxioConfiguration conf = context.getClusterConf();
     long chunkSize = conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
 
-    final BlockWorkerClient blockWorker = context.acquireBlockWorkerClient(address);
     Closer closer = Closer.create();
     try {
-      closer.register(new Closeable() {
-        @Override
-        public void close() throws IOException {
-          context.releaseBlockWorkerClient(address, blockWorker);
-        }
-      });
+      final BlockWorkerClient blockWorker = context.acquireBlockWorkerClient(address);
+      closer.register(() -> context.releaseBlockWorkerClient(address, blockWorker));
       int writerBufferSizeMessages =
           conf.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
       long fileBufferByes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);

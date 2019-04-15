@@ -21,7 +21,7 @@ priority: 1
 
 * 将`conf/alluxio-site.properties`中的`alluxio.master.hostname`设置为`localhost`(即`alluxio.master.hostname=localhost`)。
 
-* 将`conf/alluxio-site.properties`中的`alluxio.underfs.address`设置为一个本地文件系统上的临时文件夹（例如，`alluxio.underfs.address=/tmp`）。
+* 将`conf/alluxio-site.properties`中的`alluxio.master.mount.table.root.ufs`设置为一个本地文件系统上的临时文件夹（例如，`alluxio.master.mount.table.root.ufs=/tmp`）。
 
 * 开启远程登录服务，确保`ssh localhost`能成功。为了避免重复输入密码，你可以将本机的ssh公钥添加到`~/.ssh/authorized_keys`文件中。更多细节请参考[该指南](http://www.linuxproblem.org/art_9.html)。
 

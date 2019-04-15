@@ -23,6 +23,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.PathUtils;
 import alluxio.zookeeper.RestartableTestingServer;
 
 import com.google.common.base.Throwables;
@@ -221,7 +222,9 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/leader");
 
     for (int k = 0; k < mNumOfMasters; k++) {
-      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory);
+      ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR,
+          PathUtils.concatPath(mWorkDirectory, "metastore-" + k));
+      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory, false);
       master.start();
       LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
           master.getAddress());
@@ -236,7 +239,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     String path = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     if (ufs.isDirectory(path)) {
-      ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
+      ufs.deleteExistingDirectory(path, DeleteOptions.defaults().setRecursive(true));
     }
     if (!ufs.mkdirs(path)) {
       throw new IOException("Failed to make folder: " + path);

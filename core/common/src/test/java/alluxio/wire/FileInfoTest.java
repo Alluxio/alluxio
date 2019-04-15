@@ -133,6 +133,8 @@ public class FileInfoTest {
     for (int i = 0; i < numFileBlockInfos; i++) {
       fileBlocksInfos.add(FileBlockInfoTest.createRandom());
     }
+    int replicationMax = random.nextInt(10);
+    int replicationMin = random.nextInt(10);
 
     result.setBlockIds(blockIds);
     result.setBlockSizeBytes(blockSizeBytes);
@@ -148,6 +150,8 @@ public class FileInfoTest {
     result.setLength(length);
     result.setMode(permission);
     result.setMountPoint(mountPoint);
+    result.setReplicationMax(replicationMax);
+    result.setReplicationMin(replicationMin);
     result.setName(name);
     result.setOwner(userName);
     result.setPath(path);

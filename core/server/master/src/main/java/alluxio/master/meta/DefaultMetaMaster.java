@@ -240,8 +240,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         mDailyBackup.start();
       }
     } else {
-      boolean haEnabled = ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
-      if (haEnabled) {
+      if (ConfigurationUtils.isHaMode(ServerConfiguration.global())) {
         // Standby master should setup MetaMasterSync to communicate with the leader master
         RetryHandlingMetaMasterMasterClient metaMasterClient =
             new RetryHandlingMetaMasterMasterClient(MasterClientContext
@@ -295,7 +294,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         }
       } catch (Throwable t) {
         try {
-          ufs.deleteFile(backupFilePath);
+          ufs.deleteExistingFile(backupFilePath);
         } catch (Throwable t2) {
           LOG.error("Failed to clean up failed backup at {}", backupFilePath, t2);
           t.addSuppressed(t2);

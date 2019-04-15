@@ -214,14 +214,26 @@ public final class GrpcDataReaderTest {
     verify(mRequestObserver, atLeastOnce()).onNext(requestCaptor.capture());
     ArgumentCaptor<StreamObserver> captor = ArgumentCaptor.forClass(StreamObserver.class);
     verify(mClient).readBlock(captor.capture());
-    ReadRequest readRequest = requestCaptor.getValue();
+    List<ReadRequest> readRequests = requestCaptor.getAllValues();
+    assertTrue(!readRequests.isEmpty());
     captor.getValue().onCompleted();
+    long lastOffset = offset;
+    for (int i = 0; i < readRequests.size(); i++) {
+      ReadRequest readRequest = readRequests.get(i);
+      if (i == 0) {
+        assertTrue(readRequest != null);
+        assertEquals(BLOCK_ID, readRequest.getBlockId());
+        assertEquals(offset, readRequest.getOffset());
+        assertEquals(length, readRequest.getLength());
+        assertEquals(chunkSize, readRequest.getChunkSize());
+      } else {
+        assertTrue(readRequest.hasOffsetReceived());
+        assertTrue(readRequest.getOffsetReceived() > lastOffset);
+        assertTrue(readRequest.getOffsetReceived() <= length);
+        lastOffset = readRequest.getOffsetReceived();
+      }
+    }
     verify(mRequestObserver, closed ? atLeastOnce() : never()).onCompleted();
-    assertTrue(readRequest != null);
-    assertEquals(BLOCK_ID, readRequest.getBlockId());
-    assertEquals(offset, readRequest.getOffset());
-    assertEquals(length, readRequest.getLength());
-    assertEquals(chunkSize, readRequest.getChunkSize());
   }
 
   /**

@@ -61,7 +61,7 @@ to enable short-circuit. Short-circuit writes are then enabled if the worker UUI
 filesystem.
 ```properties
 alluxio.worker.data.server.domain.socket.as.uuid=true
-alluxio.worker.data.server.domain.socket.address=/tmp/domain
+alluxio.worker.data.server.domain.socket.address=/opt/domain
 ```
 
 ### Provision a Persistent Volume
@@ -129,6 +129,13 @@ kubectl get pods
 If using peristent volumes for Alluxio master, the status of the volume should change to `CLAIMED`.
 ```bash
 kubectl get pv alluxio-journal-volume
+```
+
+### Access the Web UI
+
+The Alluxio UI can be accessed from outside the kubernetes cluster using port forwarding.
+```bash
+kubectl port-forward alluxio-master-0 19999:19999
 ```
 
 ### Verify

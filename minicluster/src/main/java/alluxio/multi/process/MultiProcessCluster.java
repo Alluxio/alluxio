@@ -229,6 +229,7 @@ public final class MultiProcessCluster {
     for (int i = 0; i < mNumWorkers; i++) {
       createWorker(i).start();
     }
+    System.out.printf("Starting alluxio cluster in directory %s%n", mWorkDir.getAbsolutePath());
   }
 
   /**
@@ -535,11 +536,13 @@ public final class MultiProcessCluster {
         "Must be in a started state to create masters");
     MasterNetAddress address = mMasterAddresses.get(i);
     File confDir = new File(mWorkDir, "conf-master" + i);
+    File metastoreDir = new File(mWorkDir, "metastore-master" + i);
     File logsDir = new File(mWorkDir, "logs-master" + i);
     logsDir.mkdirs();
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.LOGGER_TYPE, "MASTER_LOGGER");
     conf.put(PropertyKey.CONF_DIR, confDir.getAbsolutePath());
+    conf.put(PropertyKey.MASTER_METASTORE_DIR, metastoreDir.getAbsolutePath());
     conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
     conf.put(PropertyKey.MASTER_HOSTNAME, address.getHostname());
     conf.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(address.getRpcPort()));
