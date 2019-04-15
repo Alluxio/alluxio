@@ -11,7 +11,6 @@
 
 package alluxio.master.metastore.rocks;
 
-import alluxio.conf.PropertyKey;
 import alluxio.master.metastore.BlockStore;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
@@ -61,10 +60,9 @@ public class RocksBlockStore implements BlockStore {
   /**
    * Creates and initializes a rocks block store.
    *
-   * @param args block store args
+   * @param baseDir the base directory in which to store block store metadata
    */
-  public RocksBlockStore(BlockStoreArgs args) {
-    String baseDir = args.getConfiguration().get(PropertyKey.MASTER_METASTORE_DIR);
+  public RocksBlockStore(String baseDir) {
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()

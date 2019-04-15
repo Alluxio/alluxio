@@ -19,8 +19,8 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.master.journal.checkpoint.Checkpointed;
-import alluxio.master.journal.checkpoint.CompoundCheckpointReader;
-import alluxio.master.journal.checkpoint.CompoundCheckpointReader.Entry;
+import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader;
+import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader.Entry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.StreamUtils;
 

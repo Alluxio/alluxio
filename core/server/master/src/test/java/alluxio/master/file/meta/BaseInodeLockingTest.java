@@ -14,11 +14,9 @@ package alluxio.master.file.meta;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.metastore.InodeStore;
-import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metastore.heap.HeapInodeStore;
 
 import org.junit.After;
@@ -36,8 +34,7 @@ import java.util.List;
  */
 public class BaseInodeLockingTest {
   protected InodeLockManager mInodeLockManager = new InodeLockManager();
-  protected InodeStore mInodeStore =
-      new HeapInodeStore(new InodeStoreArgs(mInodeLockManager, ServerConfiguration.global()));
+  protected InodeStore mInodeStore = new HeapInodeStore();
 
   // Directory structure is /a/b/c
   protected InodeFile mFileC = inodeFile(3, 2, "c");

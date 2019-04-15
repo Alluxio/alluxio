@@ -12,11 +12,10 @@
 package alluxio.master.metastore;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.contexts.CreateDirectoryContext;
-import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.MutableInodeDirectory;
-import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
 
@@ -37,14 +36,12 @@ public class InodeStoreBench {
   private static final AtomicInteger NEXT_INODE_ID = new AtomicInteger(1);
 
   public static void main(String[] args) throws InterruptedException {
-    InodeStoreArgs a = new InodeStoreArgs(new InodeLockManager(), ServerConfiguration.global());
-
     System.out.printf("Running benchmarks for rocks inode store%n");
-    sStore = new RocksInodeStore(a);
+    sStore = new RocksInodeStore(ServerConfiguration.get(PropertyKey.MASTER_METASTORE_DIR));
     runBenchmarks();
 
     System.out.printf("%nRunning benchmarks for heap inode store%n");
-    sStore = new HeapInodeStore(a);
+    sStore = new HeapInodeStore();
     runBenchmarks();
   }
 

@@ -39,8 +39,8 @@ public final class MasterTestUtils {
         .setJournalSystem(journalSystem)
         .setSafeModeManager(new TestSafeModeManager())
         .setBackupManager(mock(BackupManager.class))
-        .setBlockStoreFactory(args -> new HeapBlockStore(args))
-        .setInodeStoreFactory(args -> new HeapInodeStore(args))
+        .setBlockStoreFactory(() -> new HeapBlockStore())
+        .setInodeStoreFactory(x -> new HeapInodeStore())
         .setStartTimeMs(-1)
         .setPort(-1)
         .build();

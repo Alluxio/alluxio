@@ -77,9 +77,14 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
       // Respond to client.
       mRequestObserver.onNext(mSaslHandshakeServerHandler.handleSaslMessage(saslMessage));
     } catch (SaslException se) {
+      LOG.debug("Exception while handling SASL message: {}", saslMessage, se);
       mRequestObserver.onError(new UnauthenticatedException(se).toGrpcStatusException());
     } catch (UnauthenticatedException ue) {
+      LOG.debug("Exception while handling SASL message: {}", saslMessage, ue);
       mRequestObserver.onError(ue.toGrpcStatusException());
+    } catch (Exception e) {
+      LOG.debug("Exception while handling SASL message: {}", saslMessage, e);
+      throw e;
     }
   }
 

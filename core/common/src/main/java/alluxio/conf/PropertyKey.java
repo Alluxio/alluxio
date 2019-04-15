@@ -1771,6 +1771,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
+  // Secondary master related properties
+  //
+  public static final PropertyKey SECONDARY_MASTER_METASTORE_DIR =
+      new Builder(Name.SECONDARY_MASTER_METASTORE_DIR)
+          .setDefaultValue(String.format("${%s}/secondary-metastore", Name.WORK_DIR))
+          .setDescription(
+              "The secondary master metastore work directory. Only some metastores need disk.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.NONE)
+          .build();
+
+  //
   // Worker related properties
   //
   public static final PropertyKey WORKER_ALLOCATOR_CLASS =
@@ -3885,6 +3897,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
+
+    //
+    // Secondary master related properties
+    //
+    public static final String SECONDARY_MASTER_METASTORE_DIR =
+        "alluxio.secondary.master.metastore.dir";
 
     //
     // Worker related properties

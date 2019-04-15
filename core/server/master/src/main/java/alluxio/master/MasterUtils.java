@@ -62,36 +62,38 @@ final class MasterUtils {
   }
 
   /**
+   * @param baseDir the base directory in which to store on-disk metadata
    * @return a block store factory of the configured type
    */
-  public static BlockStore.Factory getBlockStoreFactory() {
+  public static BlockStore.Factory getBlockStoreFactory(String baseDir) {
     MetastoreType type =
         ServerConfiguration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
-        return args -> new HeapBlockStore(args);
+        return () -> new HeapBlockStore();
       case ROCKS:
-        return args -> new RocksBlockStore(args);
+        return () -> new RocksBlockStore(baseDir);
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
     }
   }
 
   /**
+   * @param baseDir the base directory in which to store on-disk metadata
    * @return an inode store factory of the configured type
    */
-  public static InodeStore.Factory getInodeStoreFactory() {
+  public static InodeStore.Factory getInodeStoreFactory(String baseDir) {
     MetastoreType type =
         ServerConfiguration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
-        return args -> new HeapInodeStore(args);
+        return lockManager -> new HeapInodeStore();
       case ROCKS:
         InstancedConfiguration conf = ServerConfiguration.global();
         if (conf.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE) == 0) {
-          return args -> new RocksInodeStore(args);
+          return lockManager -> new RocksInodeStore(baseDir);
         } else {
-          return args -> new CachingInodeStore(new RocksInodeStore(args), args);
+          return lockManager -> new CachingInodeStore(new RocksInodeStore(baseDir), lockManager);
         }
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
