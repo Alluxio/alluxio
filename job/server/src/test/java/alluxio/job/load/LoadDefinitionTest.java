@@ -11,6 +11,8 @@
 
 package alluxio.job.load;
 
+import static org.mockito.Matchers.any;
+
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.block.AlluxioBlockStore;
@@ -79,12 +81,13 @@ public class LoadDefinitionTest {
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mMockFsContext = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(Mockito.any(FileSystemContext.class)))
+    PowerMockito.when(AlluxioBlockStore.create(any(FileSystemContext.class)))
         .thenReturn(mMockBlockStore);
     Mockito.when(mMockBlockStore.getAllWorkers()).thenReturn(BLOCK_WORKERS);
     PowerMockito.when(mMockFsContext.getClientContext())
         .thenReturn(ClientContext.create(ServerConfiguration.global()));
-    PowerMockito.when(mMockFsContext.getConf())
+    PowerMockito.when(mMockFsContext.getConf()).thenReturn(ServerConfiguration.global());
+    PowerMockito.when(mMockFsContext.getConf(any(AlluxioURI.class)))
         .thenReturn(ServerConfiguration.global());
   }
 

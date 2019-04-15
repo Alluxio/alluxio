@@ -58,7 +58,7 @@ public final class DistributedCpCommand extends AbstractFileSystemCommand {
     thread.start();
     try {
       JobGrpcClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(), null, true,
-          false), 3, mFsContext.getConf());
+          false), 3, mFsContext.getConf(dstPath));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;

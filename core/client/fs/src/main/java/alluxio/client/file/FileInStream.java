@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.Seekable;
@@ -96,7 +97,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
 
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
-    AlluxioConfiguration conf = context.getConf();
+    AlluxioConfiguration conf = context.getConf(new AlluxioURI(status.getPath()));
     mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
     mBlockWorkerClientReadRetry = conf.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
     mStatus = status;
