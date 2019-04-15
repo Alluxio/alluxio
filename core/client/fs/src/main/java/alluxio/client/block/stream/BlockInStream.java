@@ -147,7 +147,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private static BlockInStream createLocalBlockInStream(FileSystemContext context,
       WorkerNetAddress address, long blockId, long length, InStreamOptions options)
       throws IOException {
-    long chunkSize = context.getClusterConf().getBytes(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
+    long chunkSize = context.getClusterConf().getBytes(
+        PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(
         new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
         address, BlockInStreamSource.LOCAL, blockId, length);

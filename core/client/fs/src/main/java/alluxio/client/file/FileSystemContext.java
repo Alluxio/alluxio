@@ -396,10 +396,11 @@ public final class FileSystemContext implements Closeable {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
         getClusterConf());
     ClientPoolKey key = new ClientPoolKey(address,
-        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(), getClusterConf()));
+        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(),
+            getClusterConf()));
     return mBlockWorkerClientPool.computeIfAbsent(key, k ->
-        new BlockWorkerClientPool(mClientContext.getSubject(), address,
-        getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE), getClusterConf(), mWorkerGroup)
+        new BlockWorkerClientPool(mClientContext.getSubject(), address, getClusterConf().getInt(
+            PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE), getClusterConf(), mWorkerGroup)
     ).acquire();
   }
 
@@ -414,7 +415,8 @@ public final class FileSystemContext implements Closeable {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
         getClusterConf());
     ClientPoolKey key = new ClientPoolKey(address,
-        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(), getClusterConf()));
+        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(),
+            getClusterConf()));
     if (mBlockWorkerClientPool.containsKey(key)) {
       mBlockWorkerClientPool.get(key).release(client);
     } else {
