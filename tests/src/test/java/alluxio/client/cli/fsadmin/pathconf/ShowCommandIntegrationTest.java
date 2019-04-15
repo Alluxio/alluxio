@@ -60,7 +60,7 @@ public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
         .getAddress();
     FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
     fsCtx.getClientContext().updateConfigurationDefaults(address);
-    return (InstancedConfiguration) fsCtx.getConf();
+    return (InstancedConfiguration) fsCtx.getClusterConf();
   }
 
   private String format(PropertyKey key, String value) {

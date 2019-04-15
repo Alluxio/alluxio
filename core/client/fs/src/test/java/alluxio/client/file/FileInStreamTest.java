@@ -125,8 +125,8 @@ public final class FileInStreamTest {
 
     mContext = PowerMockito.mock(FileSystemContext.class);
     when(mContext.getClientContext()).thenReturn(ClientContext.create(sConf));
-    when(mContext.getConf()).thenReturn(sConf);
-    when(mContext.getConf(any(AlluxioURI.class))).thenReturn(sConf);
+    when(mContext.getClusterConf()).thenReturn(sConf);
+    when(mContext.getPathConf(any(AlluxioURI.class))).thenReturn(sConf);
     PowerMockito.when(mContext.getLocalWorker()).thenReturn(new WorkerNetAddress());
     mBlockStore = mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);

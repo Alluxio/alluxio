@@ -110,8 +110,8 @@ public class FileOutStreamTest {
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    when(mFileSystemContext.getConf()).thenReturn(sConf);
-    when(mFileSystemContext.getConf(any(AlluxioURI.class))).thenReturn(sConf);
+    when(mFileSystemContext.getClusterConf()).thenReturn(sConf);
+    when(mFileSystemContext.getPathConf(any(AlluxioURI.class))).thenReturn(sConf);
     mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
 

@@ -86,8 +86,8 @@ public class LoadDefinitionTest {
     Mockito.when(mMockBlockStore.getAllWorkers()).thenReturn(BLOCK_WORKERS);
     PowerMockito.when(mMockFsContext.getClientContext())
         .thenReturn(ClientContext.create(ServerConfiguration.global()));
-    PowerMockito.when(mMockFsContext.getConf()).thenReturn(ServerConfiguration.global());
-    PowerMockito.when(mMockFsContext.getConf(any(AlluxioURI.class)))
+    PowerMockito.when(mMockFsContext.getClusterConf()).thenReturn(ServerConfiguration.global());
+    PowerMockito.when(mMockFsContext.getPathConf(any(AlluxioURI.class)))
         .thenReturn(ServerConfiguration.global());
   }
 

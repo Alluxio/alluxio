@@ -55,7 +55,7 @@ public class ListCommandIntegrationTest extends AbstractShellIntegrationTest {
         .getAddress();
     FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
     fsCtx.getClientContext().updateConfigurationDefaults(address);
-    return (InstancedConfiguration) fsCtx.getConf();
+    return (InstancedConfiguration) fsCtx.getClusterConf();
   }
 
   @Test

@@ -88,8 +88,8 @@ public final class MigrateDefinitionRunTaskTest {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())
         .thenReturn(ClientContext.create(conf));
-    when(mMockFileSystemContext.getConf()).thenReturn(conf);
-    when(mMockFileSystemContext.getConf(any(AlluxioURI.class))).thenReturn(conf);
+    when(mMockFileSystemContext.getClusterConf()).thenReturn(conf);
+    when(mMockFileSystemContext.getPathConf(any(AlluxioURI.class))).thenReturn(conf);
     mMockInStream = new MockFileInStream(mMockFileSystemContext, TEST_SOURCE_CONTENTS, conf);
     when(mMockFileSystem.openFile(new AlluxioURI(TEST_SOURCE))).thenReturn(mMockInStream);
     mMockOutStream = new MockFileOutStream(mMockFileSystemContext);

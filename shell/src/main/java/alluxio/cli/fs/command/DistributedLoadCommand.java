@@ -103,7 +103,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
       thread.start();
       try {
         JobGrpcClientUtils.run(new LoadConfig(filePath.getPath(), replication), 3,
-            mFsContext.getConf(filePath));
+            mFsContext.getPathConf(filePath));
       } finally {
         thread.interrupt();
       }
