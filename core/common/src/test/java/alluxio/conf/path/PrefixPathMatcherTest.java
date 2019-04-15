@@ -71,6 +71,15 @@ public class PrefixPathMatcherTest {
     checkMatch(matcher, "/a/bc/d", "/a/bc", "/a");
   }
 
+  @Test
+  public void matchWithNoLeadingSlash() {
+    Set<String> paths = new HashSet<>();
+    paths.add("/a/b");
+    PrefixPathMatcher matcher = new PrefixPathMatcher(paths);
+    checkNoMatch(matcher, "a");
+    checkNoMatch(matcher, "a/b");
+  }
+
   private void checkMatch(PrefixPathMatcher matcher, String path, String... expected) {
     Optional<List<String>> paths = matcher.match(new AlluxioURI(path));
     Assert.assertTrue(paths.isPresent());

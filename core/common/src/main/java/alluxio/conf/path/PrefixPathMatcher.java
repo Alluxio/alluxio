@@ -61,7 +61,6 @@ public final class PrefixPathMatcher implements PathMatcher {
 
   @Override
   public Optional<List<String>> match(AlluxioURI path) {
-    Preconditions.checkArgument(path.getPath().startsWith("/"), "Path must start with /");
     List<TrieNode> nodes = mTrie.search(path.getPath());
     if (nodes.isEmpty()) {
       return Optional.empty();
