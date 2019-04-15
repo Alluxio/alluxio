@@ -93,8 +93,8 @@ public final class BaseFileSystemTest {
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     when(mFileContext.getClientContext()).thenReturn(mClientContext);
-    when(mFileContext.getConf()).thenReturn(mConf);
-    when(mFileContext.getConf(any())).thenReturn(mConf);
+    when(mFileContext.getClusterConf()).thenReturn(mConf);
+    when(mFileContext.getPathConf(any())).thenReturn(mConf);
     mFileSystem = new DummyAlluxioFileSystem(mFileContext);
   }
 

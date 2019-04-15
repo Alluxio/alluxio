@@ -89,7 +89,7 @@ public final class GrpcDataWriterTest {
     PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
     PowerMockito.when(mContext.getClientContext())
         .thenReturn(ClientContext.create(mConf));
-    PowerMockito.when(mContext.getConf()).thenReturn(mConf);
+    PowerMockito.when(mContext.getClusterConf()).thenReturn(mConf);
     PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
     PowerMockito.when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
     PowerMockito.when(mRequestObserver.isReady()).thenReturn(true);

@@ -15,13 +15,13 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.path.PathConfiguration;
-import alluxio.conf.path.PrefixPathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
@@ -94,7 +94,7 @@ public class ClientContext {
     } else {
       mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
     }
-    mPathConf = new PrefixPathConfiguration();
+    mPathConf = PathConfiguration.create(new HashMap<>());
   }
 
   /**

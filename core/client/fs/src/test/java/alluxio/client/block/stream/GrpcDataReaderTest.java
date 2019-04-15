@@ -71,7 +71,7 @@ public final class GrpcDataReaderTest {
     mContext = PowerMockito.mock(FileSystemContext.class);
     when(mContext.getClientContext())
         .thenReturn(ClientContext.create(ConfigurationTestUtils.defaults()));
-    when(mContext.getConf()).thenReturn(ConfigurationTestUtils.defaults());
+    when(mContext.getClusterConf()).thenReturn(ConfigurationTestUtils.defaults());
     mAddress = mock(WorkerNetAddress.class);
     ReadRequest readRequest =
         ReadRequest.newBuilder().setBlockId(BLOCK_ID).setChunkSize(CHUNK_SIZE).build();

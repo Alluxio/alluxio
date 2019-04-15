@@ -305,7 +305,7 @@ public final class FileSystemContext implements Closeable {
   /**
    * @return the cluster level configuration backing this {@link FileSystemContext}
    */
-  public AlluxioConfiguration getConf() {
+  public AlluxioConfiguration getClusterConf() {
     return mClientContext.getConf();
   }
 
@@ -315,7 +315,7 @@ public final class FileSystemContext implements Closeable {
    * @param path the path to get the configuration for
    * @return the path level configuration for the specific path
    */
-  public AlluxioConfiguration getConf(AlluxioURI path) {
+  public AlluxioConfiguration getPathConf(AlluxioURI path) {
     return new SpecificPathConfiguration(mClientContext.getConf(), mClientContext.getPathConf(),
         path);
   }
@@ -394,12 +394,13 @@ public final class FileSystemContext implements Closeable {
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
-        getConf());
+        getClusterConf());
     ClientPoolKey key = new ClientPoolKey(address,
-        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(), getConf()));
+        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(),
+            getClusterConf()));
     return mBlockWorkerClientPool.computeIfAbsent(key, k ->
-        new BlockWorkerClientPool(mClientContext.getSubject(), address,
-        getConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE), getConf(), mWorkerGroup)
+        new BlockWorkerClientPool(mClientContext.getSubject(), address, getClusterConf().getInt(
+            PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE), getClusterConf(), mWorkerGroup)
     ).acquire();
   }
 
@@ -412,9 +413,10 @@ public final class FileSystemContext implements Closeable {
   public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
       BlockWorkerClient client) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
-        getConf());
+        getClusterConf());
     ClientPoolKey key = new ClientPoolKey(address,
-        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(), getConf()));
+        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(),
+            getClusterConf()));
     if (mBlockWorkerClientPool.containsKey(key)) {
       mBlockWorkerClientPool.get(key).release(client);
     } else {
