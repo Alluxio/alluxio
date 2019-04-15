@@ -365,6 +365,13 @@ public final class MasterWorkerInfo {
     return Collections.unmodifiableMap(mLostStorage);
   }
 
+  /**
+   * @return the map from tier alias to lost storage paths in this worker
+   */
+  public boolean hasLostStorage() {
+    return mLostStorage.size() > 0;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
