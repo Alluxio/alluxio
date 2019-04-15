@@ -16,7 +16,6 @@ import alluxio.HealthCheckClient;
 import alluxio.common.RpcPortHealthCheckClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ServiceType;
-import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -92,7 +91,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
       mProcessCheck = true;
       mAlluxioMasterType = MasterType.MASTER;
       mConf = alluxioConf;
-      mPolicySupplier = () -> new ExponentialBackoffRetry(50, 500, 130); // Max time ~2 min
+      mPolicySupplier = AlluxioMasterMonitor.TWO_MIN_EXP_BACKOFF;
     }
 
     /**

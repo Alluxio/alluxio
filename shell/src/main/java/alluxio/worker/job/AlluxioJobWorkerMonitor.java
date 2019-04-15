@@ -15,9 +15,9 @@ import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.worker.AlluxioWorkerMonitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public final class AlluxioJobWorkerMonitor {
 
     HealthCheckClient client = new JobWorkerHealthCheckClient(
         NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.JOB_WORKER_RPC, conf),
-        () -> new ExponentialBackoffRetry(50, 500, 10), conf);
+        AlluxioWorkerMonitor.ONE_MIN_EXP_BACKOFF, conf);
     if (!client.isServing()) {
       System.exit(1);
     }

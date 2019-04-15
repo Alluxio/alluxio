@@ -15,8 +15,8 @@ import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.master.AlluxioMasterMonitor;
 import alluxio.master.MasterHealthCheckClient;
-import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -51,7 +51,7 @@ public final class AlluxioJobMasterMonitor {
     } else {
       client = new JobMasterRpcHealthCheckClient(NetworkAddressUtils
           .getConnectAddress(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, conf),
-          () -> new ExponentialBackoffRetry(50, 500, 130), conf);
+          AlluxioMasterMonitor.TWO_MIN_EXP_BACKOFF, conf);
     }
 
     if (!client.isServing()) {
