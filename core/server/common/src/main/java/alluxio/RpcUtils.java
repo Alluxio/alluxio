@@ -223,8 +223,8 @@ public final class RpcUtils {
   }
 
   /**
-   * Calls the given {@link RpcCallableThrowsIOException} and returns its result.
-   * Exceptions are logged, accounted for in metrics and then rethrown at the end.
+   * Calls the given {@link RpcCallableThrowsIOException} and returns its result. Exceptions are
+   * logged, accounted for in metrics and then rethrown at the end.
    *
    * The failureOk parameter indicates whether or not AlluxioExceptions and IOExceptions are
    * expected results (for example it would be false for the exists() call). In this case, we do not
@@ -236,14 +236,13 @@ public final class RpcUtils {
    * @param methodName the name of the method, used for metrics
    * @param failureOk whether failures are expected (affects logging and metrics)
    * @param description the format string of the description, used for logging
-   * @param responseObserver gRPC response observer
    * @param args the arguments for the description
    * @param <T> the return type of the callable
    * @return the result. (Null if failed)
    */
   public static <T> T callAndReturn(Logger logger, RpcCallableThrowsIOException<T> callable,
-      String methodName, boolean failureOk, String description, StreamObserver responseObserver,
-      Object... args) throws StatusException {
+      String methodName, boolean failureOk, String description, Object... args)
+      throws StatusException {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {

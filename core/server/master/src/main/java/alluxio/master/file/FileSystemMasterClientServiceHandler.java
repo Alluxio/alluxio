@@ -234,7 +234,7 @@ public final class FileSystemMasterClientServiceHandler
       fileInfoList = RpcUtils.callAndReturn(LOG,
           () -> mFileSystemMaster.listStatus(new AlluxioURI(request.getPath()),
               ListStatusContext.create(request.getOptions().toBuilder())),
-          "ListStatus", false, "request: %s", responseObserver, request);
+          "ListStatus", false, "request: %s", request);
     } catch (StatusException se) {
       responseObserver.onError(se);
       return;
