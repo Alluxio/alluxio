@@ -71,7 +71,7 @@ public class PathPropertiesTest {
     // add new properties
     properties.add(NoopJournalContext.INSTANCE, ROOT, READ_CACHE_WRITE_CACHE_THROUGH);
     properties.add(NoopJournalContext.INSTANCE, DIR1, READ_NO_CACHE_WRITE_THROUGH);
-    Map<String, Map<PropertyKey, String>> got = properties.get();
+    Map<String, Map<String, String>> got = properties.get();
     Assert.assertEquals(2, got.size());
     assertPropertiesEqual(READ_CACHE_WRITE_CACHE_THROUGH, got.get(ROOT));
     assertPropertiesEqual(READ_NO_CACHE_WRITE_THROUGH, got.get(DIR1));
@@ -101,13 +101,14 @@ public class PathPropertiesTest {
 
     // remove from empty properties
     properties.remove(NoopJournalContext.INSTANCE, ROOT, new HashSet<>(Arrays.asList(
-        PropertyKey.USER_FILE_READ_TYPE_DEFAULT, PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)));
+        PropertyKey.USER_FILE_READ_TYPE_DEFAULT.getName(),
+        PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT.getName())));
     properties.removeAll(NoopJournalContext.INSTANCE, DIR1);
     Assert.assertTrue(properties.get().isEmpty());
 
     properties.add(NoopJournalContext.INSTANCE, ROOT, READ_CACHE_WRITE_CACHE_THROUGH);
     properties.add(NoopJournalContext.INSTANCE, DIR1, READ_NO_CACHE_WRITE_THROUGH);
-    Map<String, Map<PropertyKey, String>> got = properties.get();
+    Map<String, Map<String, String>> got = properties.get();
     Assert.assertEquals(2, got.size());
     assertPropertiesEqual(READ_CACHE_WRITE_CACHE_THROUGH, got.get(ROOT));
     assertPropertiesEqual(READ_NO_CACHE_WRITE_THROUGH, got.get(DIR1));
@@ -115,7 +116,8 @@ public class PathPropertiesTest {
     // remove non-existent paths
     properties.removeAll(NoopJournalContext.INSTANCE, "non-existent");
     properties.remove(NoopJournalContext.INSTANCE, "non-existent", new HashSet<>(Arrays.asList(
-        PropertyKey.USER_FILE_READ_TYPE_DEFAULT, PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)));
+        PropertyKey.USER_FILE_READ_TYPE_DEFAULT.getName(),
+        PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT.getName())));
     got = properties.get();
     Assert.assertEquals(2, got.size());
     assertPropertiesEqual(READ_CACHE_WRITE_CACHE_THROUGH, got.get(ROOT));
@@ -123,9 +125,9 @@ public class PathPropertiesTest {
 
     // remove non-existent keys
     properties.remove(NoopJournalContext.INSTANCE, ROOT, new HashSet<>(Arrays.asList(
-        PropertyKey.USER_APP_ID)));
+        PropertyKey.USER_APP_ID.getName())));
     properties.remove(NoopJournalContext.INSTANCE, DIR1, new HashSet<>(Arrays.asList(
-        PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED)));
+        PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED.getName())));
     got = properties.get();
     Assert.assertEquals(2, got.size());
     assertPropertiesEqual(READ_CACHE_WRITE_CACHE_THROUGH, got.get(ROOT));
@@ -133,9 +135,9 @@ public class PathPropertiesTest {
 
     // remove existing keys
     properties.remove(NoopJournalContext.INSTANCE, ROOT, new HashSet<>(Arrays.asList(
-        PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT)));
+        PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT.getName())));
     properties.remove(NoopJournalContext.INSTANCE, DIR1, new HashSet<>(Arrays.asList(
-        PropertyKey.USER_FILE_READ_TYPE_DEFAULT)));
+        PropertyKey.USER_FILE_READ_TYPE_DEFAULT.getName())));
     got = properties.get();
     Assert.assertEquals(2, got.size());
     assertPropertiesEqual(READ_CACHE, got.get(ROOT));
@@ -152,11 +154,11 @@ public class PathPropertiesTest {
   }
 
   private void assertPropertiesEqual(Map<PropertyKey, String> expected,
-      Map<PropertyKey, String> got) {
+      Map<String, String> got) {
     Assert.assertEquals(expected.size(), got.size());
     expected.forEach((key, value) -> {
-      Assert.assertTrue(got.containsKey(key));
-      Assert.assertEquals(value, got.get(key));
+      Assert.assertTrue(got.containsKey(key.getName()));
+      Assert.assertEquals(value, got.get(key.getName()));
     });
   }
 }

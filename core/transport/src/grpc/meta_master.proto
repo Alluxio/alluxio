@@ -114,12 +114,19 @@ message GetMetricsPResponse {
 
 message SetPathConfigurationPOptions {}
 message SetPathConfigurationPRequest {
-  required string path = 1;
-  required string key = 2;
-  required string value = 3;
-  optional SetPathConfigurationPOptions options = 4;
+  optional string path = 1;
+  map<string, string> properties = 2;
+  optional SetPathConfigurationPOptions options = 3;
 }
 message SetPathConfigurationPResponse {}
+
+message RemovePathConfigurationPOptions {}
+message RemovePathConfigurationPRequest {
+  optional string path = 1;
+  repeated string keys = 2;
+  optional RemovePathConfigurationPOptions options = 3;
+}
+message RemovePathConfigurationPResponse {}
 
 /**
   * This interface contains meta master service endpoints for Alluxio clients
@@ -132,9 +139,14 @@ service MetaMasterConfigurationService {
   rpc GetConfiguration(GetConfigurationPOptions) returns (GetConfigurationPResponse);
 
   /**
-   * Sets a property for a path pattern.
+   * Sets a property for a path.
    */
   rpc SetPathConfiguration(SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
+
+  /**
+   * Removes properties for a path, if the keys are empty, it means remove all properties.
+   */
+  rpc RemovePathConfiguration(RemovePathConfigurationPRequest) returns (RemovePathConfigurationPResponse);
 }
 
 /**

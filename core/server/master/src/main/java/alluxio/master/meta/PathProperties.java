@@ -59,7 +59,7 @@ public final class PathProperties implements DelegatingJournaled {
   /**
    * @return a copy of path level properties which is a map from path to property key values
    */
-  public Map<String, Map<PropertyKey, String>> get() {
+  public Map<String, Map<String, String>> get() {
     try (LockResource r = new LockResource(mLock.readLock())) {
       return mState.getProperties();
     }
@@ -77,7 +77,12 @@ public final class PathProperties implements DelegatingJournaled {
    */
   public void add(Supplier<JournalContext> ctx, String path, Map<PropertyKey, String> properties) {
     try (LockResource r = new LockResource(mLock.writeLock())) {
-      mState.addProperties(ctx, path, properties);
+      if (!properties.isEmpty()) {
+        Map<String, String> newProperties = mState.getProperties(path);
+        properties.forEach((key, value) -> newProperties.put(key.getName(), value));
+        mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder().setPath(path)
+            .putAllProperties(newProperties).build());
+      }
     }
   }
 
@@ -88,9 +93,18 @@ public final class PathProperties implements DelegatingJournaled {
    * @param path the path
    * @param keys the keys to remove
    */
-  public void remove(Supplier<JournalContext> ctx, String path, Set<PropertyKey> keys) {
+  public void remove(Supplier<JournalContext> ctx, String path, Set<String> keys) {
     try (LockResource r = new LockResource(mLock.writeLock())) {
-      mState.removeProperties(ctx, path, keys);
+      Map<String, String> properties = mState.getProperties(path);
+      if (!properties.isEmpty()) {
+        keys.forEach(key -> properties.remove(key));
+        if (properties.isEmpty()) {
+          mState.applyAndJournal(ctx, RemovePathPropertiesEntry.newBuilder().setPath(path).build());
+        } else {
+          mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder()
+              .setPath(path).putAllProperties(properties).build());
+        }
+      }
     }
   }
 
@@ -102,7 +116,10 @@ public final class PathProperties implements DelegatingJournaled {
    */
   public void removeAll(Supplier<JournalContext> ctx, String path) {
     try (LockResource r = new LockResource(mLock.writeLock())) {
-      mState.removeAllProperties(ctx, path);
+      Map<String, String> properties = mState.getProperties(path);
+      if (!properties.isEmpty()) {
+        mState.applyAndJournal(ctx, RemovePathPropertiesEntry.newBuilder().setPath(path).build());
+      }
     }
   }
 
@@ -124,60 +141,22 @@ public final class PathProperties implements DelegatingJournaled {
     /**
      * @return a copy of the internal properties
      */
-    public Map<String, Map<PropertyKey, String>> getProperties() {
-      Map<String, Map<PropertyKey, String>> copy = new HashMap<>();
-      mProperties.forEach((path, kv) -> {
-        Map<PropertyKey, String> properties = new HashMap<>();
-        kv.forEach((key, value) -> properties.put(PropertyKey.fromString(key), value));
-        copy.put(path, properties);
-      });
+    public Map<String, Map<String, String>> getProperties() {
+      Map<String, Map<String, String>> copy = new HashMap<>();
+      mProperties.forEach((path, kv) -> copy.put(path, new HashMap<>(kv)));
       return copy;
     }
 
     /**
-     * Adds properties for path.
-     *
-     * If there are existing properties for path, they are merged with the new properties.
-     * If a property key already exists, its old value is overwritten.
-     *
-     * @param ctx the journal context
      * @param path the path
-     * @param properties the new properties
+     * @return a copy of the internal properties for path or empty if configurations for the path
+     *    do not exist
      */
-    public void addProperties(Supplier<JournalContext> ctx, String path,
-        Map<PropertyKey, String> properties) {
-      Map<String, String> newProperties = mProperties.getOrDefault(path, new HashMap<>());
-      properties.forEach((key, value) -> newProperties.put(key.getName(), value));
-      applyAndJournal(ctx, PathPropertiesEntry.newBuilder().setPath(path)
-          .putAllProperties(newProperties).build());
-    }
-
-    /**
-     * Removes the specified set of keys from the properties for path.
-     *
-     * @param ctx the journal context
-     * @param path the path
-     * @param keys the keys to remove
-     */
-    public void removeProperties(Supplier<JournalContext> ctx, String path, Set<PropertyKey> keys) {
+    public Map<String, String> getProperties(String path) {
       if (mProperties.containsKey(path)) {
-        Map<String, String> newProperties = mProperties.get(path);
-        keys.forEach(key -> newProperties.remove(key.getName()));
-        applyAndJournal(ctx, PathPropertiesEntry.newBuilder()
-            .setPath(path).putAllProperties(newProperties).build());
+        return new HashMap<>(mProperties.get(path));
       }
-    }
-
-    /**
-     * Removes all properties for path.
-     *
-     * @param ctx the journal context
-     * @param path the path
-     */
-    public void removeAllProperties(Supplier<JournalContext> ctx, String path) {
-      if (mProperties.containsKey(path)) {
-        applyAndJournal(ctx, RemovePathPropertiesEntry.newBuilder().setPath(path).build());
-      }
+      return new HashMap<>();
     }
 
     @Override

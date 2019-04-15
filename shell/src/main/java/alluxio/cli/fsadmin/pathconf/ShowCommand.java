@@ -85,7 +85,7 @@ public final class ShowCommand extends AbstractFsAdminCommand {
   }
 
   private String format(String key, String value) {
-    return key + " = " + value;
+    return key + "=" + value;
   }
 
   @Override
@@ -121,7 +121,6 @@ public final class ShowCommand extends AbstractFsAdminCommand {
         mPrintStream.println(format(property.getName(), property.getValue()));
       });
     }
-    mPrintStream.close();
     return 0;
   }
 

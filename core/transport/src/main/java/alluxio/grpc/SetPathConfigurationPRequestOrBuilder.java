@@ -8,57 +8,63 @@ public interface SetPathConfigurationPRequestOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>required string path = 1;</code>
+   * <code>optional string path = 1;</code>
    */
   boolean hasPath();
   /**
-   * <code>required string path = 1;</code>
+   * <code>optional string path = 1;</code>
    */
   java.lang.String getPath();
   /**
-   * <code>required string path = 1;</code>
+   * <code>optional string path = 1;</code>
    */
   com.google.protobuf.ByteString
       getPathBytes();
 
   /**
-   * <code>required string key = 2;</code>
+   * <code>map&lt;string, string&gt; properties = 2;</code>
    */
-  boolean hasKey();
+  int getPropertiesCount();
   /**
-   * <code>required string key = 2;</code>
+   * <code>map&lt;string, string&gt; properties = 2;</code>
    */
-  java.lang.String getKey();
+  boolean containsProperties(
+      java.lang.String key);
   /**
-   * <code>required string key = 2;</code>
+   * Use {@link #getPropertiesMap()} instead.
    */
-  com.google.protobuf.ByteString
-      getKeyBytes();
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, java.lang.String>
+  getProperties();
+  /**
+   * <code>map&lt;string, string&gt; properties = 2;</code>
+   */
+  java.util.Map<java.lang.String, java.lang.String>
+  getPropertiesMap();
+  /**
+   * <code>map&lt;string, string&gt; properties = 2;</code>
+   */
+
+  java.lang.String getPropertiesOrDefault(
+      java.lang.String key,
+      java.lang.String defaultValue);
+  /**
+   * <code>map&lt;string, string&gt; properties = 2;</code>
+   */
+
+  java.lang.String getPropertiesOrThrow(
+      java.lang.String key);
 
   /**
-   * <code>required string value = 3;</code>
-   */
-  boolean hasValue();
-  /**
-   * <code>required string value = 3;</code>
-   */
-  java.lang.String getValue();
-  /**
-   * <code>required string value = 3;</code>
-   */
-  com.google.protobuf.ByteString
-      getValueBytes();
-
-  /**
-   * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 4;</code>
+   * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
    */
   boolean hasOptions();
   /**
-   * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 4;</code>
+   * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
    */
   alluxio.grpc.SetPathConfigurationPOptions getOptions();
   /**
-   * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 4;</code>
+   * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
    */
   alluxio.grpc.SetPathConfigurationPOptionsOrBuilder getOptionsOrBuilder();
 }

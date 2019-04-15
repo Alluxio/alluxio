@@ -12,16 +12,22 @@
 package alluxio.client.meta;
 
 import alluxio.AbstractMasterClient;
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
+import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.Configuration;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -70,8 +76,27 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   }
 
   @Override
-  public void setPathConfiguration(String path, PropertyKey key, String value) throws IOException {
+  public void setPathConfiguration(AlluxioURI path, Map<PropertyKey, String> properties)
+      throws IOException {
+    Map<String, String> props = new HashMap<>();
+    properties.forEach((key, value) -> props.put(key.getName(), value));
     retryRPC(() -> mClient.setPathConfiguration(SetPathConfigurationPRequest.newBuilder()
-        .setPath(path).setKey(key.getName()).setValue(value).build()));
+        .setPath(path.getPath()).putAllProperties(props).build()));
+  }
+
+  @Override
+  public void removePathConfiguration(AlluxioURI path, Set<PropertyKey> keys) throws IOException {
+    Set<String> keySet = new HashSet<>();
+    for (PropertyKey key : keys) {
+      keySet.add(key.getName());
+    }
+    retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
+        .setPath(path.getPath()).addAllKeys(keySet).build()));
+  }
+
+  @Override
+  public void removePathConfiguration(AlluxioURI path) throws IOException {
+    retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
+        .setPath(path.getPath()).build()));
   }
 }

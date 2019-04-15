@@ -4,19 +4,20 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.meta.SetPathConfigurationPRequest}
+ * Protobuf type {@code alluxio.grpc.meta.RemovePathConfigurationPRequest}
  */
-public  final class SetPathConfigurationPRequest extends
+public  final class RemovePathConfigurationPRequest extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.meta.SetPathConfigurationPRequest)
-    SetPathConfigurationPRequestOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.meta.RemovePathConfigurationPRequest)
+    RemovePathConfigurationPRequestOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use SetPathConfigurationPRequest.newBuilder() to construct.
-  private SetPathConfigurationPRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use RemovePathConfigurationPRequest.newBuilder() to construct.
+  private RemovePathConfigurationPRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private SetPathConfigurationPRequest() {
+  private RemovePathConfigurationPRequest() {
     path_ = "";
+    keys_ = com.google.protobuf.LazyStringArrayList.EMPTY;
   }
 
   @java.lang.Override
@@ -24,7 +25,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private SetPathConfigurationPRequest(
+  private RemovePathConfigurationPRequest(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -57,24 +58,20 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 18: {
+            com.google.protobuf.ByteString bs = input.readBytes();
             if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-              properties_ = com.google.protobuf.MapField.newMapField(
-                  PropertiesDefaultEntryHolder.defaultEntry);
+              keys_ = new com.google.protobuf.LazyStringArrayList();
               mutable_bitField0_ |= 0x00000002;
             }
-            com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-            properties__ = input.readMessage(
-                PropertiesDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            properties_.getMutableMap().put(
-                properties__.getKey(), properties__.getValue());
+            keys_.add(bs);
             break;
           }
           case 26: {
-            alluxio.grpc.SetPathConfigurationPOptions.Builder subBuilder = null;
+            alluxio.grpc.RemovePathConfigurationPOptions.Builder subBuilder = null;
             if (((bitField0_ & 0x00000002) == 0x00000002)) {
               subBuilder = options_.toBuilder();
             }
-            options_ = input.readMessage(alluxio.grpc.SetPathConfigurationPOptions.PARSER, extensionRegistry);
+            options_ = input.readMessage(alluxio.grpc.RemovePathConfigurationPOptions.PARSER, extensionRegistry);
             if (subBuilder != null) {
               subBuilder.mergeFrom(options_);
               options_ = subBuilder.buildPartial();
@@ -90,31 +87,23 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
+      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+        keys_ = keys_.getUnmodifiableView();
+      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_SetPathConfigurationPRequest_descriptor;
+    return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_RemovePathConfigurationPRequest_descriptor;
   }
 
-  @SuppressWarnings({"rawtypes"})
-  protected com.google.protobuf.MapField internalGetMapField(
-      int number) {
-    switch (number) {
-      case 2:
-        return internalGetProperties();
-      default:
-        throw new RuntimeException(
-            "Invalid map field number: " + number);
-    }
-  }
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_SetPathConfigurationPRequest_fieldAccessorTable
+    return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_RemovePathConfigurationPRequest_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.SetPathConfigurationPRequest.class, alluxio.grpc.SetPathConfigurationPRequest.Builder.class);
+            alluxio.grpc.RemovePathConfigurationPRequest.class, alluxio.grpc.RemovePathConfigurationPRequest.Builder.class);
   }
 
   private int bitField0_;
@@ -160,101 +149,54 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int PROPERTIES_FIELD_NUMBER = 2;
-  private static final class PropertiesDefaultEntryHolder {
-    static final com.google.protobuf.MapEntry<
-        java.lang.String, java.lang.String> defaultEntry =
-            com.google.protobuf.MapEntry
-            .<java.lang.String, java.lang.String>newDefaultInstance(
-                alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_SetPathConfigurationPRequest_PropertiesEntry_descriptor, 
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "",
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "");
-  }
-  private com.google.protobuf.MapField<
-      java.lang.String, java.lang.String> properties_;
-  private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-  internalGetProperties() {
-    if (properties_ == null) {
-      return com.google.protobuf.MapField.emptyMapField(
-          PropertiesDefaultEntryHolder.defaultEntry);
-    }
-    return properties_;
-  }
-
-  public int getPropertiesCount() {
-    return internalGetProperties().getMap().size();
+  public static final int KEYS_FIELD_NUMBER = 2;
+  private com.google.protobuf.LazyStringList keys_;
+  /**
+   * <code>repeated string keys = 2;</code>
+   */
+  public com.google.protobuf.ProtocolStringList
+      getKeysList() {
+    return keys_;
   }
   /**
-   * <code>map&lt;string, string&gt; properties = 2;</code>
+   * <code>repeated string keys = 2;</code>
    */
-
-  public boolean containsProperties(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetProperties().getMap().containsKey(key);
+  public int getKeysCount() {
+    return keys_.size();
   }
   /**
-   * Use {@link #getPropertiesMap()} instead.
+   * <code>repeated string keys = 2;</code>
    */
-  @java.lang.Deprecated
-  public java.util.Map<java.lang.String, java.lang.String> getProperties() {
-    return getPropertiesMap();
+  public java.lang.String getKeys(int index) {
+    return keys_.get(index);
   }
   /**
-   * <code>map&lt;string, string&gt; properties = 2;</code>
+   * <code>repeated string keys = 2;</code>
    */
-
-  public java.util.Map<java.lang.String, java.lang.String> getPropertiesMap() {
-    return internalGetProperties().getMap();
-  }
-  /**
-   * <code>map&lt;string, string&gt; properties = 2;</code>
-   */
-
-  public java.lang.String getPropertiesOrDefault(
-      java.lang.String key,
-      java.lang.String defaultValue) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, java.lang.String> map =
-        internalGetProperties().getMap();
-    return map.containsKey(key) ? map.get(key) : defaultValue;
-  }
-  /**
-   * <code>map&lt;string, string&gt; properties = 2;</code>
-   */
-
-  public java.lang.String getPropertiesOrThrow(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, java.lang.String> map =
-        internalGetProperties().getMap();
-    if (!map.containsKey(key)) {
-      throw new java.lang.IllegalArgumentException();
-    }
-    return map.get(key);
+  public com.google.protobuf.ByteString
+      getKeysBytes(int index) {
+    return keys_.getByteString(index);
   }
 
   public static final int OPTIONS_FIELD_NUMBER = 3;
-  private alluxio.grpc.SetPathConfigurationPOptions options_;
+  private alluxio.grpc.RemovePathConfigurationPOptions options_;
   /**
-   * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+   * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
    */
   public boolean hasOptions() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+   * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
    */
-  public alluxio.grpc.SetPathConfigurationPOptions getOptions() {
-    return options_ == null ? alluxio.grpc.SetPathConfigurationPOptions.getDefaultInstance() : options_;
+  public alluxio.grpc.RemovePathConfigurationPOptions getOptions() {
+    return options_ == null ? alluxio.grpc.RemovePathConfigurationPOptions.getDefaultInstance() : options_;
   }
   /**
-   * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+   * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
    */
-  public alluxio.grpc.SetPathConfigurationPOptionsOrBuilder getOptionsOrBuilder() {
-    return options_ == null ? alluxio.grpc.SetPathConfigurationPOptions.getDefaultInstance() : options_;
+  public alluxio.grpc.RemovePathConfigurationPOptionsOrBuilder getOptionsOrBuilder() {
+    return options_ == null ? alluxio.grpc.RemovePathConfigurationPOptions.getDefaultInstance() : options_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -272,12 +214,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, path_);
     }
-    com.google.protobuf.GeneratedMessageV3
-      .serializeStringMapTo(
-        output,
-        internalGetProperties(),
-        PropertiesDefaultEntryHolder.defaultEntry,
-        2);
+    for (int i = 0; i < keys_.size(); i++) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, keys_.getRaw(i));
+    }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       output.writeMessage(3, getOptions());
     }
@@ -292,15 +231,13 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, path_);
     }
-    for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-         : internalGetProperties().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-      properties__ = PropertiesDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
-      size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, properties__);
+    {
+      int dataSize = 0;
+      for (int i = 0; i < keys_.size(); i++) {
+        dataSize += computeStringSizeNoTag(keys_.getRaw(i));
+      }
+      size += dataSize;
+      size += 1 * getKeysList().size();
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.CodedOutputStream
@@ -316,10 +253,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.SetPathConfigurationPRequest)) {
+    if (!(obj instanceof alluxio.grpc.RemovePathConfigurationPRequest)) {
       return super.equals(obj);
     }
-    alluxio.grpc.SetPathConfigurationPRequest other = (alluxio.grpc.SetPathConfigurationPRequest) obj;
+    alluxio.grpc.RemovePathConfigurationPRequest other = (alluxio.grpc.RemovePathConfigurationPRequest) obj;
 
     boolean result = true;
     result = result && (hasPath() == other.hasPath());
@@ -327,8 +264,8 @@ private static final long serialVersionUID = 0L;
       result = result && getPath()
           .equals(other.getPath());
     }
-    result = result && internalGetProperties().equals(
-        other.internalGetProperties());
+    result = result && getKeysList()
+        .equals(other.getKeysList());
     result = result && (hasOptions() == other.hasOptions());
     if (hasOptions()) {
       result = result && getOptions()
@@ -349,9 +286,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + PATH_FIELD_NUMBER;
       hash = (53 * hash) + getPath().hashCode();
     }
-    if (!internalGetProperties().getMap().isEmpty()) {
-      hash = (37 * hash) + PROPERTIES_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetProperties().hashCode();
+    if (getKeysCount() > 0) {
+      hash = (37 * hash) + KEYS_FIELD_NUMBER;
+      hash = (53 * hash) + getKeysList().hashCode();
     }
     if (hasOptions()) {
       hash = (37 * hash) + OPTIONS_FIELD_NUMBER;
@@ -362,69 +299,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static alluxio.grpc.SetPathConfigurationPRequest parseFrom(
+  public static alluxio.grpc.RemovePathConfigurationPRequest parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.SetPathConfigurationPRequest parseFrom(
+  public static alluxio.grpc.RemovePathConfigurationPRequest parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.SetPathConfigurationPRequest parseFrom(
+  public static alluxio.grpc.RemovePathConfigurationPRequest parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.SetPathConfigurationPRequest parseFrom(
+  public static alluxio.grpc.RemovePathConfigurationPRequest parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.SetPathConfigurationPRequest parseFrom(byte[] data)
+  public static alluxio.grpc.RemovePathConfigurationPRequest parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.SetPathConfigurationPRequest parseFrom(
+  public static alluxio.grpc.RemovePathConfigurationPRequest parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.SetPathConfigurationPRequest parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.RemovePathConfigurationPRequest parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.SetPathConfigurationPRequest parseFrom(
+  public static alluxio.grpc.RemovePathConfigurationPRequest parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.SetPathConfigurationPRequest parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.RemovePathConfigurationPRequest parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.SetPathConfigurationPRequest parseDelimitedFrom(
+  public static alluxio.grpc.RemovePathConfigurationPRequest parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.SetPathConfigurationPRequest parseFrom(
+  public static alluxio.grpc.RemovePathConfigurationPRequest parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.SetPathConfigurationPRequest parseFrom(
+  public static alluxio.grpc.RemovePathConfigurationPRequest parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -436,7 +373,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.SetPathConfigurationPRequest prototype) {
+  public static Builder newBuilder(alluxio.grpc.RemovePathConfigurationPRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -451,47 +388,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.meta.SetPathConfigurationPRequest}
+   * Protobuf type {@code alluxio.grpc.meta.RemovePathConfigurationPRequest}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.meta.SetPathConfigurationPRequest)
-      alluxio.grpc.SetPathConfigurationPRequestOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.meta.RemovePathConfigurationPRequest)
+      alluxio.grpc.RemovePathConfigurationPRequestOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_SetPathConfigurationPRequest_descriptor;
+      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_RemovePathConfigurationPRequest_descriptor;
     }
 
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMapField(
-        int number) {
-      switch (number) {
-        case 2:
-          return internalGetProperties();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMutableMapField(
-        int number) {
-      switch (number) {
-        case 2:
-          return internalGetMutableProperties();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_SetPathConfigurationPRequest_fieldAccessorTable
+      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_RemovePathConfigurationPRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.SetPathConfigurationPRequest.class, alluxio.grpc.SetPathConfigurationPRequest.Builder.class);
+              alluxio.grpc.RemovePathConfigurationPRequest.class, alluxio.grpc.RemovePathConfigurationPRequest.Builder.class);
     }
 
-    // Construct using alluxio.grpc.SetPathConfigurationPRequest.newBuilder()
+    // Construct using alluxio.grpc.RemovePathConfigurationPRequest.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -511,7 +426,8 @@ private static final long serialVersionUID = 0L;
       super.clear();
       path_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
-      internalGetMutableProperties().clear();
+      keys_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000002);
       if (optionsBuilder_ == null) {
         options_ = null;
       } else {
@@ -523,31 +439,34 @@ private static final long serialVersionUID = 0L;
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_SetPathConfigurationPRequest_descriptor;
+      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_RemovePathConfigurationPRequest_descriptor;
     }
 
-    public alluxio.grpc.SetPathConfigurationPRequest getDefaultInstanceForType() {
-      return alluxio.grpc.SetPathConfigurationPRequest.getDefaultInstance();
+    public alluxio.grpc.RemovePathConfigurationPRequest getDefaultInstanceForType() {
+      return alluxio.grpc.RemovePathConfigurationPRequest.getDefaultInstance();
     }
 
-    public alluxio.grpc.SetPathConfigurationPRequest build() {
-      alluxio.grpc.SetPathConfigurationPRequest result = buildPartial();
+    public alluxio.grpc.RemovePathConfigurationPRequest build() {
+      alluxio.grpc.RemovePathConfigurationPRequest result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.SetPathConfigurationPRequest buildPartial() {
-      alluxio.grpc.SetPathConfigurationPRequest result = new alluxio.grpc.SetPathConfigurationPRequest(this);
+    public alluxio.grpc.RemovePathConfigurationPRequest buildPartial() {
+      alluxio.grpc.RemovePathConfigurationPRequest result = new alluxio.grpc.RemovePathConfigurationPRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
       result.path_ = path_;
-      result.properties_ = internalGetProperties();
-      result.properties_.makeImmutable();
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        keys_ = keys_.getUnmodifiableView();
+        bitField0_ = (bitField0_ & ~0x00000002);
+      }
+      result.keys_ = keys_;
       if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
         to_bitField0_ |= 0x00000002;
       }
@@ -588,23 +507,31 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.SetPathConfigurationPRequest) {
-        return mergeFrom((alluxio.grpc.SetPathConfigurationPRequest)other);
+      if (other instanceof alluxio.grpc.RemovePathConfigurationPRequest) {
+        return mergeFrom((alluxio.grpc.RemovePathConfigurationPRequest)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.SetPathConfigurationPRequest other) {
-      if (other == alluxio.grpc.SetPathConfigurationPRequest.getDefaultInstance()) return this;
+    public Builder mergeFrom(alluxio.grpc.RemovePathConfigurationPRequest other) {
+      if (other == alluxio.grpc.RemovePathConfigurationPRequest.getDefaultInstance()) return this;
       if (other.hasPath()) {
         bitField0_ |= 0x00000001;
         path_ = other.path_;
         onChanged();
       }
-      internalGetMutableProperties().mergeFrom(
-          other.internalGetProperties());
+      if (!other.keys_.isEmpty()) {
+        if (keys_.isEmpty()) {
+          keys_ = other.keys_;
+          bitField0_ = (bitField0_ & ~0x00000002);
+        } else {
+          ensureKeysIsMutable();
+          keys_.addAll(other.keys_);
+        }
+        onChanged();
+      }
       if (other.hasOptions()) {
         mergeOptions(other.getOptions());
       }
@@ -621,11 +548,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.SetPathConfigurationPRequest parsedMessage = null;
+      alluxio.grpc.RemovePathConfigurationPRequest parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.SetPathConfigurationPRequest) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.RemovePathConfigurationPRequest) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -712,152 +639,122 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> properties_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetProperties() {
-      if (properties_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            PropertiesDefaultEntryHolder.defaultEntry);
-      }
-      return properties_;
-    }
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetMutableProperties() {
-      onChanged();;
-      if (properties_ == null) {
-        properties_ = com.google.protobuf.MapField.newMapField(
-            PropertiesDefaultEntryHolder.defaultEntry);
-      }
-      if (!properties_.isMutable()) {
-        properties_ = properties_.copy();
-      }
-      return properties_;
-    }
-
-    public int getPropertiesCount() {
-      return internalGetProperties().getMap().size();
+    private com.google.protobuf.LazyStringList keys_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    private void ensureKeysIsMutable() {
+      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+        keys_ = new com.google.protobuf.LazyStringArrayList(keys_);
+        bitField0_ |= 0x00000002;
+       }
     }
     /**
-     * <code>map&lt;string, string&gt; properties = 2;</code>
+     * <code>repeated string keys = 2;</code>
      */
-
-    public boolean containsProperties(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetProperties().getMap().containsKey(key);
+    public com.google.protobuf.ProtocolStringList
+        getKeysList() {
+      return keys_.getUnmodifiableView();
     }
     /**
-     * Use {@link #getPropertiesMap()} instead.
+     * <code>repeated string keys = 2;</code>
      */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getProperties() {
-      return getPropertiesMap();
+    public int getKeysCount() {
+      return keys_.size();
     }
     /**
-     * <code>map&lt;string, string&gt; properties = 2;</code>
+     * <code>repeated string keys = 2;</code>
      */
-
-    public java.util.Map<java.lang.String, java.lang.String> getPropertiesMap() {
-      return internalGetProperties().getMap();
+    public java.lang.String getKeys(int index) {
+      return keys_.get(index);
     }
     /**
-     * <code>map&lt;string, string&gt; properties = 2;</code>
+     * <code>repeated string keys = 2;</code>
      */
-
-    public java.lang.String getPropertiesOrDefault(
-        java.lang.String key,
-        java.lang.String defaultValue) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetProperties().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
+    public com.google.protobuf.ByteString
+        getKeysBytes(int index) {
+      return keys_.getByteString(index);
     }
     /**
-     * <code>map&lt;string, string&gt; properties = 2;</code>
+     * <code>repeated string keys = 2;</code>
      */
-
-    public java.lang.String getPropertiesOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetProperties().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
-    }
-
-    public Builder clearProperties() {
-      internalGetMutableProperties().getMutableMap()
-          .clear();
+    public Builder setKeys(
+        int index, java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureKeysIsMutable();
+      keys_.set(index, value);
+      onChanged();
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; properties = 2;</code>
+     * <code>repeated string keys = 2;</code>
      */
-
-    public Builder removeProperties(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableProperties().getMutableMap()
-          .remove(key);
-      return this;
-    }
-    /**
-     * Use alternate mutation accessors instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String>
-    getMutableProperties() {
-      return internalGetMutableProperties().getMutableMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; properties = 2;</code>
-     */
-    public Builder putProperties(
-        java.lang.String key,
+    public Builder addKeys(
         java.lang.String value) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableProperties().getMutableMap()
-          .put(key, value);
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureKeysIsMutable();
+      keys_.add(value);
+      onChanged();
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; properties = 2;</code>
+     * <code>repeated string keys = 2;</code>
      */
-
-    public Builder putAllProperties(
-        java.util.Map<java.lang.String, java.lang.String> values) {
-      internalGetMutableProperties().getMutableMap()
-          .putAll(values);
+    public Builder addAllKeys(
+        java.lang.Iterable<java.lang.String> values) {
+      ensureKeysIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, keys_);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string keys = 2;</code>
+     */
+    public Builder clearKeys() {
+      keys_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000002);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string keys = 2;</code>
+     */
+    public Builder addKeysBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureKeysIsMutable();
+      keys_.add(value);
+      onChanged();
       return this;
     }
 
-    private alluxio.grpc.SetPathConfigurationPOptions options_ = null;
+    private alluxio.grpc.RemovePathConfigurationPOptions options_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.SetPathConfigurationPOptions, alluxio.grpc.SetPathConfigurationPOptions.Builder, alluxio.grpc.SetPathConfigurationPOptionsOrBuilder> optionsBuilder_;
+        alluxio.grpc.RemovePathConfigurationPOptions, alluxio.grpc.RemovePathConfigurationPOptions.Builder, alluxio.grpc.RemovePathConfigurationPOptionsOrBuilder> optionsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
      */
     public boolean hasOptions() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
      */
-    public alluxio.grpc.SetPathConfigurationPOptions getOptions() {
+    public alluxio.grpc.RemovePathConfigurationPOptions getOptions() {
       if (optionsBuilder_ == null) {
-        return options_ == null ? alluxio.grpc.SetPathConfigurationPOptions.getDefaultInstance() : options_;
+        return options_ == null ? alluxio.grpc.RemovePathConfigurationPOptions.getDefaultInstance() : options_;
       } else {
         return optionsBuilder_.getMessage();
       }
     }
     /**
-     * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
      */
-    public Builder setOptions(alluxio.grpc.SetPathConfigurationPOptions value) {
+    public Builder setOptions(alluxio.grpc.RemovePathConfigurationPOptions value) {
       if (optionsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
@@ -871,10 +768,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
      */
     public Builder setOptions(
-        alluxio.grpc.SetPathConfigurationPOptions.Builder builderForValue) {
+        alluxio.grpc.RemovePathConfigurationPOptions.Builder builderForValue) {
       if (optionsBuilder_ == null) {
         options_ = builderForValue.build();
         onChanged();
@@ -885,15 +782,15 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
      */
-    public Builder mergeOptions(alluxio.grpc.SetPathConfigurationPOptions value) {
+    public Builder mergeOptions(alluxio.grpc.RemovePathConfigurationPOptions value) {
       if (optionsBuilder_ == null) {
         if (((bitField0_ & 0x00000004) == 0x00000004) &&
             options_ != null &&
-            options_ != alluxio.grpc.SetPathConfigurationPOptions.getDefaultInstance()) {
+            options_ != alluxio.grpc.RemovePathConfigurationPOptions.getDefaultInstance()) {
           options_ =
-            alluxio.grpc.SetPathConfigurationPOptions.newBuilder(options_).mergeFrom(value).buildPartial();
+            alluxio.grpc.RemovePathConfigurationPOptions.newBuilder(options_).mergeFrom(value).buildPartial();
         } else {
           options_ = value;
         }
@@ -905,7 +802,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
      */
     public Builder clearOptions() {
       if (optionsBuilder_ == null) {
@@ -918,33 +815,33 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
      */
-    public alluxio.grpc.SetPathConfigurationPOptions.Builder getOptionsBuilder() {
+    public alluxio.grpc.RemovePathConfigurationPOptions.Builder getOptionsBuilder() {
       bitField0_ |= 0x00000004;
       onChanged();
       return getOptionsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
      */
-    public alluxio.grpc.SetPathConfigurationPOptionsOrBuilder getOptionsOrBuilder() {
+    public alluxio.grpc.RemovePathConfigurationPOptionsOrBuilder getOptionsOrBuilder() {
       if (optionsBuilder_ != null) {
         return optionsBuilder_.getMessageOrBuilder();
       } else {
         return options_ == null ?
-            alluxio.grpc.SetPathConfigurationPOptions.getDefaultInstance() : options_;
+            alluxio.grpc.RemovePathConfigurationPOptions.getDefaultInstance() : options_;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.SetPathConfigurationPOptions, alluxio.grpc.SetPathConfigurationPOptions.Builder, alluxio.grpc.SetPathConfigurationPOptionsOrBuilder> 
+        alluxio.grpc.RemovePathConfigurationPOptions, alluxio.grpc.RemovePathConfigurationPOptions.Builder, alluxio.grpc.RemovePathConfigurationPOptionsOrBuilder> 
         getOptionsFieldBuilder() {
       if (optionsBuilder_ == null) {
         optionsBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            alluxio.grpc.SetPathConfigurationPOptions, alluxio.grpc.SetPathConfigurationPOptions.Builder, alluxio.grpc.SetPathConfigurationPOptionsOrBuilder>(
+            alluxio.grpc.RemovePathConfigurationPOptions, alluxio.grpc.RemovePathConfigurationPOptions.Builder, alluxio.grpc.RemovePathConfigurationPOptionsOrBuilder>(
                 getOptions(),
                 getParentForChildren(),
                 isClean());
@@ -963,39 +860,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.meta.SetPathConfigurationPRequest)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.meta.RemovePathConfigurationPRequest)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.meta.SetPathConfigurationPRequest)
-  private static final alluxio.grpc.SetPathConfigurationPRequest DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.meta.RemovePathConfigurationPRequest)
+  private static final alluxio.grpc.RemovePathConfigurationPRequest DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.SetPathConfigurationPRequest();
+    DEFAULT_INSTANCE = new alluxio.grpc.RemovePathConfigurationPRequest();
   }
 
-  public static alluxio.grpc.SetPathConfigurationPRequest getDefaultInstance() {
+  public static alluxio.grpc.RemovePathConfigurationPRequest getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<SetPathConfigurationPRequest>
-      PARSER = new com.google.protobuf.AbstractParser<SetPathConfigurationPRequest>() {
-    public SetPathConfigurationPRequest parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<RemovePathConfigurationPRequest>
+      PARSER = new com.google.protobuf.AbstractParser<RemovePathConfigurationPRequest>() {
+    public RemovePathConfigurationPRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new SetPathConfigurationPRequest(input, extensionRegistry);
+      return new RemovePathConfigurationPRequest(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<SetPathConfigurationPRequest> parser() {
+  public static com.google.protobuf.Parser<RemovePathConfigurationPRequest> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<SetPathConfigurationPRequest> getParserForType() {
+  public com.google.protobuf.Parser<RemovePathConfigurationPRequest> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.SetPathConfigurationPRequest getDefaultInstanceForType() {
+  public alluxio.grpc.RemovePathConfigurationPRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

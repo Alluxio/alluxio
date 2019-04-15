@@ -56,14 +56,14 @@ public class PathConfigurationIntegrationTest {
   private CreateFilePOptions mWriteThrough;
 
   private void setPathConfigurations(MetaMasterConfigClient client) throws Exception {
-    client.setPathConfiguration(REMOTE_DIR, PropertyKey.USER_FILE_READ_TYPE_DEFAULT,
+    client.setPathConfiguration(new AlluxioURI(REMOTE_DIR), PropertyKey.USER_FILE_READ_TYPE_DEFAULT,
         ReadType.CACHE.toString());
-    client.setPathConfiguration(REMOTE_UNCACHED_FILE, PropertyKey.USER_FILE_READ_TYPE_DEFAULT,
+    client.setPathConfiguration(new AlluxioURI(REMOTE_UNCACHED_FILE),
+        PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
+    client.setPathConfiguration(new AlluxioURI(LOCAL_DIR), PropertyKey.USER_FILE_READ_TYPE_DEFAULT,
         ReadType.NO_CACHE.toString());
-    client.setPathConfiguration(LOCAL_DIR, PropertyKey.USER_FILE_READ_TYPE_DEFAULT,
-        ReadType.NO_CACHE.toString());
-    client.setPathConfiguration(LOCAL_CACHED_FILE, PropertyKey.USER_FILE_READ_TYPE_DEFAULT,
-        ReadType.CACHE.toString());
+    client.setPathConfiguration(new AlluxioURI(LOCAL_CACHED_FILE),
+        PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.CACHE.toString());
   }
 
   @Before

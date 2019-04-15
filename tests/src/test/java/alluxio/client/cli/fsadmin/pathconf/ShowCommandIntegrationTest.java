@@ -11,6 +11,7 @@
 
 package alluxio.client.cli.fsadmin.pathconf;
 
+import alluxio.AlluxioURI;
 import alluxio.cli.fsadmin.FileSystemAdminShell;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -33,12 +34,12 @@ import java.net.InetSocketAddress;
  */
 public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
   private static final String DIR0 = "/a";
-  private static final String DIR1 = "/a/b/";
+  private static final String DIR1 = "/a/b";
   private static final PropertyKey PROPERTY_KEY11 = PropertyKey.USER_FILE_READ_TYPE_DEFAULT;
   private static final String PROPERTY_VALUE11 = ReadType.NO_CACHE.toString();
   private static final PropertyKey PROPERTY_KEY12 = PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT;
   private static final String PROPERTY_VALUE12 = WriteType.MUST_CACHE.toString();
-  private static final String DIR2 = "/a/b/c/";
+  private static final String DIR2 = "/a/b/c";
   private static final PropertyKey PROPERTY_KEY2 = PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT;
   private static final String PROPERTY_VALUE2 = WriteType.THROUGH.toString();
   private static final String DIR3 = "/a/b/c/d";
@@ -53,9 +54,9 @@ public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
     FileSystemContext metaCtx = FileSystemContext.create(ServerConfiguration.global());
     MetaMasterConfigClient client = new RetryHandlingMetaMasterConfigClient(
         MasterClientContext.newBuilder(metaCtx.getClientContext()).build());
-    client.setPathConfiguration(DIR1, PROPERTY_KEY11, PROPERTY_VALUE11);
-    client.setPathConfiguration(DIR1, PROPERTY_KEY12, PROPERTY_VALUE12);
-    client.setPathConfiguration(DIR2, PROPERTY_KEY2, PROPERTY_VALUE2);
+    client.setPathConfiguration(new AlluxioURI(DIR1), PROPERTY_KEY11, PROPERTY_VALUE11);
+    client.setPathConfiguration(new AlluxioURI(DIR1), PROPERTY_KEY12, PROPERTY_VALUE12);
+    client.setPathConfiguration(new AlluxioURI(DIR2), PROPERTY_KEY2, PROPERTY_VALUE2);
     InetSocketAddress address = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
         .getAddress();
     FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
@@ -64,7 +65,7 @@ public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
   }
 
   private String format(PropertyKey key, String value) {
-    return key.getName() + " = " + value;
+    return key.getName() + "=" + value;
   }
 
   @Test
