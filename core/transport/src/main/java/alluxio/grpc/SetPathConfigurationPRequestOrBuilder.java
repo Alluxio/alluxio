@@ -8,15 +8,15 @@ public interface SetPathConfigurationPRequestOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>required string path = 1;</code>
+   * <code>optional string path = 1;</code>
    */
   boolean hasPath();
   /**
-   * <code>required string path = 1;</code>
+   * <code>optional string path = 1;</code>
    */
   java.lang.String getPath();
   /**
-   * <code>required string path = 1;</code>
+   * <code>optional string path = 1;</code>
    */
   com.google.protobuf.ByteString
       getPathBytes();

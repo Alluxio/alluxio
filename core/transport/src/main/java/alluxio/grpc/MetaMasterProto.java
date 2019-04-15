@@ -266,7 +266,7 @@ public final class MetaMasterProto {
       "\013\n\003key\030\001 \001(\t\022-\n\005value\030\002 \001(\0132\036.alluxio.gr" +
       "pc.meta.MetricValue:\0028\001\"\036\n\034SetPathConfig" +
       "urationPOptions\"\366\001\n\034SetPathConfiguration" +
-      "PRequest\022\014\n\004path\030\001 \002(\t\022S\n\nproperties\030\002 \003" +
+      "PRequest\022\014\n\004path\030\001 \001(\t\022S\n\nproperties\030\002 \003" +
       "(\0132?.alluxio.grpc.meta.SetPathConfigurat" +
       "ionPRequest.PropertiesEntry\022@\n\007options\030\003" +
       " \001(\0132/.alluxio.grpc.meta.SetPathConfigur" +
@@ -274,7 +274,7 @@ public final class MetaMasterProto {
       "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\037\n\035SetPathConfi" +
       "gurationPResponse\"!\n\037RemovePathConfigura" +
       "tionPOptions\"\202\001\n\037RemovePathConfiguration" +
-      "PRequest\022\014\n\004path\030\001 \002(\t\022\014\n\004keys\030\002 \003(\t\022C\n\007" +
+      "PRequest\022\014\n\004path\030\001 \001(\t\022\014\n\004keys\030\002 \003(\t\022C\n\007" +
       "options\030\003 \001(\01322.alluxio.grpc.meta.Remove" +
       "PathConfigurationPOptions\"\"\n RemovePathC" +
       "onfigurationPResponse\"\025\n\023GetMasterIdPOpt" +

@@ -185,7 +185,7 @@ public final class MetaMasterConfigurationServiceGrpc {
     /**
      * <pre>
      **
-     * Removes properties for a path.
+     * Removes properties for a path, if the keys are empty, it means remove all properties.
      * </pre>
      */
     public void removePathConfiguration(alluxio.grpc.RemovePathConfigurationPRequest request,
@@ -270,7 +270,7 @@ public final class MetaMasterConfigurationServiceGrpc {
     /**
      * <pre>
      **
-     * Removes properties for a path.
+     * Removes properties for a path, if the keys are empty, it means remove all properties.
      * </pre>
      */
     public void removePathConfiguration(alluxio.grpc.RemovePathConfigurationPRequest request,
@@ -328,7 +328,7 @@ public final class MetaMasterConfigurationServiceGrpc {
     /**
      * <pre>
      **
-     * Removes properties for a path.
+     * Removes properties for a path, if the keys are empty, it means remove all properties.
      * </pre>
      */
     public alluxio.grpc.RemovePathConfigurationPResponse removePathConfiguration(alluxio.grpc.RemovePathConfigurationPRequest request) {
@@ -387,7 +387,7 @@ public final class MetaMasterConfigurationServiceGrpc {
     /**
      * <pre>
      **
-     * Removes properties for a path.
+     * Removes properties for a path, if the keys are empty, it means remove all properties.
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.RemovePathConfigurationPResponse> removePathConfiguration(

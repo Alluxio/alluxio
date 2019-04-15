@@ -121,13 +121,13 @@ private static final long serialVersionUID = 0L;
   public static final int PATH_FIELD_NUMBER = 1;
   private volatile java.lang.Object path_;
   /**
-   * <code>required string path = 1;</code>
+   * <code>optional string path = 1;</code>
    */
   public boolean hasPath() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>required string path = 1;</code>
+   * <code>optional string path = 1;</code>
    */
   public java.lang.String getPath() {
     java.lang.Object ref = path_;
@@ -144,7 +144,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>required string path = 1;</code>
+   * <code>optional string path = 1;</code>
    */
   public com.google.protobuf.ByteString
       getPathBytes() {
@@ -263,10 +263,6 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
-    if (!hasPath()) {
-      memoizedIsInitialized = 0;
-      return false;
-    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -618,9 +614,6 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
-      if (!hasPath()) {
-        return false;
-      }
       return true;
     }
 
@@ -645,13 +638,13 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object path_ = "";
     /**
-     * <code>required string path = 1;</code>
+     * <code>optional string path = 1;</code>
      */
     public boolean hasPath() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>required string path = 1;</code>
+     * <code>optional string path = 1;</code>
      */
     public java.lang.String getPath() {
       java.lang.Object ref = path_;
@@ -668,7 +661,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>required string path = 1;</code>
+     * <code>optional string path = 1;</code>
      */
     public com.google.protobuf.ByteString
         getPathBytes() {
@@ -684,7 +677,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>required string path = 1;</code>
+     * <code>optional string path = 1;</code>
      */
     public Builder setPath(
         java.lang.String value) {
@@ -697,7 +690,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>required string path = 1;</code>
+     * <code>optional string path = 1;</code>
      */
     public Builder clearPath() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -706,7 +699,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>required string path = 1;</code>
+     * <code>optional string path = 1;</code>
      */
     public Builder setPathBytes(
         com.google.protobuf.ByteString value) {
