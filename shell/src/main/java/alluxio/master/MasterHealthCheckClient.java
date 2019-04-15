@@ -271,7 +271,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
         Future<?> processCheckFuture = mExecutorService.submit(
                 new ProcessCheckRunnable(mAlluxioMasterType.getClassName()));
         CommonUtils.sleepMs(Constants.SECOND_MS);
-        // If in HA mode, can't check the RPC service, because the server may not have started
+        // If in HA mode, can't check the RPC service, because the service may not have started
         if (!ConfigurationUtils.isHaMode(mConf)) {
           while (!masterServingFuture.isDone()) {
             if (processCheckFuture.isDone()) {
