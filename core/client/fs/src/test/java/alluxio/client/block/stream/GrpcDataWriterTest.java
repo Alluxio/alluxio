@@ -15,6 +15,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
@@ -36,7 +39,6 @@ import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -109,7 +111,7 @@ public final class GrpcDataWriterTest {
     try (DataWriter writer = create(10)) {
       checksumActual = verifyWriteRequests(mClient, 0, 10);
     }
-    Assert.assertEquals(0, checksumActual);
+    assertEquals(0, checksumActual);
   }
 
   /**
@@ -126,7 +128,7 @@ public final class GrpcDataWriterTest {
       checksumExpected.get();
       checksumActual = verifyWriteRequests(mClient, 0, length - 1);
     }
-    Assert.assertEquals(checksumExpected.get().longValue(), checksumActual);
+    assertEquals(checksumExpected.get().longValue(), checksumActual);
   }
 
   /**
@@ -143,7 +145,7 @@ public final class GrpcDataWriterTest {
       checksumExpected.get();
       checksumActual = verifyWriteRequests(mClient, 10, length / 3);
     }
-    Assert.assertEquals(checksumExpected.get().longValue(), checksumActual);
+    assertEquals(checksumExpected.get().longValue(), checksumActual);
   }
 
   /**
@@ -159,7 +161,7 @@ public final class GrpcDataWriterTest {
       checksumExpected.get();
       checksumActual = verifyWriteRequests(mClient, 10, length / 3);
     }
-    Assert.assertEquals(checksumExpected.get().longValue(), checksumActual);
+    assertEquals(checksumExpected.get().longValue(), checksumActual);
   }
 
   /**
@@ -175,7 +177,7 @@ public final class GrpcDataWriterTest {
       checksumExpected.get();
       checksumActual = verifyWriteRequests(mClient, 10, length / 3);
     }
-    Assert.assertEquals(checksumExpected.get().longValue(), checksumActual);
+    assertEquals(checksumExpected.get().longValue(), checksumActual);
   }
 
   /**
@@ -219,7 +221,7 @@ public final class GrpcDataWriterTest {
             try {
               writer.writeChunk(buf);
             } catch (Exception e) {
-              Assert.fail(e.getMessage());
+              fail(e.getMessage());
               throw e;
             }
             remaining -= bytesToWrite;
@@ -234,7 +236,7 @@ public final class GrpcDataWriterTest {
           return checksum;
         } catch (Throwable throwable) {
           LOG.error("Failed to write file.", throwable);
-          Assert.fail();
+          fail();
           throw throwable;
         }
       }
@@ -263,7 +265,7 @@ public final class GrpcDataWriterTest {
         validateWriteRequest(request, pos);
         if (request.hasChunk()) {
           Chunk chunk = request.getChunk();
-          Assert.assertTrue(chunk.hasData());
+          assertTrue(chunk.hasData());
           ByteString buf = chunk.getData();
           for (byte b : buf.toByteArray()) {
             if (pos >= checksumStart && pos <= checksumEnd) {
@@ -276,7 +278,7 @@ public final class GrpcDataWriterTest {
       return checksum;
     } catch (Throwable throwable) {
       LOG.error("Failed to verify write requests.", throwable);
-      Assert.fail();
+      fail();
       throw throwable;
     }
   }
@@ -289,10 +291,10 @@ public final class GrpcDataWriterTest {
    */
   private void validateWriteRequest(WriteRequest request, long offset) {
     if (request.hasCommand()) {
-      Assert.assertEquals(BLOCK_ID, request.getCommand().getId());
-      Assert.assertEquals(offset, request.getCommand().getOffset());
+      assertEquals(BLOCK_ID, request.getCommand().getId());
+      assertEquals(offset, request.getCommand().getOffset());
     } else {
-      Assert.assertTrue(request.hasChunk());
+      assertTrue(request.hasChunk());
     }
   }
 }
