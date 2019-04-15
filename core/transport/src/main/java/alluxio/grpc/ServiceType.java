@@ -57,17 +57,9 @@ public enum ServiceType
    */
   JOB_MASTER_WORKER_SERVICE(11),
   /**
-   * <code>KEY_VALUE_MASTER_CLIENT_SERVICE = 12;</code>
+   * <code>FILE_SYSTEM_WORKER_WORKER_SERVICE = 12;</code>
    */
-  KEY_VALUE_MASTER_CLIENT_SERVICE(12),
-  /**
-   * <code>KEY_VALUE_WORKER_SERVICE = 13;</code>
-   */
-  KEY_VALUE_WORKER_SERVICE(13),
-  /**
-   * <code>FILE_SYSTEM_WORKER_WORKER_SERVICE = 14;</code>
-   */
-  FILE_SYSTEM_WORKER_WORKER_SERVICE(14),
+  FILE_SYSTEM_WORKER_WORKER_SERVICE(12),
   ;
 
   /**
@@ -119,17 +111,9 @@ public enum ServiceType
    */
   public static final int JOB_MASTER_WORKER_SERVICE_VALUE = 11;
   /**
-   * <code>KEY_VALUE_MASTER_CLIENT_SERVICE = 12;</code>
+   * <code>FILE_SYSTEM_WORKER_WORKER_SERVICE = 12;</code>
    */
-  public static final int KEY_VALUE_MASTER_CLIENT_SERVICE_VALUE = 12;
-  /**
-   * <code>KEY_VALUE_WORKER_SERVICE = 13;</code>
-   */
-  public static final int KEY_VALUE_WORKER_SERVICE_VALUE = 13;
-  /**
-   * <code>FILE_SYSTEM_WORKER_WORKER_SERVICE = 14;</code>
-   */
-  public static final int FILE_SYSTEM_WORKER_WORKER_SERVICE_VALUE = 14;
+  public static final int FILE_SYSTEM_WORKER_WORKER_SERVICE_VALUE = 12;
 
 
   public final int getNumber() {
@@ -158,9 +142,7 @@ public enum ServiceType
       case 9: return METRICS_MASTER_CLIENT_SERVICE;
       case 10: return JOB_MASTER_CLIENT_SERVICE;
       case 11: return JOB_MASTER_WORKER_SERVICE;
-      case 12: return KEY_VALUE_MASTER_CLIENT_SERVICE;
-      case 13: return KEY_VALUE_WORKER_SERVICE;
-      case 14: return FILE_SYSTEM_WORKER_WORKER_SERVICE;
+      case 12: return FILE_SYSTEM_WORKER_WORKER_SERVICE;
       default: return null;
     }
   }
