@@ -162,10 +162,10 @@ public final class MultiProcessCluster {
     mState = State.STARTED;
 
     mMasterAddresses = generateMasterAddresses(mNumMasters);
-    MasterNetAddress masterAddress = mMasterAddresses.get(0);
     LOG.info("Master addresses: {}", mMasterAddresses);
     switch (mDeployMode) {
       case UFS_NON_HA:
+        MasterNetAddress masterAddress = mMasterAddresses.get(0);
         mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString());
         mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
         mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
@@ -200,8 +200,7 @@ public final class MultiProcessCluster {
         ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-        mWorkDir.getAbsolutePath(), getJournalTypeFromDeployMode(mDeployMode).toString())
-            .entrySet()) {
+        mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
       if (mProperties.containsKey(entry.getKey())) {
         continue;
@@ -313,6 +312,13 @@ public final class MultiProcessCluster {
         throw new RuntimeException(e);
       }
     }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
+  }
+
+  /**
+   * @return the deploy mode
+   */
+  public synchronized DeployMode getDeployMode() {
+    return mDeployMode;
   }
 
   /**
@@ -717,41 +723,6 @@ public final class MultiProcessCluster {
   }
 
   /**
-   * Gets the {@link DeployMode} from the number of masters and
-   * {@link PropertyKey#MASTER_JOURNAL_TYPE}.
-   *
-   * @param numberOfMasters the number of masters
-   * @return the deploy mode
-   */
-  public static DeployMode getDeployMode(int numberOfMasters) {
-    JournalType journalType = ServerConfiguration
-        .getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
-    if (journalType == JournalType.EMBEDDED) {
-      return DeployMode.EMBEDDED;
-    } else {
-      return numberOfMasters > 1 ? MultiProcessCluster.DeployMode.ZOOKEEPER_HA
-          : MultiProcessCluster.DeployMode.UFS_NON_HA;
-    }
-  }
-
-  /**
-   * Gets the journal type from deploy mode.
-   *
-   * @param deployMode the given deploy mode
-   * @return the corresponding journal type
-   */
-  private static JournalType getJournalTypeFromDeployMode(DeployMode deployMode) {
-    switch (deployMode) {
-      case UFS_NON_HA:
-      case ZOOKEEPER_HA:
-        return JournalType.UFS;
-      case EMBEDDED:
-      default:
-        return JournalType.EMBEDDED;
-    }
-  }
-
-  /**
    * Builder for {@link MultiProcessCluster}.
    */
   public static final class Builder {
@@ -763,7 +734,7 @@ public final class MultiProcessCluster {
     private int mNumMasters = 1;
     private int mNumWorkers = 1;
     private String mClusterName = "AlluxioMiniCluster";
-    private DeployMode mDeployMode = DeployMode.UFS_NON_HA;
+    private DeployMode mDeployMode = null;
     private boolean mNoFormat = false;
 
     // Should only be instantiated by newBuilder().
@@ -877,6 +848,16 @@ public final class MultiProcessCluster {
               .stream().filter(key ->  (key >= mNumWorkers || key < 0)).count() == 0,
           "The worker indexes in worker properties should be bigger or equal to zero "
               + "and small than %s", mNumWorkers);
+      if (mDeployMode == null) {
+        JournalType journalType = ServerConfiguration
+            .getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+        if (journalType == JournalType.EMBEDDED) {
+          mDeployMode = DeployMode.EMBEDDED;
+        } else {
+          mDeployMode = mNumMasters > 1 ? MultiProcessCluster.DeployMode.ZOOKEEPER_HA
+              : MultiProcessCluster.DeployMode.UFS_NON_HA;
+        }
+      }
       return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
           mNumMasters, mNumWorkers, mClusterName, mDeployMode, mNoFormat, mReservedPorts);
     }
