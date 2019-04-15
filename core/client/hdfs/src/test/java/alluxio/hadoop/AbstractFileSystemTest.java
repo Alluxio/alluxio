@@ -659,8 +659,7 @@ public class AbstractFileSystemTest {
         new PrefixPathConfiguration(), uri));
     alluxio.client.file.FileSystem fs = alluxio.client.file.FileSystem.Factory.create(fsContext);
     alluxio.client.file.FileSystem spyFs = spy(fs);
-    doReturn(new URIStatus(fileInfo))
-        .when(spyFs).getStatus(uri);
+    doReturn(new URIStatus(fileInfo)).when(spyFs).getStatus(uri);
     List<BlockWorkerInfo> eligibleWorkerInfos = allWorkers.stream().map(worker ->
         new BlockWorkerInfo(worker, 0, 0)).collect(toList());
     PowerMockito.when(blockStore.getEligibleWorkers()).thenReturn(eligibleWorkerInfos);
