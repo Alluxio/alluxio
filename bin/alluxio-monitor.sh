@@ -119,7 +119,7 @@ run_monitor() {
   return 0
 }
 
-# $1 --> The path to the workers file
+# $1 --> The path to the masters/workers file
 get_nodes() {
     local node_file=$1
     echo "$(cat "${node_file}" | sed  "s/#.*$//;/^$/d")"
