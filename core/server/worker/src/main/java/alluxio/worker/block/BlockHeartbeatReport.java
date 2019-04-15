@@ -28,7 +28,7 @@ public final class BlockHeartbeatReport {
   private final List<Long> mRemovedBlocks;
   /**
    * Map of storage tier alias to a list of lost storage paths
-   * that were removed in the last hearbeat period.
+   * that were removed in the last heartbeat period.
    */
   private final Map<String, List<String>> mLostStorage;
 

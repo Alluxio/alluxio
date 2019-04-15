@@ -100,7 +100,7 @@ message GetWorkerInfoListPResponse {
 
 message WorkerLostStorageInfo {
   optional grpc.WorkerNetAddress address = 1;
-  /** a map from tier alias to the lost storage paths*/
+  /** a map from tier alias to the lost storage paths */
   map<string, StorageList> lostStorage = 2;
 }
 
@@ -154,8 +154,11 @@ message TierList {
   repeated int64 tiers = 1;
 }
 
+/**
+ * A list of lost storage paths inside a worker
+ */
 message StorageList {
-  /** a lost worker storage path */
+  /** a lost storage path */
   repeated string storage = 1;
 }
 

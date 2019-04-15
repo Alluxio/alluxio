@@ -85,9 +85,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       throws UnavailableException, InvalidArgumentException;
 
   /**
-   * Gets the list of worker lost storage information.
-   *
-   * @return a list of {@link WorkerLostStorageInfo} objects
+   * @return a list of worker lost storage information
    */
   List<WorkerLostStorageInfo> getWorkerLostStorage();
 

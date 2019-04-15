@@ -45,6 +45,10 @@ public class StorageCommand {
    */
   public int run() throws IOException {
     List<WorkerLostStorageInfo> workerLostStorageList = mBlockMasterClient.getWorkerLostStorage();
+    if (workerLostStorageList.size() == 0) {
+      mPrintStream.println("All worker storage directories are alive.");
+      return 0;
+    }
     for (WorkerLostStorageInfo info : workerLostStorageList) {
       Map<String, StorageList> lostStorageMap = info.getLostStorageMap();
       if (lostStorageMap.size() != 0) {
