@@ -13,7 +13,6 @@ package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.ClientContext;
-import alluxio.Constants;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.conf.ServerConfiguration;
@@ -311,7 +310,7 @@ public abstract class AbstractLocalAlluxioCluster {
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
-      }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(6 * Constants.SECOND_MS));
+      }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
     }
   }
 
