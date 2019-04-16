@@ -19,13 +19,11 @@ import alluxio.util.TarUtils;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
-import org.rocksdb.BackupEngine;
-import org.rocksdb.BackupableDBOptions;
+import com.google.common.io.Closer;
+import org.rocksdb.Checkpoint;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.DBOptions;
-import org.rocksdb.Env;
-import org.rocksdb.RestoreOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
@@ -54,31 +52,32 @@ public final class RocksStore implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(RocksStore.class);
 
   private final String mDbPath;
-  private final String mDbBackupPath;
+  private final String mDbCheckpointPath;
   private final Collection<ColumnFamilyDescriptor> mColumnFamilyDescriptors;
   private final DBOptions mDbOpts;
 
   private RocksDB mDb;
+  private Checkpoint mCheckpoint;
   // When we create the database, we must set these handles.
   private List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
 
   /**
    * @param dbPath a path for the rocks database
-   * @param backupPath a path for taking database backups
+   * @param checkpointPath a path for taking database checkpoints
    * @param columnFamilyDescriptors columns to create within the rocks database
    * @param dbOpts db options
    * @param columnHandles column handle references to populate
    */
-  public RocksStore(String dbPath, String backupPath,
+  public RocksStore(String dbPath, String checkpointPath,
       Collection<ColumnFamilyDescriptor> columnFamilyDescriptors, DBOptions dbOpts,
       List<AtomicReference<ColumnFamilyHandle>> columnHandles) {
     Preconditions.checkState(columnFamilyDescriptors.size() == columnHandles.size());
     mDbPath = dbPath;
-    mDbBackupPath = backupPath;
+    mDbCheckpointPath = checkpointPath;
     mColumnFamilyDescriptors = columnFamilyDescriptors;
     mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
-    new File(mDbBackupPath).mkdirs();
+    new File(mDbCheckpointPath).mkdirs();
     try {
       resetDb();
     } catch (RocksDBException e) {
@@ -114,24 +113,28 @@ public final class RocksStore implements Closeable {
   private void stopDb() {
     if (mDb != null) {
       try {
+        Closer closer = Closer.create();
         // Column handles must be closed before closing the db, or an exception gets thrown.
         mColumnHandles.forEach(handle -> {
-          handle.get().close();
+          ColumnFamilyHandle column = handle.get();
+          closer.register(() -> column.close());
           handle.set(null);
         });
-        mDb.close();
+        closer.register(() -> mDb.close());
+        closer.register(() -> mCheckpoint.close());
+        closer.close();
       } catch (Throwable t) {
         LOG.error("Failed to close rocks database", t);
       }
       mDb = null;
+      mCheckpoint = null;
     }
   }
 
   private void formatDbDirs() {
     try {
-      if (FileUtils.exists(mDbPath)) {
-        FileUtils.deletePathRecursively(mDbPath);
-      }
+      FileUtils.deletePathRecursively(mDbPath);
+      FileUtils.deletePathRecursively(mDbCheckpointPath);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -145,6 +148,7 @@ public final class RocksStore implements Closeable {
     // a list which will hold the handles for the column families once the db is opened
     List<ColumnFamilyHandle> columns = new ArrayList<>();
     mDb = RocksDB.open(mDbOpts, mDbPath, cfDescriptors, columns);
+    mCheckpoint = Checkpoint.create(mDb);
     for (int i = 0; i < columns.size() - 1; i++) {
       // Skip the default column.
       mColumnHandles.get(i).set(columns.get(i + 1));
@@ -159,19 +163,22 @@ public final class RocksStore implements Closeable {
    */
   public synchronized void writeToCheckpoint(OutputStream output)
       throws IOException, InterruptedException {
-    LOG.info("Backing up rocks database to {}", mDbBackupPath);
+    LOG.info("Creating rocksdb checkpoint at {}", mDbCheckpointPath);
     long startNano = System.nanoTime();
+
     CheckpointOutputStream out = new CheckpointOutputStream(output, CheckpointType.ROCKS);
-    try (BackupEngine backupEngine = BackupEngine.open(Env.getDefault(),
-        new BackupableDBOptions(mDbBackupPath).setMaxBackgroundOperations(4))) {
-      backupEngine.createNewBackup(mDb, true);
-      backupEngine.purgeOldBackups(1);
+    try {
+      // createCheckpoint requires that the directory not already exist.
+      FileUtils.deletePathRecursively(mDbCheckpointPath);
+      mCheckpoint.createCheckpoint(mDbCheckpointPath);
     } catch (RocksDBException e) {
       throw new IOException(e);
     }
-    LOG.info("Backed up rocks database, creating tarball");
-    TarUtils.writeTarGz(Paths.get(mDbBackupPath), out);
+    LOG.info("Checkpoint complete, creating tarball");
+    TarUtils.writeTarGz(Paths.get(mDbCheckpointPath), out);
     LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
+    // Checkpoint is no longer needed, delete to save space.
+    FileUtils.deletePathRecursively(mDbCheckpointPath);
   }
 
   /**
@@ -186,15 +193,7 @@ public final class RocksStore implements Closeable {
         "Unexpected checkpoint type in RocksStore: " + input.getType());
     stopDb();
     FileUtils.deletePathRecursively(mDbPath);
-    FileUtils.deletePathRecursively(mDbBackupPath);
-    TarUtils.readTarGz(Paths.get(mDbBackupPath), input);
-    try (BackupEngine backupEngine = BackupEngine.open(Env.getDefault(),
-        new BackupableDBOptions(mDbBackupPath).setMaxBackgroundOperations(4))) {
-      backupEngine.restoreDbFromLatestBackup(mDbPath, mDbPath, new RestoreOptions(false));
-    } catch (RocksDBException e) {
-      throw new IOException(String.format("Failed to restore %s from backup %s: %s", mDbPath,
-          mDbBackupPath, e.toString()), e);
-    }
+    TarUtils.readTarGz(Paths.get(mDbPath), input);
     try {
       createDb();
     } catch (RocksDBException e) {
