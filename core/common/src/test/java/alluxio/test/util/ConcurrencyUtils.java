@@ -39,7 +39,7 @@ public final class ConcurrencyUtils {
   public static void assertConcurrent(final List<? extends Runnable> runnables,
       final int maxTimeoutSeconds) throws InterruptedException {
     final int numThreads = runnables.size();
-    final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<>());
+    final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<Throwable>());
     final ExecutorService threadPool = Executors.newFixedThreadPool(numThreads);
     try {
       final CountDownLatch allExecutorThreadsReady = new CountDownLatch(numThreads);
