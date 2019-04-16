@@ -128,7 +128,7 @@ public final class ConfigurationTestUtils {
       // To keep tests fast, we should do more retries with a lower max wait time.
       conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "60");
     } else {
-      conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "3s");
+      conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "10s");
       conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "1s");
       conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "100ms");
     }
