@@ -81,7 +81,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
@@ -1004,19 +1003,8 @@ public final class AlluxioMasterRestServiceHandler {
       }
       response.setUfsOps(ufsOpsMap);
 
-      Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-          return !(name.endsWith("Ops"));
-        }
-      });
-
-      Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-          return name.endsWith("Ops");
-        }
-      });
+      Map<String, Counter> counters = mr.getCounters((name, metric) -> !(name.endsWith("Ops")));
+      Map<String, Counter> rpcInvocations = mr.getCounters((name, metric) -> name.endsWith("Ops"));
 
       Map<String, Metric> operations = new TreeMap<>();
       // Remove the instance name from the metrics.
