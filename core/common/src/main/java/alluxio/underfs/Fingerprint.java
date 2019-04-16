@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.Nullable;
 
 /**
  * Fingerprint for a UFS file or directory.
@@ -131,7 +130,6 @@ public final class Fingerprint {
    * @param input the string to parse
    * @return the parsed fingerprint object, or null if parsing failed
    */
-  @Nullable
   public static Fingerprint parse(String input) {
     if (input == null) {
       return null;
