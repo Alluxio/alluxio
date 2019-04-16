@@ -851,12 +851,8 @@ public final class MultiProcessCluster {
       if (mDeployMode == null) {
         JournalType journalType = ServerConfiguration
             .getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
-        if (journalType == JournalType.EMBEDDED) {
-          mDeployMode = DeployMode.EMBEDDED;
-        } else {
-          mDeployMode = mNumMasters > 1 ? MultiProcessCluster.DeployMode.ZOOKEEPER_HA
-              : MultiProcessCluster.DeployMode.UFS_NON_HA;
-        }
+        mDeployMode = journalType == JournalType.EMBEDDED ? DeployMode.EMBEDDED
+            : mNumMasters > 1 ? DeployMode.ZOOKEEPER_HA : DeployMode.UFS_NON_HA;
       }
       return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
           mNumMasters, mNumWorkers, mClusterName, mDeployMode, mNoFormat, mReservedPorts);
