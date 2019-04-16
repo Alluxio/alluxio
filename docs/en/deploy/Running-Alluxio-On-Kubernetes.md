@@ -12,11 +12,7 @@ on Kubernetes using the specification that comes in the Alluxio Github repositor
 * Table of Contents
 {:toc}
 
-## Basic Tutorial
-
-This tutorial walks through a basic Alluxio setup on Kubernetes.
-
-### Prerequisites
+## Prerequisites
 
 - A Kubernetes cluster (version >= 1.8). Alluxio workers will use `emptyDir` volumes with a
 restricted size using the `sizeLimit` parameter. This is an alpha feature in Kubernetes 1.8.
@@ -28,6 +24,10 @@ available for a pull from all Kubernetes hosts running Alluxio processes. This c
 pushing the image to an accessible Docker registry, or pushing the image individually to all hosts.
 If using a private Docker registry, refer to the Kubernetes
 [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+
+## Basic Setup
+
+This tutorial walks through a basic Alluxio setup on Kubernetes.
 
 ### Clone the Alluxio repo
 
@@ -162,3 +162,34 @@ will be lost.
 ```bash
 kubectl delete -f alluxio-journal-volume.yaml
 ```
+
+## Advanced Setup
+
+### POSIX API
+
+Once Alluxio is deployed on Kubernetes, there are multiple ways in which a client application can
+connect to it. For applications using the [POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url }}),
+application containers can simply mount the Alluxio FileSystem.
+
+In order to use the POSIX API, first deploy the Alluxio FUSE daemon.
+```bash
+cp alluxio-fuse.yaml.template alluxio-fuse.yaml
+kubectl create -f alluxio-fuse.yaml
+```
+Note:
+- The container running the Alluxio FUSE daemon must have the `securityContext.privileged=true` with
+SYS_ADMIN capabilities. Application containers that require to access Alluxio do not require this
+privilege.
+- A different docker image [alluxio/alluxio-fuse](https://hub.docker.com/r/alluxio/alluxio-fuse/) based
+on `ubuntu` instead of `alpine` is needed to run the FUSE daemon. Application containers can run on
+any docker image.
+
+Verify that a container can simply mount the Alluxio FileSystem without any custom binaries or
+capabilities using a `hostPath` mount of location `/alluxio-fuse`:
+```bash
+cp alluxio-fuse-client.yaml.template alluxio-fuse-client.yaml
+kubectl create -f alluxio-fuse-client.yaml
+```
+
+If using the template, Alluxio is mounted at `/alluxio-fuse` and can be accessed via the POSIX-API
+across multiple containers.
