@@ -24,6 +24,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import javax.annotation.Nullable;
 
 /**
  * Utilities for handling server RPC calls.
@@ -231,6 +232,7 @@ public final class RpcUtils {
    * @param <T> the return type of the callable
    * @return the rpc result
    */
+  @Nullable
   public static <T> T streamingRPCAndLog(Logger logger, StreamingRpcCallable<T> callable,
       String methodName, String description, Object... args) {
     // avoid string format for better performance if debug is off
