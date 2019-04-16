@@ -47,12 +47,13 @@ MOPT (Mount Option) is one of:
              set ALLUXIO_RAM_FOLDER=/dev/shm on each worker and use NoMount.
   NoMount is assumed if MOPT is not specified.
 
+-a         asynchonously start all processes. The script may exit before all
+           processes have been started.
 -f         format Journal, UnderFS Data and Workers Folder on master.
 -h         display this help.
 -i backup  a journal backup to restore the master from. The backup should be
            a URI path within the root under filesystem, e.g.
            hdfs://mycluster/alluxio_backups/alluxio-journal-YYYY-MM-DD-timestamp.gz.
--m         launch monitor process to ensure the target processes come up.
 -N         do not try to kill previous running processes before starting new ones.
 -w         wait for processes to end before returning.
 
@@ -187,7 +188,7 @@ start_job_master() {
 }
 
 start_job_masters() {
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "job_master"
+  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "-a" "job_master"
 }
 
 start_job_worker() {
@@ -210,7 +211,7 @@ start_job_worker() {
 }
 
 start_job_workers() {
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "job_worker"
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "-a" "job_worker"
 }
 
 start_logserver() {
@@ -274,7 +275,7 @@ start_masters() {
   if [[ -n ${journal_backup} ]]; then
     start_opts="-i ${journal_backup}"
   fi
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" ${start_opts} "master" $1
+  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" ${start_opts} "-a" "master" $1
 }
 
 start_proxy() {
@@ -289,8 +290,8 @@ start_proxy() {
 }
 
 start_proxies() {
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "proxy"
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "proxy"
+  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "-a" "proxy"
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "-a" "proxy"
 }
 
 start_worker() {
@@ -323,7 +324,7 @@ start_worker() {
 }
 
 start_workers() {
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" $1
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "-a" "worker" $1
 }
 
 restart_worker() {
@@ -418,17 +419,17 @@ main() {
   # ensure log/data dirs
   ensure_dirs
 
-  while getopts "hNwmi:" o; do
+  while getopts "ahNwi:" o; do
     case "${o}" in
+      a)
+        async="true"
+        ;;
       h)
         echo -e "${USAGE}"
         exit 0
         ;;
       i)
         journal_backup=${OPTARG}
-        ;;
-      m)
-        monitor="true"
         ;;
       N)
         killonstart="no"
@@ -482,7 +483,7 @@ main() {
   fi
 
   MONITOR_NODES=
-  if [[ "${monitor}" ]]; then
+  if [[ ! "${async}" ]]; then
     case "${ACTION}" in
       restart_worker)
         MONITOR_NODES=$(get_offline_worker)
@@ -588,7 +589,7 @@ main() {
     wait
   fi
 
-  if [[ "${monitor}" ]]; then
+  if [[ ! "${async}" ]]; then
     start_monitor "${ACTION}" "${MONITOR_NODES}"
   fi
 }
