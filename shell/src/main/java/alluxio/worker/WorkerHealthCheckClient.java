@@ -38,7 +38,7 @@ public class WorkerHealthCheckClient extends RpcPortHealthCheckClient {
    */
   public WorkerHealthCheckClient(InetSocketAddress jobWorkerAddress,
       Supplier<RetryPolicy> retryPolicySupplier, AlluxioConfiguration alluxioConf) {
-    super(jobWorkerAddress, ServiceType.FILE_SYSTEM_WORKER_WORKER_SERVICE, retryPolicySupplier,
-        alluxioConf);
+    // TODO(ggezer) Send a valid value after FSWorker implementation.
+    super(jobWorkerAddress, ServiceType.UNKNOWN_SERVICE, retryPolicySupplier, alluxioConf);
   }
 }

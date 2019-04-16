@@ -37,23 +37,23 @@ public final class VersionProto {
       "on\"S\n\031GetServiceVersionPRequest\0226\n\013servi" +
       "ceType\030\001 \001(\0162!.alluxio.grpc.version.Serv" +
       "iceType\"-\n\032GetServiceVersionPResponse\022\017\n" +
-      "\007version\030\001 \001(\003*\276\003\n\013ServiceType\022\023\n\017UNKNOW" +
-      "N_SERVICE\020\000\022%\n!FILE_SYSTEM_MASTER_CLIENT" +
-      "_SERVICE\020\001\022%\n!FILE_SYSTEM_MASTER_WORKER_" +
-      "SERVICE\020\002\022\"\n\036FILE_SYSTEM_MASTER_JOB_SERV" +
-      "ICE\020\003\022\037\n\033BLOCK_MASTER_CLIENT_SERVICE\020\004\022\037" +
-      "\n\033BLOCK_MASTER_WORKER_SERVICE\020\005\022\036\n\032META_" +
-      "MASTER_CONFIG_SERVICE\020\006\022\036\n\032META_MASTER_C" +
-      "LIENT_SERVICE\020\007\022\036\n\032META_MASTER_MASTER_SE" +
-      "RVICE\020\010\022!\n\035METRICS_MASTER_CLIENT_SERVICE" +
-      "\020\t\022\035\n\031JOB_MASTER_CLIENT_SERVICE\020\n\022\035\n\031JOB" +
-      "_MASTER_WORKER_SERVICE\020\013\022%\n!FILE_SYSTEM_" +
-      "WORKER_WORKER_SERVICE\020\0142\225\001\n\033ServiceVersi" +
-      "onClientService\022v\n\021getServiceVersion\022/.a" +
-      "lluxio.grpc.version.GetServiceVersionPRe" +
-      "quest\0320.alluxio.grpc.version.GetServiceV" +
-      "ersionPResponseB\036\n\014alluxio.grpcB\014Version" +
-      "ProtoP\001"
+      "\007version\030\001 \001(\003*\332\003\n\013ServiceType\022%\n!FILE_S" +
+      "YSTEM_MASTER_CLIENT_SERVICE\020\000\022%\n!FILE_SY" +
+      "STEM_MASTER_WORKER_SERVICE\020\001\022\"\n\036FILE_SYS" +
+      "TEM_MASTER_JOB_SERVICE\020\002\022\037\n\033BLOCK_MASTER" +
+      "_CLIENT_SERVICE\020\003\022\037\n\033BLOCK_MASTER_WORKER" +
+      "_SERVICE\020\004\022\036\n\032META_MASTER_CONFIG_SERVICE" +
+      "\020\005\022\036\n\032META_MASTER_CLIENT_SERVICE\020\006\022\036\n\032ME" +
+      "TA_MASTER_MASTER_SERVICE\020\007\022!\n\035METRICS_MA" +
+      "STER_CLIENT_SERVICE\020\010\022\035\n\031JOB_MASTER_CLIE" +
+      "NT_SERVICE\020\t\022\035\n\031JOB_MASTER_WORKER_SERVIC" +
+      "E\020\n\022#\n\037KEY_VALUE_MASTER_CLIENT_SERVICE\020\013" +
+      "\022\034\n\030KEY_VALUE_WORKER_SERVICE\020\014\022\023\n\017UNKNOW" +
+      "N_SERVICE\020\r2\225\001\n\033ServiceVersionClientServ" +
+      "ice\022v\n\021getServiceVersion\022/.alluxio.grpc." +
+      "version.GetServiceVersionPRequest\0320.allu" +
+      "xio.grpc.version.GetServiceVersionPRespo" +
+      "nseB\036\n\014alluxio.grpcB\014VersionProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
