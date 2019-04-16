@@ -1382,6 +1382,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_TOLERATE_CORRUPTION =
+      new Builder(Name.MASTER_JOURNAL_TOLERATE_CORRUPTION)
+          .setDefaultValue(false)
+          .setDescription("Whether to tolerate master state corruption "
+              + "when standby master replaying journal. If enabled, errors from applying journal "
+              + "to master metadata will only be logged instead of forcing master to exit. "
+              + "This property should be used sparingly.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setIsHidden(true)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =
       new Builder(Name.MASTER_JOURNAL_TYPE)
           .setDefaultValue("EMBEDDED")
@@ -3774,6 +3785,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
     public static final String MASTER_JOURNAL_INIT_FROM_BACKUP =
         "alluxio.master.journal.init.from.backup";
+    public static final String MASTER_JOURNAL_TOLERATE_CORRUPTION
+        = "alluxio.master.journal.tolerate.corruption";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_FORMATTER_CLASS =
         "alluxio.master.journal.formatter.class";

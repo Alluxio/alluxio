@@ -20,6 +20,7 @@ import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.MasterJournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.ExponentialTimeBoundedRetry;
@@ -372,7 +373,13 @@ public class UfsJournal implements Journal {
             mMaster.restoreFromCheckpoint(journalReader.getCheckpoint());
             break;
           case LOG:
-            mMaster.processJournalEntry(journalReader.getEntry());
+            JournalEntry entry = journalReader.getEntry();
+            try {
+              mMaster.processJournalEntry(entry);
+            }  catch (Throwable t) {
+              JournalUtils.handleJournalReplayFailure(LOG, t,
+                    "%s: Failed to process journal entry %s", mMaster.getName(), entry);
+            }
             break;
           default:
             return journalReader.getNextSequenceNumber();
