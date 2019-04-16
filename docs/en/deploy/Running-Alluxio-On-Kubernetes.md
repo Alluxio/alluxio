@@ -44,11 +44,8 @@ Short-circuit access enables clients to perform read and write operations direct
 worker memory instead of having to go through the worker process. Set up a domain socket on all hosts
 eligible to run the Alluxio worker process to enable this mode of operation.
 
-From the host machine, create a directory for the shared domain socket.
-```bash
-mkdir /tmp/domain
-chmod a+w /tmp/domain
-```
+As part of the Alluxio worker pod creation, a directory is created on the host for the shared domain
+socket.
 
 This step can be skipped in case short-circuit accesss is not desired or cannot be set up. To disable
 this feature, set the property `alluxio.user.short.circuit.enabled=false` according to the instructions

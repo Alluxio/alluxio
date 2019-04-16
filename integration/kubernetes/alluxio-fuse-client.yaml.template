@@ -33,7 +33,7 @@ spec:
             limits:
               cpu: "1"
               memory: "500M"
-          command: ["/bin/bash", "-c", "--"]
+          command: ["/bin/sh", "-c", "--"]
           args: ["while true; do sleep 30 && echo .; done;"]
           volumeMounts:
             - name: alluxio-fuse-mount
