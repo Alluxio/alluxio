@@ -97,10 +97,13 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
     startClusterWithWorkerStorage(ssdPath, hddPath);
 
     FileUtils.deleteDirectory(hddDir);
+    // Make sure lost storage is detected and reported to master
     Thread.sleep(2 * ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
-
     checkLostStorageResults(ssdPath, hddPath);
+
     mLocalAlluxioCluster.restartMasters();
+    // Make sure worker registered with master
+    Thread.sleep(2 * ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     checkLostStorageResults(ssdPath, hddPath);
   }
 

@@ -50,7 +50,7 @@ public final class DoctorCommandIntegrationTest extends AbstractFsAdminShellTest
   public void doctorStorage() {
     int ret = mFsAdminShell.run("doctor", "storage");
     Assert.assertEquals(0, ret);
-    String expected = "All worker storage directories are alive.\n";
+    String expected = "All worker storage paths are in working state.\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 }
