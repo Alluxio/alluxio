@@ -250,21 +250,24 @@ public final class FileSystemMasterClientServiceHandler
       // How many remaining items to stream.
       int remainingItemCount = fileInfoList.size() - currentIdx;
       // Start index in the master fileInfo list for the next packet.
-      int nextStartIdx = currentIdx;
+      int packetStartIdx = currentIdx;
       // How many results to stream in this round.
-      int nextItemCount = Math.min(resultPacketLength, remainingItemCount);
+      int packetItemCount = Math.min(resultPacketLength, remainingItemCount);
+      // Whether this is the last packet.
+      boolean isLastPacket = (remainingItemCount == packetItemCount);
 
       String packetDescription =
           String.format("ListStatus packet. Item count: %s, Remaining item count: %s",
-              nextItemCount, remainingItemCount);
+              packetItemCount, remainingItemCount);
 
       // Stream back the next packet.
       RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<ListStatusPResponse>() {
         @Override
         public ListStatusPResponse call() throws Exception {
           return ListStatusPResponse.newBuilder()
-              .addAllFileInfos(fileInfoList.subList(nextStartIdx, nextStartIdx + nextItemCount)
-                  .stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
+              .addAllFileInfos(
+                  fileInfoList.subList(packetStartIdx, packetStartIdx + packetItemCount).stream()
+                      .map(GrpcUtils::toProto).collect(Collectors.toList()))
               .build();
         }
 
@@ -272,10 +275,10 @@ public final class FileSystemMasterClientServiceHandler
         public void exceptionCaught(Throwable throwable) {
           responseObserver.onError(throwable);
         }
-      }, "ListStatus", true, remainingItemCount == 0, packetDescription, responseObserver);
+      }, "ListStatus", true, isLastPacket, packetDescription, responseObserver);
 
       // Update current index to fileInfo master list.
-      currentIdx += nextItemCount;
+      currentIdx += packetItemCount;
     } while (currentIdx < fileInfoList.size());
   }
 
