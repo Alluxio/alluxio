@@ -12,7 +12,6 @@
 package alluxio.master.block;
 
 import alluxio.RpcUtils;
-import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
@@ -25,8 +24,6 @@ import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
-import alluxio.grpc.StorageList;
-import alluxio.grpc.TierList;
 import alluxio.metrics.Metric;
 import alluxio.grpc.GrpcUtils;
 
@@ -35,7 +32,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -68,19 +64,17 @@ public final class BlockMasterWorkerServiceHandler
         request.getOptions().getCapacityBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
     final List<Long> removedBlockIds = request.getRemovedBlockIdsList();
-    final Map<String, TierList> addedBlocksOnTiers = request.getAddedBlocksOnTiersMap();
-    Map<String, List<Long>> addedBlocksOnTiersMap = new HashMap<>();
-    for (Map.Entry<String, TierList> blockEntry : addedBlocksOnTiers.entrySet()) {
-      addedBlocksOnTiersMap.put(blockEntry.getKey(), blockEntry.getValue().getTiersList());
-    }
-    final Map<String, StorageList> lostStorage = request.getLostStorageMap();
-    Map<String, List<String>> lostStorageMap = new HashMap<>();
-    for (Map.Entry<String, StorageList> storageEntry : lostStorage.entrySet()) {
-      lostStorageMap.put(storageEntry.getKey(), storageEntry.getValue().getStorageList());
-    }
-    final BlockHeartbeatPOptions options = request.getOptions();
-    final List<Metric> metrics =
-        options.getMetricsList().stream().map(Metric::fromProto).collect(Collectors.toList());
+
+    final Map<String, List<Long>> addedBlocksOnTiersMap = request.getAddedBlocksOnTiersMap()
+        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+            e -> e.getValue().getTiersList()));
+
+    final Map<String, List<String>> lostStorageMap = request.getLostStorageMap()
+        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+            e -> e.getValue().getStorageList()));
+
+    final List<Metric> metrics = request.getOptions().getMetricsList()
+        .stream().map(Metric::fromProto).collect(Collectors.toList());
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
@@ -133,16 +127,15 @@ public final class BlockMasterWorkerServiceHandler
     final List<String> storageTiers = request.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
-    final Map<String, TierList> currentBlocksOnTiers = request.getCurrentBlocksOnTiersMap();
-    Map<String, List<Long>> currentBlocksOnTiersMap = new HashMap<>();
-    for (Map.Entry<String, TierList> blockEntry : currentBlocksOnTiers.entrySet()) {
-      currentBlocksOnTiersMap.put(blockEntry.getKey(), blockEntry.getValue().getTiersList());
-    }
-    final Map<String, StorageList> lostStorage = request.getLostStorageMap();
-    Map<String, List<String>> lostStorageMap = new HashMap<>();
-    for (Map.Entry<String, StorageList> storageEntry : lostStorage.entrySet()) {
-      lostStorageMap.put(storageEntry.getKey(), storageEntry.getValue().getStorageList());
-    }
+
+    final Map<String, List<Long>> currentBlocksOnTiersMap = request.getCurrentBlocksOnTiersMap()
+        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+            e -> e.getValue().getTiersList()));
+
+    final Map<String, List<String>> lostStorageMap = request.getLostStorageMap().entrySet()
+        .stream().collect(Collectors.toMap(Map.Entry::getKey,
+            e -> e.getValue().getStorageList()));
+
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {

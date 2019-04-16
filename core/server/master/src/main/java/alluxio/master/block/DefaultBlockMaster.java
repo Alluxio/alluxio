@@ -479,11 +479,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
         if (worker.hasLostStorage()) {
-          Map<String, StorageList> lostStorage = new HashMap<>();
-          for (Map.Entry<String, List<String>> entry : worker.getLostStorage().entrySet()) {
-            lostStorage.put(entry.getKey(),
-                StorageList.newBuilder().addAllStorage(entry.getValue()).build());
-          }
+          Map<String, StorageList> lostStorage = worker.getLostStorage().entrySet()
+              .stream().collect(Collectors.toMap(Map.Entry::getKey,
+                  e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
           workerLostStorageList.add(WorkerLostStorageInfo.newBuilder()
               .setAddress(GrpcUtils.toProto(worker.getWorkerAddress()))
               .putAllLostStorage(lostStorage).build());

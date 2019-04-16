@@ -32,9 +32,9 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -144,16 +144,14 @@ public final class BlockMasterClient extends AbstractMasterClient {
       throws IOException {
     final BlockHeartbeatPOptions options = BlockHeartbeatPOptions.newBuilder()
         .addAllMetrics(metrics).putAllCapacityBytesOnTiers(capacityBytesOnTiers).build();
-    Map<String, TierList> addedBlocksMap = new HashMap<>(addedBlocks.size());
-    for (Map.Entry<String, List<Long>> blockEntry : addedBlocks.entrySet()) {
-      addedBlocksMap.put(blockEntry.getKey(),
-          TierList.newBuilder().addAllTiers(blockEntry.getValue()).build());
-    }
-    Map<String, StorageList> lostStorageMap = new HashMap<>(lostStorage.size());
-    for (Map.Entry<String, List<String>> storageEntry : lostStorage.entrySet()) {
-      lostStorageMap.put(storageEntry.getKey(),
-          StorageList.newBuilder().addAllStorage(storageEntry.getValue()).build());
-    }
+    final Map<String, TierList> addedBlocksMap = addedBlocks.entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey,
+            e -> TierList.newBuilder().addAllTiers(e.getValue()).build()));
+
+    final Map<String, StorageList> lostStorageMap = lostStorage.entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey,
+            e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
+
     final BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder().setWorkerId(workerId)
         .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
         .putAllAddedBlocksOnTiers(addedBlocksMap).setOptions(options)
@@ -182,16 +180,15 @@ public final class BlockMasterClient extends AbstractMasterClient {
 
     final RegisterWorkerPOptions options =
         RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
-    Map<String, TierList> currentBlockOnTiersMap = new HashMap<>(currentBlocksOnTiers.size());
-    for (Map.Entry<String, List<Long>> blockEntry : currentBlocksOnTiers.entrySet()) {
-      currentBlockOnTiersMap.put(blockEntry.getKey(),
-          TierList.newBuilder().addAllTiers(blockEntry.getValue()).build());
-    }
-    Map<String, StorageList> lostStorageMap = new HashMap<>(lostStorage.size());
-    for (Map.Entry<String, List<String>> storageEntry : lostStorage.entrySet()) {
-      lostStorageMap.put(storageEntry.getKey(),
-          StorageList.newBuilder().addAllStorage(storageEntry.getValue()).build());
-    }
+
+    final Map<String, TierList> currentBlockOnTiersMap = currentBlocksOnTiers.entrySet()
+        .stream().collect(Collectors.toMap(Map.Entry::getKey,
+            e -> TierList.newBuilder().addAllTiers(e.getValue()).build()));
+
+    final Map<String, StorageList> lostStorageMap = lostStorage.entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey,
+            e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
+
     final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
         .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)
         .putAllUsedBytesOnTiers(usedBytesOnTiers).putAllCurrentBlocksOnTiers(currentBlockOnTiersMap)
