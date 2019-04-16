@@ -40,6 +40,10 @@ spec:
             capabilities:
               add:
                 - SYS_ADMIN
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "/alluxio-fuse"]
           envFrom:
           - configMapRef:
               name: alluxio-config

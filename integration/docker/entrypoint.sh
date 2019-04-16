@@ -101,7 +101,7 @@ case ${service,,} in
     integration/docker/bin/alluxio-proxy.sh
     ;;
   fuse)
-    integration/fuse/bin/alluxio-fuse mount /alluxio-fuse /
+    integration/fuse/bin/alluxio-fuse mount -o allow_other /alluxio-fuse /
     tail -f /opt/alluxio/logs/fuse.log
     ;;
   *)
