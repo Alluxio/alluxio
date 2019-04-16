@@ -93,6 +93,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -244,9 +245,16 @@ public final class FileSystemMasterClientServiceHandler
     final int resultPacketLength =
         ServerConfiguration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_PACKET_LENGTH);
 
+    // Abort condition for packet streaming.
+    SettableFuture<Void> abortCondition = SettableFuture.create();
     // Current position in the master fileInfo list.
     int currentIdx = 0;
     do {
+      // Abort the packet if cancellation was signaled in previous package.
+      if (abortCondition.isCancelled()) {
+        break;
+      }
+
       // How many remaining items to stream.
       int remainingItemCount = fileInfoList.size() - currentIdx;
       // Start index in the master fileInfo list for the next packet.
@@ -274,6 +282,8 @@ public final class FileSystemMasterClientServiceHandler
         @Override
         public void exceptionCaught(Throwable throwable) {
           responseObserver.onError(throwable);
+          // Notify the abort condition for bailing out after this packet.
+          abortCondition.cancel(false);
         }
       }, "ListStatus", true, isLastPacket, packetDescription, responseObserver);
 
