@@ -12,10 +12,10 @@
 package alluxio.master.meta;
 
 import alluxio.conf.PropertyKey;
-import alluxio.master.journal.CheckpointName;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Meta.PathPropertiesEntry;
