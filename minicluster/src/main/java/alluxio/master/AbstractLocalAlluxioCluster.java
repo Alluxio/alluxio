@@ -12,17 +12,24 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.client.MetaMasterClient;
+import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.cli.Format;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.exception.status.UnavailableException;
 import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.WorkerProcess;
@@ -32,8 +39,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -281,6 +290,29 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   public ProxyProcess getProxyProcess() {
     return mProxyProcess;
+  }
+
+  /**
+   * Waits for all workers registered with master.
+   *
+   * @param timeoutMs the timeout to wait
+   */
+  public void waitForWorkersRegistered(int timeoutMs)
+      throws TimeoutException, InterruptedException, IOException {
+    try (MetaMasterClient client =
+             new RetryHandlingMetaMasterClient(MasterClientContext
+                 .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
+      CommonUtils.waitFor("workers registered", () -> {
+        try {
+          return client.getMasterInfo(Collections.emptySet())
+              .getWorkerAddressesList().size() == mNumWorkers;
+        } catch (UnavailableException e) {
+          return false;
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(6 * Constants.SECOND_MS));
+    }
   }
 
   /**

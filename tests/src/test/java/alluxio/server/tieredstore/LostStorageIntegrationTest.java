@@ -102,8 +102,7 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
     checkLostStorageResults(ssdPath, hddPath);
 
     mLocalAlluxioCluster.restartMasters();
-    // Make sure worker registered with master
-    Thread.sleep(2 * ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    mLocalAlluxioCluster.waitForWorkersRegistered(6 * Constants.SECOND_MS);
     checkLostStorageResults(ssdPath, hddPath);
   }
 
