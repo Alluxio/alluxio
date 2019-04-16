@@ -70,12 +70,15 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void reportLostStorageInHeartbeat() throws Exception {
-    String ssdPath = Files.createTempDir().getAbsolutePath();
-    String hddPath = Files.createTempDir().getAbsolutePath();
+    File ssdDir = Files.createTempDir();
+    String ssdPath = ssdDir.getAbsolutePath();
+    File hddDir = Files.createTempDir();
+    String hddPath = hddDir.getAbsolutePath();
+
     startClusterWithWorkerStorage(ssdPath, hddPath);
 
-    FileUtils.deleteDirectory(new File(ssdPath));
-    FileUtils.deleteDirectory(new File(hddPath));
+    FileUtils.deleteDirectory(ssdDir);
+    FileUtils.deleteDirectory(hddDir);
 
     // Make sure worker lost storage is detected and heartbeat with the master
     Thread.sleep(2 * ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));

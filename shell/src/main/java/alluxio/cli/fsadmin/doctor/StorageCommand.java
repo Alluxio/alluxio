@@ -46,18 +46,17 @@ public class StorageCommand {
   public int run() throws IOException {
     List<WorkerLostStorageInfo> workerLostStorageList = mBlockMasterClient.getWorkerLostStorage();
     if (workerLostStorageList.size() == 0) {
-      mPrintStream.println("All worker storage directories are alive.");
+      mPrintStream.println("All worker storage paths are in working state.");
       return 0;
     }
     for (WorkerLostStorageInfo info : workerLostStorageList) {
       Map<String, StorageList> lostStorageMap = info.getLostStorageMap();
       if (lostStorageMap.size() != 0) {
-        mPrintStream.printf("The following directories are lost in worker %s: %n",
+        mPrintStream.printf("The following storage paths are lost in worker %s: %n",
             info.getAddress().getHost());
         for (Map.Entry<String, StorageList> tierStorage : lostStorageMap.entrySet()) {
-          String tier = tierStorage.getKey();
           for (String storage : tierStorage.getValue().getStorageList()) {
-            mPrintStream.printf("%s (%s)%n", storage, tier);
+            mPrintStream.printf("%s (%s)%n", storage, tierStorage.getKey());
           }
         }
       }

@@ -366,7 +366,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return the map from tier alias to lost storage paths in this worker
+   * @return true if this worker has lost storage, false otherwise
    */
   public boolean hasLostStorage() {
     return mLostStorage.size() > 0;

@@ -41,7 +41,7 @@ public final class DoctorCommand extends AbstractFsAdminCommand {
   enum Command {
     ALL, // Show all errors/warnings
     CONFIGURATION, // Show server-side configuration errors/warnings
-    STORAGE, // Show worker storage errors/warnings
+    STORAGE, // Show worker lost storage warnings
   }
 
   private final AlluxioConfiguration mConf;
