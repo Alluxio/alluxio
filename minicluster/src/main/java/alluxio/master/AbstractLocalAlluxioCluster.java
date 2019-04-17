@@ -296,14 +296,6 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Waits for the leader master node to start serving.
-   *
-   * @param timeoutMs maximum amount of time to wait, in milliseconds
-   */
-  public abstract void waitForMasterServing(int timeoutMs)
-      throws TimeoutException, InterruptedException;
-
-  /**
    * Waits for all workers registered with master.
    *
    * @param timeoutMs the timeout to wait

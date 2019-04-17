@@ -12,14 +12,12 @@
 package alluxio.master;
 
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
 import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
@@ -28,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -162,7 +159,6 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   public void startMasters() throws Exception {
     mMaster = LocalAlluxioMaster.create(mWorkDirectory, true);
     mMaster.start();
-    waitForMasterServing(60 * Constants.SECOND_MS);
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
   }
 
@@ -176,17 +172,5 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   @Override
   public void stopMasters() throws Exception {
     mMaster.stop();
-  }
-
-  @Override
-  public void waitForMasterServing(int timeoutMs)
-      throws TimeoutException, InterruptedException {
-    CommonUtils.waitFor("Master process is serving", () -> {
-      try {
-        return mMaster.isServing();
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
   }
 }

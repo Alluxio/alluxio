@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
+import alluxio.master.journal.JournalType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -26,8 +27,9 @@ public class SecondaryMasterTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 10)
+          .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 128)
           .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 1)
+          .setJournalType(JournalType.UFS)
           .build();
 
   @Test
