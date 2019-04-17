@@ -1763,20 +1763,47 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
               .build();
-  public static final PropertyKey MASTER_WORKER_THREADS_MAX =
-      new Builder(Name.MASTER_WORKER_THREADS_MAX)
-          .setDefaultValue(512)
-          .setDescription("The maximum number of incoming RPC requests to master that can be "
-              + "handled. This value is used to configure maximum number of threads in gRPC "
-              + "thread pool with master.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
       new Builder(Name.MASTER_WORKER_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.master.worker.timeout.ms"})
           .setDefaultValue("5min")
           .setDescription("Timeout between master and worker indicating a lost worker.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EXECUTOR_PARALLELISM =
+      new Builder("alluxio.master.executor.parallelism")
+          .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
+              "Use executor parallelism : 2 * {CPU core count}")
+          .setDescription("Master RPC executor service parallelism level.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EXECUTOR_MIN_RUNNABLE =
+      new Builder("alluxio.master.executor.runnable")
+          .setDefaultValue(1)
+          .setDescription("Master RPC executor service minimum runnable task count.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EXECUTOR_POOL_CORE_SIZE =
+      new Builder("alluxio.master.executor.fork.pool.size.core")
+          .setDefaultValue(0)
+          .setDescription("Master RPC executor service threads core count.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EXECUTOR_POOL_MAX_SIZE =
+      new Builder("alluxio.master.executor.fork.pool.size.max")
+          .setDefaultValue(500)
+          .setDescription("Master RPC executor service threads max count.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EXECUTOR_POOL_KEEPALIVE_TIME_MS =
+      new Builder("alluxio.master.executor.fork.pool.keepalive.ms")
+          .setDefaultValue("60sec")
+          .setDescription("Master RPC executor service threads keep alive time.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
