@@ -36,7 +36,7 @@ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.
 进入`deploy/vagrant`目录下，运行：
 
 ```bash
-docs/_includes/Running-Alluxio-Fault-Tolerant-on-EC2/install-vagrant.md
+sudo bash bin/install.sh
 ```
 
 
@@ -55,7 +55,8 @@ sudo pip install -r pip-req.txt
 `AWS_SECRET_ACCESS_KEY`环境变量:
 
 ```bash
-docs/_includes/include Running-Alluxio-Fault-Tolerant-on-EC2/access-keys.md
+export AWS_ACCESS_KEY_ID=<your access key>
+export AWS_SECRET_ACCESS_KEY=<your secret access key>
 ```
 
 
