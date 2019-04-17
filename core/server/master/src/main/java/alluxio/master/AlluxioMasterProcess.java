@@ -15,6 +15,7 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
+import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcServerBuilder;
@@ -27,7 +28,6 @@ import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.JvmPauseMonitor;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
@@ -41,7 +41,6 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
@@ -276,8 +275,17 @@ public class AlluxioMasterProcess extends MasterProcess {
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
           mRpcConnectAddress.getHostName(), mRpcBindAddress, ServerConfiguration.global());
 
-      mRPCExecutor = Executors.newFixedThreadPool(mMaxWorkerThreads,
-          ThreadFactoryUtils.build("grpc-rpc-%d", true));
+      mRPCExecutor = new ForkJoinPool(
+          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_PARALLELISM),
+          ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+          null,
+          true,
+          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_CORE_SIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_MAX_SIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_MIN_RUNNABLE),
+          null,
+          ServerConfiguration.getMs(PropertyKey.MASTER_EXECUTOR_POOL_KEEPALIVE_TIME_MS),
+          TimeUnit.MILLISECONDS);
 
       serverBuilder.executor(mRPCExecutor);
       for (Master master : mRegistry.getServers()) {
