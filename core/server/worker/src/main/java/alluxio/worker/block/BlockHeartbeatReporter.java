@@ -62,15 +62,13 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
    */
   public BlockHeartbeatReport generateReport() {
     synchronized (mLock) {
-      // Copy added and removed blocks
-      Map<String, List<Long>> addedBlocks = new HashMap<>(mAddedBlocks);
-      List<Long> removedBlocks = new ArrayList<>(mRemovedBlocks);
-      Map<String, List<String>> removedStorage = new HashMap<>(mLostStorage);
+      BlockHeartbeatReport report
+          = new BlockHeartbeatReport(mAddedBlocks, mRemovedBlocks, mLostStorage);
       // Clear added and removed blocks
       mAddedBlocks.clear();
       mRemovedBlocks.clear();
       mLostStorage.clear();
-      return new BlockHeartbeatReport(addedBlocks, removedBlocks, removedStorage);
+      return report;
     }
   }
 

@@ -11,7 +11,9 @@
 
 package alluxio.worker.block;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,9 +43,9 @@ public final class BlockHeartbeatReport {
    */
   public BlockHeartbeatReport(Map<String, List<Long>> addedBlocks,
       List<Long> removedBlocks, Map<String, List<String>> lostStorage) {
-    mAddedBlocks = addedBlocks;
-    mRemovedBlocks = removedBlocks;
-    mLostStorage = lostStorage;
+    mAddedBlocks = new HashMap<>(addedBlocks);
+    mRemovedBlocks = new ArrayList<>(removedBlocks);
+    mLostStorage = new HashMap<>(lostStorage);
   }
 
   /**
