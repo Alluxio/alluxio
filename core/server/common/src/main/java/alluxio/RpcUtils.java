@@ -223,6 +223,8 @@ public final class RpcUtils {
   }
 
   /**
+   * TODO(ggezer) Merge with call() family of methods.
+   *
    * Calls the given {@link RpcCallableThrowsIOException} and returns its result. Exceptions are
    * logged, accounted for in metrics and then rethrown at the end.
    *
@@ -315,14 +317,14 @@ public final class RpcUtils {
    * @param methodName the name of the method, used for metrics
    * @param sendResponse whether a response should send to the client
    * @param completeResponse whether onComplete should be called on the response observer
-   * @param description the format string of the description, used for logging
    * @param responseObserver gRPC response observer
+   * @param description the format string of the description, used for logging
    * @param args the arguments for the description
    * @param <T> the return type of the callable
    */
   public static <T> void streamingRPCAndLog(Logger logger, StreamingRpcCallable<T> callable,
-      String methodName, boolean sendResponse, boolean completeResponse, String description,
-      StreamObserver<T> responseObserver, Object... args) {
+      String methodName, boolean sendResponse, boolean completeResponse,
+      StreamObserver<T> responseObserver, String description, Object... args) {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {

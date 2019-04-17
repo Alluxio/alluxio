@@ -242,15 +242,15 @@ public final class FileSystemMasterClientServiceHandler
     }
 
     // Stream results back in chunks.
-    final int resultPacketLength =
-        ServerConfiguration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_PACKET_LENGTH);
+    final int resultPacketLength = ServerConfiguration.getInt(
+        PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_MESSAGE_LENGTH);
 
-    // Abort condition for packet streaming.
+    // Abort condition for message streaming.
     SettableFuture<Void> abortCondition = SettableFuture.create();
     // Current position in the master fileInfo list.
     int currentIdx = 0;
     do {
-      // Abort the packet if cancellation was signaled in previous package.
+      // Abort the packet if cancellation was signaled in previous message.
       if (abortCondition.isCancelled()) {
         break;
       }
@@ -258,15 +258,15 @@ public final class FileSystemMasterClientServiceHandler
       // How many remaining items to stream.
       int remainingItemCount = fileInfoList.size() - currentIdx;
       // Start index in the master fileInfo list for the next packet.
-      int packetStartIdx = currentIdx;
+      int messageStartIdx = currentIdx;
       // How many results to stream in this round.
-      int packetItemCount = Math.min(resultPacketLength, remainingItemCount);
-      // Whether this is the last packet.
-      boolean isLastPacket = (remainingItemCount == packetItemCount);
+      int messageItemCount = Math.min(resultPacketLength, remainingItemCount);
+      // Whether this is the last message.
+      boolean isLastPacket = (remainingItemCount == messageItemCount);
 
       String packetDescription =
-          String.format("ListStatus packet. Item count: %s, Remaining item count: %s",
-              packetItemCount, remainingItemCount);
+          String.format("ListStatus message. Item count: %s, Remaining item count: %s",
+              messageItemCount, remainingItemCount);
 
       // Stream back the next packet.
       RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<ListStatusPResponse>() {
@@ -274,7 +274,7 @@ public final class FileSystemMasterClientServiceHandler
         public ListStatusPResponse call() throws Exception {
           return ListStatusPResponse.newBuilder()
               .addAllFileInfos(
-                  fileInfoList.subList(packetStartIdx, packetStartIdx + packetItemCount).stream()
+                  fileInfoList.subList(messageStartIdx, messageStartIdx + messageItemCount).stream()
                       .map(GrpcUtils::toProto).collect(Collectors.toList()))
               .build();
         }
@@ -282,13 +282,13 @@ public final class FileSystemMasterClientServiceHandler
         @Override
         public void exceptionCaught(Throwable throwable) {
           responseObserver.onError(throwable);
-          // Notify the abort condition for bailing out after this packet.
+          // Notify the abort condition for bailing out after this message.
           abortCondition.cancel(false);
         }
-      }, "ListStatus", true, isLastPacket, packetDescription, responseObserver);
+      }, "ListStatus", true, isLastPacket, responseObserver, packetDescription);
 
       // Update current index to fileInfo master list.
-      currentIdx += packetItemCount;
+      currentIdx += messageItemCount;
     } while (currentIdx < fileInfoList.size());
   }
 

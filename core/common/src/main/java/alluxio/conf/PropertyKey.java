@@ -1796,11 +1796,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // File system master related properties
   //
-  public static final PropertyKey MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_PACKET_LENGTH =
-      new Builder(Name.MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_PACKET_LENGTH)
+  public static final PropertyKey MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_MESSAGE_LENGTH =
+      new Builder(Name.MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_MESSAGE_LENGTH)
           .setDefaultValue(10000)
           .setDescription(
-              "Length of items on each list-status response packet.")
+              "Count of items on each list-status response message.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3926,8 +3926,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // File system master related properties
     //
-    public static final String MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_PACKET_LENGTH =
-        "alluxio.master.filesystem.liststatus.result.packet.length";
+    public static final String MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_MESSAGE_LENGTH =
+        "alluxio.master.filesystem.liststatus.result.message.length";
 
     //
     // Secondary master related properties
