@@ -2985,21 +2985,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  /**
-   * @deprecated since version 1.8 and will be removed in version 2.0.
-   */
-  @Deprecated
-  public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
-      new Builder(Name.USER_RPC_RETRY_MAX_NUM_RETRY)
-          .setAlias(new String[]{Name.MASTER_RETRY})
-          .setDefaultValue(100)
-          .setDescription("Alluxio client RPCs automatically retry for transient errors with "
-              + "an exponential backoff. This property determines the maximum number of "
-              + "retries. This property has been deprecated by time-based retry using: "
-              + Name.USER_RPC_RETRY_MAX_DURATION)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_MAX_SLEEP_MS)
           .setAlias(new String[]{"alluxio.user.rpc.retry.max.sleep.ms"})

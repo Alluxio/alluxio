@@ -94,6 +94,18 @@ public class RemovedKey {
       .setScope(Scope.CLIENT)
       .build();
 
+  @Removed
+  public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
+      new PropertyKey.Builder(PropertyKey.Name.USER_RPC_RETRY_MAX_NUM_RETRY)
+          .setAlias(new String[]{PropertyKey.Name.MASTER_RETRY})
+          .setDefaultValue(100)
+          .setDescription("Alluxio client RPCs automatically retry for transient errors with "
+              + "an exponential backoff. This property determines the maximum number of "
+              + "retries. This property has been deprecated by time-based retry using: "
+              + PropertyKey.Name.USER_RPC_RETRY_MAX_DURATION)
+          .setScope(Scope.CLIENT)
+          .build();
+
   private static final class Name {
   }
 }
