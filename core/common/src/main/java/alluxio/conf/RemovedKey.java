@@ -86,6 +86,14 @@ public class RemovedKey {
           .setIgnoredSiteProperty(true)
           .setScope(Scope.SERVER)
           .build();
+
+  @Removed(message = "v2.0 removed the ability to configure the client hostname")
+  public static final PropertyKey USER_HOSTNAME =
+      new PropertyKey.Builder(PropertyKey.Name.USER_HOSTNAME)
+      .setDescription(String.format("The hostname to use for the client."))
+      .setScope(Scope.CLIENT)
+      .build();
+
   private static final class Name {
   }
 }

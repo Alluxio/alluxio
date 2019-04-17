@@ -71,8 +71,9 @@ public class MetricsMasterClient extends AbstractMasterClient {
     connect();
     try {
       MetricsHeartbeatPRequest.Builder request = MetricsHeartbeatPRequest.newBuilder();
-      request.setOptions(MetricsHeartbeatPOptions.newBuilder()
-          .addAllClientMetrics(metrics).build());
+      request.setClientId(IdUtils.createOrGetAppIdFromConfig(mContext.getConf()));
+      request.setHostname(NetworkAddressUtils.getLocalHostName(mContext.getConf()));
+      request.setOptions(MetricsHeartbeatPOptions.newBuilder().addAllMetrics(metrics).build());
       mClient.metricsHeartbeat(request.build());
     } catch (io.grpc.StatusRuntimeException e) {
       disconnect();

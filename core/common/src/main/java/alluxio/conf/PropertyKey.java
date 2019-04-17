@@ -2812,16 +2812,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  /**
-   * @deprecated use {@link PropertyKey#LOCALITY_TIER_NODE} instead
-   */
-  @Deprecated
-  public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
-      .setDescription(String.format("The hostname to use for the client. Note: this property is "
-          + "deprecated. set %s instead", PropertyKey.LOCALITY_TIER_NODE.toString()))
-      .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-      .setScope(Scope.CLIENT)
-      .build();
   public static final PropertyKey USER_LOCAL_READER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_LOCAL_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("8MB")

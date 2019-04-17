@@ -161,7 +161,7 @@ public final class NettyUtils {
     if (conf.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
       return FileUtils.exists(workerNetAddress.getDomainSocketPath());
     } else {
-      return workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName(conf));
+      return workerNetAddress.getHost().equals(NetworkAddressUtils.getLocalHostName(conf));
     }
   }
 

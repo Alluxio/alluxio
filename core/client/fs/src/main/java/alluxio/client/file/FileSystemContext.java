@@ -418,7 +418,7 @@ public final class FileSystemContext implements Closeable {
   private void initializeLocalWorker() throws IOException {
     List<WorkerNetAddress> addresses = getWorkerAddresses();
     if (!addresses.isEmpty()) {
-      if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName(mClientContext
+      if (addresses.get(0).getHost().equals(NetworkAddressUtils.getLocalHostName(mClientContext
           .getConf()))) {
         mLocalWorker = addresses.get(0);
       }
@@ -445,7 +445,7 @@ public final class FileSystemContext implements Closeable {
     // Convert the worker infos into net addresses, if there are local addresses, only keep those
     List<WorkerNetAddress> workerNetAddresses = new ArrayList<>();
     List<WorkerNetAddress> localWorkerNetAddresses = new ArrayList<>();
-    String localHostname = NetworkAddressUtils.getClientHostName(mClientContext.getConf());
+    String localHostname = NetworkAddressUtils.getLocalHostName(mClientContext.getConf());
     for (WorkerInfo info : infos) {
       WorkerNetAddress netAddress = info.getAddress();
       if (netAddress.getHost().equals(localHostname)) {
