@@ -333,7 +333,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_LOGS_DIR =
       new Builder(Name.USER_LOGS_DIR)
           .setDefaultValue(String.format("${%s}/user", Name.LOGS_DIR))
-          .setDescription("The directory path for storing user/client operation logs.")
+          .setDescription("The path to store alluxio CLI logs.")
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
