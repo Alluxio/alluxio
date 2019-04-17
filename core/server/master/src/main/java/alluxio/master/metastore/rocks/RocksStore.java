@@ -77,7 +77,6 @@ public final class RocksStore implements Closeable {
     mColumnFamilyDescriptors = columnFamilyDescriptors;
     mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
-    new File(mDbCheckpointPath).mkdirs();
     try {
       resetDb();
     } catch (RocksDBException e) {
@@ -120,8 +119,17 @@ public final class RocksStore implements Closeable {
           closer.register(() -> column.close());
           handle.set(null);
         });
-        closer.register(() -> mDb.close());
-        closer.register(() -> mCheckpoint.close());
+        // Synchronize to make findbugs happy.
+        closer.register(() -> {
+          synchronized (this) {
+            mDb.close();
+          }
+        });
+        closer.register(() -> {
+          synchronized(this) {
+            mCheckpoint.close();
+          }
+        });
         closer.close();
       } catch (Throwable t) {
         LOG.error("Failed to close rocks database", t);
