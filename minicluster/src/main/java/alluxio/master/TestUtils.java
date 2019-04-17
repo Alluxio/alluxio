@@ -18,7 +18,7 @@ import alluxio.util.ThreadUtils;
  * Test utilities.
  */
 public class TestUtils {
-  private static final int SERVER_START_TIMEOUT_MS = Constants.MINUTE_MS;
+  private static final int SERVER_START_TIMEOUT_MS = 2 * Constants.MINUTE_MS;
 
   /**
    * @param process the process to wait for
