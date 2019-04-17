@@ -9,45 +9,46 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.jobmaster;
+package alluxio.worker.job;
 
 import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.worker.AlluxioWorkerMonitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Alluxio job_master monitor for inquiring AlluxioJobMaster service availability.
+ * Alluxio job_worker monitor for inquiring AlluxioJobWorkerMonitor service availability.
  */
-public final class AlluxioJobMasterMonitor {
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobMasterMonitor.class);
+public final class AlluxioJobWorkerMonitor {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioJobWorkerMonitor.class);
 
   /**
-   * Starts the Alluxio job_master monitor.
+   * Starts the Alluxio job_worker monitor.
    *
    * @param args command line arguments, should be empty
    */
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
-          AlluxioJobMasterMonitor.class.getCanonicalName());
+              AlluxioJobWorkerMonitor.class.getCanonicalName());
       LOG.warn("ignoring arguments");
     }
     AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    HealthCheckClient client = new JobMasterHealthCheckClient(
-        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, conf),
-        () -> new ExponentialBackoffRetry(50, 100, 2), conf);
+
+    HealthCheckClient client = new JobWorkerHealthCheckClient(
+        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.JOB_WORKER_RPC, conf),
+        AlluxioWorkerMonitor.ONE_MIN_EXP_BACKOFF, conf);
     if (!client.isServing()) {
       System.exit(1);
     }
     System.exit(0);
   }
 
-  private AlluxioJobMasterMonitor() {} // prevent instantiation
+  private AlluxioJobWorkerMonitor() {} // prevent instantiation
 }

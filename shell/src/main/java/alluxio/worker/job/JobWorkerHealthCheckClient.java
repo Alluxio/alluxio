@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.jobworker;
+package alluxio.worker.job;
 
 import alluxio.common.RpcPortHealthCheckClient;
 import alluxio.conf.AlluxioConfiguration;

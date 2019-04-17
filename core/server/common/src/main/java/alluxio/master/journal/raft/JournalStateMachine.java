@@ -12,6 +12,8 @@
 package alluxio.master.journal.raft;
 
 import alluxio.ProcessUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalUtils;
@@ -170,8 +172,8 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       LOG.trace("Applying entry to master {}: {} ", masterName, entry);
       master.processJournalEntry(entry);
     } catch (Throwable t) {
-      ProcessUtils.fatalError(LOG, t, "Failed to apply journal entry to master %s. Entry: %s",
-          masterName, entry);
+      JournalUtils.handleJournalReplayFailure(LOG, t,
+          "Failed to apply journal entry to master %s. Entry: %s", masterName, entry);
     }
   }
 
@@ -208,13 +210,16 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       return;
     }
 
-    long snapshotId;
+    long snapshotId = 0L;
     try (InputStream srs = new SnapshotReaderStream(snapshotReader)) {
       snapshotId = snapshotReader.readLong();
       JournalUtils.restoreFromCheckpoint(new CheckpointInputStream(srs), getStateMachines());
     } catch (Throwable t) {
-      ProcessUtils.fatalError(LOG, t, "Failed to install snapshot");
-      throw new RuntimeException(t);
+      JournalUtils.handleJournalReplayFailure(LOG, t,
+          "Failed to install snapshot");
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
+        return;
+      }
     }
 
     if (snapshotId < mNextSequenceNumberToRead - 1) {

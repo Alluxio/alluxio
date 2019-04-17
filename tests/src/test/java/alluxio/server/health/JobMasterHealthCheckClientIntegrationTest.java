@@ -13,7 +13,8 @@ package alluxio.server.health;
 
 import alluxio.HealthCheckClient;
 import alluxio.conf.ServerConfiguration;
-import alluxio.jobmaster.JobMasterHealthCheckClient;
+import alluxio.master.MasterHealthCheckClient;
+import alluxio.master.job.JobMasterRpcHealthCheckClient;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.retry.CountingRetry;
 import alluxio.testutils.BaseIntegrationTest;
@@ -41,7 +42,7 @@ public class JobMasterHealthCheckClientIntegrationTest extends BaseIntegrationTe
     mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
     mLocalAlluxioJobCluster.start();
     InetSocketAddress address = mLocalAlluxioJobCluster.getMaster().getRpcAddress();
-    mHealthCheckClient = new JobMasterHealthCheckClient(address, () -> new CountingRetry(1),
+    mHealthCheckClient = new JobMasterRpcHealthCheckClient(address, () -> new CountingRetry(1),
         ServerConfiguration.global());
   }
 
@@ -58,6 +59,27 @@ public class JobMasterHealthCheckClientIntegrationTest extends BaseIntegrationTe
   @Test
   public void isServingStopJobs() throws Exception {
     mLocalAlluxioJobCluster.stop();
+    Assert.assertFalse(mHealthCheckClient.isServing());
+  }
+
+  @Test
+  public void isServingMasterHealthCheck() {
+    mHealthCheckClient = new MasterHealthCheckClient.Builder(ServerConfiguration.global())
+        .withRetryPolicy(() -> new CountingRetry(1))
+        .withProcessCheck(false)
+        .withAlluxioMasterType(MasterHealthCheckClient.MasterType.JOB_MASTER)
+        .build();
+    Assert.assertTrue(mHealthCheckClient.isServing());
+  }
+
+  @Test
+  public void isServingStopJobsMasterHealthCheck() throws Exception {
+    mLocalAlluxioJobCluster.stop();
+    mHealthCheckClient = new MasterHealthCheckClient.Builder(ServerConfiguration.global())
+        .withRetryPolicy(() -> new CountingRetry(1))
+        .withProcessCheck(false)
+        .withAlluxioMasterType(MasterHealthCheckClient.MasterType.JOB_MASTER)
+        .build();
     Assert.assertFalse(mHealthCheckClient.isServing());
   }
 }

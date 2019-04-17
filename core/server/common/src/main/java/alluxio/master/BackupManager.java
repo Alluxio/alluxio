@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
+import alluxio.master.journal.JournalUtils;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.collect.Maps;
@@ -91,7 +92,12 @@ public class BackupManager {
       while ((entry = reader.readEntry()) != null) {
         String masterName = JournalEntryAssociation.getMasterForEntry(entry);
         Master master = mastersByName.get(masterName);
-        master.processJournalEntry(entry);
+        try {
+          master.processJournalEntry(entry);
+        } catch (Throwable t) {
+          JournalUtils.handleJournalReplayFailure(
+              LOG, t, "Failed to process journal entry %s when init from backup", entry);
+        }
         try (JournalContext jc = master.createJournalContext()) {
           jc.append(entry);
           count++;
