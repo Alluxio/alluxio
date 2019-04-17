@@ -305,10 +305,11 @@ func generateTarball(hadoopClients []string) error {
 	fmt.Printf("Creating %s:\n", tarball)
 
 	for _, dir := range []string{
-		"assembly", "client", "logs", "integration/fuse", "integration/checker",
+		"assembly", "client", "logs", "integration/fuse", "integration/checker", "logs/user",
 	} {
 		mkdir(filepath.Join(dstPath, dir))
 	}
+    os.Chmod(filepath.Join(dstPath, "logs/user"), 0777)
 
 	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
 	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
@@ -334,8 +335,8 @@ func generateTarball(hadoopClients []string) error {
 	addAdditionalFiles(srcPath, dstPath, hadoopVersion, version)
 
 	chdir(cwd)
-	run("creating the distribution tarball", "tar", "-czvf", tarball, dstDir)
-	run("removing the temporary repositories", "rm", "-rf", srcPath, dstPath)
+	run("creating the distribution tarball", "tar", "-czpvf", tarball, dstDir)
+	// run("removing the temporary repositories", "rm", "-rf", srcPath, dstPath)
 
 	return nil
 }

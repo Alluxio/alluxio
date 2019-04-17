@@ -330,6 +330,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey USER_LOGS_DIR =
+      new Builder(Name.USER_LOGS_DIR)
+          .setDefaultValue(String.format("${%s}/user", Name.LOGS_DIR))
+          .setDescription("The path to store user log files.")
+          .setIgnoredSiteProperty(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey METRICS_CONF_FILE =
       new Builder(Name.METRICS_CONF_FILE)
           .setDefaultValue(String.format("${%s}/metrics.properties", Name.CONF_DIR))
@@ -3590,6 +3597,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String INTEGRATION_YARN_WORKERS_PER_HOST_MAX =
         "alluxio.integration.yarn.workers.per.host.max";
     public static final String LOGGER_TYPE = "alluxio.logger.type";
+    public static final String USER_LOGS_DIR = "alluxio.user.logs.dir";
     public static final String LOGS_DIR = "alluxio.logs.dir";
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String METRICS_CONTEXT_SHUTDOWN_TIMEOUT =
