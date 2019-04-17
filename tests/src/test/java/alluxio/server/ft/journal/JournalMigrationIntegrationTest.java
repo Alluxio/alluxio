@@ -65,7 +65,7 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
       // Migrate to embedded journal HA.
       cluster.stopMasters();
       cluster.formatJournal();
-      cluster.updateDeployMode(DeployMode.EMBEDDED_HA);
+      cluster.updateDeployMode(DeployMode.EMBEDDED);
       cluster.startMasters();
       assertEquals(NUM_DIRS, fs.listStatus(new AlluxioURI("/")).size());
 

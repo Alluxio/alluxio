@@ -80,7 +80,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreEmbedded() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_EMBEDDED)
         .setClusterName("backupRestoreEmbedded")
-        .setDeployMode(DeployMode.EMBEDDED_HA)
+        .setDeployMode(DeployMode.EMBEDDED)
         .setNumMasters(3).build();
     backupRestoreTest(true);
   }
@@ -89,6 +89,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreSingleMaster() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_SINGLE)
         .setClusterName("backupRestoreSingle")
+        .setDeployMode(DeployMode.UFS_NON_HA)
         .setNumMasters(1).build();
     backupRestoreTest(false);
   }
