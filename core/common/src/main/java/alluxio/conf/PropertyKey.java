@@ -333,7 +333,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_LOGS_DIR =
       new Builder(Name.USER_LOGS_DIR)
           .setDefaultValue(String.format("${%s}/user", Name.LOGS_DIR))
-          .setDescription("The path to store user log files.")
+          .setDescription("The directory path for storing user/client operation logs.")
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -3635,7 +3635,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String INTEGRATION_YARN_WORKERS_PER_HOST_MAX =
         "alluxio.integration.yarn.workers.per.host.max";
     public static final String LOGGER_TYPE = "alluxio.logger.type";
-    public static final String USER_LOGS_DIR = "alluxio.user.logs.dir";
     public static final String LOGS_DIR = "alluxio.logs.dir";
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String METRICS_CONTEXT_SHUTDOWN_TIMEOUT =
@@ -3647,6 +3646,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
+    public static final String USER_LOGS_DIR = "alluxio.user.logs.dir";
     public static final String VERSION = "alluxio.version";
     public static final String WEB_FILE_INFO_ENABLED = "alluxio.web.file.info.enabled";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
