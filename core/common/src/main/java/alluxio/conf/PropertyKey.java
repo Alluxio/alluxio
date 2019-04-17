@@ -424,13 +424,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey WEB_TEMP_PATH =
-      new Builder(Name.WEB_TEMP_PATH)
-          .setDefaultValue(String.format("${%s}/web/", Name.WORK_DIR))
-          .setDescription("Path to store temporary web server files.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey WEB_THREADS =
       new Builder(Name.WEB_THREADS)
           .setDefaultValue(1)
@@ -754,16 +747,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
-      new Builder(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.underfs.s3a.consistency.timeout.ms"})
-          .setDefaultValue("1min")
-          .setDescription("The duration to wait for metadata consistency from the under "
-              + "storage. This is only used by internal Alluxio operations which should be "
-              + "successful, but may appear unsuccessful due to eventual consistency.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey UNDERFS_S3A_DEFAULT_MODE =
       new Builder(Name.UNDERFS_S3A_DEFAULT_MODE)
           .setDefaultValue("0700")
@@ -966,11 +949,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDescription("Swift user for authentication.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .build();
-  public static final PropertyKey SWIFT_USE_PUBLIC_URI_KEY =
-      new Builder(Name.SWIFT_USE_PUBLIC_URI_KEY)
-          .setDescription("Whether the REST server is in a public domain: true (default) or false.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .build();
   public static final PropertyKey SWIFT_USER_KEY = new Builder(Name.SWIFT_USER_KEY)
       .setDescription("Swift tenant for authentication.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1122,14 +1100,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname that Alluxio master binds to.")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
-      new Builder(Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL)
-          .setDefaultValue("10min")
-          .setDescription("Interval for removing closed client sockets from internal tracking.")
-          .setIsHidden(true)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
@@ -1650,23 +1620,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =
-      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT)
-          .setDescription("Retry period before active ufs syncer gives up on connecting to the ufs")
-          .setDefaultValue("1hour")
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_INTERVAL =
       new Builder(Name.MASTER_ACTIVE_UFS_SYNC_INTERVAL)
           .setDefaultValue("30sec")
           .setDescription("Time interval to periodically actively sync UFS")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL =
-      new Builder(Name.MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL)
-          .setDefaultValue("1sec")
-          .setDescription("Time interval to batch incoming events for active syncing UFS")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2542,15 +2499,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("A script to determine tiered identity for locality checking")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
-  public static final PropertyKey LOCALITY_TIER_NODE =
-      new Builder(Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
-          .setDescription("Value to use for determining node locality")
-          .build();
-  public static final PropertyKey LOCALITY_TIER_RACK =
-      new Builder(Template.LOCALITY_TIER, Constants.LOCALITY_RACK)
-          .setDescription("Value to use for determining rack locality")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .build();
 
   public static final PropertyKey LOCALITY_COMPARE_NODE_IP =
           new Builder(Name.LOCALITY_COMPARE_NODE_IP)
@@ -2562,20 +2510,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // Log server related properties
   //
-  public static final PropertyKey LOGSERVER_LOGS_DIR =
-      new Builder(Name.LOGSERVER_LOGS_DIR)
-          .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
-          .setDescription("Default location for remote log files.")
-          .setIgnoredSiteProperty(true)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey LOGSERVER_HOSTNAME =
-      new Builder(Name.LOGSERVER_HOSTNAME)
-          .setDescription("The hostname of Alluxio logserver.")
-          .setIgnoredSiteProperty(true)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey LOGSERVER_PORT =
       new Builder(Name.LOGSERVER_PORT)
           .setDefaultValue(45600)
