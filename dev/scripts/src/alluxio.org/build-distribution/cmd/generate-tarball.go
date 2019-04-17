@@ -310,9 +310,9 @@ func generateTarball(hadoopClients []string) error {
 		mkdir(filepath.Join(dstPath, dir))
 	}
 
-    if err := os.Chmod(filepath.Join(dstPath, "logs/user"), 0777); err != nil {
-        return err
-    }
+	if err := os.Chmod(filepath.Join(dstPath, "logs/user"), 0777); err != nil {
+		return err
+	}
 
 	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
 	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
