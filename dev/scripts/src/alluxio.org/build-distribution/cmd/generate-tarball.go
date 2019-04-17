@@ -336,7 +336,7 @@ func generateTarball(hadoopClients []string) error {
 
 	chdir(cwd)
 	run("creating the distribution tarball", "tar", "-czpvf", tarball, dstDir)
-	// run("removing the temporary repositories", "rm", "-rf", srcPath, dstPath)
+	run("removing the temporary repositories", "rm", "-rf", srcPath, dstPath)
 
 	return nil
 }
