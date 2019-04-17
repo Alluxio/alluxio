@@ -126,7 +126,7 @@ public final class RocksStore implements Closeable {
           }
         });
         closer.register(() -> {
-          synchronized(this) {
+          synchronized (this) {
             mCheckpoint.close();
           }
         });
