@@ -65,7 +65,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @param numWorkers the number of workers to run
    */
   public MultiMasterLocalAlluxioCluster(int numMasters, int numWorkers) {
-    super(numWorkers);
+    super(numWorkers, JournalType.UFS);
     mNumOfMasters = numMasters;
 
     try {
@@ -121,6 +121,18 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     return mMasters.get(0);
+  }
+
+  @Override
+  public void waitForMasterServing(int timeoutMs)
+      throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("Leader master is serving", () -> {
+      try {
+        return getLocalAlluxioMaster().isServing();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
   }
 
   /**

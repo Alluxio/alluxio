@@ -75,8 +75,7 @@ public final class ConfigurationTestUtils {
       conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level),
           Joiner.on(',').join(newPaths));
     }
-    // Sets up the journal folder
-    conf.put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
+
     conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, PathUtils.concatPath(workDirectory, "journal"));
     conf.put(PropertyKey.MASTER_METASTORE_DIR, PathUtils.concatPath(workDirectory, "metastore"));
 
@@ -125,7 +124,16 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+
+    if (alluxioConf.get(PropertyKey.MASTER_JOURNAL_TYPE).equals("UFS")) {
+      conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+    } else {
+      // Raft journal system need longer to start, job worker connect should wait for longer time
+      conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "30s");
+      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "1s");
+      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "100ms");
+    }
+
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
     return conf;
   }

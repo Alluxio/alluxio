@@ -31,6 +31,7 @@ import alluxio.master.NoopMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.journal.JournalType;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -69,7 +70,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
               Integer.toString(Constants.KB))
           .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
           .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH").build();
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
+          .setJournalType(JournalType.UFS).build();
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();

@@ -12,11 +12,14 @@
 package alluxio.master;
 
 import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
@@ -25,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -52,14 +56,24 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * Runs a test Alluxio cluster with a single Alluxio worker.
    */
   public LocalAlluxioCluster() {
-    this(1);
+    this(1, ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class));
+  }
+
+  /**
+   * Runs a test Alluxio cluster with a single Alluxio worker.
+   *
+   * @param journalType the master journal type
+   */
+  public LocalAlluxioCluster(JournalType journalType) {
+    this(1, journalType);
   }
 
   /**
    * @param numWorkers the number of workers to run
+   * @param journalType the master journal type
    */
-  public LocalAlluxioCluster(int numWorkers) {
-    super(numWorkers);
+  public LocalAlluxioCluster(int numWorkers, JournalType journalType) {
+    super(numWorkers, journalType);
   }
 
   @Override
@@ -129,7 +143,16 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    if (mJournalType == JournalType.UFS) {
+      ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    } else {
+      ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
+      ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
+          String.format("%s:%s", mHostname,
+          ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT)));
+      ServerConfiguration.set(PropertyKey.MASTER_RPC_ADDRESSES, String.format("%s:%s", mHostname,
+          ServerConfiguration.get(PropertyKey.MASTER_RPC_PORT)));
+    }
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_WEB_PORT, 0);
@@ -139,6 +162,8 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   public void startMasters() throws Exception {
     mMaster = LocalAlluxioMaster.create(mWorkDirectory, true);
     mMaster.start();
+    waitForMasterServing(60 * Constants.SECOND_MS);
+    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
   }
 
   @Override
@@ -151,5 +176,17 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   @Override
   public void stopMasters() throws Exception {
     mMaster.stop();
+  }
+
+  @Override
+  public void waitForMasterServing(int timeoutMs)
+      throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("Master process is serving", () -> {
+      try {
+        return mMaster.isServing();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
   }
 }

@@ -27,6 +27,7 @@ import alluxio.conf.PropertyKey.Name;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.journal.JournalTool;
+import alluxio.master.journal.JournalType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -64,6 +65,7 @@ public class JournalToolTest extends BaseIntegrationTest {
               Integer.toString(CHECKPOINT_SIZE))
           .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "100")
           .setProperty(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "1min")
+          .setJournalType(JournalType.UFS)
           .build();
 
   private File mDumpDir;
