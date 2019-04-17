@@ -14,6 +14,7 @@ package alluxio.worker.block.evictor;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+
 import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
