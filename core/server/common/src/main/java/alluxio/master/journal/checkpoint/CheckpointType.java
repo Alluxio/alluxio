@@ -36,10 +36,6 @@ public enum CheckpointType {
    */
   ROCKS(3, new TarballCheckpointFormat()),
   /**
-   * A RocksDB checkpoint in .tar.gz format.
-   */
-  ROCKS_CHECKPOINT(6, new TarballCheckpointFormat()),
-  /**
    * This format sequentially writes delimited InodeMeta.Inode protocol buffers one after another
    * using the protocol buffer writeDelimitedTo method.
    */
