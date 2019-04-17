@@ -12,6 +12,8 @@
 package alluxio.master.journal.raft;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
@@ -415,7 +417,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     LOG.info("Shutting down raft journal");
     mRaftJournalWriter.close();
     try {
-      mServer.shutdown().get(2, TimeUnit.SECONDS);
+      mServer.shutdown().get(ServerConfiguration
+          .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT), TimeUnit.MILLISECONDS);
     } catch (ExecutionException e) {
       throw new RuntimeException("Failed to shut down Raft server", e);
     } catch (TimeoutException e) {

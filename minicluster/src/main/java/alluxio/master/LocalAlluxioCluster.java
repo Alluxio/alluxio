@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
@@ -52,14 +53,15 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * Runs a test Alluxio cluster with a single Alluxio worker.
    */
   public LocalAlluxioCluster() {
-    this(1);
+    this(1, ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class));
   }
 
   /**
    * @param numWorkers the number of workers to run
+   * @param journalType the master journal type
    */
-  public LocalAlluxioCluster(int numWorkers) {
-    super(numWorkers);
+  public LocalAlluxioCluster(int numWorkers, JournalType journalType) {
+    super(numWorkers, journalType);
   }
 
   @Override
@@ -128,6 +130,21 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
             mHostname, mWorkDirectory).entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
+    if (mJournalType == JournalType.UFS) {
+      ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    } else {
+      ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
+      ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
+          String.format("%s:%s", mHostname,
+              ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT)));
+      ServerConfiguration.set(PropertyKey.MASTER_RPC_ADDRESSES, String.format("%s:%s", mHostname,
+          ServerConfiguration.get(PropertyKey.MASTER_RPC_PORT)));
+      if (ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX) < 65) {
+        ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
+            PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX.getDefaultValue());
+      }
+      ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT, "100ms");
+    }
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
@@ -139,6 +156,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   public void startMasters() throws Exception {
     mMaster = LocalAlluxioMaster.create(mWorkDirectory, true);
     mMaster.start();
+    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
   }
 
   @Override

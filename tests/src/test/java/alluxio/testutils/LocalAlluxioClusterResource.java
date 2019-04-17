@@ -14,6 +14,7 @@ package alluxio.testutils;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.journal.JournalType;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -87,17 +88,22 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
 
+  /** The master journal type of this cluster. */
+  private JournalType mJournalType;
+
   /**
    * Creates a new instance.
    *
    * @param startCluster whether or not to start the cluster before the test method starts
    * @param numWorkers the number of Alluxio workers to launch
+   * @param journalType the master journal type for the cluster
    * @param configuration configuration for configuring the cluster
    */
   private LocalAlluxioClusterResource(boolean startCluster, int numWorkers,
-      Map<PropertyKey, String> configuration) {
+      JournalType journalType, Map<PropertyKey, String> configuration) {
     mStartCluster = startCluster;
     mNumWorkers = numWorkers;
+    mJournalType = journalType;
     mConfiguration.putAll(configuration);
     MetricsSystem.resetAllCounters();
   }
@@ -132,7 +138,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     AuthenticatedClientUser.remove();
     LoginUserTestUtils.resetLoginUser();
     // Create a new cluster.
-    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers);
+    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers, mJournalType);
     // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration();
     // Overwrite the test configuration with test specific parameters
@@ -188,6 +194,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public static class Builder {
     private boolean mStartCluster;
     private int mNumWorkers;
+    private JournalType mJournalType;
     private Map<PropertyKey, String> mConfiguration;
 
     /**
@@ -196,6 +203,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
     public Builder() {
       mStartCluster = true;
       mNumWorkers = 1;
+      mJournalType = ServerConfiguration
+          .getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
       mConfiguration = new HashMap<>();
     }
 
@@ -216,6 +225,14 @@ public final class LocalAlluxioClusterResource implements TestRule {
     }
 
     /**
+     * @param journalType the journal type to set for the cluster
+     */
+    public Builder setJournalType(JournalType journalType) {
+      mJournalType = journalType;
+      return this;
+    }
+
+    /**
      * @param key the property key to set for the cluster
      * @param value the value to set it to
      */
@@ -228,7 +245,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
      * @return a {@link LocalAlluxioClusterResource} for the current builder values
      */
     public LocalAlluxioClusterResource build() {
-      return new LocalAlluxioClusterResource(mStartCluster, mNumWorkers, mConfiguration);
+      return new LocalAlluxioClusterResource(mStartCluster,
+          mNumWorkers, mJournalType, mConfiguration);
     }
   }
 
