@@ -71,16 +71,26 @@ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR
 
 完成所有相应配置后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
-{% include Common-Commands/start-alluxio.md %}
+#{% include Common-Commands/start-alluxio.md %}
+```bash
+./bin/alluxio format
+./bin/alluxio-start.sh local
+```
 
 这应当会在本地启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，可以运行一个简单的示例程序：
 
-{% include Common-Commands/runTests.md %}
+#{% include Common-Commands/runTests.md %}
+```bash
+./bin/alluxio runTests
+```
 
 成功启动后，你可以访问MapR-FS的web UI以确认通过Alluxio创建的文件和目录确实存在。对于该测试，你应该可以看到类似`/default_tests_files/Basic_CACHE_CACHE_THROUGH`的文件。
 
 运行以下命令停止Alluxio：
 
-{% include Common-Commands/stop-alluxio.md %}
+#{% include Common-Commands/stop-alluxio.md %}
+```bash
+./bin/alluxio-stop.sh local
+```
