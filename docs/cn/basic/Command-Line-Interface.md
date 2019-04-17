@@ -513,7 +513,6 @@ echo $?
 ```bash
 ./bin/alluxio fs touch /data/yesterday/_DONE_
 ```
-
 ### unmount
 
 `unmount`将一个Alluxio路径和一个底层文件系统中的目录的链接断开。该挂载点的所有元数据和文件数据都会被删除，但底层文件系统会将其保留。访问[Unified Namespace](Unified-and-Transparent-Namespace.html)获取更多信息。
