@@ -95,8 +95,12 @@ Usage: alluxio fs [generic options]
 
 例如，`checksum`可以用来验证Alluxio中的文件内容与存储在底层文件系统或者本地文件系统中的文件内容是否匹配：
 
-{% include Command-Line-Interface/checksum.md %}
-
+```bash
+./bin/alluxio fs checksum /LICENSE
+md5sum: bf0513403ff54711966f39b058e059a3
+md5 LICENSE
+MD5 (LICENSE) = bf0513403ff54711966f39b058e059a3
+```
 ### chgrp
 
 `chgrp`命令可以改变Alluxio中的文件或文件夹的所属组，Alluxio支持POSIX标准的文件权限，组在POSIX文件权限模型中是一个授权实体，文件所有者或者超级用户可以执行这条命令从而改变一个文件或文件夹的所属组。
@@ -105,8 +109,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`chgrp`命令能够快速修改一个文件的所属组：
 
-{% include Command-Line-Interface/chgrp.md %}
-
+```bash
+./bin/alluxio fs chgrp alluxio-group-new /input/file1
+```
 ### chmod
 
 `chmod`命令修改Alluxio中文件或文件夹的访问权限，目前可支持八进制模式：三位八进制的数字分别对应于文件所有者、所属组以及其他用户的权限。以下是数字与权限的对应表：
@@ -126,8 +131,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`chmod`命令可以快速修改一个文件的权限：
 
-{% include Command-Line-Interface/chmod.md %}
-
+```bash
+./bin/alluxio fs chmod 755 /input/file1
+```
 ### chown
 
 `chown`命令用于修改Alluxio中文件或文件夹的所有者，出于安全方面的考虑，只有超级用户能够更改一个文件的所有者。
@@ -136,23 +142,29 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`chown`命令可以快速修改一个文件的所有者。
 
-{% include Command-Line-Interface/chown.md %}
-
+```bash
+./bin/alluxio fs chown alluxio-user /input/file1
+./bin/alluxio fs chown alluxio-user:alluxio-group /input/file2
+```
 ### copyFromLocal
 
 `copyFromLocal`命令将本地文件系统中的文件拷贝到Alluxio中，如果你运行该命令的机器上有Alluxio worker，那么数据便会存放在这个worker上，否则，数据将会随机地复制到一个运行Alluxio worker的远程节点上。如果该命令指定的目标是一个文件夹，那么这个文件夹及其所有内容都会被递归复制到Alluxio中。
 
 使用举例：使用`copyFromLocal`命令可以快速将数据复制到alluxio系统中以便后续处理：
 
-{% include Command-Line-Interface/copyFromLocal.md %}
-
+```bash
+./bin/alluxio fs copyFromLocal /local/data /input
+```
 ### copyToLocal
 
 `copyToLocal`命令将Alluxio中的文件复制到本地文件系统中，如果该命令指定的目标是一个文件夹，那么该文件夹及其所有内容都会被递归地复制。
 
 使用举例：使用`copyToLocal`命令可以快速将输出数据下载下来从而进行后续研究或调试：
 
-{% include Command-Line-Interface/copyToLocal.md %}
+```bash
+./bin/alluxio fs copyToLocal /output/part-00000 part-00000
+wc -l part-00000
+```
 
 ### count
 
@@ -160,7 +172,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：若文件是以它们的创建日期命名，使用`count`命令可以获取任何日期、月份以及年份的所有文件的数目以及它们的总大小：
 
-{% include Command-Line-Interface/count.md %}
+```bash
+./bin/alluxio fs count /data/2014
+```
 
 ### cp
 
@@ -172,7 +186,9 @@ Usage: alluxio fs [generic options]
 
 例如，`cp`可以在底层文件系统之间拷贝文件。
 
-{% include Command-Line-Interface/cp.md %}
+```bash
+./bin/alluxio fs cp /hdfs/file1 /s3/
+```
 
 ### du
 
@@ -180,7 +196,35 @@ Usage: alluxio fs [generic options]
 
 使用举例：如果Alluxio空间被过分使用，使用`du`命令可以检测到哪些文件夹占用了大部分空间：
 
-{% include Command-Line-Interface/du.md %}
+```bash
+# Shows the size information of all the files in root directory
+./bin/alluxio fs du /
+File Size     In Alluxio       Path
+1337          0 (0%)           /alluxio-site.properties
+4352          4352 (100%)      /testFolder/NOTICE
+26847         0 (0%)           /testDir/LICENSE
+2970          2970 (100%)      /testDir/README.md
+
+# Shows the in memory size information
+./bin/alluxio fs du --memory /
+File Size     In Alluxio       In Memory        Path
+1337          0 (0%)           0 (0%)           /alluxio-site.properties
+4352          4352 (100%)      4352 (100%)      /testFolder/NOTICE
+26847         0 (0%)           0 (0%)           /testDir/LICENSE
+2970          2970 (100%)      2970 (100%)      /testDir/README.md
+
+# Shows the aggregate size information in human-readable format
+./bin/alluxio fs du -h -s /
+File Size     In Alluxio       In Memory        Path
+34.67KB       7.15KB (20%)     7.15KB (20%)     /
+
+# Can be used to detect which folders are taking up the most space
+./bin/alluxio fs du -h -s /\\*
+File Size     In Alluxio       Path
+1337B         0B (0%)          /alluxio-site.properties
+29.12KB       2970B (9%)       /testDir
+4352B         4352B (100%)     /testFolder
+```
 
 ### fileInfo
 `fileInfo`命令从1.5开始不再支持，请使用stat命令。
@@ -189,7 +233,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`fileInfo`命令能够获取到一个文件的数据块的位置，这在获取计算任务中的数据局部性时非常有用。
 
-{% include Command-Line-Interface/fileInfo.md %}
+```bash
+./bin/alluxio fs fileInfo /data/2015/logs-1.txt
+```
 
 ### free
 
@@ -197,7 +243,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`free`命令可以手动管理Alluxio的数据缓存。
 
-{% include Command-Line-Interface/free.md %}
+```bash
+./bin/alluxio fs free /unused/data
+```
 
 ### getCapacityBytes
 
@@ -205,7 +253,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`getCapacityBytes`命令能够确认你的系统是否正确启动。
 
-{% include Command-Line-Interface/getCapacityBytes.md %}
+```bash
+./bin/alluxio fs getCapacityBytes
+```
 
 ### getUsedBytes
 
@@ -213,7 +263,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`getUsedBytes`命令能够监控集群健康状态。
 
-{% include Command-Line-Interface/getUsedBytes.md %}
+```bash
+./bin/alluxio fs getUsedBytes
+```
 
 ### help
 
@@ -233,7 +285,9 @@ Usage: alluxio fs [generic options]
 
 `leader`命令打印当前Alluxio的leader master节点主机名。
 
-{% include Command-Line-Interface/leader.md %}
+```bash
+./bin/alluxio fs leader
+```
 
 ### load
 
@@ -243,7 +297,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`load` 命令能够获取用于数据分析作用的数据。
 
-{% include Command-Line-Interface/load.md %}
+```bash
+./bin/alluxio fs load /data/today
+```
 
 ### loadMetadata
 
@@ -251,7 +307,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：当其他系统将数据输出到底层文件系统中（不经过Alluxio），而在Alluxio上运行的某个应用又需要使用这些输出数据时，就可以使用`loadMetadata`命令。
 
-{% include Command-Line-Interface/loadMetadata.md %}
+```bash
+./bin/alluxio fs loadMetadata /hdfs/data/2015/logs-1.txt
+```
 
 ### location
 
@@ -259,7 +317,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：当使用某个计算框架进行作业时，使用`location`命令可以调试数据局部性。
 
-{% include Command-Line-Interface/location.md %}
+```bash
+./bin/alluxio fs location /data/2015/logs-1.txt
+```
 
 ### ls
 
@@ -280,7 +340,19 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`ls`命令可以浏览文件系统。
 
-{% include Command-Line-Interface/ls.md %}
+```bash
+./bin/alluxio fs mount /s3/data s3a://data-bucket/
+# Loads metadata for all immediate children of /s3/data and lists them.
+./bin/alluxio fs ls /s3/data/
+#
+# Forces loading metadata.
+aws s3 cp /tmp/somedata s3a://data-bucket/somedata
+./bin/alluxio fs ls -f /s3/data 
+#
+# Files are not removed from Alluxio if they are removed from the UFS (s3 here) only.
+aws s3 rm s3a://data-bucket/somedata
+./bin/alluxio fs ls -f /s3/data
+```
 
 ### masterInfo
 
@@ -288,7 +360,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`masterInfo`命令可以打印与Alluxio master容错相关的信息。
 
-{% include Command-Line-Interface/masterInfo.md %}
+```bash
+./bin/alluxio fs masterInfo
+```
 
 ### mkdir
 
@@ -296,7 +370,11 @@ Usage: alluxio fs [generic options]
 
 使用举例：管理员使用`mkdir`命令可以创建一个基本文件夹结构。
 
-{% include Command-Line-Interface/mkdir.md %}
+```bash
+./bin/alluxio fs mkdir /users
+./bin/alluxio fs mkdir /users/Alice
+./bin/alluxio fs mkdir /users/Bob
+```
 
 ### mount
 
@@ -309,7 +387,11 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`mount`命令可以让其他存储系统中的数据在Alluxio中也能获取。
 
-{% include Command-Line-Interface/mount.md %}
+```bash
+./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
+./bin/alluxio fs mount --shared --readonly /mnt/hdfs2 hdfs://host2:9000/data/
+./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId> --option aws.secretKey=<secretKey> /mnt/s3 s3a://data-bucket/
+```
 
 ### mv
 
@@ -317,7 +399,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`mv`命令可以将过时数据移动到非工作目录。
 
-{% include Command-Line-Interface/mv.md %}
+```bash
+./bin/alluxio fs mv /data/2014 /data/archives/2014
+```
 
 ### persist
 
@@ -325,7 +409,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：在从一系列临时文件中过滤出包含有用数据的文件后，便可以使用`persist`命令对其进行持久化。
 
-{% include Command-Line-Interface/persist.md %}
+```bash
+./bin/alluxio fs persist /tmp/experimental-logs-2.txt
+```
 
 ### pin
 
@@ -333,7 +419,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：如果管理员对作业运行流程十分清楚，那么可以使用`pin`命令手动提高性能。
 
-{% include Command-Line-Interface/pin.md %}
+```bash
+./bin/alluxio fs pin /data/today
+```
 
 ### rm
 
@@ -343,7 +431,9 @@ Usage: alluxio fs [generic options]
 
 使用举例：使用`rm`命令可以删除掉不再需要的临时文件。
 
-{% include Command-Line-Interface/rm2.md %}
+```bash
+./bin/alluxio fs rm '/data/2014*'
+```
 
 ### setTtl
 
@@ -351,7 +441,12 @@ Usage: alluxio fs [generic options]
 
 使用举例：管理员在知道某些文件经过一段时间后便没用时，可以使用带有`delete`操作的`setTtl`命令来清理文件；如果仅仅希望为Alluxio释放更多的空间，可以使用带有`free`操作的`setTtl`命令来清理Alluxio中的文件内容。
 
-{% include Command-Line-Interface/setTtl.md %}
+```bash
+# After 1 day, delete the file in Alluxio and UFS
+./bin/alluxio fs setTtl /data/good-for-one-day 86400000
+# After 1 day, free the file from Alluxio
+./bin/alluxio fs setTtl --action free /data/good-for-one-day 86400000
+```
 
 ### stat
 
@@ -368,7 +463,16 @@ date), %Y 为自从 January 1, 1970 UTC 以来的毫秒数;
 
 例如，使用`stat`命令能够获取到一个文件的数据块的位置，这在获取计算任务中的数据局部性时非常有用。
 
-{% include Command-Line-Interface/stat.md %}
+```bash
+# Displays file's stat
+./bin/alluxio fs stat /data/2015/logs-1.txt
+#
+# Displays directory's stat
+./bin/alluxio fs stat /data/2015
+#
+# Displays the size of file
+./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
+```
 
 ### tail
 
@@ -376,7 +480,9 @@ date), %Y 为自从 January 1, 1970 UTC 以来的毫秒数;
 
 使用举例：使用`tail`命令可以确认一个作业的输出是否符合格式或者包含期望的值。
 
-{% include Command-Line-Interface/tail.md %}
+```bash
+./bin/alluxio fs tail /output/part-00000
+```
 
 ### test
 
@@ -404,7 +510,9 @@ echo $?
 
 使用举例：使用`touch`命令可以创建一个空文件用于标记一个文件夹的分析任务完成了。
 
-{% include Command-Line-Interface/touch.md %}
+```bash
+./bin/alluxio fs touch /data/yesterday/_DONE_
+```
 
 ### unmount
 
@@ -412,7 +520,9 @@ echo $?
 
 使用举例：当不再需要一个底层存储系统中的数据时，使用`unmont`命令可以移除该底层存储系统。
 
-{% include Command-Line-Interface/unmount.md %}
+```bash
+./bin/alluxio fs unmount /s3/data
+```
 
 ### unpin
 
@@ -420,7 +530,9 @@ echo $?
 
 使用举例：当管理员知道数据访问模式发生改变时，可以使用`unpin`命令。
 
-{% include Command-Line-Interface/unpin.md %}
+```bash
+./bin/alluxio fs unpin /data/yesterday/join-table
+```
 
 ### unsetTtl
 
@@ -428,4 +540,6 @@ echo $?
 
 使用举例：在一些特殊情况下，当一个原本自动管理的文件需要手动管理时，可以使用`unsetTtl`命令。
 
-{% include Command-Line-Interface/unsetTtl.md %}
+```bash
+./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
+```
