@@ -20,6 +20,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
 import alluxio.metrics.Metric;
@@ -179,7 +180,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers, Map<String, List<String>> lostStorage,
+      Map<String, List<Long>> currentBlocksOnTiers, Map<String, StorageList> lostStorage,
       RegisterWorkerPOptions options) throws NotFoundException;
 
   /**
@@ -197,7 +198,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
       Map<String, List<Long>> addedBlocksOnTiers,
-      Map<String, List<String>> lostStorage,
+      Map<String, StorageList> lostStorage,
       List<Metric> metrics);
 
   /**

@@ -19,6 +19,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.StorageList;
 import alluxio.job.replicate.ReplicationHandler;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -79,7 +80,7 @@ public final class ReplicationCheckerTest {
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
   private static final List<Metric> NO_METRICS = ImmutableList.of();
   private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
-  private static final Map<String, List<String>> NO_LOST_STORAGE = ImmutableMap.of();
+  private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
   private static final Map<Long, Integer> EMPTY = ImmutableMap.of();
 
   /**
@@ -311,7 +312,7 @@ public final class ReplicationCheckerTest {
 
     // Indicate that blockId is removed on the worker.
     mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L),
-        ImmutableList.of(blockId), NO_BLOCKS_ON_TIERS, null, NO_METRICS);
+        ImmutableList.of(blockId), NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE, NO_METRICS);
 
     mReplicationChecker.heartbeat();
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getEvictRequests());

@@ -235,7 +235,7 @@ public final class StorageTier {
    * @return a list of lost storage paths
    */
   public List<String> getLostStorage() {
-    return Collections.unmodifiableList(mLostStorage);
+    return new ArrayList<>(mLostStorage);
   }
 
   /**

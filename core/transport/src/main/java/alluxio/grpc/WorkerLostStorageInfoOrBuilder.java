@@ -22,7 +22,7 @@ public interface WorkerLostStorageInfoOrBuilder extends
 
   /**
    * <pre>
-   ** a map from tier alias to the lost storage paths
+   ** a map from tier alias to the lost storage paths 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -30,7 +30,7 @@ public interface WorkerLostStorageInfoOrBuilder extends
   int getLostStorageCount();
   /**
    * <pre>
-   ** a map from tier alias to the lost storage paths
+   ** a map from tier alias to the lost storage paths 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -45,7 +45,7 @@ public interface WorkerLostStorageInfoOrBuilder extends
   getLostStorage();
   /**
    * <pre>
-   ** a map from tier alias to the lost storage paths
+   ** a map from tier alias to the lost storage paths 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -54,7 +54,7 @@ public interface WorkerLostStorageInfoOrBuilder extends
   getLostStorageMap();
   /**
    * <pre>
-   ** a map from tier alias to the lost storage paths
+   ** a map from tier alias to the lost storage paths 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -65,7 +65,7 @@ public interface WorkerLostStorageInfoOrBuilder extends
       alluxio.grpc.StorageList defaultValue);
   /**
    * <pre>
-   ** a map from tier alias to the lost storage paths
+   ** a map from tier alias to the lost storage paths 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>

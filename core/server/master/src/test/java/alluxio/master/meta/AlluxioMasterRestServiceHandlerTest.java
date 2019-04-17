@@ -29,6 +29,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.StorageList;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -83,7 +84,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(83).setDataPort(84).setWebPort(85);
   private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
-  private static final Map<String, List<String>> NO_LOST_STORAGE = ImmutableMap.of();
+  private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
 
   private static final long UFS_SPACE_TOTAL = 100L;
   private static final long UFS_SPACE_USED = 25L;

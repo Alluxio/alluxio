@@ -24,6 +24,7 @@ import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
+import alluxio.grpc.StorageList;
 import alluxio.metrics.Metric;
 import alluxio.grpc.GrpcUtils;
 
@@ -64,14 +65,11 @@ public final class BlockMasterWorkerServiceHandler
         request.getOptions().getCapacityBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
     final List<Long> removedBlockIds = request.getRemovedBlockIdsList();
+    final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
     final Map<String, List<Long>> addedBlocksOnTiersMap = request.getAddedBlocksOnTiersMap()
         .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
             e -> e.getValue().getTiersList()));
-
-    final Map<String, List<String>> lostStorageMap = request.getLostStorageMap()
-        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-            e -> e.getValue().getStorageList()));
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
@@ -127,14 +125,11 @@ public final class BlockMasterWorkerServiceHandler
     final List<String> storageTiers = request.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
+    final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
     final Map<String, List<Long>> currentBlocksOnTiersMap = request.getCurrentBlocksOnTiersMap()
         .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
             e -> e.getValue().getTiersList()));
-
-    final Map<String, List<String>> lostStorageMap = request.getLostStorageMap().entrySet()
-        .stream().collect(Collectors.toMap(Map.Entry::getKey,
-            e -> e.getValue().getStorageList()));
 
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,

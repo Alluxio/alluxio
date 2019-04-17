@@ -160,7 +160,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   ** a map from tier alias to the lost storage paths
+   ** a map from tier alias to the lost storage paths 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -180,7 +180,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   ** a map from tier alias to the lost storage paths
+   ** a map from tier alias to the lost storage paths 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -191,7 +191,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   ** a map from tier alias to the lost storage paths
+   ** a map from tier alias to the lost storage paths 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -207,7 +207,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   ** a map from tier alias to the lost storage paths
+   ** a map from tier alias to the lost storage paths 
    * </pre>
    *
    * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -723,7 +723,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a map from tier alias to the lost storage paths
+     ** a map from tier alias to the lost storage paths 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -743,7 +743,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a map from tier alias to the lost storage paths
+     ** a map from tier alias to the lost storage paths 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -754,7 +754,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a map from tier alias to the lost storage paths
+     ** a map from tier alias to the lost storage paths 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -770,7 +770,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a map from tier alias to the lost storage paths
+     ** a map from tier alias to the lost storage paths 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -794,7 +794,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a map from tier alias to the lost storage paths
+     ** a map from tier alias to the lost storage paths 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -817,7 +817,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a map from tier alias to the lost storage paths
+     ** a map from tier alias to the lost storage paths 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>
@@ -833,7 +833,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a map from tier alias to the lost storage paths
+     ** a map from tier alias to the lost storage paths 
      * </pre>
      *
      * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 2;</code>

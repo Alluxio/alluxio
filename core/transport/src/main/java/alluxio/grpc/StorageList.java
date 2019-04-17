@@ -4,6 +4,11 @@
 package alluxio.grpc;
 
 /**
+ * <pre>
+ **
+ * A list of lost storage paths inside a worker
+ * </pre>
+ *
  * Protobuf type {@code alluxio.grpc.block.StorageList}
  */
 public  final class StorageList extends
@@ -90,7 +95,7 @@ private static final long serialVersionUID = 0L;
   private com.google.protobuf.LazyStringList storage_;
   /**
    * <pre>
-   ** a lost worker storage path 
+   ** a lost storage path 
    * </pre>
    *
    * <code>repeated string storage = 1;</code>
@@ -101,7 +106,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   ** a lost worker storage path 
+   ** a lost storage path 
    * </pre>
    *
    * <code>repeated string storage = 1;</code>
@@ -111,7 +116,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   ** a lost worker storage path 
+   ** a lost storage path 
    * </pre>
    *
    * <code>repeated string storage = 1;</code>
@@ -121,7 +126,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   ** a lost worker storage path 
+   ** a lost storage path 
    * </pre>
    *
    * <code>repeated string storage = 1;</code>
@@ -289,6 +294,11 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   **
+   * A list of lost storage paths inside a worker
+   * </pre>
+   *
    * Protobuf type {@code alluxio.grpc.block.StorageList}
    */
   public static final class Builder extends
@@ -442,7 +452,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a lost worker storage path 
+     ** a lost storage path 
      * </pre>
      *
      * <code>repeated string storage = 1;</code>
@@ -453,7 +463,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a lost worker storage path 
+     ** a lost storage path 
      * </pre>
      *
      * <code>repeated string storage = 1;</code>
@@ -463,7 +473,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a lost worker storage path 
+     ** a lost storage path 
      * </pre>
      *
      * <code>repeated string storage = 1;</code>
@@ -473,7 +483,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a lost worker storage path 
+     ** a lost storage path 
      * </pre>
      *
      * <code>repeated string storage = 1;</code>
@@ -484,7 +494,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a lost worker storage path 
+     ** a lost storage path 
      * </pre>
      *
      * <code>repeated string storage = 1;</code>
@@ -501,7 +511,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a lost worker storage path 
+     ** a lost storage path 
      * </pre>
      *
      * <code>repeated string storage = 1;</code>
@@ -518,7 +528,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a lost worker storage path 
+     ** a lost storage path 
      * </pre>
      *
      * <code>repeated string storage = 1;</code>
@@ -533,7 +543,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a lost worker storage path 
+     ** a lost storage path 
      * </pre>
      *
      * <code>repeated string storage = 1;</code>
@@ -546,7 +556,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     ** a lost worker storage path 
+     ** a lost storage path 
      * </pre>
      *
      * <code>repeated string storage = 1;</code>

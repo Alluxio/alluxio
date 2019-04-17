@@ -73,7 +73,7 @@ public class BlockMasterTest {
 
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
   private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
-  private static final Map<String, List<String>> NO_LOST_STORAGE = ImmutableMap.of();
+  private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
 
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
@@ -316,10 +316,11 @@ public class BlockMasterTest {
         ImmutableMap.of("MEM", 0L, "HDD", 0L), NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
 
-    Map<String, List<String>> lostStorageOnWorker1 = new HashMap<>();
-    lostStorageOnWorker1.put("SSD", Arrays.asList("/ssd/one", "/ssd/two"));
-    Map<String, List<String>> lostStorageOnWorker2 = new HashMap<>();
-    lostStorageOnWorker2.put("HDD", Arrays.asList("/hdd/one"));
+    Map<String, StorageList> lostStorageOnWorker1 = new HashMap<>();
+    lostStorageOnWorker1.put("SSD", StorageList.newBuilder()
+        .addAllStorage(Arrays.asList("/ssd/one", "/ssd/two")).build());
+    Map<String, StorageList> lostStorageOnWorker2 = new HashMap<>();
+    lostStorageOnWorker2.put("HDD", StorageList.newBuilder().addStorage("/hdd/one").build());
 
     mBlockMaster.workerHeartbeat(worker1, ImmutableMap.of("MEM", 100L, "SSD", 0L),
         ImmutableMap.of("MEM", 0L, "SSD", 0L), NO_BLOCKS,

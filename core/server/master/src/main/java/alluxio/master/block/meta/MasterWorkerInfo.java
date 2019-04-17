@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
+import alluxio.grpc.StorageList;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -179,7 +180,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Adds a new worker lost storage paths.
+   * Adds a new worker lost storage path.
    *
    * @param tierAlias the tier alias
    * @param dirPath the lost storage path
@@ -195,10 +196,10 @@ public final class MasterWorkerInfo {
    *
    * @param lostStorage the lost storage to add
    */
-  public void addLostStorage(Map<String, List<String>> lostStorage) {
-    for (Map.Entry<String, List<String>> entry : lostStorage.entrySet()) {
+  public void addLostStorage(Map<String, StorageList> lostStorage) {
+    for (Map.Entry<String, StorageList> entry : lostStorage.entrySet()) {
       List<String> paths = mLostStorage.getOrDefault(entry.getKey(), new ArrayList<>());
-      paths.addAll(entry.getValue());
+      paths.addAll(entry.getValue().getStorageList());
       mLostStorage.put(entry.getKey(), paths);
     }
   }
@@ -362,7 +363,7 @@ public final class MasterWorkerInfo {
    * @return the map from tier alias to lost storage paths in this worker
    */
   public Map<String, List<String>> getLostStorage() {
-    return Collections.unmodifiableMap(mLostStorage);
+    return new HashMap<>(mLostStorage);
   }
 
   /**

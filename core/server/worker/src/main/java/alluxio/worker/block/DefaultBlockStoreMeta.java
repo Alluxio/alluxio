@@ -97,7 +97,7 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
 
   @Override
   public Map<String, List<String>> getLostStorage() {
-    return Collections.unmodifiableMap(mLostStorage);
+    return new HashMap<>(mLostStorage);
   }
 
   @Override
@@ -173,7 +173,7 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
     }
 
     for (StorageTier tier : manager.getTiers()) {
-      if (tier.getLostStorage().size() != 0) {
+      if (!tier.getLostStorage().isEmpty()) {
         List<String> lostStorages = mLostStorage
             .getOrDefault(tier.getTierAlias(), new ArrayList<>());
         lostStorages.addAll(tier.getLostStorage());

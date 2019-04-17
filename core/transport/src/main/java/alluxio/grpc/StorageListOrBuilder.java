@@ -9,7 +9,7 @@ public interface StorageListOrBuilder extends
 
   /**
    * <pre>
-   ** a lost worker storage path 
+   ** a lost storage path 
    * </pre>
    *
    * <code>repeated string storage = 1;</code>
@@ -18,7 +18,7 @@ public interface StorageListOrBuilder extends
       getStorageList();
   /**
    * <pre>
-   ** a lost worker storage path 
+   ** a lost storage path 
    * </pre>
    *
    * <code>repeated string storage = 1;</code>
@@ -26,7 +26,7 @@ public interface StorageListOrBuilder extends
   int getStorageCount();
   /**
    * <pre>
-   ** a lost worker storage path 
+   ** a lost storage path 
    * </pre>
    *
    * <code>repeated string storage = 1;</code>
@@ -34,7 +34,7 @@ public interface StorageListOrBuilder extends
   java.lang.String getStorage(int index);
   /**
    * <pre>
-   ** a lost worker storage path 
+   ** a lost storage path 
    * </pre>
    *
    * <code>repeated string storage = 1;</code>
