@@ -80,6 +80,11 @@ public interface BlockStoreMeta {
   Map<String, List<String>> getDirectoryPathsOnTiers();
 
   /**
+   * @return a mapping from tier alias to lost storage paths
+   */
+  Map<String, List<String>> getLostStorage();
+
+  /**
    * Note: This is only available in {@link BlockStoreMeta.Factory#createFull}.
    *
    * @return the number of blocks

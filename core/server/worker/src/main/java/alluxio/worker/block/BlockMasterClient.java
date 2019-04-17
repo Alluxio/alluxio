@@ -25,15 +25,16 @@ import alluxio.grpc.Metric;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.StorageList;
 import alluxio.grpc.TierList;
 import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -132,23 +133,29 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
    * @param addedBlocks a mapping from storage tier alias to added blocks
+   * @param lostStorage a mapping from storage tier alias to a list of lost storage paths
    * @param metrics a list of worker metrics
    * @return an optional command for the worker to execute
    */
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> capacityBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final List<Long> removedBlocks, final Map<String, List<Long>> addedBlocks,
-      final List<Metric> metrics) throws IOException {
+      final Map<String, List<String>> lostStorage, final List<Metric> metrics)
+      throws IOException {
     final BlockHeartbeatPOptions options = BlockHeartbeatPOptions.newBuilder()
         .addAllMetrics(metrics).putAllCapacityBytesOnTiers(capacityBytesOnTiers).build();
-    Map<String, TierList> addedBlocksMap = new HashMap<>(addedBlocks.size());
-    for (Map.Entry<String, List<Long>> blockEntry : addedBlocks.entrySet()) {
-      addedBlocksMap.put(blockEntry.getKey(),
-          TierList.newBuilder().addAllTiers(blockEntry.getValue()).build());
-    }
+    final Map<String, TierList> addedBlocksMap = addedBlocks.entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey,
+            e -> TierList.newBuilder().addAllTiers(e.getValue()).build()));
+
+    final Map<String, StorageList> lostStorageMap = lostStorage.entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey,
+            e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
+
     final BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder().setWorkerId(workerId)
         .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
-        .putAllAddedBlocksOnTiers(addedBlocksMap).setOptions(options).build();
+        .putAllAddedBlocksOnTiers(addedBlocksMap).setOptions(options)
+        .putAllLostStorage(lostStorageMap).build();
 
     return retryRPC(() -> mClient.blockHeartbeat(request).getCommand());
   }
@@ -161,24 +168,31 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used bytes
    * @param currentBlocksOnTiers mapping from storage tier alias to the list of list of blocks
+   * @param lostStorage mapping from storage tier alias to the list of lost storage paths
    * @param configList a list of configurations
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
   public void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-      final Map<String, List<Long>> currentBlocksOnTiers, final List<ConfigProperty> configList)
-      throws IOException {
+      final Map<String, List<Long>> currentBlocksOnTiers,
+      final Map<String, List<String>> lostStorage,
+      final List<ConfigProperty> configList) throws IOException {
 
     final RegisterWorkerPOptions options =
         RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
-    Map<String, TierList> currentBlockOnTiersMap = new HashMap<>(currentBlocksOnTiers.size());
-    for (Map.Entry<String, List<Long>> blockEntry : currentBlocksOnTiers.entrySet()) {
-      currentBlockOnTiersMap.put(blockEntry.getKey(),
-          TierList.newBuilder().addAllTiers(blockEntry.getValue()).build());
-    }
+
+    final Map<String, TierList> currentBlockOnTiersMap = currentBlocksOnTiers.entrySet()
+        .stream().collect(Collectors.toMap(Map.Entry::getKey,
+            e -> TierList.newBuilder().addAllTiers(e.getValue()).build()));
+
+    final Map<String, StorageList> lostStorageMap = lostStorage.entrySet().stream()
+        .collect(Collectors.toMap(Map.Entry::getKey,
+            e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
+
     final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
         .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)
         .putAllUsedBytesOnTiers(usedBytesOnTiers).putAllCurrentBlocksOnTiers(currentBlockOnTiersMap)
+        .putAllLostStorage(lostStorageMap)
         .setOptions(options).build();
 
     retryRPC(() -> {

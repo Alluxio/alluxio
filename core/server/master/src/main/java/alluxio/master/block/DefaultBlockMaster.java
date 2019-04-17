@@ -32,8 +32,11 @@ import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.StorageList;
+import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -469,6 +472,24 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   }
 
   @Override
+  public List<WorkerLostStorageInfo> getWorkerLostStorage() {
+    List<WorkerLostStorageInfo> workerLostStorageList = new ArrayList<>();
+    for (MasterWorkerInfo worker : mWorkers) {
+      synchronized (worker) {
+        if (worker.hasLostStorage()) {
+          Map<String, StorageList> lostStorage = worker.getLostStorage().entrySet()
+              .stream().collect(Collectors.toMap(Map.Entry::getKey,
+                  e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
+          workerLostStorageList.add(WorkerLostStorageInfo.newBuilder()
+              .setAddress(GrpcUtils.toProto(worker.getWorkerAddress()))
+              .putAllLostStorage(lostStorage).build());
+        }
+      }
+    }
+    return workerLostStorageList;
+  }
+
+  @Override
   public void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException {
     try (JournalContext journalContext = createJournalContext()) {
       for (long blockId : blockIds) {
@@ -785,7 +806,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers,
+      Map<String, List<Long>> currentBlocksOnTiers, Map<String, StorageList> lostStorage,
       RegisterWorkerPOptions options) throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
@@ -812,6 +833,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       processWorkerRemovedBlocks(worker, removedBlocks);
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
       processWorkerOrphanedBlocks(worker);
+      worker.addLostStorage(lostStorage);
     }
     if (options.getConfigsCount() > 0) {
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
@@ -829,7 +851,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
-      Map<String, List<Long>> addedBlocksOnTiers, List<Metric> metrics) {
+      Map<String, List<Long>> addedBlocksOnTiers,
+      Map<String, StorageList> lostStorage,
+      List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
@@ -843,6 +867,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocksOnTiers);
       processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
+
+      worker.addLostStorage(lostStorage);
 
       if (capacityBytesOnTiers != null) {
         worker.updateCapacityBytes(capacityBytesOnTiers);
