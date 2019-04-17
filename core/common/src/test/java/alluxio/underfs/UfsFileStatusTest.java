@@ -11,10 +11,12 @@
 
 package alluxio.underfs;
 
-//import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
+
 import alluxio.util.CommonUtils;
+
 import org.junit.Test;
+
 import java.util.Random;
 
 /**
