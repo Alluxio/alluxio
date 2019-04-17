@@ -358,15 +358,13 @@ public class InstancedConfiguration implements AlluxioConfiguration {
           key.getName(), key.getDefaultValue());
 
       if (PropertyKey.isDeprecated(key)) {
-        if (PropertyKey.isRemoved(key)) {
-          String errorMsg = String.format("%s is no longer a valid property. %s", key.getName(),
-              PropertyKey.getDeprecationMessage(key));
-          removalMessages.add(errorMsg);
-          LOG.error(errorMsg);
-        } else {
-          LOG.warn("%s is deprecated. Please avoid using this key in the future. %s",
-              key.getName(), PropertyKey.getDeprecationMessage(key));
-        }
+        LOG.warn("{} is deprecated. Please avoid using this key in the future. {}", key.getName(),
+            PropertyKey.getDeprecationMessage(key));
+      } else if (PropertyKey.isRemoved(key)) {
+        String errorMsg = String.format("%s is no longer a valid property. %s", key.getName(),
+            PropertyKey.getRemovalMessage(key));
+        removalMessages.add(errorMsg);
+        LOG.error(errorMsg);
       }
     }
 
