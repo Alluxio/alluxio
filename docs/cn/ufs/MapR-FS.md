@@ -71,6 +71,7 @@ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR
 
 完成所有相应配置后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
+#{% include Common-Commands/start-alluxio.md %}
 ```bash
 ./bin/alluxio format
 ./bin/alluxio-start.sh local
@@ -80,6 +81,7 @@ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR
 
 接着，可以运行一个简单的示例程序：
 
+#{% include Common-Commands/runTests.md %}
 ```bash
 ./bin/alluxio runTests
 ```
@@ -88,6 +90,7 @@ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in MapR
 
 运行以下命令停止Alluxio：
 
+#{% include Common-Commands/stop-alluxio.md %}
 ```bash
 ./bin/alluxio-stop.sh local
 ```
