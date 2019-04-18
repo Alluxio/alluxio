@@ -68,7 +68,7 @@ Note:
 
 ### Build the Spark Docker Image
 
-Add the required Alluxio client jars and build a docker image used for the Spark driver and executor
+Add the required Alluxio client jars and build a Docker image used for the Spark driver and executor
 pods. Run the following from the Spark distribution directory.
 
 ```bash
@@ -80,7 +80,7 @@ cp ~/.minikube/ca.crt bin/
 # Add the Alluxio client jar
 cp <path_to_alluxio_client>/client/alluxio-2.0.0-preview-client.jar jars/
 
-# Build the Spark docker image
+# Build the Spark Docker image
 docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 ```
 
@@ -113,6 +113,6 @@ local:///opt/spark/jars/alluxio-examples_2.12-1.0.jar alluxio://alluxio-master.d
 
 Note:
 - By default, Alpine Linux does not contain the native libraries required to create an EPOLL mode netty
-channel. On linux distributions or docker images with the native libraries included, EPOLL can be used by
+channel. On linux distributions or Docker images with the native libraries included, EPOLL can be used by
 removing the properties `alluxio.*.network.netty.channel` from the Spark executor java options.
 - With `NIO` channels, short-circuit access is not available and may decrease performance.
