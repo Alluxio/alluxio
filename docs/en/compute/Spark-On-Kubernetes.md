@@ -26,8 +26,8 @@ following text.
 
 ### Download Binaries
 
-Download the desired Spark version. We use the pre-built binary for the `spark-submit` command as well
-as building the Docker image using the included Dockerfile.
+[Download](https://spark.apache.org/downloads.html) the desired Spark version. We use the pre-built
+binary for the `spark-submit` command as well as building the Docker image using the included Dockerfile.
 ```bash
 wget http://apache.mirrors.tds.net/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz
 tar -xf spark-2.4.0-bin-hadoop2.7.tgz
@@ -68,7 +68,7 @@ Note:
 
 ### Build the Spark Docker Image
 
-Add the required Alluxio client jars and build a docker image used for the Spark driver and executor
+Add the required Alluxio client jars and build a Docker image used for the Spark driver and executor
 pods. Run the following from the Spark distribution directory.
 
 ```bash
@@ -80,7 +80,7 @@ cp ~/.minikube/ca.crt bin/
 # Add the Alluxio client jar
 cp <path_to_alluxio_client>/client/alluxio-2.0.0-preview-client.jar jars/
 
-# Build the Spark docker image
+# Build the Spark Docker image
 docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 ```
 
@@ -111,6 +111,8 @@ kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount
 local:///opt/spark/jars/alluxio-examples_2.12-1.0.jar alluxio://alluxio-master.default.svc.cluster.local:19998/LICENSE
 ```
 
-Note: By default, Alpine Linux does not contain the native libraries required to create an EPOLL mode netty
-channel. On linux distributions or docker images with the native libraries included, EPOLL can be used by
+Note:
+- By default, Alpine Linux does not contain the native libraries required to create an EPOLL mode netty
+channel. On linux distributions or Docker images with the native libraries included, EPOLL can be used by
 removing the properties `alluxio.*.network.netty.channel` from the Spark executor java options.
+- With `NIO` channels, short-circuit access is not available and may decrease performance.
