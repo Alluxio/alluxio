@@ -102,6 +102,30 @@ public class RemovedKey {
           .setScope(Scope.CLIENT)
           .build();
 
+  @Removed(message = "Use alluxio.worker.tieredstore.levelX.watermark.{high/low}.ratio instead")
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
+      new PropertyKey.Builder(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 0)
+          .setDescription("Fraction of space reserved in the top storage tier. "
+              + "This has been deprecated, please use high and low watermark instead.")
+          .setScope(Scope.WORKER)
+          .build();
+
+  @Removed(message = "Use alluxio.worker.tieredstore.levelX.watermark.{high/low}.ratio instead")
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
+      new PropertyKey.Builder(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 1)
+          .setDescription("Fraction of space reserved in the second storage tier. "
+              + "This has been deprecated, please use high and low watermark instead.")
+          .setScope(Scope.WORKER)
+          .build();
+
+  @Removed(message = "Use alluxio.worker.tieredstore.levelX.watermark.{high/low}.ratio instead")
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
+      new PropertyKey.Builder(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 2)
+          .setDescription("Fraction of space reserved in the third storage tier. "
+              + "This has been deprecated, please use high and low watermark instead.")
+          .setScope(Scope.WORKER)
+          .build();
+
 
   // Removed keys - never use these. They will throw an exception during validation
   @Removed(message = "This key is used only for testing. It is always removed")

@@ -4264,15 +4264,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.path"),
     WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA("alluxio.worker.tieredstore.level%d.dirs.quota",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.quota"),
-    @Removed(message = "The keys associated with this template have been removed")
-    WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO("alluxio.worker.tieredstore.level%d.reserved.ratio",
-        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.reserved\\.ratio"),
     WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO(
         "alluxio.worker.tieredstore.level%d.watermark.high.ratio",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.high\\.ratio"),
     WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO(
         "alluxio.worker.tieredstore.level%d.watermark.low.ratio",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.low\\.ratio"),
+
+    @Removed(message = "The keys associated with this template have been removed")
+    WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO("alluxio.worker.tieredstore.level%d.reserved.ratio",
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.reserved\\.ratio"),
 
     /**
      * @deprecated omg!
