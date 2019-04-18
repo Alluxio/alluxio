@@ -44,14 +44,11 @@ final class MasterUtils {
   public static void createMasters(MasterRegistry registry, MasterContext context) {
     List<Callable<Void>> callables = new ArrayList<>();
     for (final MasterFactory factory : alluxio.master.ServiceUtils.getMasterServiceLoader()) {
-      callables.add(new Callable<Void>() {
-        @Override
-        public Void call() throws Exception {
-          if (factory.isEnabled()) {
-            factory.create(registry, context);
-          }
-          return null;
+      callables.add(() -> {
+        if (factory.isEnabled()) {
+          factory.create(registry, context);
         }
+        return null;
       });
     }
     try {
