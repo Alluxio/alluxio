@@ -209,7 +209,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getFolderSuffix() {
-    return mUfsConf.get(PropertyKey.UNDERFS_GCS_DIRECTORY_SUFFIX);
+    return mUfsConf.getValue(PropertyKey.UNDERFS_GCS_DIRECTORY_SUFFIX);
   }
 
   @Override
