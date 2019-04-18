@@ -367,9 +367,9 @@ public final class OutStreamOptions {
       return false;
     }
     OutStreamOptions that = (OutStreamOptions) o;
-    return mCommonOptions.equals(that.mCommonOptions)
-        && Objects.equal(mAcl, that.mAcl)
+    return Objects.equal(mAcl, that.mAcl)
         && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mMode, that.mMode)
@@ -386,9 +386,9 @@ public final class OutStreamOptions {
   @Override
   public int hashCode() {
     return Objects.hashCode(
-        mCommonOptions,
         mAcl,
         mBlockSizeBytes,
+        mCommonOptions,
         mGroup,
         mLocationPolicy,
         mMode,
@@ -406,9 +406,9 @@ public final class OutStreamOptions {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("common-options", mCommonOptions)
         .add("acl", mAcl)
         .add("blockSizeBytes", mBlockSizeBytes)
+        .add("commonOptions", mCommonOptions)
         .add("group", mGroup)
         .add("locationPolicy", mLocationPolicy)
         .add("mode", mMode)

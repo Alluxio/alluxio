@@ -115,11 +115,13 @@ public class OutStreamOptionsTest {
     String owner = CommonUtils.randomAlphaNumString(10);
     String group = CommonUtils.randomAlphaNumString(10);
     Mode mode = new Mode((short) random.nextInt());
-    long ttl = random.nextLong();
+    int ttl = 5;
+    TtlAction ttlAction = TtlAction.FREE;
     int writeTier = random.nextInt();
     WriteType writeType = WriteType.NONE;
 
-    mConf.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, "FREE");
+    mConf.set(PropertyKey.USER_FILE_CREATE_TTL, ttl);
+    mConf.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, ttlAction);
 
     OutStreamOptions options = OutStreamOptions.defaults(mConf);
     options.setBlockSizeBytes(blockSize);
@@ -135,7 +137,8 @@ public class OutStreamOptionsTest {
     assertEquals(owner, options.getOwner());
     assertEquals(group, options.getGroup());
     assertEquals(mode, options.getMode());
-    assertEquals(TtlAction.FREE, options.getCommonOptions().getTtlAction());
+    assertEquals(ttl, options.getCommonOptions().getTtl());
+    assertEquals(ttlAction, options.getCommonOptions().getTtlAction());
     assertEquals(writeTier, options.getWriteTier());
     assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
     assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
