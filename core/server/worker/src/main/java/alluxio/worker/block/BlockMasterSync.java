@@ -107,7 +107,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList(), configList);
+        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList(),
+        storeMeta.getLostStorage(), configList);
   }
 
   /**
@@ -138,7 +139,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     try {
       cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
-          blockReport.getAddedBlocks(), metrics);
+          blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException | ConnectionFailedException e) {

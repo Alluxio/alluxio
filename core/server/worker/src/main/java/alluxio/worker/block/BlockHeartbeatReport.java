@@ -11,7 +11,9 @@
 
 package alluxio.worker.block;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,16 +28,24 @@ public final class BlockHeartbeatReport {
   private final Map<String, List<Long>> mAddedBlocks;
   /** List of block ids removed in the last heartbeat period. */
   private final List<Long> mRemovedBlocks;
+  /**
+   * Map of storage tier alias to a list of lost storage paths
+   * that were removed in the last heartbeat period.
+   */
+  private final Map<String, List<String>> mLostStorage;
 
   /**
    * Creates a new instance of {@link BlockHeartbeatReport}.
    *
    * @param addedBlocks added blocks
    * @param removedBlocks remove blocks
+   * @param lostStorage lost storage
    */
-  public BlockHeartbeatReport(Map<String, List<Long>> addedBlocks, List<Long> removedBlocks) {
-    mAddedBlocks = addedBlocks;
-    mRemovedBlocks = removedBlocks;
+  public BlockHeartbeatReport(Map<String, List<Long>> addedBlocks,
+      List<Long> removedBlocks, Map<String, List<String>> lostStorage) {
+    mAddedBlocks = new HashMap<>(addedBlocks);
+    mRemovedBlocks = new ArrayList<>(removedBlocks);
+    mLostStorage = new HashMap<>(lostStorage);
   }
 
   /**
@@ -54,5 +64,15 @@ public final class BlockHeartbeatReport {
    */
   public List<Long> getRemovedBlocks() {
     return Collections.unmodifiableList(mRemovedBlocks);
+  }
+
+  /**
+   * Gets the storage paths which were lost
+   * in the heartbeat this report represents.
+   *
+   * @return a map from storage tier alias to lost storage paths
+   */
+  public Map<String, List<String>> getLostStorage() {
+    return Collections.unmodifiableMap(mLostStorage);
   }
 }
