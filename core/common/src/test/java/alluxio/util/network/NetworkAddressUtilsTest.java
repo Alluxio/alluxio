@@ -255,7 +255,7 @@ public class NetworkAddressUtilsTest {
   @Test
   public void getLocalNodeNameClient() throws Exception {
     CommonUtils.PROCESS_TYPE.set(ProcessType.CLIENT);
-    try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_HOSTNAME, "client", mConfiguration)
+    try (Closeable c = new ConfigurationRule(PropertyKey.LOCALITY_TIER_NODE, "client", mConfiguration)
         .toResource()) {
       assertEquals("client", NetworkAddressUtils.getLocalNodeName(mConfiguration));
     }
@@ -334,9 +334,15 @@ public class NetworkAddressUtilsTest {
   }
 
   @Test
+  public void getConfiguredClientHostname() {
+    mConfiguration.set(PropertyKey.LOCALITY_TIER_NODE, "clienthost");
+    assertEquals("clienthost", NetworkAddressUtils.getClientHostName(mConfiguration));
+  }
+
+  @Test
   public void getDefaultClientHostname() {
     int resolveTimeout = (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     assertEquals(NetworkAddressUtils.getLocalHostName(resolveTimeout),
-        NetworkAddressUtils.getLocalHostName(mConfiguration));
+        NetworkAddressUtils.getClientHostName(mConfiguration));
   }
 }

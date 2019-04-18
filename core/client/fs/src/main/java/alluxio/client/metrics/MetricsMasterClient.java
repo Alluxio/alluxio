@@ -72,7 +72,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
     try {
       MetricsHeartbeatPRequest.Builder request = MetricsHeartbeatPRequest.newBuilder();
       request.setClientId(IdUtils.createOrGetAppIdFromConfig(mContext.getConf()));
-      request.setHostname(NetworkAddressUtils.getLocalHostName(mContext.getConf()));
+      request.setHostname(NetworkAddressUtils.getClientHostName(mContext.getConf()));
       request.setOptions(MetricsHeartbeatPOptions.newBuilder().addAllMetrics(metrics).build());
       mClient.metricsHeartbeat(request.build());
     } catch (io.grpc.StatusRuntimeException e) {

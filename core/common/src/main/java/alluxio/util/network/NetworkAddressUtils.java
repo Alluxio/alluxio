@@ -346,6 +346,20 @@ public final class NetworkAddressUtils {
   }
 
   /**
+   * Gets the local hostname to be used by the client. If this isn't configured, a
+   * non-loopback local hostname will be looked up.
+   *
+   * @param conf Alluxio configuration
+   * @return the local hostname for the client
+   */
+  public static String getClientHostName(AlluxioConfiguration conf) {
+    if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
+      return conf.get(PropertyKey.LOCALITY_TIER_NODE);
+    }
+    return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+  }
+
+  /**
    * Gets a local node name from configuration if it is available, falling back on localhost lookup.
    *
    * @param conf Alluxio configuration
@@ -363,6 +377,11 @@ public final class NetworkAddressUtils {
           return conf.get(PropertyKey.JOB_WORKER_HOSTNAME);
         }
         break;
+      case CLIENT:
+        if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
+          return conf.get(PropertyKey.LOCALITY_TIER_NODE);
+        }
+        break;
       case MASTER:
         if (conf.isSet(PropertyKey.MASTER_HOSTNAME)) {
           return conf.get(PropertyKey.MASTER_HOSTNAME);
@@ -376,16 +395,6 @@ public final class NetworkAddressUtils {
       default:
         break;
     }
-    return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
-  }
-
-  /**
-   * Gets a local host name for the host this JVM is running on.
-   *
-   * @param conf Alluxio configuration
-   * @return the local host name, which is not based on a loopback ip address
-   */
-  public static synchronized String getLocalHostName(AlluxioConfiguration conf) {
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
 
@@ -527,7 +536,7 @@ public final class NetworkAddressUtils {
    * @throws UnknownHostException if the given hostname cannot be resolved
    */
   @Nullable
-   public static String resolveHostName(String hostname) throws UnknownHostException {
+  public static String resolveHostName(String hostname) throws UnknownHostException {
     if (hostname == null || hostname.isEmpty()) {
       return null;
     }

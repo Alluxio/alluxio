@@ -2482,6 +2482,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Ordering of locality tiers")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
+  public static final PropertyKey LOCALITY_TIER_NODE =
+      new PropertyKey.Builder(PropertyKey.Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
+          .setDescription("Value to use for determining node locality")
+          .build();
+  // This property defined so that it is included in the documentation.
+  public static final PropertyKey LOCALITY_TIER_RACK =
+      new PropertyKey.Builder(PropertyKey.Template.LOCALITY_TIER, Constants.LOCALITY_RACK)
+          .setDescription("Value to use for determining rack locality")
+          .build();
   public static final PropertyKey LOCALITY_SCRIPT =
       new Builder(Name.LOCALITY_SCRIPT)
           .setDefaultValue(Constants.ALLUXIO_LOCALITY_SCRIPT)

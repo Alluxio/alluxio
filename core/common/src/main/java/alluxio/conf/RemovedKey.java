@@ -67,18 +67,6 @@ public class RemovedKey {
           .build();
 
   @Removed(message = "v2.0 removed the ability to configure this parameter")
-  public static final PropertyKey LOCALITY_TIER_NODE =
-      new PropertyKey.Builder(PropertyKey.Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
-          .setDescription("Value to use for determining node locality")
-          .build();
-
-  @Removed(message = "v2.0 removed the ability to configure this parameter")
-  public static final PropertyKey LOCALITY_TIER_RACK =
-      new PropertyKey.Builder(PropertyKey.Template.LOCALITY_TIER, Constants.LOCALITY_RACK)
-          .setDescription("Value to use for determining rack locality")
-          .build();
-
-  @Removed(message = "v2.0 removed the ability to configure this parameter")
   public static final PropertyKey LOGSERVER_LOGS_DIR =
       new PropertyKey.Builder(PropertyKey.Name.LOGSERVER_LOGS_DIR)
           .setDefaultValue(String.format("${%s}/logs", PropertyKey.Name.WORK_DIR))
@@ -95,10 +83,10 @@ public class RemovedKey {
           .setScope(Scope.SERVER)
           .build();
 
-  @Removed(message = "v2.0 removed the ability to configure the client hostname")
-  public static final PropertyKey USER_HOSTNAME =
-      new PropertyKey.Builder(PropertyKey.Name.USER_HOSTNAME)
-      .setDescription(String.format("The hostname to use for the client."))
+  @Removed(message = "v2.0 removed this property key. Use alluxio.locality.node instead to set"
+      + " the client hostname.")
+  public static final PropertyKey USER_HOSTNAME = new PropertyKey.Builder(PropertyKey.Name.USER_HOSTNAME)
+      .setDescription("The hostname to use for the client.")
       .setScope(Scope.CLIENT)
       .build();
 

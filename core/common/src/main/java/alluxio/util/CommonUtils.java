@@ -593,7 +593,7 @@ public final class CommonUtils {
    * @return true if the worker is local
    */
   public static boolean isLocalHost(WorkerNetAddress address, AlluxioConfiguration conf) {
-    return address.getHost().equals(NetworkAddressUtils.getLocalHostName(conf));
+    return address.getHost().equals(NetworkAddressUtils.getClientHostName(conf));
   }
 
   /**

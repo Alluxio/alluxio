@@ -71,7 +71,7 @@ public interface DataWriter extends Closeable, Cancelable {
         return LocalFileDataWriter.create(context, address, blockId, options);
       } else {
         LOG.debug("Creating gRPC output stream for block {} @ {} from client {}", blockId, address,
-            NetworkAddressUtils.getLocalHostName(alluxioConf));
+            NetworkAddressUtils.getClientHostName(alluxioConf));
         return GrpcDataWriter
             .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
                 options);
