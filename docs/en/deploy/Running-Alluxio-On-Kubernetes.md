@@ -193,3 +193,19 @@ kubectl create -f alluxio-fuse-client.yaml
 
 If using the template, Alluxio is mounted at `/alluxio-fuse` and can be accessed via the POSIX-API
 across multiple containers.
+
+## Troubleshooting
+
+### FUSE
+
+In order for an application container to mount the `hostPath` volume, the node running the container
+must have the Alluxio FUSE daemon running. The default spec `alluxio-fuse.yaml` runs as a DaemonSet,
+launching an Alluxio FUSE daemon on each node of the cluster.
+
+If there are issues accessing Alluxio using the POSIX-API:
+1. First identify which node the application container ran on using the command
+`kubectl describe pods` or the dashboard.
+1. After the node is identified, the command `kubectl describe nodes <node>` can be used to identify
+the `alluxio-fuse` pod running on that node.
+1. Then tail the logs for the identified pod to see if there were any errors encountered using
+`kubectl logs -f alluxio-fuse-<id>`.
