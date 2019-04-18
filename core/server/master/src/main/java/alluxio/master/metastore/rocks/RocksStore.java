@@ -19,7 +19,6 @@ import alluxio.util.TarUtils;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 import org.rocksdb.Checkpoint;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
@@ -112,25 +111,13 @@ public final class RocksStore implements Closeable {
   private void stopDb() {
     if (mDb != null) {
       try {
-        Closer closer = Closer.create();
         // Column handles must be closed before closing the db, or an exception gets thrown.
         mColumnHandles.forEach(handle -> {
-          ColumnFamilyHandle column = handle.get();
-          closer.register(() -> column.close());
+          handle.get().close();
           handle.set(null);
         });
-        // Synchronize to make findbugs happy.
-        closer.register(() -> {
-          synchronized (this) {
-            mDb.close();
-          }
-        });
-        closer.register(() -> {
-          synchronized (this) {
-            mCheckpoint.close();
-          }
-        });
-        closer.close();
+        mDb.close();
+        mCheckpoint.close();
       } catch (Throwable t) {
         LOG.error("Failed to close rocks database", t);
       }
