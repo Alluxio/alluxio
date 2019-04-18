@@ -1796,8 +1796,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // File system master related properties
   //
-  public static final PropertyKey MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_MESSAGE_LENGTH =
-      new Builder(Name.MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_MESSAGE_LENGTH)
+  public static final PropertyKey MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE =
+      new Builder(Name.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE)
           .setDefaultValue(10000)
           .setDescription(
               "Count of items on each list-status response message.")
@@ -3926,7 +3926,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // File system master related properties
     //
-    public static final String MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_MESSAGE_LENGTH =
+    public static final String MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE =
         "alluxio.master.filesystem.liststatus.result.message.length";
 
     //

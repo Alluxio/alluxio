@@ -242,8 +242,8 @@ public final class FileSystemMasterClientServiceHandler
     }
 
     // Stream results back in chunks.
-    final int resultPacketLength = ServerConfiguration.getInt(
-        PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULT_MESSAGE_LENGTH);
+    final int resultMessageLength = ServerConfiguration.getInt(
+        PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
 
     // Abort condition for message streaming.
     SettableFuture<Void> abortCondition = SettableFuture.create();
@@ -260,7 +260,7 @@ public final class FileSystemMasterClientServiceHandler
       // Start index in the master fileInfo list for the next packet.
       int messageStartIdx = currentIdx;
       // How many results to stream in this round.
-      int messageItemCount = Math.min(resultPacketLength, remainingItemCount);
+      int messageItemCount = Math.min(resultMessageLength, remainingItemCount);
       // Whether this is the last message.
       boolean isLastPacket = (remainingItemCount == messageItemCount);
 
