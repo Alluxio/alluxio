@@ -41,6 +41,7 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -3490,19 +3491,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
-  // Deprecated keys - slated for removal
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
   @Deprecated(message = "This key is used only for testing. It is always deprecated")
   public static final PropertyKey TEST_DEPRECATED_KEY =
       new Builder("alluxio.test.deprecated.key")
-          .build();
-
-  // Removed keys - never use these. They will throw an exception during validation
-  @Removed(message = "This key is used only for testing. It is always deprecated")
-  public static final PropertyKey TEST_REMOVED_KEY =
-      new Builder("alluxio.test.removed.key")
           .build();
 
   /**
@@ -4463,7 +4457,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return all pre-defined property keys
    */
   public static Collection<? extends PropertyKey> defaultKeys() {
-    return Sets.newHashSet(DEFAULT_KEYS_MAP.values());
+    return Sets.newHashSet(DEFAULT_KEYS_MAP.values()
+        .parallelStream().filter(key -> !PropertyKey.isRemoved(key))
+        .collect(Collectors.toSet()));
   }
 
   /** Property name. */
@@ -4804,8 +4800,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return the message, or empty string is the property key isn't deprecated
    */
   public static String getRemovalMessage(PropertyKey key) {
-    if (isDeprecated(key)) {
-      Deprecated annotation = getDeprecatedAnnotation(key);
+    if (isRemoved(key)) {
+      Removed annotation = getRemovedAnnotation(key);
       if (annotation != null) {
         return annotation.message();
       }

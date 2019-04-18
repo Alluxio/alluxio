@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Builder;
 import alluxio.conf.PropertyKey.Template;
+import alluxio.conf.RemovedKey;
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.After;
@@ -301,8 +302,8 @@ public final class PropertyKeyTest {
     assertTrue(PropertyKey.isDeprecated(PropertyKey.TEST_DEPRECATED_KEY.getName()));
     assertTrue(PropertyKey.isDeprecated(PropertyKey.TEST_DEPRECATED_KEY));
 
-    assertTrue(PropertyKey.isRemoved(PropertyKey.TEST_REMOVED_KEY));
     assertTrue(PropertyKey.isDeprecated(Template.TEST_DEPRECATED_TEMPLATE.format("removed")));
-    assertTrue(PropertyKey.isRemoved(Template.TEST_DEPRECATED_TEMPLATE.format("removed")));
+    assertTrue(PropertyKey.isRemoved(RemovedKey.TEST_REMOVED_KEY));
+    assertTrue(PropertyKey.isRemoved(RemovedKey.TEST_REMOVED_KEY.getName()));
   }
 }

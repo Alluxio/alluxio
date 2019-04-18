@@ -102,6 +102,13 @@ public class RemovedKey {
           .setScope(Scope.CLIENT)
           .build();
 
+
+  // Removed keys - never use these. They will throw an exception during validation
+  @Removed(message = "This key is used only for testing. It is always removed")
+  public static final PropertyKey TEST_REMOVED_KEY =
+      new PropertyKey.Builder("alluxio.test.removed.key")
+          .build();
+
   private static final class Name {
   }
 }
