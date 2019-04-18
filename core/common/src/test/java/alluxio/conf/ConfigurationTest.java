@@ -972,6 +972,14 @@ public class ConfigurationTest {
   public void testDeprecatedKey() {
     mConfiguration.set(PropertyKey.TEST_DEPRECATED_KEY, "true");
     mConfiguration.validate();
-    mLogger.wasLogged(String.format("%s is deprecated", PropertyKey.TEST_DEPRECATED_KEY));
+    String logString = String.format("%s is deprecated", PropertyKey.TEST_DEPRECATED_KEY);
+    assertTrue(mLogger.wasLogged(logString));
+    assertEquals(1, mLogger.logCount(logString));
+  }
+
+  @Test
+  public void testDeprecatedKeysNotLogged() {
+    mConfiguration.validate();
+    assertFalse(mLogger.wasLogged(" is deprecated"));
   }
 }

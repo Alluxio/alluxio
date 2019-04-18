@@ -4694,6 +4694,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   private static final Map<PropertyKey, Removed> REMOVED_KEYS =
       populateAnnotatedKeyMap(RemovedKey.class, PropertyKey.class, Removed.class);
+  private static final Map<Template, Removed> REMOVED_TEMPLATES =
+      populateAnnotatedKeyMap(Template.class, Template.class, Removed.class);
 
   /**
    * Given a class to search, a field type, and an annotation type will return a map of all
@@ -4732,6 +4734,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     return annotations;
   }
 
+  private static <J extends Annotation> J getKeyAnnotation(Map<PropertyKey, J> keyAnnotationMap,
+      Map<Template, J> templateAnnotationMap, PropertyKey key) {
+    if (keyAnnotationMap.containsKey(key)) {
+      return keyAnnotationMap.get(key);
+    } else {
+      for (Map.Entry<Template, J> e : templateAnnotationMap.entrySet()) {
+        Matcher match = e.getKey().match(key.getName());
+        if (match.matches()) {
+          return e.getValue();
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * Returns whether or not the given property key is deprecated or completely removed.
    *
@@ -4744,17 +4761,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return if this property key is deprecated
    */
   public static boolean isDeprecated(PropertyKey key) {
-    if (DEPRECATED_KEYS.containsKey(key)) {
-      return true;
-    } else {
-      for (Map.Entry<Template, Deprecated> e : DEPRECATED_TEMPLATES.entrySet()) {
-        Matcher match = e.getKey().match(key.getName());
-        if (match.matches()) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return getKeyAnnotation(DEPRECATED_KEYS, DEPRECATED_TEMPLATES, key) != null;
   }
 
   /**
@@ -4762,7 +4769,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return if this property key is deprecated
    */
   public static boolean isDeprecated(String name) {
-    return isDeprecated(new PropertyKey(name));
+    return isDeprecated(PropertyKey.fromString(name));
   }
 
   /**
@@ -4770,7 +4777,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return true this property key is removed, false otherwise
    */
   public static boolean isRemoved(PropertyKey key) {
-    return REMOVED_KEYS.containsKey(key);
+    return getKeyAnnotation(REMOVED_KEYS, REMOVED_TEMPLATES, key) != null;
   }
 
   /**
@@ -4778,7 +4785,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return true this property key is removed, false otherwise
    */
   public static boolean isRemoved(String name) {
-    return isRemoved(new PropertyKey(name));
+    return isRemoved(PropertyKey.fromString(name));
   }
 
   /**
@@ -4787,7 +4794,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public static String getDeprecationMessage(PropertyKey key) {
     if (isDeprecated(key)) {
-      Deprecated annotation = getDeprecatedAnnotation(key);
+      Deprecated annotation = getKeyAnnotation(DEPRECATED_KEYS, DEPRECATED_TEMPLATES, key);
       if (annotation != null) {
         return annotation.message();
       }
@@ -4801,7 +4808,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public static String getRemovalMessage(PropertyKey key) {
     if (isRemoved(key)) {
-      Removed annotation = getRemovedAnnotation(key);
+      Removed annotation = getKeyAnnotation(REMOVED_KEYS, REMOVED_TEMPLATES, key);
       if (annotation != null) {
         return annotation.message();
       }
@@ -4809,33 +4816,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     return "";
   }
 
-  /**
-   * Returns the annotation that describes a deprecated key.
-   *
-   * @param key The deprecated PropertyKey
-   * @return The annotation object describing the deprecation, null if not annotated
-   */
-  private static Deprecated getDeprecatedAnnotation(PropertyKey key) {
-    if (DEPRECATED_KEYS.containsKey(key)) {
-      return DEPRECATED_KEYS.get(key);
-    } else {
-      for (Map.Entry<Template, Deprecated> e : DEPRECATED_TEMPLATES.entrySet()) {
-        Matcher match = e.getKey().match(key.getName());
-        if (match.matches()) {
-          return e.getValue();
-        }
-      }
-    }
-    return null;
-  }
 
-  /**
-   * Returns the annotation that describes a removed key.
-   *
-   * @param key The removed PropertyKey
-   * @return The annotation object describing the deprecation, null if not annotated
-   */
-  private static Removed getRemovedAnnotation(PropertyKey key) {
-    return REMOVED_KEYS.getOrDefault(key, null);
-  }
+
 }
