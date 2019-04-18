@@ -611,8 +611,7 @@ public final class MultiProcessCluster {
       }
       return;
     }
-    try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER,
-        mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER), ServerConfiguration.global())
+    try (Closeable c = new ConfigurationRule(mProperties, ServerConfiguration.global())
         .toResource()) {
       Format.format(Format.Mode.MASTER, ServerConfiguration.global());
     } catch (IOException e) {

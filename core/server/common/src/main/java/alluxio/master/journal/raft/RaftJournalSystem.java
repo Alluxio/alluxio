@@ -208,8 +208,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     mStateMachine = new JournalStateMachine(mJournals);
     mServer = CopycatServer.builder(getLocalAddress(mConf))
         .withStorage(storage)
-        .withElectionTimeout(Duration.ofMillis(mConf.getElectionTimeoutMs()))
         .withHeartbeatInterval(Duration.ofMillis(mConf.getHeartbeatIntervalMs()))
+        .withElectionTimeout(Duration.ofMillis(mConf.getElectionTimeoutMs()))
         .withSnapshotAllowed(mSnapshotAllowed)
         .withSerializer(createSerializer())
         .withTransport(new NettyTransport())
