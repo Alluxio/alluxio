@@ -14,7 +14,9 @@ package alluxio.security.authentication;
 import alluxio.security.authentication.plain.PlainSaslServerProvider;
 
 import org.junit.AfterClass;
-import org.junit.Assert;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -50,8 +52,8 @@ public final class PlainSaslServerProviderTest {
     // create plainSaslServer
     SaslServer server = Sasl.createSaslServer(PlainSaslServerProvider.MECHANISM, "", "",
         new HashMap<String, String>(), null);
-    Assert.assertNotNull(server);
-    Assert.assertEquals(PlainSaslServerProvider.MECHANISM, server.getMechanismName());
+    assertNotNull(server);
+    assertEquals(PlainSaslServerProvider.MECHANISM, server.getMechanismName());
   }
 
   /**
@@ -63,6 +65,6 @@ public final class PlainSaslServerProviderTest {
     // create a SaslServer which SecurityProvider has not supported
     SaslServer server = Sasl.createSaslServer("NO_PLAIN", "", "",
         new HashMap<String, String>(), null);
-    Assert.assertNull(server);
+    assertNull(server);
   }
 }
