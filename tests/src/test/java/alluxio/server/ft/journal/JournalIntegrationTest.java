@@ -24,6 +24,7 @@ import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -51,6 +52,7 @@ public class JournalIntegrationTest {
           .setProperty(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 0)
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE)
           .setNumWorkers(0)
+          .setJournalType(JournalType.UFS)
           .build();
 
   private LocalAlluxioCluster mCluster;

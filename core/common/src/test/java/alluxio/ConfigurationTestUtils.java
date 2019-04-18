@@ -131,6 +131,9 @@ public final class ConfigurationTestUtils {
       conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "3s");
       conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "120ms");
       conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "20ms");
+      conf.put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
+          PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX.getDefaultValue());
+      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT, "100ms");
     }
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
     return conf;

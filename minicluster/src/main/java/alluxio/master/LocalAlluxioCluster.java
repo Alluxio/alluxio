@@ -17,7 +17,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
-import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
@@ -139,14 +138,8 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
               ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT)));
       ServerConfiguration.set(PropertyKey.MASTER_RPC_ADDRESSES, String.format("%s:%s", mHostname,
           ServerConfiguration.get(PropertyKey.MASTER_RPC_PORT)));
-      if (ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX) < 65) {
-        ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
-            PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX.getDefaultValue());
-      }
-      ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT, "100ms");
     }
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_WEB_PORT, 0);
@@ -156,7 +149,6 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   public void startMasters() throws Exception {
     mMaster = LocalAlluxioMaster.create(mWorkDirectory, true);
     mMaster.start();
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
   }
 
   @Override
