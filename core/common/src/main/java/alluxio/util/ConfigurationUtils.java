@@ -484,8 +484,8 @@ public final class ConfigurationUtils {
       return response;
     } catch (io.grpc.StatusRuntimeException e) {
       throw new UnavailableException(String.format(
-          "Failed to handshake with master %s to load cluster default configuration values",
-          address), e);
+          "Failed to handshake with master %s to load cluster default configuration values: %s",
+          address, e.getMessage()), e);
     } catch (UnauthenticatedException e) {
       throw new RuntimeException(String.format(
           "Received authentication exception during boot-strap connect with host:%s", address),
