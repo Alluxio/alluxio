@@ -114,8 +114,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         }
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
-    }, "OpenBlock", true, false, "Session=%d, Request=%s",
-        mResponseObserver, mSessionId, mRequest);
+    }, "OpenBlock", true, false, mResponseObserver, "Session=%d, Request=%s",
+        mSessionId, mRequest);
   }
 
   @Override
@@ -154,7 +154,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
         mLockId = BlockLockManager.INVALID_LOCK_ID;
       }
-    }, "CloseBlock", false, true, "Session=%d, Request=%s",
-        mResponseObserver, mSessionId, mRequest);
+    }, "CloseBlock", false, true, mResponseObserver, "Session=%d, Request=%s",
+        mSessionId, mRequest);
   }
 }
