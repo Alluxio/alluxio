@@ -765,7 +765,6 @@ public class ConfigurationTest {
     // Test if the resolvedMap include all kinds of properties
     assertTrue(resolvedMap.containsKey("alluxio.debug"));
     assertTrue(resolvedMap.containsKey("alluxio.fuse.fs.name"));
-    assertTrue(resolvedMap.containsKey("alluxio.logserver.logs.dir"));
     assertTrue(resolvedMap.containsKey("alluxio.master.journal.folder"));
     assertTrue(resolvedMap.containsKey("alluxio.proxy.web.port"));
     assertTrue(resolvedMap.containsKey("alluxio.security.authentication.type"));
