@@ -189,7 +189,7 @@ public interface JournalSystem {
     /**
      * @return a journal system
      */
-    public JournalSystem build() {
+    public JournalSystem build(CommonUtils.ProcessType processType) {
       JournalType journalType =
           ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
       switch (journalType) {
@@ -199,7 +199,7 @@ public interface JournalSystem {
           return new UfsJournalSystem(mLocation, mQuietTimeMs);
         case EMBEDDED:
           ServiceType serviceType;
-          if (CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.MASTER)) {
+          if (processType.equals(CommonUtils.ProcessType.MASTER)) {
             serviceType = ServiceType.MASTER_RAFT;
           } else {
             // We might reach here during journal formatting. In that case the journal system is

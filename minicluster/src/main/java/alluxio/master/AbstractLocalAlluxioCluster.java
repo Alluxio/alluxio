@@ -87,10 +87,8 @@ public abstract class AbstractLocalAlluxioCluster {
 
     resetClientPools();
 
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.MASTER);
     setupTest();
     startMasters();
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
     startWorkers();
     startProxy();
 

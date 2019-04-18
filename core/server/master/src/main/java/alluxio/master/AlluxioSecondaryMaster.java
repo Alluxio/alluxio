@@ -53,7 +53,8 @@ public final class AlluxioSecondaryMaster implements Process {
   AlluxioSecondaryMaster() {
     try {
       URI journalLocation = JournalUtils.getJournalLocation();
-      mJournalSystem = new JournalSystem.Builder().setLocation(journalLocation).build();
+      mJournalSystem = new JournalSystem.Builder()
+          .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       mBackupManager = new BackupManager(mRegistry);

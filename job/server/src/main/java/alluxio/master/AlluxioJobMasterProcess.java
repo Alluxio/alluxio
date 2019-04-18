@@ -26,6 +26,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
+import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -240,7 +241,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       URI journalLocation = JournalUtils.getJournalLocation();
       JournalSystem journalSystem = new JournalSystem.Builder()
           .setLocation(URIUtils.appendPathOrDie(journalLocation, Constants.JOB_JOURNAL_NAME))
-          .build();
+          .build(CommonUtils.ProcessType.JOB_MASTER);
       if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft journal cannot be used with Zookeeper enabled");

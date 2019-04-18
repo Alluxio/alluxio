@@ -17,7 +17,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
-import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
@@ -148,10 +147,8 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   @Override
   public void startMasters() throws Exception {
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.MASTER);
     mMaster = LocalAlluxioMaster.create(mWorkDirectory, true);
     mMaster.start();
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
   }
 
   @Override
@@ -163,8 +160,6 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   @Override
   public void stopMasters() throws Exception {
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.MASTER);
     mMaster.stop();
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
   }
 }

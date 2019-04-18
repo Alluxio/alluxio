@@ -66,7 +66,6 @@ public class MasterTestUtils {
    */
   private static MasterRegistry createFileSystemMasterFromJournal(boolean isLeader)
       throws Exception {
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.MASTER);
     String masterJournal = ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
     SafeModeManager safeModeManager = new TestSafeModeManager();
@@ -90,7 +89,6 @@ public class MasterTestUtils {
       journalSystem.gainPrimacy();
     }
     registry.start(isLeader);
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
     return registry;
   }
 
