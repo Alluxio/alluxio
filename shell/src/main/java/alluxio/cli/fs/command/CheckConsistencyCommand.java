@@ -109,7 +109,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   private void runConsistencyCheck(AlluxioURI path, boolean repairConsistency) throws
       AlluxioException, IOException {
     List<AlluxioURI> inconsistentUris =
-        checkConsistency(path, FileSystemOptions.checkConsistencyDefaults(mFsContext.getConf()));
+        checkConsistency(path, FileSystemOptions.checkConsistencyDefaults(
+            mFsContext.getPathConf(path)));
     if (inconsistentUris.isEmpty()) {
       System.out.println(path + " is consistent with the under storage system.");
       return;

@@ -39,6 +39,8 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.Meta.PathPropertiesEntry;
+import alluxio.proto.journal.Meta.RemovePathPropertiesEntry;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,7 +76,9 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setInodeFile(InodeFileEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setInodeLastModificationTime(InodeLastModificationTimeEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setNewBlock(NewBlockEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setPathProperties(PathPropertiesEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setPersistDirectory(PersistDirectoryEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setRemovePathProperties(RemovePathPropertiesEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRemoveSyncPoint(RemoveSyncPointEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRename(RenameEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setSetAcl(SetAclEntry.getDefaultInstance()).build(),

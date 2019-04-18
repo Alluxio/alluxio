@@ -9,23 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client;
+package alluxio.conf.path;
 
-import alluxio.grpc.ConfigProperty;
+import alluxio.AlluxioURI;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Interface for a meta master config client.
+ * Matches a path against a set of path patterns.
  */
-public interface MetaMasterConfigClient extends Closeable {
-
+public interface PathMatcher {
   /**
-   * Gets the runtime configuration information.
-   *
-   * @return a list of configuration information
+   * @param path the path to be matched, must start with "/"
+   * @return the list of matched path patterns sorted by descending match preferences
    */
-  List<ConfigProperty> getConfiguration() throws IOException;
+  Optional<List<String>> match(AlluxioURI path);
 }
