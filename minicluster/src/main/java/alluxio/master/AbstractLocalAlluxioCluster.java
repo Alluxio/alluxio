@@ -107,10 +107,8 @@ public abstract class AbstractLocalAlluxioCluster {
    * Restarts the master(s).
    */
   public void restartMasters() throws Exception {
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.MASTER);
     stopMasters();
     startMasters();
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
   }
 
   /**

@@ -23,6 +23,7 @@ import alluxio.grpc.WritePType;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.journal.JournalType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.wire.WorkerNetAddress;
 
@@ -34,10 +35,10 @@ import org.junit.Test;
  * Integration tests for block master functionality.
  */
 public class BlockMasterJournalIntegrationTest {
-
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setJournalType(JournalType.UFS).build();
   private LocalAlluxioCluster mCluster;
 
   @Before

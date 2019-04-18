@@ -200,7 +200,8 @@ public final class MultiProcessCluster {
         ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-        mWorkDir.getAbsolutePath()).entrySet()) {
+            mProperties.get(PropertyKey.MASTER_JOURNAL_TYPE),
+            mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
       if (mProperties.containsKey(entry.getKey())) {
         continue;
