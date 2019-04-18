@@ -58,6 +58,14 @@ public class RemovedKey {
           .setScope(Scope.MASTER)
           .build();
 
+  @Removed(message = "v2.0 removed the ability to specify the master journal formatter")
+  public static final PropertyKey MASTER_JOURNAL_FORMATTER_CLASS =
+      new PropertyKey.Builder(PropertyKey.Name.MASTER_JOURNAL_FORMATTER_CLASS)
+          .setDefaultValue("alluxio.master.journalv0.ProtoBufJournalFormatter")
+          .setDescription("The class to serialize the journal in a specified format.")
+          .setScope(Scope.MASTER)
+          .build();
+
   @Removed(message = "v2.0 removed the ability to configure this parameter")
   public static final PropertyKey LOCALITY_TIER_NODE =
       new PropertyKey.Builder(PropertyKey.Template.LOCALITY_TIER, Constants.LOCALITY_NODE)

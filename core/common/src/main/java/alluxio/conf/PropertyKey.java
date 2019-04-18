@@ -1403,17 +1403,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  /**
-   * @deprecated since 1.5.0 and will be removed in 2.0.
-   */
-  @Deprecated
-  public static final PropertyKey MASTER_JOURNAL_FORMATTER_CLASS =
-      new Builder(Name.MASTER_JOURNAL_FORMATTER_CLASS)
-          .setDefaultValue("alluxio.master.journalv0.ProtoBufJournalFormatter")
-          .setDescription("The class to serialize the journal in a specified format.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       new Builder(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX)
           .setDefaultValue("10MB")
