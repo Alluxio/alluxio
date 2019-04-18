@@ -2767,6 +2767,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "not occur).")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_RENAME_PERSIST =
+      new Builder(Name.USER_FILE_RENAME_PERSIST)
+          .setDefaultValue("false")
+          .setDescription("Whether or not to persist any files which have been renamed. This is "
+              + "helpful when working with compute frameworks which use rename to commit results.")
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_SEEK_BUFFER_SIZE_BYTES =
       new Builder(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES)
           .setDefaultValue("1MB")
@@ -4099,6 +4106,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_LOAD_TTL_ACTION =
         "alluxio.user.file.load.ttl.action";
     public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
+    public static final String USER_FILE_RENAME_PERSIST = "alluxio.user.file.rename.persist";
     public static final String USER_FILE_REPLICATION_MAX = "alluxio.user.file.replication.max";
     public static final String USER_FILE_REPLICATION_MIN = "alluxio.user.file.replication.min";
     public static final String USER_FILE_REPLICATION_DURABLE =
