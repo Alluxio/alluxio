@@ -97,8 +97,8 @@ public class OutStreamOptionsTest {
     assertEquals("test_group", options.getGroup());
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(),
         mConf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)), options.getMode());
-    assertEquals(Constants.NO_TTL, options.getTtl());
-    assertEquals(TtlAction.DELETE, options.getTtlAction());
+    assertEquals(Constants.NO_TTL, options.getCommonOptions().getTtl());
+    assertEquals(TtlAction.DELETE, options.getCommonOptions().getTtlAction());
     assertEquals(ufsType, options.getUnderStorageType());
     assertEquals(WriteType.CACHE_THROUGH, options.getWriteType());
     assertEquals(Constants.LAST_TIER, options.getWriteTier());
@@ -119,14 +119,14 @@ public class OutStreamOptionsTest {
     int writeTier = random.nextInt();
     WriteType writeType = WriteType.NONE;
 
+    mConf.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, "FREE");
+
     OutStreamOptions options = OutStreamOptions.defaults(mConf);
     options.setBlockSizeBytes(blockSize);
     options.setLocationPolicy(locationPolicy);
     options.setOwner(owner);
     options.setGroup(group);
     options.setMode(mode);
-    options.setTtl(ttl);
-    options.setTtlAction(TtlAction.FREE);
     options.setWriteTier(writeTier);
     options.setWriteType(writeType);
 
@@ -135,8 +135,7 @@ public class OutStreamOptionsTest {
     assertEquals(owner, options.getOwner());
     assertEquals(group, options.getGroup());
     assertEquals(mode, options.getMode());
-    assertEquals(ttl, options.getTtl());
-    assertEquals(TtlAction.FREE, options.getTtlAction());
+    assertEquals(TtlAction.FREE, options.getCommonOptions().getTtlAction());
     assertEquals(writeTier, options.getWriteTier());
     assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
     assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
