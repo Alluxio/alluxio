@@ -483,7 +483,6 @@ public final class ConfigurationUtils {
       LOG.info("Alluxio client has loaded configuration from meta master {}", address);
       return response;
     } catch (io.grpc.StatusRuntimeException e) {
-      AlluxioStatusException ase = AlluxioStatusException.fromStatusRuntimeException(e);
       throw new UnavailableException(String.format(
           "Failed to handshake with master %s to load cluster default configuration values",
           address), e);
