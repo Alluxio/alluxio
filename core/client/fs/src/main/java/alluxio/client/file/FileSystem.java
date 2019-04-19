@@ -134,7 +134,7 @@ public interface FileSystem extends Closeable {
     private static FileSystem create(FileSystemContext context, boolean cachingEnabled) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
-        AlluxioConfiguration conf = context.getConf();
+        AlluxioConfiguration conf = context.getClusterConf();
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
         Collections.sort(keys, Comparator.comparing(PropertyKey::getName));
         for (PropertyKey key : keys) {

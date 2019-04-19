@@ -84,7 +84,6 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
     conf.put(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64");
     conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
-    conf.put(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
     conf.put(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, "false");
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
     conf.put(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT, "2sec");
@@ -125,7 +124,14 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+    if (alluxioConf.get(PropertyKey.MASTER_JOURNAL_TYPE).equals("UFS")) {
+      conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+    } else {
+      // Raft journal system need longer to start, job worker connect should wait for longer time
+      conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "3s");
+      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "1s");
+      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "100ms");
+    }
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
     return conf;
   }

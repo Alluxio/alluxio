@@ -17,11 +17,16 @@ message BackupPResponse {
  optional string hostname = 2;
 }
 
+message ConfigProperties {
+  repeated ConfigProperty properties = 1;
+}
+
 message GetConfigurationPOptions{
  optional bool rawValue = 1;
 }
 message GetConfigurationPResponse{
   repeated ConfigProperty configs = 1;
+  map<string, ConfigProperties> pathConfigs = 2;
 }
 
 enum ConfigStatus {
@@ -107,6 +112,22 @@ message GetMetricsPResponse {
   map<string, MetricValue> metrics = 1;
 }
 
+message SetPathConfigurationPOptions {}
+message SetPathConfigurationPRequest {
+  optional string path = 1;
+  map<string, string> properties = 2;
+  optional SetPathConfigurationPOptions options = 3;
+}
+message SetPathConfigurationPResponse {}
+
+message RemovePathConfigurationPOptions {}
+message RemovePathConfigurationPRequest {
+  optional string path = 1;
+  repeated string keys = 2;
+  optional RemovePathConfigurationPOptions options = 3;
+}
+message RemovePathConfigurationPResponse {}
+
 /**
   * This interface contains meta master service endpoints for Alluxio clients
   * to query cluster configuration.
@@ -116,6 +137,16 @@ service MetaMasterConfigurationService {
    * Returns a list of Alluxio runtime configuration information.
    */
   rpc GetConfiguration(GetConfigurationPOptions) returns (GetConfigurationPResponse);
+
+  /**
+   * Sets a property for a path.
+   */
+  rpc SetPathConfiguration(SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
+
+  /**
+   * Removes properties for a path, if the keys are empty, it means remove all properties.
+   */
+  rpc RemovePathConfiguration(RemovePathConfigurationPRequest) returns (RemovePathConfigurationPResponse);
 }
 
 /**
