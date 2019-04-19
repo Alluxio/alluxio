@@ -1,9 +1,24 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.conf;
 
 import alluxio.grpc.Scope;
 
 /**
- * Oh noe!!.
+ * This class contains {@link PropertyKey} which should all be annotation with {@link Removed}.
+ *
+ * This class is used to track keys which were deprecated in previous versions, and subsequently
+ * removed in a future version. We still keep them here so that it is possible to provide users
+ * with useful information if they are found to be using an outdated property key.
  */
 public class RemovedKey {
 
