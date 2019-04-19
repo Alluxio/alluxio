@@ -12,6 +12,7 @@
 package alluxio.client.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.wire.Configuration;
 
@@ -29,6 +30,11 @@ public interface MetaMasterConfigClient extends Closeable {
    * @return the runtime configuration
    */
   Configuration getConfiguration() throws IOException;
+
+  /**
+   * @return pair of versions of cluster and path level configurations
+   */
+  Pair<String, String> getConfigurationVersion() throws IOException;
 
   /**
    * Sets a property for a path.
