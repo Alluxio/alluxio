@@ -11,7 +11,7 @@
 
 package alluxio.master.journal;
 
-import alluxio.util.CommonUtils;
+import alluxio.util.CommonUtils.ProcessType;
 
 import org.junit.rules.TemporaryFolder;
 
@@ -37,7 +37,7 @@ public class JournalTestUtils {
       return new JournalSystem.Builder()
           .setLocation(new URI(folder))
           .setQuietTimeMs(0)
-          .build(CommonUtils.ProcessType.MASTER);
+          .build(ProcessType.MASTER);
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }

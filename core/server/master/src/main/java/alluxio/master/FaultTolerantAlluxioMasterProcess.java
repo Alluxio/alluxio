@@ -83,8 +83,10 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       mLeaderSelector.waitForState(State.PRIMARY);
       if (gainPrimacy()) {
         mLeaderSelector.waitForState(State.SECONDARY);
-        if (mRunning) {
+        if (mRunning) { // To identify whether stop is called
           losePrimacy();
+        } else {
+          break;
         }
       }
     }

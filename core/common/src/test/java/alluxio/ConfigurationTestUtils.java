@@ -130,8 +130,10 @@ public final class ConfigurationTestUtils {
     } else {
       // Raft journal system need longer to start, job worker connect should wait for longer time
       conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "3s");
-      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "120ms");
-      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "20ms");
+      // Election timeout should be bigger than the default copycat heartbeat interval 250
+      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "260ms");
+      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "50ms");
+      // Reset the value to avoid raft journal system complaining about log size < 65
       conf.put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
           PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX.getDefaultValue());
       // For faster test shutdown

@@ -129,16 +129,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
             mHostname, mJournalType.toString(), mWorkDirectory).entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
-    if (mJournalType == JournalType.UFS) {
-      ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    } else {
-      ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
-      ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
-          String.format("%s:%s", mHostname,
-              ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT)));
-      ServerConfiguration.set(PropertyKey.MASTER_RPC_ADDRESSES, String.format("%s:%s", mHostname,
-          ServerConfiguration.get(PropertyKey.MASTER_RPC_PORT)));
-    }
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, mJournalType);
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);

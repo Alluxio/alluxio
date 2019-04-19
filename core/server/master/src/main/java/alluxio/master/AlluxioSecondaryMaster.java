@@ -19,6 +19,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.util.CommonUtils;
+import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.WaitForOptions;
 
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public final class AlluxioSecondaryMaster implements Process {
     try {
       URI journalLocation = JournalUtils.getJournalLocation();
       mJournalSystem = new JournalSystem.Builder()
-          .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
+          .setLocation(journalLocation).build(ProcessType.MASTER);
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       mBackupManager = new BackupManager(mRegistry);

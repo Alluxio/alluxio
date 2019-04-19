@@ -63,8 +63,8 @@ public abstract class AbstractLocalAlluxioCluster {
 
   protected String mWorkDirectory;
   protected String mHostname;
-
   protected JournalType mJournalType;
+
   private int mNumWorkers;
 
   /**
