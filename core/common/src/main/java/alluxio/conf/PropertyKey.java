@@ -2606,14 +2606,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "format pattern.")
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FAILED_SPACE_REQUEST_LIMITS =
-      new Builder(Name.USER_FAILED_SPACE_REQUEST_LIMITS)
-          .setDefaultValue(3)
-          .setDescription("The number of times to request space from the file system before "
-              + "aborting.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_FILE_BUFFER_BYTES =
       new Builder(Name.USER_FILE_BUFFER_BYTES)
           .setDefaultValue("8MB")
@@ -2719,14 +2711,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether or not to asynchronously persist any files which have been "
               + "renamed. This is helpful when working with compute frameworks which use rename "
               + "to commit results.")
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_FILE_SEEK_BUFFER_SIZE_BYTES =
-      new Builder(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES)
-          .setDefaultValue("1MB")
-          .setDescription("The file seek buffer size. This is only used when "
-              + "alluxio.user.file.cache.partially.read.block is enabled.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =

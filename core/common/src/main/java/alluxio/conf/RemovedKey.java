@@ -102,6 +102,7 @@ public class RemovedKey {
           .setScope(Scope.CLIENT)
           .build();
 
+  @Removed(message = v2Removed + " Use alluxio.locality.node instead to set"
       + " the client hostname.")
   public static final PropertyKey USER_HOSTNAME = new PropertyKey.Builder(PropertyKey.Name.USER_HOSTNAME)
       .setDescription("The hostname to use for the client.")
