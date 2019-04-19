@@ -99,6 +99,6 @@ public final class MetaMasterConfigurationServiceHandler
       String pathConfigVersion = mMetaMaster.getPathConfigurationVersion();
       return GetConfigVersionPResponse.newBuilder().setClusterConfigVersion(clusterConfigVersion)
           .setPathConfigVersion(pathConfigVersion).build();
-      }, "getConfigVersion", "request=%s", responseObserver, request);
+    }, "getConfigVersion", "request=%s", responseObserver, request);
   }
 }
