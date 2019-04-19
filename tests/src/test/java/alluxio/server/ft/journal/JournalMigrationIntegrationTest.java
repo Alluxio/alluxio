@@ -17,8 +17,8 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.conf.PropertyKey;
-import alluxio.client.MetaMasterClient;
-import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPOptions;
@@ -65,7 +65,7 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
       // Migrate to embedded journal HA.
       cluster.stopMasters();
       cluster.formatJournal();
-      cluster.updateDeployMode(DeployMode.EMBEDDED_HA);
+      cluster.updateDeployMode(DeployMode.EMBEDDED);
       cluster.startMasters();
       assertEquals(NUM_DIRS, fs.listStatus(new AlluxioURI("/")).size());
 

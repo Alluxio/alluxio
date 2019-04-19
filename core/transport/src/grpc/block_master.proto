@@ -98,6 +98,17 @@ message GetWorkerInfoListPResponse {
   repeated WorkerInfo workerInfos = 1;
 }
 
+message WorkerLostStorageInfo {
+  optional grpc.WorkerNetAddress address = 1;
+  /** a map from tier alias to the lost storage paths */
+  map<string, StorageList> lostStorage = 2;
+}
+
+message GetWorkerLostStoragePOptions {}
+message GetWorkerLostStoragePResponse {
+  repeated WorkerLostStorageInfo workerLostStorageInfo = 1;
+}
+
 /**
  * This interface contains block master service endpoints for Alluxio clients.
  */
@@ -132,10 +143,23 @@ service BlockMasterClientService {
    * Returns a list of workers information for report CLI.
    */
   rpc GetWorkerReport(GetWorkerReportPOptions) returns (GetWorkerInfoListPResponse);
+
+  /**
+   * Returns a list of worker lost storage information
+   */
+  rpc GetWorkerLostStorage(GetWorkerLostStoragePOptions) returns (GetWorkerLostStoragePResponse);
 }
 
 message TierList {
   repeated int64 tiers = 1;
+}
+
+/**
+ * A list of lost storage paths inside a worker
+ */
+message StorageList {
+  /** a lost storage path */
+  repeated string storage = 1;
 }
 
 message BlockHeartbeatPOptions {
@@ -152,7 +176,10 @@ message BlockHeartbeatPRequest {
   /** the map of added blocks on all tiers */
   map<string, TierList> addedBlocksOnTiers = 4;
   optional BlockHeartbeatPOptions options = 5;
+  /** the map of lost storage paths on all tiers */
+  map<string, StorageList> lostStorage = 6;
 }
+
 message BlockHeartbeatPResponse {
   optional grpc.Command command = 1;
 }
@@ -209,6 +236,8 @@ message RegisterWorkerPRequest {
   /** the map of list of blocks on each tier */
   map<string, TierList> currentBlocksOnTiers = 5;
   optional RegisterWorkerPOptions options = 6;
+  /** the map of tier alias to a list of lost storage paths. */
+  map<string, StorageList> lostStorage = 7;
 }
 message RegisterWorkerPResponse {}
 
