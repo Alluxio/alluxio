@@ -924,10 +924,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
-  public static final PropertyKey SWIFT_API_KEY = new Builder(Name.SWIFT_API_KEY)
-      .setDescription("(deprecated) The API key used for user:tenant authentication.")
-      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-      .build();
   public static final PropertyKey SWIFT_AUTH_METHOD_KEY = new Builder(Name.SWIFT_AUTH_METHOD_KEY)
       .setDescription("Choice of authentication method: "
           + "[tempauth (default), swiftauth, keystone, keystonev3].")

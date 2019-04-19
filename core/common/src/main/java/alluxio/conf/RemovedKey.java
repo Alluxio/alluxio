@@ -84,6 +84,12 @@ public class RemovedKey {
           .setScope(Scope.SERVER)
           .build();
 
+  @Removed(message = v2Removed + " Use " + PropertyKey.Name.SWIFT_PASSWORD_KEY + " instead.")
+  public static final PropertyKey SWIFT_API_KEY =
+      new PropertyKey.Builder(PropertyKey.Name.SWIFT_API_KEY)
+      .setDescription("The API key used for user:tenant authentication.")
+      .build();
+
   @Removed(message = v2Removed)
   public static final PropertyKey USER_FAILED_SPACE_REQUEST_LIMITS =
       new PropertyKey.Builder(PropertyKey.Name.USER_FAILED_SPACE_REQUEST_LIMITS)
