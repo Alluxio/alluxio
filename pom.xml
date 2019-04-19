@@ -555,6 +555,18 @@
         <artifactId>catalyst-netty</artifactId>
         <!-- catalyst-netty is versioned independently of other Atomix services -->
         <version>1.2.1</version>
+        <exclusions>
+          <!-- Excluded to avoid implementation conflict with io.netty -->
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
+          </exclusion>
+          <!-- Excluded to avoid implementation conflict with io.netty -->
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.mesos</groupId>
