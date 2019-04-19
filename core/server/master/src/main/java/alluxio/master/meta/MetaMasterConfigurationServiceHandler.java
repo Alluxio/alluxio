@@ -13,6 +13,8 @@ package alluxio.master.meta;
 
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetConfigVersionPOptions;
+import alluxio.grpc.GetConfigVersionPResponse;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
@@ -87,5 +89,16 @@ public final class MetaMasterConfigurationServiceHandler
         }
         return RemovePathConfigurationPResponse.getDefaultInstance();
       }, "removePathConfiguration", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getConfigVersion(GetConfigVersionPOptions request,
+      StreamObserver<GetConfigVersionPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigVersionPResponse>) () -> {
+      String clusterConfigVersion = mMetaMaster.getConfigurationVersion();
+      String pathConfigVersion = mMetaMaster.getPathConfigurationVersion();
+      return GetConfigVersionPResponse.newBuilder().setClusterConfigVersion(clusterConfigVersion)
+          .setPathConfigVersion(pathConfigVersion).build();
+      }, "getConfigVersion", "request=%s", responseObserver, request);
   }
 }
