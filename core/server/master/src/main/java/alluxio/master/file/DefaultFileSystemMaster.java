@@ -644,9 +644,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL),
               ServerConfiguration.global()));
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
-        mStartupConsistencyCheck = getExecutorService().submit(() -> startupCheckConsistency(
-            ExecutorServiceFactories
-               .fixedThreadPool("startup-consistency-check", 32).create()));
+        int checkThreads = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
+        mStartupConsistencyCheck =
+            getExecutorService().submit(() -> startupCheckConsistency(ExecutorServiceFactories
+                .fixedThreadPool("startup-consistency-check", checkThreads).create()));
       }
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
