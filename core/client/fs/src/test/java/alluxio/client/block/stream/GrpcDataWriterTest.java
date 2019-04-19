@@ -11,13 +11,13 @@
 
 package alluxio.client.block.stream;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertTrue;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
@@ -298,4 +298,3 @@ public final class GrpcDataWriterTest {
     }
   }
 }
-
