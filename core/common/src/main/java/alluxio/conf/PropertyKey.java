@@ -2986,32 +2986,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  /**
-   * @deprecated It will be removed in 2.0.0.
-   */
-  @Deprecated
-  public static final PropertyKey USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
-      new Builder(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES)
-          .setDefaultValue("8MB")
-          .setDescription("Size of the read buffer when reading from the UFS through the "
-              + "Alluxio worker. Each read request will fetch at least this many bytes, "
-              + "unless the read reaches the end of the file.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  /**
-   * @deprecated It will be removed in 2.0.0.
-   */
-  @Deprecated
-  public static final PropertyKey USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
-      new Builder(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES)
-          .setDefaultValue("2MB")
-          .setDescription("Size of the write buffer when writing to the UFS through the "
-              + "Alluxio worker. Each write request will write at least this many bytes, "
-              + "unless the write is at the end of the file.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
       new Builder(Name.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)
           .setDefaultValue(false)

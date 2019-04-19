@@ -112,6 +112,26 @@ public class RemovedKey {
           .setScope(Scope.CLIENT)
           .build();
 
+  @Removed
+  public static final PropertyKey USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
+      new PropertyKey.Builder(PropertyKey.Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES)
+          .setDefaultValue("8MB")
+          .setDescription("Size of the read buffer when reading from the UFS through the "
+              + "Alluxio worker. Each read request will fetch at least this many bytes, "
+              + "unless the read reaches the end of the file.")
+          .setScope(Scope.CLIENT)
+          .build();
+
+  @Removed
+  public static final PropertyKey USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
+      new PropertyKey.Builder(PropertyKey.Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES)
+          .setDefaultValue("2MB")
+          .setDescription("Size of the write buffer when writing to the UFS through the "
+              + "Alluxio worker. Each write request will write at least this many bytes, "
+              + "unless the write is at the end of the file.")
+          .setScope(Scope.CLIENT)
+          .build();
+
   @Removed(message = "Use alluxio.worker.tieredstore.levelX.watermark.{high/low}.ratio instead")
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
       new PropertyKey.Builder(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 0)
