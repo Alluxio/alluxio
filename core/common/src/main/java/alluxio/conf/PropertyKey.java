@@ -2609,18 +2609,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  /**
-   * @deprecated It will be removed in 2.0.0.
-   */
-  @Deprecated
-  public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
-      new Builder(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK)
-          .setDefaultValue(true)
-          .setDescription("This property is deprecated as of 1.7 and has no effect. Use the read "
-              + "type to control caching behavior.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY =
       new Builder(Name.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.block.policy.RoundRobinPolicy")

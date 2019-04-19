@@ -100,6 +100,15 @@ public class RemovedKey {
           .build();
 
   @Removed(message = v2Removed)
+  public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
+      new PropertyKey.Builder(PropertyKey.Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK)
+          .setDefaultValue(true)
+          .setDescription("This property is deprecated as of 1.7 and has no effect. Use the read "
+              + "type to control caching behavior.")
+          .setScope(Scope.CLIENT)
+          .build();
+
+  @Removed(message = v2Removed)
   public static final PropertyKey USER_FILE_SEEK_BUFFER_SIZE_BYTES =
       new PropertyKey.Builder(PropertyKey.Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES)
           .setDefaultValue("1MB")
