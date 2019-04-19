@@ -7,7 +7,7 @@ import alluxio.grpc.Scope;
  */
 public class RemovedKey {
 
-  private static final String v2Removed = "v2.0 removed the ability to configure this parameter.";
+  private static final String V2_REMOVED = "v2.0 removed the ability to configure this parameter.";
 
   @Removed(message = "The alluxio web UI overhaul in v2.0 removed this parameter.")
   public static final PropertyKey WEB_TEMP_PATH =
@@ -28,13 +28,13 @@ public class RemovedKey {
           .setScope(Scope.SERVER)
           .build();
 
-  @Removed(message = v2Removed)
+  @Removed(message = V2_REMOVED)
   public static final PropertyKey SWIFT_USE_PUBLIC_URI_KEY =
       new PropertyKey.Builder(PropertyKey.Name.SWIFT_USE_PUBLIC_URI_KEY)
           .setDescription("Whether the REST server is in a public domain: true (default) or false.")
           .build();
 
-  @Removed(message = v2Removed)
+  @Removed(message = V2_REMOVED)
   public static final PropertyKey MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
       new PropertyKey.Builder(PropertyKey.Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL)
           .setDefaultValue("10min")
@@ -43,7 +43,7 @@ public class RemovedKey {
           .setScope(Scope.MASTER)
           .build();
 
-  @Removed(message = v2Removed)
+  @Removed(message = V2_REMOVED)
   public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =
       new PropertyKey.Builder(PropertyKey.Name.MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT)
           .setDescription("Retry period before active ufs syncer gives up on connecting to the ufs")
@@ -51,7 +51,7 @@ public class RemovedKey {
           .setScope(Scope.MASTER)
           .build();
 
-  @Removed(message = v2Removed)
+  @Removed(message = V2_REMOVED)
   public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL =
       new PropertyKey.Builder(PropertyKey.Name.MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL)
           .setDefaultValue("1sec")
@@ -67,7 +67,7 @@ public class RemovedKey {
           .setScope(Scope.MASTER)
           .build();
 
-  @Removed(message = v2Removed)
+  @Removed(message = V2_REMOVED)
   public static final PropertyKey LOGSERVER_LOGS_DIR =
       new PropertyKey.Builder(PropertyKey.Name.LOGSERVER_LOGS_DIR)
           .setDefaultValue(String.format("${%s}/logs", PropertyKey.Name.WORK_DIR))
@@ -76,7 +76,7 @@ public class RemovedKey {
           .setScope(Scope.SERVER)
           .build();
 
-  @Removed(message = v2Removed)
+  @Removed(message = V2_REMOVED)
   public static final PropertyKey LOGSERVER_HOSTNAME =
       new PropertyKey.Builder(PropertyKey.Name.LOGSERVER_HOSTNAME)
           .setDescription("The hostname of Alluxio logserver.")
@@ -84,13 +84,13 @@ public class RemovedKey {
           .setScope(Scope.SERVER)
           .build();
 
-  @Removed(message = v2Removed + " Use " + PropertyKey.Name.SWIFT_PASSWORD_KEY + " instead.")
+  @Removed(message = V2_REMOVED + " Use " + PropertyKey.Name.SWIFT_PASSWORD_KEY + " instead.")
   public static final PropertyKey SWIFT_API_KEY =
       new PropertyKey.Builder(PropertyKey.Name.SWIFT_API_KEY)
       .setDescription("The API key used for user:tenant authentication.")
       .build();
 
-  @Removed(message = v2Removed)
+  @Removed(message = V2_REMOVED)
   public static final PropertyKey USER_FAILED_SPACE_REQUEST_LIMITS =
       new PropertyKey.Builder(PropertyKey.Name.USER_FAILED_SPACE_REQUEST_LIMITS)
           .setDefaultValue(3)
@@ -99,7 +99,7 @@ public class RemovedKey {
           .setScope(Scope.CLIENT)
           .build();
 
-  @Removed(message = v2Removed)
+  @Removed(message = V2_REMOVED)
   public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
       new PropertyKey.Builder(PropertyKey.Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK)
           .setDefaultValue(true)
@@ -108,7 +108,7 @@ public class RemovedKey {
           .setScope(Scope.CLIENT)
           .build();
 
-  @Removed(message = v2Removed)
+  @Removed(message = V2_REMOVED)
   public static final PropertyKey USER_FILE_SEEK_BUFFER_SIZE_BYTES =
       new PropertyKey.Builder(PropertyKey.Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES)
           .setDefaultValue("1MB")
@@ -117,14 +117,15 @@ public class RemovedKey {
           .setScope(Scope.CLIENT)
           .build();
 
-  @Removed(message = v2Removed + " Use alluxio.locality.node instead to set"
+  @Removed(message = V2_REMOVED + " Use alluxio.locality.node instead to set"
       + " the client hostname.")
-  public static final PropertyKey USER_HOSTNAME = new PropertyKey.Builder(PropertyKey.Name.USER_HOSTNAME)
+  public static final PropertyKey USER_HOSTNAME =
+      new PropertyKey.Builder(PropertyKey.Name.USER_HOSTNAME)
       .setDescription("The hostname to use for the client.")
       .setScope(Scope.CLIENT)
       .build();
 
-  @Removed(message = v2Removed)
+  @Removed(message = V2_REMOVED)
   public static final PropertyKey USER_NETWORK_SOCKET_TIMEOUT =
       new PropertyKey.Builder(PropertyKey.Name.USER_NETWORK_SOCKET_TIMEOUT)
           .setAlias(new String[]{
@@ -190,7 +191,6 @@ public class RemovedKey {
               + "This has been deprecated, please use high and low watermark instead.")
           .setScope(Scope.WORKER)
           .build();
-
 
   // Removed keys - never use these. They will throw an exception during validation
   @Removed(message = "This key is used only for testing. It is always removed")
