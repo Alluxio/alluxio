@@ -616,9 +616,6 @@ public final class ConfigurationUtils {
    * Loads both cluster and path level configurations from meta master.
    *
    * Only client scope properties will be loaded.
-   * If cluster level configuration has been loaded or the feature of loading configuration from
-   * meta master is disabled, then no RPC is issued, and both cluster and path level configuration
-   * is kept as original
    *
    * @param address the meta master address
    * @param clusterConf the cluster level configuration
@@ -628,11 +625,9 @@ public final class ConfigurationUtils {
   public static Pair<AlluxioConfiguration, PathConfiguration> loadClusterAndPathDefaults(
       InetSocketAddress address, AlluxioConfiguration clusterConf, PathConfiguration pathConf)
       throws AlluxioStatusException {
-    if (shouldLoadClusterConfiguration(clusterConf)) {
-      GetConfigurationPResponse response = loadConfiguration(address, clusterConf);
-      clusterConf = loadClusterConfiguration(response, clusterConf);
-      pathConf = loadPathConfiguration(response, clusterConf);
-    }
+    GetConfigurationPResponse response = loadConfiguration(address, clusterConf);
+    clusterConf = loadClusterConfiguration(response, clusterConf);
+    pathConf = loadPathConfiguration(response, clusterConf);
     return new Pair<>(clusterConf, pathConf);
   }
 }
