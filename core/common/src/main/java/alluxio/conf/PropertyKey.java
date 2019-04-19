@@ -2599,16 +2599,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "values of configuration properties set by Alluxio master.")
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_NETWORK_SOCKET_TIMEOUT =
-      new Builder(Name.USER_NETWORK_SOCKET_TIMEOUT)
-          .setAlias(new String[]{
-              "alluxio.security.authentication.socket.timeout",
-              "alluxio.security.authentication.socket.timeout.ms"})
-          .setDefaultValue("10min")
-          .setDescription("The time out of a socket created by a user to connect to the master.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_DATE_FORMAT_PATTERN =
       new Builder(Name.USER_DATE_FORMAT_PATTERN)
           .setDefaultValue("MM-dd-yyyy HH:mm:ss:SSS")

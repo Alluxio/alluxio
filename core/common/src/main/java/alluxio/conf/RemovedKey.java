@@ -1,6 +1,5 @@
 package alluxio.conf;
 
-import alluxio.Constants;
 import alluxio.grpc.Scope;
 
 /**
@@ -89,6 +88,17 @@ public class RemovedKey {
       .setDescription("The hostname to use for the client.")
       .setScope(Scope.CLIENT)
       .build();
+
+  @Removed(message = "v2.0 removed the ability to configure this parameter.")
+  public static final PropertyKey USER_NETWORK_SOCKET_TIMEOUT =
+      new PropertyKey.Builder(PropertyKey.Name.USER_NETWORK_SOCKET_TIMEOUT)
+          .setAlias(new String[]{
+              "alluxio.security.authentication.socket.timeout",
+              "alluxio.security.authentication.socket.timeout.ms"})
+          .setDefaultValue("10min")
+          .setDescription("The time out of a socket created by a user to connect to the master.")
+          .setScope(Scope.CLIENT)
+          .build();
 
   @Removed
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
