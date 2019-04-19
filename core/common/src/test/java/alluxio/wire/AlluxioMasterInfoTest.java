@@ -10,6 +10,7 @@
  */
 
 package alluxio.wire;
+
 import static org.junit.Assert.assertEquals;
 import alluxio.util.CommonUtils;
 
