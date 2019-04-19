@@ -12,9 +12,11 @@
 package alluxio.wire;
 
 import static org.junit.Assert.assertEquals;
+
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.Test;
 
 import java.util.ArrayList;
