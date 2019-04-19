@@ -1,5 +1,3 @@
-alluxio.master.activesync.batchinterval:
-  'Time interval to batch incoming events for active syncing UFS'
 alluxio.master.activesync.eventrate.interval:
   'The time interval we use to estimate incoming event rate'
 alluxio.master.activesync.interval:
@@ -10,8 +8,6 @@ alluxio.master.activesync.maxage:
   'The maximum number of intervals we will wait to find a quiet period before we have to sync the directories'
 alluxio.master.activesync.polltimeout:
   'Max time to wait before timing out a polling operation'
-alluxio.master.activesync.retry.timeout:
-  'Retry period before active ufs syncer gives up on connecting to the ufs'
 alluxio.master.activesync.threadpoolsize:
   'Max number of threads used to perform active sync'
 alluxio.master.audit.logging.enabled:
@@ -74,8 +70,6 @@ alluxio.master.journal.flush.timeout:
   'The amount of time to keep retrying journal writes before giving up and shutting down the master.'
 alluxio.master.journal.folder:
   'The path to store master journal logs. When using the UFS journal this could be a URI like hdfs://namenode:port/alluxio/journal. When using the embedded journal this must be a local path'
-alluxio.master.journal.formatter.class:
-  'The class to serialize the journal in a specified format.'
 alluxio.master.journal.gc.period:
   'Frequency with which to scan for and delete stale journal checkpoints.'
 alluxio.master.journal.gc.threshold:

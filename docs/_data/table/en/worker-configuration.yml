@@ -108,8 +108,6 @@ alluxio.worker.tieredstore.level0.dirs.path:
   'The path of storage directory for the top storage tier. Note for MacOS the value should be `/Volumes/`.'
 alluxio.worker.tieredstore.level0.dirs.quota:
   'The capacity of the top storage tier.'
-alluxio.worker.tieredstore.level0.reserved.ratio:
-  'Fraction of space reserved in the top storage tier. This has been deprecated, please use high and low watermark instead.'
 alluxio.worker.tieredstore.level0.watermark.high.ratio:
   'The high watermark of the space in the top storage tier (a value between 0 and 1).'
 alluxio.worker.tieredstore.level0.watermark.low.ratio:
@@ -120,8 +118,6 @@ alluxio.worker.tieredstore.level1.dirs.path:
   'The path of storage directory for the second storage tier.'
 alluxio.worker.tieredstore.level1.dirs.quota:
   'The capacity of the second storage tier.'
-alluxio.worker.tieredstore.level1.reserved.ratio:
-  'Fraction of space reserved in the second storage tier. This has been deprecated, please use high and low watermark instead.'
 alluxio.worker.tieredstore.level1.watermark.high.ratio:
   'The high watermark of the space in the second storage tier (a value between 0 and 1).'
 alluxio.worker.tieredstore.level1.watermark.low.ratio:
@@ -132,8 +128,6 @@ alluxio.worker.tieredstore.level2.dirs.path:
   'The path of storage directory for the third storage tier.'
 alluxio.worker.tieredstore.level2.dirs.quota:
   'The capacity of the third storage tier.'
-alluxio.worker.tieredstore.level2.reserved.ratio:
-  'Fraction of space reserved in the third storage tier. This has been deprecated, please use high and low watermark instead.'
 alluxio.worker.tieredstore.level2.watermark.high.ratio:
   'The high watermark of the space in the third storage tier (a value between 0 and 1).'
 alluxio.worker.tieredstore.level2.watermark.low.ratio:

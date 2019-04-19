@@ -78,10 +78,6 @@ alluxio.logger.type:
   'The type of logger.'
 alluxio.logs.dir:
   'The path to store log files. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
-alluxio.logserver.hostname:
-  'The hostname of Alluxio logserver. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
-alluxio.logserver.logs.dir:
-  'Default location for remote log files. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.logserver.port:
   'Default port number to receive logs from alluxio servers. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.logserver.threads.max:
@@ -112,6 +108,8 @@ alluxio.secondary.master.metastore.dir:
   'The secondary master metastore work directory. Only some metastores need disk.'
 alluxio.site.conf.dir:
   'Comma-separated search path for alluxio-site.properties. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
+alluxio.test.deprecated.key:
+  'N/A'
 alluxio.test.mode:
   'Flag used only during tests to allow special behavior.'
 alluxio.tmp.dirs:
@@ -210,8 +208,6 @@ alluxio.web.file.info.enabled:
   'Whether detailed file information are enabled for the web UI.'
 alluxio.web.resources:
   'Path to the web application resources.'
-alluxio.web.temp.path:
-  'Path to store temporary web server files.'
 alluxio.web.threads:
   'How many threads to use for the web server.'
 alluxio.webui.cors.enabled:
@@ -270,8 +266,6 @@ fs.oss.accessKeySecret:
   'The secret key of OSS bucket.'
 fs.oss.endpoint:
   'The endpoint key of OSS bucket.'
-fs.swift.apikey:
-  '(deprecated) The API key used for user:tenant authentication.'
 fs.swift.auth.method:
   'Choice of authentication method: [tempauth (default), swiftauth, keystone, keystonev3].'
 fs.swift.auth.url:
@@ -284,7 +278,5 @@ fs.swift.simulation:
   'Whether to simulate a single node Swift backend for testing purposes: true or false (default).'
 fs.swift.tenant:
   'Swift user for authentication.'
-fs.swift.use.public.url:
-  'Whether the REST server is in a public domain: true (default) or false.'
 fs.swift.user:
   'Swift tenant for authentication.'
