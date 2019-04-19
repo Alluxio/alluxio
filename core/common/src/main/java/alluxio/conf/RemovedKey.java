@@ -7,6 +7,8 @@ import alluxio.grpc.Scope;
  */
 public class RemovedKey {
 
+  private static final String v2Removed = "v2.0 removed the ability to configure this parameter.";
+
   @Removed(message = "The alluxio web UI overhaul in v2.0 removed this parameter.")
   public static final PropertyKey WEB_TEMP_PATH =
       new PropertyKey.Builder(PropertyKey.Name.WEB_TEMP_PATH)
@@ -26,13 +28,13 @@ public class RemovedKey {
           .setScope(Scope.SERVER)
           .build();
 
-  @Removed(message = "It is no longer used in v2.0 and later")
+  @Removed(message = v2Removed)
   public static final PropertyKey SWIFT_USE_PUBLIC_URI_KEY =
       new PropertyKey.Builder(PropertyKey.Name.SWIFT_USE_PUBLIC_URI_KEY)
           .setDescription("Whether the REST server is in a public domain: true (default) or false.")
           .build();
 
-  @Removed(message = "v2.0 removed the ability to configure this parameter")
+  @Removed(message = v2Removed)
   public static final PropertyKey MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
       new PropertyKey.Builder(PropertyKey.Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL)
           .setDefaultValue("10min")
@@ -41,7 +43,7 @@ public class RemovedKey {
           .setScope(Scope.MASTER)
           .build();
 
-  @Removed(message = "v2.0 removed the ability to configure this parameter")
+  @Removed(message = v2Removed)
   public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =
       new PropertyKey.Builder(PropertyKey.Name.MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT)
           .setDescription("Retry period before active ufs syncer gives up on connecting to the ufs")
@@ -49,7 +51,7 @@ public class RemovedKey {
           .setScope(Scope.MASTER)
           .build();
 
-  @Removed(message = "v2.0 removed the ability to configure this parameter")
+  @Removed(message = v2Removed)
   public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL =
       new PropertyKey.Builder(PropertyKey.Name.MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL)
           .setDefaultValue("1sec")
@@ -65,7 +67,7 @@ public class RemovedKey {
           .setScope(Scope.MASTER)
           .build();
 
-  @Removed(message = "v2.0 removed the ability to configure this parameter")
+  @Removed(message = v2Removed)
   public static final PropertyKey LOGSERVER_LOGS_DIR =
       new PropertyKey.Builder(PropertyKey.Name.LOGSERVER_LOGS_DIR)
           .setDefaultValue(String.format("${%s}/logs", PropertyKey.Name.WORK_DIR))
@@ -74,7 +76,7 @@ public class RemovedKey {
           .setScope(Scope.SERVER)
           .build();
 
-  @Removed(message = "v2.0 removed the ability to configure this parameter")
+  @Removed(message = v2Removed)
   public static final PropertyKey LOGSERVER_HOSTNAME =
       new PropertyKey.Builder(PropertyKey.Name.LOGSERVER_HOSTNAME)
           .setDescription("The hostname of Alluxio logserver.")
@@ -82,14 +84,31 @@ public class RemovedKey {
           .setScope(Scope.SERVER)
           .build();
 
-  @Removed(message = "v2.0 removed this property key. Use alluxio.locality.node instead to set"
+  @Removed(message = v2Removed)
+  public static final PropertyKey USER_FAILED_SPACE_REQUEST_LIMITS =
+      new PropertyKey.Builder(PropertyKey.Name.USER_FAILED_SPACE_REQUEST_LIMITS)
+          .setDefaultValue(3)
+          .setDescription("The number of times to request space from the file system before "
+              + "aborting.")
+          .setScope(Scope.CLIENT)
+          .build();
+
+  @Removed(message = v2Removed)
+  public static final PropertyKey USER_FILE_SEEK_BUFFER_SIZE_BYTES =
+      new PropertyKey.Builder(PropertyKey.Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES)
+          .setDefaultValue("1MB")
+          .setDescription("The file seek buffer size. This is only used when "
+              + "alluxio.user.file.cache.partially.read.block is enabled.")
+          .setScope(Scope.CLIENT)
+          .build();
+
       + " the client hostname.")
   public static final PropertyKey USER_HOSTNAME = new PropertyKey.Builder(PropertyKey.Name.USER_HOSTNAME)
       .setDescription("The hostname to use for the client.")
       .setScope(Scope.CLIENT)
       .build();
 
-  @Removed(message = "v2.0 removed the ability to configure this parameter.")
+  @Removed(message = v2Removed)
   public static final PropertyKey USER_NETWORK_SOCKET_TIMEOUT =
       new PropertyKey.Builder(PropertyKey.Name.USER_NETWORK_SOCKET_TIMEOUT)
           .setAlias(new String[]{
