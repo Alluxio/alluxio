@@ -111,7 +111,7 @@ public class ClientContext {
   public synchronized void updateConfigurationDefaults(InetSocketAddress address)
       throws AlluxioStatusException {
     Pair<AlluxioConfiguration, PathConfiguration> conf =
-        ConfigurationUtils.loadClusterAndPathDefaults(address, mConf, mPathConf);
+        ConfigurationUtils.loadClusterAndPathDefaults(address, mConf);
     mConf = conf.getFirst();
     mPathConf = conf.getSecond();
   }

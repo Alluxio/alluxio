@@ -618,16 +618,15 @@ public final class ConfigurationUtils {
    * Only client scope properties will be loaded.
    *
    * @param address the meta master address
-   * @param clusterConf the cluster level configuration
-   * @param pathConf the cluster level configuration
+   * @param conf the cluster level configuration
    * @return both cluster and path level configuration
    */
   public static Pair<AlluxioConfiguration, PathConfiguration> loadClusterAndPathDefaults(
-      InetSocketAddress address, AlluxioConfiguration clusterConf, PathConfiguration pathConf)
+      InetSocketAddress address, AlluxioConfiguration conf)
       throws AlluxioStatusException {
-    GetConfigurationPResponse response = loadConfiguration(address, clusterConf);
-    clusterConf = loadClusterConfiguration(response, clusterConf);
-    pathConf = loadPathConfiguration(response, clusterConf);
+    GetConfigurationPResponse response = loadConfiguration(address, conf);
+    AlluxioConfiguration clusterConf = loadClusterConfiguration(response, conf);
+    PathConfiguration pathConf = loadPathConfiguration(response, conf);
     return new Pair<>(clusterConf, pathConf);
   }
 }
