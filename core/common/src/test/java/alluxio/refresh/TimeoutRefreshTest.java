@@ -11,10 +11,13 @@
 
 package alluxio.refresh;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.util.CommonUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
+
 
 /**
  * Tests for the {@link TimeoutRefresh} class.
@@ -30,14 +33,14 @@ public final class TimeoutRefreshTest {
     final long slackMs = 200;
     TimeoutRefresh timeoutRefresh = new TimeoutRefresh(timeoutMs);
     // First check, should attempt
-    Assert.assertTrue(timeoutRefresh.attempt());
+    assertTrue(timeoutRefresh.attempt());
     // Second check, should not attempt before refresh timeout
-    Assert.assertFalse(timeoutRefresh.attempt());
+    assertFalse(timeoutRefresh.attempt());
 
     CommonUtils.sleepMs(timeoutMs);
     CommonUtils.sleepMs(slackMs);
 
-    Assert.assertTrue(timeoutRefresh.attempt());
-    Assert.assertFalse(timeoutRefresh.attempt());
+    assertTrue(timeoutRefresh.attempt());
+    assertFalse(timeoutRefresh.attempt());
   }
 }
