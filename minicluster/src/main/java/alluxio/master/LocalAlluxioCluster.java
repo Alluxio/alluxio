@@ -126,7 +126,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     setHostname();
     for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
         .testConfigurationDefaults(ServerConfiguration.global(),
-            mHostname, mJournalType.toString(), mWorkDirectory).entrySet()) {
+            mHostname, mWorkDirectory).entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, mJournalType);

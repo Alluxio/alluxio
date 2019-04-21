@@ -18,10 +18,10 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.backcompat.BackwardsCompatibilityJournalGenerator;
 import alluxio.master.backcompat.Journal;
 import alluxio.master.backcompat.TestOp;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.Clients;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.Builder;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.security.LoginUser;
 import alluxio.testutils.BaseIntegrationTest;
@@ -68,7 +68,7 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
     // Tests that the operation checks pass before and after restart.
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKWARDS_COMPATIBILITY)
         .setClusterName("BackwardsCompatibility")
-        .setDeployMode(DeployMode.UFS_NON_HA)
+        .setJournalType(JournalType.UFS)
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();
@@ -104,7 +104,7 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
       LOG.info("Checking journal %s\n", journal.getDir());
       Builder builder = MultiProcessCluster.newBuilder(PortCoordination.BACKWARDS_COMPATIBILITY)
           .setClusterName("BackwardsCompatibility")
-          .setDeployMode(DeployMode.UFS_NON_HA)
+          .setJournalType(JournalType.UFS)
           .setNumMasters(1)
           .setNumWorkers(1);
       if (journal.isBackup()) {

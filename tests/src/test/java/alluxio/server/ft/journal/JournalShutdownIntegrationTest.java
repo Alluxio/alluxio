@@ -33,6 +33,7 @@ import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.master.MasterTestUtils;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystem;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
@@ -107,6 +108,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     MultiProcessCluster cluster =
         MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_STOP_SINGLE_MASTER)
             .setClusterName("singleMasterJournalStopIntegration")
+            .setJournalType(IntegrationTestUtils.getSystemTestJournalType())
             .setNumWorkers(0)
             .setNumMasters(1)
             .build();
@@ -136,6 +138,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     MultiProcessCluster cluster =
         MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_STOP_MULTI_MASTER)
             .setClusterName("multiMasterJournalStopIntegration")
+            .setJournalType(IntegrationTestUtils.getSystemTestJournalType())
             .setNumWorkers(0)
             .setNumMasters(TEST_NUM_MASTERS)
             // Cannot go lower than 2x the tick time. Curator testing cluster tick time is 3s and

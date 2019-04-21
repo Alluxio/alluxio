@@ -83,7 +83,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     setHostname();
     for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
         .testConfigurationDefaults(ServerConfiguration.global(),
-            mHostname, JournalType.UFS.toString(), mWorkDirectory).entrySet()) {
+            mHostname, mWorkDirectory).entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, 0);

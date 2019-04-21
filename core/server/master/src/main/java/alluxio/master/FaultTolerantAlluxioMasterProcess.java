@@ -81,13 +81,15 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     LOG.info("Secondary started");
     while (!Thread.interrupted()) {
       mLeaderSelector.waitForState(State.PRIMARY);
+      if (!mRunning) {
+        break;
+      }
       if (gainPrimacy()) {
         mLeaderSelector.waitForState(State.SECONDARY);
-        if (mRunning) { // To identify whether stop is called
-          losePrimacy();
-        } else {
+        if (!mRunning) {
           break;
         }
+        losePrimacy();
       }
     }
   }

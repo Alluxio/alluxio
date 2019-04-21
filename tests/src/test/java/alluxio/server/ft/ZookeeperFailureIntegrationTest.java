@@ -19,9 +19,9 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ListStatusPRequest;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
@@ -70,7 +70,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
   public void zkFailure() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_FAILURE)
         .setClusterName("ZookeeperFailure")
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
+        .setJournalType(JournalType.UFS)
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();

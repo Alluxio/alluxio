@@ -28,8 +28,8 @@ import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientContext;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
@@ -69,7 +69,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreZk() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_ZK)
         .setClusterName("backupRestoreZk")
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
+        .setJournalType(JournalType.UFS)
         .setNumMasters(3)
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec").build();
@@ -80,7 +80,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreEmbedded() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_EMBEDDED)
         .setClusterName("backupRestoreEmbedded")
-        .setDeployMode(DeployMode.EMBEDDED)
+        .setJournalType(JournalType.EMBEDDED)
         .setNumMasters(3).build();
     backupRestoreTest(true);
   }
@@ -89,7 +89,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreSingleMaster() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_SINGLE)
         .setClusterName("backupRestoreSingle")
-        .setDeployMode(DeployMode.UFS_NON_HA)
+        .setJournalType(JournalType.UFS)
         .setNumMasters(1).build();
     backupRestoreTest(false);
   }

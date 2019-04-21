@@ -25,6 +25,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterClientContext;
 import alluxio.master.NoopMaster;
 import alluxio.master.PortRegistry;
+import alluxio.master.journal.JournalType;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
@@ -175,6 +176,15 @@ public final class IntegrationTestUtils {
       PropertyKey key = service.getPortKey();
       ServerConfiguration.set(key, PortRegistry.reservePort());
     }
+  }
+
+  /**
+   * @return the system test journal type
+   */
+  public static JournalType getSystemTestJournalType() {
+    String journalType = System.getProperty("alluxio.test.journal.type");
+    return !journalType.isEmpty() && journalType.equals(JournalType.UFS.toString())
+        ? JournalType.UFS : JournalType.EMBEDDED;
   }
 
   public static void releaseMasterPorts() {

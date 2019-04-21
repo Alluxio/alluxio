@@ -44,12 +44,11 @@ public final class ConfigurationTestUtils {
    * them to test specific functionality.
    *
    * @param hostname the master hostname
-   * @param journalType the master journal type
    * @param workDirectory the work directory in which to configure the journal and tiered storage
    * @return the configuration
    */
   public static Map<PropertyKey, String> testConfigurationDefaults(AlluxioConfiguration alluxioConf,
-      String hostname, String journalType, String workDirectory) {
+      String hostname, String workDirectory) {
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.MASTER_HOSTNAME, hostname);
     conf.put(PropertyKey.WORKER_BIND_HOST, hostname);
@@ -125,20 +124,15 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    if (journalType.equals("UFS")) {
-      conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
-    } else {
-      // Raft journal system need longer to start, job worker connect should wait for longer time
-      conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "3s");
-      // Election timeout should be bigger than the default copycat heartbeat interval 250
-      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "260ms");
-      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "50ms");
-      // Reset the value to avoid raft journal system complaining about log size < 65
-      conf.put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
-          PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX.getDefaultValue());
-      // For faster test shutdown
-      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT, "100ms");
-    }
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2s");
+    // Election timeout should be bigger than the default copycat heartbeat interval 250
+    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "260ms");
+    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "50ms");
+    // Reset the value to avoid raft journal system complaining about log size < 65
+    conf.put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
+        PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX.getDefaultValue());
+    // For faster test shutdown
+    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT, "100ms");
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
     return conf;
   }

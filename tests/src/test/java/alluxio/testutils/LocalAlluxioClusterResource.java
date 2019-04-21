@@ -203,8 +203,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     public Builder() {
       mStartCluster = true;
       mNumWorkers = 1;
-      mJournalType = ServerConfiguration
-          .getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+      mJournalType = IntegrationTestUtils.getSystemTestJournalType();
       mConfiguration = new HashMap<>();
     }
 
