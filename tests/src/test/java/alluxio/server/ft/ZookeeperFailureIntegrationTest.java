@@ -71,7 +71,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_FAILURE)
         .setClusterName("ZookeeperFailure")
         .setJournalType(JournalType.UFS)
-        .setNumMasters(1)
+        .setNumMasters(2)
         .setNumWorkers(1)
         .build();
     mCluster.start();
