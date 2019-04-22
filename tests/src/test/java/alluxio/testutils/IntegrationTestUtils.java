@@ -179,6 +179,9 @@ public final class IntegrationTestUtils {
   }
 
   /**
+   * Gets the system property "alluxio.test.journal.type" which is injected by surefire plugin.
+   * If nothing is provided or the value passed in is invalid, return the default journal type.
+   *
    * @return the system test journal type
    */
   public static JournalType getSystemTestJournalType() {
