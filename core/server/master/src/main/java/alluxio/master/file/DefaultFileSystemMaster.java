@@ -560,7 +560,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         UnderFileSystemConfiguration ufsConf =
             UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
             .createMountSpecificConf(mountInfo.getOptions().getPropertiesMap());
-        mUfsManager.addMount(mountInfo.getMountId(), new AlluxioURI(key), ufsConf);
+        mUfsManager.addMount(mountInfo.getMountId(), mountInfo.getUfsUri(), ufsConf);
       }
       // Startup Checks and Periodic Threads.
 
