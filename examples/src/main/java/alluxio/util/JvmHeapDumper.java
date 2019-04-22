@@ -72,6 +72,11 @@ public class JvmHeapDumper extends Thread {
     mDirPath = f.getAbsolutePath();
   }
 
+  /**
+   * Stops the heap dumper thread.
+   *
+   * @throws InterruptedException
+   */
   public void stopDumps() throws InterruptedException {
     mStop.set(true);
     join();

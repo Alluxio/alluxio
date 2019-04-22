@@ -12,13 +12,8 @@
 package alluxio.cli;
 
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-import alluxio.cli.profiler.HadoopProfilerClient;
-import alluxio.cli.profiler.ProfilerClient;
 import alluxio.util.JvmHeapDumper;
 
 import org.apache.hadoop.security.UserGroupInformation;
@@ -46,5 +41,4 @@ public class ClientProfilerTest {
       fail();
     }
   }
-
 }

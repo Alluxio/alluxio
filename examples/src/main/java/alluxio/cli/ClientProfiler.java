@@ -39,7 +39,13 @@ public class ClientProfiler {
   }
 
   /**
-   * The operation type
+   * The operation type.
+   *
+   * - cleanup is a "fast" cleanup of all directories/files
+   * - createFiles creates lots of files
+   * - deleteFiles deletes lots of files
+   * - listFiles lists lots of files
+   * - readFiles reads lots of files
    */
   enum OperationType {
     cleanup,

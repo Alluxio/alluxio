@@ -32,13 +32,20 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Profiles operations.
+ * A client which can be used to profile common filesystem operations.
  */
 public abstract class ProfilerClient {
 
-  protected static final int CHUNK_SIZE = 10 * Constants.MB;
-  protected static final byte[] WRITE_BUFFER = new byte[CHUNK_SIZE];
-  protected static final byte[] READ_BUFFER = new byte[CHUNK_SIZE];
+  private static final int CHUNK_SIZE = 10 * Constants.MB;
+  private static final byte[] WRITE_BUFFER = new byte[CHUNK_SIZE];
+  private static final byte[] READ_BUFFER = new byte[CHUNK_SIZE];
+
+  /**
+   * Whether or not all operations should be executed as dry runs.
+   *
+   * A dry run will not execute any real operations and will only print the expected operations
+   * to the terminal.
+   */
   public static boolean sDryRun = false;
 
   /**
@@ -80,11 +87,12 @@ public abstract class ProfilerClient {
     for (int k = 0; k < fileSize / CHUNK_SIZE; k++) {
       os.write(WRITE_BUFFER);
     }
-    os.write(Arrays.copyOf(WRITE_BUFFER, (int)(fileSize % CHUNK_SIZE))); // Write any remaining data
+    os.write(Arrays.copyOf(WRITE_BUFFER, (int) (fileSize % CHUNK_SIZE))); // Write any remaining
+    // data
   }
 
   static void readInput(InputStream is) throws IOException {
-    while(is.read(READ_BUFFER) != -1){
+    while (is.read(READ_BUFFER) != -1) {
       continue;
     }
   }
@@ -110,6 +118,7 @@ public abstract class ProfilerClient {
    * Create a file with a given size at the path.
    *
    * @param rawPath directory to clean
+   * @param fileSize the amount of data to write to the file
    * @throws IOException
    */
   public abstract void createFile(String rawPath, long fileSize) throws IOException;
@@ -123,7 +132,7 @@ public abstract class ProfilerClient {
   public abstract void createDir(String rawPath) throws IOException;
 
   /**
-   * Delete an inode at the given path
+   * Delete an inode at the given path.
    *
    * @param rawPath directory to clean
    * @throws IOException
@@ -131,7 +140,7 @@ public abstract class ProfilerClient {
   public abstract void delete(String rawPath) throws IOException;
 
   /**
-   * list the status of an inode at the path
+   * list the status of an inode at the path.
    *
    * @param rawPath path of the inode to list
    * @throws IOException
@@ -139,7 +148,7 @@ public abstract class ProfilerClient {
   public abstract void list(String rawPath) throws IOException;
 
   /**
-   * Reads through all of the bytes of a file at the given path
+   * Reads through all of the bytes of a file at the given path.
    *
    * @param rawPath the path of the file in the filesystem
    * @throws IOException
@@ -155,21 +164,25 @@ public abstract class ProfilerClient {
    * @param dir directory to clean
    * @param numFiles the total number of files to create
    * @param filesPerDir number of files to create in each directory
+   * @param numThreads the number of threads to utilize
+   * @param ratePerSecond the amount of lists allowed per second
    * @throws IOException
    */
   public final void listFiles(String dir, long numFiles, long filesPerDir, int numThreads,
       int ratePerSecond)
       throws IOException {
     runOperation(dir, numFiles, filesPerDir, numThreads, ratePerSecond,
-        (dirName) -> {},
+        (dirName) -> { },
         (fileName) -> {
-      try {
-        if (!sDryRun) {
-          list(fileName);
-        } else {
-          System.out.println("list file: " + fileName);
-        }
-      } catch (IOException e) { }
+          try {
+            if (!sDryRun) {
+              list(fileName);
+            } else {
+              System.out.println("list file: " + fileName);
+            }
+          } catch (IOException e) {
+            // Ignore exception
+          }
         });
   }
 
@@ -183,29 +196,34 @@ public abstract class ProfilerClient {
    * @param numFiles the total number of files to create
    * @param filesPerDir number of files to create in each directory
    * @param fileSize the size in bytes of each file that will be created
+   * @param numThreads the number of threads that allow concurrent operations
+   * @param ratePerSecond the number of creates allowed per second
    * @throws IOException
    */
   public final void createFiles(String dir, long numFiles, long filesPerDir, long fileSize,
       int numThreads, int ratePerSecond) throws IOException {
     runOperation(dir, numFiles, filesPerDir, numThreads, ratePerSecond,
         (dirName) -> {
-      try {
-        if (!sDryRun) {
-          createDir(dirName);
-        } else {
-          System.out.println("create dir: " + dirName);
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }},
+          try {
+            if (!sDryRun) {
+              createDir(dirName);
+            } else {
+              System.out.println("create dir: " + dirName);
+            }
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        },
         (fileName) -> {
-      try {
-        if (!sDryRun) {
-          createFile(fileName, fileSize);
-        } else {
-          System.out.println("create file: " + fileName);
-        }
-      } catch (IOException e) { }
+          try {
+            if (!sDryRun) {
+              createFile(fileName, fileSize);
+            } else {
+              System.out.println("create file: " + fileName);
+            }
+          } catch (IOException e) {
+            // Ignore exception
+          }
         });
   }
 
@@ -218,45 +236,52 @@ public abstract class ProfilerClient {
    * @param dir directory to clean
    * @param numFiles the total number of files to create
    * @param filesPerDir number of files to create in each directory
+   * @param numThreads the number of threads that allow concurrent operations
+   * @param ratePerSecond the number of creates allowed per second
    * @throws IOException
    */
   public final void deleteFiles(String dir, long numFiles, long filesPerDir, int numThreads,
       int ratePerSecond) throws IOException {
     runOperation(dir, numFiles, filesPerDir, numThreads, ratePerSecond,
-        (deleteDir) -> {},
-        (deleteFile) ->  {
-      try {
-        if (!sDryRun) {
-          delete(deleteFile);
-        } else {
-          System.out.println("delete: " + deleteFile);
-        }
-      } catch (IOException e) { }
-    });
+        (deleteDir) -> { },
+        (deleteFile) -> {
+          try {
+            if (!sDryRun) {
+              delete(deleteFile);
+            } else {
+              System.out.println("delete: " + deleteFile);
+            }
+          } catch (IOException e) {
+            // Ignore exception
+          }
+        });
   }
 
   /**
    * Reads files underneath the given dir in a directory structure determined by
    * the number of files, threads, and files per directory.
-   * @param dir
-   * @param numFiles
-   * @param filesPerDir
-   * @param numThreads
-   * @param ratePerSecond
+   *
+   * @param dir directory to clean
+   * @param numFiles the total number of files to create
+   * @param filesPerDir number of files to create in each directory
+   * @param numThreads the number of threads that allow concurrent operations
+   * @param ratePerSecond the number of creates allowed per second
    * @throws IOException
    */
   public final void readFiles(String dir, long numFiles, long filesPerDir, int numThreads,
       int ratePerSecond) throws IOException {
     runOperation(dir, numFiles, filesPerDir, numThreads, ratePerSecond,
-        (readDir) -> {},
+        (readDir) -> { },
         (readFile) -> {
-      try {
-        if (!sDryRun) {
-          read(readFile);
-        } else {
-          System.out.println("read file: " + readFile);
-        }
-      } catch (IOException e) { }
+          try {
+            if (!sDryRun) {
+              read(readFile);
+            } else {
+              System.out.println("read file: " + readFile);
+            }
+          } catch (IOException e) {
+            // Ignore exception
+          }
         });
   }
 
@@ -304,7 +329,7 @@ public abstract class ProfilerClient {
 
     List<Thread> threads = new ArrayList<>();
     RateLimiter limiter = RateLimiter.create(ratePerSecond);
-    int numThreadFiles = (int)numFiles / numThreads;
+    int numThreadFiles = ((int) numFiles) / numThreads;
     for (int i = 0; i < numThreads; i++) {
       int threadNum = i;
       // number of operations to perform on each thread

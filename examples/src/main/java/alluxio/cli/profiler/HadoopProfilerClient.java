@@ -21,10 +21,19 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+/**
+ * Implementation of {@link ProfilerClient} for using the HDFS java client.
+ */
 public class HadoopProfilerClient extends ProfilerClient {
 
   private final FileSystem mClient;
 
+  /**
+   * Create a new client which is capable of being profiled while performing common filesystem
+   * operations.
+   * @param hadoopUri the uri used to initialize the client. Should point to the HDFS namenode
+   * @param conf the hadoop configuration
+   */
   public HadoopProfilerClient(String hadoopUri, Configuration conf) {
     try {
       mClient = FileSystem.get(new URI(hadoopUri), conf);

@@ -25,13 +25,16 @@ import alluxio.grpc.ListStatusPOptions;
 import java.io.IOException;
 
 /**
- * Profiler client for Alluxio.
+ * Implementation of {@link ProfilerClient} for using the Alluxio native java client.
  */
 public class AlluxioProfilerClient extends ProfilerClient {
 
-
   private final FileSystem mClient;
 
+  /**
+   * Creates a new Alluxio client capable of being profiled when performing common filesystem
+   * operations.
+   */
   public AlluxioProfilerClient() {
     mClient = FileSystem.Factory.get();
   }
