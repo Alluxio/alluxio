@@ -1208,7 +1208,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT)
           .setDefaultValue("10sec")
-          .setDescription("Maximum time to wait for embedded journal to stop on shutdown")
+          .setDescription("Maximum time to wait for embedded journal to stop on shutdown.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();

@@ -315,6 +315,7 @@
               <value>${hadoop.version}</value>
             </property>
             <property>
+              <!--By default the journal type is EMBEDDED, unless -Dtest.journal.type=UFS is given-->
               <name>alluxio.test.journal.type</name>
               <value>${test.journal.type}</value>
             </property>
