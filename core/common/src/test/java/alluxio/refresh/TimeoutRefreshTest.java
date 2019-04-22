@@ -18,7 +18,6 @@ import alluxio.util.CommonUtils;
 
 import org.junit.Test;
 
-
 /**
  * Tests for the {@link TimeoutRefresh} class.
  */
