@@ -18,8 +18,6 @@ import alluxio.util.JvmHeapDumper;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
-import java.io.IOException;
-
 /**
  * Class to help profile clients with heapdumps. Combine with flamegraphs for full exploitabillty
  */
@@ -27,17 +25,28 @@ public class ClientProfiler {
 
   private static final String DEFAULT_DIR = "/alluxio-profiling";
 
-  enum ClientType {
+  /**
+   * The client type to user for profiling.
+   *
+   * - abstractfs is the alluxio hadoop client wrapper
+   * - alluxio is the native alluxio java client
+   * - hadoop is the java HDFS client
+   */
+  public enum ClientType {
     abstractfs,
     alluxio,
     hadoop,
   }
 
+  /**
+   * The operation type
+   */
   enum OperationType {
     cleanup,
     createFiles,
     deleteFiles,
     listFiles,
+    readFiles,
   }
 
   @Parameter(names = {"-c", "--client"},
@@ -56,17 +65,17 @@ public class ClientProfiler {
   private int mNumFiles = 5000;
 
   /** The total amount of data to write across all files in the filesystem. */
-  @Parameter(names = {"-s", "--data-size"}, description = "Amount of data to write to use when " +
-      "profiling.")
+  @Parameter(names = {"-s", "--data-size"}, description = "Amount of data to write to use when "
+      + "profiling.")
   private String mDataParam = "128m";
   private long mDataSize;
 
   /** The number of threads performing concurrent client operations. */
-  @Parameter(names = {"-t", "--num-threads"},
+  @Parameter(names = {"-t", "--threads"},
       description = "total threads to perform operations concurrently")
   private int mNumThreads = 1;
 
-  /** The number of threads performing concurrent client operations. */
+  /** The number of client operations allowed per second. The amount executed will always be <= */
   @Parameter(names = {"-r", "--rate"}, description = "The max number of operations per second. -1"
       + " for unlimited rate")
   private int mOperationRate = -1;
@@ -81,6 +90,10 @@ public class ClientProfiler {
   @Parameter(names = {"--dry"}, description = "Perform a dry run by simply printing all operations")
   private boolean mDryRun = false;
 
+  @Parameter(names = {"--files-per-dir"}, description = "number of leaf files that are allowed in"
+      + " a directory")
+  private int mFilesPerDir = 50;
+
   /**
    * New client profiler.
    * @param args command line arguments
@@ -92,9 +105,9 @@ public class ClientProfiler {
   /**
    * Profiles; creating heap dumps.
    */
-  public void profile() throws IOException, InterruptedException {
+  public void profile() throws InterruptedException {
     ProfilerClient.sDryRun = mDryRun;
-    ProfilerClient client = ProfilerClient.Factory.create(mClientType.toString());
+    ProfilerClient client = ProfilerClient.Factory.create(mClientType);
     if (mOperationRate == -1) {
       mOperationRate = Integer.MAX_VALUE;
     }
@@ -105,31 +118,41 @@ public class ClientProfiler {
           "dump-" + mClientType.toString());
       dumper.start();
     }
+    long startTime = System.currentTimeMillis();
     try {
       switch (mOperation) {
         case createFiles:
-          client.createFiles(mDataDir, mNumFiles, 50, mDataSize / mNumFiles, mNumThreads,
+          client.createFiles(mDataDir, mNumFiles, mFilesPerDir, mDataSize / mNumFiles, mNumThreads,
               mOperationRate);
           break;
         case deleteFiles:
-          client.deleteFiles(mDataDir, mNumFiles, 50, mNumThreads, mOperationRate);
+          client.deleteFiles(mDataDir, mNumFiles, mFilesPerDir, mNumThreads, mOperationRate);
           break;
         case listFiles:
-          client.listFiles(mDataDir, mNumFiles, 50, mNumThreads, mOperationRate);
+          client.listFiles(mDataDir, mNumFiles, mFilesPerDir, mNumThreads, mOperationRate);
+          break;
+        case readFiles:
+          client.readFiles(mDataDir, mNumFiles, mFilesPerDir, mNumThreads, mOperationRate);
           break;
         case cleanup:
           client.cleanup(mDataDir);
           break;
         default:
-          throw new IllegalArgumentException(String.format("%s is an invalid operationType", mOperation));
+          throw new IllegalArgumentException(String.format("%s is an invalid operationType",
+              mOperation));
       }
     } catch (Exception e) {
       e.printStackTrace();
     }
+    long endTime = System.currentTimeMillis();
 
     if (heapDumpEnabled) {
       dumper.stopDumps();
     }
+    long totalTimeMillis = endTime - startTime;
+    System.out.println(
+        String.format("Profiler for client %s took %d ms to finish", mClientType,
+            totalTimeMillis));
   }
 
   private int parseArgs(String[] args) {

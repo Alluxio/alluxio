@@ -12,6 +12,7 @@
 package alluxio.cli.profiler;
 
 import alluxio.Constants;
+import alluxio.cli.ClientProfiler;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -23,6 +24,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import org.apache.hadoop.conf.Configuration;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,7 +37,8 @@ import java.util.function.Consumer;
 public abstract class ProfilerClient {
 
   protected static final int CHUNK_SIZE = 10 * Constants.MB;
-  protected static final byte[] DATA = new byte[CHUNK_SIZE];
+  protected static final byte[] WRITE_BUFFER = new byte[CHUNK_SIZE];
+  protected static final byte[] READ_BUFFER = new byte[CHUNK_SIZE];
   public static boolean sDryRun = false;
 
   /**
@@ -47,19 +50,24 @@ public abstract class ProfilerClient {
         new InstancedConfiguration(ConfigurationUtils.defaults());
 
     /**
-     * Profiler client.
-     * @param type alluxio or hadoop
-     * @return profiler client
+     * Create profiler client based on the type.
+     *
+     * abtractfs will utilize alluxio's hadoop wrapper
+     * alluxio is the native alluxio client
+     * hadoop is the hadoop java client.
+     *
+     * @param type the type of client to profile
+     * @return profiler client for the given type
      */
-    public static ProfilerClient create(String type) {
+    public static ProfilerClient create(ClientProfiler.ClientType type) {
       switch (type) {
-        case "abstractfs":
+        case abstractfs:
           Configuration conf = new Configuration();
           conf.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem");
           return new HadoopProfilerClient("alluxio:///", conf);
-        case "alluxio":
+        case alluxio:
           return new AlluxioProfilerClient();
-        case "hadoop":
+        case hadoop:
           return new HadoopProfilerClient(CONF.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS),
               new Configuration());
         default:
@@ -68,19 +76,17 @@ public abstract class ProfilerClient {
     }
   }
 
-  protected void clientOperation(Runnable action, String msg) {
-    if(!sDryRun) {
-      action.run();
-    } else {
-      System.out.println(msg);
-    }
-  }
-
   static void writeOutput(OutputStream os, long fileSize) throws IOException {
     for (int k = 0; k < fileSize / CHUNK_SIZE; k++) {
-      os.write(DATA);
+      os.write(WRITE_BUFFER);
     }
-    os.write(Arrays.copyOf(DATA, (int)(fileSize % CHUNK_SIZE))); // Write any remaining data
+    os.write(Arrays.copyOf(WRITE_BUFFER, (int)(fileSize % CHUNK_SIZE))); // Write any remaining data
+  }
+
+  static void readInput(InputStream is) throws IOException {
+    while(is.read(READ_BUFFER) != -1){
+      continue;
+    }
   }
 
   /**
@@ -91,8 +97,13 @@ public abstract class ProfilerClient {
    * @throws IOException
    */
   public final void cleanup(String dir) throws IOException {
-    delete(dir);
-    createDir(dir);
+    if (!sDryRun) {
+      delete(dir);
+      createDir(dir);
+    } else {
+      System.out.println(String.format("recursive delete %s", dir));
+      System.out.println(String.format("create dir %s", dir));
+    }
   }
 
   /**
@@ -128,6 +139,14 @@ public abstract class ProfilerClient {
   public abstract void list(String rawPath) throws IOException;
 
   /**
+   * Reads through all of the bytes of a file at the given path
+   *
+   * @param rawPath the path of the file in the filesystem
+   * @throws IOException
+   */
+  public abstract void read(String rawPath) throws IOException;
+
+  /**
    * Lists the statuses files underneath the given dir in a directory structure determined by
    * the number of files, threads, and files per directory.
    *
@@ -145,7 +164,11 @@ public abstract class ProfilerClient {
         (dirName) -> {},
         (fileName) -> {
       try {
-        list(fileName);
+        if (!sDryRun) {
+          list(fileName);
+        } else {
+          System.out.println("list file: " + fileName);
+        }
       } catch (IOException e) { }
         });
   }
@@ -167,19 +190,28 @@ public abstract class ProfilerClient {
     runOperation(dir, numFiles, filesPerDir, numThreads, ratePerSecond,
         (dirName) -> {
       try {
-        createDir(dirName);
+        if (!sDryRun) {
+          createDir(dirName);
+        } else {
+          System.out.println("create dir: " + dirName);
+        }
       } catch (IOException e) {
         throw new RuntimeException(e);
       }},
         (fileName) -> {
       try {
-        createFile(fileName, fileSize);
+        if (!sDryRun) {
+          createFile(fileName, fileSize);
+        } else {
+          System.out.println("create file: " + fileName);
+        }
       } catch (IOException e) { }
         });
   }
 
   /**
-   * Creates files underneath the given dir in a directory structure determined by the
+   * Creates files underneath the given dir in a directory structure determined by
+   * the number of files, threads, and files per directory.
    *
    * If numFiles doesn't divide evenly into numThreads, the remainder number of files is truncated.
    *
@@ -189,21 +221,72 @@ public abstract class ProfilerClient {
    * @throws IOException
    */
   public final void deleteFiles(String dir, long numFiles, long filesPerDir, int numThreads,
-      int ratePerSecond)
-      throws IOException {
+      int ratePerSecond) throws IOException {
     runOperation(dir, numFiles, filesPerDir, numThreads, ratePerSecond,
         (deleteDir) -> {},
         (deleteFile) ->  {
       try {
-        delete(deleteFile);
+        if (!sDryRun) {
+          delete(deleteFile);
+        } else {
+          System.out.println("delete: " + deleteFile);
+        }
       } catch (IOException e) { }
     });
+  }
+
+  /**
+   * Reads files underneath the given dir in a directory structure determined by
+   * the number of files, threads, and files per directory.
+   * @param dir
+   * @param numFiles
+   * @param filesPerDir
+   * @param numThreads
+   * @param ratePerSecond
+   * @throws IOException
+   */
+  public final void readFiles(String dir, long numFiles, long filesPerDir, int numThreads,
+      int ratePerSecond) throws IOException {
+    runOperation(dir, numFiles, filesPerDir, numThreads, ratePerSecond,
+        (readDir) -> {},
+        (readFile) -> {
+      try {
+        if (!sDryRun) {
+          read(readFile);
+        } else {
+          System.out.println("read file: " + readFile);
+        }
+      } catch (IOException e) { }
+        });
   }
 
   /**
    * Given a directory, will execute the provided operations when calculating each directory
    * name and each file name. The number of operations on each file is rate limited to
    * {@code ratePerSecond} operations per second.
+   *
+   * The directory structure mimics the following pattern:
+   *
+   * ---- ${dir}
+   *         |
+   *         |
+   *         +-- profilerThread-0
+   *         +-- profilerThread-1
+   *         |    ...
+   *         +-- profilerThread-${numThreads}
+   *                |
+   *                |
+   *                +-- 0
+   *                +-- 1
+   *                |   ...
+   *                +-- ${numFiles}/${filesPerDir}
+   *                        |
+   *                        |
+   *                        +-- 0
+   *                        +-- 1
+   *                        |   ...
+   *                        +-- ${filesPerDir}
+   *
    *
    * @param dir The directory to run operations in
    * @param numFiles the number of files which is expected
@@ -221,21 +304,22 @@ public abstract class ProfilerClient {
 
     List<Thread> threads = new ArrayList<>();
     RateLimiter limiter = RateLimiter.create(ratePerSecond);
+    int numThreadFiles = (int)numFiles / numThreads;
     for (int i = 0; i < numThreads; i++) {
-      int threadNum = i; //
+      int threadNum = i;
       // number of operations to perform on each thread
-      int numThreadFiles = (int)numFiles / numThreads;
+      // purposefully truncating any remainder
       threads.add(new Thread(() -> {
         String threadDir = PathUtils.concatPath(dir, String.format("profilerThread-%d", threadNum));
-        int createdFiles = 0;
-        while (createdFiles < numThreadFiles) {
-          String subDir = PathUtils.concatPath(threadDir, createdFiles);
+        int fileOps = 0;
+        while (fileOps < numThreadFiles) {
+          String subDir = PathUtils.concatPath(threadDir, fileOps);
           dirRunnable.accept(subDir);
-          for (int j = 0; j < filesPerDir && createdFiles < numThreadFiles; j++) {
+          for (int j = 0; j < filesPerDir && fileOps < numThreadFiles; j++) {
             String filePath = PathUtils.concatPath(subDir, j);
             limiter.acquire();
             fileOpRunnable.accept(filePath);
-            createdFiles++;
+            fileOps++;
           }
         }
       }));

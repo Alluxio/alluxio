@@ -12,7 +12,7 @@
 package alluxio.cli.profiler;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
+import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
@@ -21,10 +21,8 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.util.io.PathUtils;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * Profiler client for Alluxio.
@@ -42,12 +40,8 @@ public class AlluxioProfilerClient extends ProfilerClient {
   public void delete(String rawPath) throws IOException {
     AlluxioURI path = new AlluxioURI(rawPath);
     try {
-      if (!sDryRun) {
-        mClient.delete(path,
-            DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).build());
-      } else {
-        System.out.println("Delete: " + path);
-      }
+      mClient.delete(path,
+          DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(false).build());
     } catch (FileDoesNotExistException e) {
       // ok
     } catch (AlluxioException e) {
@@ -57,53 +51,49 @@ public class AlluxioProfilerClient extends ProfilerClient {
 
   @Override
   public void createFile(String rawPath, long fileSize) throws IOException {
-
-    AlluxioURI path = new AlluxioURI(rawPath);
-    if (!sDryRun) {
-      try (FileOutStream stream = mClient.createFile(path,
-          CreateFilePOptions.newBuilder().build())) {
-        writeOutput(stream, fileSize);
-      } catch (FileDoesNotExistException e) {
-        // ok
-      } catch (AlluxioException e) {
-        throw new IOException(e);
-      }
-    } else {
-      System.out.println("Create file: " + rawPath);
+    try (FileOutStream stream = mClient.createFile(new AlluxioURI(rawPath),
+        CreateFilePOptions.newBuilder().build())) {
+      writeOutput(stream, fileSize);
+    } catch (FileDoesNotExistException e) {
+      // ok
+    } catch (AlluxioException e) {
+      throw new IOException(e);
     }
   }
 
   @Override
   public void createDir(String rawPath) throws IOException {
-    AlluxioURI path = new AlluxioURI(rawPath);
-    if (!sDryRun) {
-      try {
-        mClient.createDirectory(path,
-            CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
-      } catch (FileDoesNotExistException e) {
-        // ok
-      } catch (AlluxioException e) {
-        throw new IOException(e);
-      }
-    } else {
-      System.out.println("Create directory: " + rawPath);
+    try {
+      mClient.createDirectory(new AlluxioURI(rawPath),
+          CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
+    } catch (FileDoesNotExistException e) {
+      // ok
+    } catch (AlluxioException e) {
+      throw new IOException(e);
     }
   }
 
   @Override
   public void list(String rawPath) throws IOException {
-    if (!sDryRun) {
-      try {
-        mClient.listStatus(new AlluxioURI(rawPath), ListStatusPOptions.newBuilder()
-            .setRecursive(true)
-            .build());
-      } catch (FileDoesNotExistException e) {
-        // ok
-      } catch (AlluxioException e) {
-        throw new IOException(e);
-      }
-    } else {
-      System.out.println("List path: " + rawPath);
+    try {
+      mClient.listStatus(new AlluxioURI(rawPath), ListStatusPOptions.newBuilder()
+          .setRecursive(true)
+          .build());
+    } catch (FileDoesNotExistException e) {
+      // ok
+    } catch (AlluxioException e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void read(String rawPath) throws IOException {
+    try (FileInStream fis = mClient.openFile(new AlluxioURI(rawPath))) {
+      readInput(fis);
+    } catch (FileDoesNotExistException e) {
+      // ok
+    } catch (AlluxioException e) {
+      throw new IOException(e);
     }
   }
 }

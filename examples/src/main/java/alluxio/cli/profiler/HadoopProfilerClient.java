@@ -12,6 +12,7 @@
 package alluxio.cli.profiler;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -32,60 +33,32 @@ public class HadoopProfilerClient extends ProfilerClient {
     }
   }
 
-  /**
-   * Delete an inode at the given path
-   *
-   * @param rawPath directory to clean
-   * @throws IOException
-   */
   @Override
   public void createFile(String rawPath, long fileSize) throws IOException {
-    Path filePath = new Path(rawPath);
-    if (!sDryRun) {
-      try (FSDataOutputStream stream = mClient.create(filePath)) {
-        writeOutput(stream, fileSize);
-      }
-    } else {
-      System.out.println("create: " + filePath);
+    try (FSDataOutputStream stream = mClient.create(new Path(rawPath))) {
+      writeOutput(stream, fileSize);
     }
   }
 
-  /**
-   * Delete an inode at the given path
-   *
-   * @param rawPath directory to clean
-   * @throws IOException
-   */
   @Override
   public void createDir(String rawPath) throws IOException {
-    if (!sDryRun) {
-      mClient.mkdirs(new Path(rawPath));
-    } else {
-      System.out.println("create: " + rawPath);
-    }
+    mClient.mkdirs(new Path(rawPath));
   }
 
-  /**
-   * Delete an inode at the given path
-   *
-   * @param rawPath directory to clean
-   * @throws IOException
-   */
   @Override
   public void delete(String rawPath) throws IOException {
-    if (!sDryRun) {
-      mClient.delete(new Path(rawPath), true);
-    } else {
-      System.out.println("delete: " + rawPath);
-    }
+    mClient.delete(new Path(rawPath), true);
   }
 
   @Override
   public void list(String rawPath) throws IOException {
-    if (!sDryRun) {
-      mClient.listStatus(new Path(rawPath));
-    } else {
-      System.out.println("listStatus: " + rawPath);
+    mClient.listStatus(new Path(rawPath));
+  }
+
+  @Override
+  public void read(String rawPath) throws IOException {
+    try (FSDataInputStream fis = mClient.open(new Path(rawPath))) {
+      readInput(fis);
     }
   }
 }
