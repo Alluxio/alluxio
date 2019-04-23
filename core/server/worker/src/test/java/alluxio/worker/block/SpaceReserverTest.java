@@ -29,7 +29,6 @@ import alluxio.util.ThreadFactoryUtils;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -67,7 +66,6 @@ public class SpaceReserverTest {
   }
 
   @Test
-  @Ignore
   public void reserveCorrectAmountsOfSpace() throws Exception {
     BlockWorker blockWorker = mock(BlockWorker.class);
     BlockStoreMeta storeMeta = mock(BlockStoreMeta.class);
