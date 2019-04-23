@@ -48,7 +48,6 @@ public class S3AInputStream extends InputStream {
    * Policy determining the retry behavior in case the key does not exist. The key may not exist
    * because of eventual consistency.
    */
-
   private final RetryPolicy mRetryPolicy;
 
   /**
@@ -79,8 +78,8 @@ public class S3AInputStream extends InputStream {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
-    mRetryPolicy = retryPolicy;
     mPos = position;
+    mRetryPolicy = retryPolicy;
   }
 
   @Override
@@ -132,7 +131,7 @@ public class S3AInputStream extends InputStream {
   }
 
   /**
-   * @return a new stream at mPos if the wrapped stream mIn is null
+   * Opens a new stream at mPos if the wrapped stream mIn is null.
    */
   private void openStream() {
     if (mIn != null) { // stream is already open

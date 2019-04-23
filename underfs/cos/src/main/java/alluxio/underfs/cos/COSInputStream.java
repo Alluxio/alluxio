@@ -57,7 +57,7 @@ public class COSInputStream extends MultiRangeObjectInputStream {
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
   COSInputStream(String bucketName, String key, COSClient client,
-      long multiRangeChunkSize, RetryPolicy retryPolicy) throws IOException {
+      RetryPolicy retryPolicy, long multiRangeChunkSize) throws IOException {
     this(bucketName, key, client, 0L, retryPolicy, multiRangeChunkSize);
   }
 
@@ -79,9 +79,9 @@ public class COSInputStream extends MultiRangeObjectInputStream {
     mKey = key;
     mCosClient = client;
     mPos = position;
+    mRetryPolicy = retryPolicy;
     ObjectMetadata meta = mCosClient.getObjectMetadata(mBucketName, key);
     mContentLength = meta == null ? 0 : meta.getContentLength();
-    mRetryPolicy = retryPolicy;
   }
 
   @Override

@@ -52,8 +52,8 @@ public class KodoInputStream extends MultiRangeObjectInputStream {
     mKey = key;
     mKodoclent = kodoClient;
     mPos = position;
-    mContentLength = kodoClient.getFileInfo(key).fsize;
     mRetryPolicy = retryPolicy;
+    mContentLength = kodoClient.getFileInfo(key).fsize;
   }
 
   @Override
