@@ -126,7 +126,7 @@ public final class MultiProcessCluster {
   private MultiProcessCluster(Map<PropertyKey, String> properties,
       Map<Integer, Map<PropertyKey, String>> masterProperties,
       Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,
-      String clusterName, DeployMode mode, boolean noFormat,
+      String clusterName, boolean noFormat,
       List<PortCoordination.ReservedPort> ports) {
     if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) != null) {
       Preconditions.checkState(
@@ -142,7 +142,6 @@ public final class MultiProcessCluster {
     mNumWorkers = numWorkers;
     // Add a unique number so that different runs of the same test use different cluster names.
     mClusterName = clusterName + "-" + Math.abs(ThreadLocalRandom.current().nextInt());
-    mDeployMode = mode;
     mNoFormat = noFormat;
     mMasters = new ArrayList<>();
     mWorkers = new ArrayList<>();
@@ -150,6 +149,11 @@ public final class MultiProcessCluster {
     mCloser = Closer.create();
     mState = State.NOT_STARTED;
     mSuccess = false;
+
+    String journalType = mProperties.getOrDefault(PropertyKey.MASTER_JOURNAL_TYPE,
+        ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_TYPE));
+    mDeployMode = journalType.equals(JournalType.EMBEDDED.toString()) ? DeployMode.EMBEDDED
+        : numMasters > 1 ? DeployMode.ZOOKEEPER_HA : DeployMode.UFS_NON_HA;
   }
 
   /**
@@ -733,7 +737,6 @@ public final class MultiProcessCluster {
     private int mNumMasters = 1;
     private int mNumWorkers = 1;
     private String mClusterName = "AlluxioMiniCluster";
-    private JournalType mJournalType = null;
     private boolean mNoFormat = false;
 
     // Should only be instantiated by newBuilder().
@@ -791,15 +794,6 @@ public final class MultiProcessCluster {
     }
 
     /**
-     * @param journalType the journal type to set
-     * @return the builder
-     */
-    public Builder setJournalType(JournalType journalType) {
-      mJournalType = journalType;
-      return this;
-    }
-
-    /**
      * @param numMasters the number of masters for the cluster
      * @return the builder
      */
@@ -839,7 +833,6 @@ public final class MultiProcessCluster {
      * @return a constructed {@link MultiProcessCluster}
      */
     public MultiProcessCluster build() {
-      Preconditions.checkState(mJournalType != null);
       Preconditions.checkState(mMasterProperties.keySet()
               .stream().filter(key -> (key >= mNumMasters || key < 0)).count() == 0,
           "The master indexes in master properties should be bigger or equal to zero "
@@ -848,10 +841,8 @@ public final class MultiProcessCluster {
               .stream().filter(key ->  (key >= mNumWorkers || key < 0)).count() == 0,
           "The worker indexes in worker properties should be bigger or equal to zero "
               + "and small than %s", mNumWorkers);
-      DeployMode deployMode = mJournalType == JournalType.EMBEDDED ? DeployMode.EMBEDDED
-          : mNumMasters > 1 ? DeployMode.ZOOKEEPER_HA : DeployMode.UFS_NON_HA;
       return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
-          mNumMasters, mNumWorkers, mClusterName, deployMode, mNoFormat, mReservedPorts);
+          mNumMasters, mNumWorkers, mClusterName, mNoFormat, mReservedPorts);
     }
   }
 

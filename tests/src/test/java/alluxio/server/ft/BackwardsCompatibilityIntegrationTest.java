@@ -68,9 +68,9 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
     // Tests that the operation checks pass before and after restart.
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKWARDS_COMPATIBILITY)
         .setClusterName("BackwardsCompatibility")
-        .setJournalType(JournalType.UFS)
         .setNumMasters(1)
         .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         .build();
     mCluster.start();
     mCluster.waitForAllNodesRegistered(30 * Constants.SECOND_MS);
@@ -104,9 +104,9 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
       LOG.info("Checking journal %s\n", journal.getDir());
       Builder builder = MultiProcessCluster.newBuilder(PortCoordination.BACKWARDS_COMPATIBILITY)
           .setClusterName("BackwardsCompatibility")
-          .setJournalType(JournalType.UFS)
           .setNumMasters(1)
-          .setNumWorkers(1);
+          .setNumWorkers(1)
+          .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString());
       if (journal.isBackup()) {
         builder.addProperty(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, journal.getDir());
       } else {

@@ -48,7 +48,7 @@ public class ConcurrentRecursiveCreateTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setJournalType(JournalType.UFS).build();
+          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString()).build();
 
   @Test
   public void createDuringUfsRename() throws Exception {

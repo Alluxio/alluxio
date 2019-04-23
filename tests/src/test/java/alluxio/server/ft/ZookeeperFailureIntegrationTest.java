@@ -70,9 +70,9 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
   public void zkFailure() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_FAILURE)
         .setClusterName("ZookeeperFailure")
-        .setJournalType(JournalType.UFS)
         .setNumMasters(2)
         .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         .build();
     mCluster.start();
 

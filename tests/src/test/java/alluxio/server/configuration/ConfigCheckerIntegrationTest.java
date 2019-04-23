@@ -26,7 +26,6 @@ import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
-import alluxio.testutils.IntegrationTestUtils;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.InconsistentProperty;
 
@@ -63,7 +62,6 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         = generatePropertyWithDifferentValues(TEST_NUM_MASTERS, key);
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_MASTERS)
         .setClusterName("ConfigCheckerMultiMastersTest")
-        .setJournalType(IntegrationTestUtils.getSystemTestJournalType())
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(0)
         .setMasterProperties(masterProperties)
@@ -86,9 +84,9 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
     mCluster = MultiProcessCluster
         .newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_MASTERS_EMBEDDED_HA)
         .setClusterName("ConfigCheckerMultiMastersEmbeddedHATest")
-        .setJournalType(JournalType.EMBEDDED)
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .setMasterProperties(masterProperties)
         .build();
     mCluster.start();
@@ -108,7 +106,6 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
         = generatePropertyWithDifferentValues(TEST_NUM_WORKERS, key);
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_WORKERS)
         .setClusterName("ConfigCheckerMultiWorkersTest")
-        .setJournalType(IntegrationTestUtils.getSystemTestJournalType())
         .setNumMasters(1)
         .setNumWorkers(TEST_NUM_WORKERS)
         .setWorkerProperties(workerProperties)
@@ -136,7 +133,6 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_NODES)
         .setClusterName("ConfigCheckerMultiNodesTest")
-        .setJournalType(IntegrationTestUtils.getSystemTestJournalType())
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(TEST_NUM_WORKERS)
         .setMasterProperties(masterProperties)
@@ -157,7 +153,6 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.CONFIG_CHECKER_UNSET_VS_SET)
         .setClusterName("ConfigCheckerUnsetVsSet")
-        .setJournalType(IntegrationTestUtils.getSystemTestJournalType())
         .setNumMasters(2)
         .setNumWorkers(0)
         .setMasterProperties(masterProperties)

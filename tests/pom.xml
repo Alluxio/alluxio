@@ -27,7 +27,6 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.basedir}/build/</build.path>
     <surefire.useSystemClassLoader>false</surefire.useSystemClassLoader>
-    <test.journal.type>EMBEDDED</test.journal.type>
   </properties>
 
   <dependencies>
@@ -313,11 +312,6 @@
             <property>
               <name>alluxio.hadoop.version</name>
               <value>${hadoop.version}</value>
-            </property>
-            <property>
-              <!--By default the journal type is EMBEDDED, unless -Dtest.journal.type=UFS is given-->
-              <name>alluxio.test.journal.type</name>
-              <value>${test.journal.type}</value>
             </property>
           </systemProperties>
         </configuration>

@@ -19,6 +19,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.journal.JournalType;
 
@@ -33,22 +34,9 @@ public final class MultiProcessClusterTest {
   public Timeout mTimeout = Timeout.millis(Constants.MAX_TEST_DURATION_MS);
 
   @Test
-  public void simpleClusterUfs() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.MULTI_PROCESS_SIMPLE_CLUSTER_UFS)
+  public void simpleCluster() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.MULTI_PROCESS_SIMPLE_CLUSTER)
         .setClusterName("simpleCluster")
-        .setJournalType(JournalType.UFS)
-        .setNumMasters(1)
-        .setNumWorkers(1)
-        .build();
-    clusterVerification();
-  }
-
-  @Test
-  public void simpleClusterEmbedded() throws Exception {
-    mCluster = MultiProcessCluster
-        .newBuilder(PortCoordination.MULTI_PROCESS_SIMPLE_CLUSTER_EMBEDDED)
-        .setClusterName("simpleCluster")
-        .setJournalType(JournalType.EMBEDDED)
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();
@@ -59,9 +47,9 @@ public final class MultiProcessClusterTest {
   public void zookeeper() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.MULTI_PROCESS_ZOOKEEPER)
         .setClusterName("zookeeper")
-        .setJournalType(JournalType.UFS)
         .setNumMasters(3)
         .setNumWorkers(2)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         .build();
     clusterVerification();
   }

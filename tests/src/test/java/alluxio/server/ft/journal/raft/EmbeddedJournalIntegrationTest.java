@@ -64,7 +64,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .setClusterName("EmbeddedJournalFailover")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(0)
-        .setJournalType(JournalType.EMBEDDED)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
@@ -86,7 +86,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .setClusterName("EmbeddedJournalRestart")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(0)
-        .setJournalType(JournalType.EMBEDDED)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
@@ -113,7 +113,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .setClusterName("EmbeddedJournalRestartStress")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(0)
-        .setJournalType(JournalType.EMBEDDED)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")

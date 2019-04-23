@@ -22,7 +22,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.journal.JournalType;
 import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
@@ -63,19 +62,16 @@ public abstract class AbstractLocalAlluxioCluster {
 
   protected String mWorkDirectory;
   protected String mHostname;
-  protected JournalType mJournalType;
 
   private int mNumWorkers;
 
   /**
    * @param numWorkers the number of workers to run
-   * @param journalType the journal type of this cluster
    */
-  AbstractLocalAlluxioCluster(int numWorkers, JournalType journalType) {
+  AbstractLocalAlluxioCluster(int numWorkers) {
     mProxyProcess = ProxyProcess.Factory.create();
     mNumWorkers = numWorkers;
     mWorkerThreads = new ArrayList<>();
-    mJournalType = journalType;
   }
 
   /**

@@ -27,9 +27,9 @@ public class SecondaryMasterTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
           .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 10)
           .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 1)
-          .setJournalType(JournalType.UFS)
           .build();
 
   @Test

@@ -69,8 +69,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreZk() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_ZK)
         .setClusterName("backupRestoreZk")
-        .setJournalType(JournalType.UFS)
         .setNumMasters(3)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec").build();
     backupRestoreTest(true);
@@ -80,8 +80,9 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreEmbedded() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_EMBEDDED)
         .setClusterName("backupRestoreEmbedded")
-        .setJournalType(JournalType.EMBEDDED)
-        .setNumMasters(3).build();
+        .setNumMasters(3)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .build();
     backupRestoreTest(true);
   }
 
@@ -89,8 +90,9 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreSingleMaster() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_SINGLE)
         .setClusterName("backupRestoreSingle")
-        .setJournalType(JournalType.UFS)
-        .setNumMasters(1).build();
+        .setNumMasters(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .build();
     backupRestoreTest(false);
   }
 

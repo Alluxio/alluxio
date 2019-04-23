@@ -16,7 +16,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.master.journal.JournalType;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
@@ -52,15 +51,14 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * Runs a test Alluxio cluster with a single Alluxio worker.
    */
   public LocalAlluxioCluster() {
-    this(1, ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class));
+    this(1);
   }
 
   /**
    * @param numWorkers the number of workers to run
-   * @param journalType the master journal type
    */
-  public LocalAlluxioCluster(int numWorkers, JournalType journalType) {
-    super(numWorkers, journalType);
+  public LocalAlluxioCluster(int numWorkers) {
+    super(numWorkers);
   }
 
   @Override
@@ -129,7 +127,6 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
             mHostname, mWorkDirectory).entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, mJournalType);
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
