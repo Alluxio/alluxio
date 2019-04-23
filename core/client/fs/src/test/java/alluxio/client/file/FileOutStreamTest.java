@@ -41,6 +41,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.network.TieredIdentityFactory;
@@ -58,6 +59,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -386,6 +388,12 @@ public class FileOutStreamTest {
     verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFilePOptions.class));
     verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME),
         any(ScheduleAsyncPersistencePOptions.class));
+
+    ArgumentCaptor<ScheduleAsyncPersistencePOptions> parameterCaptor =
+        ArgumentCaptor.forClass(ScheduleAsyncPersistencePOptions.class);
+    verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME), parameterCaptor.capture());
+    // Assert that, FileOutStream's common options are propagated to ScheduleAsyncPersistence.
+    Assert.assertEquals(parameterCaptor.getValue().getCommonOptions(), options.getCommonOptions());
   }
 
   /**
