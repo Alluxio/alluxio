@@ -11,7 +11,9 @@
 
 package alluxio.underfs.kodo;
 
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.MultiRangeObjectInputStream;
+import alluxio.underfs.ObjectUnderFileSystem;
 
 import com.qiniu.common.QiniuException;
 
@@ -39,26 +41,41 @@ public class KodoInputStream extends MultiRangeObjectInputStream {
    */
   private final long mContentLength;
 
+  /**
+   * Policy determining the retry behavior to solve eventual consistency issue.
+   */
+  private final RetryPolicy mRetryPolicy;
+
   KodoInputStream(String key, KodoClient kodoClient, long position,
-      long multiRangeChunkSize) throws QiniuException {
+      RetryPolicy retryPolicy, long multiRangeChunkSize) throws QiniuException {
     super(multiRangeChunkSize);
     mKey = key;
     mKodoclent = kodoClient;
     mPos = position;
     mContentLength = kodoClient.getFileInfo(key).fsize;
+    mRetryPolicy = retryPolicy;
+  }
+
+  @Override
+  protected InputStream createStream(long startPos, long endPos)
+      throws IOException {
+    // TODO(lu) only retry when object does not exist because of eventual consistency
+    if (mRetryPolicy == null) {
+      return createStreamOperation(startPos, endPos);
+    } else {
+      return ObjectUnderFileSystem.retryOnException(() -> createStreamOperation(startPos, endPos),
+          () -> "open key " + mKey, mRetryPolicy);
+    }
   }
 
   /**
-   * Open a new stream reading a range. When endPos > content length, the returned stream should
-   * read till the last valid byte of the input. The behaviour is undefined when (startPos < 0),
-   * (startPos >= content length), or (endPos <= 0).
+   * Open a new stream reading a range.
    *
    * @param startPos start position in bytes (inclusive)
    * @param endPos end position in bytes (exclusive)
    * @return a new {@link InputStream}
    */
-  @Override
-  protected InputStream createStream(long startPos, long endPos)
+  private InputStream createStreamOperation(long startPos, long endPos)
       throws IOException {
     return mKodoclent.getObject(mKey, startPos, endPos, mContentLength);
   }

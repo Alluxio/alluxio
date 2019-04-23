@@ -48,6 +48,7 @@ public class S3AInputStream extends InputStream {
    * Policy determining the retry behavior in case the key does not exist. The key may not exist
    * because of eventual consistency.
    */
+
   private final RetryPolicy mRetryPolicy;
 
   /**
@@ -60,7 +61,7 @@ public class S3AInputStream extends InputStream {
    * @param retryPolicy retry policy in case the key does not exist
    */
   public S3AInputStream(String bucketName, String key, AmazonS3 client, RetryPolicy retryPolicy) {
-    this(bucketName, key, client, retryPolicy, 0L);
+    this(bucketName, key, client, 0L, retryPolicy);
   }
 
   /**
@@ -70,11 +71,11 @@ public class S3AInputStream extends InputStream {
    * @param bucketName the bucket the object resides in
    * @param key the path of the object to read
    * @param client the s3 client to use for operations
-   * @param retryPolicy retry policy in case the key does not exist
    * @param position the position to begin reading from
+   * @param retryPolicy retry policy in case the key does not exist
    */
   public S3AInputStream(String bucketName, String key, AmazonS3 client,
-      RetryPolicy retryPolicy, long position) {
+      long position, RetryPolicy retryPolicy) {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
@@ -120,7 +121,7 @@ public class S3AInputStream extends InputStream {
   }
 
   @Override
-  public long skip(long n) {
+  public long skip(long n) throws IOException {
     if (n <= 0) {
       return 0;
     }
@@ -131,7 +132,7 @@ public class S3AInputStream extends InputStream {
   }
 
   /**
-   * Opens a new stream at mPos if the wrapped stream mIn is null.
+   * @return a new stream at mPos if the wrapped stream mIn is null
    */
   private void openStream() {
     if (mIn != null) { // stream is already open
@@ -141,6 +142,10 @@ public class S3AInputStream extends InputStream {
     // If the position is 0, setting range is redundant and causes an error if the file is 0 length
     if (mPos > 0) {
       getReq.setRange(mPos);
+    }
+    if (mRetryPolicy == null) {
+      mIn = mClient.getObject(getReq).getObjectContent();
+      return;
     }
     AmazonS3Exception lastException = null;
     while (mRetryPolicy.attempt()) {

@@ -11,6 +11,9 @@
 
 package alluxio.underfs.gcs;
 
+import alluxio.retry.RetryPolicy;
+import alluxio.underfs.ObjectUnderFileSystem;
+
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.jets3t.service.model.GSObject;
@@ -52,11 +55,11 @@ public final class GCSInputStream extends InputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for GCS
-   * @throws ServiceException if a service exception occurs
+   * @param retryPolicy the retry policy to solve eventual consistency issue
    */
-  GCSInputStream(String bucketName, String key, GoogleStorageService client)
-      throws ServiceException {
-    this(bucketName, key, client, 0L);
+  GCSInputStream(String bucketName, String key, GoogleStorageService client,
+      RetryPolicy retryPolicy) throws IOException {
+    this(bucketName, key, client, 0L, retryPolicy);
   }
 
   /**
@@ -66,21 +69,55 @@ public final class GCSInputStream extends InputStream {
    * @param key the key of the file
    * @param client the client for GCS
    * @param pos the position to start
-   * @throws ServiceException if a service exception occurs
+   * @param retryPolicy the retry policy to solve eventual consistency issue
    */
-  GCSInputStream(String bucketName, String key, GoogleStorageService client, long pos)
-      throws ServiceException {
+  GCSInputStream(String bucketName, String key, GoogleStorageService client,
+      long pos, RetryPolicy retryPolicy) throws IOException {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
     mPos = pos;
-    // For an empty file setting start pos = 0 will throw a ServiceException
-    if (mPos > 0) {
-      mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
-    } else {
-      mObject = mClient.getObject(mBucketName, mKey);
+    mObject = getObjectWithRetry(retryPolicy, pos);
+    try {
+      mInputStream = new BufferedInputStream(mObject.getDataInputStream());
+    } catch (ServiceException e) {
+      throw new IOException(e.getMessage());
     }
-    mInputStream = new BufferedInputStream(mObject.getDataInputStream());
+  }
+
+  /**
+   * Retries getting a {@link GSObject}.
+   *
+   * @param retryPolicy the retry policy to solve eventual consistency issue
+   * @param pos the position to start
+   * @return the {@link GSObject}
+   */
+  private GSObject getObjectWithRetry(RetryPolicy retryPolicy, long pos) throws IOException {
+    // TODO(lu) only retry when object does not exist because of eventual consistency
+    if (retryPolicy == null) {
+      return getObject(pos);
+    } else {
+      return ObjectUnderFileSystem.retryOnException(() -> getObject(pos),
+          () -> "open key " + mKey + " in bucket " + mBucketName, retryPolicy);
+    }
+  }
+
+  /**
+   * Gets a {@link GSObject}.
+   *
+   * @param pos the position to start
+   * @return the {@link GSObject}
+   */
+  private GSObject getObject(long pos) throws IOException {
+    try {
+      if (mPos > 0) {
+        return mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
+      } else {
+        return mClient.getObject(mBucketName, mKey);
+      }
+    } catch (ServiceException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   @Override

@@ -11,7 +11,9 @@
 
 package alluxio.underfs.cos;
 
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.MultiRangeObjectInputStream;
+import alluxio.underfs.ObjectUnderFileSystem;
 
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.COSObject;
@@ -42,17 +44,21 @@ public class COSInputStream extends MultiRangeObjectInputStream {
   /** The size of the object in bytes. */
   private final long mContentLength;
 
+  /** Policy determining the retry behavior to solve eventual consistency issue. */
+  private final RetryPolicy mRetryPolicy;
+
   /**
    * Creates a new instance of {@link COSInputStream}.
    *
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for COS
+   * @param retryPolicy the retry policy to solve eventual consistency issue
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
-  COSInputStream(String bucketName, String key, COSClient client, long multiRangeChunkSize)
-      throws IOException {
-    this(bucketName, key, client, 0L, multiRangeChunkSize);
+  COSInputStream(String bucketName, String key, COSClient client,
+      long multiRangeChunkSize, RetryPolicy retryPolicy) throws IOException {
+    this(bucketName, key, client, 0L, retryPolicy, multiRangeChunkSize);
   }
 
   /**
@@ -62,10 +68,12 @@ public class COSInputStream extends MultiRangeObjectInputStream {
    * @param key the key of the file
    * @param client the client for COS
    * @param position the position to begin reading from
+   * @param retryPolicy the retry policy to use
    * @param multiRangeChunkSize the chunk size to use on this stream
+   *
    */
   COSInputStream(String bucketName, String key, COSClient client, long position,
-      long multiRangeChunkSize) throws IOException {
+      RetryPolicy retryPolicy, long multiRangeChunkSize) throws IOException {
     super(multiRangeChunkSize);
     mBucketName = bucketName;
     mKey = key;
@@ -73,11 +81,29 @@ public class COSInputStream extends MultiRangeObjectInputStream {
     mPos = position;
     ObjectMetadata meta = mCosClient.getObjectMetadata(mBucketName, key);
     mContentLength = meta == null ? 0 : meta.getContentLength();
+    mRetryPolicy = retryPolicy;
   }
 
   @Override
   protected InputStream createStream(long startPos, long endPos)
       throws IOException {
+    // TODO(lu) only retry when object does not exist because of eventual consistency
+    if (mRetryPolicy == null) {
+      return createStreamOperation(startPos, endPos);
+    } else {
+      return ObjectUnderFileSystem.retryOnException(() -> createStreamOperation(startPos, endPos),
+          () -> "open key " + mKey + " in bucket " + mBucketName, mRetryPolicy);
+    }
+  }
+
+  /**
+   * Opens a new stream reading a range.
+   *
+   * @param startPos start position in bytes (inclusive)
+   * @param endPos end position in bytes (exclusive)
+   * @return a new {@link InputStream}
+   */
+  private InputStream createStreamOperation(long startPos, long endPos) {
     GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
     // COS returns entire object if we read past the end
     req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
