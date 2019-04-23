@@ -1187,6 +1187,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       throw new RuntimeException(e); // already checked existence when creating the inodePath
     }
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+    if (!inode.isPersisted()) {
+      return true;
+    }
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       String ufsPath = resolution.getUri().getPath();
@@ -1197,11 +1200,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       try {
         ufsStatus = ufs.getStatus(ufsPath);
       } catch (FileNotFoundException e) {
-        return false;
+        return !inode.isPersisted();
       }
-      if (!inode.isPersisted()) {
-        return false;
-      }
+
       // TODO(calvin): Evaluate which other metadata fields should be validated.
       if (inode.isDirectory()) {
         return ufsStatus.isDirectory();
