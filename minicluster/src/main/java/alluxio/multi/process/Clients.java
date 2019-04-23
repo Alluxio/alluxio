@@ -11,7 +11,7 @@
 
 package alluxio.multi.process;
 
-import alluxio.client.MetaMasterClient;
+import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;

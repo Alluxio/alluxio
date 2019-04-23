@@ -19,7 +19,7 @@ priority: 1
 
 通过拷贝`conf/alluxio-site.properties.template`文件，创建`conf/alluxio-site.properties`。
 
-* 将`conf/alluxio-site.properties`中的`alluxio.master.hostname`设置为`localhost`(即`alluxio.master.hostname=localhost`)。
+* 将`conf/alluxio-site.properties`中的`alluxio.master.hostname`设置为`localhost`（即`alluxio.master.hostname=localhost`）。
 
 * 将`conf/alluxio-site.properties`中的`alluxio.master.mount.table.root.ufs`设置为一个本地文件系统上的临时文件夹（例如，`alluxio.master.mount.table.root.ufs=/tmp`）。
 
@@ -66,7 +66,7 @@ priority: 1
 ## 为什么在linux上运行Alluxio需要sudo权限？
 
 默认情况下，Alluxio使用[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)
-存储内存数据。用户在MacOS系统下可以挂载ramfs，不需要超级用户身份。然而，在linux系统下，用户运行"mount"命令(以及 "umount", "mkdir" 和 "chmod" 命令)需要sudo权限。
+存储内存数据。用户在MacOS系统下可以挂载ramfs，不需要超级用户身份。然而，在linux系统下，用户运行"mount"命令（以及 "umount", "mkdir" 和 "chmod" 命令）需要sudo权限。
 
 ## 用户没有sudo权限，仍然可以在linux下使用Alluxio么？
 
@@ -85,7 +85,7 @@ alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 ```
 
 另外，用户可以使用Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)存储数据，
-Tmpfs是一个由内存支持的临时文件夹(e.g.,常见的Linux下的 `/dev/shm`)，但会使用交换空间，
+Tmpfs是一个由内存支持的临时文件夹（e.g.,常见的Linux下的 `/dev/shm`），但会使用交换空间，
 因此相比于使用RAMFS，Tmpfs提供的性能会稍差。和使用预先挂载的RAMFS类似，用户可以通过`conf/alluxio-site.properties`配置项配置Tmpfs文件夹
 
 ```
@@ -105,9 +105,9 @@ alluxio.worker.tieredstore.level0.dirs.path=/dev/shm
 
 * 通过超级用户身份启动Alluxio。
 * 在[sudoers](https://help.ubuntu.com/community/Sudoers)中增加启动Alluxio的用户。
-* 在Linux文件 `/etc/sudoers`下添加下面一行，赋予当前用户(e.g., "alluxio")有限的sudo权限
+* 在Linux文件 `/etc/sudoers`下添加下面一行，赋予当前用户（e.g., "alluxio"）有限的sudo权限
 `alluxio ALL=(ALL) NOPASSWD: /bin/mount * /mnt/ramdisk, /bin/umount * /mnt/ramdisk, /bin/mkdir * /mnt/ramdisk, /bin/chmod * /mnt/ramdisk`
-这允许"alluxio"用户应用sudo权限在一个具体路径`/mnt/ramdisk` 下执行命令mount, umount, mkdir 和 chmod (假设命令在 `/bin/`)
+这允许"alluxio"用户应用sudo权限在一个具体路径`/mnt/ramdisk` 下执行命令mount, umount, mkdir 和 chmod （假设命令在 `/bin/`）
 ，并且不需要输入密码。
 查看更多关于 [Sudoer User Specifications](https://help.ubuntu.com/community/Sudoers#User_Specifications)的介绍。
 

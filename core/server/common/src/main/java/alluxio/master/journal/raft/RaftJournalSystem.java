@@ -36,6 +36,7 @@ import io.atomix.copycat.server.storage.StorageLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
@@ -184,7 +185,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    */
   public static RaftJournalSystem create(RaftJournalConfiguration conf) {
     RaftJournalSystem system = new RaftJournalSystem(conf);
-    system.initServer();
     return system;
   }
 
@@ -396,6 +396,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void startInternal() throws InterruptedException, IOException {
+    LOG.info("Initializing Raft Journal System");
+    initServer();
     List<Address> clusterAddresses = getClusterAddresses(mConf);
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
         clusterAddresses, getLocalAddress(mConf));
@@ -436,11 +438,14 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void format() throws IOException {
-    if (mConf.getPath().isDirectory()) {
+    File journalPath = mConf.getPath();
+    if (journalPath.isDirectory()) {
       org.apache.commons.io.FileUtils.cleanDirectory(mConf.getPath());
     } else {
-      FileUtils.delete(mConf.getPath().getAbsolutePath());
-      mConf.getPath().mkdirs();
+      if (journalPath.exists()) {
+        FileUtils.delete(journalPath.getAbsolutePath());
+      }
+      journalPath.mkdirs();
     }
   }
 

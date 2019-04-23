@@ -68,7 +68,7 @@ public final class LocalFileDataWriter implements DataWriter {
   public static LocalFileDataWriter create(final FileSystemContext context,
       final WorkerNetAddress address,
       long blockId, OutStreamOptions options) throws IOException {
-    AlluxioConfiguration conf = context.getConf();
+    AlluxioConfiguration conf = context.getClusterConf();
     long chunkSize = conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
 
     Closer closer = Closer.create();

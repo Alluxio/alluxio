@@ -15,8 +15,8 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.MetaMasterClient;
 import alluxio.client.file.FileSystem;
+import alluxio.client.meta.MetaMasterClient;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MasterMetrics;
 import alluxio.multi.process.MultiProcessCluster;

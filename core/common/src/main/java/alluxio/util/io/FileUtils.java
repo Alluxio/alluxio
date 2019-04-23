@@ -221,9 +221,14 @@ public final class FileUtils {
   /**
    * Deletes a file or a directory, recursively if it is a directory.
    *
+   * If the path does not exist, nothing happens.
+   *
    * @param path pathname to be deleted
    */
   public static void deletePathRecursively(String path) throws IOException {
+    if (!exists(path)) {
+      return;
+    }
     Path root = Paths.get(path);
     Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
       @Override

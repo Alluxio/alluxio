@@ -973,10 +973,12 @@ public class TieredBlockStore implements BlockStore {
   public void removeDir(StorageDir dir) {
     // TODO(feng): Add a command for manually removing directory
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      String tierAlias = dir.getParentTier().getTierAlias();
       dir.getParentTier().removeStorageDir(dir);
       synchronized (mBlockStoreEventListeners) {
         for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
           dir.getBlockIds().forEach(listener::onBlockLost);
+          listener.onStorageLost(tierAlias, dir.getDirPath());
         }
       }
     }

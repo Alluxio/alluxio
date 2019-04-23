@@ -164,7 +164,7 @@ public final class TieredIdentityFactory {
     }
     List<LocalityTier> tieredIdentity = new ArrayList<>();
     for (String localityTier : conf.getList(PropertyKey.LOCALITY_ORDER, ",")) {
-      String value = tiers.containsKey(localityTier) ? tiers.get(localityTier) : null;
+      String value = tiers.getOrDefault(localityTier, null);
       tieredIdentity.add(new LocalityTier(localityTier, value));
     }
     return new TieredIdentity(tieredIdentity);
