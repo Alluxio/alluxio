@@ -45,7 +45,7 @@ import java.util.Map;
  * Integration tests for writing to various storage tiers.
  */
 public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
-  private static final int CAPACITY_BYTES = Constants.KB;
+  private static final int CAPACITY_BYTES = Constants.KB * 10;
   private static final int FILE_SIZE = CAPACITY_BYTES;
   private static final String BLOCK_SIZE_BYTES = "1KB";
 
@@ -56,7 +56,6 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "3")
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false)
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2), "HDD")
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
@@ -76,6 +75,10 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallyScheduleEviction =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_SPACE_RESERVER);
 
   private FileSystem mFileSystem = null;
   private BlockMaster mBlockMaster;

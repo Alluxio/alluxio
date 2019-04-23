@@ -2290,17 +2290,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  /**
-   * @deprecated It will be removed in 2.0.0.
-   */
-  @Deprecated
-  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 0)
-          .setDescription("Fraction of space reserved in the top storage tier. "
-              + "This has been deprecated, please use high and low watermark instead.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 0)
           .setDefaultValue(0.95)
@@ -2332,17 +2321,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 1)
           .setDescription("The capacity of the second storage tier.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  /**
-   * @deprecated It will be removed in 2.0.0.
-   */
-  @Deprecated
-  public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 1)
-          .setDescription("Fraction of space reserved in the second storage tier. "
-              + "This has been deprecated, please use high and low watermark instead.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2380,17 +2358,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  /**
-   * @deprecated It will be removed in 2.0.0.
-   */
-  @Deprecated
-  public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 2)
-          .setDescription("Fraction of space reserved in the third storage tier. "
-              + "This has been deprecated, please use high and low watermark instead.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 2)
           .setDefaultValue(0.95)
@@ -2411,13 +2378,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_TIERED_STORE_LEVELS)
           .setDefaultValue(1)
           .setDescription("The number of storage tiers on the worker.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_TIERED_STORE_RESERVER_ENABLED =
-      new Builder(Name.WORKER_TIERED_STORE_RESERVER_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("Whether to enable tiered store reserver service or not.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4062,8 +4022,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
         "alluxio.worker.tieredstore.block.locks";
     public static final String WORKER_TIERED_STORE_LEVELS = "alluxio.worker.tieredstore.levels";
-    public static final String WORKER_TIERED_STORE_RESERVER_ENABLED =
-        "alluxio.worker.tieredstore.reserver.enabled";
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval";
     public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
@@ -4362,8 +4320,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.path"),
     WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA("alluxio.worker.tieredstore.level%d.dirs.quota",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.quota"),
-    WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO("alluxio.worker.tieredstore.level%d.reserved.ratio",
-        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.reserved\\.ratio"),
     WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO(
         "alluxio.worker.tieredstore.level%d.watermark.high.ratio",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.high\\.ratio"),
@@ -4442,7 +4398,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     /**
      * Converts a property key template (e.g.,
-     * {@link #WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO}) to a {@link PropertyKey} instance.
+     * {@link #WORKER_TIERED_STORE_LEVEL_ALIAS}) to a {@link PropertyKey} instance.
      *
      * @param params ordinal
      * @return corresponding property

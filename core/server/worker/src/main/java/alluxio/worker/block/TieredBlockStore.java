@@ -23,7 +23,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.resource.LockResource;
-import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 import alluxio.util.io.FileUtils;
@@ -92,14 +91,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
 
-  private static final boolean RESERVER_ENABLED =
-      ServerConfiguration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED);
   private static final long FREE_SPACE_TIMEOUT_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_FREE_SPACE_TIMEOUT);
   private static final int EVICTION_INTERVAL_MS =
       (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
-  private static final int MAX_RETRIES =
-      ServerConfiguration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
 
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
@@ -219,42 +214,21 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public TempBlockMeta createBlock(long sessionId, long blockId, BlockStoreLocation location,
-      long initialBlockSize)
-          throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    LOG.debug("createBlock: sessionId={}, blockId={}, location={}, initialBlockSize={}",
-        sessionId, blockId, location, initialBlockSize);
-    if (RESERVER_ENABLED) {
-      RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
-      while (retryPolicy.attempt()) {
-        TempBlockMeta tempBlockMeta =
-            createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
-        if (tempBlockMeta != null) {
-          createBlockFile(tempBlockMeta.getPath());
-          return tempBlockMeta;
-        }
+      long initialBlockSize) throws BlockAlreadyExistsException, WorkerOutOfSpaceException,
+      IOException {
+    LOG.debug("createBlock: sessionId={}, blockId={}, location={}, initialBlockSize={}", sessionId,
+        blockId, location, initialBlockSize);
+    RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
+    while (retryPolicy.attempt()) {
+      TempBlockMeta tempBlockMeta =
+          createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
+      if (tempBlockMeta != null) {
+        createBlockFile(tempBlockMeta.getPath());
+        return tempBlockMeta;
       }
-      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT,
-          initialBlockSize, location, FREE_SPACE_TIMEOUT_MS, blockId);
-    } else {
-      RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
-      while (retryPolicy.attempt()) {
-        TempBlockMeta tempBlockMeta =
-            createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
-        if (tempBlockMeta != null) {
-          createBlockFile(tempBlockMeta.getPath());
-          return tempBlockMeta;
-        }
-        // Failed to create a temp block, so trigger Evictor to make some space.
-        // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
-        // allocation also successful, because these two operations are not atomic.
-        freeSpaceInternal(sessionId, initialBlockSize, location, Mode.GUARANTEED);
-      }
-      // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
-      // other types of exception to indicate this case.
-      throw new WorkerOutOfSpaceException(
-          ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED, initialBlockSize,
-          location, MAX_RETRIES, blockId);
     }
+    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT,
+        initialBlockSize, location, FREE_SPACE_TIMEOUT_MS, blockId);
   }
 
   // TODO(bin): Make this method to return a snapshot.
@@ -311,38 +285,18 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
-    LOG.debug("requestSpace: sessionId={}, blockId={}, additionalBytes={}",
-        sessionId, blockId, additionalBytes);
-    if (RESERVER_ENABLED) {
-      RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
-      while (retryPolicy.attempt()) {
-        Pair<Boolean, BlockStoreLocation> requestResult =
-            requestSpaceInternal(blockId, additionalBytes);
-        if (requestResult.getFirst()) {
-          return;
-        }
+    LOG.debug("requestSpace: sessionId={}, blockId={}, additionalBytes={}", sessionId, blockId,
+        additionalBytes);
+    RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
+    while (retryPolicy.attempt()) {
+      Pair<Boolean, BlockStoreLocation> requestResult =
+          requestSpaceInternal(blockId, additionalBytes);
+      if (requestResult.getFirst()) {
+        return;
       }
-      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_REQUEST_SPACE_TIMEOUT,
-          additionalBytes, FREE_SPACE_TIMEOUT_MS, blockId);
-    } else {
-      RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
-      while (retryPolicy.attempt()) {
-        Pair<Boolean, BlockStoreLocation> requestResult =
-            requestSpaceInternal(blockId, additionalBytes);
-        if (requestResult.getFirst()) {
-          return;
-        }
-        // Failed to create a temp block, so trigger Evictor to make some space.
-        // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
-        // allocation also successful, because these two operations are not atomic.
-        freeSpaceInternal(sessionId, additionalBytes, requestResult.getSecond(), Mode.GUARANTEED);
-      }
-      // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
-      // other types of exception to indicate this case.
-      throw new WorkerOutOfSpaceException(
-          ExceptionMessage.NO_SPACE_FOR_BLOCK_REQUEST_SPACE_RETRIES_EXCEEDED, additionalBytes,
-          MAX_RETRIES, blockId);
     }
+    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_REQUEST_SPACE_TIMEOUT,
+        additionalBytes, FREE_SPACE_TIMEOUT_MS, blockId);
   }
 
   @Override
@@ -357,47 +311,23 @@ public class TieredBlockStore implements BlockStore {
       BlockStoreLocation newLocation)
           throws BlockDoesNotExistException, BlockAlreadyExistsException,
           InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
-    LOG.debug("moveBlock: sessionId={}, blockId={}, oldLocation={}, newLocation={}",
-        sessionId, blockId, oldLocation, newLocation);
-    if (RESERVER_ENABLED) {
-      RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
-      while (retryPolicy.attempt()) {
-        MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
-        if (result.getSuccess()) {
-          synchronized (mBlockStoreEventListeners) {
-            for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-              listener.onMoveBlockByClient(sessionId, blockId, result.getSrcLocation(),
-                  result.getDstLocation());
-            }
+    LOG.debug("moveBlock: sessionId={}, blockId={}, oldLocation={}, newLocation={}", sessionId,
+        blockId, oldLocation, newLocation);
+    RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
+    while (retryPolicy.attempt()) {
+      MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
+      if (result.getSuccess()) {
+        synchronized (mBlockStoreEventListeners) {
+          for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+            listener.onMoveBlockByClient(sessionId, blockId, result.getSrcLocation(),
+                result.getDstLocation());
           }
-          return;
         }
+        return;
       }
-      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE_TIMEOUT,
-          newLocation, blockId, FREE_SPACE_TIMEOUT_MS);
-    } else {
-      RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
-      while (retryPolicy.attempt()) {
-        MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
-        if (result.getSuccess()) {
-          synchronized (mBlockStoreEventListeners) {
-            for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-              listener.onMoveBlockByClient(sessionId, blockId, result.getSrcLocation(),
-                  result.getDstLocation());
-            }
-          }
-          return;
-        }
-        // Failed to create a temp block, so trigger Evictor to make some space.
-        // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
-        // allocation also successful, because these two operations are not atomic.
-        freeSpaceInternal(sessionId, result.getBlockSize(), newLocation, Mode.GUARANTEED);
-      }
-      // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
-      // other types of exception to indicate this case.
-      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE_RETRIES_EXCEEDED,
-          newLocation, blockId, MAX_RETRIES);
     }
+    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE_TIMEOUT,
+        newLocation, blockId, FREE_SPACE_TIMEOUT_MS);
   }
 
   @Override

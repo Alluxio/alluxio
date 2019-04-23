@@ -53,7 +53,7 @@ public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStre
         .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, BUFFER_BYTES) // initial buffer for worker
         .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE)
         .setProperty(PropertyKey.USER_FILE_UFS_TIER_ENABLED, true)
-        .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false);
+        .setProperty(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "1.0");
   }
 
   // varying the client side configuration

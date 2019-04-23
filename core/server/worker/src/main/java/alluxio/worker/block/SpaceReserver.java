@@ -74,42 +74,33 @@ public class SpaceReserver implements HeartbeatExecutor {
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal++) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long tierCapacity = tierCapacities.get(tierAlias);
-      long reservedSpace;
-      PropertyKey tierReservedSpaceProp =
-          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(ordinal);
-      if (ServerConfiguration.isSet(tierReservedSpaceProp)) {
-        LOG.warn("The property reserved.ratio is deprecated, use high/low watermark instead.");
-        reservedSpace = (long) (tierCapacity * ServerConfiguration
-            .getDouble(tierReservedSpaceProp));
-      } else {
-        // High watermark defines when to start the space reserving process
-        PropertyKey tierHighWatermarkProp =
-            PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(ordinal);
-        double tierHighWatermarkConf = ServerConfiguration.getDouble(tierHighWatermarkProp);
-        Preconditions.checkArgument(tierHighWatermarkConf > 0,
-            "The high watermark of tier %s should be positive, but is %s",
-            Integer.toString(ordinal), tierHighWatermarkConf);
-        Preconditions.checkArgument(tierHighWatermarkConf < 1,
-            "The high watermark of tier %s should be less than 1.0, but is %s",
-            Integer.toString(ordinal), tierHighWatermarkConf);
-        long highWatermark = (long) (tierCapacity * ServerConfiguration
-            .getDouble(tierHighWatermarkProp));
-        mHighWatermarks.put(tierAlias, highWatermark);
+      // High watermark defines when to start the space reserving process
+      PropertyKey tierHighWatermarkProp =
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(ordinal);
+      double tierHighWatermarkConf = ServerConfiguration.getDouble(tierHighWatermarkProp);
+      Preconditions.checkArgument(tierHighWatermarkConf > 0,
+          "The high watermark of tier %s should be positive, but is %s", Integer.toString(ordinal),
+          tierHighWatermarkConf);
+      Preconditions.checkArgument(tierHighWatermarkConf < 1,
+          "The high watermark of tier %s should be less than 1.0, but is %s",
+          Integer.toString(ordinal), tierHighWatermarkConf);
+      long highWatermark =
+          (long) (tierCapacity * ServerConfiguration.getDouble(tierHighWatermarkProp));
+      mHighWatermarks.put(tierAlias, highWatermark);
 
-        // Low watermark defines when to stop the space reserving process if started
-        PropertyKey tierLowWatermarkProp =
-            PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(ordinal);
-        double tierLowWatermarkConf = ServerConfiguration.getDouble(tierLowWatermarkProp);
-        Preconditions.checkArgument(tierLowWatermarkConf >= 0,
-            "The low watermark of tier %s should not be negative, but is %s",
-            Integer.toString(ordinal), tierLowWatermarkConf);
-        Preconditions.checkArgument(tierLowWatermarkConf < tierHighWatermarkConf,
-            "The low watermark (%s) of tier %d should not be smaller than the high watermark (%s)",
-            tierLowWatermarkConf, ordinal, tierHighWatermarkConf);
-        reservedSpace =
-            (long) (tierCapacity - tierCapacity * ServerConfiguration
-                .getDouble(tierLowWatermarkProp));
-      }
+      // Low watermark defines when to stop the space reserving process if started
+      PropertyKey tierLowWatermarkProp =
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(ordinal);
+      double tierLowWatermarkConf = ServerConfiguration.getDouble(tierLowWatermarkProp);
+      Preconditions.checkArgument(tierLowWatermarkConf >= 0,
+          "The low watermark of tier %s should not be negative, but is %s",
+          Integer.toString(ordinal), tierLowWatermarkConf);
+      Preconditions.checkArgument(tierLowWatermarkConf < tierHighWatermarkConf,
+          "The low watermark (%s) of tier %d should not be smaller than the high watermark (%s)",
+          tierLowWatermarkConf, ordinal, tierHighWatermarkConf);
+      long reservedSpace =
+          (long) (tierCapacity
+              - tierCapacity * ServerConfiguration.getDouble(tierLowWatermarkProp));
       lastTierReservedBytes += reservedSpace;
       // On each tier, we reserve no more than its capacity
       lastTierReservedBytes =
@@ -133,14 +124,6 @@ public class SpaceReserver implements HeartbeatExecutor {
             LOG.warn("SpaceReserver failed to free {} bytes on tier {} for high watermarks: {}",
                 reservedSpace, tierAlias, e.getMessage());
           }
-        }
-      } else {
-        try {
-          mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, reservedSpace, tierAlias);
-        } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
-            | BlockAlreadyExistsException | InvalidWorkerStateException | IOException e) {
-          LOG.warn("SpaceReserver failed to free {} bytes on tier {}: {}", reservedSpace,
-              tierAlias, e.getMessage());
         }
       }
     }

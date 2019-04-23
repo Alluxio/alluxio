@@ -43,7 +43,7 @@ import java.util.List;
 
 @RunWith(Parameterized.class)
 public class TierPromoteIntegrationTest extends BaseIntegrationTest {
-  private static final int CAPACITY_BYTES = Constants.KB;
+  private static final int CAPACITY_BYTES = 10 * Constants.KB;
   private static final String BLOCK_SIZE_BYTES = "1KB";
 
   @Rule
@@ -81,7 +81,6 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
         .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, shortCircuitEnabled)
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
-        .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false)
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
             Files.createTempDir().getAbsolutePath())
