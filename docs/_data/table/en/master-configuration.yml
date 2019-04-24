@@ -40,8 +40,20 @@ alluxio.master.embedded.journal.port:
   'The port to use for embedded journal communication with other masters.'
 alluxio.master.embedded.journal.storage.level:
   'The storage level for storing embedded journal logs. Use DISK for maximum durability. Use MAPPED for better performance, but some risk of losing state in case of power loss or host failure. Use MEMORY for optimal performance, but no state persistence across cluster restarts.'
+alluxio.master.executor.fork.pool.keepalive.ms:
+  'Master RPC executor service threads keep alive time.'
+alluxio.master.executor.fork.pool.size.core:
+  'Master RPC executor service threads core count.'
+alluxio.master.executor.fork.pool.size.max:
+  'Master RPC executor service threads max count.'
+alluxio.master.executor.parallelism:
+  'Master RPC executor service parallelism level.'
+alluxio.master.executor.runnable:
+  'Master RPC executor service minimum runnable task count.'
 alluxio.master.file.async.persist.handler:
   'The handler for processing the async persistence requests.'
+alluxio.master.filesystem.liststatus.result.message.length:
+  'Count of items on each list-status response message.'
 alluxio.master.format.file_prefix:
   'The file prefix of the file generated in the journal directory when the journal is formatted. The master will search for a file with this prefix when determining if the journal is formatted.'
 alluxio.master.grpc.channel.auth.timeout:
@@ -150,8 +162,6 @@ alluxio.master.rpc.addresses:
   'A list of comma-separated host:port RPC addresses where the client should look for masters when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses.'
 alluxio.master.startup.block.integrity.check.enabled:
   'Whether the system should be checked on startup for orphaned blocks (blocks having no corresponding files but still taking system resource due to various system failures). Orphaned blocks will be deleted during master startup if this property is true. This property is available since 1.7.1'
-alluxio.master.startup.consistency.check.enabled:
-  'Whether the system should be checked for consistency with the underlying storage on startup. During the time the check is running, Alluxio will be in read only mode. Enabled by default.'
 alluxio.master.tieredstore.global.level0.alias:
   'The name of the highest storage tier in the entire system.'
 alluxio.master.tieredstore.global.level1.alias:
@@ -180,7 +190,5 @@ alluxio.master.worker.connect.wait.time:
   'Alluxio master will wait a period of time after start up for all workers to register, before it starts accepting client requests. This property determines the wait time.'
 alluxio.master.worker.heartbeat.interval:
   'The interval between Alluxio master and worker heartbeats.'
-alluxio.master.worker.threads.max:
-  'The maximum number of incoming RPC requests to master that can be handled. This value is used to configure maximum number of threads in gRPC thread pool with master.'
 alluxio.master.worker.timeout:
   'Timeout between master and worker indicating a lost worker.'

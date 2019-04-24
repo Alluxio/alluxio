@@ -56,8 +56,6 @@ alluxio.master.retry:
   client尝试与master相连的最大重试次数。(注意：该配置项目前不推荐使用，建议使用`alluxio.user.rpc.retry.max.num.retry`替代该项)
 alluxio.master.startup.block.integrity.check.enabled:
   是否应该在启动时检查系统孤立的块(由于各种系统故障而没有相应文件但仍然占用系统资源的块)。如果此属性为真，则在主启动期间将删除孤立的块。此属性自1.7.1开始可用。
-alluxio.master.startup.consistency.check.enabled:
-  当Alluxio启动时是否检查与底层存储系统的一致性，在该检查过程中，Alluxio会进入只读模式。该检查默认开启。
 alluxio.master.thrift.shutdown.timeout:
   thrift server在关闭时的最大等待时间。
 alluxio.master.ttl.checker.interval:
