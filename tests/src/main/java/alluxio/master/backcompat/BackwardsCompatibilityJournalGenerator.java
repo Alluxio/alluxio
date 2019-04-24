@@ -14,6 +14,7 @@ package alluxio.master.backcompat;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.ProjectConstants;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPOptions;
 import alluxio.master.backcompat.ops.AsyncPersist;
@@ -26,8 +27,8 @@ import alluxio.master.backcompat.ops.PersistFile;
 import alluxio.master.backcompat.ops.Rename;
 import alluxio.master.backcompat.ops.SetAcl;
 import alluxio.master.backcompat.ops.UpdateUfsMode;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.security.LoginUser;
 
@@ -110,9 +111,9 @@ public final class BackwardsCompatibilityJournalGenerator {
     MultiProcessCluster cluster =
         MultiProcessCluster.newBuilder(PortCoordination.BACKWARDS_COMPATIBILITY)
             .setClusterName("BackwardsCompatibility")
-            .setDeployMode(DeployMode.UFS_NON_HA)
             .setNumMasters(1)
             .setNumWorkers(1)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
             .build();
     try {
       cluster.start();

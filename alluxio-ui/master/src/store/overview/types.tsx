@@ -19,13 +19,10 @@ export interface IOverview {
   'configCheckErrors': IScopedPropertyInfo[];
   'configCheckStatus': string;
   'configCheckWarns': IScopedPropertyInfo[];
-  'consistencyCheckStatus': string;
   'diskCapacity': string;
   'diskFreeCapacity': string;
   'diskUsedCapacity': string;
   'freeCapacity': string;
-  'inconsistentPathItems': string[];
-  'inconsistentPaths': number;
   'liveWorkerNodes': number;
   'masterNodeAddress': string;
   'startTime': string;
