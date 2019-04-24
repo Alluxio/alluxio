@@ -296,9 +296,8 @@ public class AlluxioProperties {
    * by key. The version is in format like 5abcb22bf208466dbce28909c40788df.
    * If value is null for a key, then the corresponding key:value:source will not involve in
    * the hashing computation.
-   * This will update both {@link #mVersion} and {@link #mIsLatestVersion}.
    */
-  private void computeVersion() {
+  private String computeVersion() {
     List<PropertyKey> keys = new ArrayList<>(keySet());
     keys.sort(Comparator.comparing(PropertyKey::getName));
     MD5.reset();
@@ -308,8 +307,7 @@ public class AlluxioProperties {
         MD5.update(String.format("%s:%s:%s", key.getName(), value, getSource(key)).getBytes());
       }
     }
-    mVersion = Hex.encodeHexString(MD5.digest());
-    mIsLatestVersion = true;
+    return Hex.encodeHexString(MD5.digest());
   }
 
   /**
@@ -318,7 +316,8 @@ public class AlluxioProperties {
    */
   public String version() {
     if (!mIsLatestVersion) {
-      computeVersion();
+      mVersion = computeVersion();
+      mIsLatestVersion = true;
     }
     return mVersion;
   }
