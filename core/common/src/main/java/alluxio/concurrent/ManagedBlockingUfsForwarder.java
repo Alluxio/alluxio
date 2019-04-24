@@ -483,30 +483,36 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
 
   @Override
   public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
-    new ManagedBlockingUfsFunction() {
+    new ManagedBlockingUfsMethod<Void>() {
       @Override
-      public void execute() throws IOException {
+      public Void execute() throws IOException {
         mUfs.setAclEntries(path, aclEntries);
+        // For obeying the contract. Returned object not utilized.
+        return null;
       }
     }.get();
   }
 
   @Override
   public void setMode(String path, short mode) throws IOException {
-    new ManagedBlockingUfsFunction() {
+    new ManagedBlockingUfsMethod<Void>() {
       @Override
-      public void execute() throws IOException {
+      public Void execute() throws IOException {
         mUfs.setMode(path, mode);
+        // For obeying the contract. Returned object not utilized.
+        return null;
       }
     }.get();
   }
 
   @Override
   public void setOwner(String path, String owner, String group) throws IOException {
-    new ManagedBlockingUfsFunction() {
+    new ManagedBlockingUfsMethod<Void>() {
       @Override
-      public void execute() throws IOException {
+      public Void execute() throws IOException {
         mUfs.setOwner(path, owner, group);
+        // For obeying the contract. Returned object not utilized.
+        return null;
       }
     }.get();
   }
@@ -591,55 +597,6 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
     public boolean block() throws InterruptedException {
       try {
         mResult = execute();
-      } catch (IOException exc) {
-        mExc = exc;
-      }
-      return true;
-    }
-
-    @Override
-    public boolean isReleasable() {
-      return false;
-    }
-  }
-
-  /**
-   * Utility class used to isolate calls into underlying UFS from concurrency compensation logic.
-   * Note: This class used to make calls with no return value.
-   *
-   */
-  abstract class ManagedBlockingUfsFunction implements ForkJoinPool.ManagedBlocker {
-    private IOException mExc;
-
-    /**
-     * Implementation for the concrete UFS operation.
-     *
-     * @return the result of the UFS operation
-     * @throws IOException
-     */
-    abstract void execute() throws IOException;
-
-    /**
-     * Executes the operation.
-     *
-     * @throws IOException
-     */
-    public void get() throws IOException {
-      try {
-        ForkJoinPool.managedBlock(this);
-        if (mExc != null) {
-          throw mExc;
-        }
-      } catch (InterruptedException exc) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException("Interrupted");
-      }
-    }
-
-    @Override
-    public boolean block() throws InterruptedException {
-      try {
-        execute();
       } catch (IOException exc) {
         mExc = exc;
       }
