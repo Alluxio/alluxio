@@ -77,6 +77,13 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
    * that is kept on auth-server.
    */
   private <ReqT, RespT> boolean authenticateCall(ServerCall<ReqT, RespT> call, Metadata headers) {
+    // Fail validation for closed/cancelled server calls.
+    if (!call.isReady() || call.isCancelled()) {
+      LOG.debug("Server call has been %s: %s", call.isCancelled() ? "cancelled" : "closed",
+          call.getMethodDescriptor().getFullMethodName());
+      return false;
+    }
+
     // Try to fetch channel Id from the metadata.
     UUID channelId = headers.get(ChannelIdInjector.S_CLIENT_ID_KEY);
     boolean callAuthenticated = false;
