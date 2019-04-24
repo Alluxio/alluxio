@@ -62,8 +62,8 @@ public class PortCoordination {
 
   public static final List<ReservedPort> BACKWARDS_COMPATIBILITY = allocate(1, 1);
 
-  public static final List<ReservedPort> MULTI_MASTER_URI = allocate(3, 2);
-  public static final List<ReservedPort> ZOOKEEPER_URI = allocate(3, 1);
+  public static final List<ReservedPort> MULTI_MASTER_URI = allocate(3, 1);
+  public static final List<ReservedPort> ZOOKEEPER_URI = allocate(3, 2);
 
   private static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
     int needed = numMasters * MultiProcessCluster.PORTS_PER_MASTER
