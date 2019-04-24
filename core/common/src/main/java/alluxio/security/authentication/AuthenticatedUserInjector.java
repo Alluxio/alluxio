@@ -77,9 +77,9 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
    * that is kept on auth-server.
    */
   private <ReqT, RespT> boolean authenticateCall(ServerCall<ReqT, RespT> call, Metadata headers) {
-    // Fail validation for closed/cancelled server calls.
-    if (!call.isReady() || call.isCancelled()) {
-      LOG.debug("Server call has been %s: %s", call.isCancelled() ? "cancelled" : "closed",
+    // Fail validation for cancelled server calls.
+    if (call.isCancelled()) {
+      LOG.debug("Server call has been cancelled: %s",
           call.getMethodDescriptor().getFullMethodName());
       return false;
     }
