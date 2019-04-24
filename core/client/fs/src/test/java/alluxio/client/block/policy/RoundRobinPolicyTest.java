@@ -11,6 +11,8 @@
 
 package alluxio.client.block.policy;
 
+import static org.junit.Assert.assertNotEquals;
+
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
@@ -20,7 +22,6 @@ import alluxio.test.util.CommonUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public final class RoundRobinPolicyTest {
 
     GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
         .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
-    Assert.assertNotEquals(
+    assertNotEquals(
         policy.getWorker(options).getHost(),
         policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(123))).getHost());
 
