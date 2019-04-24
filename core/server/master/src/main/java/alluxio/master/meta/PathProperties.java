@@ -69,8 +69,10 @@ public final class PathProperties implements DelegatingJournaled {
   @GuardedBy("mLock")
   private final State mState = new State();
   /** Version of the properties, it should be updated when path properties are updated. */
+  @GuardedBy("mLock")
   private String mVersion;
   /** Whether mVersion is the latest version of properties, recompute version when it's false. */
+  @GuardedBy("mLock")
   private boolean mIsLatestVersion;
 
   /**
@@ -81,28 +83,29 @@ public final class PathProperties implements DelegatingJournaled {
   }
 
   /**
-   * Computes the latest version, will update {@link #mVersion} and {@link #mIsLatestVersion}.
-   * The version is a hex encoded md5 hash of list of path:key:value strings.
+   * @return the recomputed latest version
    */
-  private void computeVersion() {
+  private String computeVersion() {
     MD5.reset();
     mState.getProperties().forEach((path, properties) -> {
       properties.forEach((key, value) -> {
         MD5.update(String.format("%s:%s:%s", path, key, value).getBytes());
       });
     });
-    mVersion = Hex.encodeHexString(MD5.digest());
-    mIsLatestVersion = true;
+    return Hex.encodeHexString(MD5.digest());
   }
 
   /**
    * @return the latest version, will recompute the version if it's not computed yet or outdated
    */
   public String version() {
-    if (!mIsLatestVersion) {
-      computeVersion();
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      if (!mIsLatestVersion) {
+        mVersion = computeVersion();
+        mIsLatestVersion = true;
+      }
+      return mVersion;
     }
-    return mVersion;
   }
 
   /**
