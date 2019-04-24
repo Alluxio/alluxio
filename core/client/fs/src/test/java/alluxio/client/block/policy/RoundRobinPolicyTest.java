@@ -21,6 +21,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.test.util.CommonUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
+
 import org.junit.Test;
 
 import java.util.ArrayList;
