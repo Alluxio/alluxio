@@ -121,7 +121,7 @@ public class ClientProfiler {
     JvmHeapDumper dumper = null;
     if (heapDumpEnabled) {
       dumper = new JvmHeapDumper(FormatUtils.parseTimeSize(mDumpInterval), "dumps",
-          "dump-" + mClientType.toString());
+          String.format("dump-%s-%s", mClientType.toString(), mOperation.toString()));
       dumper.start();
     }
     long startTime = System.currentTimeMillis();

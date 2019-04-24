@@ -59,15 +59,8 @@ public class JvmHeapDumper extends Thread {
       throw new RuntimeException(e);
     }
     File f = new File(String.format("%s/%s", System.getProperty("user.dir"), dirPath));
-    try {
-      FileUtils.deletePathRecursively(f.getAbsolutePath());
-    } catch (NoSuchFileException e) {
-      // It's ok if the path doesn't exist already
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    if (!f.mkdirs()) {
-      throw new RuntimeException("Couldn't create dirs " + f.getAbsolutePath());
+    if (!f.exists() && !f.mkdirs()) {
+        throw new RuntimeException("Couldn't create dirs " + f.getAbsolutePath());
     }
     mDirPath = f.getAbsolutePath();
   }
@@ -89,15 +82,14 @@ public class JvmHeapDumper extends Thread {
       try {
         dumpHeap(i);
       } catch (IOException e) {
-        // ok
-        System.out.println(e.toString());
+        // // Don't crash, but warn if we're not able to collect heap dumps
+        System.err.println(e.toString());
         LOG.warn(e.toString());
       }
       try {
         Thread.sleep(mInterval);
       } catch (InterruptedException e) {
-        // ok
-        System.out.println(e.toString());
+        System.err.println(e.toString());
         LOG.warn(e.toString());
       }
       i++;
@@ -105,7 +97,7 @@ public class JvmHeapDumper extends Thread {
   }
 
   private void dumpHeap(int num) throws IOException {
-    String dumpLocation = String.format("%s/%s-%d.hprof", mDirPath, mDumpPrefix, num);
+    String dumpLocation = String.format("%s/%s-%02d.hprof", mDirPath, mDumpPrefix, num);
     mXBean.dumpHeap(dumpLocation, true);
   }
 }
