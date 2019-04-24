@@ -23,7 +23,10 @@ import alluxio.proto.journal.Meta.RemovePathPropertiesEntry;
 import alluxio.resource.LockResource;
 
 import com.google.common.collect.Iterators;
+import org.apache.commons.codec.binary.Hex;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -50,11 +53,57 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class PathProperties implements DelegatingJournaled {
+  private static final MessageDigest MD5;
+
+  static {
+    try {
+      MD5 = MessageDigest.getInstance("MD5");
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   /** Lock for mState. */
   private final ReadWriteLock mLock = new ReentrantReadWriteLock();
   /** Journaled state of path level properties. */
   @GuardedBy("mLock")
   private final State mState = new State();
+  /** Version of the properties, it should be updated when path properties are updated. */
+  private String mVersion;
+  /** Whether mVersion is the latest version of properties, recompute version when it's false. */
+  private boolean mIsLatestVersion;
+
+  /**
+   * Marks the current version as outdated.
+   */
+  private void outdateVersion() {
+    mIsLatestVersion = false;
+  }
+
+  /**
+   * Computes the latest version, will update {@link #mVersion} and {@link #mIsLatestVersion}.
+   * The version is a hex encoded md5 hash of list of path:key:value strings.
+   */
+  private void computeVersion() {
+    MD5.reset();
+    mState.getProperties().forEach((path, properties) -> {
+      properties.forEach((key, value) -> {
+        MD5.update(String.format("%s:%s:%s", path, key, value).getBytes());
+      });
+    });
+    mVersion = Hex.encodeHexString(MD5.digest());
+    mIsLatestVersion = true;
+  }
+
+  /**
+   * @return the latest version, will recompute the version if it's not computed yet or outdated
+   */
+  public String version() {
+    if (!mIsLatestVersion) {
+      computeVersion();
+    }
+    return mVersion;
+  }
 
   /**
    * @return a copy of path level properties which is a map from path to property key values
@@ -82,6 +131,7 @@ public final class PathProperties implements DelegatingJournaled {
         properties.forEach((key, value) -> newProperties.put(key.getName(), value));
         mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder().setPath(path)
             .putAllProperties(newProperties).build());
+        outdateVersion();
       }
     }
   }
@@ -104,6 +154,7 @@ public final class PathProperties implements DelegatingJournaled {
           mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder()
               .setPath(path).putAllProperties(properties).build());
         }
+        outdateVersion();
       }
     }
   }
@@ -119,6 +170,7 @@ public final class PathProperties implements DelegatingJournaled {
       Map<String, String> properties = mState.getProperties(path);
       if (!properties.isEmpty()) {
         mState.applyAndJournal(ctx, RemovePathPropertiesEntry.newBuilder().setPath(path).build());
+        outdateVersion();
       }
     }
   }
