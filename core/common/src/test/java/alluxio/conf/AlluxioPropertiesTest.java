@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -154,5 +155,37 @@ public class AlluxioPropertiesTest {
     assertEquals("value1", mProperties.get(mKeyWithValue));
     assertEquals("value2", mProperties.get(mKeyWithoutValue));
     assertEquals("value3", mProperties.get(newKey));
+  }
+
+  @Test
+  public void version() {
+    String version0 = mProperties.version();
+
+    mProperties.set(mKeyWithValue, "new value");
+    String version1 = mProperties.version();
+    Assert.assertNotEquals(version0, version1);
+
+    mProperties.remove(mKeyWithValue);
+    String version2 = mProperties.version();
+    Assert.assertEquals(version0, version2);
+
+    mProperties.set(mKeyWithValue, "new value");
+    String version3 = mProperties.version();
+    Assert.assertEquals(version1, version3);
+
+    mProperties.set(mKeyWithValue, "updated new value");
+    String version4 = mProperties.version();
+    Assert.assertNotEquals(version0, version4);
+    Assert.assertNotEquals(version1, version4);
+    Assert.assertNotEquals(version2, version4);
+    Assert.assertNotEquals(version3, version4);
+
+    mProperties.set(mKeyWithoutValue, "value");
+    String version5 = mProperties.version();
+    Assert.assertNotEquals(version0, version5);
+    Assert.assertNotEquals(version1, version5);
+    Assert.assertNotEquals(version2, version5);
+    Assert.assertNotEquals(version3, version5);
+    Assert.assertNotEquals(version4, version5);
   }
 }
