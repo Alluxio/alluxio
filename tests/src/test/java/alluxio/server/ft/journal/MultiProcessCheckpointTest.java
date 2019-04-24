@@ -18,9 +18,9 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.conf.PropertyKey;
+import alluxio.master.journal.JournalType;
 import alluxio.metrics.MasterMetrics;
 import alluxio.multi.process.MultiProcessCluster;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.IntegrationTestUtils;
 
@@ -34,7 +34,7 @@ public class MultiProcessCheckpointTest {
   public void test() throws Exception {
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder(PortCoordination.CHECKPOINT)
         .setClusterName("CheckpointTest")
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "2sec")
         .addProperty(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT, "1sec")
         .addProperty(PropertyKey.MASTER_METASTORE, "ROCKS")

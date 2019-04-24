@@ -47,6 +47,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private PrimarySelector mLeaderSelector;
   private Thread mServingThread;
 
+  /** An indicator for whether the process is running (after start() and before stop()). */
+  private volatile boolean mRunning;
+
   /**
    * Creates a {@link FaultTolerantAlluxioMasterProcess}.
    */
@@ -60,10 +63,12 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
     mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
     mServingThread = null;
+    mRunning = false;
   }
 
   @Override
   public void start() throws Exception {
+    mRunning = true;
     mJournalSystem.start();
     try {
       mLeaderSelector.start(getRpcAddress());
@@ -76,8 +81,14 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     LOG.info("Secondary started");
     while (!Thread.interrupted()) {
       mLeaderSelector.waitForState(State.PRIMARY);
+      if (!mRunning) {
+        break;
+      }
       if (gainPrimacy()) {
         mLeaderSelector.waitForState(State.SECONDARY);
+        if (!mRunning) {
+          break;
+        }
         losePrimacy();
       }
     }
@@ -154,6 +165,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
   @Override
   public void stop() throws Exception {
+    mRunning = false;
     super.stop();
     if (mLeaderSelector != null) {
       mLeaderSelector.stop();

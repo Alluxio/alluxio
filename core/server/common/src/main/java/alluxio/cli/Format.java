@@ -114,8 +114,8 @@ public final class Format {
       case MASTER:
         URI journalLocation = JournalUtils.getJournalLocation();
         LOG.info("Formatting master journal: {}", journalLocation);
-        JournalSystem journalSystem =
-            new JournalSystem.Builder().setLocation(journalLocation).build();
+        JournalSystem journalSystem = new JournalSystem.Builder()
+            .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
         for (String masterServiceName : ServiceUtils.getMasterServiceNames()) {
           journalSystem.createJournal(new NoopMaster(masterServiceName));
         }

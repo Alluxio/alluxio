@@ -23,6 +23,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPOptions;
 import alluxio.master.MasterClientContext;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
@@ -42,8 +43,8 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
   public void migration() throws Exception {
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_MIGRATION)
         .setClusterName("journalMigration")
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setNumMasters(3)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec").build();
     cluster.start();

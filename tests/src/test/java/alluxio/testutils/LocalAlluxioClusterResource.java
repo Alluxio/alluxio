@@ -228,7 +228,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
      * @return a {@link LocalAlluxioClusterResource} for the current builder values
      */
     public LocalAlluxioClusterResource build() {
-      return new LocalAlluxioClusterResource(mStartCluster, mNumWorkers, mConfiguration);
+      return new LocalAlluxioClusterResource(mStartCluster,
+          mNumWorkers, mConfiguration);
     }
   }
 
