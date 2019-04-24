@@ -124,14 +124,15 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    if (alluxioConf.get(PropertyKey.MASTER_JOURNAL_TYPE).equals("UFS")) {
-      conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
-    } else {
-      // Raft journal system need longer to start, job worker connect should wait for longer time
-      conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "3s");
-      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "1s");
-      conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "100ms");
-    }
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2s");
+    // Election timeout should be bigger than the default copycat heartbeat interval 250
+    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "260ms");
+    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "50ms");
+    // Reset the value to avoid raft journal system complaining about log size < 65
+    conf.put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
+        PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX.getDefaultValue());
+    // For faster test shutdown
+    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT, "100ms");
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
     return conf;
   }

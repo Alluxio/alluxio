@@ -1205,6 +1205,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "optimal performance, but no state persistence across cluster restarts.")
           .setDefaultValue("DISK")
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("10sec")
+          .setDescription("Maximum time to wait for embedded journal to stop on shutdown.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_RPC_ADDRESSES =
       new Builder(Name.MASTER_RPC_ADDRESSES).setDescription(
           "A list of comma-separated host:port RPC addresses where the client should look for "
@@ -3858,6 +3865,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.snapshot.frequency";
     public static final String MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
         "alluxio.master.embedded.journal.storage.level";
+    public static final String MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
+        "alluxio.master.embedded.journal.shutdown.timeout";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
