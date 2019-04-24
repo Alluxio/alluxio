@@ -14,14 +14,12 @@ package alluxio.client.rest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.master.meta.AlluxioMasterRestServiceHandler;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.StartupConsistencyCheck;
+import alluxio.master.meta.AlluxioMasterRestServiceHandler;
 import alluxio.metrics.MetricsSystem;
-import alluxio.testutils.master.MasterTestUtils;
 import alluxio.testutils.underfs.UnderFileSystemTestUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -140,17 +138,6 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getStartTimeMs() throws Exception {
     assertTrue(getInfo(NO_PARAMS).getStartTimeMs() > 0);
-  }
-
-  @Test
-  public void getStartupConsistencyCheckStatus() throws Exception {
-    MasterTestUtils.waitForStartupConsistencyCheck(mFileSystemMaster);
-    alluxio.wire.StartupConsistencyCheck status = getInfo(NO_PARAMS)
-        .getStartupConsistencyCheck();
-    assertEquals(
-        StartupConsistencyCheck.Status.COMPLETE.toString().toLowerCase(),
-        status.getStatus());
-    assertEquals(0, status.getInconsistentUris().size());
   }
 
   @Test
