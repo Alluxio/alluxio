@@ -11,7 +11,7 @@
 
 package alluxio.client.block.policy;
 
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
