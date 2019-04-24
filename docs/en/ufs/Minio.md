@@ -72,7 +72,7 @@ examining the logs to ensure the process is running.
 Then, to run tests using some basic Alluxio operations execute the following command:
 
 ```bash
-$ bin/alluxio runTests
+bin/alluxio runTests
 ```
 
 If there are no errors then Minio is configured properly!

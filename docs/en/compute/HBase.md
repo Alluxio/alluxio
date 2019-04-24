@@ -72,7 +72,7 @@ Alternative ways are described in the [Advanced Setup]({{ '/en/compute/HBase.htm
 Start HBase:
 
 ```bash
-$ ${HBASE_HOME}/bin/start-hbase.sh
+${HBASE_HOME}/bin/start-hbase.sh
 ```
 
 Visit HBase Web UI at `http://<HBASE_MASTER_HOSTNAME>:16010` to confirm that HBase is running on Alluxio

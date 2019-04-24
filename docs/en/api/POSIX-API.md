@@ -46,7 +46,7 @@ After having properly configured and started the Alluxio cluster, and from the n
 to mount Alluxio, point a shell to your `$ALLUXIO_HOME` and run:
 
 ```bash
-$ integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path]
+integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path]
 ```
 
 This will spawn a background user-space java process (alluxio-fuse) that will mount the Alluxio path
@@ -56,10 +56,10 @@ For example, the following command will mount the Alluxio path `/people` to the 
 in the local file system.
 
 ```bash
-$ sudo mkdir -p /mnt/people
-$ sudo chown $(whoami) /mnt/people
-$ chmod 755 /mnt/people
-$ integration/fuse/bin/alluxio-fuse mount /mnt/people /people
+sudo mkdir -p /mnt/people
+sudo chown $(whoami) /mnt/people
+chmod 755 /mnt/people
+integration/fuse/bin/alluxio-fuse mount /mnt/people /people
 ```
 
 When `alluxio_path` is not given, Alluxio-FUSE defaults it to root (`/`). Note that the
@@ -75,14 +75,14 @@ To unmount a previously mounted Alluxio-FUSE file system, on the node where the 
 mounted, point a shell to your `$ALLUXIO_HOME` and run:
 
 ```bash
-$ integration/fuse/bin/alluxio-fuse unmount mount_point
+integration/fuse/bin/alluxio-fuse unmount mount_point
 ```
 
 This unmounts the file system at the mounting point and stops the corresponding alluxio-fuse
 process. For example,
 
 ```bash
-$ integration/fuse/bin/alluxio-fuse unmount /mnt/people
+integration/fuse/bin/alluxio-fuse unmount /mnt/people
 Unmount fuse at /mnt/people (PID:97626).
 ```
 
@@ -92,7 +92,7 @@ To list the mounting points, on the node where the file system is mounted, point
 `$ALLUXIO_HOME` and run:
 
 ```bash
-$ integration/fuse/bin/alluxio-fuse stat
+integration/fuse/bin/alluxio-fuse stat
 ```
 
 This outputs the `pid, mount_point, alluxio_path` of all the running Alluxio-FUSE processes.
@@ -128,7 +128,7 @@ Some mount options (e.g. `allow_other` and `allow_root`) need additional set-up
 and the set up process may be different according to platforms. 
 
 ```bash
-$ integration/fuse/bin/alluxio-fuse mount -o [comma separated mount options] mount_point [alluxio_path]
+integration/fuse/bin/alluxio-fuse mount -o [comma separated mount options] mount_point [alluxio_path]
 ```
 
 Note that `direct_io` mount option is set by default so that writes and reads bypass the kernel page cache
@@ -157,9 +157,9 @@ After setting up, pass the `allow_other` or `allow_root` mount options when moun
 
 ```bash
 # All users (including root) can access the files.
-$ integration/fuse/bin/alluxio-fuse mount -o allow_other mount_point [alluxio_path]
+integration/fuse/bin/alluxio-fuse mount -o allow_other mount_point [alluxio_path]
 # The user mounting the filesystem and root can access the files.
-$ integration/fuse/bin/alluxio-fuse mount -o allow_root mount_point [alluxio_path]
+integration/fuse/bin/alluxio-fuse mount -o allow_root mount_point [alluxio_path]
 ```
 
 Note that only one of the `allow_other` or `allow_root` could be set.
