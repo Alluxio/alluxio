@@ -16,6 +16,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.retry.CountingRetry;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.options.CreateOptions;
@@ -633,18 +634,17 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    return openObject(stripPrefixIfPresent(path), options);
+    return openObject(stripPrefixIfPresent(path), options, getRetryOncePolicy());
   }
 
   @Override
   public InputStream openExistingFile(String path) throws IOException {
-    return retryOnException(() -> open(path), () -> "open file " + path);
+    return openExistingFile(path, OpenOptions.defaults());
   }
 
   @Override
   public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
-    return retryOnException(() -> open(path, options),
-        () -> "open file " + path + " with options " + options);
+    return openObject(stripPrefixIfPresent(path), options, getRetryPolicy());
   }
 
   @Override
@@ -1073,9 +1073,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Internal function to open an input stream to an object.
    *
    * @param key the key to open
+   * @param options the open options
+   * @param retryPolicy the retry policy of the opened stream to solve eventual consistency issue
    * @return an {@link InputStream} to read from key
    */
-  protected abstract InputStream openObject(String key, OpenOptions options) throws IOException;
+  protected abstract InputStream openObject(String key, OpenOptions options,
+      RetryPolicy retryPolicy) throws IOException;
 
   /**
    * Treating the object store as a file system, checks if the parent directory exists.
@@ -1169,12 +1172,19 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * @return the retry policy to use
+   * @return the exponential backoff retry policy to use
    */
   private RetryPolicy getRetryPolicy() {
     return new ExponentialBackoffRetry(
         (int) mUfsConf.getMs(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS),
         (int) mUfsConf.getMs(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS),
         mUfsConf.getInt(PropertyKey.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM));
+  }
+
+  /**
+   * @return the retry once policy to use
+   */
+  private RetryPolicy getRetryOncePolicy() {
+    return new CountingRetry(1);
   }
 }

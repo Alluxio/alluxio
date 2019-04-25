@@ -199,6 +199,19 @@ public abstract class AbstractUnderFileSystemContractTest {
   }
 
   @Test
+  public void createOpenExistingLargeFile() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "createOpenExistingLargeFile");
+    int numCopies = prepareMultiBlockFile(testFile);
+    InputStream inputStream = mUfs.openExistingFile(testFile);
+    byte[] buf = new byte[numCopies * TEST_BYTES.length];
+    int bytesRead = inputStream.read(buf, 0, buf.length);
+    assertEquals(buf.length, bytesRead);
+    for (int i = 0; i < bytesRead; ++i) {
+      assertEquals(TEST_BYTES[i % TEST_BYTES.length], buf[i]);
+    }
+  }
+
+  @Test
   public void deleteFile() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "deleteFile");
     createEmptyFile(testFile);

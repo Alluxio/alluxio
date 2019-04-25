@@ -17,6 +17,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -368,8 +369,9 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected InputStream openObject(String key, OpenOptions options) throws IOException {
-    return new SwiftInputStream(mAccount, mContainerName, key, options.getOffset(),
+  protected InputStream openObject(String key, OpenOptions options, RetryPolicy retryPolicy)
+      throws IOException {
+    return new SwiftInputStream(mAccount, mContainerName, key, options.getOffset(), retryPolicy,
         mAlluxioConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
   }
 }
