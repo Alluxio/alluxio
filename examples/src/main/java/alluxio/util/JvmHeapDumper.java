@@ -98,7 +98,7 @@ public class JvmHeapDumper extends Thread {
 
   private void dumpHeap(int num) throws IOException {
     String dumpLocation = String.format("%s/%s-%02d.hprof", mDirPath, mDumpPrefix, num);
-    mXBean.dumpHeap(dumpLocation, true);
+    mXBean.dumpHeap(dumpLocation, false);
   }
 }
 
