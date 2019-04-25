@@ -57,6 +57,35 @@ public final class RoundRobinPolicyTest {
         policy.getWorker(options.setBlockInfo(options.getBlockInfo().setBlockId(555))).getHost());
   }
 
+  /**
+   * Tests that no workers are returned when there are no eligible workers.
+   */
+  @Test
+  public void getWorkerNoneEligible() {
+    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.defaults());
+    GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(new ArrayList<>())
+        .setBlockInfo(new BlockInfo().setLength(2 * (long) Constants.GB));
+    Assert.assertNull(policy.getWorker(options));
+  }
+
+  /**
+   * Tests that no workers are returned when subsequent calls to the policy have no eligible
+   * workers.
+   */
+  @Test
+  public void getWorkerNoneEligibleAfterCache() {
+    List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
+
+    RoundRobinPolicy policy = new RoundRobinPolicy(ConfigurationTestUtils.defaults());
+    GetWorkerOptions options = GetWorkerOptions.defaults().setBlockWorkerInfos(workerInfoList)
+        .setBlockInfo(new BlockInfo().setLength((long) Constants.MB));
+    Assert.assertNotNull(policy.getWorker(options));
+    options.setBlockWorkerInfos(new ArrayList<>());
+    Assert.assertNull(policy.getWorker(options));
+  }
+
   @Test
   public void equalsTest() throws Exception {
     AlluxioConfiguration conf = ConfigurationTestUtils.defaults();

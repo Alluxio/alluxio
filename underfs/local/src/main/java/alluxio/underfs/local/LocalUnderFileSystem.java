@@ -18,7 +18,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
-import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.ConsistentUnderFileSystem;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -66,7 +66,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * </p>
  */
 @ThreadSafe
-public class LocalUnderFileSystem extends BaseUnderFileSystem
+public class LocalUnderFileSystem extends ConsistentUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(LocalUnderFileSystem.class);
 

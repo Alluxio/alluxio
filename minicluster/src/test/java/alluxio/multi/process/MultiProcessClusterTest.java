@@ -19,8 +19,9 @@ import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
+import alluxio.master.journal.JournalType;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,25 +40,24 @@ public final class MultiProcessClusterTest {
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();
-    try {
-      mCluster.start();
-      mCluster.waitForAllNodesRegistered(60 * Constants.SECOND_MS);
-      FileSystem fs = mCluster.getFileSystemClient();
-      createAndOpenFile(fs);
-      mCluster.notifySuccess();
-    } finally {
-      mCluster.destroy();
-    }
+    clusterVerification();
   }
 
   @Test
   public void zookeeper() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.MULTI_PROCESS_ZOOKEEPER)
         .setClusterName("zookeeper")
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setNumMasters(3)
         .setNumWorkers(2)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         .build();
+    clusterVerification();
+  }
+
+  /**
+   * Verifies cluster running as expected.
+   */
+  private void clusterVerification() throws Exception {
     try {
       mCluster.start();
       mCluster.waitForAllNodesRegistered(60 * Constants.SECOND_MS);

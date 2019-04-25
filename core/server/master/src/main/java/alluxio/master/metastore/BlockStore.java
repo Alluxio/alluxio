@@ -11,14 +11,13 @@
 
 package alluxio.master.metastore;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.master.metastore.BlockStore.Block;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -101,28 +100,7 @@ public interface BlockStore extends Iterable<Block> {
   }
 
   /**
-   * Arguments for creating a block store.
-   */
-  class BlockStoreArgs {
-    private final AlluxioConfiguration mConf;
-
-    /**
-     * @param conf configuration
-     */
-    public BlockStoreArgs(AlluxioConfiguration conf) {
-      mConf = conf;
-    }
-
-    /**
-     * @return the configuration
-     */
-    public AlluxioConfiguration getConfiguration() {
-      return mConf;
-    }
-  }
-
-  /**
    * Factory for creating block stores.
    */
-  interface Factory extends Function<BlockStoreArgs, BlockStore> {}
+  interface Factory extends Supplier<BlockStore> {}
 }

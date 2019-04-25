@@ -71,15 +71,12 @@ public final class HttpUtils {
   public static String post(String url, Integer timeout)
       throws IOException {
     final StringBuilder contentBuffer = new StringBuilder();
-    post(url, timeout, new IProcessInputStream() {
-      @Override
-      public void process(InputStream inputStream) throws IOException {
-        try (BufferedReader br = new BufferedReader(
-            new InputStreamReader(inputStream, "UTF-8"))) {
-          String line;
-          while ((line = br.readLine()) != null) {
-            contentBuffer.append(line);
-          }
+    post(url, timeout, inputStream -> {
+      try (BufferedReader br = new BufferedReader(
+          new InputStreamReader(inputStream, "UTF-8"))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+          contentBuffer.append(line);
         }
       }
     });

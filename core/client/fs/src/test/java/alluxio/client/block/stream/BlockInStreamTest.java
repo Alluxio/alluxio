@@ -79,7 +79,7 @@ public class BlockInStreamTest {
     PowerMockito.when(mMockContext.acquireBlockWorkerClient(Matchers.any(WorkerNetAddress.class)))
         .thenReturn(workerClient);
     PowerMockito.when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
-    PowerMockito.when(mMockContext.getConf()).thenReturn(mConf);
+    PowerMockito.when(mMockContext.getClusterConf()).thenReturn(mConf);
     PowerMockito.doNothing().when(mMockContext)
         .releaseBlockWorkerClient(Matchers.any(WorkerNetAddress.class),
             Matchers.any(BlockWorkerClient.class));

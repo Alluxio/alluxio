@@ -59,6 +59,19 @@ private static final long serialVersionUID = 0L;
                 input.readMessage(alluxio.grpc.ConfigProperty.PARSER, extensionRegistry));
             break;
           }
+          case 18: {
+            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              pathConfigs_ = com.google.protobuf.MapField.newMapField(
+                  PathConfigsDefaultEntryHolder.defaultEntry);
+              mutable_bitField0_ |= 0x00000002;
+            }
+            com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.ConfigProperties>
+            pathConfigs__ = input.readMessage(
+                PathConfigsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            pathConfigs_.getMutableMap().put(
+                pathConfigs__.getKey(), pathConfigs__.getValue());
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -79,6 +92,17 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigurationPResponse_descriptor;
   }
 
+  @SuppressWarnings({"rawtypes"})
+  protected com.google.protobuf.MapField internalGetMapField(
+      int number) {
+    switch (number) {
+      case 2:
+        return internalGetPathConfigs();
+      default:
+        throw new RuntimeException(
+            "Invalid map field number: " + number);
+    }
+  }
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigurationPResponse_fieldAccessorTable
@@ -121,6 +145,82 @@ private static final long serialVersionUID = 0L;
     return configs_.get(index);
   }
 
+  public static final int PATHCONFIGS_FIELD_NUMBER = 2;
+  private static final class PathConfigsDefaultEntryHolder {
+    static final com.google.protobuf.MapEntry<
+        java.lang.String, alluxio.grpc.ConfigProperties> defaultEntry =
+            com.google.protobuf.MapEntry
+            .<java.lang.String, alluxio.grpc.ConfigProperties>newDefaultInstance(
+                alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigurationPResponse_PathConfigsEntry_descriptor, 
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "",
+                com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                alluxio.grpc.ConfigProperties.getDefaultInstance());
+  }
+  private com.google.protobuf.MapField<
+      java.lang.String, alluxio.grpc.ConfigProperties> pathConfigs_;
+  private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.ConfigProperties>
+  internalGetPathConfigs() {
+    if (pathConfigs_ == null) {
+      return com.google.protobuf.MapField.emptyMapField(
+          PathConfigsDefaultEntryHolder.defaultEntry);
+    }
+    return pathConfigs_;
+  }
+
+  public int getPathConfigsCount() {
+    return internalGetPathConfigs().getMap().size();
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+   */
+
+  public boolean containsPathConfigs(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    return internalGetPathConfigs().getMap().containsKey(key);
+  }
+  /**
+   * Use {@link #getPathConfigsMap()} instead.
+   */
+  @java.lang.Deprecated
+  public java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties> getPathConfigs() {
+    return getPathConfigsMap();
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+   */
+
+  public java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties> getPathConfigsMap() {
+    return internalGetPathConfigs().getMap();
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+   */
+
+  public alluxio.grpc.ConfigProperties getPathConfigsOrDefault(
+      java.lang.String key,
+      alluxio.grpc.ConfigProperties defaultValue) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties> map =
+        internalGetPathConfigs().getMap();
+    return map.containsKey(key) ? map.get(key) : defaultValue;
+  }
+  /**
+   * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+   */
+
+  public alluxio.grpc.ConfigProperties getPathConfigsOrThrow(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties> map =
+        internalGetPathConfigs().getMap();
+    if (!map.containsKey(key)) {
+      throw new java.lang.IllegalArgumentException();
+    }
+    return map.get(key);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -136,6 +236,12 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < configs_.size(); i++) {
       output.writeMessage(1, configs_.get(i));
     }
+    com.google.protobuf.GeneratedMessageV3
+      .serializeStringMapTo(
+        output,
+        internalGetPathConfigs(),
+        PathConfigsDefaultEntryHolder.defaultEntry,
+        2);
     unknownFields.writeTo(output);
   }
 
@@ -147,6 +253,16 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < configs_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, configs_.get(i));
+    }
+    for (java.util.Map.Entry<java.lang.String, alluxio.grpc.ConfigProperties> entry
+         : internalGetPathConfigs().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.ConfigProperties>
+      pathConfigs__ = PathConfigsDefaultEntryHolder.defaultEntry.newBuilderForType()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build();
+      size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, pathConfigs__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -166,6 +282,8 @@ private static final long serialVersionUID = 0L;
     boolean result = true;
     result = result && getConfigsList()
         .equals(other.getConfigsList());
+    result = result && internalGetPathConfigs().equals(
+        other.internalGetPathConfigs());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -180,6 +298,10 @@ private static final long serialVersionUID = 0L;
     if (getConfigsCount() > 0) {
       hash = (37 * hash) + CONFIGS_FIELD_NUMBER;
       hash = (53 * hash) + getConfigsList().hashCode();
+    }
+    if (!internalGetPathConfigs().getMap().isEmpty()) {
+      hash = (37 * hash) + PATHCONFIGS_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetPathConfigs().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -286,6 +408,28 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigurationPResponse_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 2:
+          return internalGetPathConfigs();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMutableMapField(
+        int number) {
+      switch (number) {
+        case 2:
+          return internalGetMutablePathConfigs();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigurationPResponse_fieldAccessorTable
@@ -317,6 +461,7 @@ private static final long serialVersionUID = 0L;
       } else {
         configsBuilder_.clear();
       }
+      internalGetMutablePathConfigs().clear();
       return this;
     }
 
@@ -349,6 +494,8 @@ private static final long serialVersionUID = 0L;
       } else {
         result.configs_ = configsBuilder_.build();
       }
+      result.pathConfigs_ = internalGetPathConfigs();
+      result.pathConfigs_.makeImmutable();
       onBuilt();
       return result;
     }
@@ -416,6 +563,8 @@ private static final long serialVersionUID = 0L;
           }
         }
       }
+      internalGetMutablePathConfigs().mergeFrom(
+          other.internalGetPathConfigs());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -682,6 +831,129 @@ private static final long serialVersionUID = 0L;
         configs_ = null;
       }
       return configsBuilder_;
+    }
+
+    private com.google.protobuf.MapField<
+        java.lang.String, alluxio.grpc.ConfigProperties> pathConfigs_;
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.ConfigProperties>
+    internalGetPathConfigs() {
+      if (pathConfigs_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            PathConfigsDefaultEntryHolder.defaultEntry);
+      }
+      return pathConfigs_;
+    }
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.ConfigProperties>
+    internalGetMutablePathConfigs() {
+      onChanged();;
+      if (pathConfigs_ == null) {
+        pathConfigs_ = com.google.protobuf.MapField.newMapField(
+            PathConfigsDefaultEntryHolder.defaultEntry);
+      }
+      if (!pathConfigs_.isMutable()) {
+        pathConfigs_ = pathConfigs_.copy();
+      }
+      return pathConfigs_;
+    }
+
+    public int getPathConfigsCount() {
+      return internalGetPathConfigs().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+     */
+
+    public boolean containsPathConfigs(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetPathConfigs().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getPathConfigsMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties> getPathConfigs() {
+      return getPathConfigsMap();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+     */
+
+    public java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties> getPathConfigsMap() {
+      return internalGetPathConfigs().getMap();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+     */
+
+    public alluxio.grpc.ConfigProperties getPathConfigsOrDefault(
+        java.lang.String key,
+        alluxio.grpc.ConfigProperties defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties> map =
+          internalGetPathConfigs().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+     */
+
+    public alluxio.grpc.ConfigProperties getPathConfigsOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties> map =
+          internalGetPathConfigs().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public Builder clearPathConfigs() {
+      internalGetMutablePathConfigs().getMutableMap()
+          .clear();
+      return this;
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+     */
+
+    public Builder removePathConfigs(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutablePathConfigs().getMutableMap()
+          .remove(key);
+      return this;
+    }
+    /**
+     * Use alternate mutation accessors instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties>
+    getMutablePathConfigs() {
+      return internalGetMutablePathConfigs().getMutableMap();
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+     */
+    public Builder putPathConfigs(
+        java.lang.String key,
+        alluxio.grpc.ConfigProperties value) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      if (value == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutablePathConfigs().getMutableMap()
+          .put(key, value);
+      return this;
+    }
+    /**
+     * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+     */
+
+    public Builder putAllPathConfigs(
+        java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties> values) {
+      internalGetMutablePathConfigs().getMutableMap()
+          .putAll(values);
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

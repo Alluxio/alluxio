@@ -11,6 +11,8 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -105,6 +107,9 @@ public class RaftJournalWriter implements JournalWriter {
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
     mClosed = true;
     LOG.info("Closing journal writer. Last sequence numbers written/submitted/committed: {}/{}/{}",
         mNextSequenceNumberToWrite.get() - 1, mLastSubmittedSequenceNumber.get(),
@@ -121,7 +126,8 @@ public class RaftJournalWriter implements JournalWriter {
 
   private void closeClient() {
     try {
-      mClient.close().get(10, TimeUnit.SECONDS);
+      mClient.close().get(ServerConfiguration
+          .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT), TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);

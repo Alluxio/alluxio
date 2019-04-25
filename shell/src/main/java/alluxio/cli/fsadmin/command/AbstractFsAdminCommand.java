@@ -12,9 +12,10 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.Command;
-import alluxio.client.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.MetaMasterConfigClient;
 
 import java.io.PrintStream;
 
@@ -26,12 +27,14 @@ public abstract class AbstractFsAdminCommand implements Command {
   protected final FileSystemMasterClient mFsClient;
   protected final BlockMasterClient mBlockClient;
   protected final MetaMasterClient mMetaClient;
+  protected final MetaMasterConfigClient mMetaConfigClient;
   protected final PrintStream mPrintStream;
 
   protected AbstractFsAdminCommand(Context context) {
     mFsClient = context.getFsClient();
     mBlockClient = context.getBlockClient();
     mMetaClient = context.getMetaClient();
+    mMetaConfigClient = context.getMetaConfigClient();
     mPrintStream = context.getPrintStream();
   }
 }

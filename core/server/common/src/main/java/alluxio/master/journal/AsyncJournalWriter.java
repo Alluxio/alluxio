@@ -11,17 +11,18 @@
 
 package alluxio.master.journal;
 
+import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.Status;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.SettableFuture;
+import io.grpc.Status;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -45,13 +46,15 @@ public final class AsyncJournalWriter {
   /**
    * Used to manage and keep track of pending callers of ::flush.
    */
-  private class FlushTicket {
+  private class FlushTicket implements ForkJoinPool.ManagedBlocker {
     private final long mTargetCounter;
     private SettableFuture<Void> mIsCompleted;
+    private Throwable mError;
 
     public FlushTicket(long targetCounter) {
       mTargetCounter = targetCounter;
       mIsCompleted = SettableFuture.create();
+      mError = null;
     }
 
     public long getTargetCounter() {
@@ -64,10 +67,37 @@ public final class AsyncJournalWriter {
 
     public void setError(Throwable exc) {
       mIsCompleted.setException(exc);
+      mError = exc;
     }
 
-    public void waitCompleted() throws InterruptedException, ExecutionException {
-      mIsCompleted.get();
+    /**
+     * Waits until the ticket has been processed.
+     *
+     * PS: Blocking on this method goes through FokrJoinPool's managed blocking
+     * in order to compensate the pool with more workers while it is blocked.
+     *
+     * @throws Throwable
+     */
+    public void waitCompleted() throws Throwable {
+      ForkJoinPool.managedBlock(this);
+      if (mError != null) {
+        throw mError;
+      }
+    }
+
+    @Override
+    public boolean block() throws InterruptedException {
+      try {
+        mIsCompleted.get();
+      } catch (ExecutionException exc) {
+        mError = exc.getCause();
+      }
+      return true;
+    }
+
+    @Override
+    public boolean isReleasable() {
+      return mIsCompleted.isDone() || mIsCompleted.isCancelled();
     }
   }
 
@@ -314,18 +344,17 @@ public final class AsyncJournalWriter {
       ticket.waitCompleted();
     } catch (InterruptedException ie) {
       // Interpret interruption as cancellation.
-      throw new AlluxioStatusException(Status.CANCELED, ie);
-    } catch (ExecutionException ee) {
+      throw new AlluxioStatusException(Status.CANCELLED.withCause(ie));
+    } catch (Throwable e) {
       // Filter, journal specific exception codes.
-      Throwable cause = ee.getCause();
-      if (cause != null && cause instanceof IOException) {
-        throw (IOException) cause;
+      if (e instanceof IOException) {
+        throw (IOException) e;
       }
-      if (cause != null && cause instanceof JournalClosedException) {
-        throw (JournalClosedException) cause;
+      if (e instanceof JournalClosedException) {
+        throw (JournalClosedException) e;
       }
       // Not expected. throw internal error.
-      throw new AlluxioStatusException(Status.INTERNAL, ee);
+      throw new AlluxioStatusException(Status.INTERNAL.withCause(e));
     } finally {
       /**
        * Client can only try to reacquire the permit it has given

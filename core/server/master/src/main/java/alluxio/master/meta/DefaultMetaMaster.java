@@ -21,9 +21,12 @@ import alluxio.collections.IndexedSet;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Source;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.ConfigProperties;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
@@ -39,9 +42,11 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientContext;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.journal.NoopJournaled;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.meta.checkconf.ServerConfigurationChecker;
 import alluxio.master.meta.checkconf.ServerConfigurationStore;
+import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -71,6 +76,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -82,7 +88,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The default meta master.
  */
 @NotThreadSafe
-public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, NoopJournaled {
+public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(BlockMaster.class);
@@ -139,6 +145,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
   /** The metadata daily backup. */
   private DailyMetadataBackup mDailyBackup;
 
+  /** Path level properties. */
+  private PathProperties mPathProperties;
+
   /**
    * Creates a new instance of {@link DefaultMetaMaster}.
    *
@@ -177,6 +186,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
     } else {
       mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     }
+
+    mPathProperties = new PathProperties();
   }
 
   @Override
@@ -229,8 +240,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
         mDailyBackup.start();
       }
     } else {
-      boolean haEnabled = ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
-      if (haEnabled) {
+      if (ConfigurationUtils.isHaMode(ServerConfiguration.global())) {
         // Standby master should setup MetaMasterSync to communicate with the leader master
         RetryHandlingMetaMasterMasterClient metaMasterClient =
             new RetryHandlingMetaMasterMasterClient(MasterClientContext
@@ -284,7 +294,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
         }
       } catch (Throwable t) {
         try {
-          ufs.deleteFile(backupFilePath);
+          ufs.deleteExistingFile(backupFilePath);
         } catch (Throwable t2) {
           LOG.error("Failed to clean up failed backup at {}", backupFilePath, t2);
           t.addSuppressed(t2);
@@ -325,6 +335,44 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
       }
     }
     return configInfoList;
+  }
+
+  @Override
+  public Map<String, ConfigProperties> getPathConfiguration(GetConfigurationPOptions options) {
+    Map<String, ConfigProperties> pathConfig = new HashMap<>();
+    mPathProperties.get().forEach((path, properties) -> {
+      List<ConfigProperty> configPropertyList = new ArrayList<>();
+      properties.forEach((key, value) ->
+          configPropertyList.add(ConfigProperty.newBuilder().setName(key)
+              .setSource(Source.PATH_DEFAULT.toString()).setValue(value).build()));
+      ConfigProperties configProperties = ConfigProperties.newBuilder().addAllProperties(
+          configPropertyList).build();
+      pathConfig.put(path, configProperties);
+    });
+    return pathConfig;
+  }
+
+  @Override
+  public void setPathConfiguration(String path, Map<PropertyKey, String> properties)
+      throws UnavailableException {
+    try (JournalContext ctx = createJournalContext()) {
+      mPathProperties.add(ctx, path, properties);
+    }
+  }
+
+  @Override
+  public void removePathConfiguration(String path, Set<String> keys)
+      throws UnavailableException {
+    try (JournalContext ctx = createJournalContext()) {
+      mPathProperties.remove(ctx, path, keys);
+    }
+  }
+
+  @Override
+  public void removePathConfiguration(String path) throws UnavailableException {
+    try (JournalContext ctx = createJournalContext()) {
+      mPathProperties.removeAll(ctx, path);
+    }
   }
 
   @Override
@@ -423,6 +471,26 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster, N
     mMasterConfigStore.registerNewConf(master.getAddress(), options.getConfigsList());
 
     LOG.info("registerMaster(): master: {}", master);
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.META_MASTER;
+  }
+
+  @Override
+  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
+    return mPathProperties.getJournalEntryIterator();
+  }
+
+  @Override
+  public boolean processJournalEntry(Journal.JournalEntry entry) {
+    return mPathProperties.processJournalEntry(entry);
+  }
+
+  @Override
+  public void resetState() {
+    mPathProperties.resetState();
   }
 
   /**

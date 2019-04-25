@@ -92,16 +92,13 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   protected void addAggregator(SingleValueAggregator aggregator) {
     mMetricsAggregatorRegistry.put(aggregator.getName(), aggregator);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClusterMetricName(aggregator.getName()),
-        new Gauge<Object>() {
-          @Override
-          public Object getValue() {
-            Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
-            for (MetricsFilter filter : aggregator.getFilters()) {
-              metrics.put(filter, mMetricsStore
-                  .getMetricsByInstanceTypeAndName(filter.getInstanceType(), filter.getName()));
-            }
-            return aggregator.getValue(metrics);
+        (Gauge<Object>) () -> {
+          Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
+          for (MetricsFilter filter : aggregator.getFilters()) {
+            metrics.put(filter, mMetricsStore
+                .getMetricsByInstanceTypeAndName(filter.getInstanceType(), filter.getName()));
           }
+          return aggregator.getValue(metrics);
         });
   }
 

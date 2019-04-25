@@ -28,6 +28,7 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -260,6 +261,33 @@ public abstract class AbstractUnderFileSystemContractTest {
   }
 
   @Test
+  public void createDeleteFileConjuctionTest() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "deleteThenCreateNonexistingFile");
+    createTestBytesFile(testFile);
+    assertTrue(mUfs.exists(testFile));
+    assertTrue(mUfs.isFile(testFile));
+
+    mUfs.deleteExistingFile(testFile);
+    assertFalse(mUfs.exists(testFile));
+
+    OutputStream o = mUfs.createNonexistingFile(testFile);
+    o.write(TEST_BYTES);
+    o.close();
+    assertTrue(mUfs.exists(testFile));
+  }
+
+  @Test
+  public void createThenDeleteExistingDirectoryTest() throws IOException {
+    LargeDirectoryConfig config = prepareLargeDirectoryTest();
+    mUfs.deleteExistingDirectory(config.getTopLevelDirectory(),
+        DeleteOptions.defaults().setRecursive(true));
+
+    for (String child : config.getChildren()) {
+      assertTrue(!mUfs.isFile(child) && !mUfs.isDirectory(child));
+    }
+  }
+
+  @Test
   public void exists() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     assertFalse(mUfs.isFile(testFile));
@@ -281,6 +309,14 @@ public abstract class AbstractUnderFileSystemContractTest {
   }
 
   @Test
+  public void createThenGetExistingDirectoryStatus() throws IOException {
+    String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
+    mUfs.mkdirs(testDir);
+    UfsStatus status = mUfs.getExistingStatus(testDir);
+    assertTrue(status instanceof UfsDirectoryStatus);
+  }
+
+  @Test
   public void getFileSize() throws IOException {
     String testFileEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileEmpty");
     String testFileNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileNonEmpty");
@@ -291,11 +327,32 @@ public abstract class AbstractUnderFileSystemContractTest {
   }
 
   @Test
+  public void createThenGetExistingFileStatus() throws IOException {
+    String testFileNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileNonEmpty");
+    String testFileLarge = PathUtils.concatPath(mUnderfsAddress, "testFileLarge");
+    createTestBytesFile(testFileNonEmpty);
+    int numCopies = prepareMultiBlockFile(testFileLarge);
+    assertEquals(TEST_BYTES.length,
+        mUfs.getExistingFileStatus(testFileNonEmpty).getContentLength());
+    assertEquals(TEST_BYTES.length * numCopies,
+        mUfs.getExistingFileStatus(testFileLarge).getContentLength());
+  }
+
+  @Test
   public void getFileStatus() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createEmptyFile(testFile);
 
     UfsStatus status = mUfs.getStatus(testFile);
+    assertTrue(status instanceof UfsFileStatus);
+  }
+
+  @Test
+  public void createThenGetExistingStatus() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    createTestBytesFile(testFile);
+
+    UfsStatus status = mUfs.getExistingStatus(testFile);
     assertTrue(status instanceof UfsFileStatus);
   }
 
@@ -626,6 +683,16 @@ public abstract class AbstractUnderFileSystemContractTest {
   }
 
   @Test
+  public void enameRenamableFile() throws IOException {
+    String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "renameFileSrc");
+    String testFileDst = PathUtils.concatPath(mUnderfsAddress, "renameFileDst");
+    prepareMultiBlockFile(testFileSrc);
+    mUfs.renameRenamableFile(testFileSrc, testFileDst);
+    assertFalse(mUfs.isFile(testFileSrc));
+    assertTrue(mUfs.isFile(testFileDst));
+  }
+
+  @Test
   public void renameDirectory() throws IOException {
     String testDirSrc = PathUtils.concatPath(mUnderfsAddress, "renameDirectorySrc");
     String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
@@ -668,6 +735,77 @@ public abstract class AbstractUnderFileSystemContractTest {
     assertTrue(mUfs.isFile(testDirDstChild));
     assertTrue(mUfs.isDirectory(testDirDstNested));
     assertTrue(mUfs.isFile(testDirDstNestedChild));
+  }
+
+  @Test
+  public void renameRenameableDirectory() throws IOException {
+    String testDirSrc = PathUtils.concatPath(mUnderfsAddress, "renameRenamableDirectorySrc");
+    String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
+    String testDirSrcNested = PathUtils.concatPath(testDirSrc, "testNested");
+    String testDirSrcNestedChild = PathUtils.concatPath(testDirSrcNested, "testNestedFile");
+
+    String testDirDst = PathUtils.concatPath(mUnderfsAddress, "renameRenamableDirectoryDst");
+    String testDirDstChild = PathUtils.concatPath(testDirDst, "testFile");
+    String testDirDstNested = PathUtils.concatPath(testDirDst, "testNested");
+    String testDirDstNestedChild = PathUtils.concatPath(testDirDstNested, "testNestedFile");
+
+    mUfs.mkdirs(testDirSrc, MkdirsOptions.defaults(mConfiguration).setCreateParent(false));
+    prepareMultiBlockFile(testDirSrcChild);
+    mUfs.mkdirs(testDirSrcNested, MkdirsOptions.defaults(mConfiguration).setCreateParent(false));
+    prepareMultiBlockFile(testDirSrcNestedChild);
+
+    mUfs.renameRenamableDirectory(testDirSrc, testDirDst);
+
+    assertFalse(mUfs.isDirectory(testDirSrc));
+    assertFalse(mUfs.isFile(testDirSrcChild));
+    assertFalse(mUfs.isDirectory(testDirSrcNested));
+    assertFalse(mUfs.isFile(testDirSrcNestedChild));
+
+    assertTrue(mUfs.isDirectory(testDirDst));
+    assertTrue(mUfs.isFile(testDirDstChild));
+    assertTrue(mUfs.isDirectory(testDirDstNested));
+    assertTrue(mUfs.isFile(testDirDstNestedChild));
+  }
+
+  @Test
+  public void renameLargeDirectory() throws Exception {
+    LargeDirectoryConfig config = prepareLargeDirectoryTest();
+    String dstTopLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "topLevelDirMoved");
+    mUfs.renameDirectory(config.getTopLevelDirectory(), dstTopLevelDirectory);
+    // 1. Check the src directory no longer exists
+    String[] srcChildren = config.getChildren();
+    for (String src : srcChildren) {
+      // Retry for some time to allow list operation eventual consistency for S3 and GCS.
+      // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
+      // https://cloud.google.com/storage/docs/consistency for more details.
+      CommonUtils.waitFor("list after delete consistency", () -> {
+        try {
+          return !mUfs.exists(src);
+        } catch (IOException e) {
+          return false;
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(10000).setInterval(500));
+    }
+    // 2. Check the dst directory exists
+    CommonUtils.waitFor("list after create consistency", () -> {
+      UfsStatus[] results;
+      try {
+        results = mUfs.listStatus(dstTopLevelDirectory);
+        if (srcChildren.length != results.length) {
+          return false;
+        }
+        // Check nested files and directories in dst exist
+        String[] resultNames = UfsStatus.convertToNames(results);
+        Arrays.sort(resultNames);
+        for (int i = 0; i < srcChildren.length; ++i) {
+          assertTrue(resultNames[i].equals(CommonUtils.stripPrefixIfPresent(srcChildren[i],
+              PathUtils.normalizePath(config.getTopLevelDirectory(), "/"))));
+        }
+      } catch (IOException e) {
+        return false;
+      }
+      return true;
+    }, WaitForOptions.defaults().setTimeoutMs(10000).setInterval(500));
   }
 
   private void createEmptyFile(String path) throws IOException {

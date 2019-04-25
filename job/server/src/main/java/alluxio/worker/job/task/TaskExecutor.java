@@ -16,8 +16,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.job.JobConfig;
 import alluxio.job.JobDefinition;
 import alluxio.job.JobDefinitionRegistry;
-import alluxio.job.JobWorkerContext;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.job.RunTaskContext;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -39,7 +39,7 @@ public final class TaskExecutor implements Runnable {
   private final int mTaskId;
   private final JobConfig mJobConfig;
   private final Serializable mTaskArgs;
-  private final JobWorkerContext mContext;
+  private final RunTaskContext mContext;
   private final TaskExecutorManager mTaskExecutorManager;
 
   /**
@@ -53,7 +53,7 @@ public final class TaskExecutor implements Runnable {
    * @param taskExecutorManager the task executor manager
    */
   public TaskExecutor(long jobId, int taskId, JobConfig jobConfig, Serializable taskArgs,
-      JobWorkerContext context, TaskExecutorManager taskExecutorManager) {
+      RunTaskContext context, TaskExecutorManager taskExecutorManager) {
     mJobId = jobId;
     mTaskId = taskId;
     mJobConfig = jobConfig;

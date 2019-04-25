@@ -127,9 +127,21 @@ public abstract class AbstractUfsManager implements UfsManager {
       UnderFileSystem fs = UnderFileSystem.Factory.create(ufsUri.toString(), ufsConf);
       mUnderFileSystemMap.putIfAbsent(key, fs);
       mCloser.register(fs);
+      try {
+        connectUfs(fs);
+      } catch (IOException e) {
+        LOG.warn("Failed to perform initial connect to UFS {}: {}", ufsUri, e.getMessage());
+      }
       return fs;
     }
   }
+
+  /**
+   * Takes any necessary actions required to establish a connection to the under file system.
+   * The implementation will either call {@link UnderFileSystem#connectFromMaster(String)} or
+   *  {@link UnderFileSystem#connectFromWorker(String)} depending on the running process.
+   */
+  protected abstract void connectUfs(UnderFileSystem fs) throws IOException;
 
   @Override
   public void addMount(long mountId, final AlluxioURI ufsUri,

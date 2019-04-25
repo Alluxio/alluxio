@@ -14,13 +14,13 @@ package alluxio;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.Status;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,17 +132,17 @@ public final class RestUtils {
    * It will be encoded into a Json string to be returned as an error response for the REST call.
    */
   public static class ErrorResponse {
-    private final Status mStatus;
+    private final Status.Code mStatusCode;
     private final String mMessage;
 
     /**
      * Creates a new {@link ErrorResponse}.
      *
-     * @param status the RPC call result's {@link Status}
+     * @param statusCode the RPC call result's {@link Status.Code}
      * @param message the error message
      */
-    public ErrorResponse(Status status, String message) {
-      mStatus = status;
+    public ErrorResponse(Status.Code statusCode, String message) {
+      mStatusCode = statusCode;
       mMessage = message;
     }
 
@@ -151,8 +151,8 @@ public final class RestUtils {
      *
      * @return the status
      */
-    public Status getStatus() {
-      return mStatus;
+    public Status.Code getStatusCode() {
+      return mStatusCode;
     }
 
     /**
@@ -173,7 +173,7 @@ public final class RestUtils {
    */
   private static Response createErrorResponse(Exception e, AlluxioConfiguration alluxioConf) {
     AlluxioStatusException se = AlluxioStatusException.fromThrowable(e);
-    ErrorResponse response = new ErrorResponse(se.getStatus(), se.getMessage());
+    ErrorResponse response = new ErrorResponse(se.getStatus().getCode(), se.getMessage());
 
     Response.ResponseBuilder rb = Response.serverError().entity(response);
     if (alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED)) {

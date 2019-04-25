@@ -210,15 +210,17 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public List<URIStatus> listStatus(final AlluxioURI path,
-      final ListStatusPOptions options) throws AlluxioStatusException {
+  public List<URIStatus> listStatus(final AlluxioURI path, final ListStatusPOptions options)
+      throws AlluxioStatusException {
     return retryRPC(() -> {
       List<URIStatus> result = new ArrayList<>();
-      for (alluxio.grpc.FileInfo fileInfo : mClient.listStatus(ListStatusPRequest.newBuilder()
-          .setPath(path.getPath()).setOptions(options).build())
-          .getFileInfosList()) {
-        result.add(new URIStatus(GrpcUtils.fromProto(fileInfo)));
-      }
+      mClient
+          .listStatus(
+              ListStatusPRequest.newBuilder().setPath(path.getPath()).setOptions(options).build())
+          .forEachRemaining(
+              (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()
+                  .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
+                  .collect(Collectors.toList())));
       return result;
     }, "ListStatus");
   }

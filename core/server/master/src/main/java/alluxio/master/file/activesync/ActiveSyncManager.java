@@ -23,7 +23,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
-import alluxio.master.journal.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File;
@@ -57,6 +57,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -172,8 +173,7 @@ public class ActiveSyncManager implements Journaled {
     // attempt to restart from a past txid, if this fails, it will result in MissingEventException
     // therefore forces a sync
     for (long mountId: mFilterMap.keySet()) {
-      long txId = mStartingTxIdMap.containsKey(mountId)
-          ? mStartingTxIdMap.get(mountId) : SyncInfo.INVALID_TXID;
+      long txId = mStartingTxIdMap.getOrDefault(mountId, SyncInfo.INVALID_TXID);
       launchPollingThread(mountId, txId);
 
       try {
@@ -192,7 +192,7 @@ public class ActiveSyncManager implements Journaled {
                       LOG.warn("IOException encountered during active sync while starting {}", e);
                     }
                   }
-          )).get();
+          ));
         }
       } catch (Exception e) {
         LOG.warn("exception encountered during initial sync {}", e);
@@ -283,6 +283,8 @@ public class ActiveSyncManager implements Journaled {
    * @param syncPoint sync point to stop
    * @return the path resolution result if successfully passed all checks
    */
+
+  @Nullable
   public MountTable.Resolution resolveSyncPoint(AlluxioURI syncPoint) throws InvalidPathException {
     if (!mSyncPathList.contains(syncPoint)) {
       LOG.debug("syncPoint not found {}", syncPoint.getPath());

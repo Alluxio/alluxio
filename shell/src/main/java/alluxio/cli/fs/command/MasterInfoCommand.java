@@ -51,7 +51,7 @@ public final class MasterInfoCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) {
     MasterInquireClient inquireClient =
-        MasterInquireClient.Factory.create(mFsContext.getConf());
+        MasterInquireClient.Factory.create(mFsContext.getClusterConf());
     try {
       InetSocketAddress leaderAddress = inquireClient.getPrimaryRpcAddress();
       System.out.println("Current leader master: " + leaderAddress.toString());

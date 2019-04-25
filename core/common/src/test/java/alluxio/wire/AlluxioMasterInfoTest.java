@@ -11,10 +11,12 @@
 
 package alluxio.wire;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
+
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -40,19 +42,18 @@ public class AlluxioMasterInfoTest {
   }
 
   private void checkEquality(AlluxioMasterInfo a, AlluxioMasterInfo b) {
-    Assert.assertEquals(a.getCapacity(), b.getCapacity());
-    Assert.assertEquals(a.getConfiguration(), b.getConfiguration());
-    Assert.assertEquals(a.getLostWorkers(), b.getLostWorkers());
-    Assert.assertEquals(a.getMetrics(), b.getMetrics());
-    Assert.assertEquals(a.getRpcAddress(), b.getRpcAddress());
-    Assert.assertEquals(a.getStartTimeMs(), b.getStartTimeMs());
-    Assert.assertEquals(a.getStartupConsistencyCheck(), b.getStartupConsistencyCheck());
-    Assert.assertEquals(a.getTierCapacity(), b.getTierCapacity());
-    Assert.assertEquals(a.getUfsCapacity(), b.getUfsCapacity());
-    Assert.assertEquals(a.getUptimeMs(), b.getUptimeMs());
-    Assert.assertEquals(a.getVersion(), b.getVersion());
-    Assert.assertEquals(a.getWorkers(), b.getWorkers());
-    Assert.assertEquals(a, b);
+    assertEquals(a.getCapacity(), b.getCapacity());
+    assertEquals(a.getConfiguration(), b.getConfiguration());
+    assertEquals(a.getLostWorkers(), b.getLostWorkers());
+    assertEquals(a.getMetrics(), b.getMetrics());
+    assertEquals(a.getRpcAddress(), b.getRpcAddress());
+    assertEquals(a.getStartTimeMs(), b.getStartTimeMs());
+    assertEquals(a.getTierCapacity(), b.getTierCapacity());
+    assertEquals(a.getUfsCapacity(), b.getUfsCapacity());
+    assertEquals(a.getUptimeMs(), b.getUptimeMs());
+    assertEquals(a.getVersion(), b.getVersion());
+    assertEquals(a.getWorkers(), b.getWorkers());
+    assertEquals(a, b);
   }
 
   private static AlluxioMasterInfo createRandom() {
@@ -78,14 +79,6 @@ public class AlluxioMasterInfoTest {
     }
     String rpcAddress = CommonUtils.randomAlphaNumString(random.nextInt(10));
     long startTimeMs = random.nextLong();
-    StartupConsistencyCheck check = new StartupConsistencyCheck();
-    check.setStatus(CommonUtils.randomAlphaNumString(random.nextInt(10)));
-    int numUris = random.nextInt(10);
-    List<String> uris = new ArrayList<>(numUris);
-    for (int i = 0; i < numUris; i++) {
-      uris.add(CommonUtils.randomAlphaNumString(random.nextInt(10)));
-    }
-    check.setInconsistentUris(uris);
     Map<String, Capacity> tierCapacity = new HashMap<>();
     long numTiers = random.nextInt(10);
     for (int i = 0; i < numTiers; i++) {
@@ -107,7 +100,6 @@ public class AlluxioMasterInfoTest {
     result.setMetrics(metrics);
     result.setRpcAddress(rpcAddress);
     result.setStartTimeMs(startTimeMs);
-    result.setStartupConsistencyCheck(check);
     result.setTierCapacity(tierCapacity);
     result.setUfsCapacity(ufsCapacity);
     result.setUptimeMs(uptimeMs);

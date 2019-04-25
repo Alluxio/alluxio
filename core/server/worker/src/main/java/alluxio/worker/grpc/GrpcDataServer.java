@@ -18,6 +18,7 @@ import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcSerializationUtils;
+import alluxio.grpc.ServiceType;
 import alluxio.network.ChannelType;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
@@ -86,7 +87,7 @@ public final class GrpcDataServer implements DataServer {
       BlockWorkerImpl blockWorkerService = new BlockWorkerImpl(workerProcess, mFsContext);
       mServer = createServerBuilder(hostName, bindAddress, NettyUtils.getWorkerChannel(
           ServerConfiguration.global()))
-          .addService(new GrpcService(
+          .addService(ServiceType.FILE_SYSTEM_WORKER_WORKER_SERVICE, new GrpcService(
               GrpcSerializationUtils.overrideMethods(blockWorkerService.bindService(),
                   blockWorkerService.getOverriddenMethodDescriptors())
           ))

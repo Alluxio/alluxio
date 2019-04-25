@@ -19,6 +19,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.util.CommonUtils;
+import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.WaitForOptions;
 
 import org.slf4j.Logger;
@@ -53,19 +54,21 @@ public final class AlluxioSecondaryMaster implements Process {
   AlluxioSecondaryMaster() {
     try {
       URI journalLocation = JournalUtils.getJournalLocation();
-      mJournalSystem = new JournalSystem.Builder().setLocation(journalLocation).build();
+      mJournalSystem = new JournalSystem.Builder()
+          .setLocation(journalLocation).build(ProcessType.MASTER);
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       mBackupManager = new BackupManager(mRegistry);
       mStartTimeMs = System.currentTimeMillis();
       mPort = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
+      String baseDir = ServerConfiguration.get(PropertyKey.SECONDARY_MASTER_METASTORE_DIR);
       // Create masters.
       MasterUtils.createMasters(mRegistry, CoreMasterContext.newBuilder()
           .setJournalSystem(mJournalSystem)
           .setSafeModeManager(mSafeModeManager)
           .setBackupManager(mBackupManager)
-          .setBlockStoreFactory(MasterUtils.getBlockStoreFactory())
-          .setInodeStoreFactory(MasterUtils.getInodeStoreFactory())
+          .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
+          .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
           .setStartTimeMs(mStartTimeMs)
           .setPort(mPort)
           .build());

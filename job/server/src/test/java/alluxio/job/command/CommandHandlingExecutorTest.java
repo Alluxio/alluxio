@@ -11,11 +11,14 @@
 
 package alluxio.job.command;
 
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.grpc.TaskInfo;
 import alluxio.job.JobConfig;
-import alluxio.job.JobWorkerContext;
+import alluxio.job.JobServerContext;
+import alluxio.job.RunTaskContext;
 import alluxio.job.TestJobConfig;
 import alluxio.job.util.SerializationUtils;
 import alluxio.underfs.UfsManager;
@@ -44,24 +47,29 @@ import java.util.concurrent.TimeUnit;
  * Tests {@link CommandHandlingExecutor}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TaskExecutorManager.class, WorkerNetAddress.class})
+@PrepareForTest({TaskExecutorManager.class, WorkerNetAddress.class, FileSystemContext.class})
 public final class CommandHandlingExecutorTest {
   private CommandHandlingExecutor mCommandHandlingExecutor;
   private JobMasterClient mJobMasterClient;
   private long mWorkerId;
   private TaskExecutorManager mTaskExecutorManager;
   private UfsManager mUfsManager;
+  private FileSystemContext mFileSystemContext;
+  private FileSystem mFileSystem;
 
   @Before
   public void before() {
+
     mWorkerId = 0;
     mJobMasterClient = Mockito.mock(JobMasterClient.class);
     mTaskExecutorManager = PowerMockito.mock(TaskExecutorManager.class);
     WorkerNetAddress workerNetAddress = PowerMockito.mock(WorkerNetAddress.class);
     mUfsManager = Mockito.mock(UfsManager.class);
+    mFileSystemContext = Mockito.mock(FileSystemContext.class);
+    mFileSystem = Mockito.mock(FileSystem.class);
+    JobServerContext ctx = new JobServerContext(mFileSystem, mFileSystemContext, mUfsManager);
     mCommandHandlingExecutor =
-        new CommandHandlingExecutor(mTaskExecutorManager, mUfsManager, mJobMasterClient,
-            workerNetAddress);
+        new CommandHandlingExecutor(ctx, mTaskExecutorManager, mJobMasterClient, workerNetAddress);
   }
 
   @Test
@@ -89,6 +97,6 @@ public final class CommandHandlingExecutorTest {
 
     Mockito.verify(mTaskExecutorManager).getAndClearTaskUpdates();
     Mockito.verify(mTaskExecutorManager).executeTask(Mockito.eq(jobId), Mockito.eq(taskId),
-        Mockito.eq(jobConfig), Mockito.eq(taskArgs), Mockito.any(JobWorkerContext.class));
+        Mockito.eq(jobConfig), Mockito.eq(taskArgs), Mockito.any(RunTaskContext.class));
   }
 }

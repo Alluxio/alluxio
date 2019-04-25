@@ -24,7 +24,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.job.JobMasterContext;
+import alluxio.job.JobServerContext;
+import alluxio.job.SelectExecutorsContext;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -53,7 +54,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Unit tests for {@link MigrateDefinition#selectExecutors(MigrateConfig, List, JobMasterContext)}.
+ * Unit tests for
+ * {@link MigrateDefinition#selectExecutors(MigrateConfig, List, SelectExecutorsContext)}.
  * No matter whether to delete source, selectExecutors should have the same behavior.
  */
 @RunWith(PowerMockRunner.class)
@@ -310,9 +312,11 @@ public final class MigrateDefinitionSelectExecutorsTest {
     setPathToNotExist("/dst");
 
     Map<WorkerInfo, ArrayList<MigrateCommand>> assignments =
-        new MigrateDefinition(mMockFileSystemContext, mMockFileSystem).selectExecutors(
+        new MigrateDefinition().selectExecutors(
             new MigrateConfig("/src", "/dst", "THROUGH", true, false),
-            ImmutableList.of(JOB_WORKER_3), new JobMasterContext(1, mMockUfsManager));
+            ImmutableList.of(JOB_WORKER_3),
+            new SelectExecutorsContext(1,
+                new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));
 
     Assert.assertEquals(ImmutableMap.of(JOB_WORKER_3,
         new ArrayList<>(Arrays.asList(new MigrateCommand("/src", "/dst")))), assignments);
@@ -332,8 +336,9 @@ public final class MigrateDefinitionSelectExecutorsTest {
    */
   private Map<WorkerInfo, ArrayList<MigrateCommand>> assignMigrates(MigrateConfig config)
       throws Exception {
-    return new MigrateDefinition(mMockFileSystemContext, mMockFileSystem).selectExecutors(config,
-        JOB_WORKERS, new JobMasterContext(1, mMockUfsManager));
+    return new MigrateDefinition().selectExecutors(config,
+        JOB_WORKERS, new SelectExecutorsContext(1,
+            new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));
   }
 
   /**
