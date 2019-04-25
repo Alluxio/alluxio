@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -333,9 +334,10 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected InputStream openObject(String key, OpenOptions options) throws IOException {
+  protected InputStream openObject(String key, OpenOptions options, RetryPolicy retryPolicy)
+      throws IOException {
     try {
-      return new GCSInputStream(mBucketName, key, mClient, options.getOffset());
+      return new GCSInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy);
     } catch (ServiceException e) {
       throw new IOException(e.getMessage());
     }
