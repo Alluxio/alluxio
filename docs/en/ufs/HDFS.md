@@ -249,11 +249,11 @@ Alluxio v{{site.ALLUXIO_RELEASED_VERSION}} supports the following versions of HD
 
 ### Use Hadoop Native Library
 
-Hadoop comes with native library that provides better performance and additional features to its Java implementation.
-For example, when native library is used, HDFS client can use native checksum function which is more efficient than default Java version.
-To use Hadoop native library with Alluxio HDFS under filesystem, first install the native library on Alluxio nodes by following the
+Hadoop comes with a native library that provides better performance and additional features compared to its Java implementation.
+For example, when the native library is used, the HDFS client can use native checksum function which is more efficient than the default Java implementation.
+To use the Hadoop native library with Alluxio HDFS under filesystem, first install the native library on Alluxio nodes by following the
 instructions on [this page](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/NativeLibraries.html).
-Once hadoop native library is installed on the machine, update Alluxio startup Java parameters in `conf/alluxio-env.sh`:
+Once the hadoop native library is installed on the machine, update Alluxio startup Java parameters in `conf/alluxio-env.sh` by adding the following line:
 
 ```
 ALLUXIO_JAVA_OPTS+=" -Djava.library.path=<local_path_containing_hadoop_native_library> "
