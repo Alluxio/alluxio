@@ -12,8 +12,8 @@
 package alluxio.client.meta;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.collections.Pair;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.wire.ConfigVersion;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +35,7 @@ public final class ConfigVersionSync implements HeartbeatExecutor {
 
   private final RetryHandlingMetaMasterConfigClient mClient;
   private final FileSystemContext mContext;
-  private String mClusterConfVersion;
-  private String mPathConfVersion;
+  private ConfigVersion mVersion;
 
   /**
    * Constructs a new {@link ConfigVersionSync}.
@@ -52,15 +51,13 @@ public final class ConfigVersionSync implements HeartbeatExecutor {
   @Override
   public synchronized void heartbeat() throws InterruptedException {
     try {
-      Pair<String, String> versions = mClient.getConfigurationVersion();
-      if (!mClusterConfVersion.equals(versions.getFirst())
-          || !mPathConfVersion.equals(versions.getSecond())) {
+      ConfigVersion version = mClient.getConfigurationVersion();
+      if (!mVersion.equals(version)) {
         // This may take long time and block the heartbeat, but it's fine since it's meaningless
         // to run the heartbeat during the re-initialization.
         mContext.reinit();
+        mVersion = version;
       }
-      mClusterConfVersion = versions.getFirst();
-      mPathConfVersion = versions.getSecond();
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to meta master to get configuration version:", e);
       mClient.disconnect();
@@ -68,6 +65,7 @@ public final class ConfigVersionSync implements HeartbeatExecutor {
   }
 
   @Override
-  public void close() {
+  public synchronized void close() {
+    // Noop, the mClient will be closed by users of this class.
   }
 }

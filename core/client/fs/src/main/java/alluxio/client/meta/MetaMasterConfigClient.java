@@ -12,8 +12,8 @@
 package alluxio.client.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
+import alluxio.wire.ConfigVersion;
 import alluxio.wire.Configuration;
 
 import java.io.Closeable;
@@ -32,9 +32,9 @@ public interface MetaMasterConfigClient extends Closeable {
   Configuration getConfiguration() throws IOException;
 
   /**
-   * @return pair of versions of cluster and path level configurations
+   * @return versions of cluster and path level configurations
    */
-  Pair<String, String> getConfigurationVersion() throws IOException;
+  ConfigVersion getConfigurationVersion() throws IOException;
 
   /**
    * Sets a property for a path.
