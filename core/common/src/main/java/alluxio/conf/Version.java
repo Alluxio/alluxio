@@ -15,20 +15,21 @@ import org.apache.commons.codec.binary.Hex;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Version is a hex encoded MD5 hash of the cluster or path configurations.
  */
-@NotThreadSafe
+@ThreadSafe
 public final class Version {
-  private MessageDigest mMD5;
-  private Supplier<Stream<byte[]>> mProperties;
-  private String mVersion;
-  private boolean mShouldUpdate;
+  private final MessageDigest mMD5;
+  private final Supplier<Stream<byte[]>> mProperties;
+  private final AtomicBoolean mShouldUpdate;
+  private volatile String mVersion;
 
   /**
    * @param properties a stream of encoded properties
@@ -40,8 +41,8 @@ public final class Version {
       throw new RuntimeException(e);
     }
     mProperties = properties;
+    mShouldUpdate = new AtomicBoolean(true);
     mVersion = "";
-    mShouldUpdate = true;
   }
 
   /**
@@ -50,7 +51,7 @@ public final class Version {
    * but version will not be recomputed until {@link #get()} is called.
    */
   public void update() {
-    mShouldUpdate = true;
+    mShouldUpdate.set(true);
   }
 
   private String compute() {
@@ -66,9 +67,14 @@ public final class Version {
    * @return the latest version
    */
   public String get() {
-    if (mShouldUpdate) {
-      mVersion = compute();
-      mShouldUpdate = false;
+    if (mShouldUpdate.get()) {
+      synchronized (this) {
+        // If another thread has recomputed the version, no need to recompute again.
+        if (mShouldUpdate.get()) {
+          mVersion = compute();
+          mShouldUpdate.set(false);
+        }
+      }
     }
     return mVersion;
   }
