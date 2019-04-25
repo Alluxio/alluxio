@@ -46,7 +46,7 @@ import java.util.Map;
  */
 public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   private static final int CAPACITY_BYTES = Constants.KB * 10;
-  private static final int FILE_SIZE = CAPACITY_BYTES;
+  private static final int FILE_SIZE = CAPACITY_BYTES / 10;
   private static final String BLOCK_SIZE_BYTES = "1KB";
 
   @Rule
@@ -181,32 +181,45 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void topTierWriteWithEviction() throws Exception {
-    writeFileAndCheckUsage(0, FILE_SIZE, 0, 0);
-    writeFileAndCheckUsage(0, FILE_SIZE, FILE_SIZE, 0);
-    writeFileAndCheckUsage(0, FILE_SIZE, FILE_SIZE, FILE_SIZE);
-    writeFileAndCheckUsage(0, FILE_SIZE, FILE_SIZE, FILE_SIZE);
+    int unreservedTier1 = CAPACITY_BYTES / 10 * 7;
+    for (int i = 0; i < CAPACITY_BYTES / FILE_SIZE; i++) {
+      writeFileAndCheckUsage(0, (i + 1) * FILE_SIZE, 0, 0);
+    }
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
+    writeFileAndCheckUsage(0, FILE_SIZE + unreservedTier1, CAPACITY_BYTES - unreservedTier1, 0);
   }
 
   @Test
   public void midTierWriteWithEviction() throws Exception {
-    writeFileAndCheckUsage(1, 0, FILE_SIZE, 0);
-    writeFileAndCheckUsage(1, 0, FILE_SIZE, FILE_SIZE);
-    writeFileAndCheckUsage(1, 0, FILE_SIZE, FILE_SIZE);
+    int unreservedTier2 = CAPACITY_BYTES / 10 * 4;
+    for (int i = 0; i < CAPACITY_BYTES / FILE_SIZE; i++) {
+      writeFileAndCheckUsage(1, 0, (i + 1) * FILE_SIZE, 0);
+    }
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
+    writeFileAndCheckUsage(1, 0, unreservedTier2 + FILE_SIZE, CAPACITY_BYTES - unreservedTier2);
   }
 
   @Test
   public void bottomTierWriteWithEviction() throws Exception {
-    writeFileAndCheckUsage(2, 0, 0, FILE_SIZE);
-    writeFileAndCheckUsage(2, 0, 0, FILE_SIZE);
+    int unreservedTiered3 = CAPACITY_BYTES / 10;
+    for (int i = 0; i < CAPACITY_BYTES / FILE_SIZE; i++) {
+      writeFileAndCheckUsage(2, 0, 0, (i + 1) * FILE_SIZE);
+    }
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
+    writeFileAndCheckUsage(2, 0, 0, unreservedTiered3 + FILE_SIZE);
   }
 
   @Test
   public void allTierWriteWithEviction() throws Exception {
-    writeFileAndCheckUsage(0, FILE_SIZE, 0, 0);
-    writeFileAndCheckUsage(1, FILE_SIZE, FILE_SIZE, 0);
-    writeFileAndCheckUsage(2, FILE_SIZE, FILE_SIZE, FILE_SIZE);
-    writeFileAndCheckUsage(-1, FILE_SIZE, FILE_SIZE, FILE_SIZE);
-    writeFileAndCheckUsage(-2, FILE_SIZE, FILE_SIZE, FILE_SIZE);
-    writeFileAndCheckUsage(-3, FILE_SIZE, FILE_SIZE, FILE_SIZE);
+    int unreservedTier1 = CAPACITY_BYTES / 10 * 7;
+    int unreservedTier2 = CAPACITY_BYTES / 10 * 7;
+    int unreservedTier3 = CAPACITY_BYTES / 10 * 7;
+    for (int i = 0; i < CAPACITY_BYTES / FILE_SIZE; i++) {
+      writeFileAndCheckUsage(0, (i + 1) * FILE_SIZE, i * FILE_SIZE, i * FILE_SIZE);
+      writeFileAndCheckUsage(1, (i + 1) * FILE_SIZE, (i + 1) * FILE_SIZE, i * FILE_SIZE);
+      writeFileAndCheckUsage(2, (i + 1) * FILE_SIZE, (i + 1) * FILE_SIZE, (i + 1) * FILE_SIZE);
+    }
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
+    writeFileAndCheckUsage(0, unreservedTier1 + FILE_SIZE, unreservedTier2, unreservedTier3);
   }
 }

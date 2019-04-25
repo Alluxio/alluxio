@@ -20,6 +20,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -27,6 +29,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,10 +43,13 @@ import java.util.HashMap;
 /**
  * Integration tests for {@link FileOutStream} of under storage type being async
  * persist.
- *
  */
 @RunWith(Parameterized.class)
 public class UfsFallbackFileOutStreamIntegrationTest extends AbstractFileOutStreamIntegrationTest {
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallyScheduleEviction =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_SPACE_RESERVER);
+
   protected static final int WORKER_MEMORY_SIZE = 1500;
   protected static final int BUFFER_BYTES = 100;
 
