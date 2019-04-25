@@ -15,17 +15,12 @@ import static java.util.stream.Collectors.toSet;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
-import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -54,15 +49,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class AlluxioProperties {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioProperties.class);
-  private static final MessageDigest MD5;
-
-  static {
-    try {
-      MD5 = MessageDigest.getInstance("MD5");
-    } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    }
-  }
 
   /**
    * Map of user-specified properties. When key is mapped to Optional.empty(), it indicates no
@@ -73,15 +59,10 @@ public class AlluxioProperties {
   /** Map of property sources. */
   private final ConcurrentHashMap<PropertyKey, Source> mSources = new ConcurrentHashMap<>();
 
-  /**
-   * Version of the properties, if the properties are updated, this should be updated accordingly.
-   */
-  private String mVersion;
-  /**
-   * Whether {@link #mVersion} is the latest, it will be false if properties are updated since
-   * last call of {@link #version()}.
-   */
-  private boolean mIsLatestVersion;
+  private final Version mVersion = new Version(() -> keySet().stream()
+      .filter(key -> get(key) != null)
+      .sorted(Comparator.comparing(PropertyKey::getName))
+      .map(key -> String.format("%s:%s:%s", key.getName(), get(key), getSource(key)).getBytes()));
 
   /**
    * Constructs a new instance of Alluxio properties.
@@ -128,7 +109,7 @@ public class AlluxioProperties {
     if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
       mUserProps.put(key, Optional.ofNullable(value));
       mSources.put(key, source);
-      outdateVersion();
+      mVersion.update();
     }
   }
 
@@ -172,7 +153,7 @@ public class AlluxioProperties {
       }
       put(propertyKey, value, source);
     }
-    outdateVersion();
+    mVersion.update();
   }
 
   /**
@@ -185,7 +166,7 @@ public class AlluxioProperties {
     if (mUserProps.containsKey(key)) {
       mUserProps.remove(key);
       mSources.remove(key);
-      outdateVersion();
+      mVersion.update();
     }
   }
 
@@ -268,7 +249,7 @@ public class AlluxioProperties {
   @VisibleForTesting
   public void setSource(PropertyKey key, Source source) {
     mSources.put(key, source);
-    outdateVersion();
+    mVersion.update();
   }
 
   /**
@@ -284,41 +265,9 @@ public class AlluxioProperties {
   }
 
   /**
-   * Sets a flag to indicate that version should be updated, when {@link #version()} is called,
-   * if the flag is set, version will be recomputed.
-   */
-  private void outdateVersion() {
-    mIsLatestVersion = false;
-  }
-
-  /**
-   * Recomputes version as hex encoded MD5 hash of the list of key:value:source strings sorted
-   * by key. The version is in format like 5abcb22bf208466dbce28909c40788df.
-   * If value is null for a key, then the corresponding key:value:source will not involve in
-   * the hashing computation.
-   */
-  private String computeVersion() {
-    List<PropertyKey> keys = new ArrayList<>(keySet());
-    keys.sort(Comparator.comparing(PropertyKey::getName));
-    MD5.reset();
-    for (PropertyKey key : keys) {
-      String value = get(key);
-      if (value != null) {
-        MD5.update(String.format("%s:%s:%s", key.getName(), value, getSource(key)).getBytes());
-      }
-    }
-    return Hex.encodeHexString(MD5.digest());
-  }
-
-  /**
-   * @return the current version of the properties, will recompute the version if it's not
-   *    computed yet or the properties are updated since last call of version()
+   * @return the current version of the properties
    */
   public String version() {
-    if (!mIsLatestVersion) {
-      mVersion = computeVersion();
-      mIsLatestVersion = true;
-    }
-    return mVersion;
+    return mVersion.get();
   }
 }
