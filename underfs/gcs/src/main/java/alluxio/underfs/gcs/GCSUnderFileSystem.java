@@ -65,10 +65,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   /** The name of the account owner. */
   private final String mAccountOwner;
 
-  /**
-   * Policy determining the retry behavior in case the key does not exist. The key may not exist
-   * because of eventual consistency.
-   */
+  /** The permission mode that the account owner has to the bucket. */
   private final short mBucketMode;
 
   static {

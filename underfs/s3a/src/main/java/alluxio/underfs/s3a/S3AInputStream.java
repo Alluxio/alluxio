@@ -133,7 +133,7 @@ public class S3AInputStream extends InputStream {
   /**
    * Opens a new stream at mPos if the wrapped stream mIn is null.
    */
-  private void openStream() {
+  private void openStream() throws IOException {
     if (mIn != null) { // stream is already open
       return;
     }
@@ -151,14 +151,14 @@ public class S3AInputStream extends InputStream {
         LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
             mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
         if (e.getStatusCode() != HttpStatus.SC_NOT_FOUND) {
-          throw e;
+          throw new IOException(e);
         }
         // Key does not exist
         lastException = e;
       }
     }
     // Failed after retrying key does not exist
-    throw lastException;
+    throw new IOException(lastException);
   }
 
   /**

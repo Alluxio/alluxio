@@ -99,6 +99,6 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
       }
     }
     // Failed after retrying object does not exist
-    throw new IOException(lastException);
+    throw lastException;
   }
 }

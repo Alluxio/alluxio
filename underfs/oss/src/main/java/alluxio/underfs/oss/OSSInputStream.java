@@ -105,13 +105,13 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
         LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
             mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
         if (!e.getErrorCode().equals("NoSuchKey")) {
-          throw e;
+          throw new IOException(e);
         }
         // Key does not exist
         lastException = e;
       }
     }
     // Failed after retrying key does not exist
-    throw lastException;
+    throw new IOException(lastException);
   }
 }
