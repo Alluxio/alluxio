@@ -2769,7 +2769,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_RENAME_PERSIST =
       new Builder(Name.USER_FILE_RENAME_PERSIST)
-          .setDefaultValue("false")
+          .setDefaultValue("true")
           .setDescription("Whether or not to persist any files which have been renamed. This is "
               + "helpful when working with compute frameworks which use rename to commit results.")
           .setScope(Scope.CLIENT)
