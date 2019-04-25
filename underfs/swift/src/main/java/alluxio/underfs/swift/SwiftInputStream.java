@@ -42,8 +42,8 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
   /** The path of the object to read, without container prefix. */
   private final String mObjectPath;
   /**
-   * Policy determining the retry behavior in case the key does not exist. The key may not exist
-   * because of eventual consistency.
+   * Policy determining the retry behavior in case the object does not exist.
+   * The object may not exist because of eventual consistency.
    */
   private final RetryPolicy mRetryPolicy;
 
@@ -53,7 +53,7 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
    * @param account JOSS account with authentication credentials
    * @param container the name of container where the object resides
    * @param object path of the object in the container
-   * @param retryPolicy retry policy in case the key does not exist
+   * @param retryPolicy retry policy in case the object does not exist
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
   public SwiftInputStream(Account account, String container, String object,
@@ -68,7 +68,7 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
    * @param container the name of container where the object resides
    * @param object path of the object in the container
    * @param position the position to begin reading from
-   * @param retryPolicy retry policy in case the key does not exist
+   * @param retryPolicy retry policy in case the object does not exist
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
   public SwiftInputStream(Account account, String container, String object, long position,
@@ -94,11 +94,11 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
       } catch (NotFoundException e) {
         LOG.warn("Attempt {} to get object {} from container {} failed with exception : {}",
             mRetryPolicy.getAttemptCount(), mObjectPath, mContainerName, e.toString());
-        // Key does not exist
+        // Object does not exist
         lastException = e;
       }
     }
-    // Failed after retrying key does not exist
+    // Failed after retrying object does not exist
     throw new IOException(lastException);
   }
 }

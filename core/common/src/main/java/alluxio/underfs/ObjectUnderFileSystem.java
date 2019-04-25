@@ -535,8 +535,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public  UfsFileStatus getExistingFileStatus(String path) throws IOException {
-    return retryOnException(() -> getFileStatus(path),
-        () -> "get status of file " + path);
+    return retryOnException(() -> getFileStatus(path), () -> "get status of file " + path);
   }
 
   @Override
@@ -1075,7 +1074,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    *
    * @param key the key to open
    * @param options the open options
-   * @param retryPolicy the retry policy of the opened stream
+   * @param retryPolicy the retry policy of the opened stream to solve eventual consistency issue
    * @return an {@link InputStream} to read from key
    */
   protected abstract InputStream openObject(String key, OpenOptions options,
