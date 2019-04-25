@@ -31,6 +31,10 @@ public final class ServiceVersionClientServiceHandler
   /** Set of services that are going to be recognized by this versioning service. */
   private Set<ServiceType> mServices;
 
+  /**
+   * Creates service version handler that allows given services.
+   * @param services services to allow
+   */
   public ServiceVersionClientServiceHandler(Set<ServiceType> services) {
     mServices = services;
   }

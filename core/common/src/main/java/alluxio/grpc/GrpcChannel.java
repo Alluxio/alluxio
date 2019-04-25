@@ -41,7 +41,9 @@ public final class GrpcChannel extends Channel {
   /**
    * Create a new instance of {@link GrpcChannel}.
    *
+   * @param channelKey the channel key
    * @param channel the grpc channel to wrap
+   * @param shutdownTimeoutMs shutdown timeout in milliseconds
    */
   public GrpcChannel(GrpcManagedChannelPool.ChannelKey channelKey, Channel channel,
       long shutdownTimeoutMs) {
@@ -65,14 +67,19 @@ public final class GrpcChannel extends Channel {
     return mChannel.authority();
   }
 
+  /**
+   * Intercepts the channel with given interceptor.
+   * @param interceptor interceptor
+   */
   public void intercept(ClientInterceptor interceptor) {
     mChannel = ClientInterceptors.intercept(mChannel, interceptor);
   }
+
   /**
    * Shuts down the channel.
    */
   public void shutdown() {
-    if(!mChannelReleased) {
+    if (!mChannelReleased) {
       GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey, mShutdownTimeoutMs);
     }
     mChannelReleased = true;

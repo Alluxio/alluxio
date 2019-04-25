@@ -78,7 +78,8 @@ public class GrpcSerializationUtils {
           getPrivateConstructor(NETTY_WRITABLE_BUFFER_CLASS_NAME, ByteBuf.class);
       sBufferList = getPrivateField(BUFFER_CHAIN_OUTPUT_STREAM_CLASS_NAME, BUFFER_LIST_FIELD_NAME);
       sCurrent = getPrivateField(BUFFER_CHAIN_OUTPUT_STREAM_CLASS_NAME, CURRENT_FIELD_NAME);
-      sCompositeBuffers = getPrivateField(CompositeReadableBuffer.class.getName(), BUFFERS_FIELD_NAME);
+      sCompositeBuffers =
+          getPrivateField(CompositeReadableBuffer.class.getName(), BUFFERS_FIELD_NAME);
       sReadableByteBuf = getPrivateField(NETTY_READABLE_BUFFER_CLASS_NAME, BUFFER_FIELD_NAME);
     } catch (Exception e) {
       LOG.warn("Cannot get gRPC output stream buffer, zero copy receive will be disabled.", e);
@@ -145,7 +146,7 @@ public class GrpcSerializationUtils {
     }
     try {
       if (buffer instanceof CompositeReadableBuffer) {
-        Queue<ReadableBuffer> buffers = (Queue<ReadableBuffer>)sCompositeBuffers.get(buffer);
+        Queue<ReadableBuffer> buffers = (Queue<ReadableBuffer>) sCompositeBuffers.get(buffer);
         if (buffers.size() == 1) {
           return getByteBufFromReadableBuffer(buffers.peek());
         } else {

@@ -33,7 +33,7 @@ public class GrpcService {
 
   /**
    * If called, clients can access this service's methods without authentication.
-   * 
+   *
    * @return the updated {@link GrpcService} instance
    */
   public GrpcService disableAuthentication() {

@@ -48,7 +48,8 @@ public final class GrpcServerBuilder {
   /** Alluxio configuration.  */
   private AlluxioConfiguration mConfiguration;
 
-  private GrpcServerBuilder(String hostName, SocketAddress address, AuthenticationServer authenticationServer, AlluxioConfiguration conf) {
+  private GrpcServerBuilder(String hostName, SocketAddress address,
+      AuthenticationServer authenticationServer, AlluxioConfiguration conf) {
     mAuthenticationServer = authenticationServer;
     mNettyServerBuilder = NettyServerBuilder.forAddress(address);
     mServices = new HashSet<>();
@@ -81,6 +82,7 @@ public final class GrpcServerBuilder {
    * @param hostName the host name
    * @param address the address
    * @param authenticationServer the authentication server to use
+   * @param conf the Alluxio configuration
    * @return a new instance of {@link GrpcServerBuilder}
    */
   public static GrpcServerBuilder forAddress(String hostName, SocketAddress address,
@@ -101,7 +103,7 @@ public final class GrpcServerBuilder {
 
   /**
    * Sets flow control window.
-   * 
+   *
    * @param flowControlWindow the HTTP2 flow control window
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
@@ -148,6 +150,7 @@ public final class GrpcServerBuilder {
   /**
    * Sets a netty channel option.
    *
+   * @param <T> channel option type
    * @param option the option to be set
    * @param value the new value
    * @return an updated instance of this {@link GrpcServerBuilder}
@@ -180,7 +183,7 @@ public final class GrpcServerBuilder {
   }
 
   /**
-   * Sets the maximum size of inbound messages
+   * Sets the maximum size of inbound messages.
    * @param messageSize maximum size of the message
    * @return an updated instance of this {@link GrpcServerBuilder}
    */
@@ -221,7 +224,7 @@ public final class GrpcServerBuilder {
 
   /**
    * Adds an interceptor for this server.
-   * 
+   *
    * @param interceptor server interceptor
    * @return an updates instance of this {@link GrpcServerBuilder}
    */

@@ -22,8 +22,6 @@ import io.grpc.ManagedChannel;
 import io.netty.channel.EventLoopGroup;
 
 import javax.security.auth.Subject;
-import java.net.SocketAddress;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
