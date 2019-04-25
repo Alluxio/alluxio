@@ -2133,7 +2133,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     LOG.info("SrcInodePath: {}", srcInodePath);
     // Check options and determine if we should schedule async persist. This is helpful for compute
     // frameworks that use rename as a commit operation.
-    if (context.getPersist() && !srcInode.isPersisted()) {
+    if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()) {
       LOG.info("Persist after rename is enabled, scheduling persist.");
       scheduleAsyncPersistenceInternal(rpcContext, srcInode.asFile());
     }
