@@ -30,25 +30,25 @@ import java.util.concurrent.TimeUnit;
  */
 public final class GrpcChannelBuilder {
   /** Key for acquiring the underlying managed channel. */
-  protected GrpcManagedChannelPool.ChannelKey mChannelKey;
+  private GrpcManagedChannelPool.ChannelKey mChannelKey;
 
   /** gRPC Server address. */
-  protected GrpcServerAddress mServerAddress;
+  private GrpcServerAddress mServerAddress;
 
   /** Whether to use mParentSubject as authentication user. */
-  protected boolean mUseSubject;
+  private boolean mUseSubject;
   /** Subject for authentication. */
-  protected Subject mParentSubject;
+  private Subject mParentSubject;
 
   /* Used in place of a subject. */
-  protected String mUserName;
-  protected String mPassword;
-  protected String mImpersonationUser;
+  private String mUserName;
+  private String mPassword;
+  private String mImpersonationUser;
 
   /** Whether to authenticate the channel with the server. */
-  protected boolean mAuthenticateChannel;
+  private boolean mAuthenticateChannel;
 
-  protected AlluxioConfiguration mConfiguration;
+  private AlluxioConfiguration mConfiguration;
 
   private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf) {
     mServerAddress = address;

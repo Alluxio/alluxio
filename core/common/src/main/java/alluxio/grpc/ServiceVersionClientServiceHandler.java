@@ -13,6 +13,7 @@ package alluxio.grpc;
 
 import alluxio.Constants;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ public final class ServiceVersionClientServiceHandler
   }
 
   @Override
+  @SuppressFBWarnings(value = "DB_DUPLICATE_SWITCH_CLAUSES")
   public void getServiceVersion(GetServiceVersionPRequest request,
       StreamObserver<GetServiceVersionPResponse> responseObserver) {
 
