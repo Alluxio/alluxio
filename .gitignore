@@ -43,6 +43,7 @@
 /lib/
 /logs/*.log*
 /logs/*.out*
+/logs/user/*
 /underFSStorage/
 /web/
 dependency-reduced-pom.xml
