@@ -142,10 +142,6 @@ public class S3AInputStream extends InputStream {
     if (mPos > 0) {
       getReq.setRange(mPos);
     }
-    if (mRetryPolicy == null) {
-      mIn = mClient.getObject(getReq).getObjectContent();
-      return;
-    }
     AmazonS3Exception lastException = null;
     while (mRetryPolicy.attempt()) {
       try {

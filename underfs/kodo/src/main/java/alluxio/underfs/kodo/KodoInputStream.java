@@ -11,11 +11,13 @@
 
 package alluxio.underfs.kodo;
 
+import alluxio.exception.status.NotFoundException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.MultiRangeObjectInputStream;
-import alluxio.underfs.ObjectUnderFileSystem;
 
 import com.qiniu.common.QiniuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +27,7 @@ import java.io.InputStream;
  * empty buffer.
  */
 public class KodoInputStream extends MultiRangeObjectInputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(KodoInputStream.class);
 
   /**
    * Key of the file in Kodo to read.
@@ -42,10 +45,20 @@ public class KodoInputStream extends MultiRangeObjectInputStream {
   private final long mContentLength;
 
   /**
-   * Policy determining the retry behavior to solve eventual consistency issue.
+   * Policy determining the retry behavior in case the key does not exist. The key may not exist
+   * because of eventual consistency.
    */
   private final RetryPolicy mRetryPolicy;
 
+  /**
+   * Constructor for an input stream to an object in Kodo.
+   *
+   * @param key the key of the object
+   * @param kodoClient the Kodo client
+   * @param position the position to begin reading from
+   * @param retryPolicy retry policy in case the key does not exist
+   * @param multiRangeChunkSize the chunk size to use on this stream
+   */
   KodoInputStream(String key, KodoClient kodoClient, long position,
       RetryPolicy retryPolicy, long multiRangeChunkSize) throws QiniuException {
     super(multiRangeChunkSize);
@@ -59,25 +72,19 @@ public class KodoInputStream extends MultiRangeObjectInputStream {
   @Override
   protected InputStream createStream(long startPos, long endPos)
       throws IOException {
-    // TODO(lu) only retry when object does not exist because of eventual consistency
-    if (mRetryPolicy == null) {
-      return createStreamOperation(startPos, endPos);
-    } else {
-      return ObjectUnderFileSystem.retryOnException(() -> createStreamOperation(startPos, endPos),
-          () -> "open key " + mKey, mRetryPolicy);
+    IOException lastException = null;
+    while (mRetryPolicy.attempt()) {
+      try {
+        return mKodoclent.getObject(mKey, startPos, endPos, mContentLength);
+      } catch (NotFoundException e) {
+        LOG.warn("Attempt {} to open key {} failed with exception : {}",
+            mRetryPolicy.getAttemptCount(), mKey, e.toString());
+        // Key does not exist
+        lastException = e;
+      }
     }
-  }
-
-  /**
-   * Open a new stream reading a range.
-   *
-   * @param startPos start position in bytes (inclusive)
-   * @param endPos end position in bytes (exclusive)
-   * @return a new {@link InputStream}
-   */
-  private InputStream createStreamOperation(long startPos, long endPos)
-      throws IOException {
-    return mKodoclent.getObject(mKey, startPos, endPos, mContentLength);
+    // Failed after retrying key does not exist
+    throw lastException;
   }
 }
 

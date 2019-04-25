@@ -13,11 +13,13 @@ package alluxio.underfs.swift;
 
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.MultiRangeObjectInputStream;
-import alluxio.underfs.ObjectUnderFileSystem;
 
 import org.javaswift.joss.instructions.DownloadInstructions;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.StoredObject;
+import org.javaswift.joss.exception.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,6 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class SwiftInputStream extends MultiRangeObjectInputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(SwiftInputStream.class);
 
   /** JOSS Swift account. */
   private final Account mAccount;
@@ -38,7 +41,10 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
   private final String mContainerName;
   /** The path of the object to read, without container prefix. */
   private final String mObjectPath;
-  /** Policy determining the retry behavior to solve eventual consistency issue. */
+  /**
+   * Policy determining the retry behavior in case the key does not exist. The key may not exist
+   * because of eventual consistency.
+   */
   private final RetryPolicy mRetryPolicy;
 
   /**
@@ -47,7 +53,7 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
    * @param account JOSS account with authentication credentials
    * @param container the name of container where the object resides
    * @param object path of the object in the container
-   * @param retryPolicy the retry policy to solve eventual consistency issue
+   * @param retryPolicy retry policy in case the key does not exist
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
   public SwiftInputStream(Account account, String container, String object,
@@ -62,7 +68,7 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
    * @param container the name of container where the object resides
    * @param object path of the object in the container
    * @param position the position to begin reading from
-   * @param retryPolicy the retry policy to solve eventual consistency issue
+   * @param retryPolicy retry policy in case the key does not exist
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
   public SwiftInputStream(Account account, String container, String object, long position,
@@ -78,27 +84,21 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
   @Override
   protected InputStream createStream(long startPos, long endPos)
       throws IOException {
-    // TODO(lu) only retry when object does not exist because of eventual consistency
-    if (mRetryPolicy == null) {
-      return createStreamOperation(startPos, endPos);
-    } else {
-      return ObjectUnderFileSystem.retryOnException(() -> createStreamOperation(startPos, endPos),
-          () -> "open object " + mObjectPath + " in container " + mContainerName, mRetryPolicy);
+    NotFoundException lastException = null;
+    while (mRetryPolicy.attempt()) {
+      try {
+        StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
+        DownloadInstructions downloadInstructions  = new DownloadInstructions();
+        downloadInstructions.setRange(new MidPartLongRange(startPos, endPos - 1));
+        return storedObject.downloadObjectAsInputStream(downloadInstructions);
+      } catch (NotFoundException e) {
+        LOG.warn("Attempt {} to get object {} from container {} failed with exception : {}",
+            mRetryPolicy.getAttemptCount(), mObjectPath, mContainerName, e.toString());
+        // Key does not exist
+        lastException = e;
+      }
     }
-  }
-
-  /**
-   * Opens a new stream reading a range.
-   *
-   * @param startPos start position in bytes (inclusive)
-   * @param endPos end position in bytes (exclusive)
-   * @return a new {@link InputStream}
-   */
-  private InputStream createStreamOperation(long startPos, long endPos)
-      throws IOException {
-    StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
-    DownloadInstructions downloadInstructions  = new DownloadInstructions();
-    downloadInstructions.setRange(new MidPartLongRange(startPos, endPos - 1));
-    return storedObject.downloadObjectAsInputStream(downloadInstructions);
+    // Failed after retrying key does not exist
+    throw new IOException(lastException);
   }
 }

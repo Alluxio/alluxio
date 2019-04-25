@@ -65,7 +65,10 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   /** The name of the account owner. */
   private final String mAccountOwner;
 
-  /** The permission mode that the account owner has to the bucket. */
+  /**
+   * Policy determining the retry behavior in case the key does not exist. The key may not exist
+   * because of eventual consistency.
+   */
   private final short mBucketMode;
 
   static {
@@ -336,6 +339,10 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected InputStream openObject(String key, OpenOptions options, RetryPolicy retryPolicy)
       throws IOException {
-    return new GCSInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy);
+    try {
+      return new GCSInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy);
+    } catch (ServiceException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 }

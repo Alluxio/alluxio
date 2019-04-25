@@ -13,12 +13,15 @@ package alluxio.underfs.cos;
 
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.MultiRangeObjectInputStream;
-import alluxio.underfs.ObjectUnderFileSystem;
 
 import com.qcloud.cos.COSClient;
+import com.qcloud.cos.exception.CosServiceException;
 import com.qcloud.cos.model.COSObject;
 import com.qcloud.cos.model.GetObjectRequest;
 import com.qcloud.cos.model.ObjectMetadata;
+import org.apache.commons.httpclient.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.BufferedInputStream;
@@ -31,6 +34,7 @@ import java.io.InputStream;
  */
 @NotThreadSafe
 public class COSInputStream extends MultiRangeObjectInputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(COSInputStream.class);
 
   /** Bucket name of the Alluxio COS bucket. */
   private final String mBucketName;
@@ -44,7 +48,10 @@ public class COSInputStream extends MultiRangeObjectInputStream {
   /** The size of the object in bytes. */
   private final long mContentLength;
 
-  /** Policy determining the retry behavior to solve eventual consistency issue. */
+  /**
+   * Policy determining the retry behavior in case the key does not exist. The key may not exist
+   * because of eventual consistency.
+   */
   private final RetryPolicy mRetryPolicy;
 
   /**
@@ -53,7 +60,7 @@ public class COSInputStream extends MultiRangeObjectInputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for COS
-   * @param retryPolicy the retry policy to solve eventual consistency issue
+   * @param retryPolicy retry policy in case the key does not exist
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
   COSInputStream(String bucketName, String key, COSClient client,
@@ -68,9 +75,8 @@ public class COSInputStream extends MultiRangeObjectInputStream {
    * @param key the key of the file
    * @param client the client for COS
    * @param position the position to begin reading from
-   * @param retryPolicy the retry policy to use
+   * @param retryPolicy retry policy in case the key does not exist
    * @param multiRangeChunkSize the chunk size to use on this stream
-   *
    */
   COSInputStream(String bucketName, String key, COSClient client, long position,
       RetryPolicy retryPolicy, long multiRangeChunkSize) throws IOException {
@@ -87,27 +93,25 @@ public class COSInputStream extends MultiRangeObjectInputStream {
   @Override
   protected InputStream createStream(long startPos, long endPos)
       throws IOException {
-    // TODO(lu) only retry when object does not exist because of eventual consistency
-    if (mRetryPolicy == null) {
-      return createStreamOperation(startPos, endPos);
-    } else {
-      return ObjectUnderFileSystem.retryOnException(() -> createStreamOperation(startPos, endPos),
-          () -> "open key " + mKey + " in bucket " + mBucketName, mRetryPolicy);
-    }
-  }
-
-  /**
-   * Opens a new stream reading a range.
-   *
-   * @param startPos start position in bytes (inclusive)
-   * @param endPos end position in bytes (exclusive)
-   * @return a new {@link InputStream}
-   */
-  private InputStream createStreamOperation(long startPos, long endPos) {
     GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
     // COS returns entire object if we read past the end
     req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
-    COSObject object = mCosClient.getObject(req);
-    return new BufferedInputStream(object.getObjectContent());
+    CosServiceException lastException = null;
+    while (mRetryPolicy.attempt()) {
+      try {
+        COSObject object = mCosClient.getObject(req);
+        return new BufferedInputStream(object.getObjectContent());
+      } catch (CosServiceException e) {
+        LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
+            mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+        if (e.getStatusCode() != HttpStatus.SC_NOT_FOUND) {
+          throw e;
+        }
+        // Key does not exist
+        lastException = e;
+      }
+    }
+    // Failed after retrying key does not exist
+    throw new IOException(lastException);
   }
 }

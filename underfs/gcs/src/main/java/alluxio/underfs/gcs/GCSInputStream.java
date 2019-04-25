@@ -12,11 +12,13 @@
 package alluxio.underfs.gcs;
 
 import alluxio.retry.RetryPolicy;
-import alluxio.underfs.ObjectUnderFileSystem;
 
+import org.apache.commons.httpclient.HttpStatus;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.jets3t.service.model.GSObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -31,6 +33,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class GCSInputStream extends InputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(GCSInputStream.class);
+
   /** Bucket name of the Alluxio GCS bucket. */
   private final String mBucketName;
 
@@ -55,10 +59,10 @@ public final class GCSInputStream extends InputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for GCS
-   * @param retryPolicy the retry policy to solve eventual consistency issue
+   * @param retryPolicy retry policy in case the key does not exist
    */
   GCSInputStream(String bucketName, String key, GoogleStorageService client,
-      RetryPolicy retryPolicy) throws IOException {
+      RetryPolicy retryPolicy) throws ServiceException {
     this(bucketName, key, client, 0L, retryPolicy);
   }
 
@@ -69,55 +73,45 @@ public final class GCSInputStream extends InputStream {
    * @param key the key of the file
    * @param client the client for GCS
    * @param pos the position to start
-   * @param retryPolicy the retry policy to solve eventual consistency issue
+   * @param retryPolicy retry policy in case the key does not exist
    */
   GCSInputStream(String bucketName, String key, GoogleStorageService client,
-      long pos, RetryPolicy retryPolicy) throws IOException {
+      long pos, RetryPolicy retryPolicy) throws ServiceException {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
     mPos = pos;
-    mObject = getObjectWithRetry(retryPolicy, pos);
-    try {
-      mInputStream = new BufferedInputStream(mObject.getDataInputStream());
-    } catch (ServiceException e) {
-      throw new IOException(e.getMessage());
-    }
+    mObject = getObjectWithRetry(retryPolicy);
+    mInputStream = new BufferedInputStream(mObject.getDataInputStream());
   }
 
   /**
    * Retries getting a {@link GSObject}.
    *
    * @param retryPolicy the retry policy to solve eventual consistency issue
-   * @param pos the position to start
    * @return the {@link GSObject}
    */
-  private GSObject getObjectWithRetry(RetryPolicy retryPolicy, long pos) throws IOException {
-    // TODO(lu) only retry when object does not exist because of eventual consistency
-    if (retryPolicy == null) {
-      return getObject(pos);
-    } else {
-      return ObjectUnderFileSystem.retryOnException(() -> getObject(pos),
-          () -> "open key " + mKey + " in bucket " + mBucketName, retryPolicy);
-    }
-  }
-
-  /**
-   * Gets a {@link GSObject}.
-   *
-   * @param pos the position to start
-   * @return the {@link GSObject}
-   */
-  private GSObject getObject(long pos) throws IOException {
-    try {
-      if (mPos > 0) {
-        return mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
-      } else {
-        return mClient.getObject(mBucketName, mKey);
+  private GSObject getObjectWithRetry(RetryPolicy retryPolicy) throws ServiceException {
+    ServiceException lastException = null;
+    while (retryPolicy.attempt()) {
+      try {
+        if (mPos > 0) {
+          return mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
+        } else {
+          return mClient.getObject(mBucketName, mKey);
+        }
+      } catch (ServiceException e) {
+        LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
+            retryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+        if (e.getResponseCode() != HttpStatus.SC_NOT_FOUND) {
+          throw e;
+        }
+        // Key does not exist
+        lastException = e;
       }
-    } catch (ServiceException e) {
-      throw new IOException(e.getMessage());
     }
+    // Failed after retrying key does not exist
+    throw lastException;
   }
 
   @Override
