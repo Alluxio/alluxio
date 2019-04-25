@@ -487,7 +487,6 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
       @Override
       public Void execute() throws IOException {
         mUfs.setAclEntries(path, aclEntries);
-        // For obeying the contract. Returned object not utilized.
         return null;
       }
     }.get();
@@ -499,7 +498,6 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
       @Override
       public Void execute() throws IOException {
         mUfs.setMode(path, mode);
-        // For obeying the contract. Returned object not utilized.
         return null;
       }
     }.get();
@@ -511,7 +509,6 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
       @Override
       public Void execute() throws IOException {
         mUfs.setOwner(path, owner, group);
-        // For obeying the contract. Returned object not utilized.
         return null;
       }
     }.get();
