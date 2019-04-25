@@ -102,7 +102,7 @@ public final class FileSystemContext implements Closeable {
   private volatile BlockMasterClientPool mBlockMasterClientPool;
 
   // Closed flag for debugging information.
-  private AtomicBoolean mClosed = new AtomicBoolean(true);
+  private final AtomicBoolean mClosed = new AtomicBoolean(true);
 
   @GuardedBy("this")
   private ExecutorService mMetricsExecutorService;
