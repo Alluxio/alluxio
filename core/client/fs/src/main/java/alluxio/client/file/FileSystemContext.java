@@ -101,7 +101,8 @@ public final class FileSystemContext implements Closeable {
   private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
   private volatile BlockMasterClientPool mBlockMasterClientPool;
 
-  // Closed flag for debugging information.
+  // Marks whether the context has been closed, closing the context means releasing all resources
+  // in the context like clients and thread pools.
   private final AtomicBoolean mClosed = new AtomicBoolean(true);
 
   @GuardedBy("this")
