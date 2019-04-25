@@ -12,6 +12,7 @@
 package alluxio.master.meta;
 
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Version;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
@@ -55,6 +56,11 @@ public final class PathProperties implements DelegatingJournaled {
   /** Journaled state of path level properties. */
   @GuardedBy("mLock")
   private final State mState = new State();
+  @GuardedBy("mLock")
+  private final Version mVersion = new Version(() -> mState.getProperties().entrySet().stream()
+      .flatMap(pathProperties -> pathProperties.getValue().entrySet().stream()
+          .map(property -> String.format("%s:%s:%s", pathProperties.getKey(), property.getKey(),
+              property.getValue()).getBytes())));
 
   /**
    * @return a copy of path level properties which is a map from path to property key values
@@ -82,6 +88,7 @@ public final class PathProperties implements DelegatingJournaled {
         properties.forEach((key, value) -> newProperties.put(key.getName(), value));
         mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder().setPath(path)
             .putAllProperties(newProperties).build());
+        mVersion.update();
       }
     }
   }
@@ -104,6 +111,7 @@ public final class PathProperties implements DelegatingJournaled {
           mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder()
               .setPath(path).putAllProperties(properties).build());
         }
+        mVersion.update();
       }
     }
   }
@@ -119,7 +127,17 @@ public final class PathProperties implements DelegatingJournaled {
       Map<String, String> properties = mState.getProperties(path);
       if (!properties.isEmpty()) {
         mState.applyAndJournal(ctx, RemovePathPropertiesEntry.newBuilder().setPath(path).build());
+        mVersion.update();
       }
+    }
+  }
+
+  /**
+   * @return the current version of properties
+   */
+  public String version() {
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      return mVersion.get();
     }
   }
 

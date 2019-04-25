@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Unit tests for {@link PathProperties}.
@@ -160,5 +161,35 @@ public class PathPropertiesTest {
       Assert.assertTrue(got.containsKey(key.getName()));
       Assert.assertEquals(value, got.get(key.getName()));
     });
+  }
+
+  @Test
+  public void version() {
+    PathProperties properties = new PathProperties();
+    String version0 = properties.version();
+
+    properties.add(NoopJournalContext.INSTANCE, ROOT, READ_CACHE);
+    String version1 = properties.version();
+    Assert.assertNotEquals(version0, version1);
+
+    properties.add(NoopJournalContext.INSTANCE, DIR1, READ_CACHE_WRITE_CACHE_THROUGH);
+    String version2 = properties.version();
+    Assert.assertNotEquals(version0, version2);
+    Assert.assertNotEquals(version1, version2);
+
+    Set<String> keys = new HashSet<>();
+    keys.add(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.getName());
+    properties.remove(NoopJournalContext.INSTANCE, DIR1, keys);
+    String version3 = properties.version();
+    Assert.assertNotEquals(version0, version3);
+    Assert.assertNotEquals(version1, version3);
+    Assert.assertNotEquals(version2, version3);
+
+    properties.removeAll(NoopJournalContext.INSTANCE, DIR1);
+    String version4 = properties.version();
+    Assert.assertEquals(version1, version4);
+
+    properties.removeAll(NoopJournalContext.INSTANCE, ROOT);
+    Assert.assertEquals(version0, properties.version());
   }
 }
