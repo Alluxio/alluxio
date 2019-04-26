@@ -71,6 +71,9 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder> {
     return mOperationTimeMs;
   }
 
+  /**
+   * @return true if a persist operation should follow the rename
+   */
   public boolean getPersist() {
     return mPersist;
   }
