@@ -791,14 +791,11 @@ exports[`Overview App with connected component Matches snapshot 1`] = `
                               "configCheckErrors": Array [],
                               "configCheckStatus": "",
                               "configCheckWarns": Array [],
-                              "consistencyCheckStatus": "",
                               "debug": false,
                               "diskCapacity": "",
                               "diskFreeCapacity": "",
                               "diskUsedCapacity": "",
                               "freeCapacity": "",
-                              "inconsistentPathItems": Array [],
-                              "inconsistentPaths": 0,
                               "liveWorkerNodes": 0,
                               "masterNodeAddress": "",
                               "startTime": "",
@@ -1099,14 +1096,6 @@ exports[`Overview Shallow component Matches snapshot 1`] = `
               <td>
                 0
               </td>
-            </tr>
-            <tr>
-              <th
-                scope="row"
-              >
-                Startup Consistency Check
-              </th>
-              <td />
             </tr>
             <tr>
               <th

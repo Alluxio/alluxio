@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -204,9 +205,9 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected InputStream openObject(String key, OpenOptions options) {
+  protected InputStream openObject(String key, OpenOptions options, RetryPolicy retryPolicy) {
     try {
-      return new KodoInputStream(key, mKodoClinet, options.getOffset(),
+      return new KodoInputStream(key, mKodoClinet, options.getOffset(), retryPolicy,
           mAlluxioConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (QiniuException e) {
       LOG.error("Failed to open Object {}, Msg: {}", key, e);

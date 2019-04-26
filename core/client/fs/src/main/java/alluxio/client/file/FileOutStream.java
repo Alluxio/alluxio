@@ -25,6 +25,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.resource.CloseableResource;
@@ -306,8 +307,10 @@ public class FileOutStream extends AbstractOutStream {
   protected void scheduleAsyncPersist() throws IOException {
     try (CloseableResource<FileSystemMasterClient> masterClient = mContext
         .acquireMasterClientResource()) {
-      masterClient.get().scheduleAsyncPersist(mUri,
-          FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getPathConf(mUri)));
+      ScheduleAsyncPersistencePOptions persistOptions =
+          FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getPathConf(mUri)).toBuilder()
+              .setCommonOptions(mOptions.getCommonOptions()).build();
+      masterClient.get().scheduleAsyncPersist(mUri, persistOptions);
     }
   }
 

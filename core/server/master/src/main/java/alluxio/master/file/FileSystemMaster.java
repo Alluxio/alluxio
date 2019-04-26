@@ -70,11 +70,6 @@ public interface FileSystemMaster extends Master {
   void cleanupUfs();
 
   /**
-   * @return the status of the startup consistency check and inconsistent paths if it is complete
-   */
-  StartupConsistencyCheck getStartupConsistencyCheck();
-
-  /**
    * Returns the file id for a given path. If the given path does not exist in Alluxio, the method
    * attempts to load it from UFS.
    * <p>

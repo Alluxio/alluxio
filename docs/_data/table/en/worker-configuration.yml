@@ -80,6 +80,8 @@ alluxio.worker.network.netty.watermark.low:
   'Once the high watermark limit is reached, the queue must be flushed down to the low watermark before switching back to writable.'
 alluxio.worker.network.netty.worker.threads:
   'How many threads to use for processing requests. Zero defaults to #cpuCores * 2.'
+alluxio.worker.network.reader.buffer.size:
+  'When a client reads from a remote worker, the maximum amount of data not received by client allowed before the worker pauses sending more data. If this value is lower than read chunk size, read performance may be impacted as worker waits more often for buffer to free up. Higher value will increase the memory consumed by each read request.'
 alluxio.worker.network.reader.max.chunk.size.bytes:
   'When a client read from a remote worker, the maximum chunk size.'
 alluxio.worker.network.shutdown.timeout:

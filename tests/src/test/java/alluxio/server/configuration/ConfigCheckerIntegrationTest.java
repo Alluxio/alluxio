@@ -21,6 +21,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
@@ -83,9 +84,9 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
     mCluster = MultiProcessCluster
         .newBuilder(PortCoordination.CONFIG_CHECKER_MULTI_MASTERS_EMBEDDED_HA)
         .setClusterName("ConfigCheckerMultiMastersEmbeddedHATest")
-        .setDeployMode(DeployMode.EMBEDDED)
         .setNumMasters(TEST_NUM_MASTERS)
         .setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .setMasterProperties(masterProperties)
         .build();
     mCluster.start();
