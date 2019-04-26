@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.concurrent.ManagedBlockingUfsForwarder;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
@@ -71,7 +72,7 @@ public interface UfsManager extends Closeable {
         }
       }
       mCounter.inc();
-      return new CloseableResource<UnderFileSystem>(mUfs.get()) {
+      return new CloseableResource<UnderFileSystem>(new ManagedBlockingUfsForwarder(mUfs.get())) {
         @Override
         public void close() {
           mCounter.dec();

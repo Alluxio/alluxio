@@ -39,12 +39,19 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   private final Map<String, List<Long>> mAddedBlocks;
 
   /**
+   * Map of storage tier alias to a list of storage paths
+   * that were lost in the last hearbeat period.
+   */
+  private final Map<String, List<String>> mLostStorage;
+
+  /**
    * Creates a new instance of {@link BlockHeartbeatReporter}.
    */
   public BlockHeartbeatReporter() {
     mLock = new Object();
     mRemovedBlocks = new ArrayList<>(100);
     mAddedBlocks = new HashMap<>(20);
+    mLostStorage = new HashMap<>();
   }
 
   /**
@@ -55,13 +62,13 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
    */
   public BlockHeartbeatReport generateReport() {
     synchronized (mLock) {
-      // Copy added and removed blocks
-      Map<String, List<Long>> addedBlocks = new HashMap<>(mAddedBlocks);
-      List<Long> removedBlocks = new ArrayList<>(mRemovedBlocks);
+      BlockHeartbeatReport report
+          = new BlockHeartbeatReport(mAddedBlocks, mRemovedBlocks, mLostStorage);
       // Clear added and removed blocks
       mAddedBlocks.clear();
       mRemovedBlocks.clear();
-      return new BlockHeartbeatReport(addedBlocks, removedBlocks);
+      mLostStorage.clear();
+      return report;
     }
   }
 
@@ -107,6 +114,15 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   public void onBlockLost(long blockId) {
     synchronized (mLock) {
       removeBlockInternal(blockId);
+    }
+  }
+
+  @Override
+  public void onStorageLost(String tierAlias, String dirPath) {
+    synchronized (mLock) {
+      List<String> storagesList = mLostStorage.getOrDefault(tierAlias, new ArrayList<>());
+      storagesList.add(dirPath);
+      mLostStorage.put(tierAlias, storagesList);
     }
   }
 

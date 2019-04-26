@@ -84,8 +84,6 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
     conf.put(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64");
     conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
-    conf.put(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
-    conf.put(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, "false");
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
     conf.put(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT, "2sec");
     conf.put(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT, "3sec");
@@ -125,7 +123,15 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2s");
+    // Election timeout should be bigger than the default copycat heartbeat interval 250
+    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "260ms");
+    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "50ms");
+    // Reset the value to avoid raft journal system complaining about log size < 65
+    conf.put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
+        PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX.getDefaultValue());
+    // For faster test shutdown
+    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT, "100ms");
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
     return conf;
   }

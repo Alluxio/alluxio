@@ -715,7 +715,7 @@ public final class FileSystemMasterProto {
       "ion\022\013\n\007REPLACE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002" +
       "\022\016\n\nREMOVE_ALL\020\003\022\022\n\016REMOVE_DEFAULT\020\004*8\n\010" +
       "UfsPMode\022\r\n\tNO_ACCESS\020\001\022\r\n\tREAD_ONLY\020\002\022\016" +
-      "\n\nREAD_WRITE\020\0032\200\020\n\035FileSystemMasterClien" +
+      "\n\nREAD_WRITE\020\0032\202\020\n\035FileSystemMasterClien" +
       "tService\022m\n\020CheckConsistency\022+.alluxio.g" +
       "rpc.file.CheckConsistencyPRequest\032,.allu" +
       "xio.grpc.file.CheckConsistencyPResponse\022" +
@@ -741,50 +741,50 @@ public final class FileSystemMasterProto {
       "xio.grpc.file.GetNewBlockIdForFilePRespo" +
       "nse\022X\n\tGetStatus\022$.alluxio.grpc.file.Get" +
       "StatusPRequest\032%.alluxio.grpc.file.GetSt" +
-      "atusPResponse\022[\n\nListStatus\022%.alluxio.gr" +
+      "atusPResponse\022]\n\nListStatus\022%.alluxio.gr" +
       "pc.file.ListStatusPRequest\032&.alluxio.grp" +
-      "c.file.ListStatusPResponse\022L\n\005Mount\022 .al" +
-      "luxio.grpc.file.MountPRequest\032!.alluxio." +
-      "grpc.file.MountPResponse\022O\n\006Remove\022!.all" +
-      "uxio.grpc.file.DeletePRequest\032\".alluxio." +
-      "grpc.file.DeletePResponse\022O\n\006Rename\022!.al" +
-      "luxio.grpc.file.RenamePRequest\032\".alluxio" +
-      ".grpc.file.RenamePResponse\022\205\001\n\030ScheduleA" +
-      "syncPersistence\0223.alluxio.grpc.file.Sche" +
-      "duleAsyncPersistencePRequest\0324.alluxio.g" +
-      "rpc.file.ScheduleAsyncPersistencePRespon" +
-      "se\022O\n\006SetAcl\022!.alluxio.grpc.file.SetAclP" +
-      "Request\032\".alluxio.grpc.file.SetAclPRespo" +
-      "nse\022a\n\014SetAttribute\022\'.alluxio.grpc.file." +
-      "SetAttributePRequest\032(.alluxio.grpc.file" +
-      ".SetAttributePResponse\022X\n\tStartSync\022$.al" +
-      "luxio.grpc.file.StartSyncPRequest\032%.allu" +
-      "xio.grpc.file.StartSyncPResponse\022U\n\010Stop" +
-      "Sync\022#.alluxio.grpc.file.StopSyncPReques" +
-      "t\032$.alluxio.grpc.file.StopSyncPResponse\022" +
-      "R\n\007Unmount\022\".alluxio.grpc.file.UnmountPR" +
-      "equest\032#.alluxio.grpc.file.UnmountPRespo" +
-      "nse\022d\n\rUpdateUfsMode\022(.alluxio.grpc.file" +
-      ".UpdateUfsModePRequest\032).alluxio.grpc.fi" +
-      "le.UpdateUfsModePResponse2\303\003\n\035FileSystem" +
-      "MasterWorkerService\022v\n\023FileSystemHeartbe" +
-      "at\022..alluxio.grpc.file.FileSystemHeartbe" +
-      "atPRequest\032/.alluxio.grpc.file.FileSyste" +
-      "mHeartbeatPResponse\022^\n\013GetFileInfo\022&.all" +
-      "uxio.grpc.file.GetFileInfoPRequest\032\'.all" +
-      "uxio.grpc.file.GetFileInfoPResponse\022m\n\020G" +
-      "etPinnedFileIds\022+.alluxio.grpc.file.GetP" +
-      "innedFileIdsPRequest\032,.alluxio.grpc.file" +
-      ".GetPinnedFileIdsPResponse\022[\n\nGetUfsInfo" +
-      "\022%.alluxio.grpc.file.GetUfsInfoPRequest\032" +
-      "&.alluxio.grpc.file.GetUfsInfoPResponse2" +
-      "\331\001\n\032FileSystemMasterJobService\022^\n\013GetFil" +
-      "eInfo\022&.alluxio.grpc.file.GetFileInfoPRe" +
-      "quest\032\'.alluxio.grpc.file.GetFileInfoPRe" +
-      "sponse\022[\n\nGetUfsInfo\022%.alluxio.grpc.file" +
-      ".GetUfsInfoPRequest\032&.alluxio.grpc.file." +
-      "GetUfsInfoPResponseB\'\n\014alluxio.grpcB\025Fil" +
-      "eSystemMasterProtoP\001"
+      "c.file.ListStatusPResponse0\001\022L\n\005Mount\022 ." +
+      "alluxio.grpc.file.MountPRequest\032!.alluxi" +
+      "o.grpc.file.MountPResponse\022O\n\006Remove\022!.a" +
+      "lluxio.grpc.file.DeletePRequest\032\".alluxi" +
+      "o.grpc.file.DeletePResponse\022O\n\006Rename\022!." +
+      "alluxio.grpc.file.RenamePRequest\032\".allux" +
+      "io.grpc.file.RenamePResponse\022\205\001\n\030Schedul" +
+      "eAsyncPersistence\0223.alluxio.grpc.file.Sc" +
+      "heduleAsyncPersistencePRequest\0324.alluxio" +
+      ".grpc.file.ScheduleAsyncPersistencePResp" +
+      "onse\022O\n\006SetAcl\022!.alluxio.grpc.file.SetAc" +
+      "lPRequest\032\".alluxio.grpc.file.SetAclPRes" +
+      "ponse\022a\n\014SetAttribute\022\'.alluxio.grpc.fil" +
+      "e.SetAttributePRequest\032(.alluxio.grpc.fi" +
+      "le.SetAttributePResponse\022X\n\tStartSync\022$." +
+      "alluxio.grpc.file.StartSyncPRequest\032%.al" +
+      "luxio.grpc.file.StartSyncPResponse\022U\n\010St" +
+      "opSync\022#.alluxio.grpc.file.StopSyncPRequ" +
+      "est\032$.alluxio.grpc.file.StopSyncPRespons" +
+      "e\022R\n\007Unmount\022\".alluxio.grpc.file.Unmount" +
+      "PRequest\032#.alluxio.grpc.file.UnmountPRes" +
+      "ponse\022d\n\rUpdateUfsMode\022(.alluxio.grpc.fi" +
+      "le.UpdateUfsModePRequest\032).alluxio.grpc." +
+      "file.UpdateUfsModePResponse2\303\003\n\035FileSyst" +
+      "emMasterWorkerService\022v\n\023FileSystemHeart" +
+      "beat\022..alluxio.grpc.file.FileSystemHeart" +
+      "beatPRequest\032/.alluxio.grpc.file.FileSys" +
+      "temHeartbeatPResponse\022^\n\013GetFileInfo\022&.a" +
+      "lluxio.grpc.file.GetFileInfoPRequest\032\'.a" +
+      "lluxio.grpc.file.GetFileInfoPResponse\022m\n" +
+      "\020GetPinnedFileIds\022+.alluxio.grpc.file.Ge" +
+      "tPinnedFileIdsPRequest\032,.alluxio.grpc.fi" +
+      "le.GetPinnedFileIdsPResponse\022[\n\nGetUfsIn" +
+      "fo\022%.alluxio.grpc.file.GetUfsInfoPReques" +
+      "t\032&.alluxio.grpc.file.GetUfsInfoPRespons" +
+      "e2\331\001\n\032FileSystemMasterJobService\022^\n\013GetF" +
+      "ileInfo\022&.alluxio.grpc.file.GetFileInfoP" +
+      "Request\032\'.alluxio.grpc.file.GetFileInfoP" +
+      "Response\022[\n\nGetUfsInfo\022%.alluxio.grpc.fi" +
+      "le.GetUfsInfoPRequest\032&.alluxio.grpc.fil" +
+      "e.GetUfsInfoPResponseB\'\n\014alluxio.grpcB\025F" +
+      "ileSystemMasterProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

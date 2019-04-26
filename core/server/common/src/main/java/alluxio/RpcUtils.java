@@ -20,6 +20,7 @@ import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
 import com.codahale.metrics.Timer;
+import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 
@@ -222,6 +223,63 @@ public final class RpcUtils {
   }
 
   /**
+   * TODO(ggezer) Merge with call() family of methods.
+   *
+   * Calls the given {@link RpcCallableThrowsIOException} and returns its result. Exceptions are
+   * logged, accounted for in metrics and then rethrown at the end.
+   *
+   * The failureOk parameter indicates whether or not AlluxioExceptions and IOExceptions are
+   * expected results (for example it would be false for the exists() call). In this case, we do not
+   * log the failure or increment failure metrics. When a RuntimeException is thrown, we always
+   * treat it as a failure and log an error and increment metrics.
+   *
+   * @param logger the logger to use for this call
+   * @param callable the callable to call
+   * @param methodName the name of the method, used for metrics
+   * @param failureOk whether failures are expected (affects logging and metrics)
+   * @param description the format string of the description, used for logging
+   * @param args the arguments for the description
+   * @param <T> the return type of the callable
+   * @return the result. (Null if failed)
+   */
+  public static <T> T callAndReturn(Logger logger, RpcCallableThrowsIOException<T> callable,
+      String methodName, boolean failureOk, String description, Object... args)
+      throws StatusException {
+    // avoid string format for better performance if debug is off
+    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
+      logger.debug("Enter: {}: {}", methodName, debugDesc);
+      T res = callable.call();
+      logger.debug("Exit: {}: {}", methodName, debugDesc);
+      return res;
+    } catch (AlluxioException e) {
+      logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
+      if (!failureOk) {
+        MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+        if (!logger.isDebugEnabled()) {
+          logger.warn("Exit (Error): {}: {}, Error={}", methodName,
+              String.format(description, args), e);
+        }
+      }
+      throw AlluxioStatusException.fromAlluxioException(e).toGrpcStatusException();
+    } catch (IOException e) {
+      logger.debug("Exit (Error): {}: {}", methodName, debugDesc, e);
+      if (!failureOk) {
+        MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+        if (!logger.isDebugEnabled()) {
+          logger.warn("Exit (Error): {}: {}, Error={}", methodName,
+              String.format(description, args), e);
+        }
+      }
+      throw AlluxioStatusException.fromIOException(e).toGrpcStatusException();
+    } catch (RuntimeException e) {
+      logger.error("Exit (Error): {}: {}", methodName, String.format(description, args), e);
+      MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+      throw new InternalException(e).toGrpcStatusException();
+    }
+  }
+
+  /**
    * Handles a streaming RPC callable with logging.
    *
    * @param logger the logger to use for this call
@@ -259,29 +317,32 @@ public final class RpcUtils {
    * @param methodName the name of the method, used for metrics
    * @param sendResponse whether a response should send to the client
    * @param completeResponse whether onComplete should be called on the response observer
-   * @param description the format string of the description, used for logging
    * @param responseObserver gRPC response observer
+   * @param description the format string of the description, used for logging
    * @param args the arguments for the description
    * @param <T> the return type of the callable
    */
   public static <T> void streamingRPCAndLog(Logger logger, StreamingRpcCallable<T> callable,
-      String methodName, boolean sendResponse, boolean completeResponse, String description,
-      StreamObserver<T> responseObserver, Object... args) {
+      String methodName, boolean sendResponse, boolean completeResponse,
+      StreamObserver<T> responseObserver, String description, Object... args) {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
-      logger.debug("Enter: {}: {}", methodName, debugDesc);
+      logger.debug("Enter(stream): {}: {}", methodName, debugDesc);
       T result = callable.call();
-      logger.debug("Exit (OK): {}: {}", methodName, debugDesc);
+      logger.debug("Exit(stream) (OK): {}: {}", methodName, debugDesc);
       if (sendResponse) {
+        logger.debug("OnNext(stream): {}: {}", methodName, debugDesc);
         responseObserver.onNext(result);
       }
       if (completeResponse) {
+        logger.debug("Completing(stream): {}: {}", methodName, debugDesc);
         responseObserver.onCompleted();
+        logger.debug("Completed(stream): {}: {}", methodName, debugDesc);
       }
     } catch (Exception e) {
-      logger.warn("Exit (Error): {}: {}, Error={}", methodName, String.format(description, args),
-          e);
+      logger.warn("Exit(stream) (Error): {}: {}, Error={}", methodName,
+          String.format(description, args), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       callable.exceptionCaught(e);
     }

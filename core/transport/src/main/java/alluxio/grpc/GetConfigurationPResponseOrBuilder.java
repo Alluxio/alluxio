@@ -30,4 +30,38 @@ public interface GetConfigurationPResponseOrBuilder extends
    */
   alluxio.grpc.ConfigPropertyOrBuilder getConfigsOrBuilder(
       int index);
+
+  /**
+   * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+   */
+  int getPathConfigsCount();
+  /**
+   * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+   */
+  boolean containsPathConfigs(
+      java.lang.String key);
+  /**
+   * Use {@link #getPathConfigsMap()} instead.
+   */
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties>
+  getPathConfigs();
+  /**
+   * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+   */
+  java.util.Map<java.lang.String, alluxio.grpc.ConfigProperties>
+  getPathConfigsMap();
+  /**
+   * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+   */
+
+  alluxio.grpc.ConfigProperties getPathConfigsOrDefault(
+      java.lang.String key,
+      alluxio.grpc.ConfigProperties defaultValue);
+  /**
+   * <code>map&lt;string, .alluxio.grpc.meta.ConfigProperties&gt; pathConfigs = 2;</code>
+   */
+
+  alluxio.grpc.ConfigProperties getPathConfigsOrThrow(
+      java.lang.String key);
 }

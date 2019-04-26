@@ -330,6 +330,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey USER_LOGS_DIR =
+      new Builder(Name.USER_LOGS_DIR)
+          .setDefaultValue(String.format("${%s}/user", Name.LOGS_DIR))
+          .setDescription("The path to store alluxio CLI logs.")
+          .setIgnoredSiteProperty(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey METRICS_CONF_FILE =
       new Builder(Name.METRICS_CONF_FILE)
           .setDefaultValue(String.format("${%s}/metrics.properties", Name.CONF_DIR))
@@ -1198,6 +1205,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "optimal performance, but no state persistence across cluster restarts.")
           .setDefaultValue("DISK")
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT)
+          .setDefaultValue("10sec")
+          .setDescription("Maximum time to wait for embedded journal to stop on shutdown.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_RPC_ADDRESSES =
       new Builder(Name.MASTER_RPC_ADDRESSES).setDescription(
           "A list of comma-separated host:port RPC addresses where the client should look for "
@@ -1560,15 +1574,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "if this property is true. This property is available since 1.7.1")
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
-      new Builder(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("Whether the system should be checked for consistency with the "
-              + "underlying storage on startup. During the time the check is running, Alluxio "
-              + "will be in read only mode. Enabled by default.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_GRPC_CHANNEL_AUTH_TIMEOUT =
       new Builder(Name.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT)
           .setDefaultValue("30sec")
@@ -1763,20 +1768,47 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
               .build();
-  public static final PropertyKey MASTER_WORKER_THREADS_MAX =
-      new Builder(Name.MASTER_WORKER_THREADS_MAX)
-          .setDefaultValue(512)
-          .setDescription("The maximum number of incoming RPC requests to master that can be "
-              + "handled. This value is used to configure maximum number of threads in gRPC "
-              + "thread pool with master.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
       new Builder(Name.MASTER_WORKER_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.master.worker.timeout.ms"})
           .setDefaultValue("5min")
           .setDescription("Timeout between master and worker indicating a lost worker.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EXECUTOR_PARALLELISM =
+      new Builder("alluxio.master.executor.parallelism")
+          .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
+              "Use executor parallelism : 2 * {CPU core count}")
+          .setDescription("Master RPC executor service parallelism level.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EXECUTOR_MIN_RUNNABLE =
+      new Builder("alluxio.master.executor.runnable")
+          .setDefaultValue(1)
+          .setDescription("Master RPC executor service minimum runnable task count.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EXECUTOR_POOL_CORE_SIZE =
+      new Builder("alluxio.master.executor.fork.pool.size.core")
+          .setDefaultValue(0)
+          .setDescription("Master RPC executor service threads core count.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EXECUTOR_POOL_MAX_SIZE =
+      new Builder("alluxio.master.executor.fork.pool.size.max")
+          .setDefaultValue(500)
+          .setDescription("Master RPC executor service threads max count.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EXECUTOR_POOL_KEEPALIVE_TIME_MS =
+      new Builder("alluxio.master.executor.fork.pool.keepalive.ms")
+          .setDefaultValue("60sec")
+          .setDescription("Master RPC executor service threads keep alive time.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1791,6 +1823,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               "The secondary master metastore work directory. Only some metastores need disk.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.NONE)
+          .build();
+
+  //
+  // File system master related properties
+  //
+  public static final PropertyKey MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE =
+      new Builder(Name.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE)
+          .setDefaultValue(10000)
+          .setDescription(
+              "Count of items on each list-status response message.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
           .build();
 
   //
@@ -3619,6 +3663,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
+    public static final String USER_LOGS_DIR = "alluxio.user.logs.dir";
     public static final String VERSION = "alluxio.version";
     public static final String WEB_FILE_INFO_ENABLED = "alluxio.web.file.info.enabled";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
@@ -3818,6 +3863,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.snapshot.frequency";
     public static final String MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
         "alluxio.master.embedded.journal.storage.level";
+    public static final String MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
+        "alluxio.master.embedded.journal.shutdown.timeout";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
@@ -3860,8 +3907,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
         "alluxio.master.startup.block.integrity.check.enabled";
-    public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
-        "alluxio.master.startup.consistency.check.enabled";
     public static final String MASTER_GRPC_CHANNEL_AUTH_TIMEOUT =
         "alluxio.master.grpc.channel.auth.timeout";
     public static final String MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT =
@@ -3917,6 +3962,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
+
+    //
+    // File system master related properties
+    //
+    public static final String MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE =
+        "alluxio.master.filesystem.liststatus.result.message.length";
 
     //
     // Secondary master related properties

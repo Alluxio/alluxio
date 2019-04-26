@@ -26,6 +26,7 @@ import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.ClientInterceptors;
+import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.netty.NettyChannelBuilder;
@@ -133,7 +134,6 @@ public class ChannelAuthenticator {
       mServerAddress = serverAddress;
       mManagedChannel = managedChannel;
       authenticate();
-      mAuthenticated = true;
     }
 
     public void authenticate() throws AlluxioStatusException {
@@ -157,6 +157,10 @@ public class ChannelAuthenticator {
         // Start authentication traffic with the target.
         clientDriver.start(mChannelId.toString());
         // Authentication succeeded!
+        mAuthenticated = true;
+        mManagedChannel.notifyWhenStateChanged(ConnectivityState.READY, () -> {
+          mAuthenticated = false;
+        });
         // Intercept authenticated channel with channel-Id injector.
         mChannel = ClientInterceptors.intercept(mManagedChannel, new ChannelIdInjector(mChannelId));
       } catch (Exception exc) {

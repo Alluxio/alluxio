@@ -11,7 +11,7 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.client.MetaMasterClient;
+import alluxio.client.meta.MetaMasterClient;
 import alluxio.grpc.MetricValue;
 import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MasterMetrics;

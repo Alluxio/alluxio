@@ -21,8 +21,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.CommonUtils;
@@ -64,7 +64,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .setClusterName("EmbeddedJournalFailover")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(0)
-        .setDeployMode(DeployMode.EMBEDDED_HA)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
@@ -86,7 +86,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .setClusterName("EmbeddedJournalRestart")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(0)
-        .setDeployMode(DeployMode.EMBEDDED_HA)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
@@ -113,7 +113,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .setClusterName("EmbeddedJournalRestartStress")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(0)
-        .setDeployMode(DeployMode.EMBEDDED_HA)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")

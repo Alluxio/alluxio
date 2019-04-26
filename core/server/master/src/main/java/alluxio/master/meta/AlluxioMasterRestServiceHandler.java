@@ -38,7 +38,6 @@ import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.metrics.ClientMetrics;
@@ -105,7 +104,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
@@ -214,7 +212,6 @@ public final class AlluxioMasterRestServiceHandler {
           .setMountPoints(getMountPointsInternal())
           .setRpcAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTimeMs(mMasterProcess.getStartTimeMs())
-          .setStartupConsistencyCheck(getStartupConsistencyCheckInternal())
           .setTierCapacity(getTierCapacityInternal()).setUfsCapacity(getUfsCapacityInternal())
           .setUptimeMs(mMasterProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION)
           .setWorkers(mBlockMaster.getWorkerInfoList());
@@ -276,19 +273,6 @@ public final class AlluxioMasterRestServiceHandler {
           .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
           .setFreeCapacity(FormatUtils
               .getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()));
-
-      StartupConsistencyCheck check = mFileSystemMaster.getStartupConsistencyCheck();
-      response.setConsistencyCheckStatus(check.getStatus().toString());
-      if (check.getStatus() == StartupConsistencyCheck.Status.COMPLETE) {
-        response.setInconsistentPaths(check.getInconsistentUris().size());
-        List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
-        List<String> inconsistentUriStrings =
-            inconsistentUris.stream().map(inconsistentUri -> inconsistentUri.toString())
-                .collect(Collectors.toList());
-        response.setInconsistentPathItems(inconsistentUriStrings);
-      } else {
-        response.setInconsistentPaths(0);
-      }
 
       ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
       response.setConfigCheckStatus(report.getConfigStatus())
@@ -1323,19 +1307,6 @@ public final class AlluxioMasterRestServiceHandler {
 
   private Map<String, MountPointInfo> getMountPointsInternal() {
     return mFileSystemMaster.getMountTable();
-  }
-
-  private alluxio.wire.StartupConsistencyCheck getStartupConsistencyCheckInternal() {
-    StartupConsistencyCheck check = mFileSystemMaster.getStartupConsistencyCheck();
-    alluxio.wire.StartupConsistencyCheck ret = new alluxio.wire.StartupConsistencyCheck();
-    List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
-    List<String> uris = new ArrayList<>(inconsistentUris.size());
-    for (AlluxioURI uri : inconsistentUris) {
-      uris.add(uri.toString());
-    }
-    ret.setInconsistentUris(uris);
-    ret.setStatus(check.getStatus().toString().toLowerCase());
-    return ret;
   }
 
   private Map<String, Capacity> getTierCapacityInternal() {
