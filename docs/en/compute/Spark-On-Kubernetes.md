@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Deploy Alluxio on Kubernetes
-nickname: Kubernetes
+title: Running Spark on Alluxio in Kubernetes
+nickname: Spark on Kubernetes
 group: Deploying Alluxio
-priority: 3
+priority: 7
 ---
 
 Alluxio can be run on Kubernetes. This guide demonstrates how to run a Spark job on Alluxio
