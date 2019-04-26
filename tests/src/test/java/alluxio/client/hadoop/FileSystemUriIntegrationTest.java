@@ -36,7 +36,7 @@ import java.net.URI;
  */
 public class FileSystemUriIntegrationTest extends BaseIntegrationTest {
   private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
-  public MultiProcessCluster mCluster;
+  private MultiProcessCluster mCluster;
 
   @After
   public void after() throws Exception {
@@ -57,24 +57,7 @@ public class FileSystemUriIntegrationTest extends BaseIntegrationTest {
         (ZkMasterConnectDetails) mCluster.getMasterInquireClient().getConnectDetails();
     String zkAddress = connectDetails.getZkAddress();
 
-    Configuration conf = new Configuration();
-    conf.set("fs.alluxio.impl", FileSystem.class.getName());
-
-    URI uri = URI.create("alluxio://zk@" + zkAddress + "/tmp/path.txt");
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-
-    mCluster.waitForAllNodesRegistered(WAIT_TIMEOUT_MS);
-
-    Path file = new Path("/testFile-Zookeeper");
-    FsPermission permission = FsPermission.createImmutable((short) 0666);
-    FSDataOutputStream o = fs.create(file, permission, false /* ignored */, 10 /* ignored */,
-        (short) 1 /* ignored */, 512 /* ignored */, null /* ignored */);
-    o.writeBytes("Test Bytes");
-    o.close();
-    // with mark of delete-on-exit, the close method will try to delete it
-    fs.deleteOnExit(file);
-    fs.close();
-    mCluster.notifySuccess();
+    testConnection("zk@" + zkAddress);
   }
 
   @Test
@@ -91,15 +74,23 @@ public class FileSystemUriIntegrationTest extends BaseIntegrationTest {
         .map(a -> (a.getHostname() + ":" + a.getRpcPort()))
         .collect(java.util.stream.Collectors.joining(","));
 
+    testConnection(address);
+  }
+
+  /**
+   * Tests connections to Alluxio cluster using URIs with connect details in authorities.
+   *
+   * @param authority the authority to test
+   */
+  private void testConnection(String authority) throws Exception {
     Configuration conf = new Configuration();
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
-
-    URI uri = URI.create("alluxio://" + address + "/tmp/path.txt");
+    URI uri = URI.create("alluxio://" + authority + "/tmp/path.txt");
     org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
     mCluster.waitForAllNodesRegistered(WAIT_TIMEOUT_MS);
 
-    Path file = new Path("/testFile-MultiMaster");
+    Path file = new Path("/testFile");
     FsPermission permission = FsPermission.createImmutable((short) 0666);
     FSDataOutputStream o = fs.create(file, permission, false /* ignored */, 10 /* ignored */,
         (short) 1 /* ignored */, 512 /* ignored */, null /* ignored */);
