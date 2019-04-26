@@ -2128,13 +2128,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // Now we remove srcInode from its parent and insert it into dstPath's parent
     renameInternal(rpcContext, srcInodePath, dstInodePath, false, context);
 
-    LOG.info("Checking if persist after rename is enabled");
-    LOG.info("DstInodePath: {}", dstInodePath);
-    LOG.info("SrcInodePath: {}", srcInodePath);
     // Check options and determine if we should schedule async persist. This is helpful for compute
     // frameworks that use rename as a commit operation.
     if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()) {
-      LOG.info("Persist after rename is enabled, scheduling persist.");
       scheduleAsyncPersistenceInternal(rpcContext, srcInode.asFile());
     }
   }
