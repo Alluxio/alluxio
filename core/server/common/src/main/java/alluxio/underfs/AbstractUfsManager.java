@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.concurrent.ManagedBlockingUfsForwarder;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
@@ -125,6 +126,17 @@ public abstract class AbstractUfsManager implements UfsManager {
         return cachedFs;
       }
       UnderFileSystem fs = UnderFileSystem.Factory.create(ufsUri.toString(), ufsConf);
+
+      // Detect whether to use managed blocking on UFS operations.
+      boolean useManagedBlocking = fs.isObjectStorage();
+      if (ufsConf.isSet(PropertyKey.UNDERFS_RUN_WITH_MANAGEDBLOCKING)) {
+        useManagedBlocking = ufsConf.getBoolean(PropertyKey.UNDERFS_RUN_WITH_MANAGEDBLOCKING);
+      }
+      // Wrap UFS under managed blocking forwarder if required.
+      if (useManagedBlocking) {
+        fs = new ManagedBlockingUfsForwarder(fs);
+      }
+
       mUnderFileSystemMap.putIfAbsent(key, fs);
       mCloser.register(fs);
       try {
