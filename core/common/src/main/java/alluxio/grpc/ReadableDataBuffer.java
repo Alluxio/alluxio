@@ -19,9 +19,16 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+/**
+ * Class for making wrapping {@link ReadableBuffer} as {@link DataBuffer}.
+ */
 public class ReadableDataBuffer implements DataBuffer {
   private final ReadableBuffer mBuffer;
 
+  /**
+   * Creates {@link DataBuffer} for reading.
+   * @param buffer internal buffer
+   */
   public ReadableDataBuffer(ReadableBuffer buffer) {
     mBuffer = buffer;
   }
@@ -42,8 +49,18 @@ public class ReadableDataBuffer implements DataBuffer {
   }
 
   @Override
+  public void readBytes(ByteBuffer outputBuf) {
+    mBuffer.readBytes(outputBuf);
+  }
+
+  @Override
   public void readBytes(byte[] dst, int dstIndex, int length) {
     mBuffer.readBytes(dst, dstIndex, length);
+  }
+
+  @Override
+  public void readBytes(OutputStream outputStream, int length) throws IOException {
+    mBuffer.readBytes(outputStream, length);
   }
 
   @Override
@@ -54,15 +71,5 @@ public class ReadableDataBuffer implements DataBuffer {
   @Override
   public void release() {
     mBuffer.close();
-  }
-
-  @Override
-  public void readBytes(OutputStream outputStream, int length) throws IOException {
-    mBuffer.readBytes(outputStream, length);
-  }
-
-  @Override
-  public void readBytes(ByteBuffer outputBuf) {
-    mBuffer.readBytes(outputBuf);
   }
 }
