@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
- * "License"). You may not use this work except in compliance with the License, which is available
- * at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -22,8 +22,6 @@ import io.grpc.ManagedChannel;
 import io.netty.channel.EventLoopGroup;
 
 import javax.security.auth.Subject;
-import java.net.SocketAddress;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,25 +30,25 @@ import java.util.concurrent.TimeUnit;
  */
 public final class GrpcChannelBuilder {
   /** Key for acquiring the underlying managed channel. */
-  protected GrpcManagedChannelPool.ChannelKey mChannelKey;
+  private GrpcManagedChannelPool.ChannelKey mChannelKey;
 
   /** gRPC Server address. */
-  protected GrpcServerAddress mServerAddress;
+  private GrpcServerAddress mServerAddress;
 
   /** Whether to use mParentSubject as authentication user. */
-  protected boolean mUseSubject;
+  private boolean mUseSubject;
   /** Subject for authentication. */
-  protected Subject mParentSubject;
+  private Subject mParentSubject;
 
   /* Used in place of a subject. */
-  protected String mUserName;
-  protected String mPassword;
-  protected String mImpersonationUser;
+  private String mUserName;
+  private String mPassword;
+  private String mImpersonationUser;
 
   /** Whether to authenticate the channel with the server. */
-  protected boolean mAuthenticateChannel;
+  private boolean mAuthenticateChannel;
 
-  protected AlluxioConfiguration mConfiguration;
+  private AlluxioConfiguration mConfiguration;
 
   private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf) {
     mServerAddress = address;
