@@ -3763,7 +3763,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.kodo.connect.timeout";
     public static final String UNDERFS_KODO_REQUESTS_MAX = "alluxio.underfs.kodo.requests.max";
     public static final String UNDERFS_RUN_WITH_MANAGEDBLOCKING =
-        "alluxio.underfs.run.managed.block";
+        "alluxio.underfs.run.with.managedblocking";
 
     //
     // UFS access control related properties
