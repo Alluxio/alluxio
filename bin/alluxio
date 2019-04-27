@@ -34,7 +34,7 @@ function printUsage {
   echo -e "  readJournal   \t Read an Alluxio journal file from stdin and write a human-readable version of it to stdout."
   echo -e "  upgradeJournal\t Upgrade an Alluxio journal version 0 (Alluxio version < 1.5.0) to an Alluxio journal version 1 (Alluxio version >= 1.5.0)."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
-  echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
+  echo -e "  copyDir <PATH>\t Copy the PATH to all master/worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
   echo -e "  confDocGen    \t Generate configuration docs."
   echo -e "  version       \t Print Alluxio version and exit."
@@ -150,6 +150,7 @@ function copyDir {
     ABS_PATH_COMMAND="realpath"
   fi
 
+  MASTERS=$(cat ${ALLUXIO_CONF_DIR}/masters | grep -v '^#')
   WORKERS=$(cat ${ALLUXIO_CONF_DIR}/workers | grep -v '^#')
 
   DIR=$(${ABS_PATH_COMMAND} $1)
@@ -157,6 +158,12 @@ function copyDir {
   DEST=$(dirname ${DIR})
 
   SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=5"
+
+  echo "RSYNC'ing ${DIR} to masters..."
+  for master in ${MASTERS}; do
+      echo ${master}
+      rsync -e "ssh ${SSH_OPTS}" -az ${DIR} ${master}:${DEST} & sleep 0.05
+  done
 
   echo "RSYNC'ing ${DIR} to workers..."
   for worker in ${WORKERS}; do
