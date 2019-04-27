@@ -227,6 +227,8 @@ public class TieredBlockStore implements BlockStore {
         return tempBlockMeta;
       }
     }
+    // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
+    // other types of exception to indicate this case.
     throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT,
         initialBlockSize, location, FREE_SPACE_TIMEOUT_MS, blockId);
   }
@@ -295,6 +297,8 @@ public class TieredBlockStore implements BlockStore {
         return;
       }
     }
+    // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
+    // other types of exception to indicate this case.
     throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_REQUEST_SPACE_TIMEOUT,
         additionalBytes, FREE_SPACE_TIMEOUT_MS, blockId);
   }
@@ -326,6 +330,8 @@ public class TieredBlockStore implements BlockStore {
         return;
       }
     }
+    // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
+    // other types of exception to indicate this case.
     throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE_TIMEOUT,
         newLocation, blockId, FREE_SPACE_TIMEOUT_MS);
   }
