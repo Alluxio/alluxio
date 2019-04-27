@@ -78,9 +78,7 @@ public class DefaultAuthenticationServer
     mChannels = new ConcurrentHashMap<>();
     mScheduler = Executors.newScheduledThreadPool(1,
         ThreadFactoryUtils.build("auth-cleanup", true));
-    mScheduler.scheduleAtFixedRate(() -> {
-      cleanupStaleClients();
-    }, mCleanupIntervalMs, mCleanupIntervalMs, TimeUnit.MILLISECONDS);
+    mScheduler.scheduleAtFixedRate(this::cleanupStaleClients, mCleanupIntervalMs, mCleanupIntervalMs, TimeUnit.MILLISECONDS);
   }
 
   @Override
