@@ -64,7 +64,7 @@ final class MasterUtils {
    */
   public static BlockStore.Factory getBlockStoreFactory(String baseDir) {
     MetastoreType type =
-        ServerConfiguration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
+            ServerConfiguration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
         return HeapBlockStore::new;
