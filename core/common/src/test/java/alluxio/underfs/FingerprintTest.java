@@ -19,7 +19,6 @@ import static org.junit.Assert.assertNotNull;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.util.CommonUtils;
 
-//import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
