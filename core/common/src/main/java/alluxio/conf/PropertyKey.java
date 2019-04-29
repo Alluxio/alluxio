@@ -4210,7 +4210,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.reserved\\.ratio"),
 
     /**
-     * @deprecated omg!
+     * @deprecated This template is always deprecated. It is used only for testing.
      */
     @Deprecated(message = "testDeprecatedMsg")
     TEST_DEPRECATED_TEMPLATE(
