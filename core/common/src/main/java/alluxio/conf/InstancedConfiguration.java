@@ -369,7 +369,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     }
 
     if (removalMessages.size() > 0) {
-      String msg = removalMessages.stream().reduce((m1, m2) -> m1 + "\n" + m2).get();
+      String msg = String.join("\n", removalMessages);
       throw new RuntimeException(msg);
     }
 
