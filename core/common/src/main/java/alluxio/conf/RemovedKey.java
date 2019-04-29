@@ -14,11 +14,15 @@ package alluxio.conf;
 import alluxio.grpc.Scope;
 
 /**
- * This class contains {@link PropertyKey} which should all be annotation with {@link Removed}.
+ * This class contains {@link PropertyKey} which should all be annotated with {@link Removed}.
  *
- * This class is used to track keys which were deprecated in previous versions, and subsequently
+ * This class is used to track keys which were deprecated in previous versions and subsequently
  * removed in a future version. We still keep them here so that it is possible to provide users
  * with useful information if they are found to be using an outdated property key.
+ *
+ * Being removed and still used by an application denotes an error.
+ *
+ * @see InstancedConfiguration#validate()
  */
 public class RemovedKey {
 

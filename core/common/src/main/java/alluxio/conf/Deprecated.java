@@ -42,7 +42,7 @@ public @interface Deprecated {
    * "This key is slated for removal in v3.0. Afterwards, this value will no longer be
    * configurable"
    *
-   * @return A string explaining deprecation or removal
+   * @return A string explaining deprecation
    */
   String message() default "";
 }

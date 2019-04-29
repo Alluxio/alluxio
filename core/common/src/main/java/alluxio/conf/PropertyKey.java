@@ -4639,8 +4639,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param searchClass the class to search through for fields
    * @param fieldType the class of the field to search for
    * @param annotationClazz the annotation to look for
-   * @param <I> any class
-   * @param <J> any class
+   * @param <I> The class to search through for annotatated fields
+   * @param <J> The class of the field to look for
    * @param <K> a class extending Annotation
    * @return a map
    */
@@ -4685,15 +4685,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
-   * Returns whether or not the given property key is deprecated or completely removed.
+   * Returns whether or not the given property key is marked as deprecated.
    *
    * It first checks if the specific key is deprecated, otherwise it will fall back to checking
    * if the key's name matches any of the PropertyKey templates. If no keys or templates match, it
-   * will return false. If the key is marked with {@link Deprecated} this will return true
-   * regardless of the key state.
+   * will return false. This will only return true when the key is marked with a {@link Deprecated}
+   * annotation.
    *
    * @param key the property key to check
    * @return if this property key is deprecated
+   * @see Deprecated
+   * @see #getDeprecationMessage(PropertyKey)
    */
   public static boolean isDeprecated(PropertyKey key) {
     return getKeyAnnotation(DEPRECATED_KEYS, DEPRECATED_TEMPLATES, key) != null;
@@ -4708,8 +4710,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
+   * Returns whether or not a property key has been removed from use.
+   *
+   * If a PropertyKey is deemed as "Removed" it will be marked with the {@link Removed}
+   * annotation This method can be used to detect if a key being utilized has been removed.
+   *
    * @param key the property key to check
    * @return true this property key is removed, false otherwise
+   * @see Removed
+   * @see RemovedKey
+   * @see #isDeprecated(alluxio.conf.PropertyKey)
    */
   public static boolean isRemoved(PropertyKey key) {
     return getKeyAnnotation(REMOVED_KEYS, REMOVED_TEMPLATES, key) != null;
@@ -4738,8 +4748,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
-   * @param key the property key to get the deprecation message from
-   * @return the message, or empty string is the property key isn't deprecated
+   * @param key the property key to get the removal message from
+   * @return the message, or empty string is the property key isn't removed
    */
   public static String getRemovalMessage(PropertyKey key) {
     if (isRemoved(key)) {
