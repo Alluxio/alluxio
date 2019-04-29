@@ -125,6 +125,12 @@ public abstract class Inode implements InodeView {
   }
 
   @Override
+  public String getPinnedMedium() { return mDelegate.getPinnedMedium(); }
+
+  @Override
+  public boolean getPinnedExclude() { return mDelegate.getPinnedExclude(); }
+
+  @Override
   public DefaultAccessControlList getDefaultACL() throws UnsupportedOperationException {
     return mDelegate.getDefaultACL();
   }

@@ -45,7 +45,27 @@ public final class PinCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
-    FileSystemCommandUtils.setPinned(mFileSystem, path, true);
+    String[] args = cl.getArgs();
+    boolean notFlag = false;
+    String medium = "";
+    switch (args.length) {
+      case 2:
+        medium = args[1];
+        break;
+      case 3:
+        if (args[1].equalsIgnoreCase("not")) {
+          notFlag = true;
+        } else {
+          throw new InvalidArgumentException("The second argument must be NOT");
+        }
+        medium = args[2];
+        break;
+      case 1:
+        break;
+      default:
+        throw new InvalidArgumentException("Incorrect number of arguments");
+    }
+    FileSystemCommandUtils.setPinned(mFileSystem, path, true, medium, notFlag);
     System.out.println("File '" + path + "' was successfully pinned.");
   }
 
@@ -53,13 +73,14 @@ public final class PinCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
+
     runWildCardCmd(path, cl);
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "pin <path>";
+    return "pin <path> [not] medium";
   }
 
   @Override
@@ -71,5 +92,6 @@ public final class PinCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+    CommandUtils.checkNumOfArgsNoMoreThan(this, cl, 3);
   }
 }

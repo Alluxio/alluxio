@@ -7821,10 +7821,33 @@ public final class File {
      */
     com.google.protobuf.ByteString
         getUfsFingerprintBytes();
+
+    /**
+     * <code>optional string pinned_medium = 16;</code>
+     */
+    boolean hasPinnedMedium();
+    /**
+     * <code>optional string pinned_medium = 16;</code>
+     */
+    java.lang.String getPinnedMedium();
+    /**
+     * <code>optional string pinned_medium = 16;</code>
+     */
+    com.google.protobuf.ByteString
+        getPinnedMediumBytes();
+
+    /**
+     * <code>optional bool pinned_exclude = 17;</code>
+     */
+    boolean hasPinnedExclude();
+    /**
+     * <code>optional bool pinned_exclude = 17;</code>
+     */
+    boolean getPinnedExclude();
   }
   /**
    * <pre>
-   * next available id: 16
+   * next available id: 18
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.UpdateInodeEntry}
@@ -7853,6 +7876,8 @@ public final class File {
       ttl_ = 0L;
       ttlAction_ = 0;
       ufsFingerprint_ = "";
+      pinnedMedium_ = "";
+      pinnedExclude_ = false;
     }
 
     @java.lang.Override
@@ -7978,6 +8003,17 @@ public final class File {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00004000;
               ufsFingerprint_ = bs;
+              break;
+            }
+            case 130: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00008000;
+              pinnedMedium_ = bs;
+              break;
+            }
+            case 136: {
+              bitField0_ |= 0x00010000;
+              pinnedExclude_ = input.readBool();
               break;
             }
           }
@@ -8372,6 +8408,63 @@ public final class File {
       }
     }
 
+    public static final int PINNED_MEDIUM_FIELD_NUMBER = 16;
+    private volatile java.lang.Object pinnedMedium_;
+    /**
+     * <code>optional string pinned_medium = 16;</code>
+     */
+    public boolean hasPinnedMedium() {
+      return ((bitField0_ & 0x00008000) == 0x00008000);
+    }
+    /**
+     * <code>optional string pinned_medium = 16;</code>
+     */
+    public java.lang.String getPinnedMedium() {
+      java.lang.Object ref = pinnedMedium_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          pinnedMedium_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string pinned_medium = 16;</code>
+     */
+    public com.google.protobuf.ByteString
+        getPinnedMediumBytes() {
+      java.lang.Object ref = pinnedMedium_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        pinnedMedium_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PINNED_EXCLUDE_FIELD_NUMBER = 17;
+    private boolean pinnedExclude_;
+    /**
+     * <code>optional bool pinned_exclude = 17;</code>
+     */
+    public boolean hasPinnedExclude() {
+      return ((bitField0_ & 0x00010000) == 0x00010000);
+    }
+    /**
+     * <code>optional bool pinned_exclude = 17;</code>
+     */
+    public boolean getPinnedExclude() {
+      return pinnedExclude_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -8428,6 +8521,12 @@ public final class File {
       }
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 15, ufsFingerprint_);
+      }
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 16, pinnedMedium_);
+      }
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+        output.writeBool(17, pinnedExclude_);
       }
       unknownFields.writeTo(output);
     }
@@ -8491,6 +8590,13 @@ public final class File {
       }
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(15, ufsFingerprint_);
+      }
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(16, pinnedMedium_);
+      }
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(17, pinnedExclude_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -8582,6 +8688,16 @@ public final class File {
         result = result && getUfsFingerprint()
             .equals(other.getUfsFingerprint());
       }
+      result = result && (hasPinnedMedium() == other.hasPinnedMedium());
+      if (hasPinnedMedium()) {
+        result = result && getPinnedMedium()
+            .equals(other.getPinnedMedium());
+      }
+      result = result && (hasPinnedExclude() == other.hasPinnedExclude());
+      if (hasPinnedExclude()) {
+        result = result && (getPinnedExclude()
+            == other.getPinnedExclude());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -8659,6 +8775,15 @@ public final class File {
       if (hasUfsFingerprint()) {
         hash = (37 * hash) + UFS_FINGERPRINT_FIELD_NUMBER;
         hash = (53 * hash) + getUfsFingerprint().hashCode();
+      }
+      if (hasPinnedMedium()) {
+        hash = (37 * hash) + PINNED_MEDIUM_FIELD_NUMBER;
+        hash = (53 * hash) + getPinnedMedium().hashCode();
+      }
+      if (hasPinnedExclude()) {
+        hash = (37 * hash) + PINNED_EXCLUDE_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+            getPinnedExclude());
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -8755,7 +8880,7 @@ public final class File {
     }
     /**
      * <pre>
-     * next available id: 16
+     * next available id: 18
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.UpdateInodeEntry}
@@ -8828,6 +8953,10 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00002000);
         ufsFingerprint_ = "";
         bitField0_ = (bitField0_ & ~0x00004000);
+        pinnedMedium_ = "";
+        bitField0_ = (bitField0_ & ~0x00008000);
+        pinnedExclude_ = false;
+        bitField0_ = (bitField0_ & ~0x00010000);
         return this;
       }
 
@@ -8916,6 +9045,14 @@ public final class File {
           to_bitField0_ |= 0x00004000;
         }
         result.ufsFingerprint_ = ufsFingerprint_;
+        if (((from_bitField0_ & 0x00008000) == 0x00008000)) {
+          to_bitField0_ |= 0x00008000;
+        }
+        result.pinnedMedium_ = pinnedMedium_;
+        if (((from_bitField0_ & 0x00010000) == 0x00010000)) {
+          to_bitField0_ |= 0x00010000;
+        }
+        result.pinnedExclude_ = pinnedExclude_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -9012,6 +9149,14 @@ public final class File {
           bitField0_ |= 0x00004000;
           ufsFingerprint_ = other.ufsFingerprint_;
           onChanged();
+        }
+        if (other.hasPinnedMedium()) {
+          bitField0_ |= 0x00008000;
+          pinnedMedium_ = other.pinnedMedium_;
+          onChanged();
+        }
+        if (other.hasPinnedExclude()) {
+          setPinnedExclude(other.getPinnedExclude());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -9827,6 +9972,114 @@ public final class File {
   }
   bitField0_ |= 0x00004000;
         ufsFingerprint_ = value;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object pinnedMedium_ = "";
+      /**
+       * <code>optional string pinned_medium = 16;</code>
+       */
+      public boolean hasPinnedMedium() {
+        return ((bitField0_ & 0x00008000) == 0x00008000);
+      }
+      /**
+       * <code>optional string pinned_medium = 16;</code>
+       */
+      public java.lang.String getPinnedMedium() {
+        java.lang.Object ref = pinnedMedium_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            pinnedMedium_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string pinned_medium = 16;</code>
+       */
+      public com.google.protobuf.ByteString
+          getPinnedMediumBytes() {
+        java.lang.Object ref = pinnedMedium_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          pinnedMedium_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string pinned_medium = 16;</code>
+       */
+      public Builder setPinnedMedium(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00008000;
+        pinnedMedium_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string pinned_medium = 16;</code>
+       */
+      public Builder clearPinnedMedium() {
+        bitField0_ = (bitField0_ & ~0x00008000);
+        pinnedMedium_ = getDefaultInstance().getPinnedMedium();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string pinned_medium = 16;</code>
+       */
+      public Builder setPinnedMediumBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00008000;
+        pinnedMedium_ = value;
+        onChanged();
+        return this;
+      }
+
+      private boolean pinnedExclude_ ;
+      /**
+       * <code>optional bool pinned_exclude = 17;</code>
+       */
+      public boolean hasPinnedExclude() {
+        return ((bitField0_ & 0x00010000) == 0x00010000);
+      }
+      /**
+       * <code>optional bool pinned_exclude = 17;</code>
+       */
+      public boolean getPinnedExclude() {
+        return pinnedExclude_;
+      }
+      /**
+       * <code>optional bool pinned_exclude = 17;</code>
+       */
+      public Builder setPinnedExclude(boolean value) {
+        bitField0_ |= 0x00010000;
+        pinnedExclude_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool pinned_exclude = 17;</code>
+       */
+      public Builder clearPinnedExclude() {
+        bitField0_ = (bitField0_ & ~0x00010000);
+        pinnedExclude_ = false;
         onChanged();
         return this;
       }
@@ -25813,7 +26066,7 @@ public final class File {
       "id\030\001 \001(\003\022\021\n\trecursive\030\002 \001(\010\022\022\n\nop_time_m" +
       "s\030\003 \001(\003\022\023\n\013alluxioOnly\030\004 \001(\010\"-\n\025DeleteMo" +
       "untPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\033\n\rN" +
-      "ewBlockEntry\022\n\n\002id\030\001 \001(\003\"\222\003\n\020UpdateInode" +
+      "ewBlockEntry\022\n\n\002id\030\001 \001(\003\"\301\003\n\020UpdateInode" +
       "Entry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004" +
       "name\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n" +
       "\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022" +
@@ -25823,76 +26076,77 @@ public final class File {
       "tl\030\014 \001(\003\022<\n\tttlAction\030\r \001(\0162!.alluxio.pr" +
       "oto.journal.PTtlAction:\006DELETE\0224\n\003acl\030\016 " +
       "\001(\0132\'.alluxio.proto.shared.AccessControl" +
-      "List\022\027\n\017ufs_fingerprint\030\017 \001(\t\"\231\001\n\031Update" +
-      "InodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\023\n\013mount" +
-      "_point\030\002 \001(\010\022\036\n\026direct_children_loaded\030\003" +
-      " \001(\010\022;\n\ndefaultAcl\030\004 \001(\0132\'.alluxio.proto" +
-      ".shared.AccessControlList\"\347\001\n\024UpdateInod" +
-      "eFileEntry\022\n\n\002id\030\001 \001(\003\022\030\n\020block_size_byt" +
-      "es\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\021\n\tcompleted\030\004 " +
-      "\001(\010\022\021\n\tcacheable\030\005 \001(\010\022\022\n\nset_blocks\030\007 \003" +
-      "(\003\022\027\n\017replication_max\030\010 \001(\005\022\027\n\017replicati" +
-      "on_min\030\t \001(\005\022\026\n\016persist_job_id\030\n \001(\003\022\025\n\r" +
-      "temp_ufs_path\030\013 \001(\t\"\311\003\n\023InodeDirectoryEn" +
-      "try\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004na" +
-      "me\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006p" +
-      "inned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n" +
-      "\031last_modification_time_ms\030\007 \001(\003\022\r\n\005owne" +
-      "r\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004mode\030\n \001(\005\022\023\n\013" +
-      "mount_point\030\013 \001(\010\022\036\n\026direct_children_loa" +
-      "ded\030\014 \001(\010\022\013\n\003ttl\030\r \001(\003\022<\n\tttlAction\030\016 \001(" +
-      "\0162!.alluxio.proto.journal.PTtlAction:\006DE" +
-      "LETE\0224\n\003acl\030\017 \001(\0132\'.alluxio.proto.shared" +
-      ".AccessControlList\022;\n\ndefaultAcl\030\020 \001(\0132\'" +
-      ".alluxio.proto.shared.AccessControlList\"" +
-      "O\n\036InodeDirectoryIdGeneratorEntry\022\024\n\014con" +
-      "tainer_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003" +
-      "\"\311\004\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparen" +
-      "t_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_" +
-      "state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_" +
-      "time_ms\030\006 \001(\003\022!\n\031last_modification_time_" +
-      "ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006le" +
-      "ngth\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheab" +
-      "le\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n" +
-      "\005owner\030\016 \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(" +
-      "\005\022<\n\tttlAction\030\021 \001(\0162!.alluxio.proto.jou" +
-      "rnal.PTtlAction:\006DELETE\022\027\n\017ufs_fingerpri" +
-      "nt\030\022 \001(\t\0224\n\003acl\030\023 \001(\0132\'.alluxio.proto.sh" +
-      "ared.AccessControlList\022\027\n\017replication_ma" +
-      "x\030\024 \001(\005\022\027\n\017replication_min\030\025 \001(\005\022\026\n\016pers" +
-      "ist_job_id\030\026 \001(\003\022\025\n\rtemp_ufs_path\030\027 \001(\t\022" +
-      "\033\n\023replication_durable\030\030 \001(\005\"O\n\036InodeLas" +
-      "tModificationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031la" +
-      "st_modification_time_ms\030\002 \001(\003\"#\n\025Persist" +
-      "DirectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFil" +
-      "eEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop" +
-      "_time_ms\030\003 \001(\003\"\212\001\n\025ReinitializeFileEntry" +
-      "\022\014\n\004path\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003" +
-      "\022\013\n\003ttl\030\003 \001(\003\022<\n\tttlAction\030\004 \001(\0162!.allux" +
-      "io.proto.journal.PTtlAction:\006DELETE\"h\n\013R" +
-      "enameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t" +
-      "\022\022\n\nop_time_ms\030\003 \001(\003\022\025\n\rnew_parent_id\030\004 " +
-      "\001(\003\022\020\n\010new_name\030\005 \001(\t\"\247\001\n\013SetAclEntry\022\n\n" +
-      "\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\0224\n\006action\030" +
-      "\003 \001(\0162$.alluxio.proto.journal.PSetAclAct" +
-      "ion\022/\n\007entries\030\004 \003(\0132\036.alluxio.proto.sha" +
-      "red.AclEntry\022\021\n\trecursive\030\005 \001(\010\"\311\002\n\021SetA" +
-      "ttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030" +
-      "\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpe" +
-      "rsisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 " +
-      "\001(\t\022\022\n\npermission\030\010 \001(\005\022<\n\tttlAction\030\t \001" +
-      "(\0162!.alluxio.proto.journal.PTtlAction:\006D" +
-      "ELETE\022\027\n\017ufs_fingerprint\030\n \001(\t\022\024\n\014persis" +
-      "tJobId\030\013 \001(\003\022\023\n\013tempUfsPath\030\014 \001(\t\022\027\n\017rep" +
-      "lication_max\030\r \001(\005\022\027\n\017replication_min\030\016 " +
-      "\001(\005\"b\n\022UpdateUfsModeEntry\022\017\n\007ufsPath\030\001 \001" +
-      "(\t\022;\n\007ufsMode\030\002 \001(\0162\036.alluxio.proto.jour" +
-      "nal.UfsMode:\nREAD_WRITE*\"\n\nPTtlAction\022\n\n" +
-      "\006DELETE\020\000\022\010\n\004FREE\020\001*X\n\rPSetAclAction\022\013\n\007" +
-      "REPLACE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002\022\016\n\nREM" +
-      "OVE_ALL\020\003\022\022\n\016REMOVE_DEFAULT\020\004*7\n\007UfsMode" +
-      "\022\r\n\tNO_ACCESS\020\000\022\r\n\tREAD_ONLY\020\001\022\016\n\nREAD_W" +
-      "RITE\020\002"
+      "List\022\027\n\017ufs_fingerprint\030\017 \001(\t\022\025\n\rpinned_" +
+      "medium\030\020 \001(\t\022\026\n\016pinned_exclude\030\021 \001(\010\"\231\001\n" +
+      "\031UpdateInodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\023" +
+      "\n\013mount_point\030\002 \001(\010\022\036\n\026direct_children_l" +
+      "oaded\030\003 \001(\010\022;\n\ndefaultAcl\030\004 \001(\0132\'.alluxi" +
+      "o.proto.shared.AccessControlList\"\347\001\n\024Upd" +
+      "ateInodeFileEntry\022\n\n\002id\030\001 \001(\003\022\030\n\020block_s" +
+      "ize_bytes\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\021\n\tcompl" +
+      "eted\030\004 \001(\010\022\021\n\tcacheable\030\005 \001(\010\022\022\n\nset_blo" +
+      "cks\030\007 \003(\003\022\027\n\017replication_max\030\010 \001(\005\022\027\n\017re" +
+      "plication_min\030\t \001(\005\022\026\n\016persist_job_id\030\n " +
+      "\001(\003\022\025\n\rtemp_ufs_path\030\013 \001(\t\"\311\003\n\023InodeDire" +
+      "ctoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(" +
+      "\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001" +
+      "(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006" +
+      " \001(\003\022!\n\031last_modification_time_ms\030\007 \001(\003\022" +
+      "\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004mode\030\n " +
+      "\001(\005\022\023\n\013mount_point\030\013 \001(\010\022\036\n\026direct_child" +
+      "ren_loaded\030\014 \001(\010\022\013\n\003ttl\030\r \001(\003\022<\n\tttlActi" +
+      "on\030\016 \001(\0162!.alluxio.proto.journal.PTtlAct" +
+      "ion:\006DELETE\0224\n\003acl\030\017 \001(\0132\'.alluxio.proto" +
+      ".shared.AccessControlList\022;\n\ndefaultAcl\030" +
+      "\020 \001(\0132\'.alluxio.proto.shared.AccessContr" +
+      "olList\"O\n\036InodeDirectoryIdGeneratorEntry" +
+      "\022\024\n\014container_id\030\001 \001(\003\022\027\n\017sequence_numbe" +
+      "r\030\002 \001(\003\"\311\004\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021" +
+      "\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persi" +
+      "stence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020cr" +
+      "eation_time_ms\030\006 \001(\003\022!\n\031last_modificatio" +
+      "n_time_ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(" +
+      "\003\022\016\n\006length\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\t" +
+      "cacheable\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r" +
+      " \001(\003\022\r\n\005owner\030\016 \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mo" +
+      "de\030\020 \001(\005\022<\n\tttlAction\030\021 \001(\0162!.alluxio.pr" +
+      "oto.journal.PTtlAction:\006DELETE\022\027\n\017ufs_fi" +
+      "ngerprint\030\022 \001(\t\0224\n\003acl\030\023 \001(\0132\'.alluxio.p" +
+      "roto.shared.AccessControlList\022\027\n\017replica" +
+      "tion_max\030\024 \001(\005\022\027\n\017replication_min\030\025 \001(\005\022" +
+      "\026\n\016persist_job_id\030\026 \001(\003\022\025\n\rtemp_ufs_path" +
+      "\030\027 \001(\t\022\033\n\023replication_durable\030\030 \001(\005\"O\n\036I" +
+      "nodeLastModificationTimeEntry\022\n\n\002id\030\001 \001(" +
+      "\003\022!\n\031last_modification_time_ms\030\002 \001(\003\"#\n\025" +
+      "PersistDirectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020Per" +
+      "sistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(" +
+      "\003\022\022\n\nop_time_ms\030\003 \001(\003\"\212\001\n\025ReinitializeFi" +
+      "leEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_size_byte" +
+      "s\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\022<\n\tttlAction\030\004 \001(\0162" +
+      "!.alluxio.proto.journal.PTtlAction:\006DELE" +
+      "TE\"h\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_pat" +
+      "h\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\022\025\n\rnew_paren" +
+      "t_id\030\004 \001(\003\022\020\n\010new_name\030\005 \001(\t\"\247\001\n\013SetAclE" +
+      "ntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\0224\n\006" +
+      "action\030\003 \001(\0162$.alluxio.proto.journal.PSe" +
+      "tAclAction\022/\n\007entries\030\004 \003(\0132\036.alluxio.pr" +
+      "oto.shared.AclEntry\022\021\n\trecursive\030\005 \001(\010\"\311" +
+      "\002\n\021SetAttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_t" +
+      "ime_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(" +
+      "\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005g" +
+      "roup\030\007 \001(\t\022\022\n\npermission\030\010 \001(\005\022<\n\tttlAct" +
+      "ion\030\t \001(\0162!.alluxio.proto.journal.PTtlAc" +
+      "tion:\006DELETE\022\027\n\017ufs_fingerprint\030\n \001(\t\022\024\n" +
+      "\014persistJobId\030\013 \001(\003\022\023\n\013tempUfsPath\030\014 \001(\t" +
+      "\022\027\n\017replication_max\030\r \001(\005\022\027\n\017replication" +
+      "_min\030\016 \001(\005\"b\n\022UpdateUfsModeEntry\022\017\n\007ufsP" +
+      "ath\030\001 \001(\t\022;\n\007ufsMode\030\002 \001(\0162\036.alluxio.pro" +
+      "to.journal.UfsMode:\nREAD_WRITE*\"\n\nPTtlAc" +
+      "tion\022\n\n\006DELETE\020\000\022\010\n\004FREE\020\001*X\n\rPSetAclAct" +
+      "ion\022\013\n\007REPLACE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002" +
+      "\022\016\n\nREMOVE_ALL\020\003\022\022\n\016REMOVE_DEFAULT\020\004*7\n\007" +
+      "UfsMode\022\r\n\tNO_ACCESS\020\000\022\r\n\tREAD_ONLY\020\001\022\016\n" +
+      "\nREAD_WRITE\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -25973,7 +26227,7 @@ public final class File {
     internal_static_alluxio_proto_journal_UpdateInodeEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "OverwriteModificationTime", "Owner", "Group", "Mode", "Ttl", "TtlAction", "Acl", "UfsFingerprint", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "OverwriteModificationTime", "Owner", "Group", "Mode", "Ttl", "TtlAction", "Acl", "UfsFingerprint", "PinnedMedium", "PinnedExclude", });
     internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_descriptor =
       getDescriptor().getMessageTypes().get(11);
     internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_fieldAccessorTable = new

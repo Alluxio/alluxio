@@ -108,6 +108,16 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
   boolean isPersisted();
 
   /**
+   * @return whether it is excluding the pinned medium or not
+   */
+  boolean getPinnedExclude();
+
+  /**
+   * @return the pinned medium
+   */
+  String getPinnedMedium();
+
+  /**
    * @return the UFS fingerprint
    */
   String getUfsFingerprint();

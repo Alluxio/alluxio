@@ -105,4 +105,27 @@ public interface SetAttributePOptionsOrBuilder extends
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 9;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
+
+  /**
+   * <code>optional string pinnedMedium = 10;</code>
+   */
+  boolean hasPinnedMedium();
+  /**
+   * <code>optional string pinnedMedium = 10;</code>
+   */
+  java.lang.String getPinnedMedium();
+  /**
+   * <code>optional string pinnedMedium = 10;</code>
+   */
+  com.google.protobuf.ByteString
+      getPinnedMediumBytes();
+
+  /**
+   * <code>optional bool pinnedExclude = 11;</code>
+   */
+  boolean hasPinnedExclude();
+  /**
+   * <code>optional bool pinnedExclude = 11;</code>
+   */
+  boolean getPinnedExclude();
 }

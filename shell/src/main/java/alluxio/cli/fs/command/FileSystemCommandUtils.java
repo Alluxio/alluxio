@@ -57,9 +57,12 @@ public final class FileSystemCommandUtils {
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param pinned the state to be set
    */
-  public static void setPinned(FileSystem fs, AlluxioURI path, boolean pinned)
+  public static void setPinned(FileSystem fs, AlluxioURI path, boolean pinned,
+      String medium, boolean exclude)
       throws AlluxioException, IOException {
-    SetAttributePOptions options = SetAttributePOptions.newBuilder().setPinned(pinned).build();
+    SetAttributePOptions options = SetAttributePOptions.newBuilder().setPinned(pinned)
+        .setPinnedMedium(medium)
+        .setPinnedExclude(exclude).build();
     fs.setAttribute(path, options);
   }
 }

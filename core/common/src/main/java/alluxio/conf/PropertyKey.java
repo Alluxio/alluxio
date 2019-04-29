@@ -1626,6 +1626,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_MEDIA =
+      new Builder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIA)
+          .setDefaultValue("MEM, SSD, HDD")
+          .setDescription("The list of medias we support in the system.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_TTL_CHECKER_INTERVAL_MS =
       new Builder(Name.MASTER_TTL_CHECKER_INTERVAL_MS)
           .setAlias(new String[]{"alluxio.master.ttl.checker.interval.ms"})
@@ -3904,6 +3911,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.level2.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVELS =
         "alluxio.master.tieredstore.global.levels";
+    public static final String MASTER_TIERED_STORE_GLOBAL_MEDIA =
+        "alluxio.master.tieredstore.global.media";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
     public static final String MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =

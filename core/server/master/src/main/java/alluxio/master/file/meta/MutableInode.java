@@ -53,6 +53,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private long mParentId;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
+  private boolean mPinnedExclude;
+  private String mPinnedMedium;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
 
@@ -68,6 +70,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mParentId = InodeTree.NO_PARENT;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
+    mPinnedExclude = false;
+    mPinnedMedium = "";
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
   }
@@ -161,6 +165,12 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   public AccessControlList getACL() {
     return mAcl;
   }
+
+  @Override
+  public boolean getPinnedExclude() { return mPinnedExclude; }
+
+  @Override
+  public String getPinnedMedium() { return mPinnedMedium; }
 
   /**
    * Removes the extended ACL entries. The base entries are retained.
@@ -429,6 +439,17 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mUfsFingerprint = ufsFingerprint;
     return getThis();
   }
+
+  public T setPinnedMedium(String pinnedMedium) {
+    mPinnedMedium = pinnedMedium;
+    return getThis();
+  }
+
+  public T setPinnedExclude(boolean pinnedExclude) {
+    mPinnedExclude = pinnedExclude;
+    return getThis();
+  }
+
 
   @Override
   public abstract FileInfo generateClientFileInfo(String path);

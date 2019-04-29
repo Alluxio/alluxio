@@ -228,7 +228,7 @@ public final class InodeTreeTest {
     // pin nested folder
     try (
         LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, LockPattern.WRITE_INODE)) {
-      mTree.setPinned(RpcContext.NOOP, inodePath, true, 0);
+      mTree.setPinned(RpcContext.NOOP, inodePath, true, false, "", 0);
     }
 
     // create nested file under pinned folder
@@ -562,7 +562,7 @@ public final class InodeTreeTest {
     // pin nested folder
     try (
         LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, LockPattern.WRITE_INODE)) {
-      mTree.setPinned(RpcContext.NOOP, inodePath, true, 0);
+      mTree.setPinned(RpcContext.NOOP, inodePath, true, false, "", 0);
     }
     // nested file pinned
     assertEquals(1, mTree.getPinIdSet().size());
@@ -570,7 +570,7 @@ public final class InodeTreeTest {
     // unpin nested folder
     try (
         LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, LockPattern.WRITE_INODE)) {
-      mTree.setPinned(RpcContext.NOOP, inodePath, false, 0);
+      mTree.setPinned(RpcContext.NOOP, inodePath, false, false, "",0);
     }
     assertEquals(0, mTree.getPinIdSet().size());
   }
