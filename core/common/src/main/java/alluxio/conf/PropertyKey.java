@@ -4622,15 +4622,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     return mDisplayType;
   }
 
-  private static final Map<PropertyKey, Deprecated> DEPRECATED_KEYS =
-      populateAnnotatedKeyMap(PropertyKey.class, PropertyKey.class, Deprecated.class);
-  private static final Map<Template, Deprecated> DEPRECATED_TEMPLATES =
-      populateAnnotatedKeyMap(Template.class, Template.class, Deprecated.class);
+  private static Map<PropertyKey, Deprecated> sDeprecatedKeys;
+  private static Map<Template, Deprecated> sDeprecatedTemplates;
 
-  private static final Map<PropertyKey, Removed> REMOVED_KEYS =
-      populateAnnotatedKeyMap(RemovedKey.class, PropertyKey.class, Removed.class);
-  private static final Map<Template, Removed> REMOVED_TEMPLATES =
-      populateAnnotatedKeyMap(Template.class, Template.class, Removed.class);
+  private static Map<PropertyKey, Removed> sRemovedKeys;
+  private static Map<Template, Removed> sRemovedTemplates;
 
   /**
    * Given a class to search, a field type, and an annotation type will return a map of all
@@ -4698,7 +4694,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @see #getDeprecationMessage(PropertyKey)
    */
   public static boolean isDeprecated(PropertyKey key) {
-    return getKeyAnnotation(DEPRECATED_KEYS, DEPRECATED_TEMPLATES, key) != null;
+    if (sDeprecatedTemplates == null || sDeprecatedKeys == null) {
+      sDeprecatedKeys =
+          populateAnnotatedKeyMap(PropertyKey.class, PropertyKey.class, Deprecated.class);
+      sDeprecatedTemplates =
+          populateAnnotatedKeyMap(Template.class, Template.class, Deprecated.class);
+    }
+    return getKeyAnnotation(sDeprecatedKeys, sDeprecatedTemplates, key) != null;
   }
 
   /**
@@ -4722,7 +4724,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @see #isDeprecated(alluxio.conf.PropertyKey)
    */
   public static boolean isRemoved(PropertyKey key) {
-    return getKeyAnnotation(REMOVED_KEYS, REMOVED_TEMPLATES, key) != null;
+    if (sRemovedKeys == null || sRemovedTemplates == null) {
+      sRemovedKeys = populateAnnotatedKeyMap(RemovedKey.class, PropertyKey.class, Removed.class);
+      sRemovedTemplates =
+          populateAnnotatedKeyMap(Template.class, Template.class, Removed.class);
+    }
+    return getKeyAnnotation(sRemovedKeys, sRemovedTemplates, key) != null;
   }
 
   /**
@@ -4739,7 +4746,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public static String getDeprecationMessage(PropertyKey key) {
     if (isDeprecated(key)) {
-      Deprecated annotation = getKeyAnnotation(DEPRECATED_KEYS, DEPRECATED_TEMPLATES, key);
+      Deprecated annotation = getKeyAnnotation(sDeprecatedKeys, sDeprecatedTemplates, key);
       if (annotation != null) {
         return annotation.message();
       }
@@ -4753,7 +4760,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public static String getRemovalMessage(PropertyKey key) {
     if (isRemoved(key)) {
-      Removed annotation = getKeyAnnotation(REMOVED_KEYS, REMOVED_TEMPLATES, key);
+      Removed annotation = getKeyAnnotation(sRemovedKeys, sRemovedTemplates, key);
       if (annotation != null) {
         return annotation.message();
       }
