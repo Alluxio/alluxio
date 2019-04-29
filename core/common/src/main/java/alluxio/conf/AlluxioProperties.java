@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -57,6 +58,11 @@ public class AlluxioProperties {
       new ConcurrentHashMap<>();
   /** Map of property sources. */
   private final ConcurrentHashMap<PropertyKey, Source> mSources = new ConcurrentHashMap<>();
+
+  private Version mVersion = new Version(() -> keySet().stream()
+      .filter(key -> get(key) != null)
+      .sorted(Comparator.comparing(PropertyKey::getName))
+      .map(key -> String.format("%s:%s:%s", key.getName(), get(key), getSource(key)).getBytes()));
 
   /**
    * Constructs a new instance of Alluxio properties.
@@ -103,6 +109,7 @@ public class AlluxioProperties {
     if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
       mUserProps.put(key, Optional.ofNullable(value));
       mSources.put(key, source);
+      mVersion.markOutdated();
     }
   }
 
@@ -125,7 +132,7 @@ public class AlluxioProperties {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public void merge(Map<?, ?> properties, Source source) {
-    if (properties == null) {
+    if (properties == null || properties.isEmpty()) {
       return;
     }
     // merge the properties
@@ -146,6 +153,7 @@ public class AlluxioProperties {
       }
       put(propertyKey, value, source);
     }
+    mVersion.markOutdated();
   }
 
   /**
@@ -158,6 +166,7 @@ public class AlluxioProperties {
     if (mUserProps.containsKey(key)) {
       mUserProps.remove(key);
       mSources.remove(key);
+      mVersion.markOutdated();
     }
   }
 
@@ -240,6 +249,7 @@ public class AlluxioProperties {
   @VisibleForTesting
   public void setSource(PropertyKey key, Source source) {
     mSources.put(key, source);
+    mVersion.markOutdated();
   }
 
   /**
@@ -252,5 +262,12 @@ public class AlluxioProperties {
       return source;
     }
     return Source.DEFAULT;
+  }
+
+  /**
+   * @return the current version of the properties
+   */
+  public String version() {
+    return mVersion.get();
   }
 }
