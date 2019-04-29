@@ -12,31 +12,17 @@
 package alluxio.cli;
 
 import static org.junit.Assert.fail;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-import alluxio.util.JvmHeapDumper;
-
-import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({JvmHeapDumper.class, ClientProfiler.class})
-@PowerMockIgnore("javax.management.*")
 public class ClientProfilerTest {
 
+
   @Test
-  public void abstractFsTest() throws Exception {
-    UserGroupInformation.setLoginUser(UserGroupInformation.createUserForTesting("testUser",
-        new String[]{}));
-    JvmHeapDumper heapDumpMock = PowerMockito.mock(JvmHeapDumper.class);
-    whenNew(JvmHeapDumper.class).withAnyArguments().thenReturn(heapDumpMock);
+  public void abstractFsTest() {
     try {
-      ClientProfiler.main(new String[]{"-c", "abstractfs", "--dry"});
+      ClientProfiler.main(new String[]{"-c", "abstractfs", "--dry", "-op", "createFiles", "-n",
+          "1"});
     } catch (Exception e) {
       fail();
     }
