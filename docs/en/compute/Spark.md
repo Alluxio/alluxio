@@ -308,7 +308,7 @@ in Spark WebUI below.
 To maximize the amount of locality your Spark jobs attain, you should use as many
 executors as possible, hopefully at least one executor per node.
 As with all methods of Alluxio deployment, there should also be an Alluxio worker on all computation 
-odes.
+nodes.
 
 When a Spark job is run on YARN, Spark launches its executors without taking data locality into
 account. Spark will then correctly take data locality into account when deciding how to distribute
