@@ -31,6 +31,7 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
 import alluxio.grpc.GrpcChannel;
 import alluxio.util.SecurityUtils;
+import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
@@ -51,7 +52,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class AbstractClient implements Client {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
+  private static final Logger LOG =
+      new SamplingLogger(LoggerFactory.getLogger(AbstractClient.class), 10 * Constants.SECOND_MS);
 
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 

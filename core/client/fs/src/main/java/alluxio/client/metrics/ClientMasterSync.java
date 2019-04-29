@@ -11,9 +11,11 @@
 
 package alluxio.client.metrics;
 
+import alluxio.Constants;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.logging.SamplingLogger;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -34,7 +36,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ClientMasterSync implements HeartbeatExecutor {
-  private static final Logger LOG = LoggerFactory.getLogger(ClientMasterSync.class);
+  private static final Logger LOG =
+      new SamplingLogger(LoggerFactory.getLogger(ClientMasterSync.class), 30 * Constants.SECOND_MS);
 
   /** Client for communicating to metrics master. */
   private final MetricsMasterClient mMasterClient;
@@ -61,8 +64,8 @@ public final class ClientMasterSync implements HeartbeatExecutor {
     try {
       mMasterClient.heartbeat(metrics);
     } catch (IOException e) {
-      // An error occurred, log and ignore it or error if heartbeat timeout is reached.
-      LOG.error("Failed to heartbeat to the metrics master:", e);
+      // WARN instead of ERROR as metrics are not critical to the application function
+      LOG.warn("Failed to send metrics to master: ", e);
       mMasterClient.disconnect();
     }
   }

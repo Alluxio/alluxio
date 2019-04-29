@@ -472,7 +472,7 @@ public final class ConfigurationUtils {
       AlluxioConfiguration conf) throws AlluxioStatusException {
     GrpcChannel channel = null;
     try {
-      LOG.info("Alluxio client (version {}) is trying to load configuration from meta master {}",
+      LOG.debug("Alluxio client (version {}) is trying to load configuration from meta master {}",
           RuntimeConstants.VERSION, address);
       channel = GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf)
           .disableAuthentication().build();
