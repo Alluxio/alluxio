@@ -353,6 +353,18 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
+  public String getConfigurationVersion() {
+    // TODO(cc)
+    return null;
+  }
+
+  @Override
+  public String getPathConfigurationVersion() {
+    // TODO(cc)
+    return null;
+  }
+
+  @Override
   public void setPathConfiguration(String path, Map<PropertyKey, String> properties)
       throws UnavailableException {
     try (JournalContext ctx = createJournalContext()) {

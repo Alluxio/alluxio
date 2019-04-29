@@ -17,6 +17,8 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
+import alluxio.client.meta.ConfigVersionSync;
+import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.conf.AlluxioConfiguration;
@@ -31,6 +33,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
+import alluxio.resource.LockResource;
 import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -60,6 +63,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -96,16 +101,28 @@ public final class FileSystemContext implements Closeable {
   private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
   private volatile BlockMasterClientPool mBlockMasterClientPool;
 
-  // Closed flag for debugging information.
-  private final AtomicBoolean mClosed;
+  // Marks whether the context has been closed, closing the context means releasing all resources
+  // in the context like clients and thread pools.
+  private final AtomicBoolean mClosed = new AtomicBoolean(true);
 
-  private ExecutorService mExecutorService;
+  @GuardedBy("this")
+  private ExecutorService mMetricsExecutorService;
+  @GuardedBy("this")
   private MetricsMasterClient mMetricsMasterClient;
-  private ClientMasterSync mClientMasterSync;
+  // volatile because it's used in MetricsMasterSyncShutDownHook.
+  private volatile ClientMasterSync mClientMasterSync;
+
+  @GuardedBy("this")
+  private ExecutorService mConfigVersionExecutorService;
+  @GuardedBy("this")
+  private RetryHandlingMetaMasterConfigClient mMetaConfigClient;
+  @GuardedBy("this")
+  private ConfigVersionSync mConfigVersionSync;
 
   // The data server channel pools. This pool will only grow and keys are not removed.
   private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
       mBlockWorkerClientPool = new ConcurrentHashMap<>();
+  private volatile EventLoopGroup mWorkerGroup;
 
   /** The shared master inquire client associated with the {@link FileSystemContext}. */
   @GuardedBy("this")
@@ -125,7 +142,9 @@ public final class FileSystemContext implements Closeable {
 
   private final ClientContext mClientContext;
   private final String mAppId;
-  private final EventLoopGroup mWorkerGroup;
+
+  /** Synchronize operations related to re-initialization. */
+  private final ReadWriteLock mReinitLock = new ReentrantReadWriteLock();
 
   /**
    * Creates a {@link FileSystemContext} with a null subject.
@@ -204,19 +223,10 @@ public final class FileSystemContext implements Closeable {
   private FileSystemContext(ClientContext ctx) {
     Preconditions.checkNotNull(ctx, "ctx");
     mClientContext = ctx;
-    mExecutorService = Executors.newFixedThreadPool(1,
-        ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
-    mClosed = new AtomicBoolean(false);
-
-    mAppId = ctx.getConf().isSet(PropertyKey.USER_APP_ID)
-                 ? ctx.getConf().get(PropertyKey.USER_APP_ID) : IdUtils.createFileSystemContextId();
+    mAppId = IdUtils.createOrGetAppIdFromConfig(ctx.getConf());
     LOG.info("Created filesystem context with id {}. This ID will be used for identifying info "
             + "from the client, such as metrics. It can be set manually through the {} property",
         mAppId, PropertyKey.Name.USER_APP_ID);
-
-    mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(ctx.getConf()),
-        ctx.getConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
-        String.format("alluxio-client-nettyPool-%s-%%d", mAppId), true);
   }
 
   /**
@@ -225,11 +235,28 @@ public final class FileSystemContext implements Closeable {
    * @param masterInquireClient the client to use for determining the master
    */
   private synchronized void init(MasterInquireClient masterInquireClient) {
+    mClosed.set(false);
+
+    mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(mClientContext.getConf()),
+        mClientContext.getConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
+        String.format("alluxio-client-nettyPool-%s-%%d", mAppId), true);
+
     mMasterInquireClient = masterInquireClient;
+
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(mClientContext, mMasterInquireClient);
     mBlockMasterClientPool = new BlockMasterClientPool(mClientContext, mMasterInquireClient);
-    mClosed.set(false);
+
+    MasterClientContext masterClientContext = MasterClientContext.newBuilder(mClientContext)
+        .setMasterInquireClient(mMasterInquireClient).build();
+    mMetaConfigClient = new RetryHandlingMetaMasterConfigClient(masterClientContext);
+    mConfigVersionSync = new ConfigVersionSync(mMetaConfigClient, this);
+    mConfigVersionExecutorService = Executors.newFixedThreadPool(1,
+        ThreadFactoryUtils.build("config-version-master-heartbeat-%d", true));
+    mConfigVersionExecutorService.submit(
+        new HeartbeatThread(HeartbeatContext.META_MASTER_CONFIG_VERSION_SYNC, mConfigVersionSync,
+            (int) mClientContext.getConf().getMs(PropertyKey.USER_CONF_VERSION_SYNC_INTERVAL),
+            mClientContext.getConf()));
 
     if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
@@ -238,9 +265,9 @@ public final class FileSystemContext implements Closeable {
           .setMasterInquireClient(mMasterInquireClient)
           .build());
       mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, mAppId);
-      mExecutorService = Executors.newFixedThreadPool(1,
+      mMetricsExecutorService = Executors.newFixedThreadPool(1,
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
-      mExecutorService
+      mMetricsExecutorService
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
               (int) mClientContext.getConf().getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
               mClientContext.getConf()));
@@ -285,8 +312,13 @@ public final class FileSystemContext implements Closeable {
       }
       mBlockWorkerClientPool.clear();
 
+      mConfigVersionExecutorService.shutdownNow();
+      mMetaConfigClient.close();
+      mMetaConfigClient = null;
+      mConfigVersionSync = null;
+
       if (mMetricsMasterClient != null) {
-        ThreadUtils.shutdownAndAwaitTermination(mExecutorService,
+        ThreadUtils.shutdownAndAwaitTermination(mMetricsExecutorService,
             mClientContext.getConf().getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
         mMetricsMasterClient.close();
         mMetricsMasterClient = null;
@@ -297,6 +329,20 @@ public final class FileSystemContext implements Closeable {
     } else {
       LOG.warn("Attempted to close FileSystemContext with app ID {} which has already been closed"
           + " or not initialized.", mAppId);
+    }
+  }
+
+  /**
+   * Closes the context, update configuration from meta master, then re-initializes the context.
+   *
+   * @throws IOException when failed to close the context or update configuration
+   */
+  public synchronized void reinit() throws IOException {
+    try (LockResource r = new LockResource(mReinitLock.writeLock())) {
+      close();
+      // TODO(cc): come up with a way to only update cluster or path level configs.
+      mClientContext.updateConfigurationDefaults(getMasterAddress());
+      init(MasterInquireClient.Factory.create(mClientContext.getConf()));
     }
   }
 
@@ -334,19 +380,14 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * @return the master inquire client
-   */
-  public synchronized MasterInquireClient getMasterInquireClient() {
-    return mMasterInquireClient;
-  }
-
-  /**
    * Acquires a file system master client from the file system master client pool.
    *
    * @return the acquired file system master client
    */
   public FileSystemMasterClient acquireMasterClient() {
-    return mFileSystemMasterClientPool.acquire();
+    try (LockResource r = new LockResource(mReinitLock.readLock())) {
+      return mFileSystemMasterClientPool.acquire();
+    }
   }
 
   /**
@@ -355,7 +396,9 @@ public final class FileSystemContext implements Closeable {
    * @param masterClient a file system master client to release
    */
   public void releaseMasterClient(FileSystemMasterClient masterClient) {
-    mFileSystemMasterClientPool.release(masterClient);
+    try (LockResource r = new LockResource(mReinitLock.readLock())) {
+      mFileSystemMasterClientPool.release(masterClient);
+    }
   }
 
   /**
@@ -365,12 +408,14 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired file system master client resource
    */
   public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
-    return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
-      @Override
-      public void close() {
-        mFileSystemMasterClientPool.release(get());
-      }
-    };
+    try (LockResource r = new LockResource(mReinitLock.readLock())) {
+      return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
+        @Override
+        public void close() {
+          mFileSystemMasterClientPool.release(get());
+        }
+      };
+    }
   }
 
   /**
@@ -380,12 +425,14 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired block master client resource
    */
   public CloseableResource<BlockMasterClient> acquireBlockMasterClientResource() {
-    return new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
-      @Override
-      public void close() {
-        mBlockMasterClientPool.release(get());
-      }
-    };
+    try (LockResource r = new LockResource(mReinitLock.readLock())) {
+      return new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
+        @Override
+        public void close() {
+          mBlockMasterClientPool.release(get());
+        }
+      };
+    }
   }
 
   /**
@@ -398,7 +445,9 @@ public final class FileSystemContext implements Closeable {
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
-    return acquireBlockWorkerClientInternal(workerNetAddress, mClientContext.getSubject());
+    try (LockResource r = new LockResource(mReinitLock.readLock())) {
+      return acquireBlockWorkerClientInternal(workerNetAddress, mClientContext.getSubject());
+    }
   }
 
   private BlockWorkerClient acquireBlockWorkerClientInternal(
@@ -423,19 +472,21 @@ public final class FileSystemContext implements Closeable {
    */
   public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
       BlockWorkerClient client) {
-    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
-        getClusterConf());
-    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
-        mClientContext.getSubject(), getClusterConf()));
-    if (mBlockWorkerClientPool.containsKey(key)) {
-      mBlockWorkerClientPool.get(key).release(client);
-    } else {
-      LOG.warn("No client pool for key {}, closing client instead. Context is closed: {}",
-          key, mClosed.get());
-      try {
-        client.close();
-      } catch (IOException e) {
-        LOG.warn("Error closing block worker client for key {}", key, e);
+    try (LockResource r = new LockResource(mReinitLock.readLock())) {
+      SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
+          getClusterConf());
+      ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
+          mClientContext.getSubject(), getClusterConf()));
+      if (mBlockWorkerClientPool.containsKey(key)) {
+        mBlockWorkerClientPool.get(key).release(client);
+      } else {
+        LOG.warn("No client pool for key {}, closing client instead. Context is closed: {}",
+            key, mClosed.get());
+        try {
+          client.close();
+        } catch (IOException e) {
+          LOG.warn("Error closing block worker client for key {}", key, e);
+        }
       }
     }
   }
