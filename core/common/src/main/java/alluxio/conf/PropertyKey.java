@@ -41,7 +41,6 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -4392,9 +4391,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return all pre-defined property keys
    */
   public static Collection<? extends PropertyKey> defaultKeys() {
-    return Sets.newHashSet(DEFAULT_KEYS_MAP.values()
-        .parallelStream().filter(key -> !PropertyKey.isRemoved(key))
-        .collect(Collectors.toSet()));
+    return Sets.newHashSet(DEFAULT_KEYS_MAP.values());
   }
 
   /** Property name. */
@@ -4480,7 +4477,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         return false;
       }
     }
-    DEFAULT_KEYS_MAP.put(name, key);
+    if (!isRemoved(key)) {
+      DEFAULT_KEYS_MAP.put(name, key);
+    }
     if (aliases != null) {
       for (String alias : aliases) {
         DEFAULT_ALIAS_MAP.put(alias, key);
