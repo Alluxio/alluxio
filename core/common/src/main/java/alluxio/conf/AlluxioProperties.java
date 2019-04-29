@@ -109,7 +109,7 @@ public class AlluxioProperties {
     if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
       mUserProps.put(key, Optional.ofNullable(value));
       mSources.put(key, source);
-      mVersion.update();
+      mVersion.markOutdated();
     }
   }
 
@@ -153,7 +153,7 @@ public class AlluxioProperties {
       }
       put(propertyKey, value, source);
     }
-    mVersion.update();
+    mVersion.markOutdated();
   }
 
   /**
@@ -166,7 +166,7 @@ public class AlluxioProperties {
     if (mUserProps.containsKey(key)) {
       mUserProps.remove(key);
       mSources.remove(key);
-      mVersion.update();
+      mVersion.markOutdated();
     }
   }
 
@@ -249,7 +249,7 @@ public class AlluxioProperties {
   @VisibleForTesting
   public void setSource(PropertyKey key, Source source) {
     mSources.put(key, source);
-    mVersion.update();
+    mVersion.markOutdated();
   }
 
   /**

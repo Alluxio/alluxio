@@ -42,7 +42,6 @@ public final class Version {
     }
     mProperties = properties;
     mShouldUpdate = new AtomicBoolean(true);
-    mVersion = "";
   }
 
   /**
@@ -50,7 +49,7 @@ public final class Version {
    * Internally, it just sets a flag to indicate that the version should be updated,
    * but version will not be recomputed until {@link #get()} is called.
    */
-  public void update() {
+  public void markOutdated() {
     mShouldUpdate.set(true);
   }
 
@@ -61,7 +60,7 @@ public final class Version {
   }
 
   /**
-   * If {@link #update()} is called since last {@link #get()}, then the version will be recomputed,
+   * If {@link #markOutdated()} is called since last {@link #get()}, then the version will be recomputed,
    * otherwise, the internally cached version is returned.
    *
    * @return the latest version

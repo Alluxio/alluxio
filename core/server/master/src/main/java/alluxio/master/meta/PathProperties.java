@@ -88,7 +88,7 @@ public final class PathProperties implements DelegatingJournaled {
         properties.forEach((key, value) -> newProperties.put(key.getName(), value));
         mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder().setPath(path)
             .putAllProperties(newProperties).build());
-        mVersion.update();
+        mVersion.markOutdated();
       }
     }
   }
@@ -111,7 +111,7 @@ public final class PathProperties implements DelegatingJournaled {
           mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder()
               .setPath(path).putAllProperties(properties).build());
         }
-        mVersion.update();
+        mVersion.markOutdated();
       }
     }
   }
@@ -127,7 +127,7 @@ public final class PathProperties implements DelegatingJournaled {
       Map<String, String> properties = mState.getProperties(path);
       if (!properties.isEmpty()) {
         mState.applyAndJournal(ctx, RemovePathPropertiesEntry.newBuilder().setPath(path).build());
-        mVersion.update();
+        mVersion.markOutdated();
       }
     }
   }
