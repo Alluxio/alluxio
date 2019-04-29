@@ -13,12 +13,12 @@ package alluxio;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.junit.runners.model.Statement;
 
