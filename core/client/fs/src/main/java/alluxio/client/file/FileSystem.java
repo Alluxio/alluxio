@@ -55,7 +55,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -136,7 +135,7 @@ public interface FileSystem extends Closeable {
         // Sort properties by name to keep output ordered.
         AlluxioConfiguration conf = context.getClusterConf();
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
-        Collections.sort(keys, Comparator.comparing(PropertyKey::getName));
+        keys.sort(Comparator.comparing(PropertyKey::getName));
         for (PropertyKey key : keys) {
           String value = conf.getOrDefault(key, null);
           Source source = conf.getSource(key);
