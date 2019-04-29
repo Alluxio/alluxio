@@ -25,8 +25,6 @@ import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcServerAddress;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
@@ -34,7 +32,6 @@ import alluxio.resource.CloseableResource;
 import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.ThreadUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
@@ -56,8 +53,9 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -92,6 +90,10 @@ import javax.security.auth.Subject;
 public final class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
+  private static final ScheduledExecutorService EXECUTOR_SERVICE =
+      Executors.newSingleThreadScheduledExecutor(
+          ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
+
   // Master client pools.
   private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
   private volatile BlockMasterClientPool mBlockMasterClientPool;
@@ -99,9 +101,9 @@ public final class FileSystemContext implements Closeable {
   // Closed flag for debugging information.
   private final AtomicBoolean mClosed;
 
-  private ExecutorService mExecutorService;
   private MetricsMasterClient mMetricsMasterClient;
   private ClientMasterSync mClientMasterSync;
+  private ScheduledFuture<?> mMetricsHeartbeat;
 
   // The data server channel pools. This pool will only grow and keys are not removed.
   private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
@@ -204,8 +206,6 @@ public final class FileSystemContext implements Closeable {
   private FileSystemContext(ClientContext ctx) {
     Preconditions.checkNotNull(ctx, "ctx");
     mClientContext = ctx;
-    mExecutorService = Executors.newFixedThreadPool(1,
-        ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
     mClosed = new AtomicBoolean(false);
 
     mAppId = ctx.getConf().isSet(PropertyKey.USER_APP_ID)
@@ -238,12 +238,11 @@ public final class FileSystemContext implements Closeable {
           .setMasterInquireClient(mMasterInquireClient)
           .build());
       mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, mAppId);
-      mExecutorService = Executors.newFixedThreadPool(1,
-          ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
-      mExecutorService
-          .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
-              (int) mClientContext.getConf().getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
-              mClientContext.getConf()));
+
+      mMetricsHeartbeat = EXECUTOR_SERVICE.scheduleWithFixedDelay(mClientMasterSync::heartbeat, 0,
+          mClientContext.getConf().getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
+          TimeUnit.MILLISECONDS);
+
       // register the shutdown hook
       try {
         Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
@@ -286,8 +285,7 @@ public final class FileSystemContext implements Closeable {
       mBlockWorkerClientPool.clear();
 
       if (mMetricsMasterClient != null) {
-        ThreadUtils.shutdownAndAwaitTermination(mExecutorService,
-            mClientContext.getConf().getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
+        mMetricsHeartbeat.cancel(false);
         mMetricsMasterClient.close();
         mMetricsMasterClient = null;
         mClientMasterSync = null;
@@ -515,11 +513,7 @@ public final class FileSystemContext implements Closeable {
     public MetricsMasterSyncShutDownHook() {
       mLastHeartbeatThread = new Thread(() -> {
         if (mClientMasterSync != null) {
-          try {
-            mClientMasterSync.heartbeat();
-          } catch (InterruptedException e) {
-            return;
-          }
+          mClientMasterSync.heartbeat();
         }
       });
       mLastHeartbeatThread.setDaemon(true);
