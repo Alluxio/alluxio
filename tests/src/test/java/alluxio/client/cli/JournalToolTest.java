@@ -71,13 +71,13 @@ public class JournalToolTest extends BaseIntegrationTest {
   private FileSystem mFs;
 
   @Before
-  public void before() throws IOException {
+  public void before() throws Throwable {
     mDumpDir = AlluxioTestDirectory.createTemporaryDirectory("journal_dump");
     mFs = mLocalAlluxioClusterResource.get().getClient();
   }
 
   @Test
-  public void dumpSimpleJournal() throws IOException {
+  public void dumpSimpleJournal() throws Throwable {
     JournalTool.main(new String[]{"-outputDir", mDumpDir.getAbsolutePath()});
     assertThat(mOutput.toString(), containsString(mDumpDir.getAbsolutePath()));
     assertNonemptyFileExists(PathUtils.concatPath(mDumpDir, "edits.txt"));
@@ -85,7 +85,7 @@ public class JournalToolTest extends BaseIntegrationTest {
 
   @Test
   @Config(confParams = {Name.MASTER_METASTORE, "HEAP"})
-  public void dumpHeapCheckpoint() throws Exception {
+  public void dumpHeapCheckpoint() throws Throwable {
     for (String name : Arrays.asList("/pin", "/max_replication", "/async_persist", "/ttl")) {
       mFs.createFile(new AlluxioURI(name)).close();
     }
@@ -112,7 +112,7 @@ public class JournalToolTest extends BaseIntegrationTest {
 
   @Test
   @Config(confParams = {Name.MASTER_METASTORE, "ROCKS"})
-  public void dumpRocksCheckpoint() throws Exception {
+  public void dumpRocksCheckpoint() throws Throwable {
     checkpoint();
     JournalTool.main(new String[] {"-outputDir", mDumpDir.getAbsolutePath()});
     String checkpointDir = findCheckpointDir();
