@@ -102,7 +102,7 @@ public abstract class AbstractClient implements Client {
   public AbstractClient(ClientContext context, InetSocketAddress address,
       Supplier<RetryPolicy> retryPolicySupplier) {
     mAddress = address;
-    mContext = Preconditions.checkNotNull(context, "context");
+    mContext = Preconditions.checkNotNull(context);
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
   }
