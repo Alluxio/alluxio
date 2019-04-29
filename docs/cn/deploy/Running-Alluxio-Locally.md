@@ -11,7 +11,7 @@ priority: 1
 
 # 前提条件
 
-这部分的前提条件是你安装了[Java](Java-Setup.html)(JDK 8或更高版本)。
+这部分的前提条件是你安装了[Java](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)(JDK 8或更高版本)。
 
 下载 [Alluxio](https://alluxio.org/download) 二进制发行版 {{site.ALLUXIO_RELEASED_VERSION}}:
 
