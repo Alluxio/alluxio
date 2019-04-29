@@ -112,13 +112,13 @@ You can choose the directory that the log server will write logs to by setting t
 On the log server, execute the following command.
 
 ```bash
-$ ./bin/alluxio-start.sh logserver
+./bin/alluxio-start.sh logserver
 ```
 
 #### Stop the Log Server
 
 ```bash
-$ ./bin/alluxio-stop.sh logserver
+./bin/alluxio-stop.sh logserver
 ```
 
 ### Configuring Alluxio Processes to use the Log Server
@@ -185,10 +185,10 @@ Go to the directory where the log server has been configured to store logs recei
 other Alluxio servers. In the above example, the directory is `/tmp/alluxio_remote_logs`.
 
 ```bash
-$ cd /tmp/alluxio_remote_logs
-$ ls
+cd /tmp/alluxio_remote_logs
+ls
 master          proxy           secondary_master    worker
-$ ls -l master/
+ls -l master/
 ...
 -rw-r--r--  1 alluxio  alluxio  26109 Sep 13 08:49 34.204.198.64.log
 ...

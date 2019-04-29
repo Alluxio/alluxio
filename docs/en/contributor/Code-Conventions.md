@@ -73,7 +73,7 @@ will be formatted to what you want
 warnings are introduced:
 
 ```bash
-$ mvn checkstyle:checkstyle
+mvn checkstyle:checkstyle
 ```
 
 ## Logging Conventions
@@ -695,8 +695,8 @@ locally. A common setting that may need to be set is `ulimit`.
 In order to increase the number of files and processes allowed on MacOS, run the following
 
 ```bash
-$ sudo launchctl limit maxfiles 32768 32768
-$ sudo launchctl limit maxproc 32768 32768
+sudo launchctl limit maxfiles 32768 32768
+sudo launchctl limit maxproc 32768 32768
 ```
 
 It is also recommended to exclude your local clone of Alluxio from Spotlight indexing. Otherwise,

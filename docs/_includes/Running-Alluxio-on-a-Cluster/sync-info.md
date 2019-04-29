@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio copyDir <dirname>
+./bin/alluxio copyDir <dirname>
 ```

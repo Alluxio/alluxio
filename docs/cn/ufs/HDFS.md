@@ -18,14 +18,14 @@ priority: 3
 注意，在编译源码包的时候，默认的Alluxio二进制包适用于HDFS `2.2.0`，若使用其他版本的Hadoop，需要指定正确的Hadoop版本，并且在Alluxio源码目录下运行如下命令：
 
 ```bash
-$ mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
+mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
 ```
 
 Alluxio提供了预定义配置文件，其包含`hadoop-1`，`hadoop-2.2`，`hadoop-2.3` ··· `hadoop-2.9`的Hadoop版本。如果你想编译特定Hadoop版本的Alluxio，你应该在命令中指定版本。
 例如，
 
 ```bash
-$ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
+mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 ```
 
 将会编译Hadoop 2.7.1版本的Alluxio。如果想获取更多的版本支持，请访问[编译Alluxio主分支](Building-Alluxio-From-Source.html#distro-support)。
@@ -35,7 +35,7 @@ $ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
 你需要通过修改`conf/alluxio-site.properties`来配置Alluxio使用底层存储系统，如果该配置文件不存在，则根据模版创建一个配置文件
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 ### 基本配置
@@ -82,8 +82,8 @@ Alluxio支持类POSIX文件系统[用户和权限检查](Security.html)，这从
 在开始本步骤之前，请确保HDFS集群已经启动运行并且映射到Alluxio根目录下的HDFS目录已经存在。配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+bin/alluxio format
+bin/alluxio-start.sh local
 ```
 
 该命令应当会本地启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
@@ -91,7 +91,7 @@ $ bin/alluxio-start.sh local
 接着，你可以运行一个简单的示例程序：
 
 ```bash
-$ bin/alluxio runTests
+bin/alluxio runTests
 ```
 
 运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，在[http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)中创建的文件名称应像这样：`/default_tests_files/BASIC_CACHE_THROUGH`。
@@ -99,5 +99,5 @@ $ bin/alluxio runTests
 运行以下命令停止Alluxio：
 
 ```bash
-$ bin/alluxio-stop.sh local
+bin/alluxio-stop.sh local
 ```

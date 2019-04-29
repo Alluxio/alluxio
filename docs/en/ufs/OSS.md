@@ -28,7 +28,7 @@ To configure Alluxio to use OSS as under storage, you will need to modify the co
 `conf/alluxio-site.properties`. If the file does not exist, create the configuration file from the template.
 
 ```
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Edit `conf/alluxio-site.properties` file to set the under storage address to the OSS bucket and 
@@ -60,8 +60,8 @@ values like `oss-us-west-1.aliyuncs.com` and `oss-cn-shanghai.aliyuncs.com`. Ava
 Start the Alluxio servers:
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+bin/alluxio format
+bin/alluxio-start.sh local
 ```
 
 This will start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -70,7 +70,7 @@ This will start an Alluxio master and an Alluxio worker. You can see the master 
 Run a simple example program:
 
 ```bash
-$ bin/alluxio runTests
+bin/alluxio runTests
 ```
 
 Visit your OSS directory `oss://<OSS_BUCKET>/<OSS_DIRECTORY>` to verify the files
@@ -80,7 +80,7 @@ and directories created by Alluxio exist. For this test, you should see files na
 Stop Alluxio by running:
 
 ```bash
-$ bin/alluxio-stop.sh local
+bin/alluxio-stop.sh local
 ```
 
 ## Advanced Setup
@@ -94,7 +94,7 @@ For example, the following command mounts a directory inside an OSS bucket into 
 `/oss`:
 
 ```bash
-$ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
+./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
   --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
   --option fs.oss.endpoint=<OSS_ENDPOINT> \
   /oss oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
