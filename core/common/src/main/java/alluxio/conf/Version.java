@@ -60,8 +60,8 @@ public final class Version {
   }
 
   /**
-   * If {@link #markOutdated()} is called since last {@link #get()}, then the version will be recomputed,
-   * otherwise, the internally cached version is returned.
+   * If {@link #markOutdated()} is called since last {@link #get()}, then the version will be
+   * recomputed, otherwise, the internally cached version is returned.
    *
    * @return the latest version
    */
