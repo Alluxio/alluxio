@@ -13,10 +13,12 @@ package alluxio.cli;
 
 import static alluxio.exception.ExceptionMessage.INVALID_ARGS_NUM;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
-import static org.junit.Assert.assertEquals;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
