@@ -59,7 +59,7 @@ public class AlluxioProperties {
   /** Map of property sources. */
   private final ConcurrentHashMap<PropertyKey, Source> mSources = new ConcurrentHashMap<>();
 
-  private final Version mVersion = new Version(() -> keySet().stream()
+  private Version mVersion = new Version(() -> keySet().stream()
       .filter(key -> get(key) != null)
       .sorted(Comparator.comparing(PropertyKey::getName))
       .map(key -> String.format("%s:%s:%s", key.getName(), get(key), getSource(key)).getBytes()));

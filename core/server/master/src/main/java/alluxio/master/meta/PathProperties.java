@@ -57,7 +57,7 @@ public final class PathProperties implements DelegatingJournaled {
   @GuardedBy("mLock")
   private final State mState = new State();
   @GuardedBy("mLock")
-  private final Version mVersion = new Version(() -> mState.getProperties().entrySet().stream()
+  private Version mVersion = new Version(() -> mState.getProperties().entrySet().stream()
       .flatMap(pathProperties -> pathProperties.getValue().entrySet().stream()
           .map(property -> String.format("%s:%s:%s", pathProperties.getKey(), property.getKey(),
               property.getValue()).getBytes())));
