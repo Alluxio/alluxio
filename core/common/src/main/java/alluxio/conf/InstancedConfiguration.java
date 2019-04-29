@@ -357,7 +357,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
               + "If no JVM property is present, Alluxio will use default value '%s'.",
           key.getName(), key.getDefaultValue());
 
-      if (PropertyKey.isDeprecated(key) && getSource(key).compareTo(Source.DEFAULT) > 0) {
+      if (PropertyKey.isDeprecated(key) && getSource(key).compareTo(Source.DEFAULT) != 0) {
         LOG.warn("{} is deprecated. Please avoid using this key in the future. {}", key.getName(),
             PropertyKey.getDeprecationMessage(key));
       } else if (PropertyKey.isRemoved(key)) {
