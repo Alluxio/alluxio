@@ -54,11 +54,15 @@ priority: 1
 
 运行一个更全面的系统完整性检查：
 
-{% include Running-Alluxio-Locally/run-tests.md %}
+```bash
+./bin/alluxio runTests
+```
 
 可以在任意时刻执行以下命令以关闭Alluxio:
 
-{% include Running-Alluxio-Locally/Alluxio-stop.md %}
+```bash
+./bin/alluxio-stop.sh local
+```
 
 
 # FAQ
