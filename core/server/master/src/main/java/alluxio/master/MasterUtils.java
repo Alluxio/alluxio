@@ -67,7 +67,7 @@ final class MasterUtils {
         ServerConfiguration.getEnum(PropertyKey.MASTER_METASTORE, MetastoreType.class);
     switch (type) {
       case HEAP:
-        return () -> new HeapBlockStore();
+        return HeapBlockStore::new;
       case ROCKS:
         return () -> new RocksBlockStore(baseDir);
       default:
