@@ -368,6 +368,13 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
+   * @return hash of properties
+   */
+  public String hash() {
+    return mProperties.hash();
+  }
+
+  /**
    * Lookup key names to handle ${key} stuff.
    *
    * @param base the String to look for
