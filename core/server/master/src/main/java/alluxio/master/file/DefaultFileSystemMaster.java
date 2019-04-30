@@ -1997,7 +1997,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     // Check options and determine if we should schedule async persist. This is helpful for compute
     // frameworks that use rename as a commit operation.
     if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()) {
-      scheduleAsyncPersistenceInternal(rpcContext, srcInode.asFile());
+      mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
+          .setId(srcInode.getId())
+          .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
+          .build());
+      mPersistRequests.put(srcInode.getId(), new alluxio.time.ExponentialTimer(
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
   }
 
@@ -2980,25 +2988,21 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       throws AlluxioException, UnavailableException {
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE)) {
-      scheduleAsyncPersistenceInternal(rpcContext, inodePath.getInodeFile());
+      InodeFile inode = inodePath.getInodeFile();
+      if (!inode.isCompleted()) {
+        throw new InvalidPathException(
+            "Cannot persist an incomplete Alluxio file: " + inode.getName());
+      }
+      mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
+          .setId(inode.getId())
+          .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
+          .build());
+      mPersistRequests.put(inode.getId(), new alluxio.time.ExponentialTimer(
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
-  }
-
-  private void scheduleAsyncPersistenceInternal(RpcContext rpcContext, InodeFile inode)
-      throws FileDoesNotExistException, InvalidPathException {
-    if (!inode.isCompleted()) {
-      throw new InvalidPathException(
-          "Cannot persist an incomplete Alluxio file: " + inode.getName());
-    }
-    mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
-        .setId(inode.getId())
-        .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
-        .build());
-    mPersistRequests.put(inode.getId(), new alluxio.time.ExponentialTimer(
-        ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-        ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-        ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
-        ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
   }
 
   /**
