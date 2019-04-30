@@ -13,7 +13,7 @@ package alluxio.client.meta;
 
 import alluxio.client.file.FileSystemContext;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.wire.ConfigVersion;
+import alluxio.wire.ConfigHash;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,20 +30,20 @@ import javax.annotation.concurrent.ThreadSafe;
  * The passed in client will not be closed by this class.
  */
 @ThreadSafe
-public final class ConfigVersionSync implements HeartbeatExecutor {
-  private static final Logger LOG = LoggerFactory.getLogger(ConfigVersionSync.class);
+public final class ConfigHashSync implements HeartbeatExecutor {
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigHashSync.class);
 
   private final RetryHandlingMetaMasterConfigClient mClient;
   private final FileSystemContext mContext;
-  private ConfigVersion mVersion;
+  private ConfigHash mHash;
 
   /**
-   * Constructs a new {@link ConfigVersionSync}.
+   * Constructs a new {@link ConfigHashSync}.
    *
    * @param client the meta master client
    * @param context the filesystem context
    */
-  public ConfigVersionSync(RetryHandlingMetaMasterConfigClient client, FileSystemContext context) {
+  public ConfigHashSync(RetryHandlingMetaMasterConfigClient client, FileSystemContext context) {
     mClient = client;
     mContext = context;
   }
@@ -51,12 +51,12 @@ public final class ConfigVersionSync implements HeartbeatExecutor {
   @Override
   public synchronized void heartbeat() throws InterruptedException {
     try {
-      ConfigVersion version = mClient.getConfigurationVersion();
-      if (!mVersion.equals(version)) {
+      ConfigHash version = mClient.getConfigHash();
+      if (!mHash.equals(version)) {
         // This may take long time and block the heartbeat, but it's fine since it's meaningless
         // to run the heartbeat during the re-initialization.
         mContext.reinit();
-        mVersion = version;
+        mHash = version;
       }
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to meta master to get configuration version:", e);

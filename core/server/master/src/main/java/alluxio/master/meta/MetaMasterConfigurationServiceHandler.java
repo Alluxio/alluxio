@@ -13,8 +13,8 @@ package alluxio.master.meta;
 
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.GetConfigVersionPOptions;
-import alluxio.grpc.GetConfigVersionPResponse;
+import alluxio.grpc.GetConfigHashPOptions;
+import alluxio.grpc.GetConfigHashPResponse;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
@@ -92,13 +92,13 @@ public final class MetaMasterConfigurationServiceHandler
   }
 
   @Override
-  public void getConfigVersion(GetConfigVersionPOptions request,
-      StreamObserver<GetConfigVersionPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigVersionPResponse>) () -> {
+  public void getConfigHash(GetConfigHashPOptions request,
+      StreamObserver<GetConfigHashPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigHashPResponse>) () -> {
       String clusterConfigVersion = mMetaMaster.getConfigHash();
       String pathConfigVersion = mMetaMaster.getPathConfigHash();
-      return GetConfigVersionPResponse.newBuilder().setClusterConfigVersion(clusterConfigVersion)
-          .setPathConfigVersion(pathConfigVersion).build();
+      return GetConfigHashPResponse.newBuilder().setClusterConfigHash(clusterConfigVersion)
+          .setPathConfigHash(pathConfigVersion).build();
     }, "getConfigVersion", "request=%s", responseObserver, request);
   }
 }

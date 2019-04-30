@@ -17,7 +17,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
-import alluxio.client.meta.ConfigVersionSync;
+import alluxio.client.meta.ConfigHashSync;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
@@ -117,7 +117,7 @@ public final class FileSystemContext implements Closeable {
   @GuardedBy("this")
   private RetryHandlingMetaMasterConfigClient mMetaConfigClient;
   @GuardedBy("this")
-  private ConfigVersionSync mConfigVersionSync;
+  private ConfigHashSync mConfigHashSync;
 
   // The data server channel pools. This pool will only grow and keys are not removed.
   private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
@@ -250,11 +250,11 @@ public final class FileSystemContext implements Closeable {
     MasterClientContext masterClientContext = MasterClientContext.newBuilder(mClientContext)
         .setMasterInquireClient(mMasterInquireClient).build();
     mMetaConfigClient = new RetryHandlingMetaMasterConfigClient(masterClientContext);
-    mConfigVersionSync = new ConfigVersionSync(mMetaConfigClient, this);
+    mConfigHashSync = new ConfigHashSync(mMetaConfigClient, this);
     mConfigVersionExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("config-version-master-heartbeat-%d", true));
     mConfigVersionExecutorService.submit(
-        new HeartbeatThread(HeartbeatContext.META_MASTER_CONFIG_VERSION_SYNC, mConfigVersionSync,
+        new HeartbeatThread(HeartbeatContext.META_MASTER_CONFIG_VERSION_SYNC, mConfigHashSync,
             (int) mClientContext.getConf().getMs(PropertyKey.USER_CONF_VERSION_SYNC_INTERVAL),
             mClientContext.getConf()));
 
@@ -315,7 +315,7 @@ public final class FileSystemContext implements Closeable {
       mConfigVersionExecutorService.shutdownNow();
       mMetaConfigClient.close();
       mMetaConfigClient = null;
-      mConfigVersionSync = null;
+      mConfigHashSync = null;
 
       if (mMetricsMasterClient != null) {
         ThreadUtils.shutdownAndAwaitTermination(mMetricsExecutorService,
