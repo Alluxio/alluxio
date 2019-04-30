@@ -25,7 +25,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -134,7 +133,7 @@ public final class LRFUEvictor extends AbstractEvictor {
    */
   private List<Map.Entry<Long, Double>> getSortedCRF() {
     List<Map.Entry<Long, Double>> sortedCRF = new ArrayList<>(mBlockIdToCRFValue.entrySet());
-    Collections.sort(sortedCRF, Comparator.comparingDouble(Entry::getValue));
+    sortedCRF.sort(Comparator.comparingDouble(Entry::getValue));
     return sortedCRF;
   }
 

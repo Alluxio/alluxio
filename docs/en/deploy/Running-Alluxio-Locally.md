@@ -68,11 +68,15 @@ To verify that Alluxio is running, you can visit
 
 To run a more comprehensive sanity check:
 
-{% include Running-Alluxio-Locally/run-tests.md %}
+```bash
+./bin/alluxio runTests
+```
 
 You can stop Alluxio any time by running:
 
-{% include Running-Alluxio-Locally/Alluxio-stop.md %}
+```bash
+./bin/alluxio-stop.sh local
+```
 
 
 ## FAQ
