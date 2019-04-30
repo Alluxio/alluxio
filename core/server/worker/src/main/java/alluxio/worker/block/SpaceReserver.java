@@ -122,6 +122,8 @@ public class SpaceReserver implements HeartbeatExecutor {
                 reservedSpace, tierAlias, e.getMessage());
           }
         }
+      } else {
+        LOG.warn("No watermark set for tier {}, eviction will not be run.", tierAlias);
       }
     }
   }
