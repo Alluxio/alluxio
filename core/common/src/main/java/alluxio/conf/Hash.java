@@ -22,10 +22,10 @@ import java.util.stream.Stream;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Version is a hex encoded MD5 hash of the cluster or path configurations.
+ * A hex encoded MD5 hash of the cluster or path configurations.
  */
 @ThreadSafe
-public final class Version {
+public final class Hash {
   private final MessageDigest mMD5;
   private final Supplier<Stream<byte[]>> mProperties;
   private final AtomicBoolean mShouldUpdate;
@@ -34,7 +34,7 @@ public final class Version {
   /**
    * @param properties a stream of encoded properties
    */
-  public Version(Supplier<Stream<byte[]>> properties) {
+  public Hash(Supplier<Stream<byte[]>> properties) {
     try {
       mMD5 = MessageDigest.getInstance("MD5");
     } catch (NoSuchAlgorithmException e) {
