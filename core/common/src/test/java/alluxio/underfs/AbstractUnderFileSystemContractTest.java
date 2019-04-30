@@ -33,6 +33,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -292,12 +293,8 @@ public abstract class AbstractUnderFileSystemContractTest {
   @Test
   public void createThenDeleteExistingDirectoryTest() throws IOException {
     LargeDirectoryConfig config = prepareLargeDirectoryTest();
-    mUfs.deleteExistingDirectory(config.getTopLevelDirectory(),
-        DeleteOptions.defaults().setRecursive(true));
-
-    for (String child : config.getChildren()) {
-      assertTrue(!mUfs.isFile(child) && !mUfs.isDirectory(child));
-    }
+    Assert.assertTrue(mUfs.deleteExistingDirectory(config.getTopLevelDirectory(),
+        DeleteOptions.defaults().setRecursive(true)));
   }
 
   @Test
