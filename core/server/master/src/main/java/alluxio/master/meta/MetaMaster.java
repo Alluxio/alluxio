@@ -64,12 +64,12 @@ public interface MetaMaster extends Master {
   /**
    * @return hash of cluster level configuration
    */
-  String getConfigurationHash();
+  String getConfigHash();
 
   /**
    * @return hash of path level configuration
    */
-  String getPathConfigurationHash();
+  String getPathConfigHash();
 
   /**
    * Sets properties for a path.
