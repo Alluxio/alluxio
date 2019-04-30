@@ -84,8 +84,7 @@ public class SpaceReserver implements HeartbeatExecutor {
       Preconditions.checkArgument(tierHighWatermarkConf < 1,
           "The high watermark of tier %s should be less than 1.0, but is %s",
           Integer.toString(ordinal), tierHighWatermarkConf);
-      long highWatermark =
-          (long) (tierCapacity * ServerConfiguration.getDouble(tierHighWatermarkProp));
+      long highWatermark = (long) (tierCapacity * tierHighWatermarkConf);
       mHighWatermarks.put(tierAlias, highWatermark);
 
       // Low watermark defines when to stop the space reserving process if started
@@ -98,9 +97,7 @@ public class SpaceReserver implements HeartbeatExecutor {
       Preconditions.checkArgument(tierLowWatermarkConf < tierHighWatermarkConf,
           "The low watermark (%s) of tier %d should not be smaller than the high watermark (%s)",
           tierLowWatermarkConf, ordinal, tierHighWatermarkConf);
-      long reservedSpace =
-          (long) (tierCapacity
-              - tierCapacity * ServerConfiguration.getDouble(tierLowWatermarkProp));
+      long reservedSpace = (long) (tierCapacity - tierCapacity * tierLowWatermarkConf);
       lastTierReservedBytes += reservedSpace;
       // On each tier, we reserve no more than its capacity
       lastTierReservedBytes =

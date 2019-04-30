@@ -12,7 +12,6 @@
 package alluxio.server.tieredstore;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -25,6 +24,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.FormatUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -43,8 +43,10 @@ import java.util.List;
 
 @RunWith(Parameterized.class)
 public class TierPromoteIntegrationTest extends BaseIntegrationTest {
-  private static final int CAPACITY_BYTES = 10 * Constants.KB;
+  private static final int BLOCKS_PER_TIER = 10;
   private static final String BLOCK_SIZE_BYTES = "1KB";
+  private static final long CAPACITY_BYTES =
+      BLOCKS_PER_TIER * FormatUtils.parseSpaceSize(BLOCK_SIZE_BYTES);
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource;
@@ -92,7 +94,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void promoteBlock() throws Exception {
-    final int size = CAPACITY_BYTES / 2;
+    final int size = (int) CAPACITY_BYTES / 2;
     AlluxioURI path1 = new AlluxioURI(PathUtils.uniqPath());
     AlluxioURI path2 = new AlluxioURI(PathUtils.uniqPath());
     AlluxioURI path3 = new AlluxioURI(PathUtils.uniqPath());
