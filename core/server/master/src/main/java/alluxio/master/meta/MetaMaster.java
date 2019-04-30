@@ -62,14 +62,14 @@ public interface MetaMaster extends Master {
   Map<String, ConfigProperties> getPathConfiguration(GetConfigurationPOptions options);
 
   /**
-   * @return version of cluster level configuration
+   * @return hash of cluster level configuration
    */
-  String getConfigurationVersion();
+  String getConfigurationHash();
 
   /**
-   * @return version of path level configuration
+   * @return hash of path level configuration
    */
-  String getPathConfigurationVersion();
+  String getPathConfigurationHash();
 
   /**
    * Sets properties for a path.

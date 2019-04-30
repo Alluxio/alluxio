@@ -353,13 +353,13 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public String getConfigurationVersion() {
+  public String getConfigurationHash() {
     // TODO(cc)
     return null;
   }
 
   @Override
-  public String getPathConfigurationVersion() {
+  public String getPathConfigurationHash() {
     // TODO(cc)
     return null;
   }

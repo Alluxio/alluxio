@@ -95,8 +95,8 @@ public final class MetaMasterConfigurationServiceHandler
   public void getConfigVersion(GetConfigVersionPOptions request,
       StreamObserver<GetConfigVersionPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigVersionPResponse>) () -> {
-      String clusterConfigVersion = mMetaMaster.getConfigurationVersion();
-      String pathConfigVersion = mMetaMaster.getPathConfigurationVersion();
+      String clusterConfigVersion = mMetaMaster.getConfigurationHash();
+      String pathConfigVersion = mMetaMaster.getPathConfigurationHash();
       return GetConfigVersionPResponse.newBuilder().setClusterConfigVersion(clusterConfigVersion)
           .setPathConfigVersion(pathConfigVersion).build();
     }, "getConfigVersion", "request=%s", responseObserver, request);
