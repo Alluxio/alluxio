@@ -95,10 +95,10 @@ public final class MetaMasterConfigurationServiceHandler
   public void getConfigHash(GetConfigHashPOptions request,
       StreamObserver<GetConfigHashPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigHashPResponse>) () -> {
-      String clusterConfigVersion = mMetaMaster.getConfigHash();
-      String pathConfigVersion = mMetaMaster.getPathConfigHash();
-      return GetConfigHashPResponse.newBuilder().setClusterConfigHash(clusterConfigVersion)
-          .setPathConfigHash(pathConfigVersion).build();
-    }, "getConfigVersion", "request=%s", responseObserver, request);
+      String clusterConfigHash = mMetaMaster.getConfigHash();
+      String pathConfigHash = mMetaMaster.getPathConfigHash();
+      return GetConfigHashPResponse.newBuilder().setClusterConfigHash(clusterConfigHash)
+          .setPathConfigHash(pathConfigHash).build();
+    }, "getConfigHash", "request=%s", responseObserver, request);
   }
 }

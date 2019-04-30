@@ -2659,12 +2659,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_CONF_VERSION_SYNC_INTERVAL =
-      new Builder(Name.USER_CONF_VERSION_SYNC_INTERVAL)
-          .setAlias(new String[]{"alluxio.user.conf.version.sync.interval"})
+  public static final PropertyKey USER_CONF_HASH_SYNC_INTERVAL =
+      new Builder(Name.USER_CONF_HASH_SYNC_INTERVAL)
           .setDefaultValue("3sec")
           .setDescription("The time period of client master hearbeat to "
-              + "update the configuration versions in meta master.")
+              + "update the configuration hashes in meta master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4137,8 +4136,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.write.location.policy.class";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
-    public static final String USER_CONF_VERSION_SYNC_INTERVAL =
-        "alluxio.user.conf.version.sync.interval";
+    public static final String USER_CONF_HASH_SYNC_INTERVAL =
+        "alluxio.user.conf.hash.sync.interval";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
         "alluxio.user.failed.space.request.limits";

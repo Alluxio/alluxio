@@ -113,7 +113,7 @@ public final class FileSystemContext implements Closeable {
   private volatile ClientMasterSync mClientMasterSync;
 
   @GuardedBy("this")
-  private ExecutorService mConfigVersionExecutorService;
+  private ExecutorService mConfigHashExecutorService;
   @GuardedBy("this")
   private RetryHandlingMetaMasterConfigClient mMetaConfigClient;
   @GuardedBy("this")
@@ -251,11 +251,11 @@ public final class FileSystemContext implements Closeable {
         .setMasterInquireClient(mMasterInquireClient).build();
     mMetaConfigClient = new RetryHandlingMetaMasterConfigClient(masterClientContext);
     mConfigHashSync = new ConfigHashSync(mMetaConfigClient, this);
-    mConfigVersionExecutorService = Executors.newFixedThreadPool(1,
-        ThreadFactoryUtils.build("config-version-master-heartbeat-%d", true));
-    mConfigVersionExecutorService.submit(
-        new HeartbeatThread(HeartbeatContext.META_MASTER_CONFIG_VERSION_SYNC, mConfigHashSync,
-            (int) mClientContext.getConf().getMs(PropertyKey.USER_CONF_VERSION_SYNC_INTERVAL),
+    mConfigHashExecutorService = Executors.newFixedThreadPool(1,
+        ThreadFactoryUtils.build("config-hash-master-heartbeat-%d", true));
+    mConfigHashExecutorService.submit(
+        new HeartbeatThread(HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC, mConfigHashSync,
+            (int) mClientContext.getConf().getMs(PropertyKey.USER_CONF_HASH_SYNC_INTERVAL),
             mClientContext.getConf()));
 
     if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
@@ -312,7 +312,7 @@ public final class FileSystemContext implements Closeable {
       }
       mBlockWorkerClientPool.clear();
 
-      mConfigVersionExecutorService.shutdownNow();
+      mConfigHashExecutorService.shutdownNow();
       mMetaConfigClient.close();
       mMetaConfigClient = null;
       mConfigHashSync = null;
