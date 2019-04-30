@@ -25,8 +25,10 @@ message GetConfigurationPOptions{
  optional bool rawValue = 1;
 }
 message GetConfigurationPResponse{
-  repeated ConfigProperty configs = 1;
+  repeated ConfigProperty clusterConfigs = 1;
   map<string, ConfigProperties> pathConfigs = 2;
+  optional string clusterConfigHash = 3;
+  optional string pathConfigHash = 4;
 }
 
 enum ConfigStatus {

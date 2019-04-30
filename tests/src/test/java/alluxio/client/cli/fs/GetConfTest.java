@@ -202,7 +202,7 @@ public final class GetConfTest {
 
   private GetConfigurationPResponse prepareGetConfigurationResponse() {
     return GetConfigurationPResponse.newBuilder()
-        .addAllConfigs(prepareConfigList())
+        .addAllClusterConfigs(prepareConfigList())
         .build();
   }
 }

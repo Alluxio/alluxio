@@ -26,8 +26,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BackupPOptions;
-import alluxio.grpc.ConfigProperties;
-import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetaCommand;
@@ -62,6 +60,8 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigHash;
+import alluxio.wire.Configuration;
 
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -74,7 +74,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -318,48 +317,36 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public List<ConfigProperty> getConfiguration(GetConfigurationPOptions options) {
-    List<ConfigProperty> configInfoList = new ArrayList<>();
+  public Configuration getConfiguration(GetConfigurationPOptions options) {
+    Configuration.Builder builder = Configuration.newBuilder();
+
     for (PropertyKey key : ServerConfiguration.keySet()) {
       if (key.isBuiltIn()) {
-        String source = ServerConfiguration.getSource(key).toString();
+        Source source = ServerConfiguration.getSource(key);
         String value = ServerConfiguration.getOrDefault(key, null,
             ConfigurationValueOptions.defaults().useDisplayValue(true)
                 .useRawValue(options.getRawValue()));
-        ConfigProperty.Builder config =
-            ConfigProperty.newBuilder().setName(key.getName()).setSource(source);
-        if (value != null) {
-          config.setValue(value);
-        }
-        configInfoList.add(config.build());
+        builder.addClusterProperty(key.getName(), value, source);
       }
     }
-    return configInfoList;
+
+    // NOTE(cc): assumes that ServerConfiguration is read-only when master is running, otherwise,
+    // the following hash might not correspond to the above cluster configuration.
+    builder.setClusterConfHash(ServerConfiguration.hash());
+
+    PathPropertiesView pathProperties = mPathProperties.snapshot();
+    pathProperties.getProperties().forEach((path, properties) ->
+        properties.forEach((key, value) ->
+            builder.addPathProperty(path, key, value)));
+
+    builder.setPathConfHash(pathProperties.getHash());
+
+    return builder.build();
   }
 
   @Override
-  public Map<String, ConfigProperties> getPathConfiguration(GetConfigurationPOptions options) {
-    Map<String, ConfigProperties> pathConfig = new HashMap<>();
-    mPathProperties.get().forEach((path, properties) -> {
-      List<ConfigProperty> configPropertyList = new ArrayList<>();
-      properties.forEach((key, value) ->
-          configPropertyList.add(ConfigProperty.newBuilder().setName(key)
-              .setSource(Source.PATH_DEFAULT.toString()).setValue(value).build()));
-      ConfigProperties configProperties = ConfigProperties.newBuilder().addAllProperties(
-          configPropertyList).build();
-      pathConfig.put(path, configProperties);
-    });
-    return pathConfig;
-  }
-
-  @Override
-  public String getConfigHash() {
-    return ServerConfiguration.global().hash();
-  }
-
-  @Override
-  public String getPathConfigHash() {
-    return mPathProperties.hash();
+  public ConfigHash getConfigHash() {
+    return new ConfigHash(ServerConfiguration.hash(), mPathProperties.hash());
   }
 
   @Override

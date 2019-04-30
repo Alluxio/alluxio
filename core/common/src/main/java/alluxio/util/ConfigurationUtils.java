@@ -539,7 +539,7 @@ public final class ConfigurationUtils {
     String clientVersion = conf.get(PropertyKey.VERSION);
     LOG.info("Alluxio client (version {}) is trying to load cluster level configurations",
         clientVersion);
-    List<alluxio.grpc.ConfigProperty> clusterConfig = response.getConfigsList();
+    List<alluxio.grpc.ConfigProperty> clusterConfig = response.getClusterConfigsList();
     Properties clusterProps = loadClientProperties(clusterConfig, (key, value) ->
         String.format("Loading property: %s (%s) -> %s", key, key.getScope(), value));
     // Check version.

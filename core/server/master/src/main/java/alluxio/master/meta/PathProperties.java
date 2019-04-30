@@ -63,6 +63,15 @@ public final class PathProperties implements DelegatingJournaled {
               property.getValue()).getBytes())));
 
   /**
+   * @return a snapshot of properties and corresponding hash
+   */
+  public PathPropertiesView snapshot() {
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      return new PathPropertiesView(get(), hash());
+    }
+  }
+
+  /**
    * @return a copy of path level properties which is a map from path to property key values
    */
   public Map<String, Map<String, String>> get() {

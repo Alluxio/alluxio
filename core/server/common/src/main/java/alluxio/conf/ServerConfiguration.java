@@ -350,5 +350,12 @@ public final class ServerConfiguration {
     sConf = new InstancedConfiguration(conf.copyProperties(), conf.clusterDefaultsLoaded());
   }
 
+  /**
+   * @return hash of properties
+   */
+  public static String hash() {
+    return sConf.hash();
+  }
+
   private ServerConfiguration() {} // prevent instantiation
 }

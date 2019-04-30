@@ -14,13 +14,30 @@ package alluxio.wire;
 import alluxio.grpc.GetConfigHashPResponse;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Hashes of cluster and path level configurations.
  */
+@ThreadSafe
 public class ConfigHash {
-  private String mClusterConfigHash;
-  private String mPathConfigHash;
+  private final String mClusterConfigHash;
+  private final String mPathConfigHash;
+
+  /**
+   * Constructs a new ConfigHash.
+   *
+   * @param clusterConfigHash cluster configuration hash, cannot be null
+   * @param pathConfigHash path configuration hash, cannot be null
+   */
+  public ConfigHash(String clusterConfigHash, String pathConfigHash) {
+    Preconditions.checkNotNull(clusterConfigHash, "clusterConfigHash");
+    Preconditions.checkNotNull(pathConfigHash, "pathConfigHash");
+    mClusterConfigHash = clusterConfigHash;
+    mPathConfigHash = pathConfigHash;
+  }
 
   private ConfigHash(GetConfigHashPResponse response) {
     mClusterConfigHash = response.getClusterConfigHash();
@@ -33,6 +50,20 @@ public class ConfigHash {
    */
   public static ConfigHash fromProto(GetConfigHashPResponse response) {
     return new ConfigHash(response);
+  }
+
+  /**
+   * @return the proto representation
+   */
+  public GetConfigHashPResponse toProto() {
+    GetConfigHashPResponse.Builder response = GetConfigHashPResponse.newBuilder();
+    if (mClusterConfigHash != null) {
+      response.setClusterConfigHash(mClusterConfigHash);
+    }
+    if (mPathConfigHash != null) {
+      response.setPathConfigHash(mPathConfigHash);
+    }
+    return response.build();
   }
 
   /**

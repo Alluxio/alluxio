@@ -53,10 +53,16 @@ public final class MetaMasterConfigurationServiceHandler
   public void getConfiguration(GetConfigurationPOptions options,
       StreamObserver<GetConfigurationPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () ->
-        GetConfigurationPResponse.newBuilder()
-            .addAllConfigs(mMetaMaster.getConfiguration(options))
-            .putAllPathConfigs(mMetaMaster.getPathConfiguration(options))
-            .build(), "getConfiguration", "options=%s", responseObserver, options);
+        mMetaMaster.getConfiguration(options).toProto(), "getConfiguration", "options=%s",
+        responseObserver, options);
+  }
+
+  @Override
+  public void getConfigHash(GetConfigHashPOptions request,
+      StreamObserver<GetConfigHashPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigHashPResponse>) () ->
+        mMetaMaster.getConfigHash().toProto(), "getConfigHash", "request=%s", responseObserver,
+        request);
   }
 
   @Override
@@ -89,16 +95,5 @@ public final class MetaMasterConfigurationServiceHandler
         }
         return RemovePathConfigurationPResponse.getDefaultInstance();
       }, "removePathConfiguration", "request=%s", responseObserver, request);
-  }
-
-  @Override
-  public void getConfigHash(GetConfigHashPOptions request,
-      StreamObserver<GetConfigHashPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigHashPResponse>) () -> {
-      String clusterConfigHash = mMetaMaster.getConfigHash();
-      String pathConfigHash = mMetaMaster.getPathConfigHash();
-      return GetConfigHashPResponse.newBuilder().setClusterConfigHash(clusterConfigHash)
-          .setPathConfigHash(pathConfigHash).build();
-    }, "getConfigHash", "request=%s", responseObserver, request);
   }
 }
