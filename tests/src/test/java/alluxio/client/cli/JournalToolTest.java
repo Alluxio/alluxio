@@ -23,19 +23,22 @@ import alluxio.Constants;
 import alluxio.SystemOutRule;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.PropertyKey.Name;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.journal.JournalTool;
 import alluxio.master.journal.JournalType;
+import alluxio.multi.process.MultiProcessCluster;
+import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
-import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.testutils.LocalAlluxioClusterResource.Config;
 import alluxio.util.io.PathUtils;
 
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Layout;
+import org.apache.log4j.PatternLayout;
 import org.hamcrest.Matchers;
-import org.junit.Before;
+import org.junit.After;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,47 +48,127 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Tests for {@link JournalTool}.
  */
 public class JournalToolTest extends BaseIntegrationTest {
   private static final int CHECKPOINT_SIZE = 100;
+  private static final int LOG_SIZE_BYTES_MAX = 100;
+  private static final int MASTER_COUNT = 2;
+  private static final int WORKER_COUNT = 1;
+  private static final int GET_MASTER_INDEX_TIMEOUT_MS = 10 * 1000;
+  private static final String PERSISTENCE_INITIAL_INTERVAL_TIME = "1min";
 
   private final ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
+
+  @BeforeClass
+  public static void beforeclass() {
+
+    Layout layout = new PatternLayout("%d [%t] %-5p %c %x - %m%n");
+    org.apache.log4j.Logger.getRootLogger().addAppender(new ConsoleAppender(layout));
+  }
 
   @Rule
   public SystemOutRule mSystemOutRule = new SystemOutRule(mOutput);
 
-  @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
-          .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES,
-              Integer.toString(CHECKPOINT_SIZE))
-          .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "100")
-          .build();
-
+  private MultiProcessCluster mMultiProcessCluster;
   private File mDumpDir;
   private FileSystem mFs;
 
-  @Before
-  public void before() throws Throwable {
+  private void initializeCluster(Map<PropertyKey, String> props) throws Throwable {
+    // Initialize default properties.
+    Map<PropertyKey, String> defaultProps = new HashMap<PropertyKey, String>() {
+      {
+        put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString());
+        put(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES,
+            Integer.toString(CHECKPOINT_SIZE));
+        put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(LOG_SIZE_BYTES_MAX));
+        put(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, PERSISTENCE_INITIAL_INTERVAL_TIME);
+      }
+    };
+    // Override/merge with given props.
+    if(props != null) {
+      defaultProps.putAll(props);
+    }
+    // Build and start a multi-process cluster.
+    mMultiProcessCluster = MultiProcessCluster
+        .newBuilder(PortCoordination.MULTI_PROCESS_SIMPLE_CLUSTER)
+        .setNumMasters(MASTER_COUNT)
+        .setNumWorkers(WORKER_COUNT)
+        .addProperties(defaultProps)
+        .build();
+    mMultiProcessCluster.start();
+    // Acquire FS client.
+    mFs = mMultiProcessCluster.getFileSystemClient();
+    // Ensure directory for dumping journal.
     mDumpDir = AlluxioTestDirectory.createTemporaryDirectory("journal_dump");
-    mFs = mLocalAlluxioClusterResource.get().getClient();
+  }
+
+  @After
+  public void after() throws Throwable {
+    mMultiProcessCluster.destroy();
   }
 
   @Test
   public void dumpSimpleJournal() throws Throwable {
+    initializeCluster(null);
+    // Create a test directory to trigger journaling.
+    mFs.createDirectory(new AlluxioURI("/test"));
+    // Run journal tool.
     JournalTool.main(new String[]{"-outputDir", mDumpDir.getAbsolutePath()});
+    // Verify that a non-zero dump file exists.
     assertThat(mOutput.toString(), containsString(mDumpDir.getAbsolutePath()));
     assertNonemptyFileExists(PathUtils.concatPath(mDumpDir, "edits.txt"));
   }
 
   @Test
-  @Config(confParams = {Name.MASTER_METASTORE, "HEAP"})
+  public void dumpEmbeddedJournalFromDisk() throws Throwable {
+    initializeCluster(new HashMap<PropertyKey, String>() {
+      {
+        put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString());
+      }
+    });
+    // Create a test directory to trigger journaling.
+    mFs.createDirectory(new AlluxioURI("/test"));
+    // Run journal tool.
+    String masterJournalPath = mMultiProcessCluster.getJournalDir()
+        + Integer.toString(mMultiProcessCluster.getPrimaryMasterIndex(GET_MASTER_INDEX_TIMEOUT_MS));
+    JournalTool.main(new String[] {
+        "-inputDir", masterJournalPath,
+        "-outputDir", mDumpDir.getAbsolutePath()});
+    // Verify that a non-zero dump file exists.
+    assertThat(mOutput.toString(), containsString(mDumpDir.getAbsolutePath()));
+    assertNonemptyFileExists(PathUtils.concatPath(mDumpDir, "edits.txt"));
+  }
+
+  @Test
+  public void dumpEmbeddedJournal() throws Throwable {
+    initializeCluster(new HashMap<PropertyKey, String>() {
+      {
+        put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString());
+      }
+    });
+    // Create a test directory to trigger journaling.
+    mFs.createDirectory(new AlluxioURI("/test"));
+    // Run journal tool.
+    JournalTool.main(new String[] {"-outputDir", mDumpDir.getAbsolutePath()});
+    // Verify that a non-zero dump file exists.
+    assertThat(mOutput.toString(), containsString(mDumpDir.getAbsolutePath()));
+    assertNonemptyFileExists(PathUtils.concatPath(mDumpDir, "edits.txt"));
+  }
+
+  @Test
   public void dumpHeapCheckpoint() throws Throwable {
+    initializeCluster(new HashMap<PropertyKey, String>() {
+      {
+        put(PropertyKey.MASTER_METASTORE, "HEAP");
+      }
+    });
+
     for (String name : Arrays.asList("/pin", "/max_replication", "/async_persist", "/ttl")) {
       mFs.createFile(new AlluxioURI(name)).close();
     }
@@ -111,8 +194,13 @@ public class JournalToolTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Config(confParams = {Name.MASTER_METASTORE, "ROCKS"})
   public void dumpRocksCheckpoint() throws Throwable {
+    initializeCluster(new HashMap<PropertyKey, String>() {
+      {
+        put(PropertyKey.MASTER_METASTORE, "ROCKS");
+      }
+    });
+
     checkpoint();
     JournalTool.main(new String[] {"-outputDir", mDumpDir.getAbsolutePath()});
     String checkpointDir = findCheckpointDir();
