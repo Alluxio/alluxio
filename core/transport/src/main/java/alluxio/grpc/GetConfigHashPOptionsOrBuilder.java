@@ -3,7 +3,7 @@
 
 package alluxio.grpc;
 
-public interface GetConfigVersionPOptionsOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:alluxio.grpc.meta.GetConfigVersionPOptions)
+public interface GetConfigHashPOptionsOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:alluxio.grpc.meta.GetConfigHashPOptions)
     com.google.protobuf.MessageOrBuilder {
 }

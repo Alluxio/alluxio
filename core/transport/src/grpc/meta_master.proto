@@ -128,10 +128,10 @@ message RemovePathConfigurationPRequest {
 }
 message RemovePathConfigurationPResponse {}
 
-message GetConfigVersionPOptions {}
-message GetConfigVersionPResponse {
-  optional string clusterConfigVersion = 1;
-  optional string pathConfigVersion = 2;
+message GetConfigHashPOptions {}
+message GetConfigHashPResponse {
+  optional string clusterConfigHash = 1;
+  optional string pathConfigHash = 2;
 }
 
 /**
@@ -139,25 +139,25 @@ message GetConfigVersionPResponse {
   * to query cluster configuration.
   */
 service MetaMasterConfigurationService {
-  /**
-   * Returns a list of Alluxio runtime configuration information.
-   */
-  rpc GetConfiguration(GetConfigurationPOptions) returns (GetConfigurationPResponse);
+    /**
+     * Returns a list of Alluxio runtime configuration information.
+     */
+    rpc GetConfiguration (GetConfigurationPOptions) returns (GetConfigurationPResponse);
 
-  /**
-   * Sets a property for a path.
-   */
-  rpc SetPathConfiguration(SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
+    /**
+     * Sets a property for a path.
+     */
+    rpc SetPathConfiguration (SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
 
-  /**
-   * Removes properties for a path, if the keys are empty, it means remove all properties.
-   */
-  rpc RemovePathConfiguration(RemovePathConfigurationPRequest) returns (RemovePathConfigurationPResponse);
+    /**
+     * Removes properties for a path, if the keys are empty, it means remove all properties.
+     */
+    rpc RemovePathConfiguration (RemovePathConfigurationPRequest) returns (RemovePathConfigurationPResponse);
 
-  /**
-   * Returns the versions of cluster and path level configurations.
-   */
-  rpc GetConfigVersion(GetConfigVersionPOptions) returns (GetConfigVersionPResponse);
+    /**
+     * Returns the hashes of cluster and path level configurations.
+     */
+    rpc GetConfigHash (GetConfigHashPOptions) returns (GetConfigHashPResponse);
 }
 
 /**
