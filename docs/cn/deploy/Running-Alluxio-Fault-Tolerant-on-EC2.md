@@ -39,7 +39,6 @@ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.
 sudo bash bin/install.sh
 ```
 
-
 另外，你可以选择手动安装[pip](https://pip.pypa.io/en/latest/installing/)，之后进入`deploy/vagrant`目录，运行：
 
 ```bash
@@ -58,7 +57,6 @@ sudo pip install -r pip-req.txt
 export AWS_ACCESS_KEY_ID=<your access key>
 export AWS_SECRET_ACCESS_KEY=<your secret access key>
 ```
-
 
 接着生成EC2
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)。确保将私钥文件的
