@@ -11,7 +11,13 @@
 
 package alluxio.underfs;
 
+<<<<<<< HEAD
 import static org.junit.Assert.assertEquals;
+=======
+//import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+
+>>>>>>> 68971deea97b08034c4f636580515b83fc75d7f3
 import org.junit.Test;
 
 /**
