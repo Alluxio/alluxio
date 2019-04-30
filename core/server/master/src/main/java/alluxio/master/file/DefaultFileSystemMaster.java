@@ -2991,7 +2991,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       InodeFile inode = inodePath.getInodeFile();
       if (!inode.isCompleted()) {
         throw new InvalidPathException(
-            "Cannot persist an incomplete Alluxio file: " + inode.getName());
+            "Cannot persist an incomplete Alluxio file: " + inodePath.getUri());
       }
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(inode.getId())
