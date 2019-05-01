@@ -249,7 +249,7 @@ public class MetricsHeartbeatContext {
       try {
         // Shutdown hooks should run quickly, so we limit the wait time to 500ms. It isn't the end
         // of the world if the final heartbeat fails.
-        mLastHeartbeatThread.join(1000);
+        mLastHeartbeatThread.join(500);
       } catch (InterruptedException e) {
         return;
       } finally {
