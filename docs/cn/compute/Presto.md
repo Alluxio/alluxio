@@ -1,106 +1,66 @@
 ---
 layout: global
-title: 在Alluxio上运行Presto
+title: Presto 使用 Alluxio
 nickname: Presto
 group: Data Applications
 priority: 2
 ---
 
-该文档介绍如何运行[Presto](https://prestodb.io/)，让Presto能够查询存储在Alluxio上的Hive表。
+[Presto](https://prestosql.io/) 是一个开源的分布式 SQL 查询引擎，用于对数据进行大规模的交互式分析查询。
+本指南介绍了如何使用 Alluxio 作为分布式缓存层运行 Presto 进行查询，其中数据源可以是 AWS S3、Azure Blob Store、HDFS 和许多其他数据源。
+使用此设置，Alluxio 将帮助 Presto 访问数据（不论是何数据源），并透明地将频繁访问的数据（例如，常用的表）缓存到 Alluxio 的分布式存储中。
+将 Alluxio worker 与 Presto worker 同置部署，可以提升数据本地性，减少 I/O 访问延迟，尤其是在数据是远程的或网络缓慢或拥塞的情况下效果更明显。
 
-# 前期准备
+* Table of Contents
+{:toc}
 
-开始之前你需要安装好[Java](Java-Setup.html)，Java 版本要求在1.8以上，同时使用[本地模式](Running-Alluxio-Locally.html)
-或[集群模式](Running-Alluxio-on-a-Cluster.html)构建好Alluxio。
+## 前期准备
 
-接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(此文档使用0.191版本)。并且请使用
-[Hive On Alluxio](Running-Hive-with-Alluxio.html)完成Hive初始化。
+* 安装 Java 8 Update 60 或更高版本（8u60+）的 64 位 Java。
+* [部署 Presto](https://prestosql.io/docs/current/installation/deployment.html)。
+  本指南基于`presto-0.208`测试。
+* 已经安装并运行 Alluxio。
+* 确保 Alluxio 客户端 jar 包是可用的。
+  在从 Alluxio [下载页面](http://www.alluxio.org/download)下载的压缩包的`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中，可以找到 Alluxio 客户端 jar 包。
+* 确保 Hive metastore 正在运行以提供 Hive 表的元数据信息。
 
-# 配置
+## 基础设置
 
-Presto 从Hive metastore中获取数据库和表元数据的信息，同时通过表的元数据信息条目来获取表数据所在的hdfs位置信息。
-所以需要先配置[Presto on HDFS](https://prestodb.io/docs/current/installation/deployment.html),为了访问HDFS，
-需要将Hadoop的core-site.xml、hdfs-site.xml加入到Presto每个节点的设置文件`/<PATH_TO_PRESTO>/etc/catalog/hive.properties`中的`hive.config.resources`的值.
+### 配置 Presto 连接到 Hive Metastore
 
-#### 配置`core-site.xml`
-
-你需要向你的`hive.properties`指向的`core-site.xml`中添加以下配置项：
-
-```xml
-<property>
-  <name>fs.alluxio.impl</name>
-  <value>alluxio.hadoop.FileSystem</value>
-</property>
-<property>
-  <name>fs.AbstractFileSystem.alluxio.impl</name>
-  <value>alluxio.hadoop.AlluxioFileSystem</value>
-  <description>The Alluxio AbstractFileSystem (Hadoop 2.x)</description>
-</property>
-```
-
-要使用容错模式，需要在classpath的`alluxio-site.properties`文件中正确的配置Alluxio集群的属性：
+Presto 从 Hive Metastore 中获取数据库和表元数据的信息，同时获取表数据的文件系统位置。
+编辑 Presto 的 `${PRESTO_HOME}/etc/catalog/hive.properties`配置：
 
 ```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=[zookeeper_hostname]:2181
+connector.name=hive-hadoop2
+hive.metastore.uri=thrift://localhost:9083
 ```
 
-或者，你可以将属性添加到Hadoop`core-site.xml`配置中，然后将其传播到Alluxio
+### 分发 Alluxio 客户端 jar 包给所有 Presto 服务器
 
-```xml
-<configuration>
-  <property>
-    <name>alluxio.zookeeper.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>alluxio.zookeeper.address</name>
-    <value>[zookeeper_hostname]:2181</value>
-  </property>
-</configuration>
-```
-
-#### 配置额外的Alluxio配置
-
-类似于上面的配置方法，额外的Alluxio设置可以添加到每个节点上Hadoop目录下的`core-site.xml`文件里。比如可以如此来将`alluxio.user.file.writetype.default`从默认值`MUST_CACHE`改为`CACHE_THROUGH`:
-
-```xml
-<property>
- <name>alluxio.user.file.writetype.default</name>
- <value>CACHE_THROUGH</value>
-</property>
-```
-
-另外，你也可以将[`alluxio-site.properties`](Configuration-Settings.html)的路径追加到Presto JVM配置中，该配置在Presto目录下的`etc/jvm.config`文件中。该方法的好处是只需在`alluxio-site.properties`配置文件中设置所有Alluxio属性。
+把 Alluxio 客户端 jar 包`{{site.ALLUXIO_CLIENT_JAR_PATH}}` 放到所有 Presto 服务器的`${PRESTO_HOME}/plugin/hive-hadoop2/`目录（该目录可能会因版本而不同）中。重启 Presto 服务：
 
 ```bash
-...
--Xbootclasspath/p:<path-to-alluxio-site-properties>
+${PRESTO_HOME}/bin/launcher restart
 ```
 
-此外，我们建议提高`alluxio.user.network.netty.timeout`的值（比如10分钟），来防止读远程worker中的大文件时的超时问题。
+在完成基础配置后，Presto 应该能够访问 Alluxio 中的数据。
+要为 Presto 配置更高级的特性，请参考[高级设置](#advanced-setup)中的步骤。
 
-#### 使能 `hive.force-local-scheduling`
+## 示例：使用 Presto 在 Alluxio 上查询表
 
-推荐您组合使用Presto和Alluxio，这样Presto工作节点能够从本地获取数据。Presto中一个重要的需要使能的选项是`hive.force-local-scheduling`,使能该选项能使得数据分片被调度到恰好处理该分片的Alluxio工作节点上。默认情况下，Presto中`hive.force-local-scheduling`设置为false，并且Presto也不会尝试将工作调度到Alluxio节点上。
+### 在 Alluxio 上创建 Hive 表
 
-#### 提高`hive.max-split-size`值
+下面是一个依靠 Alluxio 中的文件在 Hive 中创建内部表的示例。
+你可以从 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/) 下载数据文件（例如，`ml-100k.zip`）。
+解压文件，并将文件`u.user`上传到 Alluxio 的`/ml-100k/`目录：
 
-Presto的Hive集成里使用了配置[`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html)来控制一个查询的分布式并行粒度。我们建议将这个值提高到你的Alluxio的块大小以上，以防止Presto在同一个块上进行多个并行的查找带来的相互阻塞。
+```bash
+bin/alluxio fs mkdir /ml-100k
+bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
+```
 
-# 分发Alluxio客户端jar包
-
-推荐您从[http://www.alluxio.org/download](http://www.alluxio.org/download)下载压缩包。另外，高阶用户可以按照指导[here](Building-Alluxio-From-Source.html#compute-framework-support)从源码编译这个客户端jar包。在路径`{{site.ALLUXIO_CLIENT_JAR_PATH}}`下可以找到Alluxio客户端jar包。
-
-将Alluxio客户端Jar包分发到Presto所有节点中：
-- 你必须将Alluxio客户端jar包 `{{site.ALLUXIO_CLIENT_JAR_PATH_PRESTO}}`放置在所有Presto节点的`$PRESTO_HOME/plugin/hive-hadoop2/`
-目录中（针对不同hadoop版本，放到相应的文件夹下），并且重启所有coordinator和worker。
-
-# Presto命令行示例
-
-在Hive中创建表并且将本地文件加载到Hive中：
-
-你可以从[http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/)下载数据文件。
+从 Alluxio 的已有文件创建一个 Hive 外部表：
 
 ```
 hive> CREATE TABLE u_user (
@@ -111,28 +71,138 @@ occupation STRING,
 zipcode STRING)
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
-STORED AS TEXTFILE;
-
-hive> LOAD DATA LOCAL INPATH '<path_to_ml-100k>/u.user'
-OVERWRITE INTO TABLE u_user;
+LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
-在浏览器中输入`http://master_hostname:19999`以访问Alluxio Web UI，你可以看到相应文件夹以及Hive创建的文件：
+在`http://master_hostname:19999`上查看 Alluxio WebUI，你可以看到 Hive 创建的目录和文件：
 
-![HiveTableInAlluxio]({{ site.baseurl }}/img/screenshot_presto_table_in_alluxio.png)
+![HiveTableInAlluxio]({{ '/img/screenshot_presto_table_in_alluxio.png' | relativize_url }})
 
-你可以通过[说明](Running-Hive-with-Alluxio.html#create-new-tables-from-files-in-alluxio)创建已存在在Alluxio中的表。
+### 启动 Hive metastore
 
-之后，在presto client执行如下查询：
+确保 Hive metastore 服务正在运行。Hive metastore 默认监听端口`9083`。如果 Hive metastore 没在运行，运行以下命令来启动 Hive metastore：
+
+```bash
+${HIVE_HOME}/bin/hive --service metastore
+```
+
+### 启动 Presto 服务器
+
+启动 Presto 服务器。Presto 服务器默认在`8080`端口运行（可以通过`${PRESTO_HOME}/etc/config.properties`中的`http-server.http.port`设置）：
+
+```bash
+${PRESTO_HOME}/bin/launcher run
+```
+
+### 使用 Presto 查询表
+
+按照 [Presto CLI 指南](https://prestosql.io/docs/current/installation/cli.html)下载`presto-cli-<PRESTO_VERSION>-executable.jar`，将其重命名为`presto`，并使用`chmod +x`使其变成可执行的（有时`${PRESTO_HOME}/bin/presto`中存在可执行的`presto`，你可以直接使用它）。
+
+运行简单的查询（使用你实际的 Presto 服务器主机名和端口替换`localhost:8080`）：
+
+```bash
+./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
+```
+
+你可以从控制台看到查询结果：
+
+![PrestoQueryResult]({{ '/img/screenshot_presto_query_result.png' | relativize_url }})
+
+Presto 服务器日志：
+
+![PrestoQueryLog]({{ '/img/screenshot_presto_query_log.png' | relativize_url }})
+
+## 高级设置
+
+### 自定义 Alluxio 用户属性
+
+要配置其他 Alluxio 属性，可以将包含[`alluxio-site.properties`]({{ '/en/basic/Configuration-Settings.html' | relativize_url }})的配置路径（即`${ALLUXIO_HOME}/conf`）追加到 Presto 文件夹下的`etc/jvm.config`的 JVM 配置中。
+这种方法的优点是能够在同一个`alluxio-site.properties`文件中设置所有的 Alluxio 属性。
+
+```bash
+...
+-Xbootclasspath/p:<path-to-alluxio-conf>
+```
+
+或者，你可以将这些属性添加到 Hadoop 配置文件（`core-site.xml`，`hdfs-site.xml`）中，并使用文件`$presto/etc/catalog/hive.properties`中的 Presto 属性`hive.config.resources`来为每个 Presto worker 指明文件位置。
 
 ```
-/home/path/presto/presto-cli-0.191-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
+hive.config.resources=/<PATH_TO_CONF>/core-site.xml,/<PATH_TO_CONF>/hdfs-site.xml
 ```
 
-你可以在命令行中看到相应查询结果：
+#### 示例：连接 HA 模式的 Alluxio
 
-![PrestoQueryResult]({{ site.baseurl }}/img/screenshot_presto_query_result.png)
+要使用容错模式的 Alluxio，需要在 classpath 中的`alluxio-site.properties`文件中适当设置 Alluxio 集群的属性。
 
-日志：
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181
+```
 
-![PrestoQueryLog]({{ site.baseurl }}/img/screenshot_presto_query_log.png)
+或者，你可以将属性添加到`hive.config.resources`所包含的 hadoop `core-site.xml`配置中。
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
+  </property>
+</configuration>
+```
+
+#### 示例：更改 Alluxio 默认写类型
+
+例如，更改`alluxio.user.file.writetype.default`，从默认的`MUST_CACHE`改为`CACHE_THROUGH`。
+
+一种方法是在`alluxio-site.properties`中设置属性，并将此文件分发到每个 Hive 节点的 classpath：
+
+```properties
+alluxio.user.file.writetype.default=CACHE_THROUGH
+```
+
+或者，更改`conf/hive-site.xml`：
+
+```xml
+<property>
+  <name>alluxio.user.file.writetype.default</name>
+  <value>CACHE_THROUGH</value>
+</property>
+```
+
+### 启用数据本地性
+
+建议将 Presto worker 与 Alluxio worker 同置部署，以便 Presto worker 可以在本地读取数据。
+在 Presto 中启用数据本地性的一个重要选项是`hive.force-local-scheduling`，该选项会强制在与提供数据分片的 Alluxio worker 相同的节点上调度数据分片。
+默认情况下，Presto 中的`hive.force-local-scheduling`为`false`，Presto 不会尝试在与 Alluxio worker 节点相同的机器上安排工作。
+
+### 提高并行度
+
+Presto 的 Hive 集成使用[`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html)配置来控制查询的并行度。
+对于 Alluxio 1.6 或更早版本，建议将此大小设置为不小于 Alluxio 的块大小，以避免同一块中的读取竞争。对于以后的 Alluxio 版本，由于 Alluxio Worker 上有了异步缓存，这不再是一个问题。
+
+### 避免 Presto 读取大文件超时
+
+建议将`alluxio.user.network.netty.timeout`增加到较大的值（例如`10min`），以避免从远程的 worker 读取大文件时超时失败。
+
+## 故障排除指南
+
+### 查询出现错误信息“No FileSystem for scheme: alluxio”
+
+当你看到类似如下错误信息时，很可能 Alluxio 客户端 jar 包没有被放入到 Presto worker 的 classpath 中。请按照[说明](#distribute-the-alluxio-client-jar-to-all-presto-servers)来解决此问题。
+
+```
+Query 20180907_063430_00001_cm7xe failed: No FileSystem for scheme: alluxio
+com.facebook.presto.spi.PrestoException: No FileSystem for scheme: alluxio
+	at com.facebook.presto.hive.BackgroundHiveSplitLoader$HiveSplitLoaderTask.process(BackgroundHiveSplitLoader.java:189)
+	at com.facebook.presto.hive.util.ResumableTasks.safeProcessTask(ResumableTasks.java:47)
+	at com.facebook.presto.hive.util.ResumableTasks.access$000(ResumableTasks.java:20)
+	at com.facebook.presto.hive.util.ResumableTasks$1.run(ResumableTasks.java:35)
+	at io.airlift.concurrent.BoundedExecutor.drainQueue(BoundedExecutor.java:78)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+```
