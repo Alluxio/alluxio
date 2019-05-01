@@ -71,7 +71,9 @@ public class SpaceReserverTest {
     BlockStoreMeta storeMeta = mock(BlockStoreMeta.class);
     when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 400L, "HDD", 1000L);
+    Map<String, Long> usedCapacityBytesOnTiers = ImmutableMap.of("MEM", 390L, "HDD", 800L);
     when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
+    when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
 
     String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
 
@@ -82,8 +84,10 @@ public class SpaceReserverTest {
         new long[][]{new long[]{0}, new long[]{0}}, "/");
 
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
-        PropertyKey.WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO, "0.2",
-        PropertyKey.WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO, "0.3"),
+        PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, "0.81",
+        PropertyKey.WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO, "0.8",
+        PropertyKey.WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO, "0.71",
+        PropertyKey.WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO, "0.7"),
         ServerConfiguration.global()).toResource()) {
       SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
