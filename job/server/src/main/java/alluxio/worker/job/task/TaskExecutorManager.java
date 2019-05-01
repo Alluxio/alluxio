@@ -15,7 +15,7 @@ import alluxio.collections.Pair;
 import alluxio.grpc.Status;
 import alluxio.grpc.TaskInfo;
 import alluxio.job.JobConfig;
-import alluxio.job.JobWorkerContext;
+import alluxio.job.RunTaskContext;
 import alluxio.job.util.SerializationUtils;
 import alluxio.util.ThreadFactoryUtils;
 
@@ -126,7 +126,7 @@ public class TaskExecutorManager {
    * @param context the context of the worker
    */
   public synchronized void executeTask(long jobId, int taskId, JobConfig jobConfig,
-      Serializable taskArgs, JobWorkerContext context) {
+      Serializable taskArgs, RunTaskContext context) {
     Future<?> future = mTaskExecutionService
         .submit(new TaskExecutor(jobId, taskId, jobConfig, taskArgs, context, this));
     Pair<Long, Integer> id = new Pair<>(jobId, taskId);

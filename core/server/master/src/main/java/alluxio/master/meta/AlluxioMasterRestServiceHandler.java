@@ -12,9 +12,6 @@
 package alluxio.master.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.ConfigurationValueOptions;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.RestUtils;
@@ -23,6 +20,9 @@ import alluxio.StorageTierAssoc;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
@@ -38,7 +38,6 @@ import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.metrics.ClientMetrics;
@@ -66,23 +65,23 @@ import alluxio.wire.Capacity;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.MasterWebUILogs;
-import alluxio.wire.MasterWebUIMetrics;
-import alluxio.wire.MountPointInfo;
 import alluxio.wire.MasterWebUIBrowse;
 import alluxio.wire.MasterWebUIConfiguration;
 import alluxio.wire.MasterWebUIData;
 import alluxio.wire.MasterWebUIInit;
+import alluxio.wire.MasterWebUILogs;
+import alluxio.wire.MasterWebUIMetrics;
 import alluxio.wire.MasterWebUIOverview;
 import alluxio.wire.MasterWebUIWorkers;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.qmino.miredot.annotations.ReturnType;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -105,7 +104,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
@@ -214,7 +212,6 @@ public final class AlluxioMasterRestServiceHandler {
           .setMountPoints(getMountPointsInternal())
           .setRpcAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTimeMs(mMasterProcess.getStartTimeMs())
-          .setStartupConsistencyCheck(getStartupConsistencyCheckInternal())
           .setTierCapacity(getTierCapacityInternal()).setUfsCapacity(getUfsCapacityInternal())
           .setUptimeMs(mMasterProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION)
           .setWorkers(mBlockMaster.getWorkerInfoList());
@@ -276,19 +273,6 @@ public final class AlluxioMasterRestServiceHandler {
           .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
           .setFreeCapacity(FormatUtils
               .getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()));
-
-      StartupConsistencyCheck check = mFileSystemMaster.getStartupConsistencyCheck();
-      response.setConsistencyCheckStatus(check.getStatus().toString());
-      if (check.getStatus() == StartupConsistencyCheck.Status.COMPLETE) {
-        response.setInconsistentPaths(check.getInconsistentUris().size());
-        List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
-        List<String> inconsistentUriStrings =
-            inconsistentUris.stream().map(inconsistentUri -> inconsistentUri.toString())
-                .collect(Collectors.toList());
-        response.setInconsistentPathItems(inconsistentUriStrings);
-      } else {
-        response.setInconsistentPaths(0);
-      }
 
       ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
       response.setConfigCheckStatus(report.getConfigStatus())
@@ -548,7 +532,7 @@ public final class AlluxioMasterRestServiceHandler {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
         limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
-        limit = offset * limit > fileInfos.size() ? fileInfos.size() % offset : limit;
+        limit = offset + limit > fileInfos.size() ? fileInfos.size() - offset : limit;
         int sum = Math.addExact(offset, limit);
         fileInfos = fileInfos.subList(offset, sum);
         response.setFileInfos(fileInfos);
@@ -622,7 +606,7 @@ public final class AlluxioMasterRestServiceHandler {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
         limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
-        limit = offset * limit > fileInfos.size() ? fileInfos.size() % offset : limit;
+        limit = offset + limit > fileInfos.size() ? fileInfos.size() - offset : limit;
         int sum = Math.addExact(offset, limit);
         fileInfos = fileInfos.subList(offset, sum);
         response.setFileInfos(fileInfos);
@@ -697,7 +681,7 @@ public final class AlluxioMasterRestServiceHandler {
           int offset = Integer.parseInt(requestOffset);
           int limit = Integer.parseInt(requestLimit);
           limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
-          limit = offset * limit > fileInfos.size() ? fileInfos.size() % offset : limit;
+          limit = offset + limit > fileInfos.size() ? fileInfos.size() - offset : limit;
           int sum = Math.addExact(offset, limit);
           fileInfos = fileInfos.subList(offset, sum);
           response.setFileInfos(fileInfos);
@@ -840,6 +824,23 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
+   * @param ufs the ufs uri encoded by {@link MetricsSystem#escape(AlluxioURI)}
+   * @return whether the ufs uri is a mount point
+   */
+  @VisibleForTesting
+  boolean isMounted(String ufs) {
+    ufs = PathUtils.normalizePath(ufs, AlluxioURI.SEPARATOR);
+    for (Map.Entry<String, MountPointInfo> entry : mFileSystemMaster.getMountTable().entrySet()) {
+      String escaped = MetricsSystem.escape(new AlluxioURI(entry.getValue().getUfsUri()));
+      escaped = PathUtils.normalizePath(escaped, AlluxioURI.SEPARATOR);
+      if (escaped.equals(ufs)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Gets Web UI metrics page data.
    *
    * @return the response object
@@ -936,14 +937,22 @@ public final class AlluxioMasterRestServiceHandler {
           .setTotalBytesWrittenUfsThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenUfsThroughput));
 
+      //
+      // For the per UFS metrics below, if a UFS has been unmounted, its metrics will still exist
+      // in the metrics system, but we don't show them in the UI. After remounting the UFS, the
+      // new metrics will be accumulated on its old values and shown in the UI.
+      //
+
       // cluster per UFS read
       Map<String, String> ufsReadSizeMap = new TreeMap<>();
       for (Map.Entry<String, Gauge> entry : mr
           .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_READ_UFS)).entrySet()) {
         alluxio.metrics.Metric metric =
             alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
-        ufsReadSizeMap.put(metric.getTags().get(WorkerMetrics.TAG_UFS),
-            FormatUtils.getSizeFromBytes((long) metric.getValue()));
+        String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
+        if (isMounted(ufs)) {
+          ufsReadSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
+        }
       }
       response.setUfsReadSize(ufsReadSizeMap);
 
@@ -953,8 +962,10 @@ public final class AlluxioMasterRestServiceHandler {
           .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_WRITTEN_UFS)).entrySet()) {
         alluxio.metrics.Metric metric =
             alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
-        ufsWriteSizeMap.put(metric.getTags().get(WorkerMetrics.TAG_UFS),
-            FormatUtils.getSizeFromBytes((long) metric.getValue()));
+        String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
+        if (isMounted(ufs)) {
+          ufsWriteSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
+        }
       }
       response.setUfsWriteSize(ufsWriteSizeMap);
 
@@ -968,26 +979,16 @@ public final class AlluxioMasterRestServiceHandler {
           continue;
         }
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
-        Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
-        perUfsMap.put(metric.getName().replaceFirst(WorkerMetrics.UFS_OP_PREFIX, ""),
-            (long) metric.getValue());
-        ufsOpsMap.put(ufs, perUfsMap);
+        if (isMounted(ufs)) {
+          Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
+          perUfsMap.put(ufs, (long) metric.getValue());
+          ufsOpsMap.put(ufs, perUfsMap);
+        }
       }
       response.setUfsOps(ufsOpsMap);
 
-      Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-          return !(name.endsWith("Ops"));
-        }
-      });
-
-      Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-          return name.endsWith("Ops");
-        }
-      });
+      Map<String, Counter> counters = mr.getCounters((name, metric) -> !(name.endsWith("Ops")));
+      Map<String, Counter> rpcInvocations = mr.getCounters((name, metric) -> name.endsWith("Ops"));
 
       Map<String, Metric> operations = new TreeMap<>();
       // Remove the instance name from the metrics.
@@ -1306,19 +1307,6 @@ public final class AlluxioMasterRestServiceHandler {
 
   private Map<String, MountPointInfo> getMountPointsInternal() {
     return mFileSystemMaster.getMountTable();
-  }
-
-  private alluxio.wire.StartupConsistencyCheck getStartupConsistencyCheckInternal() {
-    StartupConsistencyCheck check = mFileSystemMaster.getStartupConsistencyCheck();
-    alluxio.wire.StartupConsistencyCheck ret = new alluxio.wire.StartupConsistencyCheck();
-    List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
-    List<String> uris = new ArrayList<>(inconsistentUris.size());
-    for (AlluxioURI uri : inconsistentUris) {
-      uris.add(uri.toString());
-    }
-    ret.setInconsistentUris(uris);
-    ret.setStatus(check.getStatus().toString().toLowerCase());
-    return ret;
   }
 
   private Map<String, Capacity> getTierCapacityInternal() {

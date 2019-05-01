@@ -18,6 +18,7 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
@@ -70,16 +71,18 @@ public final class NetworkAddressUtils {
    */
   public enum ServiceType {
     /**
-     * Job master Raft service (Netty).
+     * Job master Raft service (Netty). The bind and connect hosts are the same because the
+     * underlying Raft implementation doesn't differentiate between bind and connect hosts.
      */
     JOB_MASTER_RAFT("Alluxio Job Master Raft service", PropertyKey.JOB_MASTER_HOSTNAME,
-        PropertyKey.JOB_MASTER_BIND_HOST, PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT),
+        PropertyKey.JOB_MASTER_HOSTNAME, PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT),
 
     /**
-     * Master Raft service (Netty).
+     * Master Raft service (Netty). The bind and connect hosts are the same because the
+     * underlying Raft implementation doesn't differentiate between bind and connect hosts.
      */
     MASTER_RAFT("Alluxio Master Raft service", PropertyKey.MASTER_HOSTNAME,
-        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT),
+        PropertyKey.MASTER_HOSTNAME, PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT),
 
     /**
      * Job master RPC service (gRPC).
@@ -646,7 +649,8 @@ public final class NetworkAddressUtils {
       throws AlluxioStatusException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
-    GrpcChannel channel = GrpcChannelBuilder.newBuilder(address, conf).build();
+    GrpcChannel channel =
+        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
     versionClient.getServiceVersion(

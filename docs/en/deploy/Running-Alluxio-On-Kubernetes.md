@@ -12,11 +12,7 @@ on Kubernetes using the specification that comes in the Alluxio Github repositor
 * Table of Contents
 {:toc}
 
-## Basic Tutorial
-
-This tutorial walks through a basic Alluxio setup on Kubernetes.
-
-### Prerequisites
+## Prerequisites
 
 - A Kubernetes cluster (version >= 1.8). Alluxio workers will use `emptyDir` volumes with a
 restricted size using the `sizeLimit` parameter. This is an alpha feature in Kubernetes 1.8.
@@ -29,11 +25,15 @@ pushing the image to an accessible Docker registry, or pushing the image individ
 If using a private Docker registry, refer to the Kubernetes
 [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 
+## Basic Setup
+
+This tutorial walks through a basic Alluxio setup on Kubernetes.
+
 ### Clone the Alluxio repo
 
 ```bash
-$ git clone https://github.com/Alluxio/alluxio.git
-$ cd integration/kubernetes
+git clone https://github.com/Alluxio/alluxio.git
+cd integration/kubernetes
 ```
 
 The kubernetes specifications required to deploy Alluxio can be found under `integration/kubernetes`.
@@ -44,11 +44,8 @@ Short-circuit access enables clients to perform read and write operations direct
 worker memory instead of having to go through the worker process. Set up a domain socket on all hosts
 eligible to run the Alluxio worker process to enable this mode of operation.
 
-From the host machine, create a directory for the shared domain socket.
-```bash
-$ mkdir /tmp/domain
-$ chmod a+w /tmp/domain
-```
+As part of the Alluxio worker pod creation, a directory is created on the host for the shared domain
+socket.
 
 This step can be skipped in case short-circuit accesss is not desired or cannot be set up. To disable
 this feature, set the property `alluxio.user.short.circuit.enabled=false` according to the instructions
@@ -61,7 +58,7 @@ to enable short-circuit. Short-circuit writes are then enabled if the worker UUI
 filesystem.
 ```properties
 alluxio.worker.data.server.domain.socket.as.uuid=true
-alluxio.worker.data.server.domain.socket.address=/tmp/domain
+alluxio.worker.data.server.domain.socket.address=/opt/domain
 ```
 
 ### Provision a Persistent Volume
@@ -69,11 +66,14 @@ alluxio.worker.data.server.domain.socket.address=/tmp/domain
 Alluxio master can be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 for storing the journal. The volume, once claimed, is persisted across restarts of the master process.
 
+Note: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
+configuration is not supported on Kubernetes.
+
 Create the persistent volume spec from the template. The access mode `ReadWriteMany` is used to allow
 multiple Alluxio master nodes to access the shared volume.
 
 ```bash
-$ cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
+cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
 ```
 
 Note: the spec provided uses a `hostPath` volume for demonstration on a single-node deployment. For a
@@ -82,7 +82,7 @@ persistent volume plugins.
 
 Create the persistent volume.
 ```bash
-$ kubectl create -f alluxio-journal-volume.yaml
+kubectl create -f alluxio-journal-volume.yaml
 ```
 
 ### Configure Alluxio properties
@@ -95,12 +95,12 @@ Define all environment variables in a single file. Copy the properties template 
 Note that when running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
 ```bash
-$ cp conf/alluxio.properties.template conf/alluxio.properties
+cp conf/alluxio.properties.template conf/alluxio.properties
 ```
 
 Create a ConfigMap.
 ```bash
-$ kubectl create configmap alluxio-config --from-env-file=ALLUXIO_CONFIG=conf/alluxio.properties
+kubectl create configmap alluxio-config --from-env-file=conf/alluxio.properties
 ```
 
 ### Deploy
@@ -108,37 +108,44 @@ $ kubectl create configmap alluxio-config --from-env-file=ALLUXIO_CONFIG=conf/al
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
 location of the Docker image, and CPU and memory requirements for pods.
 ```bash
-$ cp alluxio-master.yaml.template alluxio-master.yaml
-$ cp alluxio-worker.yaml.template alluxio-worker.yaml
+cp alluxio-master.yaml.template alluxio-master.yaml
+cp alluxio-worker.yaml.template alluxio-worker.yaml
 ```
 
 Once all the pre-requisites and configuration have been setup, deploy Alluxio.
 ```bash
-$ kubectl create -f alluxio-master.yaml
-$ kubectl create -f alluxio-worker.yaml
+kubectl create -f alluxio-master.yaml
+kubectl create -f alluxio-worker.yaml
 ```
 
 Verify status of the Alluxio deployment.
 ```bash
-$ kubectl get pods
+kubectl get pods
 ```
 
 If using peristent volumes for Alluxio master, the status of the volume should change to `CLAIMED`.
 ```bash
-$ kubectl get pv alluxio-journal-volume
+kubectl get pv alluxio-journal-volume
+```
+
+### Access the Web UI
+
+The Alluxio UI can be accessed from outside the kubernetes cluster using port forwarding.
+```bash
+kubectl port-forward alluxio-master-0 19999:19999
 ```
 
 ### Verify
 
 Once ready, access the Alluxio CLI from the master pod and run basic I/O tests.
 ```bash
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+kubectl exec -ti alluxio-master-0 /bin/bash
 ```
 
 From the master pod, execute the following:
 ```bash
-$ cd /opt/alluxio
-$ ./bin/alluxio runTests
+cd /opt/alluxio
+./bin/alluxio runTests
 ```
 
 ### Uninstall
@@ -155,3 +162,49 @@ will be lost.
 ```bash
 kubectl delete -f alluxio-journal-volume.yaml
 ```
+
+## Advanced Setup
+
+### POSIX API
+
+Once Alluxio is deployed on Kubernetes, there are multiple ways in which a client application can
+connect to it. For applications using the [POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url }}),
+application containers can simply mount the Alluxio FileSystem.
+
+In order to use the POSIX API, first deploy the Alluxio FUSE daemon.
+```bash
+cp alluxio-fuse.yaml.template alluxio-fuse.yaml
+kubectl create -f alluxio-fuse.yaml
+```
+Note:
+- The container running the Alluxio FUSE daemon must have the `securityContext.privileged=true` with
+SYS_ADMIN capabilities. Application containers that require Alluxio access do not need this privilege.
+- A different Docker image [alluxio/alluxio-fuse](https://hub.docker.com/r/alluxio/alluxio-fuse/) based
+on `ubuntu` instead of `alpine` is needed to run the FUSE daemon. Application containers can run on
+any Docker image.
+
+Verify that a container can simply mount the Alluxio FileSystem without any custom binaries or
+capabilities using a `hostPath` mount of location `/alluxio-fuse`:
+```bash
+cp alluxio-fuse-client.yaml.template alluxio-fuse-client.yaml
+kubectl create -f alluxio-fuse-client.yaml
+```
+
+If using the template, Alluxio is mounted at `/alluxio-fuse` and can be accessed via the POSIX-API
+across multiple containers.
+
+## Troubleshooting
+
+### FUSE
+
+In order for an application container to mount the `hostPath` volume, the node running the container
+must have the Alluxio FUSE daemon running. The default spec `alluxio-fuse.yaml` runs as a DaemonSet,
+launching an Alluxio FUSE daemon on each node of the cluster.
+
+If there are issues accessing Alluxio using the POSIX API:
+1. First identify which node the application container ran on using the command
+`kubectl describe pods` or the dashboard.
+1. After the node is identified, the command `kubectl describe nodes <node>` can be used to identify
+the `alluxio-fuse` pod running on that node.
+1. Then tail the logs for the identified pod to see if there were any errors encountered using
+`kubectl logs -f alluxio-fuse-<id>`.

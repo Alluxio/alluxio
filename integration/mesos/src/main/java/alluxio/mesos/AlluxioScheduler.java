@@ -35,7 +35,10 @@ import java.util.Set;
 
 /**
  * Class for responding to Mesos offers to launch Alluxio on Mesos.
+ *
+ * @deprecated since version 2.0
  */
+@Deprecated
 public class AlluxioScheduler implements Scheduler {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioScheduler.class);
 
@@ -164,8 +167,9 @@ public class AlluxioScheduler implements Scheduler {
                             .newBuilder()
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
-                                    .setName("ALLUXIO_UNDERFS_ADDRESS")
-                                    .setValue(ServerConfiguration.get(PropertyKey.UNDERFS_ADDRESS))
+                                    .setName("ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS")
+                                    .setValue(ServerConfiguration
+                                        .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
                                     .build())
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
@@ -209,8 +213,9 @@ public class AlluxioScheduler implements Scheduler {
                                     .build())
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
-                                    .setName("ALLUXIO_UNDERFS_ADDRESS")
-                                    .setValue(ServerConfiguration.get(PropertyKey.UNDERFS_ADDRESS))
+                                    .setName("ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS")
+                                    .setValue(ServerConfiguration
+                                        .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
                                     .build())
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()

@@ -15,6 +15,7 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
+import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcServerBuilder;
@@ -26,8 +27,8 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
@@ -41,7 +42,6 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
@@ -99,12 +99,13 @@ public class AlluxioMasterProcess extends MasterProcess {
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       mBackupManager = new BackupManager(mRegistry);
+      String baseDir = ServerConfiguration.get(PropertyKey.MASTER_METASTORE_DIR);
       MasterContext context = CoreMasterContext.newBuilder()
           .setJournalSystem(mJournalSystem)
           .setSafeModeManager(mSafeModeManager)
           .setBackupManager(mBackupManager)
-          .setBlockStoreFactory(MasterUtils.getBlockStoreFactory())
-          .setInodeStoreFactory(MasterUtils.getInodeStoreFactory())
+          .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
+          .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
           .setStartTimeMs(mStartTimeMs)
           .setPort(NetworkAddressUtils
               .getPort(ServiceType.MASTER_RPC, ServerConfiguration.global()))
@@ -116,13 +117,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
   }
 
-  /**
-   * Gets the registered class from the master registry.
-   *
-   * @param clazz the class of the master to get
-   * @param <T> the type of the master to get
-   * @return the given master
-   */
+  @Override
   public <T extends Master> T getMaster(Class<T> clazz) {
     return mRegistry.get(clazz);
   }
@@ -278,11 +273,20 @@ public class AlluxioMasterProcess extends MasterProcess {
     try {
       stopRejectingRpcServer();
       LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(mRpcBindAddress,
-          ServerConfiguration.global());
+      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
+          mRpcConnectAddress.getHostName(), mRpcBindAddress, ServerConfiguration.global());
 
-      mRPCExecutor = Executors.newFixedThreadPool(mMaxWorkerThreads,
-          ThreadFactoryUtils.build("grpc-rpc-%d", true));
+      mRPCExecutor = new ForkJoinPool(
+          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_PARALLELISM),
+          ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+          null,
+          true,
+          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_CORE_SIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_POOL_MAX_SIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_EXECUTOR_MIN_RUNNABLE),
+          null,
+          ServerConfiguration.getMs(PropertyKey.MASTER_EXECUTOR_POOL_KEEPALIVE_TIME_MS),
+          TimeUnit.MILLISECONDS);
 
       serverBuilder.executor(mRPCExecutor);
       for (Master master : mRegistry.getServers()) {
@@ -291,7 +295,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
-      LOG.info("Started gRPC server on address {}", mRpcBindAddress);
+      LOG.info("Started gRPC server on address {}", mRpcConnectAddress);
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
@@ -349,8 +353,8 @@ public class AlluxioMasterProcess extends MasterProcess {
      */
     public static AlluxioMasterProcess create() {
       URI journalLocation = JournalUtils.getJournalLocation();
-      JournalSystem journalSystem =
-          new JournalSystem.Builder().setLocation(journalLocation).build();
+      JournalSystem journalSystem = new JournalSystem.Builder()
+          .setLocation(journalLocation).build(ProcessType.MASTER);
       if (ServerConfiguration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
             "Raft journal cannot be used with Zookeeper enabled");

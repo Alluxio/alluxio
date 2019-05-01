@@ -14,18 +14,15 @@ package alluxio.job.persist;
 import alluxio.AlluxioURI;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.job.AbstractVoidJobDefinition;
-import alluxio.job.JobMasterContext;
-import alluxio.job.JobWorkerContext;
+import alluxio.job.RunTaskContext;
+import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
 import alluxio.metrics.MetricsSystem;
@@ -58,40 +55,26 @@ import java.util.Stack;
 public final class PersistDefinition
     extends AbstractVoidJobDefinition<PersistConfig, SerializableVoid> {
   private static final Logger LOG = LoggerFactory.getLogger(PersistDefinition.class);
-  private final FileSystem mFileSystem;
-  private final FileSystemContext mFsContext;
 
   /**
    * Constructs a new {@link PersistDefinition}.
    */
   public PersistDefinition() {
-    mFsContext = FileSystemContext.create(ServerConfiguration.global());
-    mFileSystem = BaseFileSystem.create(mFsContext);
-  }
-
-  /**
-   * Constructs a new {@link PersistDefinition} with FileSystem context and instance.
-   *
-   * @param fsContext the {@link FileSystemContext} used by the {@link FileSystem}
-   * @param fileSystem the {@link FileSystem} client
-   */
-  public PersistDefinition(FileSystemContext fsContext, FileSystem fileSystem) {
-    mFsContext = fsContext;
-    mFileSystem = fileSystem;
   }
 
   @Override
   public Map<WorkerInfo, SerializableVoid> selectExecutors(PersistConfig config,
-      List<WorkerInfo> jobWorkerInfoList, JobMasterContext jobMasterContext) throws Exception {
+      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
+      throws Exception {
     if (jobWorkerInfoList.isEmpty()) {
       throw new RuntimeException("No worker is available");
     }
 
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
     List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(mFsContext).getAllWorkers();
+        AlluxioBlockStore.create(context.getFsContext()).getAllWorkers();
     BlockWorkerInfo workerWithMostBlocks = JobUtils.getWorkerWithMostBlocks(alluxioWorkerInfoList,
-        mFileSystem.getStatus(uri).getFileBlockInfos());
+        context.getFileSystem().getStatus(uri).getFileBlockInfos());
 
     // Map the best Alluxio worker to a job worker.
     Map<WorkerInfo, SerializableVoid> result = Maps.newHashMap();
@@ -109,13 +92,12 @@ public final class PersistDefinition
     if (!found) {
       result.put(jobWorkerInfoList.get(new Random().nextInt(jobWorkerInfoList.size())), null);
     }
-
     return result;
   }
 
   @Override
   public SerializableVoid runTask(PersistConfig config, SerializableVoid args,
-      JobWorkerContext context) throws Exception {
+      RunTaskContext context) throws Exception {
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
     String ufsPath = config.getUfsPath();
 
@@ -129,7 +111,7 @@ public final class PersistDefinition
       if (ufs.exists(ufsPath)) {
         if (config.isOverwrite()) {
           LOG.info("File {} is already persisted in UFS. Removing it.", config.getFilePath());
-          ufs.deleteFile(ufsPath);
+          ufs.deleteExistingFile(ufsPath);
         } else {
           throw new IOException("File " + config.getFilePath()
               + " is already persisted in UFS, to overwrite the file, please set the overwrite flag"
@@ -137,7 +119,7 @@ public final class PersistDefinition
         }
       }
 
-      URIStatus uriStatus = mFileSystem.getStatus(uri);
+      URIStatus uriStatus = context.getFileSystem().getStatus(uri);
       if (!uriStatus.isCompleted()) {
         throw new IOException("Cannot persist an incomplete Alluxio file: " + uri);
       }
@@ -145,7 +127,7 @@ public final class PersistDefinition
       try (Closer closer = Closer.create()) {
         OpenFilePOptions options =
             OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
-        FileInStream in = closer.register(mFileSystem.openFile(uri, options));
+        FileInStream in = closer.register(context.getFileSystem().openFile(uri, options));
         AlluxioURI dstPath = new AlluxioURI(ufsPath);
         // Create ancestor directories from top to the bottom. We cannot use recursive create
         // parents here because the permission for the ancestors can be different.
@@ -155,7 +137,7 @@ public final class PersistDefinition
         // Stop at the Alluxio root because the mapped directory of Alluxio root in UFS may not
         // exist.
         while (!ufs.isDirectory(curUfsPath.toString()) && curAlluxioPath != null) {
-          URIStatus curDirStatus = mFileSystem.getStatus(curAlluxioPath);
+          URIStatus curDirStatus = context.getFileSystem().getStatus(curAlluxioPath);
           ufsDirsToMakeWithOptions.push(new Pair<>(curUfsPath.toString(),
               MkdirsOptions.defaults(ServerConfiguration.global()).setCreateParent(false)
                   .setOwner(curDirStatus.getOwner())
@@ -176,7 +158,7 @@ public final class PersistDefinition
           }
         }
         OutputStream out = closer.register(
-            ufs.create(dstPath.toString(),
+            ufs.createNonexistingFile(dstPath.toString(),
                 CreateOptions.defaults(ServerConfiguration.global()).setOwner(uriStatus.getOwner())
                 .setGroup(uriStatus.getGroup()).setMode(new Mode((short) uriStatus.getMode()))));
         bytesWritten = IOUtils.copyLarge(in, out);

@@ -58,7 +58,7 @@ export class Overview extends React.Component<AllProps> {
 
     if (loading) {
       return (
-        <div className="h-100 w-100 overview-page">
+        <div className="overview-page">
           <LoadingMessage/>
         </div>
       );
@@ -92,11 +92,6 @@ export class Overview extends React.Component<AllProps> {
                   <th scope="row">Running Workers</th>
                   <td>{data.liveWorkerNodes}</td>
                 </tr>
-                <tr>
-                  <th scope="row">Startup Consistency Check</th>
-                  <td>{data.consistencyCheckStatus}</td>
-                </tr>
-                {this.renderInconsistentPaths(data.inconsistentPathItems)}
                 <tr>
                   <th scope="row">Server Configuration Check</th>
                   <td className={data.configCheckStatus === 'FAILED' ? 'text-danger' : ''}>
@@ -165,21 +160,6 @@ export class Overview extends React.Component<AllProps> {
           </div>
         </div>
       </div>
-    );
-  }
-
-  private renderInconsistentPaths(paths: string[]) {
-    if (!paths || !paths.length) {
-      return null;
-    }
-
-    return (
-      <tr>
-        <th scope="row" className="text-danger">Inconsistent Files on Startup (run fs checkConsistency for details)</th>
-        <td>
-          {paths.map((path: string) => <div key={path} className="text-danger">{path}</div>)}
-        </td>
-      </tr>
     );
   }
 

@@ -30,7 +30,7 @@ Alluxio unifies access to different storage systems through the
 
 If you want to use Qiniu Kodo as its under storage system in Alluxio, `conf/alluxio-site.properties` must be modified. In the beginning, an existing Kodo bucket and its directory should be specified for storage by the following code:
 ```
-alluxio.underfs.address=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
+alluxio.master.mount.table.root.ufs=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
 ```
 Next ,some settings must be added to `conf/alluxio-site.properties`:
 ```
@@ -62,7 +62,7 @@ access to multiple under storage systems. Alluxio's
 For example, the following command mounts a directory inside an Kodo bucket into Alluxio directory
 
 ```bash 
-$ ./bin/alluxio fs mount --option fs.kodo.accessKey=<KODO_ACCESS_KEY> \
+./bin/alluxio fs mount --option fs.kodo.accessKey=<KODO_ACCESS_KEY> \
   --option fs.kodo.secretkey=<KODO_SECRET_KET> \
   --option alluxio.underfs.kodo.downloadhost=<KODO_DOWNLOAD_HOST> \
   --option alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT> \
@@ -73,8 +73,8 @@ $ ./bin/alluxio fs mount --option fs.kodo.accessKey=<KODO_ACCESS_KEY> \
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
 ```bash
-$ bin/alluxio format
-$ bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
@@ -82,7 +82,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Next, you can run a simple example program:
 
 ```bash
-$ bin/alluxio runTests
+./bin/alluxio runTests
 ```
 After this succeeds, you can visit your Kodo directory `kodo://<KODO_BUCKET>/<KODO_DIRECTORY>` to verify the files
 and directories mounted by Alluxio exist. For this test, you should see files named like
@@ -90,5 +90,5 @@ and directories mounted by Alluxio exist. For this test, you should see files na
 
 To stop Alluxio, you can run:
 ```bash
-$ bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```

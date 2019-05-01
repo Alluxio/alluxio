@@ -159,21 +159,18 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("alluxio.wire.AlluxioWorkerInfo")
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
-    return RestUtils.call(new RestUtils.RestCallable<AlluxioWorkerInfo>() {
-      @Override
-      public AlluxioWorkerInfo call() throws Exception {
-        boolean rawConfig = false;
-        if (rawConfiguration != null) {
-          rawConfig = rawConfiguration;
-        }
-        AlluxioWorkerInfo result = new AlluxioWorkerInfo().setCapacity(getCapacityInternal())
-            .setConfiguration(getConfigurationInternal(rawConfig)).setMetrics(getMetricsInternal())
-            .setRpcAddress(mWorkerProcess.getRpcAddress().toString())
-            .setStartTimeMs(mWorkerProcess.getStartTimeMs())
-            .setTierCapacity(getTierCapacityInternal()).setTierPaths(getTierPathsInternal())
-            .setUptimeMs(mWorkerProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION);
-        return result;
+    return RestUtils.call(() -> {
+      boolean rawConfig = false;
+      if (rawConfiguration != null) {
+        rawConfig = rawConfiguration;
       }
+      AlluxioWorkerInfo result = new AlluxioWorkerInfo().setCapacity(getCapacityInternal())
+          .setConfiguration(getConfigurationInternal(rawConfig)).setMetrics(getMetricsInternal())
+          .setRpcAddress(mWorkerProcess.getRpcAddress().toString())
+          .setStartTimeMs(mWorkerProcess.getStartTimeMs())
+          .setTierCapacity(getTierCapacityInternal()).setTierPaths(getTierPathsInternal())
+          .setUptimeMs(mWorkerProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION);
+      return result;
     }, ServerConfiguration.global());
   }
 
@@ -327,7 +324,7 @@ public final class AlluxioWorkerRestServiceHandler {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
         limit = offset == 0 && limit > fileIds.size() ? fileIds.size() : limit;
-        limit = offset * limit > fileIds.size() ? fileIds.size() % offset : limit;
+        limit = offset + limit > fileIds.size() ? fileIds.size() - offset : limit;
         int sum = Math.addExact(offset, limit);
         List<Long> subFileIds = fileIds.subList(offset, sum);
         List<UIFileInfo> uiFileInfos = new ArrayList<>(subFileIds.size());
@@ -484,7 +481,7 @@ public final class AlluxioWorkerRestServiceHandler {
           int offset = Integer.parseInt(requestOffset);
           int limit = Integer.parseInt(requestLimit);
           limit = offset == 0 && limit > fileInfos.size() ? fileInfos.size() : limit;
-          limit = offset * limit > fileInfos.size() ? fileInfos.size() % offset : limit;
+          limit = offset + limit > fileInfos.size() ? fileInfos.size() - offset : limit;
           int sum = Math.addExact(offset, limit);
           fileInfos = fileInfos.subList(offset, sum);
           response.setFileInfos(fileInfos);

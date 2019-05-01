@@ -18,14 +18,14 @@ import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
+import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.client.file.policy.LocalFirstPolicy;
-import alluxio.client.file.policy.RoundRobinPolicy;
+import alluxio.client.block.policy.LocalFirstPolicy;
+import alluxio.client.block.policy.RoundRobinPolicy;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -97,8 +97,8 @@ public class OutStreamOptionsTest {
     assertEquals("test_group", options.getGroup());
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(),
         mConf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)), options.getMode());
-    assertEquals(Constants.NO_TTL, options.getTtl());
-    assertEquals(TtlAction.DELETE, options.getTtlAction());
+    assertEquals(Constants.NO_TTL, options.getCommonOptions().getTtl());
+    assertEquals(TtlAction.DELETE, options.getCommonOptions().getTtlAction());
     assertEquals(ufsType, options.getUnderStorageType());
     assertEquals(WriteType.CACHE_THROUGH, options.getWriteType());
     assertEquals(Constants.LAST_TIER, options.getWriteTier());
@@ -111,13 +111,17 @@ public class OutStreamOptionsTest {
   public void fields() throws Exception {
     Random random = new Random();
     long blockSize = random.nextLong();
-    FileWriteLocationPolicy locationPolicy = new RoundRobinPolicy(mConf);
+    BlockLocationPolicy locationPolicy = new RoundRobinPolicy(mConf);
     String owner = CommonUtils.randomAlphaNumString(10);
     String group = CommonUtils.randomAlphaNumString(10);
     Mode mode = new Mode((short) random.nextInt());
-    long ttl = random.nextLong();
+    int ttl = 5;
+    TtlAction ttlAction = TtlAction.FREE;
     int writeTier = random.nextInt();
     WriteType writeType = WriteType.NONE;
+
+    mConf.set(PropertyKey.USER_FILE_CREATE_TTL, ttl);
+    mConf.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, ttlAction);
 
     OutStreamOptions options = OutStreamOptions.defaults(mConf);
     options.setBlockSizeBytes(blockSize);
@@ -125,8 +129,6 @@ public class OutStreamOptionsTest {
     options.setOwner(owner);
     options.setGroup(group);
     options.setMode(mode);
-    options.setTtl(ttl);
-    options.setTtlAction(TtlAction.FREE);
     options.setWriteTier(writeTier);
     options.setWriteType(writeType);
 
@@ -135,8 +137,8 @@ public class OutStreamOptionsTest {
     assertEquals(owner, options.getOwner());
     assertEquals(group, options.getGroup());
     assertEquals(mode, options.getMode());
-    assertEquals(ttl, options.getTtl());
-    assertEquals(TtlAction.FREE, options.getTtlAction());
+    assertEquals(ttl, options.getCommonOptions().getTtl());
+    assertEquals(ttlAction, options.getCommonOptions().getTtlAction());
     assertEquals(writeTier, options.getWriteTier());
     assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
     assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());

@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
@@ -30,6 +31,9 @@ import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
@@ -39,8 +43,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.FileBlockInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.BlockLocationInfo;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,7 +53,6 @@ import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
@@ -210,7 +212,6 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
       String filePath = PathUtils.concatPath(alternateUfsRoot, "file1");
       UnderFileSystemUtils.touch(mUfs, filePath);
       mFileSystem.mount(new AlluxioURI("/d1"), new AlluxioURI(alternateUfsRoot));
-      mFileSystem.loadMetadata(new AlluxioURI("/d1/file1"));
       Assert.assertEquals("file1", mFileSystem.listStatus(new AlluxioURI("/d1")).get(0).getName());
     } finally {
       destroyAlternateUfs(alternateUfsRoot);
@@ -232,8 +233,6 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
 
       mFileSystem.mount(new AlluxioURI("/d1"), new AlluxioURI(dirPath1));
       mFileSystem.mount(new AlluxioURI("/d2"), new AlluxioURI(dirPath2));
-      mFileSystem.loadMetadata(new AlluxioURI("/d1/file1"));
-      mFileSystem.loadMetadata(new AlluxioURI("/d2/file2"));
       Assert.assertEquals("file1", mFileSystem.listStatus(new AlluxioURI("/d1")).get(0).getName());
       Assert.assertEquals("file2", mFileSystem.listStatus(new AlluxioURI("/d2")).get(0).getName());
     } finally {
@@ -306,10 +305,16 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     AlluxioURI testFile = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.THROUGH).setBlockSizeBytes(4).build(), 100);
-    Map<FileBlockInfo, List<WorkerNetAddress>> locations = mFileSystem.getBlockLocations(testFile);
+    List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(testFile);
     assertEquals("should have 25 blocks", 25, locations.size());
-    locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) ->
-            assertEquals("block " + info + " should have single worker", 1, workers.size()));
+    long lastOffset = -1;
+    for (BlockLocationInfo location : locations) {
+      assertEquals("block " + location.getBlockInfo() + " should have single worker",
+          1, location.getLocations().size());
+      assertTrue("block " + location.getBlockInfo() + " should have offset larger than "
+              + lastOffset, location.getBlockInfo().getOffset() > lastOffset);
+      lastOffset = location.getBlockInfo().getOffset();
+    }
 
     // Test in alluxio
     testFile = new AlluxioURI("/test2");
@@ -317,8 +322,77 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
             .setWriteType(WritePType.CACHE_THROUGH).setBlockSizeBytes(100).build(), 500);
     locations = mFileSystem.getBlockLocations(testFile);
     assertEquals("Should have 5 blocks", 5, locations.size());
-    locations.forEach((FileBlockInfo info, List<WorkerNetAddress> workers) ->
-        assertEquals("block " + info + " should have single worker", 1, workers.size()));
+    lastOffset = -1;
+    for (BlockLocationInfo location : locations) {
+      assertEquals("block " + location.getBlockInfo() + " should have single worker",
+          1, location.getLocations().size());
+      assertTrue("block " + location.getBlockInfo() + " should have offset larger than "
+          + lastOffset, location.getBlockInfo().getOffset() > lastOffset);
+      lastOffset = location.getBlockInfo().getOffset();
+    }
+  }
+
+  @Test
+  public void testMultiSetAttribute() throws Exception {
+    AlluxioURI testFile = new AlluxioURI("/test1");
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
+    long expectedTtl = ServerConfiguration.getMs(PropertyKey.USER_FILE_CREATE_TTL);
+    URIStatus stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be equal to configuration", expectedTtl, stat.getTtl());
+
+    // Ttl should be updated to newTtl
+    long newTtl = 14402478;
+    mFileSystem.setAttribute(testFile,
+        SetAttributePOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtl(newTtl).build()).build());
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("Ttl should be the updated", newTtl, stat.getTtl());
+
+    // SetAttribute with same ttl should not modify the lastModifiedTime
+    long lastModifiedTime = stat.getLastModificationTimeMs();
+    mFileSystem.setAttribute(testFile,
+        SetAttributePOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtl(newTtl).build()).build());
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("Ttl should not change", newTtl, stat.getTtl());
+    assertEquals("LastModifiedTime should not change", lastModifiedTime,
+        stat.getLastModificationTimeMs());
+
+    // Owner should get updated and Ttl should not change
+    String newOwner = "testOwner";
+    mFileSystem.setAttribute(testFile,
+        SetAttributePOptions.newBuilder().setOwner(newOwner).build());
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should not change", newTtl, stat.getTtl());
+    assertEquals("Owner should be updated", newOwner, stat.getOwner());
+  }
+
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.USER_FILE_CREATE_TTL_ACTION, "FREE"
+      })
+  @Test
+  public void testTtlActionSetAttribute() throws Exception {
+    AlluxioURI testFile = new AlluxioURI("/test1");
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
+    TtlAction expectedAction =
+        ServerConfiguration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class);
+    URIStatus stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL action should be same", expectedAction, stat.getTtlAction());
+
+    TtlAction newTtlAction = TtlAction.DELETE;
+    long newTtl = 123400000;
+    mFileSystem.setAttribute(testFile, SetAttributePOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtl(newTtl).build()).build());
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be same", newTtl, stat.getTtl());
+    assertEquals("TTL action should be same", expectedAction, stat.getTtlAction());
+    mFileSystem.setAttribute(testFile, SetAttributePOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setTtlAction(newTtlAction).build())
+        .build());
+    stat = mFileSystem.getStatus(testFile);
+    assertEquals("TTL should be same", newTtl, stat.getTtl());
+    assertEquals("TTL action should be same", newTtlAction, stat.getTtlAction());
   }
 
 // Test exception cases for all FileSystem RPCs

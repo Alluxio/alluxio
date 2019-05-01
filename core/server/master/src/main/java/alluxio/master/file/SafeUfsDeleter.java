@@ -81,7 +81,7 @@ public final class SafeUfsDeleter implements UfsDeleter {
       if (!isRecursiveDeleteSafe(parentUri)) {
         // Parent will not recursively delete, so delete this inode individually
         if (inode.isFile()) {
-          if (!ufs.deleteFile(ufsUri)) {
+          if (!ufs.deleteExistingFile(ufsUri)) {
             if (ufs.isFile(ufsUri)) {
               throw new IOException(ExceptionMessage.DELETE_FAILED_UFS_FILE.getMessage());
             } else {
@@ -90,7 +90,7 @@ public final class SafeUfsDeleter implements UfsDeleter {
           }
         } else {
           if (isRecursiveDeleteSafe(alluxioUri)) {
-            if (!ufs.deleteDirectory(ufsUri,
+            if (!ufs.deleteExistingDirectory(ufsUri,
                 alluxio.underfs.options.DeleteOptions.defaults().setRecursive(true))) {
               // TODO(adit): handle partial failures of recursive deletes
               if (ufs.isDirectory(ufsUri)) {

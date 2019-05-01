@@ -1,3 +1,3 @@
 ```properties
-alluxio.underfs.address=gs://GCS_BUCKET/GCS_DIRECTORY
+alluxio.master.mount.table.root.ufs=gs://GCS_BUCKET/GCS_DIRECTORY
 ```

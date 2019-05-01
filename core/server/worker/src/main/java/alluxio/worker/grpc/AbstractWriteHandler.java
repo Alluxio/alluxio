@@ -12,11 +12,16 @@
 package alluxio.worker.grpc;
 
 import alluxio.client.block.stream.GrpcDataWriter;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
 
 import com.codahale.metrics.Counter;
@@ -26,9 +31,12 @@ import com.google.common.base.Throwables;
 import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.internal.SerializingExecutor;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.Semaphore;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -52,7 +60,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWriteHandler.class);
 
+  /** The observer for sending response messages. */
   private final StreamObserver<WriteResponse> mResponseObserver;
+  /** The executor for running write tasks asynchronously in the submission order. */
+  private final SerializingExecutor mSerializingExecutor;
+  /** The semaphore to control the number of write tasks queued up in the executor.*/
+  private final Semaphore mSemaphore = new Semaphore(
+      ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES), true);
 
   /**
    * This is initialized only once for a whole file or block in
@@ -64,13 +78,19 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    */
   private volatile T mContext;
 
+  protected AuthenticatedUserInfo mUserInfo;
+
   /**
    * Creates an instance of {@link AbstractWriteHandler}.
    *
    * @param responseObserver the response observer for the write request
+   * @param userInfo the authenticated user info
    */
-  AbstractWriteHandler(StreamObserver<WriteResponse> responseObserver) {
+  AbstractWriteHandler(StreamObserver<WriteResponse> responseObserver,
+      AuthenticatedUserInfo userInfo) {
     mResponseObserver = responseObserver;
+    mUserInfo = userInfo;
+    mSerializingExecutor = new SerializingExecutor(GrpcExecutors.BLOCK_WRITER_EXECUTOR);
   }
 
   /**
@@ -79,66 +99,107 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * @param writeRequest the request from the client
    */
   public void write(WriteRequest writeRequest) {
-    try {
-      if (mContext == null) {
-        LOG.debug("Received write request {}.", writeRequest);
-        mContext = createRequestContext(writeRequest);
-      } else {
-        Preconditions.checkState(!mContext.isDoneUnsafe(),
-            "invalid request after write request is completed.");
-      }
-      validateWriteRequest(writeRequest);
-      if (writeRequest.hasCommand()) {
-        WriteRequestCommand command = writeRequest.getCommand();
-        if (command.getFlush()) {
-          flush();
-        } else {
-          handleCommand(command, mContext);
-        }
-      } else {
-        Preconditions.checkState(writeRequest.hasChunk(),
-            "write request is missing data chunk in non-command message");
-        ByteString data = writeRequest.getChunk().getData();
-        Preconditions.checkState(data != null && data.size() > 0,
-            "invalid data size from write request message");
-        writeData(data);
-      }
-    } catch (Exception e) {
-      LogUtils.warnWithException(LOG, "Exception occurred while processing write request {}.",
-          writeRequest, e);
-      abort(new Error(AlluxioStatusException.fromThrowable(e), true));
+    if (!tryAcquireSemaphore()) {
+      return;
     }
+    mSerializingExecutor.execute(() -> {
+      try {
+        if (mContext == null) {
+          LOG.debug("Received write request {}.", writeRequest);
+          mContext = createRequestContext(writeRequest);
+        } else {
+          Preconditions.checkState(!mContext.isDoneUnsafe(),
+              "invalid request after write request is completed.");
+        }
+        if (mContext.isDoneUnsafe() || mContext.getError() != null) {
+          return;
+        }
+        validateWriteRequest(writeRequest);
+        if (writeRequest.hasCommand()) {
+          WriteRequestCommand command = writeRequest.getCommand();
+          if (command.getFlush()) {
+            flush();
+          } else {
+            handleCommand(command, mContext);
+          }
+        } else {
+          Preconditions.checkState(writeRequest.hasChunk(),
+              "write request is missing data chunk in non-command message");
+          ByteString data = writeRequest.getChunk().getData();
+          Preconditions.checkState(data != null && data.size() > 0,
+              "invalid data size from write request message");
+          writeData(new NioDataBuffer(data.asReadOnlyByteBuffer(), data.size()));
+        }
+      } catch (Exception e) {
+        LogUtils.warnWithException(LOG, "Exception occurred while processing write request {}.",
+            writeRequest, e);
+        abort(new Error(AlluxioStatusException.fromThrowable(e), true));
+      } finally {
+        mSemaphore.release();
+      }
+    });
+  }
+
+  /**
+   * Handles write request with data message.
+   *
+   * @param request the request from the client
+   * @param buffer the data associated with the request
+   */
+  public void writeDataMessage(WriteRequest request, DataBuffer buffer) {
+    if (buffer == null) {
+      write(request);
+      return;
+    }
+    Preconditions.checkState(!request.hasCommand(),
+        "write request command should not come with data buffer");
+    Preconditions.checkState(buffer.readableBytes() > 0,
+        "invalid data size from write request message");
+    if (!tryAcquireSemaphore()) {
+      return;
+    }
+    mSerializingExecutor.execute(() -> {
+      try {
+        writeData(buffer);
+      } finally {
+        mSemaphore.release();
+      }
+    });
   }
 
   /**
    * Handles request complete event.
    */
   public void onCompleted() {
-    Preconditions.checkState(mContext != null);
-    try {
-      completeRequest(mContext);
-      replySuccess();
-    } catch (Exception e) {
-      LogUtils.warnWithException(LOG, "Exception occurred while completing write request {}.",
-          mContext.getRequest(), e);
-      Throwables.throwIfUnchecked(e);
-      abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
-    }
+    mSerializingExecutor.execute(() -> {
+      Preconditions.checkState(mContext != null);
+      try {
+        completeRequest(mContext);
+        replySuccess();
+      } catch (Exception e) {
+        LogUtils.warnWithException(LOG, "Exception occurred while completing write request {}.",
+            mContext.getRequest(), e);
+        Throwables.throwIfUnchecked(e);
+        abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
+      }
+    });
   }
 
   /**
    * Handles request cancellation event.
    */
   public void onCancel() {
-    try {
-      cancelRequest(mContext);
-      replyCancel();
-    } catch (Exception e) {
-      LogUtils.warnWithException(LOG, "Exception occurred while cancelling write request {}.",
-          mContext.getRequest(), e);
-      Throwables.throwIfUnchecked(e);
-      abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
-    }
+    mSerializingExecutor.execute(() -> {
+      try {
+        cancelRequest(mContext);
+        replyCancel();
+      } catch (Exception e) {
+        LogUtils.warnWithException(LOG, "Exception occurred while cancelling write request {}.",
+            mContext.getRequest(), e);
+        Throwables.throwIfUnchecked(e);
+        abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
+      }
+    });
   }
 
   /**
@@ -152,9 +213,24 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       // Cancellation is already handled.
       return;
     }
-    LogUtils.warnWithException(LOG, "Exception thrown while handling write request {}",
-        mContext == null ? "unknown" : mContext.getRequest(), cause);
-    abort(new Error(AlluxioStatusException.fromThrowable(cause), false));
+    mSerializingExecutor.execute(() -> {
+      LogUtils.warnWithException(LOG, "Exception thrown while handling write request {}",
+          mContext == null ? "unknown" : mContext.getRequest(), cause);
+      abort(new Error(AlluxioStatusException.fromThrowable(cause), false));
+    });
+  }
+
+  private boolean tryAcquireSemaphore() {
+    try {
+      mSemaphore.acquire();
+    } catch (InterruptedException e) {
+      LOG.warn("write data request {} is interrupted: {}",
+          mContext == null ? "unknown" : mContext.getRequest(), e.getMessage());
+      abort(new Error(AlluxioStatusException.fromThrowable(e), true));
+      Thread.currentThread().interrupt();
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -174,9 +250,12 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
     }
   }
 
-  private void writeData(ByteString buf) {
+  private void writeData(DataBuffer buf) {
     try {
-      int readableBytes = buf.size();
+      if (mContext.isDoneUnsafe() || mContext.getError() != null) {
+        return;
+      }
+      int readableBytes = buf.readableBytes();
       mContext.setPos(mContext.getPos() + readableBytes);
       writeBuf(mContext, mResponseObserver, buf, mContext.getPos());
       incrementMetrics(readableBytes);
@@ -184,6 +263,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       LOG.error("Failed to write data for request {}", mContext.getRequest(), e);
       Throwables.throwIfUnchecked(e);
       abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
+    } finally {
+      buf.release();
     }
   }
 
@@ -261,7 +342,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
    * @param pos the pos
    */
   protected abstract void writeBuf(T context, StreamObserver<WriteResponse> responseObserver,
-      ByteString buf, long pos) throws Exception;
+      DataBuffer buf, long pos) throws Exception;
 
   /**
    * Handles a command in the write request.

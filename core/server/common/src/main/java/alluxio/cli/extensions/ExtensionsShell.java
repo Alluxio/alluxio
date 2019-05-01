@@ -28,7 +28,7 @@ public final class ExtensionsShell extends AbstractShell {
    * @param conf the Alluxio configuration to use when instantiating the shell
    */
   ExtensionsShell(InstancedConfiguration conf) {
-    super(null, conf);
+    super(null, null, conf);
   }
 
   /**

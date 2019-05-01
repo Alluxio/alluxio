@@ -73,21 +73,18 @@ public final class AlluxioProxyRestServiceHandler {
   @ReturnType("alluxio.wire.AlluxioProxyInfo")
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
-    return RestUtils.call(new RestUtils.RestCallable<AlluxioProxyInfo>() {
-      @Override
-      public AlluxioProxyInfo call() throws Exception {
-        boolean rawConfig = false;
-        if (rawConfiguration != null) {
-          rawConfig = rawConfiguration;
-        }
-        AlluxioProxyInfo result =
-            new AlluxioProxyInfo()
-                .setConfiguration(getConfigurationInternal(rawConfig))
-                .setStartTimeMs(mProxyProcess.getStartTimeMs())
-                .setUptimeMs(mProxyProcess.getUptimeMs())
-                .setVersion(RuntimeConstants.VERSION);
-        return result;
+    return RestUtils.call(() -> {
+      boolean rawConfig = false;
+      if (rawConfiguration != null) {
+        rawConfig = rawConfiguration;
       }
+      AlluxioProxyInfo result =
+          new AlluxioProxyInfo()
+              .setConfiguration(getConfigurationInternal(rawConfig))
+              .setStartTimeMs(mProxyProcess.getStartTimeMs())
+              .setUptimeMs(mProxyProcess.getUptimeMs())
+              .setVersion(RuntimeConstants.VERSION);
+      return result;
     }, ServerConfiguration.global());
   }
 

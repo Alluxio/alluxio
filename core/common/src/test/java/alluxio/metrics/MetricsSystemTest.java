@@ -11,8 +11,9 @@
 
 package alluxio.metrics;
 
+import static org.junit.Assert.assertEquals;
+
 import com.codahale.metrics.Counter;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,7 +48,7 @@ public final class MetricsSystemTest {
   public void metricsSystem() {
     MetricsSystem.startSinksFromConfig(mMetricsConfig);
 
-    Assert.assertEquals(2, MetricsSystem.getNumSinks());
+    assertEquals(2, MetricsSystem.getNumSinks());
 
     // Make sure it doesn't crash.
     sCounter.inc();

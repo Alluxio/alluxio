@@ -25,6 +25,10 @@ import (
 	"v.io/x/lib/cmdline"
 )
 
+const (
+	// The version of the hadoop client that the Alluxio client will be built for
+	defaultHadoopClient = "hadoop-2.7"
+)
 var (
 	cmdSingle = &cmdline.Command{
 		Name:   "single",
@@ -53,7 +57,7 @@ func single(_ *cmdline.Env, _ []string) error {
 	if err := checkRootFlags(); err != nil {
 		return err
 	}
-	if err := generateTarball(hadoopDistributionFlag); err != nil {
+	if err := generateTarball([]string{hadoopDistributionFlag}); err != nil {
 		return err
 	}
 	return nil
@@ -94,7 +98,7 @@ func symlink(oldname, newname string) {
 }
 
 func getCommonMvnArgs(hadoopVersion version) []string {
-	args := []string{"clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pmesos"}
+	args := []string{"-T", "2C", "-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pmesos"}
 	if mvnArgsFlag != "" {
 		for _, arg := range strings.Split(mvnArgsFlag, ",") {
 			args = append(args, arg)
@@ -190,6 +194,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/checker/bin/mapreduce-checker.sh",
 		"integration/checker/bin/spark-checker.sh",
 		"integration/docker/Dockerfile",
+		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
 		"integration/docker/bin/alluxio-master.sh",
 		"integration/docker/bin/alluxio-proxy.sh",
@@ -197,6 +202,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/fuse/bin/alluxio-fuse",
+		"integration/kubernetes/alluxio-fuse.yaml.template",
+		"integration/kubernetes/alluxio-fuse-client.yaml.template",
 		"integration/kubernetes/alluxio-journal-volume.yaml.template",
 		"integration/kubernetes/alluxio-master.yaml.template",
 		"integration/kubernetes/alluxio-worker.yaml.template",
@@ -247,8 +254,11 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
 }
 
-func generateTarball(hadoopDistribution string) error {
-	hadoopVersion := hadoopDistributions[hadoopDistribution]
+func generateTarball(hadoopClients []string) error {
+	hadoopVersion, ok := hadoopDistributions[defaultHadoopClient]
+	if !ok {
+		return fmt.Errorf("hadoop distribution %s not recognized\n", defaultHadoopClient)
+	}
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -298,9 +308,13 @@ func generateTarball(hadoopDistribution string) error {
 	fmt.Printf("Creating %s:\n", tarball)
 
 	for _, dir := range []string{
-		"assembly", "client", "logs", "integration/fuse", "integration/checker",
+		"assembly", "client", "logs", "integration/fuse", "integration/checker", "logs/user",
 	} {
 		mkdir(filepath.Join(dstPath, dir))
+	}
+
+	if err := os.Chmod(filepath.Join(dstPath, "logs/user"), 0777); err != nil {
+		return err
 	}
 
 	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
@@ -325,10 +339,6 @@ func generateTarball(hadoopDistribution string) error {
 	}
 
 	addAdditionalFiles(srcPath, dstPath, hadoopVersion, version)
-	hadoopVersion, ok = hadoopDistributions[hadoopDistribution]
-	if !ok {
-		return fmt.Errorf("hadoop distribution %s not recognized\n", hadoopDistribution)
-	}
 
 	chdir(cwd)
 	run("creating the distribution tarball", "tar", "-czvf", tarball, dstDir)

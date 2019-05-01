@@ -24,7 +24,7 @@ Configure Alluxio to use under storage systems by modifying
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Assuming the NFS clients are co-located with Alluxio nodes, all the NFS shares are mounted at
@@ -33,7 +33,7 @@ directory `/mnt/nfs`, the following environment variable assignment needs to be 
 
 ```
 alluxio.master.hostname=localhost
-alluxio.underfs.address=/mnt/nfs
+alluxio.master.mount.table.root.ufs=/mnt/nfs
 ```
 
 ## Running Alluxio with NFS
@@ -41,8 +41,8 @@ alluxio.underfs.address=/mnt/nfs
 Run the following command to start Alluxio filesystem.
 
 ```bash
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 To verify that Alluxio is running, you can visit
@@ -51,7 +51,7 @@ To verify that Alluxio is running, you can visit
 Run a simple example program:
 
 ```bash
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 Visit your NFS volume to verify the files and directories created
@@ -64,5 +64,5 @@ by Alluxio exist. For this test, you should see files named like:
 Stop Alluxio by running:
 
 ```bash
-$ ./bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```

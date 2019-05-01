@@ -12,7 +12,7 @@ Alluxio's command line interface provides users with basic file system operation
 the following command line utility to get all the subcommands:
 
 ```bash
-$ ./bin/alluxio
+./bin/alluxio
 Usage: alluxio [COMMAND]
        [format [-s]]
        [getConf [key]]
@@ -40,8 +40,8 @@ Warning: `format` is required when you run Alluxio for the first time.
 `format` should only be called while the cluster is not running.
 
 ```bash
-$ ./bin/alluxio format
-$ ./bin/alluxio format -s
+./bin/alluxio format
+./bin/alluxio format -s
 ```
 
 ### formatMaster
@@ -60,7 +60,7 @@ Warning: `formatMaster` should only be called while the cluster is not running.
 
 
 ```bash
-$ ./bin/alluxio formatMaster
+./bin/alluxio formatMaster
 ```
 
 ### formatWorker
@@ -75,7 +75,7 @@ Data in under storage will not be changed.
 Warning: `formatWorker` should only be called while the cluster is not running.
 
 ```bash
-$ ./bin/alluxio formatWorker
+./bin/alluxio formatWorker
 ```
 
 ### bootstrapConf
@@ -90,7 +90,7 @@ in accordance to the state of the machine:
 * total memory size
 
 ```bash
-$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
+./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
 ```
 
 ### getConf
@@ -112,20 +112,20 @@ MS, S, M, H, D as units of time.
 
 ```bash
 # Displays all the current node configuration
-$ ./bin/alluxio getConf
+./bin/alluxio getConf
 
 # Displays the value of a property key
-$ ./bin/alluxio getConf alluxio.master.hostname
+./bin/alluxio getConf alluxio.master.hostname
 
 # Displays the configuration of the current running Alluxio leading master
-$ ./bin/alluxio getConf --master
+./bin/alluxio getConf --master
 
 # Also display the source of the configuration
-$ ./bin/alluxio getConf --source
+./bin/alluxio getConf --source
 
 # Displays the values in a given unit
-$ ./bin/alluxio getConf --unit KB alluxio.user.block.size.bytes.default
-$ ./bin/alluxio getConf --unit S alluxio.master.journal.flush.timeout
+./bin/alluxio getConf --unit KB alluxio.user.block.size.bytes.default
+./bin/alluxio getConf --unit S alluxio.master.journal.flush.timeout
 ```
 
 ### logLevel
@@ -160,7 +160,7 @@ alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
 The `runTests` command runs end-to-end tests on an Alluxio cluster to provide a comprehensive sanity check.
 
 ```bash
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 ### upgradeJournal
@@ -172,7 +172,7 @@ to an Alluxio journal version 1 (Alluxio version >= 1.5.0).
 It is assumed to be the same as the v1 journal directory if not set.
 
 ```bash
-$ ./bin/alluxio upgradeJournal
+./bin/alluxio upgradeJournal
 ```
 
 ### copyDir
@@ -180,7 +180,7 @@ $ ./bin/alluxio upgradeJournal
 The `copyDir` command copies the directory at `PATH` to all worker nodes listed in `conf/workers`.
 
 ```bash
-$ ./bin/alluxio copyDir conf/alluxio-site.properties
+./bin/alluxio copyDir conf/alluxio-site.properties
 ```
 
 ### version
@@ -188,7 +188,7 @@ $ ./bin/alluxio copyDir conf/alluxio-site.properties
 The `version` command prints Alluxio version.
 
 ```bash
-$ ./bin/alluxio version
+./bin/alluxio version
 ```
 
 ### validateConf
@@ -196,7 +196,7 @@ $ ./bin/alluxio version
 The `validateConf` command validates the local Alluxio configuration files, checking for common misconfigurations.
 
 ```bash
-$ ./bin/alluxio validateConf
+./bin/alluxio validateConf
 ```
 
 ### validateEnv
@@ -217,13 +217,13 @@ where `COMMAND` can be one of the following values:
 
 ```bash
 # Runs all validation tasks on the local machine
-$ ./bin/alluxio validateEnv local
+./bin/alluxio validateEnv local
 
 # Runs corresponding validation tasks on all master and worker nodes
-$ ./bin/alluxio validateEnv all
+./bin/alluxio validateEnv all
 
 # Lists all validation tasks
-$ ./bin/alluxio validateEnv list
+./bin/alluxio validateEnv list
 ```
 
 For all commands except `list`, `NAME` specifies the leading prefix of any number of tasks.
@@ -231,9 +231,9 @@ If `NAME` is not given, all tasks for the given `COMMAND` will run.
 
 ```bash
 # Only run validation tasks that check your local system resource limits
-$ ./bin/alluxio validateEnv ulimit
+./bin/alluxio validateEnv ulimit
 # Only run the tasks start with "ma", like "master.rpc.port.available" and "master.web.port.available"
-$ ./bin/alluxio validateEnv local ma
+./bin/alluxio validateEnv local ma
 ```
 
 `OPTIONS` can be a list of command line options. Each option has the format
@@ -243,7 +243,7 @@ server-side hadoop configuration directory when running validating tasks.
 ## File System Operations
 
 ```bash
-$ ./bin/alluxio fs
+./bin/alluxio fs
 Usage: alluxio fs [generic options]
        [cat <path>]
        [checkConsistency [-r] <Alluxio path>]
@@ -473,7 +473,7 @@ The `getfacl` command returns the ACL entries for a specified file or directory.
 For example, `getfacl` can be used to verify that an ACL is changed successfully after a call to `setfacl`.
 
 ```bash
-$ ./bin/alluxio fs getfacl /testdir/testfile
+./bin/alluxio fs getfacl /testdir/testfile
 ```
 
 ### getUsedBytes
@@ -491,7 +491,7 @@ The `head` command prints the first 1 KB of data in a file to the console.
 Using the `-c [bytes]` option will print the first `n` bytes of data to the console.
 
 ```bash
-$ ./bin/alluxio fs head -c 2048 /output/part-00000
+./bin/alluxio fs head -c 2048 /output/part-00000
 ```
 
 ### help
@@ -503,10 +503,10 @@ Examples:
 
 ```bash
 # Print all subcommands
-$ ./bin/alluxio fs help
+./bin/alluxio fs help
 #
 # Print help message for ls
-$ ./bin/alluxio fs help ls
+./bin/alluxio fs help ls
 ```
 
 ### leader
@@ -692,7 +692,24 @@ The `-k` option removes all the default ACL entries.
 For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`.
 
 ```bash
-$ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
+./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
+```
+
+### setReplication
+
+The `setReplication` command sets the max and/or min replication level of a file or all files under
+a directory recursively. This is a metadata operation and will not cause any replication to be
+created or removed immediately. The replication level of the target file or directory will be
+changed automatically in background. This command takes an argument of `--min` to specify the
+minimal replication level and `--max` for the maximal replication. Specify -1 as the argument of
+`--max` option to indicate no limit of the maximum number of replicas. If the specified path is a
+directory and `-R` is specified, it will recursively set all files in this directory.
+
+For example, `setReplication` can be used to ensure the replication level of a file has at least
+one copy and at most three copies in Alluxio:
+
+```bash
+$ ./bin/alluxio fs setReplication --max 3 --min 1 /foo
 ```
 
 ### setTtl
@@ -756,8 +773,8 @@ Options:
 Examples:
 
 ```bash
-$ ./bin/alluxio fs test -d /someDir
-$ echo $?
+./bin/alluxio fs test -d /someDir
+echo $?
 ```
 
 ### touch

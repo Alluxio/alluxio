@@ -49,14 +49,13 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadDescendantPType;
-import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.StorageList;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -72,7 +71,6 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAclContext;
@@ -187,6 +185,7 @@ public final class FileSystemMasterTest {
   @Rule
   public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
     {
+      put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
       put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
       put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "20");
       put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0");
@@ -244,8 +243,8 @@ public final class FileSystemMasterTest {
     };
     for (String path : paths) {
       AlluxioURI uri = new AlluxioURI(path);
-      long id = mFileSystemMaster.createFile(uri,
-          CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder().setRecursive(true)));
+      long id = mFileSystemMaster.createFile(uri, CreateFileContext.mergeFrom(
+          CreateFilePOptions.newBuilder().setRecursive(true))).getFileId();
       Assert.assertEquals(id, mFileSystemMaster.getFileId(uri));
       mFileSystemMaster.delete(uri, DeleteContext.defaults());
       id = mFileSystemMaster.createDirectory(uri, CreateDirectoryContext
@@ -302,7 +301,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat1 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat1);
     assertFalse(mBlockMaster.getLostBlocks().contains(blockId));
@@ -824,11 +823,8 @@ public final class FileSystemMasterTest {
     assertEquals(4, countPaths());
   }
 
-  private int countPaths() throws Exception {
-    return 1 + mFileSystemMaster
-            .listStatus(new AlluxioURI("/"),
-                ListStatusContext.mergeFrom(ListStatusPOptions.newBuilder().setRecursive(true)))
-            .size();
+  private long countPaths() throws Exception {
+    return mFileSystemMaster.getInodeCount();
   }
 
   @Test
@@ -1220,43 +1216,6 @@ public final class FileSystemMasterTest {
   }
 
   @Test
-  public void loadMetadata() throws Exception {
-    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
-
-    // Create ufs file.
-    Files.createFile(Paths.get(ufsMount.join("file").getPath()));
-
-    // Created nested file.
-    Files.createDirectory(Paths.get(ufsMount.join("nested").getPath()));
-    Files.createFile(Paths.get(ufsMount.join("nested").join("file").getPath()));
-
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
-        MountContext.defaults());
-
-    // Test simple file.
-    AlluxioURI uri = new AlluxioURI("/mnt/local/file");
-    mFileSystemMaster.loadMetadata(uri,
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)));
-    assertNotNull(mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT));
-
-    // Test nested file.
-    uri = new AlluxioURI("/mnt/local/nested/file");
-    try {
-      mFileSystemMaster.loadMetadata(uri, LoadMetadataContext
-          .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)));
-      fail("loadMetadata() without recursive, for a nested file should fail.");
-    } catch (FileDoesNotExistException e) {
-      // Expected case.
-    }
-
-    // Test the nested file with recursive flag.
-    mFileSystemMaster.loadMetadata(uri,
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
-    assertNotNull(mFileSystemMaster.getFileInfo(uri, GET_STATUS_CONTEXT));
-  }
-
-  @Test
   public void setDefaultAcl() throws Exception {
     SetAclContext context = SetAclContext.defaults();
     createFileWithSingleBlock(NESTED_FILE_URI);
@@ -1623,7 +1582,7 @@ public final class FileSystemMasterTest {
     context.getOptions().setBlockSizeBytes(Constants.KB);
     context.getOptions().setRecursive(true);
     context.getOptions().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     assertEquals(fileInfo.getFileId(), fileId);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
@@ -1640,7 +1599,7 @@ public final class FileSystemMasterTest {
     context.getOptions().setBlockSizeBytes(Constants.KB);
     context.getOptions().setRecursive(true);
     context.getOptions().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
 
     // Simulate restart.
     stopServices();
@@ -1707,7 +1666,7 @@ public final class FileSystemMasterTest {
             .setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1731,7 +1690,7 @@ public final class FileSystemMasterTest {
 
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1754,7 +1713,7 @@ public final class FileSystemMasterTest {
             .newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE))));
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1782,7 +1741,7 @@ public final class FileSystemMasterTest {
 
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1796,7 +1755,7 @@ public final class FileSystemMasterTest {
   public void setTtlForFileWithNoTtl() throws Exception {
     CreateFileContext context = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since no TTL is set, the file should not be deleted.
     assertEquals(fileId,
@@ -1823,7 +1782,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createDirectory(NESTED_DIR_URI, directoryContext);
     CreateFileContext createFileContext = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, createFileContext);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, createFileContext).getFileId();
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since no TTL is set, the file should not be deleted.
     assertEquals(fileId,
@@ -1849,7 +1808,7 @@ public final class FileSystemMasterTest {
     CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(Constants.HOUR_MS))
         .setBlockSizeBytes(Constants.KB).setRecursive(true));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
     assertEquals(fileId,
@@ -1897,7 +1856,7 @@ public final class FileSystemMasterTest {
     CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))
         .setBlockSizeBytes(Constants.KB).setRecursive(true));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
     assertEquals(fileId,
         mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT).getFileId());
 
@@ -1939,7 +1898,7 @@ public final class FileSystemMasterTest {
     CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))
         .setBlockSizeBytes(Constants.KB).setRecursive(true));
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context);
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, context).getFileId();
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext
@@ -2148,7 +2107,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat2 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat2);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -2201,7 +2160,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -2236,7 +2195,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat3 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat3);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -2290,7 +2249,7 @@ public final class FileSystemMasterTest {
     // Update the heartbeat of removedBlockId received from worker 1.
     Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
         ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.<String, List<Long>>of(), mMetrics);
+        ImmutableMap.<String, List<Long>>of(), ImmutableMap.<String, StorageList>of(), mMetrics);
     // Verify the muted Free command on worker1.
     assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -2583,92 +2542,6 @@ public final class FileSystemMasterTest {
     assertEquals(PersistenceState.LOST, mFileSystemMaster.getPersistenceState(fileId));
   }
 
-  /**
-   * Tests load metadata logic.
-   */
-  @Test
-  public void testLoadMetadata() throws Exception {
-    FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
-
-    // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
-    try {
-      mFileSystemMaster.createDirectory(new AlluxioURI("alluxio:/a"),
-          CreateDirectoryContext.defaults());
-      fail("createDirectory was expected to fail with FileAlreadyExistsException");
-    } catch (FileAlreadyExistsException e) {
-      assertEquals(
-          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a")),
-          e.getMessage());
-    }
-
-    FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f1").toString());
-    FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f2").toString());
-
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a/f1"),
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
-
-    // This should not throw file exists exception those a/f1 is loaded.
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)
-            .setLoadDescendantType(LoadDescendantPType.ONE)));
-
-    // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
-    try {
-      mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f2"), CreateFileContext.defaults());
-      fail("createDirectory was expected to fail with FileAlreadyExistsException");
-    } catch (FileAlreadyExistsException e) {
-      assertEquals(
-          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a/f2")),
-          e.getMessage());
-    }
-
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(false)
-            .setLoadDescendantType(LoadDescendantPType.ONE)));
-  }
-
-  /**
-   * Tests ufs load with ACL.
-   * Currently, it respects the ufs permissions instead of the default ACL for loadMetadata.
-   * We may change that in the future, and change this test.
-   * TODO(david): update this test when we respect default ACL for loadmetadata
-   */
-  @Test
-  public void loadMetadataWithACL() throws Exception {
-    FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
-    AlluxioURI uri = new AlluxioURI("/a");
-    mFileSystemMaster.loadMetadata(uri,
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
-    List<AclEntry> aclEntryList = new ArrayList<>();
-    aclEntryList.add(AclEntry.fromCliString("default:user::r-x"));
-    mFileSystemMaster.setAcl(uri, SetAclAction.MODIFY, aclEntryList,
-        SetAclContext.defaults());
-
-    FileInfo infoparent = mFileSystemMaster.getFileInfo(uri,
-        GetStatusContext.defaults());
-
-    FileUtils.createFile(Paths.get(mUnderFS).resolve("a/b/file1").toString());
-    uri = new AlluxioURI("/a/b/file1");
-    mFileSystemMaster.loadMetadata(uri,
-        LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
-    FileInfo info = mFileSystemMaster.getFileInfo(uri,
-        GetStatusContext.defaults());
-    Assert.assertTrue(info.convertAclToStringEntries().contains("user::r-x"));
-  }
-
-  /**
-   * Tests load root metadata. It should not fail.
-   */
-  @Test
-  public void loadRoot() throws Exception {
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/"),
-        LoadMetadataContext.defaults());
-  }
-
   @Test
   public void getUfsInfo() throws Exception {
     FileInfo alluxioRootInfo =
@@ -2801,13 +2674,15 @@ public final class FileSystemMasterTest {
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>(), RegisterWorkerPOptions.getDefaultInstance());
+        new HashMap<String, List<Long>>(), new HashMap<String, StorageList>(),
+        RegisterWorkerPOptions.getDefaultInstance());
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        new HashMap<String, List<Long>>(), RegisterWorkerPOptions.getDefaultInstance());
+        new HashMap<String, List<Long>>(), new HashMap<String, StorageList>(),
+        RegisterWorkerPOptions.getDefaultInstance());
   }
 
   private void stopServices() throws Exception {

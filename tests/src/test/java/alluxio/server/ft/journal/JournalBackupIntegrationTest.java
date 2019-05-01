@@ -20,15 +20,16 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.client.MetaMasterClient;
-import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientContext;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
@@ -68,8 +69,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreZk() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_ZK)
         .setClusterName("backupRestoreZk")
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setNumMasters(3)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec").build();
     backupRestoreTest(true);
@@ -79,8 +80,9 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreEmbedded() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_EMBEDDED)
         .setClusterName("backupRestoreEmbedded")
-        .setDeployMode(DeployMode.EMBEDDED_HA)
-        .setNumMasters(3).build();
+        .setNumMasters(3)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .build();
     backupRestoreTest(true);
   }
 
@@ -88,7 +90,9 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public void backupRestoreSingleMaster() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_SINGLE)
         .setClusterName("backupRestoreSingle")
-        .setNumMasters(1).build();
+        .setNumMasters(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .build();
     backupRestoreTest(false);
   }
 
@@ -110,13 +114,15 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
       AlluxioURI dir1 = new AlluxioURI("/dir1");
       fs.createDirectory(dir1,
           CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
-      AlluxioURI backup1 =
-          metaClient.backup(backups.getAbsolutePath(), false).getBackupUri();
+      AlluxioURI backup1 = metaClient.backup(BackupPOptions.newBuilder()
+          .setTargetDirectory(backups.getAbsolutePath()).setLocalFileSystem(false).build())
+          .getBackupUri();
       AlluxioURI dir2 = new AlluxioURI("/dir2");
       fs.createDirectory(dir2,
           CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
-      AlluxioURI backup2 =
-          metaClient.backup(backups.getAbsolutePath(), false).getBackupUri();
+      AlluxioURI backup2 = metaClient.backup(BackupPOptions.newBuilder()
+          .setTargetDirectory(backups.getAbsolutePath()).setLocalFileSystem(false).build())
+          .getBackupUri();
 
       restartMastersFromBackup(backup2);
       assertTrue(fs.exists(dir1));

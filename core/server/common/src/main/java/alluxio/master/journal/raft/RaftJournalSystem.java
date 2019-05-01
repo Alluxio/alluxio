@@ -13,12 +13,13 @@ package alluxio.master.journal.raft;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
+import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalEntryStateMachine;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -37,6 +38,7 @@ import io.atomix.copycat.server.storage.StorageLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
@@ -167,12 +169,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    * @param conf raft journal configuration
    */
   private RaftJournalSystem(RaftJournalConfiguration conf) {
-    Preconditions.checkState(conf.getMaxLogSize() <= Integer.MAX_VALUE,
-        "{} has value {} but must not exceed {}", PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
-        conf.getMaxLogSize(), Integer.MAX_VALUE);
-    Preconditions.checkState(conf.getHeartbeatIntervalMs() < conf.getElectionTimeoutMs() / 2,
-        "Heartbeat interval (%sms) should be less than half of the election timeout (%sms)",
-        conf.getHeartbeatIntervalMs(), conf.getElectionTimeoutMs());
+    conf.validate();
     mConf = conf;
     mJournals = new ConcurrentHashMap<>();
     mSnapshotAllowed = new AtomicBoolean(true);
@@ -190,7 +187,6 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    */
   public static RaftJournalSystem create(RaftJournalConfiguration conf) {
     RaftJournalSystem system = new RaftJournalSystem(conf);
-    system.initServer();
     return system;
   }
 
@@ -252,7 +248,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public synchronized Journal createJournal(JournalEntryStateMachine master) {
+  public synchronized Journal createJournal(Master master) {
     RaftJournal journal = new RaftJournal(master, mConf.getPath().toURI(), mAsyncJournalWriter,
         mJournalStateLock.readLock());
     mJournals.put(master.getName(), journal);
@@ -290,6 +286,10 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void losePrimacy() {
+    if (!mServer.isRunning()) {
+      // Avoid duplicate shut down copycat server
+      return;
+    }
     try {
       mRaftJournalWriter.close();
     } catch (IOException e) {
@@ -398,17 +398,20 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void startInternal() throws InterruptedException, IOException {
-    LOG.info("Starting Raft journal system");
+    LOG.info("Initializing Raft Journal System");
+    initServer();
+    List<Address> clusterAddresses = getClusterAddresses(mConf);
+    LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
+        clusterAddresses, getLocalAddress(mConf));
     long startTime = System.currentTimeMillis();
     try {
-      mServer.bootstrap(getClusterAddresses(mConf)).get();
+      mServer.bootstrap(clusterAddresses).get();
     } catch (ExecutionException e) {
-      String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP.getMessage(
-          Arrays.toString(getClusterAddresses(mConf).toArray()), e.getCause().toString());
+      String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP
+          .getMessage(Arrays.toString(clusterAddresses.toArray()), e.getCause().toString());
       throw new IOException(errorMessage, e.getCause());
     }
-    LOG.info("Started Raft Journal System in {}ms. Cluster addresses: {}. Local address: {}",
-        System.currentTimeMillis() - startTime, getClusterAddresses(mConf), getLocalAddress(mConf));
+    LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
   }
 
   @Override
@@ -416,7 +419,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     LOG.info("Shutting down raft journal");
     mRaftJournalWriter.close();
     try {
-      mServer.shutdown().get(2, TimeUnit.SECONDS);
+      mServer.shutdown().get(ServerConfiguration
+          .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT), TimeUnit.MILLISECONDS);
     } catch (ExecutionException e) {
       throw new RuntimeException("Failed to shut down Raft server", e);
     } catch (TimeoutException e) {
@@ -437,8 +441,15 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void format() throws IOException {
-    FileUtils.deletePathRecursively(mConf.getPath().getAbsolutePath());
-    mConf.getPath().mkdirs();
+    File journalPath = mConf.getPath();
+    if (journalPath.isDirectory()) {
+      org.apache.commons.io.FileUtils.cleanDirectory(mConf.getPath());
+    } else {
+      if (journalPath.exists()) {
+        FileUtils.delete(journalPath.getAbsolutePath());
+      }
+      journalPath.mkdirs();
+    }
   }
 
   /**

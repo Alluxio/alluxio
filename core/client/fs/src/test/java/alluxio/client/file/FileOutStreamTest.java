@@ -35,15 +35,18 @@ import alluxio.client.block.stream.TestBlockOutStream;
 import alluxio.client.block.stream.TestUnderFileSystemFileOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
+import alluxio.grpc.TtlAction;
+import alluxio.grpc.WritePType;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.security.GroupMappingServiceTestUtils;
@@ -59,6 +62,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -69,6 +73,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -110,7 +115,8 @@ public class FileOutStreamTest {
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    when(mFileSystemContext.getConf()).thenReturn(sConf);
+    when(mFileSystemContext.getClusterConf()).thenReturn(sConf);
+    when(mFileSystemContext.getPathConf(any(AlluxioURI.class))).thenReturn(sConf);
     mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
 
@@ -389,6 +395,36 @@ public class FileOutStreamTest {
   }
 
   /**
+   * Tests that common options are propagated to async write request.
+   */
+  @Test
+  public void asyncWriteOptionPropagation() throws Exception {
+    Random rand = new Random();
+    FileSystemMasterCommonPOptions commonOptions =
+        FileSystemMasterCommonPOptions.newBuilder().setTtl(rand.nextLong())
+            .setTtlAction(TtlAction.values()[rand.nextInt(TtlAction.values().length)])
+            .setSyncIntervalMs(rand.nextLong()).build();
+
+    OutStreamOptions options =
+        new OutStreamOptions(CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH)
+            .setBlockSizeBytes(BLOCK_LENGTH).setCommonOptions(commonOptions).build(), sConf);
+
+    // Verify that OutStreamOptions have captured the common options properly.
+    Assert.assertEquals(options.getCommonOptions(), commonOptions);
+
+    mTestStream = createTestStream(FILE_NAME, options);
+    mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
+    mTestStream.close();
+    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFilePOptions.class));
+
+    // Verify that common options for OutStreamOptions are propagated to ScheduleAsyncPersistence.
+    ArgumentCaptor<ScheduleAsyncPersistencePOptions> parameterCaptor =
+            ArgumentCaptor.forClass(ScheduleAsyncPersistencePOptions.class);
+    verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME), parameterCaptor.capture());
+    Assert.assertEquals(parameterCaptor.getValue().getCommonOptions(), options.getCommonOptions());
+  }
+
+  /**
    * Tests that the number of bytes written is correct when the stream is created with different
    * under storage types.
    */
@@ -407,14 +443,9 @@ public class FileOutStreamTest {
 
   @Test
   public void createWithNoWorker() throws Exception {
-    OutStreamOptions options =
-        OutStreamOptions.defaults(sConf).setLocationPolicy(new FileWriteLocationPolicy() {
-          @Override
-          public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
-              long blockSizeBytes) {
-            return null;
-          }
-        }).setWriteType(WriteType.CACHE_THROUGH);
+    OutStreamOptions options = OutStreamOptions.defaults(sConf)
+        .setLocationPolicy((getWorkerOptions) -> null)
+        .setWriteType(WriteType.CACHE_THROUGH);
     mException.expect(UnavailableException.class);
     mException.expectMessage(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     mTestStream = createTestStream(FILE_NAME, options);

@@ -17,11 +17,13 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.conf.PropertyKey;
-import alluxio.client.MetaMasterClient;
-import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.BackupPOptions;
 import alluxio.master.MasterClientContext;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
@@ -41,8 +43,8 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
   public void migration() throws Exception {
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder(PortCoordination.JOURNAL_MIGRATION)
         .setClusterName("journalMigration")
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setNumMasters(3)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec").build();
     cluster.start();
@@ -56,13 +58,15 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
         fs.createDirectory(new AlluxioURI("/dir" + i));
       }
       File backupsDir = AlluxioTestDirectory.createTemporaryDirectory("backups");
-      AlluxioURI zkBackup = metaClient.backup(backupsDir.getAbsolutePath(), false).getBackupUri();
+      AlluxioURI zkBackup = metaClient.backup(BackupPOptions.newBuilder()
+          .setTargetDirectory(backupsDir.getAbsolutePath()).setLocalFileSystem(false).build())
+          .getBackupUri();
       cluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, zkBackup.toString());
 
       // Migrate to embedded journal HA.
       cluster.stopMasters();
       cluster.formatJournal();
-      cluster.updateDeployMode(DeployMode.EMBEDDED_HA);
+      cluster.updateDeployMode(DeployMode.EMBEDDED);
       cluster.startMasters();
       assertEquals(NUM_DIRS, fs.listStatus(new AlluxioURI("/")).size());
 

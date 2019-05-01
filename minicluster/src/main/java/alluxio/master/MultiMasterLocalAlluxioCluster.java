@@ -18,10 +18,12 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.master.journal.JournalType;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.PathUtils;
 import alluxio.zookeeper.RestartableTestingServer;
 
 import com.google.common.base.Throwables;
@@ -80,12 +82,13 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     setAlluxioWorkDirectory();
     setHostname();
     for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
-        .testConfigurationDefaults(ServerConfiguration.global(), mHostname, mWorkDirectory)
-        .entrySet()) {
+        .testConfigurationDefaults(ServerConfiguration.global(),
+            mHostname, mWorkDirectory).entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, 0);
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
@@ -219,7 +222,9 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_LEADER_PATH, "/leader");
 
     for (int k = 0; k < mNumOfMasters; k++) {
-      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory);
+      ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR,
+          PathUtils.concatPath(mWorkDirectory, "metastore-" + k));
+      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory, false);
       master.start();
       LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
           master.getAddress());
@@ -230,11 +235,11 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     }
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
-    // sets UNDERFS_ADDRESS.
+    // sets MASTER_MOUNT_TABLE_ROOT_UFS.
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     String path = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     if (ufs.isDirectory(path)) {
-      ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
+      ufs.deleteExistingDirectory(path, DeleteOptions.defaults().setRecursive(true));
     }
     if (!ufs.mkdirs(path)) {
       throw new IOException("Failed to make folder: " + path);

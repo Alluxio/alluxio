@@ -24,6 +24,7 @@ import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcManagedChannelPool;
 import alluxio.grpc.DataMessageMarshaller;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -35,6 +36,7 @@ import alluxio.grpc.WriteResponse;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.util.network.NettyUtils;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -44,7 +46,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import javax.security.auth.Subject;
@@ -58,7 +59,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   private GrpcChannel mStreamingChannel;
   private GrpcChannel mRpcChannel;
-  private SocketAddress mAddress;
+  private GrpcServerAddress mAddress;
   private final long mDataTimeoutMs;
 
   private BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
@@ -73,7 +74,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    * @param alluxioConf Alluxio configuration
    * @param workerGroup The netty {@link EventLoopGroup} the channels are will utilize
    */
-  public DefaultBlockWorkerClient(Subject subject, SocketAddress address,
+  public DefaultBlockWorkerClient(Subject subject, GrpcServerAddress address,
       AlluxioConfiguration alluxioConf, EventLoopGroup workerGroup) throws IOException {
     try {
       // Disables channel pooling for data streaming to achieve better throughput.
@@ -114,14 +115,29 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public StreamObserver<WriteRequest> writeBlock(StreamObserver<WriteResponse> responseObserver) {
-    return mStreamingAsyncStub.writeBlock(responseObserver);
+    if (responseObserver instanceof DataMessageMarshallerProvider) {
+      DataMessageMarshaller<WriteRequest> marshaller =
+          ((DataMessageMarshallerProvider<WriteRequest, WriteResponse>) responseObserver)
+              .getRequestMarshaller();
+      Preconditions.checkNotNull(marshaller, "marshaller");
+      return mStreamingAsyncStub
+          .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
+              BlockWorkerGrpc.getWriteBlockMethod().toBuilder()
+                  .setRequestMarshaller(marshaller)
+                  .build())
+          .writeBlock(responseObserver);
+    } else {
+      return mStreamingAsyncStub.writeBlock(responseObserver);
+    }
   }
 
   @Override
   public StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver) {
     if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<ReadResponse> marshaller =
-          ((DataMessageMarshallerProvider<ReadResponse>) responseObserver).getMarshaller();
+          ((DataMessageMarshallerProvider<ReadRequest, ReadResponse>) responseObserver)
+              .getResponseMarshaller();
+      Preconditions.checkNotNull(marshaller);
       return mStreamingAsyncStub
           .withOption(GrpcSerializationUtils.OVERRIDDEN_METHOD_DESCRIPTOR,
               BlockWorkerGrpc.getReadBlockMethod().toBuilder()
@@ -172,13 +188,13 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
         });
   }
 
-  private GrpcChannel buildChannel(Subject subject, SocketAddress address,
+  private GrpcChannel buildChannel(Subject subject, GrpcServerAddress address,
       GrpcManagedChannelPool.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf,
       EventLoopGroup workerGroup)
       throws AlluxioStatusException {
     return GrpcChannelBuilder.newBuilder(address, alluxioConf).setSubject(subject)
-        .setChannelType(NettyUtils
-            .getClientChannelClass(!(address instanceof InetSocketAddress), alluxioConf))
+        .setChannelType(NettyUtils.getClientChannelClass(
+            !(address.getSocketAddress() instanceof InetSocketAddress), alluxioConf))
         .setPoolingStrategy(poolingStrategy)
         .setEventLoopGroup(workerGroup)
         .setKeepAliveTime(alluxioConf.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIME_MS),

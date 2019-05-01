@@ -22,14 +22,13 @@ an external Zookeeper cluster for coordination, and relies on a UFS for persiste
 To get reasonable performance, the UFS journal requires a UFS that supports fast streaming writes, 
 such as HDFS or NFS.
 
-The embedded journal does its own coordination and persistent storage, but has a few limitations.
-
-First, `n` masters using the embedded journal can tolerate only `floor(n/2)` master failures, 
+The embedded journal does its own coordination and persistent storage, but has a few limitations:
+* `n` masters using the embedded journal can tolerate only `floor(n/2)` master failures, 
 compared to `n-1` for UFS journal. For example, With `3` masters, UFS journal can tolerate `2` failures, 
 while embedded journal can only tolerate `1`. However, UFS journal depends on Zookeeper, 
 which similarly only supports `floor(#zookeeper_nodes / 2)` failures.
 
-The other limitation is that embedded journal does not support dynamically changing master membership. 
+* embedded journal does not support dynamically changing master membership. 
 With UFS journal, replacing a master on `host1` with a new master on `host2` is as simple as starting a new master on `host2`, 
 then killing the master on `host1`. Changing the masters in an embedded journal cluster requires backing up the cluster, 
 shutting it down, and then starting up again with the new masters using the backup.
@@ -68,12 +67,8 @@ alluxio.master.journal.folder=/opt/alluxio/journal
 
 The configuration specified below should be applied to both Alluxio servers and Alluxio clients.
 
-Set the journal type to "EMBEDDED":
-```
-alluxio.master.journal.type=EMBEDDED
-```
-
 Set the addresses of all masters in the cluster. The default embedded journal port is `19200`.
+
 ```
 alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200
 ```
@@ -82,10 +77,10 @@ alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostnam
 
 * `alluxio.master.embedded.journal.port`: The port masters use for embedded journal communication. Default: `19200`.
 * `alluxio.master.port`: The port masters use for RPCs. Default: `19998`.
-* `alluxio.master.rpc.addresses`: A list of comma-separated `host:port` RPC addresses where the client 
-should look for masters when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, 
-since Zookeeper already stores the master addresses. If this is not set, clients will look for masters using the hostnames 
-from `alluxio.master.embedded.journal.addresses` and the master rpc port.
+* `alluxio.master.rpc.addresses`: A list of comma-separated `host:port` RPC addresses where the client should look for masters 
+when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses. 
+If this is not set, clients will look for masters using the hostnames from `alluxio.master.embedded.journal.addresses` 
+and the master rpc port (Default:`19998`).
 
 ### Job service configuration
 
@@ -108,7 +103,7 @@ Before starting Alluxio for the first time, the journal must be formatted.
 
 ```bash
 # This permanently deletes all Alluxio metadata, so be careful with this operation
-$ bin/alluxio formatMaster
+./bin/alluxio formatMaster
 ```
 
 ## Operations
@@ -121,7 +116,7 @@ unavailability while the backup is written.
 
 To generate a backup, use the `fsadmin backup` CLI command.
 ```bash
-$ bin/alluxio fsadmin backup
+./bin/alluxio fsadmin backup
 ```
 
 By default, this will write a backup named
@@ -166,9 +161,9 @@ journal, then restart the system, passing the URI of the backup with the `-i`
 (import) flag.
 
 ```bash
-$ bin/alluxio-stop.sh masters
-$ bin/alluxio formatMaster
-$ bin/alluxio-start.sh -i <backup_uri> masters
+./bin/alluxio-stop.sh masters
+./bin/alluxio formatMaster
+./bin/alluxio-start.sh -i <backup_uri> masters
 ```
 
 The `<backup_uri>` should be a full URI path that is available to all masters, e.g.
@@ -218,7 +213,7 @@ metadata in memory. To start a dedicated standby master for writing periodic che
 run
 
 ```bash
-$ bin/alluxio-start.sh secondary_master
+./bin/alluxio-start.sh secondary_master
 ```
 
 ### Recovering from journal issues

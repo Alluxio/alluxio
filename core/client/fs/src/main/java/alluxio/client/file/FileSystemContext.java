@@ -11,25 +11,28 @@
 
 package alluxio.client.file;
 
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.metrics.ClientMasterSync;
 import alluxio.client.metrics.MetricsMasterClient;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
+import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.util.IdUtils;
-import alluxio.security.authentication.SaslParticipantProviderUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.util.network.NettyUtils;
@@ -277,6 +280,10 @@ public final class FileSystemContext implements Closeable {
       mBlockMasterClientPool.close();
       mBlockMasterClientPool = null;
       mMasterInquireClient = null;
+      for (BlockWorkerClientPool pool : mBlockWorkerClientPool.values()) {
+        pool.close();
+      }
+      mBlockWorkerClientPool.clear();
 
       if (mMetricsMasterClient != null) {
         ThreadUtils.shutdownAndAwaitTermination(mExecutorService,
@@ -301,10 +308,21 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * @return the {@link AlluxioConfiguration} backing this {@link FileSystemContext}
+   * @return the cluster level configuration backing this {@link FileSystemContext}
    */
-  public AlluxioConfiguration getConf() {
+  public AlluxioConfiguration getClusterConf() {
     return mClientContext.getConf();
+  }
+
+  /**
+   * The path level configuration is a {@link SpecificPathConfiguration}.
+   *
+   * @param path the path to get the configuration for
+   * @return the path level configuration for the specific path
+   */
+  public AlluxioConfiguration getPathConf(AlluxioURI path) {
+    return new SpecificPathConfiguration(mClientContext.getConf(), mClientContext.getPathConf(),
+        path);
   }
 
   /**
@@ -380,14 +398,21 @@ public final class FileSystemContext implements Closeable {
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
-    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
-        getConf());
+    return acquireBlockWorkerClientInternal(workerNetAddress, mClientContext.getSubject());
+  }
+
+  private BlockWorkerClient acquireBlockWorkerClientInternal(
+      final WorkerNetAddress workerNetAddress, final Subject subject) throws IOException {
+    SocketAddress address =
+        NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress, getClusterConf());
+    GrpcServerAddress serverAddress = new GrpcServerAddress(workerNetAddress.getHost(), address);
     ClientPoolKey key = new ClientPoolKey(address,
-        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(), getConf()));
-    return mBlockWorkerClientPool.computeIfAbsent(key, k ->
-        new BlockWorkerClientPool(mClientContext.getSubject(), address,
-        getConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE), getConf(), mWorkerGroup)
-    ).acquire();
+        AuthenticationUserUtils.getImpersonationUser(subject, getClusterConf()));
+    return mBlockWorkerClientPool.computeIfAbsent(key,
+        k -> new BlockWorkerClientPool(subject, serverAddress,
+            getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
+            getClusterConf(), mWorkerGroup))
+        .acquire();
   }
 
   /**
@@ -399,9 +424,9 @@ public final class FileSystemContext implements Closeable {
   public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
       BlockWorkerClient client) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
-        getConf());
-    ClientPoolKey key = new ClientPoolKey(address,
-        SaslParticipantProviderUtils.getImpersonationUser(mClientContext.getSubject(), getConf()));
+        getClusterConf());
+    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
+        mClientContext.getSubject(), getClusterConf()));
     if (mBlockWorkerClientPool.containsKey(key)) {
       mBlockWorkerClientPool.get(key).release(client);
     } else {

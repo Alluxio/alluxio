@@ -12,9 +12,9 @@
 package alluxio.master.meta;
 
 import alluxio.RpcUtils;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPResponse;
 import alluxio.grpc.GetConfigReportPOptions;
@@ -28,7 +28,6 @@ import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.Address;
-import alluxio.wire.BackupOptions;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -62,7 +61,7 @@ public final class MetaMasterClientServiceHandler
   public void backup(BackupPOptions options, StreamObserver<BackupPResponse> responseObserver) {
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BackupPResponse>) () -> {
-      return mMetaMaster.backup(BackupOptions.fromProto(options)).toProto();
+      return mMetaMaster.backup(options).toProto();
     }, "backup", "options=%s", responseObserver, options);
   }
 

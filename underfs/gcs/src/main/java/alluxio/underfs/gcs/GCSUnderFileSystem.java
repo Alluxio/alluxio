@@ -15,7 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
+import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
@@ -158,6 +160,23 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   // Setting GCS mode via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setMode(String path, short mode) throws IOException {}
+
+  @Override
+  public UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
+    return getDirectoryStatus(path);
+  }
+
+  // GCS provides strong global consistency for read-after-write and read-after-metadata-update
+  @Override
+  public InputStream openExistingFile(String path) throws IOException {
+    return open(path);
+  }
+
+  // GCS provides strong global consistency for read-after-write and read-after-metadata-update
+  @Override
+  public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
+    return open(path, options);
+  }
 
   @Override
   protected boolean copyObject(String src, String dst) {
@@ -315,9 +334,10 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected InputStream openObject(String key, OpenOptions options) throws IOException {
+  protected InputStream openObject(String key, OpenOptions options, RetryPolicy retryPolicy)
+      throws IOException {
     try {
-      return new GCSInputStream(mBucketName, key, mClient, options.getOffset());
+      return new GCSInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy);
     } catch (ServiceException e) {
       throw new IOException(e.getMessage());
     }

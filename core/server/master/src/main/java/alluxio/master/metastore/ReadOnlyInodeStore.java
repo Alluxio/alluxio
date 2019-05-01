@@ -28,10 +28,6 @@ import java.util.Set;
  * Read-only access to the inode store.
  */
 public interface ReadOnlyInodeStore extends Closeable {
-  /**
-   * @return an estimate for the number of inodes in the inode store
-   */
-  long estimateSize();
 
   /**
    * @param id an inode id
@@ -161,9 +157,4 @@ public interface ReadOnlyInodeStore extends Closeable {
    */
   @VisibleForTesting
   Set<MutableInode<?>> allInodes();
-
-  @Override
-  default void close() {
-    // Do nothing by default.
-  }
 }

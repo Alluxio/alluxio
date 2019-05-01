@@ -53,6 +53,9 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
 
   private final StorageTierAssoc mStorageTierAssoc;
 
+  /** Mapping from tier alias to lost storage paths. */
+  private final Map<String, List<String>> mLostStorage = new HashMap<>();
+
   @Override
   public Map<String, List<Long>> getBlockList() {
     Preconditions.checkNotNull(mBlockIdsOnTiers, "mBlockIdsOnTiers");
@@ -84,12 +87,14 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
     Map<String, List<String>> pathsOnTiers = new HashMap<>();
     for (Pair<String, String> tierPath : mCapacityBytesOnDirs.keySet()) {
       String tier = tierPath.getFirst();
-      if (pathsOnTiers.get(tier) == null) {
-        pathsOnTiers.put(tier, new ArrayList<String>());
-      }
-      pathsOnTiers.get(tier).add(tierPath.getSecond());
+      pathsOnTiers.computeIfAbsent(tier, k -> new ArrayList<>()).add(tierPath.getSecond());
     }
     return pathsOnTiers;
+  }
+
+  @Override
+  public Map<String, List<String>> getLostStorage() {
+    return new HashMap<>(mLostStorage);
   }
 
   @Override
@@ -162,6 +167,15 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
       }
     } else {
       mBlockIdsOnTiers = null;
+    }
+
+    for (StorageTier tier : manager.getTiers()) {
+      if (!tier.getLostStorage().isEmpty()) {
+        List<String> lostStorages = mLostStorage
+            .getOrDefault(tier.getTierAlias(), new ArrayList<>());
+        lostStorages.addAll(tier.getLostStorage());
+        mLostStorage.put(tier.getTierAlias(), lostStorages);
+      }
     }
   }
 

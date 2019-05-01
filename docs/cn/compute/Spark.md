@@ -74,7 +74,7 @@ spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,
 当你运行Saprk集群(或单机运行)时,你可以在Alluxio项目目录运行以下命令:
 
 ```bash
-$ integration/checker/bin/alluxio-checker.sh spark <spark master uri> [partition number]
+integration/checker/bin/alluxio-checker.sh spark <spark master uri> [partition number]
 ```
 
 这里`partition number`是一个可选参数。
@@ -91,7 +91,7 @@ $ integration/checker/bin/alluxio-checker.sh spark <spark master uri> [partition
 首先，我们将从Alluxio文件系统中拷贝一些本地数据。将文件`LICENSE`放到Alluxio（假定你正处在Alluxio工程目录下）:
 
 ```bash
-$ bin/alluxio fs copyFromLocal LICENSE /LICENSE
+./bin/alluxio fs copyFromLocal LICENSE /LICENSE
 ```
 
 在`spark-shell`中运行如下命令（假定Alluxio Master运行在`localhost`）:
@@ -107,10 +107,10 @@ $ bin/alluxio fs copyFromLocal LICENSE /LICENSE
 
 ### 使用来自HDFS的数据
 
-Alluxio支持在给出具体的路径时，透明的从底层文件系统中取数据。将文件`LICENSE`放到Alluxio所挂载的目录下（默认是`/alluxio`）的HDFS中，意味着在这个目录下的HDFS中的任何文件都能被Alluxio发现。通过改变位于Server上的`conf/alluxio-site.properties`文件中的 `alluxio.underfs.address`属性可以修改这个设置。假定namenode节点运行在`localhost`，并且Alluxio默认的挂载目录是`alluxio`:
+Alluxio支持在给出具体的路径时，透明的从底层文件系统中取数据。将文件`LICENSE`放到Alluxio所挂载的目录下（默认是`/alluxio`）的HDFS中，意味着在这个目录下的HDFS中的任何文件都能被Alluxio发现。通过改变位于Server上的`conf/alluxio-site.properties`文件中的 `alluxio.master.mount.table.root.ufs`属性可以修改这个设置。假定namenode节点运行在`localhost`，并且Alluxio默认的挂载目录是`alluxio`:
 
 ```bash
-$ hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
+hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
 ```
 
 注意：Alluxio没有文件的概念。你可以通过浏览web UI验证这点。在`spark-shell`中运行如下命令（假定Alluxio Master运行在`localhost`）:
@@ -150,13 +150,13 @@ https://issues.apache.org/jira/browse/SPARK-10149)获取更多细节（这里可
 提示:Alluxio使用主机名来表示网络地址，只有0.7.1版本使用了IP地址。Spark 1.5.x版本与Alluxio0.7.1做法一致，都使用了IP地址来表示网络地址，数据本地化不加修改即可使用。但是从0.8.0往后，为了与HDFS一致，Alluxio使用主机名表示网络地址。用户启动Spark时想要获取数据本地化，可以用Spark提供的如下脚本显式指定主机名。以slave-hostname启动Spark Worker:
 
 ```bash
-$ $SPARK_HOME/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
+$SPARK_HOME/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
 ```
 
 举例而言:
 
 ```bash
-$ $SPARK_HOME/sbin/start-slave.sh -h simple30 spark://simple27:7077
+$SPARK_HOME/sbin/start-slave.sh -h simple30 spark://simple27:7077
 ```
 
 也可以通过设置`$SPARK_HOME/conf/spark-env.sh`里的`SPARK_LOCAL_HOSTNAME`获取数据本地化。举例而言：

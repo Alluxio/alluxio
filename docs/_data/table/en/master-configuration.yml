@@ -31,7 +31,7 @@ alluxio.master.daily.backup.files.retained:
 alluxio.master.daily.backup.time:
   'Default UTC time for writing daily master metadata backups. The accepted time format is hour:minute which is based on a 24-hour clock (E.g., 05:30, 06:00, and 22:04). Backing up metadata requires a pause in master metadata changes, so please set this value to an off-peak time to avoid interfering with other users of the system.'
 alluxio.master.embedded.journal.addresses:
-  'A comma-separated list of journal addresses for all masters in the cluster. The format is ''hostname1:port1,hostname2:port2,...''. Required when using the embedded journal'
+  'A comma-separated list of journal addresses for all masters in the cluster. The format is ''hostname1:port1,hostname2:port2,...''. When left unset, Alluxio uses ${alluxio.master.hostname}:${alluxio.master.embedded.journal.port} by default'
 alluxio.master.embedded.journal.election.timeout:
   'The election timeout for the embedded journal. When this period elapses without a master receiving any messages, the master will attempt to become the primary.'
 alluxio.master.embedded.journal.heartbeat.interval:
@@ -40,8 +40,20 @@ alluxio.master.embedded.journal.port:
   'The port to use for embedded journal communication with other masters.'
 alluxio.master.embedded.journal.storage.level:
   'The storage level for storing embedded journal logs. Use DISK for maximum durability. Use MAPPED for better performance, but some risk of losing state in case of power loss or host failure. Use MEMORY for optimal performance, but no state persistence across cluster restarts.'
+alluxio.master.executor.fork.pool.keepalive.ms:
+  'Master RPC executor service threads keep alive time.'
+alluxio.master.executor.fork.pool.size.core:
+  'Master RPC executor service threads core count.'
+alluxio.master.executor.fork.pool.size.max:
+  'Master RPC executor service threads max count.'
+alluxio.master.executor.parallelism:
+  'Master RPC executor service parallelism level.'
+alluxio.master.executor.runnable:
+  'Master RPC executor service minimum runnable task count.'
 alluxio.master.file.async.persist.handler:
   'The handler for processing the async persistence requests.'
+alluxio.master.filesystem.liststatus.result.message.length:
+  'Count of items on each list-status response message.'
 alluxio.master.format.file_prefix:
   'The file prefix of the file generated in the journal directory when the journal is formatted. The master will search for a file with this prefix when determining if the journal is formatted.'
 alluxio.master.grpc.channel.auth.timeout:
@@ -107,9 +119,11 @@ alluxio.master.metastore.inode.cache.evict.batch.size:
 alluxio.master.metastore.inode.cache.high.water.mark.ratio:
   'The high water mark for the inode cache, as a ratio from high water mark to total cache size. If this is 0.85 and the max size is 10 million, the high water mark value is 8.5 million. When the cache reaches the high water mark, the eviction process will evict down to the low water mark.'
 alluxio.master.metastore.inode.cache.low.water.mark.ratio:
-  'The low water mark for the inode cache, as a ratio from low water mark to total cache size. If this is 0.7 and the max size is 10 million, the low water mark value is 7 million. When the cache reaches the high water mark, the eviction process will evict down to the low water mark.'
+  'The low water mark for the inode cache, as a ratio from low water mark to total cache size. If this is 0.8 and the max size is 10 million, the low water mark value is 8 million. When the cache reaches the high water mark, the eviction process will evict down to the low water mark.'
 alluxio.master.metastore.inode.cache.max.size:
   'The number of inodes to cache on-heap. This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable the on-heap inode cache'
+alluxio.master.metastore.inode.inherit.owner.and.group:
+  'Whether to inherit the owner/group from the parent when creating a new inode path if empty'
 alluxio.master.metrics.time.series.interval:
   'Interval for which the master records metrics information. This affects the granularity of the metrics graphed in the UI.'
 alluxio.master.mount.table.root.alluxio:
@@ -121,7 +135,7 @@ alluxio.master.mount.table.root.readonly:
 alluxio.master.mount.table.root.shared:
   'Whether Alluxio root mount point is shared.'
 alluxio.master.mount.table.root.ufs:
-  'The UFS mounted to Alluxio root mount point.'
+  'The storage address of the UFS at the Alluxio root mount point.'
 alluxio.master.periodic.block.integrity.check.interval:
   'The period for the block integrity check, disabled if <= 0.'
 alluxio.master.periodic.block.integrity.check.repair:
@@ -131,7 +145,7 @@ alluxio.master.persistence.checker.interval.ms:
 alluxio.master.persistence.initial.interval.ms:
   'N/A'
 alluxio.master.persistence.initial.wait.time.ms:
-  'N/A'
+  'Time to wait before starting the persistence job. When alluxio.user.file.writetype.default is set to ASYNC_THROUGH, set to a big enough value to avoid conflicts between cache and through job.'
 alluxio.master.persistence.max.interval.ms:
   'N/A'
 alluxio.master.persistence.max.total.wait.time.ms:
@@ -148,8 +162,6 @@ alluxio.master.rpc.addresses:
   'A list of comma-separated host:port RPC addresses where the client should look for masters when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses.'
 alluxio.master.startup.block.integrity.check.enabled:
   'Whether the system should be checked on startup for orphaned blocks (blocks having no corresponding files but still taking system resource due to various system failures). Orphaned blocks will be deleted during master startup if this property is true. This property is available since 1.7.1'
-alluxio.master.startup.consistency.check.enabled:
-  'Whether the system should be checked for consistency with the underlying storage on startup. During the time the check is running, Alluxio will be in read only mode. Enabled by default.'
 alluxio.master.tieredstore.global.level0.alias:
   'The name of the highest storage tier in the entire system.'
 alluxio.master.tieredstore.global.level1.alias:
@@ -178,9 +190,5 @@ alluxio.master.worker.connect.wait.time:
   'Alluxio master will wait a period of time after start up for all workers to register, before it starts accepting client requests. This property determines the wait time.'
 alluxio.master.worker.heartbeat.interval:
   'The interval between Alluxio master and worker heartbeats.'
-alluxio.master.worker.threads.max:
-  'The maximum number of incoming RPC requests to master that can be handled. This value is used to configure maximum number of threads in gRPC thread pool with master.'
-alluxio.master.worker.threads.min:
-  'The minimum number of threads used to handle incoming RPC requests to master. This value is used to configure minimum number of threads in gRPC thread pool with master.'
 alluxio.master.worker.timeout:
   'Timeout between master and worker indicating a lost worker.'

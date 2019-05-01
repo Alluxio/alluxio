@@ -94,7 +94,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException{
+  public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
     // Noop here by default
   }
 

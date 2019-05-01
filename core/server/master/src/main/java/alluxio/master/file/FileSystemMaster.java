@@ -35,7 +35,6 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAclContext;
@@ -69,11 +68,6 @@ public interface FileSystemMaster extends Master {
    * Periodically clean up the under file systems.
    */
   void cleanupUfs();
-
-  /**
-   * @return the status of the startup consistency check and inconsistent paths if it is complete
-   */
-  StartupConsistencyCheck getStartupConsistencyCheck();
 
   /**
    * Returns the file id for a given path. If the given path does not exist in Alluxio, the method
@@ -189,7 +183,7 @@ public interface FileSystemMaster extends Master {
    *
    * @param path the file to create
    * @param context the method context
-   * @return the id of the created file
+   * @return the file info of the created file
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileAlreadyExistsException if the file already exists
    * @throws BlockInfoException if an invalid block information is encountered
@@ -197,7 +191,7 @@ public interface FileSystemMaster extends Master {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  long createFile(AlluxioURI path, CreateFileContext context)
+  FileInfo createFile(AlluxioURI path, CreateFileContext context)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException;
 
@@ -230,9 +224,9 @@ public interface FileSystemMaster extends Master {
   MountPointInfo getMountPointInfo(AlluxioURI path) throws InvalidPathException;
 
   /**
-   * @return an estimate of the number of files and directories
+   * @return the number of files and directories
    */
-  long estimateNumberOfPaths();
+  long getInodeCount();
 
   /**
    * @return the number of pinned files and directories
@@ -373,27 +367,6 @@ public interface FileSystemMaster extends Master {
    * @return all the files lost on the workers
    */
   List<Long> getLostFiles();
-
-  /**
-   * Loads metadata for the object identified by the given path from UFS into Alluxio.
-   * <p>
-   * This operation requires users to have WRITE permission on the path
-   * and its parent path if path is a file, or WRITE permission on the
-   * parent path if path is a directory.
-   *
-   * @param path the path for which metadata should be loaded
-   * @param context the load metadata context
-   * @return the file id of the loaded path
-   * @throws BlockInfoException if an invalid block size is encountered
-   * @throws FileDoesNotExistException if there is no UFS path
-   * @throws InvalidPathException if invalid path is encountered
-   * @throws InvalidFileSizeException if invalid file size is encountered
-   * @throws FileAlreadyCompletedException if the file is already completed
-   * @throws AccessControlException if permission checking fails
-   */
-  long loadMetadata(AlluxioURI path, LoadMetadataContext context)
-      throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException;
 
   /**
    * Mounts a UFS path onto an Alluxio path.

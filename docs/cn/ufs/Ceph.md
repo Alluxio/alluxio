@@ -23,7 +23,7 @@ priority: 1
 为了配置Alluxio以使用底层文件系统，需要修改`alluxio-site.properties`文件。如果该文件不存在，根据模板创建配置文件。
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 ### 方法1: S3A接口
@@ -31,7 +31,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 向`conf/alluxio-env.sh`文件添加以下代码：
 
 ```
-alluxio.underfs.address=s3a://<bucket>/<folder>
+alluxio.master.mount.table.root.ufs=s3a://<bucket>/<folder>
 aws.accessKeyId=<access-key>
 aws.secretKey=<secret-key>
 alluxio.underfs.s3.endpoint=http://<rgw-hostname>:<rgw-port>
@@ -47,7 +47,7 @@ alluxio.underfs.s3a.inherit_acl=<inherit-acl>
 向`conf/alluxio-env.sh`文件添加以下代码：
 
 ```
-alluxio.underfs.address=swift://<swift-container>
+alluxio.master.mount.table.root.ufs=swift://<swift-container>
 ```
 
 其中，`<swift-container>`是一个已经存在的Swift容器。
@@ -71,8 +71,8 @@ fs.swift.auth.method=<swift-auth-model>
 完成所有的配置之后，你可以本地运行Alluxio,观察是否一切运行正常。
 
 ```
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
@@ -80,7 +80,7 @@ $ ./bin/alluxio-start.sh local
 接着，你可以运行一个简单的示例程序：
 
 ```
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
 运行成功后，访问你的bucket/container目录，确认其中包含了由Alluxio创建的文件和目录。

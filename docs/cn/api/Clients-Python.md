@@ -18,7 +18,7 @@ Alluxio 有一个 [Python 客户端](https://github.com/Alluxio/alluxio-py)，�
 
 # 安装python客户端库
 ```bash
-$ pip install alluxio
+pip install alluxio
 ```
 
 # 使用示例

@@ -24,9 +24,10 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Loads a file or directory in Alluxio space, makes it resident in memory.
@@ -51,7 +52,8 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(Option.builder(REPLICATION)
+    return new Options().addOption(Option.builder()
+        .longOpt(REPLICATION)
         .required(false)
         .hasArg(true)
         .desc("number of replicas to have for each block of the loaded file")
@@ -101,7 +103,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
       thread.start();
       try {
         JobGrpcClientUtils.run(new LoadConfig(filePath.getPath(), replication), 3,
-            mFsContext.getConf());
+            mFsContext.getPathConf(filePath));
       } finally {
         thread.interrupt();
       }
@@ -111,7 +113,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "distributedLoad [-replication N] <path>";
+    return "distributedLoad [--replication <num>] <path>";
   }
 
   @Override

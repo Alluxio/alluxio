@@ -62,9 +62,7 @@ public final class Format {
    */
   private static void formatWorkerDataFolder(String folder) throws IOException {
     Path path = Paths.get(folder);
-    if (Files.exists(path)) {
-      FileUtils.deletePathRecursively(folder);
-    }
+    FileUtils.deletePathRecursively(folder);
     Files.createDirectory(path);
     // For short-circuit read/write to work, others needs to be able to access this directory.
     // Therefore, default is 777 but if the user specifies the permissions, respect those instead.
@@ -116,8 +114,8 @@ public final class Format {
       case MASTER:
         URI journalLocation = JournalUtils.getJournalLocation();
         LOG.info("Formatting master journal: {}", journalLocation);
-        JournalSystem journalSystem =
-            new JournalSystem.Builder().setLocation(journalLocation).build();
+        JournalSystem journalSystem = new JournalSystem.Builder()
+            .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
         for (String masterServiceName : ServiceUtils.getMasterServiceNames()) {
           journalSystem.createJournal(new NoopMaster(masterServiceName));
         }

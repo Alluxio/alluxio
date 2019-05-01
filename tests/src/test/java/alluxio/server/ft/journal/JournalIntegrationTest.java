@@ -20,10 +20,11 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.status.CanceledException;
+import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -48,6 +49,7 @@ public class JournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
           .setProperty(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 0)
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE)
           .setNumWorkers(0)
@@ -131,7 +133,7 @@ public class JournalIntegrationTest {
         } catch (UnavailableException e) {
           // Ignore - this happen if the client is interrupted while trying to connect.
         } catch (IOException | AlluxioException e) {
-          if (e.getCause() instanceof CanceledException) {
+          if (e.getCause() instanceof CancelledException) {
             // Ignore - this happen if the client is interrupted while trying to connect.
           } else {
             mException.set(e);

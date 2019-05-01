@@ -173,7 +173,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
               }
             >
               <div
-                className="App h-100 pt-5 pb-4"
+                className="App h-100"
               >
                 <div
                   className="w-100 sticky-top header-wrapper"
@@ -722,7 +722,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                   </Header>
                 </div>
                 <div
-                  className="h-100 w-100 pt-3"
+                  className="w-100 pt-5 mt-3 pb-4 mb-2"
                 >
                   <Switch>
                     <Route
@@ -853,7 +853,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                           refresh={false}
                         >
                           <div
-                            className="h-100 w-100 metrics-page"
+                            className="metrics-page"
                           >
                             <LoadingMessage>
                               <div
@@ -1062,23 +1062,17 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
           <tbody>
             <tr>
               <th>
-                Short-circuit Read
+                Remote Alluxio Read
               </th>
               <td />
               <th>
-                From Remote Instances
+                Remote Alluxio Write
               </th>
               <td />
             </tr>
             <tr>
               <th>
                 Under Filesystem Read
-              </th>
-              <td />
-            </tr>
-            <tr>
-              <th>
-                Alluxio Write
               </th>
               <td />
               <th>
@@ -1103,11 +1097,11 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
           <tbody>
             <tr>
               <th>
-                Short-circuit Read
+                Remote Alluxio Read
               </th>
               <td />
               <th>
-                From Remote Instances
+                Remote Alluxio Write
               </th>
               <td />
             </tr>
@@ -1116,49 +1110,10 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
                 Under Filesystem Read
               </th>
               <td />
-            </tr>
-            <tr>
-              <th>
-                Alluxio Write
-              </th>
-              <td />
               <th>
                 Under Filesystem Write
               </th>
               <td />
-            </tr>
-          </tbody>
-        </Table>
-      </div>
-      <div
-        className="col-12"
-      >
-        <h5>
-          Cache Hit Rate (Percentage)
-        </h5>
-        <Table
-          hover={true}
-          responsiveTag="div"
-          tag="table"
-        >
-          <tbody>
-            <tr>
-              <th>
-                Alluxio Local
-              </th>
-              <td />
-              <th>
-                Alluxio Remote
-              </th>
-              <td />
-            </tr>
-            <tr>
-              <th>
-                Miss
-              </th>
-              <td>
-                0.00
-              </td>
             </tr>
           </tbody>
         </Table>

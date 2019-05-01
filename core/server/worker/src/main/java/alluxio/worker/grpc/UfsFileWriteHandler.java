@@ -17,8 +17,10 @@ import alluxio.grpc.WriteResponse;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
+import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -27,7 +29,6 @@ import alluxio.util.proto.ProtoUtils;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
-import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,9 +61,11 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
    * Creates an instance of {@link UfsFileWriteHandler}.
    *
    * @param ufsManager the file data manager
+   * @param userInfo the authenticated user info
    */
-  UfsFileWriteHandler(UfsManager ufsManager, StreamObserver<WriteResponse> responseObserver) {
-    super(responseObserver);
+  UfsFileWriteHandler(UfsManager ufsManager, StreamObserver<WriteResponse> responseObserver,
+      AuthenticatedUserInfo userInfo) {
+    super(responseObserver, userInfo);
     mUfsManager = ufsManager;
   }
 
@@ -109,7 +112,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     // TODO(calvin): Consider adding cancel to the ufs stream api.
     if (context.getOutputStream() != null && context.getUfsResource() != null) {
       context.getOutputStream().close();
-      context.getUfsResource().get().deleteFile(request.getUfsPath());
+      context.getUfsResource().get().deleteExistingFile(request.getUfsPath());
       context.setOutputStream(null);
       context.setCreateOptions(null);
       context.getUfsResource().close();
@@ -132,12 +135,12 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
 
   @Override
   protected void writeBuf(UfsFileWriteRequestContext context,
-      StreamObserver<WriteResponse> observer, ByteString buf, long pos) throws Exception {
+      StreamObserver<WriteResponse> observer, DataBuffer buf, long pos) throws Exception {
     Preconditions.checkState(context != null);
     if (context.getOutputStream() == null) {
       createUfsFile(context);
     }
-    buf.writeTo(context.getOutputStream());
+    buf.readBytes(context.getOutputStream(), buf.readableBytes());
   }
 
   private void createUfsFile(UfsFileWriteRequestContext context)
@@ -156,7 +159,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       // This acl information will be ignored by all but HDFS implementations
       createOptions.setAcl(ProtoUtils.fromProto(createUfsFileOptions.getAcl()));
     }
-    context.setOutputStream(ufs.create(request.getUfsPath(), createOptions));
+    context.setOutputStream(ufs.createNonexistingFile(request.getUfsPath(), createOptions));
     context.setCreateOptions(createOptions);
     String ufsString = MetricsSystem.escape(ufsClient.getUfsMountPointUri());
     String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS,

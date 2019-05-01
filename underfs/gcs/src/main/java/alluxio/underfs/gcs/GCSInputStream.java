@@ -11,9 +11,14 @@
 
 package alluxio.underfs.gcs;
 
+import alluxio.retry.RetryPolicy;
+
+import org.apache.commons.httpclient.HttpStatus;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.jets3t.service.model.GSObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -28,6 +33,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class GCSInputStream extends InputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(GCSInputStream.class);
+
   /** Bucket name of the Alluxio GCS bucket. */
   private final String mBucketName;
 
@@ -52,11 +59,11 @@ public final class GCSInputStream extends InputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for GCS
-   * @throws ServiceException if a service exception occurs
+   * @param retryPolicy retry policy in case the key does not exist
    */
-  GCSInputStream(String bucketName, String key, GoogleStorageService client)
-      throws ServiceException {
-    this(bucketName, key, client, 0L);
+  GCSInputStream(String bucketName, String key, GoogleStorageService client,
+      RetryPolicy retryPolicy) throws ServiceException {
+    this(bucketName, key, client, 0L, retryPolicy);
   }
 
   /**
@@ -66,21 +73,45 @@ public final class GCSInputStream extends InputStream {
    * @param key the key of the file
    * @param client the client for GCS
    * @param pos the position to start
-   * @throws ServiceException if a service exception occurs
+   * @param retryPolicy retry policy in case the key does not exist
    */
-  GCSInputStream(String bucketName, String key, GoogleStorageService client, long pos)
-      throws ServiceException {
+  GCSInputStream(String bucketName, String key, GoogleStorageService client,
+      long pos, RetryPolicy retryPolicy) throws ServiceException {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
     mPos = pos;
-    // For an empty file setting start pos = 0 will throw a ServiceException
-    if (mPos > 0) {
-      mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
-    } else {
-      mObject = mClient.getObject(mBucketName, mKey);
-    }
+    mObject = getObjectWithRetry(retryPolicy);
     mInputStream = new BufferedInputStream(mObject.getDataInputStream());
+  }
+
+  /**
+   * Retries getting a {@link GSObject}.
+   *
+   * @param retryPolicy the retry policy to solve eventual consistency issue
+   * @return the {@link GSObject}
+   */
+  private GSObject getObjectWithRetry(RetryPolicy retryPolicy) throws ServiceException {
+    ServiceException lastException = null;
+    while (retryPolicy.attempt()) {
+      try {
+        if (mPos > 0) {
+          return mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
+        } else {
+          return mClient.getObject(mBucketName, mKey);
+        }
+      } catch (ServiceException e) {
+        LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
+            retryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+        if (e.getResponseCode() != HttpStatus.SC_NOT_FOUND) {
+          throw e;
+        }
+        // Key does not exist
+        lastException = e;
+      }
+    }
+    // Failed after retrying key does not exist
+    throw lastException;
   }
 
   @Override

@@ -63,8 +63,8 @@
       <id>ufs-hadoop-1</id>
       <dependencies>
         <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-core</artifactId>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-shaded-hadoop</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
@@ -94,13 +94,8 @@
       </activation>
       <dependencies>
         <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-common</artifactId>
-          <version>${ufs.hadoop.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-hdfs</artifactId>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-shaded-hadoop</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
@@ -111,13 +106,8 @@
       <id>ufs-hadoop-3</id>
       <dependencies>
         <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-common</artifactId>
-          <version>${ufs.hadoop.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-hdfs-client</artifactId>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-shaded-hadoop</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
@@ -201,7 +191,6 @@
         <groupId>com.coderplus.maven.plugins</groupId>
         <artifactId>copy-rename-maven-plugin</artifactId>
       </plugin>
-
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>templating-maven-plugin</artifactId>

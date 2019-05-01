@@ -1,0 +1,33 @@
+- name: ALLUXIO_CONF_DIR
+  description: The path to the alluxio configuration directory.
+- name: ALLUXIO_LOGS_DIR
+  description: The path to the Alluxio logs directory
+- name: ALLUXIO_MASTER_HOSTNAME
+  description: hostname of the Alluxio master. Defaults to localhost
+- name: ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS
+  description: >
+    The under storage system addess. Defaults to `${ALLUXIO_HOME}`/underFSStorage which is a local
+    file system.
+- name: ALLUXIO_RAM_FOLDER
+  description: The directory where a worker stores its in-memory data. Defaults to `/mnt/ramdisk`
+- name: ALLUXIO_JAVA_OPTS
+  description: >
+    Java VM options for the Alluxio master, worker, and shell commands. Note that, by default
+    `ALLUXIO_JAVA_OPTS` is included in `ALLUXIO_MASTER_JAVA_OPTS`, `ALLUXIO_WORKER_JAVA_OPTS`,
+    and `ALLUXIO_USER_JAVA_OPTS`
+- name: ALLUXIO_MASTER_JAVA_OPTS
+  description: Additional Java VM options for Alluxio master configuration.
+- name: ALLUXIO_WORKER_JAVA_OPTS
+  description: Additional Java VM options for Alluxio worker configuration.
+- name: ALLUXIO_USER_JAVA_OPTS
+  description: Additional Java VM options for Alluxio shell command configuration.
+- name: ALLUXIO_CLASSPATH
+  description: Additional classpath entries for Alluxio processes. Empty by default.
+- name: ALLUXIO_LOGSERVER_HOSTNAME
+  description: Hostname of the log server. Empty by default.
+- name: ALLUXIO_LOGSERVER_PORT
+  description: The port number of the log server. Defaults to `45600`
+- name: ALLUXIO_LOGSERVER_LOGS_DIR
+  description: >
+    The path to the local directory where the Alluxio log server stores logs received from the
+    Alluxio servers

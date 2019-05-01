@@ -31,6 +31,7 @@ import alluxio.master.NoopMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
+import alluxio.master.journal.JournalType;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -65,11 +66,13 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
           .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
               Integer.toString(Constants.KB))
           .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "2")
           .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH").build();
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
+          .build();
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -162,7 +165,6 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     String ufsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     ufs.create(ufsRoot + "/xyz").close();
-    mFileSystem.loadMetadata(new AlluxioURI("/xyz"));
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/xyz"));
     mLocalAlluxioCluster.stopFS();
     loadMetadataTestUtil(status);
@@ -408,6 +410,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
    * Tests directory creation.
    */
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "0"})
   public void directory() throws Exception {
     AlluxioURI directoryPath = new AlluxioURI("/xyz");
     mFileSystem.createDirectory(directoryPath);

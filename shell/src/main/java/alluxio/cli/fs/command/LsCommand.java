@@ -127,7 +127,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
     SORT_FIELD_COMPARATORS.put("name",
         Comparator.comparing(URIStatus::getName, String.CASE_INSENSITIVE_ORDER));
     SORT_FIELD_COMPARATORS.put("path", Comparator.comparing(URIStatus::getPath));
-    SORT_FIELD_COMPARATORS.put("size", Comparator.comparingLong(URIStatus::getBlockSizeBytes));
+    SORT_FIELD_COMPARATORS.put("size", Comparator.comparingLong(URIStatus::getLength));
   }
 
   /**
@@ -178,13 +178,14 @@ public final class LsCommand extends AbstractFileSystemCommand {
         || !status.getDefaultAcl().isEmpty();
 
     System.out.print(formatLsString(hSize,
-        SecurityUtils.isSecurityEnabled(mFsContext.getConf()),
+        SecurityUtils.isSecurityEnabled(mFsContext.getPathConf(new AlluxioURI(status.getPath()))),
         status.isFolder(),
         FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended),
         status.getOwner(), status.getGroup(), status.getLength(),
         status.getLastModificationTimeMs(), status.getInAlluxioPercentage(),
         status.getPersistenceState(), status.getPath(),
-        mFsContext.getConf().get(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+        mFsContext.getPathConf(new AlluxioURI(status.getPath())).get(
+            PropertyKey.USER_DATE_FORMAT_PATTERN)));
   }
 
   /**

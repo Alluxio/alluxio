@@ -358,7 +358,7 @@ public final class FileSystemMasterClientServiceGrpc {
       fullMethodName = SERVICE_NAME + '/' + "ListStatus",
       requestType = alluxio.grpc.ListStatusPRequest.class,
       responseType = alluxio.grpc.ListStatusPResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+      methodType = io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
   public static io.grpc.MethodDescriptor<alluxio.grpc.ListStatusPRequest,
       alluxio.grpc.ListStatusPResponse> getListStatusMethod() {
     io.grpc.MethodDescriptor<alluxio.grpc.ListStatusPRequest, alluxio.grpc.ListStatusPResponse> getListStatusMethod;
@@ -367,7 +367,7 @@ public final class FileSystemMasterClientServiceGrpc {
         if ((getListStatusMethod = FileSystemMasterClientServiceGrpc.getListStatusMethod) == null) {
           FileSystemMasterClientServiceGrpc.getListStatusMethod = getListStatusMethod = 
               io.grpc.MethodDescriptor.<alluxio.grpc.ListStatusPRequest, alluxio.grpc.ListStatusPResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
               .setFullMethodName(generateFullMethodName(
                   "alluxio.grpc.file.FileSystemMasterClientService", "ListStatus"))
               .setSampledToLocalTracing(true)
@@ -1044,7 +1044,7 @@ public final class FileSystemMasterClientServiceGrpc {
                   this, METHODID_GET_STATUS)))
           .addMethod(
             getListStatusMethod(),
-            asyncUnaryCall(
+            asyncServerStreamingCall(
               new MethodHandlers<
                 alluxio.grpc.ListStatusPRequest,
                 alluxio.grpc.ListStatusPResponse>(
@@ -1275,7 +1275,7 @@ public final class FileSystemMasterClientServiceGrpc {
      */
     public void listStatus(alluxio.grpc.ListStatusPRequest request,
         io.grpc.stub.StreamObserver<alluxio.grpc.ListStatusPResponse> responseObserver) {
-      asyncUnaryCall(
+      asyncServerStreamingCall(
           getChannel().newCall(getListStatusMethod(), getCallOptions()), request, responseObserver);
     }
 
@@ -1543,8 +1543,9 @@ public final class FileSystemMasterClientServiceGrpc {
      * directory contents.
      * </pre>
      */
-    public alluxio.grpc.ListStatusPResponse listStatus(alluxio.grpc.ListStatusPRequest request) {
-      return blockingUnaryCall(
+    public java.util.Iterator<alluxio.grpc.ListStatusPResponse> listStatus(
+        alluxio.grpc.ListStatusPRequest request) {
+      return blockingServerStreamingCall(
           getChannel(), getListStatusMethod(), getCallOptions(), request);
     }
 
@@ -1802,20 +1803,6 @@ public final class FileSystemMasterClientServiceGrpc {
         alluxio.grpc.GetStatusPRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getGetStatusMethod(), getCallOptions()), request);
-    }
-
-    /**
-     * <pre>
-     **
-     * If the path points to a file, the method returns a singleton with its file information.
-     * If the path points to a directory, the method returns a list with file information for the
-     * directory contents.
-     * </pre>
-     */
-    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.ListStatusPResponse> listStatus(
-        alluxio.grpc.ListStatusPRequest request) {
-      return futureUnaryCall(
-          getChannel().newCall(getListStatusMethod(), getCallOptions()), request);
     }
 
     /**

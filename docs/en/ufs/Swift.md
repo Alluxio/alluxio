@@ -12,47 +12,63 @@ priority: 10
 This guide describes how to configure Alluxio with an under storage system supporting the
 [Swift API](http://docs.openstack.org/developer/swift/).
 
-## Initial Setup
+## Prerequisites
 
 The Alluxio binaries must be on your machine. You can either
 [compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
 [download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
-## Configuring Alluxio
+## Basic Setup
+
+A Swift bucket can be mounted to the Alluxio either at the root of the namespace, or at a nested directory.
+
+### Root Mount Point
 
 Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
 ```bash
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.underfs.address=swift://<container>/<folder>
-fs.swift.user=<swift-user>
-fs.swift.tenant=<swift-tenant>
-fs.swift.password=<swift-user-password>
-fs.swift.auth.url=<swift-auth-url>
-fs.swift.use.public.url=<swift-use-public>
-fs.swift.auth.method=<swift-auth-model>
+alluxio.master.mount.table.root.ufs=swift://<bucket>/<folder>
+alluxio.master.mount.table.root.option.fs.swift.user=<swift-user>
+alluxio.master.mount.table.root.option.fs.swift.tenant=<swift-tenant>
+alluxio.master.mount.table.root.option.fs.swift.password=<swift-user-password>
+alluxio.master.mount.table.root.option.fs.swift.auth.url=<swift-auth-url>
+alluxio.master.mount.table.root.option.fs.swift.use.public.url=<swift-use-public>
+alluxio.master.mount.table.root.option.fs.swift.auth.method=<swift-auth-model>
 ```
 
-Replace `<container>/<folder>` with an existing Swift container location. Possible values of
+Replace `<bucket>/<folder>` with an existing Swift bucket location. Possible values of
 `<swift-use-public>` are `true`, `false`. Possible values of `<swift-auth-model>` are `keystonev3`,
 `keystone`, `tempauth`, `swiftauth`. 
 
 When using either keystone authentication, the following parameter can optionally be set:
 
 ```properties
-fs.swift.region=<swift-preferred-region>
+alluxio.master.mount.table.root.option.fs.swift.region=<swift-preferred-region>
 ```
 
 On the successful authentication, Keystone will return two access URLs: public and private. If
-Alluxio is used inside company network and Swift is located on the same network it is adviced to set
+Alluxio is used inside company network and Swift is located on the same network it is advised to set
 value of `<swift-use-public>`  to `false`.
+
+### Nested Mount Point
+
+An Swift location can be mounted at a nested directory in the Alluxio namespace to have unified access
+to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
+
+```bash
+$ ./bin/alluxio fs mount --option fs.swift.user=<SWIFT_USER> --option fs.swift.tenant=<SWIFT_TENANT> \
+--option fs.swift.password=<SWIFT_PASSWORD> --option fs.swift.auth.url=<AUTH_URL> \
+--option fs.swift.use.public.url=<USE_PUBLIC> --option fs.swift.auth.method=<AUTH_METHOD> \
+/mnt/swift swift://<BUCKET>/<FOLDER>
+```
 
 ## Options for Swift Object Storage
 
@@ -66,8 +82,8 @@ be deployed.
 Start an Alluxio cluster:
 
 ```bash
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+./bin/alluxio format
+./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -76,29 +92,35 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Run a simple example program:
 
 ```bash
-$ ./bin/alluxio runTests
+./bin/alluxio runTests
 ```
 
-Visit your Swift container to verify the files and directories created
+Visit your Swift bucket to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
 
 ```bash
-<container>/<folder>/default_tests_files/Basic_CACHE_THROUGH
+<bucket>/<folder>/default_tests_files/Basic_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:
 
 ```bash
-$ ./bin/alluxio-stop.sh local
+./bin/alluxio-stop.sh local
 ```
 
 ## Running functional tests
 
+For developers, to run functional tests against a Swift endpoint run:
 ```bash
-$ mvn test -DtestSwiftContainerKey=swift://<container>
+mvn test -DtestSwiftContainerKey=swift://<bucket> \
+    -Dfs.swift.user=<SWIFT_USER> -Dfs.swift.tenant=<SWIFT_TENANT> -Dfs.swift.password=<SWIFT_PASSWORD> \
+    -Dfs.swift.auth.url=<AUTH_URL> -Dfs.swift.use.public.url=<USE_PUBLIC> \
+    -Dfs.swift.auth.method=<AUTH_METHOD> 
 ```
 
-## Swift Access Control
+## Advanced Setup
+
+### Swift Access Control
 
 If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying object
 storage.
@@ -117,5 +139,5 @@ If you want to share the Swift mount point with other users in Alluxio namespace
 
 ### Permission change
 
-In addition, chown/chgrp/chmod to Alluxio directories and files do **NOT** propagate to the underlying
-Swift containers nor objects.
+In addition, `chown`, `chgrp`, and `chmod` to Alluxio directories and files do **NOT** propagate to the underlying
+Swift buckets nor objects.

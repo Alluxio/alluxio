@@ -81,7 +81,7 @@ export class App extends React.Component<AllProps> {
 
     if (!init && loading) {
       return (
-        <div className="h-100 w-100 App">
+        <div className="App">
           <LoadingMessage/>
         </div>
       );
@@ -89,11 +89,11 @@ export class App extends React.Component<AllProps> {
 
     return (
       <ConnectedRouter history={history}>
-        <div className="App h-100 pt-5 pb-4">
+        <div className="App h-100">
           <div className="w-100 sticky-top header-wrapper">
             <Header history={history} data={headerNavigationData} autoRefreshCallback={this.setAutoRefresh}/>
           </div>
-          <div className="h-100 w-100 pt-3">
+          <div className="w-100 pt-5 mt-3 pb-4 mb-2">
             <Switch>
               <Route exact={true} path="/" render={this.redirectToOverview}/>
               <Route path="/overview" exact={true} component={Overview}/>

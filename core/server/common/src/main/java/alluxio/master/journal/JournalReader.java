@@ -11,7 +11,7 @@
 
 package alluxio.master.journal;
 
-import alluxio.exception.InvalidJournalEntryException;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.Closeable;
@@ -25,12 +25,25 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public interface JournalReader extends Closeable {
   /**
-   * Reads an entry from the journal. Return null if there is no more entry left.
+   * Returns the next entry in the journal.
    *
-   * @return the journal entry, null if no more entry left
-   * @throws InvalidJournalEntryException if the journal entry is invalid (e.g. corrupted entry)
+   * This will be null unless the last call to {@link #advance()} returned {@link State#LOG}.
+   * Multiple calls to getEntry without calling advance will return the same entry.
+   *
+   * @return the journal entry, or null if the next element isn't a journal entry
    */
-  JournalEntry read() throws IOException, InvalidJournalEntryException;
+  JournalEntry getEntry();
+
+  /**
+   * Returns the input stream for reading a checkpoint.
+   *
+   * This will be null unless the last call to {@link #advance()} returned {@link State#CHECKPOINT}.
+   * Multiple calls to getCheckpoint without calling advance will return the same stream.
+   *
+   * @return the input stream for reading the checkpoint, or null if the next element isn't a
+   *         checkpoint
+   */
+  CheckpointInputStream getCheckpoint();
 
   /**
    * Gets the the sequence number of the next journal log entry to read. This method is valid
@@ -39,4 +52,31 @@ public interface JournalReader extends Closeable {
    * @return the next sequence number
    */
   long getNextSequenceNumber();
+
+  /**
+   * Advances the reader to the next element.
+   *
+   * @return the next element, see {@link State}
+   */
+  State advance() throws IOException;
+
+  /**
+   * States that the reader can be after calling {@link #advance()}.
+   */
+  enum State {
+    /**
+     * Indicates that the next item to process is a checkpoint. The caller should call
+     * {@link #getCheckpoint()}.
+     */
+    CHECKPOINT,
+    /**
+     * Indicates that the next item to process is an edit log. The caller should call
+     * {@link #getEntry()}.
+     */
+    LOG,
+    /**
+     * Indicates that there is nothing left to read.
+     */
+    DONE
+  }
 }

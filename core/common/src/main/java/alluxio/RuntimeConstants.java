@@ -49,5 +49,9 @@ public final class RuntimeConstants {
   /** The URL of Alluxio debugging documentation. */
   public static final String ALLUXIO_DEBUG_DOCS_URL = ALLUXIO_DOCS_URL + "/en/Debugging-Guide.html";
 
+  /** The URL of Alluxio 1.x to 2.x upgrade documentation. */
+  public static final String ALLUXIO_2X_UPGRADE_DOC_URL =
+      ALLUXIO_DOCS_URL + "/en/operation/2.x-Upgrade.html";
+
   private RuntimeConstants() {} // prevent instantiation
 }

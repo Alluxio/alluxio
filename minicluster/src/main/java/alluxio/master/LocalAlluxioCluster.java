@@ -123,8 +123,8 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     setAlluxioWorkDirectory();
     setHostname();
     for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
-        .testConfigurationDefaults(ServerConfiguration.global(), mHostname, mWorkDirectory)
-        .entrySet()) {
+        .testConfigurationDefaults(ServerConfiguration.global(),
+            mHostname, mWorkDirectory).entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
@@ -135,7 +135,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   @Override
   public void startMasters() throws Exception {
-    mMaster = LocalAlluxioMaster.create(mWorkDirectory);
+    mMaster = LocalAlluxioMaster.create(mWorkDirectory, true);
     mMaster.start();
   }
 

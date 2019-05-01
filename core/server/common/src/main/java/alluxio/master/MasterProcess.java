@@ -15,7 +15,6 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.Process;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
@@ -51,9 +50,6 @@ public abstract class MasterProcess implements Process {
   /** The journal system for writing journal entries and restoring master state. */
   protected final JournalSystem mJournalSystem;
 
-  /** Maximum number of threads to serve the rpc server. */
-  final int mMaxWorkerThreads;
-
   /** Rpc server bind address. **/
   final InetSocketAddress mRpcBindAddress;
 
@@ -85,7 +81,6 @@ public abstract class MasterProcess implements Process {
   public MasterProcess(JournalSystem journalSystem, ServiceType rpcService,
       ServiceType webService) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
-    mMaxWorkerThreads = ServerConfiguration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
     mRpcBindAddress = configureAddress(rpcService);
     mWebBindAddress = configureAddress(webService);
   }
@@ -114,6 +109,15 @@ public abstract class MasterProcess implements Process {
    * @return this master's rpc address
    */
   public abstract InetSocketAddress getRpcAddress();
+
+  /**
+   * Gets the registered class from the master registry.
+   *
+   * @param clazz the class of the master to get
+   * @param <T> the type of the master to get
+   * @return the given master
+   */
+  public abstract <T extends Master> T getMaster(Class<T> clazz);
 
   /**
    * @return the start time of the master in milliseconds

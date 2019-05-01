@@ -32,10 +32,10 @@ priority: 4
 例如，启动一个有3个worker节点的Alluxio集群，其中一个HDFS的临时目录为`hdfs://${HDFS_MASTER}:9000/tmp/`，并且master节点的主机名为`${ALLUXIO_MASTER}`，你可以这样运行：
 
 ```bash
-$ # If Yarn does not reside in `HADOOP_HOME`, set the environment variable `YARN_HOME` to the base path of Yarn.
-$ export HADOOP_HOME=<path to hadoop home>
-$ ${HADOOP_HOME}/bin/hadoop fs -mkdir hdfs://${HDFS_MASTER}:9000/tmp
-$ ${ALLUXIO_HOME}/integration/yarn/bin/alluxio-yarn.sh 3 hdfs://${HDFS_MASTER}:9000/tmp/ ${ALLUXIO_MASTER}
+# If Yarn does not reside in `HADOOP_HOME`, set the environment variable `YARN_HOME` to the base path of Yarn.
+export HADOOP_HOME=<path to hadoop home>
+${HADOOP_HOME}/bin/hadoop fs -mkdir hdfs://${HDFS_MASTER}:9000/tmp
+${ALLUXIO_HOME}/integration/yarn/bin/alluxio-yarn.sh 3 hdfs://${HDFS_MASTER}:9000/tmp/ ${ALLUXIO_MASTER}
 ```
 
 你也可以单独启动Alluxio Master节点，在这种情况下，上述的启动能够在提供的地址上自动检测到Master而且跳过一个新实例的初始化。
@@ -52,7 +52,7 @@ INFO impl.YarnClientImpl: Submitted application application_1445469376652_0002
 这个application ID可以通过运行如下指令来销毁application：
 
 ```bash
-$ ${HADOOP_HOME}/bin/yarn application -kill application_1445469376652_0002
+${HADOOP_HOME}/bin/yarn application -kill application_1445469376652_0002
 ```
 
 这个ID也可以在YARN web UI上看到。
@@ -62,5 +62,5 @@ $ ${HADOOP_HOME}/bin/yarn application -kill application_1445469376652_0002
 如果你有Alluxio application在运行，你可以通过在`conf/alluxio-site.properties`上配置`alluxio.master.hostname=masterhost`并运行如下指令来查看其健康性
 
 ```bash
-$ ${ALLUXIO_HOME}/bin/alluxio runTests
+${ALLUXIO_HOME}/bin/alluxio runTests
 ```

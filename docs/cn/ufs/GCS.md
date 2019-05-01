@@ -24,7 +24,7 @@ priority: 0
 你需要通过修改`conf/alluxio-site.properties`文件配置Alluxio以使用底层文件系统。如果该文件不存在，根据模板创建新的配置文件。
 
 ```
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 你需要配置Alluxio，以使用GCS作为其底层文件系统。第一个需要修改的地方就是指定一个已有的bucket以及bucket中的目录作为底层文件系统。你可以通过向`conf/alluxio-site.properties`文件添加以下代码来指定：

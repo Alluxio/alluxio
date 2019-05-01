@@ -17,6 +17,7 @@ import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
@@ -24,11 +25,13 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptions;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
@@ -97,11 +100,17 @@ public class FileOutStream extends AbstractOutStream {
     mCanceled = false;
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     mBytesWritten = 0;
+
     if (!mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream = null;
     } else { // Write is through to the under storage, create mUnderStorageOutputStream.
-      WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
-          options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getEligibleWorkers(), 0);
+      GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
+          .setBlockWorkerInfos(mBlockStore.getEligibleWorkers())
+          .setBlockInfo(new BlockInfo()
+              .setBlockId(-1)
+              .setLength(0)); // not storing data to Alluxio, so block size is 0
+      WorkerNetAddress workerNetAddress =
+          options.getLocationPolicy().getWorker(getWorkerOptions);
       if (workerNetAddress == null) {
         // Assume no worker is available because block size is 0.
         throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
@@ -298,8 +307,10 @@ public class FileOutStream extends AbstractOutStream {
   protected void scheduleAsyncPersist() throws IOException {
     try (CloseableResource<FileSystemMasterClient> masterClient = mContext
         .acquireMasterClientResource()) {
-      masterClient.get().scheduleAsyncPersist(mUri,
-          FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getConf()));
+      ScheduleAsyncPersistencePOptions persistOptions =
+          FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getPathConf(mUri)).toBuilder()
+              .setCommonOptions(mOptions.getCommonOptions()).build();
+      masterClient.get().scheduleAsyncPersist(mUri, persistOptions);
     }
   }
 

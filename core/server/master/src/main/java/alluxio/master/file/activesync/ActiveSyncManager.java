@@ -23,13 +23,14 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalEntryIterable;
-import alluxio.master.journal.JournalEntryReplayable;
+import alluxio.master.journal.Journaled;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddSyncPointEntry;
 import alluxio.proto.journal.File.RemoveSyncPointEntry;
 import alluxio.proto.journal.Journal;
+import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.RetryUtils;
@@ -56,6 +57,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -68,8 +70,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    stored in mSyncPathStatus.
  */
 @NotThreadSafe
-public class ActiveSyncManager implements JournalEntryIterable, JournalEntryReplayable {
+public class ActiveSyncManager implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(ActiveSyncManager.class);
+
   // a reference to the mount table
   private final MountTable mMountTable;
   // a list of sync points
@@ -96,9 +99,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    * @param mountTable mount table
    * @param fileSystemMaster file system master
    */
-  public ActiveSyncManager(MountTable mountTable,
-      FileSystemMaster fileSystemMaster) {
-
+  public ActiveSyncManager(MountTable mountTable, FileSystemMaster fileSystemMaster) {
     mMountTable = mountTable;
     mPollerMap = new ConcurrentHashMap<>();
     mFilterMap = new ConcurrentHashMap<>();
@@ -172,8 +173,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     // attempt to restart from a past txid, if this fails, it will result in MissingEventException
     // therefore forces a sync
     for (long mountId: mFilterMap.keySet()) {
-      long txId = mStartingTxIdMap.containsKey(mountId)
-          ? mStartingTxIdMap.get(mountId) : SyncInfo.INVALID_TXID;
+      long txId = mStartingTxIdMap.getOrDefault(mountId, SyncInfo.INVALID_TXID);
       launchPollingThread(mountId, txId);
 
       try {
@@ -192,7 +192,7 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
                       LOG.warn("IOException encountered during active sync while starting {}", e);
                     }
                   }
-          )).get();
+          ));
         }
       } catch (Exception e) {
         LOG.warn("exception encountered during initial sync {}", e);
@@ -283,6 +283,8 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
    * @param syncPoint sync point to stop
    * @return the path resolution result if successfully passed all checks
    */
+
+  @Nullable
   public MountTable.Resolution resolveSyncPoint(AlluxioURI syncPoint) throws InvalidPathException {
     if (!mSyncPathList.contains(syncPoint)) {
       LOG.debug("syncPoint not found {}", syncPoint.getPath());
@@ -406,22 +408,6 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     };
   }
 
-  @Override
-  public boolean replayJournalEntryFromJournal(Journal.JournalEntry entry) {
-    if (entry.hasAddSyncPoint()) {
-      apply(entry.getAddSyncPoint());
-      return true;
-    } else if (entry.hasRemoveSyncPoint()) {
-      apply(entry.getRemoveSyncPoint());
-      return true;
-    } else if (entry.hasActiveSyncTxId()) {
-      File.ActiveSyncTxIdEntry activeSyncTxId = entry.getActiveSyncTxId();
-      setTxId(activeSyncTxId.getMountId(), activeSyncTxId.getTxId());
-      return true;
-    }
-    return false;
-  }
-
   private void apply(RemoveSyncPointEntry removeSyncPoint) {
     AlluxioURI syncPoint = new AlluxioURI(removeSyncPoint.getSyncpointPath());
     long mountId = removeSyncPoint.getMountId();
@@ -543,11 +529,6 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     };
   }
 
-  @Override
-  public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return Iterators.concat(getSyncPathIterator(), getTxIdIterator());
-  }
-
   /**
    * set the transaction id for a particular mountId.
    *
@@ -608,27 +589,6 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
         ufs.get().stopActiveSyncPolling();
       } catch (IOException e) {
         LOG.warn("Encountered IOException when trying to stop polling thread {}", e);
-      }
-    }
-  }
-
-  /**
-   * Resets the sync manager.
-   *
-   * It clears all sync point, and stops polling thread.
-   */
-  public void reset() {
-    for (long mountId : mFilterMap.keySet()) {
-      try {
-        // stops sync point under this mount point. Note this clears the sync point and
-        // stops associated polling threads.
-        stopSyncForMount(mountId);
-      } catch (IOException e) {
-        LOG.info("reset: IOException resetting mountId {}, exception {}",
-            mountId,  e);
-      } catch (InvalidPathException e) {
-        LOG.info("reset: InvalidPathException resetting mountId {}, exception {}",
-            mountId,  e);
       }
     }
   }
@@ -707,5 +667,49 @@ public class ActiveSyncManager implements JournalEntryIterable, JournalEntryRepl
     if (future != null) {
       future.cancel(true);
     }
+  }
+
+  @Override
+  public boolean processJournalEntry(JournalEntry entry) {
+    if (entry.hasAddSyncPoint()) {
+      apply(entry.getAddSyncPoint());
+      return true;
+    } else if (entry.hasRemoveSyncPoint()) {
+      apply(entry.getRemoveSyncPoint());
+      return true;
+    } else if (entry.hasActiveSyncTxId()) {
+      File.ActiveSyncTxIdEntry activeSyncTxId = entry.getActiveSyncTxId();
+      setTxId(activeSyncTxId.getMountId(), activeSyncTxId.getTxId());
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * It clears all sync points, and stops the polling thread.
+   */
+  @Override
+  public void resetState() {
+    for (long mountId : mFilterMap.keySet()) {
+      try {
+        // stops sync point under this mount point. Note this clears the sync point and
+        // stops associated polling threads.
+        stopSyncForMount(mountId);
+      } catch (IOException | InvalidPathException e) {
+        LOG.info("Exception resetting mountId {}, exception: {}", mountId, e);
+      }
+    }
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.ACTIVE_SYNC_MANAGER;
+  }
+
+  @Override
+  public Iterator<JournalEntry> getJournalEntryIterator() {
+    return Iterators.concat(getSyncPathIterator(), getTxIdIterator());
   }
 }

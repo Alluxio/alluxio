@@ -1,3 +1,3 @@
 ```bash
-$ ./bin/alluxio fs masterInfo
+./bin/alluxio fs masterInfo
 ```

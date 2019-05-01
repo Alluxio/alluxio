@@ -20,13 +20,13 @@ Alluxio有一个[Go 语言客户端](https://github.com/Alluxio/alluxio-go), 此
 Go 语言客户端通过Alluxio代理提供的REST API和Alluxio进行交互。
 
 Alluxio代理是一个独立运行的server，可通过命令`${ALLUXIO_HOME}/bin/alluxio-start.sh proxy`启动，
-`${ALLUXIO_HOME}/bin/alluxio-stop.sh proxy`停止服务，默认情况下，REST API使用端口39999.
+`${ALLUXIO_HOME}/bin/alluxio-stop.sh proxy`停止服务，默认情况下，REST API使用端口39999。
 
 使用HTTP代理会影响性能，尤其是在使用代理时会增加一个额外的跳计数，所以推荐让代理服务和一个Alluxio worker运行在一个计算节点上。
 
 # 安装Go语言客户端相关库
 ```bash
-$ go get -d github.com/Alluxio/alluxio-go
+go get -d github.com/Alluxio/alluxio-go
 ```
 
 # 示例使用程序

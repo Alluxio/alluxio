@@ -31,6 +31,7 @@ private static final long serialVersionUID = 0L;
     if (extensionRegistry == null) {
       throw new java.lang.NullPointerException();
     }
+    int mutable_bitField0_ = 0;
     com.google.protobuf.UnknownFieldSet.Builder unknownFields =
         com.google.protobuf.UnknownFieldSet.newBuilder();
     try {
@@ -46,6 +47,19 @@ private static final long serialVersionUID = 0L;
                 input, unknownFields, extensionRegistry, tag)) {
               done = true;
             }
+            break;
+          }
+          case 10: {
+            alluxio.grpc.FileInfo.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000001) == 0x00000001)) {
+              subBuilder = fileInfo_.toBuilder();
+            }
+            fileInfo_ = input.readMessage(alluxio.grpc.FileInfo.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(fileInfo_);
+              fileInfo_ = subBuilder.buildPartial();
+            }
+            bitField0_ |= 0x00000001;
             break;
           }
         }
@@ -72,6 +86,28 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.CreateFilePResponse.class, alluxio.grpc.CreateFilePResponse.Builder.class);
   }
 
+  private int bitField0_;
+  public static final int FILEINFO_FIELD_NUMBER = 1;
+  private alluxio.grpc.FileInfo fileInfo_;
+  /**
+   * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+   */
+  public boolean hasFileInfo() {
+    return ((bitField0_ & 0x00000001) == 0x00000001);
+  }
+  /**
+   * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+   */
+  public alluxio.grpc.FileInfo getFileInfo() {
+    return fileInfo_ == null ? alluxio.grpc.FileInfo.getDefaultInstance() : fileInfo_;
+  }
+  /**
+   * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+   */
+  public alluxio.grpc.FileInfoOrBuilder getFileInfoOrBuilder() {
+    return fileInfo_ == null ? alluxio.grpc.FileInfo.getDefaultInstance() : fileInfo_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -84,6 +120,9 @@ private static final long serialVersionUID = 0L;
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      output.writeMessage(1, getFileInfo());
+    }
     unknownFields.writeTo(output);
   }
 
@@ -92,6 +131,10 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(1, getFileInfo());
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -108,6 +151,11 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.CreateFilePResponse other = (alluxio.grpc.CreateFilePResponse) obj;
 
     boolean result = true;
+    result = result && (hasFileInfo() == other.hasFileInfo());
+    if (hasFileInfo()) {
+      result = result && getFileInfo()
+          .equals(other.getFileInfo());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -119,6 +167,10 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
+    if (hasFileInfo()) {
+      hash = (37 * hash) + FILEINFO_FIELD_NUMBER;
+      hash = (53 * hash) + getFileInfo().hashCode();
+    }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -244,10 +296,17 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getFileInfoFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
+      if (fileInfoBuilder_ == null) {
+        fileInfo_ = null;
+      } else {
+        fileInfoBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
 
@@ -270,6 +329,17 @@ private static final long serialVersionUID = 0L;
 
     public alluxio.grpc.CreateFilePResponse buildPartial() {
       alluxio.grpc.CreateFilePResponse result = new alluxio.grpc.CreateFilePResponse(this);
+      int from_bitField0_ = bitField0_;
+      int to_bitField0_ = 0;
+      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        to_bitField0_ |= 0x00000001;
+      }
+      if (fileInfoBuilder_ == null) {
+        result.fileInfo_ = fileInfo_;
+      } else {
+        result.fileInfo_ = fileInfoBuilder_.build();
+      }
+      result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
@@ -311,6 +381,9 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.CreateFilePResponse other) {
       if (other == alluxio.grpc.CreateFilePResponse.getDefaultInstance()) return this;
+      if (other.hasFileInfo()) {
+        mergeFileInfo(other.getFileInfo());
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -336,6 +409,125 @@ private static final long serialVersionUID = 0L;
         }
       }
       return this;
+    }
+    private int bitField0_;
+
+    private alluxio.grpc.FileInfo fileInfo_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.FileInfo, alluxio.grpc.FileInfo.Builder, alluxio.grpc.FileInfoOrBuilder> fileInfoBuilder_;
+    /**
+     * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+     */
+    public boolean hasFileInfo() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+     */
+    public alluxio.grpc.FileInfo getFileInfo() {
+      if (fileInfoBuilder_ == null) {
+        return fileInfo_ == null ? alluxio.grpc.FileInfo.getDefaultInstance() : fileInfo_;
+      } else {
+        return fileInfoBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+     */
+    public Builder setFileInfo(alluxio.grpc.FileInfo value) {
+      if (fileInfoBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        fileInfo_ = value;
+        onChanged();
+      } else {
+        fileInfoBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00000001;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+     */
+    public Builder setFileInfo(
+        alluxio.grpc.FileInfo.Builder builderForValue) {
+      if (fileInfoBuilder_ == null) {
+        fileInfo_ = builderForValue.build();
+        onChanged();
+      } else {
+        fileInfoBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000001;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+     */
+    public Builder mergeFileInfo(alluxio.grpc.FileInfo value) {
+      if (fileInfoBuilder_ == null) {
+        if (((bitField0_ & 0x00000001) == 0x00000001) &&
+            fileInfo_ != null &&
+            fileInfo_ != alluxio.grpc.FileInfo.getDefaultInstance()) {
+          fileInfo_ =
+            alluxio.grpc.FileInfo.newBuilder(fileInfo_).mergeFrom(value).buildPartial();
+        } else {
+          fileInfo_ = value;
+        }
+        onChanged();
+      } else {
+        fileInfoBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000001;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+     */
+    public Builder clearFileInfo() {
+      if (fileInfoBuilder_ == null) {
+        fileInfo_ = null;
+        onChanged();
+      } else {
+        fileInfoBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000001);
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+     */
+    public alluxio.grpc.FileInfo.Builder getFileInfoBuilder() {
+      bitField0_ |= 0x00000001;
+      onChanged();
+      return getFileInfoFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+     */
+    public alluxio.grpc.FileInfoOrBuilder getFileInfoOrBuilder() {
+      if (fileInfoBuilder_ != null) {
+        return fileInfoBuilder_.getMessageOrBuilder();
+      } else {
+        return fileInfo_ == null ?
+            alluxio.grpc.FileInfo.getDefaultInstance() : fileInfo_;
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.FileInfo, alluxio.grpc.FileInfo.Builder, alluxio.grpc.FileInfoOrBuilder> 
+        getFileInfoFieldBuilder() {
+      if (fileInfoBuilder_ == null) {
+        fileInfoBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.FileInfo, alluxio.grpc.FileInfo.Builder, alluxio.grpc.FileInfoOrBuilder>(
+                getFileInfo(),
+                getParentForChildren(),
+                isClean());
+        fileInfo_ = null;
+      }
+      return fileInfoBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

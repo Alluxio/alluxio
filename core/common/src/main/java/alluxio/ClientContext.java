@@ -11,12 +11,17 @@
 
 package alluxio;
 
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.util.ConfigurationUtils;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
@@ -36,6 +41,7 @@ import javax.security.auth.Subject;
  */
 public class ClientContext {
   private volatile AlluxioConfiguration mConf;
+  private volatile PathConfiguration mPathConf;
   private final Subject mSubject;
 
   /**
@@ -72,6 +78,7 @@ public class ClientContext {
   protected ClientContext(ClientContext ctx) {
     mSubject = ctx.getSubject();
     mConf = ctx.getConf();
+    mPathConf = ctx.getPathConf();
   }
 
   private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
@@ -87,11 +94,12 @@ public class ClientContext {
     } else {
       mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
     }
+    mPathConf = PathConfiguration.create(new HashMap<>());
   }
 
   /**
-   * This method will attempt to load the cluster defaults and update the configuration if
-   * necessary.
+   * This method will attempt to load the cluster and path level configuration defaults and update
+   * the configuration if necessary.
    *
    * This method should be synchronized so that concurrent calls to it don't continually overwrite
    * the previous configuration. The cluster defaults should only ever need to be updated once
@@ -100,16 +108,27 @@ public class ClientContext {
    * @param address the address to load cluster defaults from
    * @throws AlluxioStatusException
    */
-  protected synchronized void updateWithClusterDefaults(InetSocketAddress address)
+  @VisibleForTesting
+  public synchronized void updateConfigurationDefaults(InetSocketAddress address)
       throws AlluxioStatusException {
-    mConf = ConfigurationUtils.loadClusterDefaults(address, mConf);
+    Pair<AlluxioConfiguration, PathConfiguration> conf =
+        ConfigurationUtils.loadClusterAndPathDefaults(address, mConf, mPathConf);
+    mConf = conf.getFirst();
+    mPathConf = conf.getSecond();
   }
 
   /**
-   * @return the {@link AlluxioConfiguration} backing this context
+   * @return the cluster level configuration backing this context
    */
   public AlluxioConfiguration getConf() {
     return mConf;
+  }
+
+  /**
+   * @return the path level configuration backing this context
+   */
+  public PathConfiguration getPathConf() {
+    return mPathConf;
   }
 
   /**

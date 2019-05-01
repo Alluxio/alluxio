@@ -18,8 +18,17 @@ import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointOutputStream;
+import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.master.metastore.InodeStore;
+import alluxio.proto.meta.InodeMeta;
 
+import com.google.common.base.Preconditions;
+
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,11 +48,6 @@ public class HeapInodeStore implements InodeStore {
   private final TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>> mEdges =
       new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>(4));
 
-  /**
-   * @param args inode store arguments
-   */
-  public HeapInodeStore(InodeStoreArgs args) {}
-
   @Override
   public void remove(Long inodeId) {
     mInodes.remove(inodeId);
@@ -62,11 +66,6 @@ public class HeapInodeStore implements InodeStore {
   @Override
   public void removeChild(long parentId, String name) {
     mEdges.removeInnerValue(parentId, name);
-  }
-
-  @Override
-  public long estimateSize() {
-    return mInodes.size();
   }
 
   @Override
@@ -124,5 +123,33 @@ public class HeapInodeStore implements InodeStore {
 
   private Map<String, Long> children(long id) {
     return mEdges.getOrDefault(id, Collections.emptyMap());
+  }
+
+  @Override
+  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+    output = new CheckpointOutputStream(output, CheckpointType.INODE_PROTOS);
+    for (MutableInode<?> inode : mInodes.values()) {
+      if (Thread.interrupted()) {
+        throw new InterruptedException();
+      }
+      inode.toProto().writeDelimitedTo(output);
+    }
+  }
+
+  @Override
+  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
+    Preconditions.checkState(input.getType() == CheckpointType.INODE_PROTOS,
+        "Unexpected checkpoint type in heap inode store: " + input.getType());
+    InodeMeta.Inode inodeProto;
+    while ((inodeProto = InodeMeta.Inode.parseDelimitedFrom(input)) != null) {
+      MutableInode<?> inode = MutableInode.fromProto(inodeProto);
+      mInodes.put(inode.getId(), inode);
+      mEdges.addInnerValue(inode.getParentId(), inode.getName(), inode.getId());
+    }
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.HEAP_INODE_STORE;
   }
 }

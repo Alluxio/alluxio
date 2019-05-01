@@ -10,6 +10,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+set -o pipefail
+
 LAUNCHER=
 # If debugging is enabled propagate that through to sub-shells
 if [[ "$-" == *x* ]]; then
@@ -29,26 +31,46 @@ DEFAULT_LIBEXEC_DIR="${BIN}/../libexec"
 ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
 . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
-HOSTLIST=$(cat "${ALLUXIO_CONF_DIR}/masters" | sed  "s/#.*$//;/^$/d")
+HOSTLIST=($(echo $(cat "${ALLUXIO_CONF_DIR}/masters" | sed  "s/#.*$//;/^$/d")))
 mkdir -p "${ALLUXIO_LOGS_DIR}"
 ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 
 echo "Executing the following command on all master nodes and logging to ${ALLUXIO_TASK_LOG}: $@" | tee -a ${ALLUXIO_TASK_LOG}
 
 N=0
-ZOOKEEPER_ENABLED=$(${BIN}/alluxio getConf alluxio.zookeeper.enabled)
-for master in $(echo ${HOSTLIST}); do
+HA_ENABLED=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
+JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
+if [[ ${JOURNAL_TYPE} == "EMBEDDED" ]]; then
+  HA_ENABLED="true"
+fi
+for master in ${HOSTLIST[@]}; do
   echo "[${master}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}
-  if [[ ${ZOOKEEPER_ENABLED} == "true" || ${N} -eq 0 ]]; then
+  if [[ ${HA_ENABLED} == "true" || ${N} -eq 0 ]]; then
     nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
-      $"${@// /\\ }" 2>&1 | while read line; do echo "[${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
+      $"${@// /\\ }" 2>&1 | while read line; do echo "[$(date '+%F %T')][${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   else
     nohup ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
-      $"export ALLUXIO_MASTER_SECONDARY=true; ${@// /\\ }" 2>&1 | while read line; do echo "[${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
+      $"export ALLUXIO_MASTER_SECONDARY=true; ${@// /\\ }" 2>&1 | while read line; do echo "[$(date '+%F %T')][${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   fi
+  pids[${#pids[@]}]=$!
   N=$((N+1))
 done
 
+# wait for all pids
 echo "Waiting for tasks to finish..."
-wait
-echo "All tasks finished"
+has_error=0
+for ((i=0; i< ${#pids[@]}; i++)); do
+    wait ${pids[$i]}
+    ret_code=$?
+    if [[ ${ret_code} -ne 0 ]]; then
+      has_error=1
+      echo "Task on '${HOSTLIST[$i]}' fails, exit code: ${ret_code}"
+    fi
+done
+
+# only show the log when all tasks run OK!
+if [[ ${has_error} -eq 0 ]]; then
+    echo "All tasks finished"
+else
+    echo "There are task failures, look at ${ALLUXIO_TASK_LOG} for details."
+fi

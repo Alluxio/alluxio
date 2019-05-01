@@ -1,3 +1,3 @@
 ```properties
-alluxio.underfs.address=hdfs://localhost:9000
+alluxio.master.mount.table.root.ufs=hdfs://localhost:9000
 ```

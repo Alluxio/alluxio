@@ -11,10 +11,10 @@
 
 package alluxio.master.metrics;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.clock.SystemClock;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -22,6 +22,7 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
+import alluxio.master.journal.NoopJournaled;
 import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsAggregator;
@@ -32,7 +33,6 @@ import alluxio.metrics.SingleValueAggregator;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
-import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 
@@ -41,10 +41,8 @@ import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.time.Clock;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -53,7 +51,7 @@ import java.util.Set;
 /**
  * Default implementation of the metrics master.
  */
-public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster {
+public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, NoopJournaled {
   private final Map<String, MetricsAggregator> mMetricsAggregatorRegistry = new HashMap<>();
   private final Set<MultiValueMetricsAggregator> mMultiValueMetricsAggregatorRegistry =
       new HashSet<>();
@@ -94,16 +92,13 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster {
   protected void addAggregator(SingleValueAggregator aggregator) {
     mMetricsAggregatorRegistry.put(aggregator.getName(), aggregator);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClusterMetricName(aggregator.getName()),
-        new Gauge<Object>() {
-          @Override
-          public Object getValue() {
-            Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
-            for (MetricsFilter filter : aggregator.getFilters()) {
-              metrics.put(filter, mMetricsStore
-                  .getMetricsByInstanceTypeAndName(filter.getInstanceType(), filter.getName()));
-            }
-            return aggregator.getValue(metrics);
+        (Gauge<Object>) () -> {
+          Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
+          for (MetricsFilter filter : aggregator.getFilters()) {
+            metrics.put(filter, mMetricsStore
+                .getMetricsByInstanceTypeAndName(filter.getInstanceType(), filter.getName()));
           }
+          return aggregator.getValue(metrics);
         });
   }
 
@@ -171,21 +166,6 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster {
   @Override
   public String getName() {
     return Constants.METRICS_MASTER_NAME;
-  }
-
-  @Override
-  public void processJournalEntry(JournalEntry entry) throws IOException {
-    // Do nothing, for now the metrics master is state-less
-  }
-
-  @Override
-  public void resetState() {
-    mMetricsStore.clear();
-  }
-
-  @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    return Collections.emptyIterator();
   }
 
   @Override
