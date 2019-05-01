@@ -219,13 +219,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mSessionCleaner = new SessionCleaner(mSessions, mBlockStore, mUnderFileSystemBlockStore);
 
     // Setup space reserver
-    if (ServerConfiguration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
-      mSpaceReserver = new SpaceReserver(this);
-      getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, mSpaceReserver,
-              (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS),
-              ServerConfiguration.global()));
-    }
+    mSpaceReserver = new SpaceReserver(this);
+    getExecutorService().submit(
+        new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, mSpaceReserver,
+            (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS),
+            ServerConfiguration.global()));
 
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
