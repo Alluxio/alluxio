@@ -164,6 +164,14 @@ public class PathPropertiesTest {
   }
 
   @Test
+  public void hashEmpty() {
+    PathProperties emptyProperties = new PathProperties();
+    String hash = emptyProperties.hash();
+    Assert.assertNotNull(hash);
+    Assert.assertEquals(hash, emptyProperties.hash());
+  }
+
+  @Test
   public void hash() {
     PathProperties properties = new PathProperties();
     String hash0 = properties.hash();
