@@ -18,12 +18,16 @@ import alluxio.client.meta.MetaMasterConfigClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -33,7 +37,17 @@ import java.io.IOException;
  * Tests reinitializing {@link FileSystemContext}.
  */
 public final class FileSystemContextReinitIntegrationTest extends BaseIntegrationTest {
+  private static final AlluxioURI PATH_TO_UPDATE = new AlluxioURI("/path/to/update");
+  private static final PropertyKey KEY_TO_UPDATE = PropertyKey.USER_FILE_READ_TYPE_DEFAULT;
+  private static final String UPDATED_VALUE = ReadType.NO_CACHE.toString();
+
   private FileSystemContext mContext;
+  private String mClusterConfHash;
+  private String mPathConfHash;
+
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
+      HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC);
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -43,65 +57,82 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   public void before() throws IOException {
     mContext = FileSystemContext.create(ServerConfiguration.global());
     mContext.getClientContext().updateConfigurationDefaults(mContext.getMasterAddress());
+    mClusterConfHash = mContext.getClientContext().getClusterConfHash();
+    Assert.assertNotNull(mClusterConfHash);
+    mPathConfHash = mContext.getClientContext().getPathConfHash();
+    Assert.assertNotNull(mPathConfHash);
   }
 
   @Test
   public void noConfUpdate() throws Exception {
-    String clusterConfHash = mContext.getClientContext().getClusterConfHash();
-    Assert.assertNotNull(clusterConfHash);
-    String pathConfHash = mContext.getClientContext().getPathConfHash();
-    Assert.assertNotNull(pathConfHash);
-
     mContext.reinit();
-
-    Assert.assertEquals(clusterConfHash, mContext.getClientContext().getClusterConfHash());
-    Assert.assertEquals(pathConfHash, mContext.getClientContext().getPathConfHash());
+    checkHash(false, false);
   }
 
   @Test
-  public void updateClusterConf() throws Exception {
-    PropertyKey keyToUpdate = PropertyKey.USER_FILE_READ_TYPE_DEFAULT;
-    String updatedValue = ReadType.NO_CACHE.toString();
+  public void clusterConfUpdate() throws Exception {
+    checkClusterConfBeforeUpdate();
+    updateClusterConf();
+    mContext.reinit();
+    checkClusterConfAfterUpdate();
+    checkHash(true, false);
+  }
 
-    String clusterConfHash = mContext.getClientContext().getClusterConfHash();
-    Assert.assertNotNull(clusterConfHash);
-    Assert.assertNotEquals(updatedValue, ServerConfiguration.get(keyToUpdate));
-    String pathConfHash = mContext.getClientContext().getPathConfHash();
-    Assert.assertNotNull(pathConfHash);
+  @Test
+  public void pathConfUpdate() throws Exception {
+    checkPathConfBeforeUpdate();
+    updatePathConf();
+    mContext.reinit();
+    checkPathConfAfterUpdate();
+    checkHash(false, true);
+  }
 
+  @Test
+  public void configHashSync() throws Exception {
+    checkClusterConfBeforeUpdate();
+    checkPathConfBeforeUpdate();
+    updateClusterConf();
+    updatePathConf();
+    HeartbeatScheduler.execute(HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC);
+    checkClusterConfAfterUpdate();
+    checkPathConfAfterUpdate();
+    checkHash(true, true);
+  }
+
+  private void updateClusterConf() throws Exception {
     mLocalAlluxioClusterResource.get().stopMasters();
-    ServerConfiguration.set(keyToUpdate, updatedValue);
+    ServerConfiguration.set(KEY_TO_UPDATE, UPDATED_VALUE);
     mLocalAlluxioClusterResource.get().startMasters();
-
-    mContext.reinit();
-
-    Assert.assertNotEquals(clusterConfHash, mContext.getClientContext().getClusterConfHash());
-    Assert.assertEquals(updatedValue, ServerConfiguration.get(keyToUpdate));
-    Assert.assertEquals(pathConfHash, mContext.getClientContext().getPathConfHash());
   }
 
-  @Test
-  public void updatePathConf() throws Exception {
-    AlluxioURI pathToUpdate = new AlluxioURI("/path/to/update");
-    PropertyKey keyToUpdate = PropertyKey.USER_FILE_READ_TYPE_DEFAULT;
-    String updatedValue = ReadType.NO_CACHE.toString();
-
-    String clusterConfHash = mContext.getClientContext().getClusterConfHash();
-    Assert.assertNotNull(clusterConfHash);
-    String pathConfHash = mContext.getClientContext().getPathConfHash();
-    Assert.assertNotNull(pathConfHash);
-    Assert.assertFalse(mContext.getClientContext().getPathConf().getConfiguration(
-        pathToUpdate, keyToUpdate).isPresent());
-
+  private void updatePathConf() throws Exception {
     MetaMasterConfigClient client = new RetryHandlingMetaMasterConfigClient(
         MasterClientContext.newBuilder(mContext.getClientContext()).build());
-    client.setPathConfiguration(pathToUpdate, keyToUpdate, updatedValue);
+    client.setPathConfiguration(PATH_TO_UPDATE, KEY_TO_UPDATE, UPDATED_VALUE);
+  }
 
-    mContext.reinit();
+  private void checkClusterConfBeforeUpdate() {
+    Assert.assertNotEquals(UPDATED_VALUE, mContext.getClientContext().getConf().get(KEY_TO_UPDATE));
+  }
 
-    Assert.assertEquals(clusterConfHash, mContext.getClientContext().getClusterConfHash());
-    Assert.assertNotEquals(pathConfHash, mContext.getClientContext().getPathConfHash());
-    Assert.assertEquals(updatedValue, mContext.getClientContext().getPathConf().getConfiguration(
-        pathToUpdate, keyToUpdate).get().get(keyToUpdate));
+  private void checkClusterConfAfterUpdate() {
+    Assert.assertEquals(UPDATED_VALUE, mContext.getClientContext().getConf().get(KEY_TO_UPDATE));
+  }
+
+  private void checkPathConfBeforeUpdate() {
+    Assert.assertFalse(mContext.getClientContext().getPathConf().getConfiguration(
+        PATH_TO_UPDATE, KEY_TO_UPDATE).isPresent());
+  }
+
+  private void checkPathConfAfterUpdate() {
+    Assert.assertEquals(UPDATED_VALUE, mContext.getClientContext().getPathConf().getConfiguration(
+        PATH_TO_UPDATE, KEY_TO_UPDATE).get().get(KEY_TO_UPDATE));
+  }
+
+  private void checkHash(boolean clusterConfHashUpdated, boolean pathConfHashUpdated) {
+    Assert.assertEquals(clusterConfHashUpdated, !mContext.getClientContext().getClusterConfHash()
+        .equals(mClusterConfHash));
+    Assert.assertEquals(pathConfHashUpdated, !mContext.getClientContext().getPathConfHash()
+        .equals(mPathConfHash));
   }
 }
