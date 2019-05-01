@@ -318,6 +318,10 @@ public class UfsJournal implements Journal {
    * @return the snapshot response
    */
   public synchronized SnapshotPResponse checkpoint() {
+    if (mTailerThread == null) {
+      return SnapshotPResponse.newBuilder().setTriggered(false)
+          .setMessage("UFS journal checkpoint thread is not initialized").build();
+    }
     return mTailerThread.maybeCheckpoint();
   }
 

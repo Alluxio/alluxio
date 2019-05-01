@@ -44,7 +44,7 @@ public class SnapshotCommand extends AbstractFsAdminCommand {
     if (response.hasSucceed() && response.getSucceed()) {
       mPrintStream.println("Successfully take a snapshot in the primary master journal system");
     } else if (response.hasTriggered() && !response.getTriggered()) {
-      mPrintStream.printf("Failed to trigger a snapshot: "
+      mPrintStream.println("Failed to trigger a snapshot: "
           + response.getMessage());
     } else { // Triggered but not succeed
       mPrintStream.printf("Failed to finish snapshot with exception: %n" + response.getMessage());
