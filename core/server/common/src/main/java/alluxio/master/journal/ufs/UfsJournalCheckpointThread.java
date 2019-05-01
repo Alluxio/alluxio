@@ -233,6 +233,10 @@ public final class UfsJournalCheckpointThread extends Thread {
    */
   public SnapshotPResponse maybeCheckpoint() {
     SnapshotPResponse.Builder builder = SnapshotPResponse.newBuilder();
+    if (mShutdownInitiated) {
+      return builder.setTriggered(false)
+          .setMessage("UFS journal shutdown initialized").build();
+    }
     long nextSequenceNumber = mJournalReader.getNextSequenceNumber();
     if (nextSequenceNumber - mNextSequenceNumberToCheckpoint < mCheckpointPeriodEntries) {
       return builder.setTriggered(false)
