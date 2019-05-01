@@ -54,8 +54,8 @@ public final class Configuration {
    */
   @NotThreadSafe
   public static final class Builder {
-    private List<Property> mClusterConf;
-    private Map<String, List<Property>> mPathConf;
+    private List<Property> mClusterConf = new ArrayList<>();
+    private Map<String, List<Property>> mPathConf = new HashMap<>();
     private String mClusterConfHash;
     private String mPathConfHash;
 

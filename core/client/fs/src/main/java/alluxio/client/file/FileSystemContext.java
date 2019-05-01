@@ -260,10 +260,7 @@ public final class FileSystemContext implements Closeable {
 
     if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
-      mMetricsMasterClient = new MetricsMasterClient(MasterClientContext
-          .newBuilder(mClientContext)
-          .setMasterInquireClient(mMasterInquireClient)
-          .build());
+      mMetricsMasterClient = new MetricsMasterClient(masterClientContext);
       mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, mAppId);
       mMetricsExecutorService = Executors.newFixedThreadPool(1,
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
@@ -339,9 +336,10 @@ public final class FileSystemContext implements Closeable {
    */
   public synchronized void reinit() throws IOException {
     try (LockResource r = new LockResource(mReinitLock.writeLock())) {
+      InetSocketAddress masterAddr = getMasterAddress();
       close();
       // TODO(cc): come up with a way to only update cluster or path level configs.
-      mClientContext.updateConfigurationDefaults(getMasterAddress());
+      mClientContext.updateConfigurationDefaults(masterAddr);
       init(MasterInquireClient.Factory.create(mClientContext.getConf()));
     }
   }
