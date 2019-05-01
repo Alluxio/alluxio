@@ -514,6 +514,7 @@ echo $?
 ./bin/alluxio fs touch /data/yesterday/_DONE_
 ```
 ### unmount
+
 `unmount`将一个Alluxio路径和一个底层文件系统中的目录的链接断开。该挂载点的所有元数据和文件数据都会被删除，但底层文件系统会将其保留。访问[Unified Namespace](Unified-and-Transparent-Namespace.html)获取更多信息。
 
 使用举例：当不再需要一个底层存储系统中的数据时，使用`unmont`命令可以移除该底层存储系统。
