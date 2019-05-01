@@ -1993,6 +1993,20 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
     renameInternal(rpcContext, srcInodePath, dstInodePath, false, context);
+
+    // Check options and determine if we should schedule async persist. This is helpful for compute
+    // frameworks that use rename as a commit operation.
+    if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()) {
+      mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
+          .setId(srcInode.getId())
+          .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
+          .build());
+      mPersistRequests.put(srcInode.getId(), new alluxio.time.ExponentialTimer(
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+    }
   }
 
   /**
@@ -2972,18 +2986,18 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   @Override
   public void scheduleAsyncPersistence(AlluxioURI path)
       throws AlluxioException, UnavailableException {
-    // We retry an async persist request until ufs permits the operation
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE)) {
-      if (!inodePath.getInodeFile().isCompleted()) {
+      InodeFile inode = inodePath.getInodeFile();
+      if (!inode.isCompleted()) {
         throw new InvalidPathException(
             "Cannot persist an incomplete Alluxio file: " + inodePath.getUri());
       }
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
-          .setId(inodePath.getInode().getId())
+          .setId(inode.getId())
           .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
           .build());
-      mPersistRequests.put(inodePath.getInode().getId(), new alluxio.time.ExponentialTimer(
+      mPersistRequests.put(inode.getId(), new alluxio.time.ExponentialTimer(
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
