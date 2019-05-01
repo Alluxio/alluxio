@@ -180,8 +180,6 @@ alluxio.underfs.s3.threads.max:
   'The maximum number of threads to use for communicating with S3 and the maximum number of concurrent connections to S3. Includes both threads for data upload and metadata operations. This number should be at least as large as the max admin threads plus max upload threads.'
 alluxio.underfs.s3.upload.threads.max:
   'For an Alluxio worker, this is the maximum number of threads to use for uploading data to S3 for multipart uploads. These operations can be fairly expensive, so multiple threads are encouraged. However, this also splits the bandwidth between threads, meaning the overall latency for completing an upload will be higher for more threads. For the Alluxio master, this is the maximum number of threads used for the rename (copy) operation. It is recommended that value should be greater than or equal to alluxio.underfs.object.store.service.threads'
-alluxio.underfs.s3a.consistency.timeout:
-  'The duration to wait for metadata consistency from the under storage. This is only used by internal Alluxio operations which should be successful, but may appear unsuccessful due to eventual consistency.'
 alluxio.underfs.s3a.default.mode:
   'Mode (in octal notation) for S3 objects if mode cannot be discovered.'
 alluxio.underfs.s3a.directory.suffix:

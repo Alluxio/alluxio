@@ -753,16 +753,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
-      new Builder(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.underfs.s3a.consistency.timeout.ms"})
-          .setDefaultValue("1min")
-          .setDescription("The duration to wait for metadata consistency from the under "
-              + "storage. This is only used by internal Alluxio operations which should be "
-              + "successful, but may appear unsuccessful due to eventual consistency.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey UNDERFS_S3A_DEFAULT_MODE =
       new Builder(Name.UNDERFS_S3A_DEFAULT_MODE)
           .setDefaultValue("0700")
@@ -3681,8 +3671,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
     public static final String UNDERFS_S3A_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3a.bulk.delete.enabled";
-    public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
-        "alluxio.underfs.s3a.consistency.timeout";
     public static final String UNDERFS_S3A_DEFAULT_MODE = "alluxio.underfs.s3a.default.mode";
     public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
         "alluxio.underfs.s3a.directory.suffix";
