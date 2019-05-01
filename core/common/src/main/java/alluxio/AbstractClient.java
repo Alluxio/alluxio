@@ -52,8 +52,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class AbstractClient implements Client {
-  private static final Logger LOG =
-      new SamplingLogger(LoggerFactory.getLogger(AbstractClient.class), 10 * Constants.SECOND_MS);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractClient.class);
 
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
