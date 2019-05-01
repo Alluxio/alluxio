@@ -872,13 +872,12 @@ public class InodeTree implements DelegatingJournaled {
    * @param rpcContext the rpc context
    * @param inodePath the {@link LockedInodePath} to set the pinned state for
    * @param pinned the pinned state to set for the inode (and possible descendants)
-   * @param pinnedExclude prevent pinning in a particular medium
-   * @param pinnedMedium pinnned medium
+   * @param pinnedMedia the list of pinned media that that the file can reside in
    * @param opTimeMs the operation time
    * @throws FileDoesNotExistException if inode does not exist
    */
   public void setPinned(RpcContext rpcContext, LockedInodePath inodePath, boolean pinned,
-      boolean pinnedExclude, String pinnedMedium, long opTimeMs)
+      List<String> pinnedMedia, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
 
@@ -887,8 +886,7 @@ public class InodeTree implements DelegatingJournaled {
     mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
         .setId(inode.getId())
         .setPinned(pinned)
-        .setPinnedExclude(pinnedExclude)
-        .setPinnedMedium(pinnedMedium)
+        .addAllPinnedMedia(pinnedMedia)
         .setLastModificationTimeMs(opTimeMs)
         .build());
 
@@ -899,7 +897,7 @@ public class InodeTree implements DelegatingJournaled {
         try (LockedInodePath childPath =
             inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
           // No need for additional locking since the parent is write-locked.
-          setPinned(rpcContext, childPath, pinned, pinnedExclude, pinnedMedium, opTimeMs);
+          setPinned(rpcContext, childPath, pinned, pinnedMedia, opTimeMs);
         }
       }
     }

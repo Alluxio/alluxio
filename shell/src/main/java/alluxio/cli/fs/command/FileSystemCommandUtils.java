@@ -20,6 +20,8 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -58,11 +60,11 @@ public final class FileSystemCommandUtils {
    * @param pinned the state to be set
    */
   public static void setPinned(FileSystem fs, AlluxioURI path, boolean pinned,
-      String medium, boolean exclude)
+      List<String> pinnedMedia)
       throws AlluxioException, IOException {
     SetAttributePOptions options = SetAttributePOptions.newBuilder().setPinned(pinned)
-        .setPinnedMedium(medium)
-        .setPinnedExclude(exclude).build();
+        .addAllPinnedMedia(pinnedMedia)
+        .build();
     fs.setAttribute(path, options);
   }
 }

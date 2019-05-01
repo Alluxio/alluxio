@@ -20,6 +20,8 @@ import alluxio.exception.status.InvalidArgumentException;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -46,26 +48,9 @@ public final class PinCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    boolean notFlag = false;
-    String medium = "";
-    switch (args.length) {
-      case 2:
-        medium = args[1];
-        break;
-      case 3:
-        if (args[1].equalsIgnoreCase("not")) {
-          notFlag = true;
-        } else {
-          throw new InvalidArgumentException("The second argument must be NOT");
-        }
-        medium = args[2];
-        break;
-      case 1:
-        break;
-      default:
-        throw new InvalidArgumentException("Incorrect number of arguments");
-    }
-    FileSystemCommandUtils.setPinned(mFileSystem, path, true, medium, notFlag);
+    // args[0] is the path, args[1] to args[end] is the list of possible media to pin
+    List<String> pinnedMedia = Arrays.asList(Arrays.copyOfRange(args, 1, args.length));
+    FileSystemCommandUtils.setPinned(mFileSystem, path, true, pinnedMedia);
     System.out.println("File '" + path + "' was successfully pinned.");
   }
 
@@ -80,7 +65,7 @@ public final class PinCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "pin <path> [not] medium";
+    return "pin <path> media1 media2 media3 ...";
   }
 
   @Override
@@ -92,6 +77,5 @@ public final class PinCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
-    CommandUtils.checkNumOfArgsNoMoreThan(this, cl, 3);
   }
 }

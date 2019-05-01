@@ -77,7 +77,7 @@ message NewBlockEntry {
   optional int64 id = 1;
 }
 
-// next available id: 18
+// next available id: 17
 message UpdateInodeEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -94,8 +94,7 @@ message UpdateInodeEntry {
   optional PTtlAction ttlAction = 13 [default = DELETE];
   optional alluxio.proto.shared.AccessControlList acl = 14;
   optional string ufs_fingerprint = 15;
-  optional string pinned_medium = 16;
-  optional bool pinned_exclude = 17;
+  repeated string pinned_media = 16;
 }
 
 // next available id: 5

@@ -23,8 +23,7 @@ private static final long serialVersionUID = 0L;
     recursive_ = false;
     replicationMax_ = 0;
     replicationMin_ = 0;
-    pinnedMedium_ = "";
-    pinnedExclude_ = false;
+    pinnedMedia_ = com.google.protobuf.LazyStringArrayList.EMPTY;
   }
 
   @java.lang.Override
@@ -123,13 +122,11 @@ private static final long serialVersionUID = 0L;
           }
           case 82: {
             com.google.protobuf.ByteString bs = input.readBytes();
-            bitField0_ |= 0x00000200;
-            pinnedMedium_ = bs;
-            break;
-          }
-          case 88: {
-            bitField0_ |= 0x00000400;
-            pinnedExclude_ = input.readBool();
+            if (!((mutable_bitField0_ & 0x00000200) == 0x00000200)) {
+              pinnedMedia_ = new com.google.protobuf.LazyStringArrayList();
+              mutable_bitField0_ |= 0x00000200;
+            }
+            pinnedMedia_.add(bs);
             break;
           }
         }
@@ -140,6 +137,9 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
+      if (((mutable_bitField0_ & 0x00000200) == 0x00000200)) {
+        pinnedMedia_ = pinnedMedia_.getUnmodifiableView();
+      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
@@ -358,61 +358,33 @@ private static final long serialVersionUID = 0L;
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
   }
 
-  public static final int PINNEDMEDIUM_FIELD_NUMBER = 10;
-  private volatile java.lang.Object pinnedMedium_;
+  public static final int PINNEDMEDIA_FIELD_NUMBER = 10;
+  private com.google.protobuf.LazyStringList pinnedMedia_;
   /**
-   * <code>optional string pinnedMedium = 10;</code>
+   * <code>repeated string pinnedMedia = 10;</code>
    */
-  public boolean hasPinnedMedium() {
-    return ((bitField0_ & 0x00000200) == 0x00000200);
+  public com.google.protobuf.ProtocolStringList
+      getPinnedMediaList() {
+    return pinnedMedia_;
   }
   /**
-   * <code>optional string pinnedMedium = 10;</code>
+   * <code>repeated string pinnedMedia = 10;</code>
    */
-  public java.lang.String getPinnedMedium() {
-    java.lang.Object ref = pinnedMedium_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        pinnedMedium_ = s;
-      }
-      return s;
-    }
+  public int getPinnedMediaCount() {
+    return pinnedMedia_.size();
   }
   /**
-   * <code>optional string pinnedMedium = 10;</code>
+   * <code>repeated string pinnedMedia = 10;</code>
+   */
+  public java.lang.String getPinnedMedia(int index) {
+    return pinnedMedia_.get(index);
+  }
+  /**
+   * <code>repeated string pinnedMedia = 10;</code>
    */
   public com.google.protobuf.ByteString
-      getPinnedMediumBytes() {
-    java.lang.Object ref = pinnedMedium_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      pinnedMedium_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
-  }
-
-  public static final int PINNEDEXCLUDE_FIELD_NUMBER = 11;
-  private boolean pinnedExclude_;
-  /**
-   * <code>optional bool pinnedExclude = 11;</code>
-   */
-  public boolean hasPinnedExclude() {
-    return ((bitField0_ & 0x00000400) == 0x00000400);
-  }
-  /**
-   * <code>optional bool pinnedExclude = 11;</code>
-   */
-  public boolean getPinnedExclude() {
-    return pinnedExclude_;
+      getPinnedMediaBytes(int index) {
+    return pinnedMedia_.getByteString(index);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -460,11 +432,8 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000100) == 0x00000100)) {
       output.writeMessage(9, getCommonOptions());
     }
-    if (((bitField0_ & 0x00000200) == 0x00000200)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 10, pinnedMedium_);
-    }
-    if (((bitField0_ & 0x00000400) == 0x00000400)) {
-      output.writeBool(11, pinnedExclude_);
+    for (int i = 0; i < pinnedMedia_.size(); i++) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 10, pinnedMedia_.getRaw(i));
     }
     unknownFields.writeTo(output);
   }
@@ -508,12 +477,13 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(9, getCommonOptions());
     }
-    if (((bitField0_ & 0x00000200) == 0x00000200)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(10, pinnedMedium_);
-    }
-    if (((bitField0_ & 0x00000400) == 0x00000400)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(11, pinnedExclude_);
+    {
+      int dataSize = 0;
+      for (int i = 0; i < pinnedMedia_.size(); i++) {
+        dataSize += computeStringSizeNoTag(pinnedMedia_.getRaw(i));
+      }
+      size += dataSize;
+      size += 1 * getPinnedMediaList().size();
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -576,16 +546,8 @@ private static final long serialVersionUID = 0L;
       result = result && getCommonOptions()
           .equals(other.getCommonOptions());
     }
-    result = result && (hasPinnedMedium() == other.hasPinnedMedium());
-    if (hasPinnedMedium()) {
-      result = result && getPinnedMedium()
-          .equals(other.getPinnedMedium());
-    }
-    result = result && (hasPinnedExclude() == other.hasPinnedExclude());
-    if (hasPinnedExclude()) {
-      result = result && (getPinnedExclude()
-          == other.getPinnedExclude());
-    }
+    result = result && getPinnedMediaList()
+        .equals(other.getPinnedMediaList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -636,14 +598,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + COMMONOPTIONS_FIELD_NUMBER;
       hash = (53 * hash) + getCommonOptions().hashCode();
     }
-    if (hasPinnedMedium()) {
-      hash = (37 * hash) + PINNEDMEDIUM_FIELD_NUMBER;
-      hash = (53 * hash) + getPinnedMedium().hashCode();
-    }
-    if (hasPinnedExclude()) {
-      hash = (37 * hash) + PINNEDEXCLUDE_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getPinnedExclude());
+    if (getPinnedMediaCount() > 0) {
+      hash = (37 * hash) + PINNEDMEDIA_FIELD_NUMBER;
+      hash = (53 * hash) + getPinnedMediaList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -802,10 +759,8 @@ private static final long serialVersionUID = 0L;
         commonOptionsBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000100);
-      pinnedMedium_ = "";
+      pinnedMedia_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       bitField0_ = (bitField0_ & ~0x00000200);
-      pinnedExclude_ = false;
-      bitField0_ = (bitField0_ & ~0x00000400);
       return this;
     }
 
@@ -874,14 +829,11 @@ private static final long serialVersionUID = 0L;
       } else {
         result.commonOptions_ = commonOptionsBuilder_.build();
       }
-      if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
-        to_bitField0_ |= 0x00000200;
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+        pinnedMedia_ = pinnedMedia_.getUnmodifiableView();
+        bitField0_ = (bitField0_ & ~0x00000200);
       }
-      result.pinnedMedium_ = pinnedMedium_;
-      if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
-        to_bitField0_ |= 0x00000400;
-      }
-      result.pinnedExclude_ = pinnedExclude_;
+      result.pinnedMedia_ = pinnedMedia_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -955,13 +907,15 @@ private static final long serialVersionUID = 0L;
       if (other.hasCommonOptions()) {
         mergeCommonOptions(other.getCommonOptions());
       }
-      if (other.hasPinnedMedium()) {
-        bitField0_ |= 0x00000200;
-        pinnedMedium_ = other.pinnedMedium_;
+      if (!other.pinnedMedia_.isEmpty()) {
+        if (pinnedMedia_.isEmpty()) {
+          pinnedMedia_ = other.pinnedMedia_;
+          bitField0_ = (bitField0_ & ~0x00000200);
+        } else {
+          ensurePinnedMediaIsMutable();
+          pinnedMedia_.addAll(other.pinnedMedia_);
+        }
         onChanged();
-      }
-      if (other.hasPinnedExclude()) {
-        setPinnedExclude(other.getPinnedExclude());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -1544,110 +1498,95 @@ private static final long serialVersionUID = 0L;
       return commonOptionsBuilder_;
     }
 
-    private java.lang.Object pinnedMedium_ = "";
-    /**
-     * <code>optional string pinnedMedium = 10;</code>
-     */
-    public boolean hasPinnedMedium() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
+    private com.google.protobuf.LazyStringList pinnedMedia_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    private void ensurePinnedMediaIsMutable() {
+      if (!((bitField0_ & 0x00000200) == 0x00000200)) {
+        pinnedMedia_ = new com.google.protobuf.LazyStringArrayList(pinnedMedia_);
+        bitField0_ |= 0x00000200;
+       }
     }
     /**
-     * <code>optional string pinnedMedium = 10;</code>
+     * <code>repeated string pinnedMedia = 10;</code>
      */
-    public java.lang.String getPinnedMedium() {
-      java.lang.Object ref = pinnedMedium_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          pinnedMedium_ = s;
-        }
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
+    public com.google.protobuf.ProtocolStringList
+        getPinnedMediaList() {
+      return pinnedMedia_.getUnmodifiableView();
     }
     /**
-     * <code>optional string pinnedMedium = 10;</code>
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public int getPinnedMediaCount() {
+      return pinnedMedia_.size();
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public java.lang.String getPinnedMedia(int index) {
+      return pinnedMedia_.get(index);
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
      */
     public com.google.protobuf.ByteString
-        getPinnedMediumBytes() {
-      java.lang.Object ref = pinnedMedium_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        pinnedMedium_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+        getPinnedMediaBytes(int index) {
+      return pinnedMedia_.getByteString(index);
     }
     /**
-     * <code>optional string pinnedMedium = 10;</code>
+     * <code>repeated string pinnedMedia = 10;</code>
      */
-    public Builder setPinnedMedium(
+    public Builder setPinnedMedia(
+        int index, java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensurePinnedMediaIsMutable();
+      pinnedMedia_.set(index, value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public Builder addPinnedMedia(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000200;
-      pinnedMedium_ = value;
+  ensurePinnedMediaIsMutable();
+      pinnedMedia_.add(value);
       onChanged();
       return this;
     }
     /**
-     * <code>optional string pinnedMedium = 10;</code>
+     * <code>repeated string pinnedMedia = 10;</code>
      */
-    public Builder clearPinnedMedium() {
+    public Builder addAllPinnedMedia(
+        java.lang.Iterable<java.lang.String> values) {
+      ensurePinnedMediaIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, pinnedMedia_);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string pinnedMedia = 10;</code>
+     */
+    public Builder clearPinnedMedia() {
+      pinnedMedia_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       bitField0_ = (bitField0_ & ~0x00000200);
-      pinnedMedium_ = getDefaultInstance().getPinnedMedium();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string pinnedMedium = 10;</code>
+     * <code>repeated string pinnedMedia = 10;</code>
      */
-    public Builder setPinnedMediumBytes(
+    public Builder addPinnedMediaBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000200;
-      pinnedMedium_ = value;
-      onChanged();
-      return this;
-    }
-
-    private boolean pinnedExclude_ ;
-    /**
-     * <code>optional bool pinnedExclude = 11;</code>
-     */
-    public boolean hasPinnedExclude() {
-      return ((bitField0_ & 0x00000400) == 0x00000400);
-    }
-    /**
-     * <code>optional bool pinnedExclude = 11;</code>
-     */
-    public boolean getPinnedExclude() {
-      return pinnedExclude_;
-    }
-    /**
-     * <code>optional bool pinnedExclude = 11;</code>
-     */
-    public Builder setPinnedExclude(boolean value) {
-      bitField0_ |= 0x00000400;
-      pinnedExclude_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional bool pinnedExclude = 11;</code>
-     */
-    public Builder clearPinnedExclude() {
-      bitField0_ = (bitField0_ & ~0x00000400);
-      pinnedExclude_ = false;
+  ensurePinnedMediaIsMutable();
+      pinnedMedia_.add(value);
       onChanged();
       return this;
     }

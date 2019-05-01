@@ -3573,7 +3573,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     SetAttributePOptions.Builder protoOptions = context.getOptions();
     if (protoOptions.hasPinned()) {
       mInodeTree.setPinned(rpcContext, inodePath, context.getOptions().getPinned(),
-          context.getOptions().getPinnedExclude(), context.getOptions().getPinnedMedium(),
+          context.getOptions().getPinnedMediaList(),
           opTimeMs);
     }
     UpdateInodeEntry.Builder entry = UpdateInodeEntry.newBuilder().setId(inode.getId());

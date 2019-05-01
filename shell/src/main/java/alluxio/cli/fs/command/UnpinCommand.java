@@ -20,6 +20,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -45,7 +46,7 @@ public final class UnpinCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
-    FileSystemCommandUtils.setPinned(mFileSystem, path, false, "", false);
+    FileSystemCommandUtils.setPinned(mFileSystem, path, false, Collections.emptyList());
     System.out.println("File '" + path + "' was successfully unpinned.");
   }
 
