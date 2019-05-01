@@ -11,9 +11,11 @@
 
 package alluxio.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.Constants;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -55,7 +57,7 @@ public final class FormatUtilsTest {
     testCases.add(new TestCase("(1, 2, 3)", new Object[] {1, 2, 3}));
 
     for (TestCase testCase : testCases) {
-      Assert.assertEquals(testCase.mExpected, FormatUtils.parametersToString(testCase.mInput));
+      assertEquals(testCase.mExpected, FormatUtils.parametersToString(testCase.mInput));
     }
   }
 
@@ -86,7 +88,7 @@ public final class FormatUtilsTest {
     testCases.add(new TestCase("1 2", ByteBuffer.wrap(new byte[] {0, 0, 0, 1, 0, 0, 0, 2})));
 
     for (TestCase testCase : testCases) {
-      Assert.assertEquals(testCase.mExpected, FormatUtils.byteBufferToString(testCase.mInput));
+      assertEquals(testCase.mExpected, FormatUtils.byteBufferToString(testCase.mInput));
     }
   }
 
@@ -95,10 +97,10 @@ public final class FormatUtilsTest {
    */
   @Test
   public void byteArrayToHexString() {
-    Assert.assertEquals("", FormatUtils.byteArrayToHexString(new byte[0]));
-    Assert.assertEquals("0x01", FormatUtils.byteArrayToHexString(new byte[]{1}));
-    Assert.assertEquals("0x01 0xac", FormatUtils.byteArrayToHexString(new byte[]{1, (byte) 0xac}));
-    Assert.assertEquals("01ac",
+    assertEquals("", FormatUtils.byteArrayToHexString(new byte[0]));
+    assertEquals("0x01", FormatUtils.byteArrayToHexString(new byte[]{1}));
+    assertEquals("0x01 0xac", FormatUtils.byteArrayToHexString(new byte[]{1, (byte) 0xac}));
+    assertEquals("01ac",
         FormatUtils.byteArrayToHexString(new byte[] {1, (byte) 0xac}, "", ""));
   }
 
@@ -126,9 +128,9 @@ public final class FormatUtilsTest {
       String result =
           FormatUtils.formatTimeTakenMs(CommonUtils.getCurrentMs() - delta, testCase.mInputMessage);
       Matcher match = testCase.mExpected.matcher(result);
-      Assert.assertTrue(match.matches());
-      Assert.assertTrue(delta <= Long.parseLong(match.group(1)));
-      Assert.assertTrue(Long.parseLong(match.group(1)) <= 2 * delta);
+      assertTrue(match.matches());
+      assertTrue(delta <= Long.parseLong(match.group(1)));
+      assertTrue(Long.parseLong(match.group(1)) <= 2 * delta);
     }
   }
 
@@ -156,9 +158,9 @@ public final class FormatUtilsTest {
       String result =
           FormatUtils.formatTimeTakenNs(System.nanoTime() - delta, testCase.mInputMessage);
       Matcher match = testCase.mExpected.matcher(result);
-      Assert.assertTrue(match.matches());
-      Assert.assertTrue(delta <= Long.parseLong(match.group(1)));
-      Assert.assertTrue(Long.parseLong(match.group(1)) <= 2 * delta);
+      assertTrue(match.matches());
+      assertTrue(delta <= Long.parseLong(match.group(1)));
+      assertTrue(Long.parseLong(match.group(1)) <= 2 * delta);
     }
   }
 
@@ -193,7 +195,7 @@ public final class FormatUtilsTest {
     testCases.add(new TestCase("4096.00PB", 1L << 62));
 
     for (TestCase testCase : testCases) {
-      Assert.assertEquals(testCase.mExpected, FormatUtils.getSizeFromBytes(testCase.mInput));
+      assertEquals(testCase.mExpected, FormatUtils.getSizeFromBytes(testCase.mInput));
     }
   }
 
@@ -204,50 +206,50 @@ public final class FormatUtilsTest {
   public void parseSpaceSize() {
     long max = 10240;
     for (long k = 0; k < max; k++) {
-      Assert.assertEquals(k / 10, FormatUtils.parseSpaceSize(k / 10.0 + "b"));
-      Assert.assertEquals(k / 10, FormatUtils.parseSpaceSize(k / 10.0 + "B"));
-      Assert.assertEquals(k / 10, FormatUtils.parseSpaceSize(k / 10.0 + ""));
+      assertEquals(k / 10, FormatUtils.parseSpaceSize(k / 10.0 + "b"));
+      assertEquals(k / 10, FormatUtils.parseSpaceSize(k / 10.0 + "B"));
+      assertEquals(k / 10, FormatUtils.parseSpaceSize(k / 10.0 + ""));
     }
     for (long k = 0; k < max; k++) {
-      Assert.assertEquals(k * Constants.KB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "kb"));
-      Assert.assertEquals(k * Constants.KB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "Kb"));
-      Assert.assertEquals(k * Constants.KB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "KB"));
-      Assert.assertEquals(k * Constants.KB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "kB"));
-      Assert.assertEquals(k * Constants.KB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "k"));
-      Assert.assertEquals(k * Constants.KB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "K"));
+      assertEquals(k * Constants.KB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "kb"));
+      assertEquals(k * Constants.KB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "Kb"));
+      assertEquals(k * Constants.KB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "KB"));
+      assertEquals(k * Constants.KB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "kB"));
+      assertEquals(k * Constants.KB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "k"));
+      assertEquals(k * Constants.KB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "K"));
     }
     for (long k = 0; k < max; k++) {
-      Assert.assertEquals(k * Constants.MB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "mb"));
-      Assert.assertEquals(k * Constants.MB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "Mb"));
-      Assert.assertEquals(k * Constants.MB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "MB"));
-      Assert.assertEquals(k * Constants.MB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "mB"));
-      Assert.assertEquals(k * Constants.MB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "m"));
-      Assert.assertEquals(k * Constants.MB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "M"));
+      assertEquals(k * Constants.MB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "mb"));
+      assertEquals(k * Constants.MB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "Mb"));
+      assertEquals(k * Constants.MB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "MB"));
+      assertEquals(k * Constants.MB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "mB"));
+      assertEquals(k * Constants.MB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "m"));
+      assertEquals(k * Constants.MB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "M"));
     }
     for (long k = 0; k < max; k++) {
-      Assert.assertEquals(k * Constants.GB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "gb"));
-      Assert.assertEquals(k * Constants.GB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "Gb"));
-      Assert.assertEquals(k * Constants.GB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "GB"));
-      Assert.assertEquals(k * Constants.GB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "gB"));
-      Assert.assertEquals(k * Constants.GB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "g"));
-      Assert.assertEquals(k * Constants.GB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "G"));
+      assertEquals(k * Constants.GB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "gb"));
+      assertEquals(k * Constants.GB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "Gb"));
+      assertEquals(k * Constants.GB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "GB"));
+      assertEquals(k * Constants.GB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "gB"));
+      assertEquals(k * Constants.GB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "g"));
+      assertEquals(k * Constants.GB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "G"));
     }
     for (long k = 0; k < max; k++) {
-      Assert.assertEquals(k * Constants.TB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "tb"));
-      Assert.assertEquals(k * Constants.TB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "Tb"));
-      Assert.assertEquals(k * Constants.TB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "TB"));
-      Assert.assertEquals(k * Constants.TB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "tB"));
-      Assert.assertEquals(k * Constants.TB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "t"));
-      Assert.assertEquals(k * Constants.TB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "T"));
+      assertEquals(k * Constants.TB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "tb"));
+      assertEquals(k * Constants.TB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "Tb"));
+      assertEquals(k * Constants.TB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "TB"));
+      assertEquals(k * Constants.TB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "tB"));
+      assertEquals(k * Constants.TB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "t"));
+      assertEquals(k * Constants.TB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "T"));
     }
     // We stop the pb test before 8192, since 8192 petabytes is beyond the scope of a java long.
     for (long k = 0; k < 8192; k++) {
-      Assert.assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "pb"));
-      Assert.assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "Pb"));
-      Assert.assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "PB"));
-      Assert.assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "pB"));
-      Assert.assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "p"));
-      Assert.assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "P"));
+      assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "pb"));
+      assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "Pb"));
+      assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "PB"));
+      assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "pB"));
+      assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "p"));
+      assertEquals(k * Constants.PB / 10, FormatUtils.parseSpaceSize(k / 10.0 + "P"));
     }
   }
 
@@ -256,23 +258,23 @@ public final class FormatUtilsTest {
    */
   @Test
   public void formatPermission() {
-    Assert.assertEquals("-rw-rw-rw-", FormatUtils.formatMode((short) 0666, false, false));
-    Assert.assertEquals("drw-rw-rw-", FormatUtils.formatMode((short) 0666, true, false));
-    Assert.assertEquals("-rwxrwxrwx", FormatUtils.formatMode((short) 0777, false, false));
-    Assert.assertEquals("drwxrwxrwx", FormatUtils.formatMode((short) 0777, true, false));
-    Assert.assertEquals("-r--r--r--", FormatUtils.formatMode((short) 0444, false, false));
-    Assert.assertEquals("dr--r--r--", FormatUtils.formatMode((short) 0444, true, false));
-    Assert.assertEquals("-r-xr-xr-x", FormatUtils.formatMode((short) 0555, false, false));
-    Assert.assertEquals("dr-xr-xr-x", FormatUtils.formatMode((short) 0555, true, false));
-    Assert.assertEquals("-rwxr-xr--", FormatUtils.formatMode((short) 0754, false, false));
-    Assert.assertEquals("drwxr-xr--", FormatUtils.formatMode((short) 0754, true, false));
+    assertEquals("-rw-rw-rw-", FormatUtils.formatMode((short) 0666, false, false));
+    assertEquals("drw-rw-rw-", FormatUtils.formatMode((short) 0666, true, false));
+    assertEquals("-rwxrwxrwx", FormatUtils.formatMode((short) 0777, false, false));
+    assertEquals("drwxrwxrwx", FormatUtils.formatMode((short) 0777, true, false));
+    assertEquals("-r--r--r--", FormatUtils.formatMode((short) 0444, false, false));
+    assertEquals("dr--r--r--", FormatUtils.formatMode((short) 0444, true, false));
+    assertEquals("-r-xr-xr-x", FormatUtils.formatMode((short) 0555, false, false));
+    assertEquals("dr-xr-xr-x", FormatUtils.formatMode((short) 0555, true, false));
+    assertEquals("-rwxr-xr--", FormatUtils.formatMode((short) 0754, false, false));
+    assertEquals("drwxr-xr--", FormatUtils.formatMode((short) 0754, true, false));
   }
 
   @Test
   public void formatPermissionExtendedAcl() {
-    Assert.assertEquals("-rw-rw-rw-+", FormatUtils.formatMode((short) 0666, false, true));
-    Assert.assertEquals("drw-rw-rw-+", FormatUtils.formatMode((short) 0666, true, true));
-    Assert.assertEquals("-rwxrwxrwx+", FormatUtils.formatMode((short) 0777, false, true));
-    Assert.assertEquals("drwxrwxrwx+", FormatUtils.formatMode((short) 0777, true, true));
+    assertEquals("-rw-rw-rw-+", FormatUtils.formatMode((short) 0666, false, true));
+    assertEquals("drw-rw-rw-+", FormatUtils.formatMode((short) 0666, true, true));
+    assertEquals("-rwxrwxrwx+", FormatUtils.formatMode((short) 0777, false, true));
+    assertEquals("drwxrwxrwx+", FormatUtils.formatMode((short) 0777, true, true));
   }
 }
