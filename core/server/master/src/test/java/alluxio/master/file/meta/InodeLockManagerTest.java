@@ -62,7 +62,7 @@ public class InodeLockManagerTest {
       assertFalse(threadFinished.get());
       lock.close();
     }
-    CommonUtils.waitFor("lock to be acquired by the second thread", () -> threadFinished.get());
+    CommonUtils.waitFor("lock to be acquired by the second thread", threadFinished::get);
   }
 
   private void edgeLockTest(LockMode take, LockMode tryToTake, boolean expectBlocking)

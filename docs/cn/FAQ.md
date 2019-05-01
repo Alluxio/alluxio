@@ -66,7 +66,7 @@ priority: 10
 
 14. 如何了解Alluxio更多相关信息？
 
-    可以阅读近期的[博客](/resources/posts) 和[介绍](/resources/presentations)。
+    可以阅读近期的[博客](/resources/posts)和[介绍](/resources/presentations)。
 
 15. Alluxio是否有meetup等活动？
 

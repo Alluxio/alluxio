@@ -246,3 +246,17 @@ alluxio.master.mount.table.root.option.alluxio.underfs.version=1.2
 Alluxio v{{site.ALLUXIO_RELEASED_VERSION}} supports the following versions of HDFS as a valid argument of mount option `alluxio.underfs.version`:
 
 - Apache Hadoop: 1.0, 1.2, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1
+
+### Use Hadoop Native Library
+
+Hadoop comes with a native library that provides better performance and additional features compared to its Java implementation.
+For example, when the native library is used, the HDFS client can use native checksum function which is more efficient than the default Java implementation.
+To use the Hadoop native library with Alluxio HDFS under filesystem, first install the native library on Alluxio nodes by following the
+instructions on [this page](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/NativeLibraries.html).
+Once the hadoop native library is installed on the machine, update Alluxio startup Java parameters in `conf/alluxio-env.sh` by adding the following line:
+
+```
+ALLUXIO_JAVA_OPTS+=" -Djava.library.path=<local_path_containing_hadoop_native_library> "
+```
+
+Make sure to restart Alluxio services for the change to take effect.

@@ -884,6 +884,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_RUN_WITH_MANAGEDBLOCKING =
+      new Builder(Name.UNDERFS_RUN_WITH_MANAGEDBLOCKING)
+          .setDescription("Whether to run UFS operations with managed blocking. "
+              + " This will provide RPC layer a hint that UFS is possible slow."
+              + "The default is true for object stores and false for the rest. "
+              + "unless set explicitly.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // UFS access control related properties
@@ -3762,6 +3771,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_KODO_CONNECT_TIMEOUT =
         "alluxio.underfs.kodo.connect.timeout";
     public static final String UNDERFS_KODO_REQUESTS_MAX = "alluxio.underfs.kodo.requests.max";
+    public static final String UNDERFS_RUN_WITH_MANAGEDBLOCKING =
+        "alluxio.underfs.run.with.managedblocking";
 
     //
     // UFS access control related properties

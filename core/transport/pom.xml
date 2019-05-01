@@ -134,10 +134,26 @@
         </executions>
       </plugin>
       
-      <!-- Disable findbugs since there are only generated files in this module. -->
+      <!-- Skip findbugs since there are only generated files in this module. -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <!-- Skip checking licenses since there are only generated files in this module. -->
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <!-- Skip checkstyle since there are only generated files in this module. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
         <configuration>
           <skip>true</skip>
         </configuration>
