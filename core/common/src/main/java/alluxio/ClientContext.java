@@ -11,11 +11,11 @@
 
 package alluxio;
 
-import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.util.ConfigurationUtils;
 
 import java.net.InetSocketAddress;
@@ -38,8 +38,10 @@ import javax.security.auth.Subject;
  * This will use as few network resources as possible.
  */
 public class ClientContext {
-  private volatile AlluxioConfiguration mConf;
+  private volatile AlluxioConfiguration mClusterConf;
   private volatile PathConfiguration mPathConf;
+  private volatile String mClusterConfHash;
+  private volatile String mPathConfHash;
   private final Subject mSubject;
 
   /**
@@ -75,8 +77,10 @@ public class ClientContext {
    */
   protected ClientContext(ClientContext ctx) {
     mSubject = ctx.getSubject();
-    mConf = ctx.getConf();
+    mClusterConf = ctx.getConf();
     mPathConf = ctx.getPathConf();
+    mClusterConfHash = ctx.getClusterConfHash();
+    mPathConfHash = ctx.getPathConfHash();
   }
 
   private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
@@ -87,10 +91,12 @@ public class ClientContext {
     }
     // Copy the properties so that future modification doesn't affect this ClientContext.
     if (alluxioConf != null) {
-      mConf = new InstancedConfiguration(alluxioConf.copyProperties(),
+      mClusterConf = new InstancedConfiguration(alluxioConf.copyProperties(),
           alluxioConf.clusterDefaultsLoaded());
+      mClusterConfHash = alluxioConf.hash();
     } else {
-      mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      mClusterConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      mClusterConfHash = mClusterConf.hash();
     }
     mPathConf = PathConfiguration.create(new HashMap<>());
   }
@@ -110,17 +116,23 @@ public class ClientContext {
    */
   public synchronized void updateConfigurationDefaults(InetSocketAddress address)
       throws AlluxioStatusException {
-    Pair<AlluxioConfiguration, PathConfiguration> conf =
-        ConfigurationUtils.loadClusterAndPathDefaults(address, mConf);
-    mConf = conf.getFirst();
-    mPathConf = conf.getSecond();
+    GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
+        mClusterConf);
+    AlluxioConfiguration clusterConf = ConfigurationUtils.loadClusterConfiguration(response,
+        mClusterConf);
+    PathConfiguration pathConf = ConfigurationUtils.loadPathConfiguration(response, mClusterConf);
+
+    mClusterConf = clusterConf;
+    mPathConf = pathConf;
+    mClusterConfHash = response.getClusterConfigHash();
+    mPathConfHash = response.getPathConfigHash();
   }
 
   /**
    * @return the cluster level configuration backing this context
    */
   public AlluxioConfiguration getConf() {
-    return mConf;
+    return mClusterConf;
   }
 
   /**
@@ -128,6 +140,20 @@ public class ClientContext {
    */
   public PathConfiguration getPathConf() {
     return mPathConf;
+  }
+
+  /**
+   * @return hash of cluster level configuration
+   */
+  public String getClusterConfHash() {
+    return mClusterConfHash;
+  }
+
+  /**
+   * @return hash of path level configuration
+   */
+  public String getPathConfHash() {
+    return mPathConfHash;
   }
 
   /**

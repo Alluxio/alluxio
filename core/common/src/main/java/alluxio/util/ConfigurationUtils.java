@@ -15,7 +15,6 @@ import static java.util.stream.Collectors.toList;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.ConfigurationValueOptions;
@@ -466,9 +465,10 @@ public final class ConfigurationUtils {
    * Loads configuration from meta master.
    *
    * @param address the meta master address
+   * @param conf the existing configuration
    * @return the RPC response
    */
-  private static GetConfigurationPResponse loadConfiguration(InetSocketAddress address,
+  public static GetConfigurationPResponse loadConfiguration(InetSocketAddress address,
       AlluxioConfiguration conf) throws AlluxioStatusException {
     GrpcChannel channel = null;
     try {
@@ -534,7 +534,7 @@ public final class ConfigurationUtils {
    * @param conf the existing configuration
    * @return the merged configuration
    */
-  private static AlluxioConfiguration loadClusterConfiguration(GetConfigurationPResponse response,
+  public static AlluxioConfiguration loadClusterConfiguration(GetConfigurationPResponse response,
       AlluxioConfiguration conf) {
     String clientVersion = conf.get(PropertyKey.VERSION);
     LOG.info("Alluxio client (version {}) is trying to load cluster level configurations",
@@ -568,7 +568,7 @@ public final class ConfigurationUtils {
    * @param clusterConf cluster level configuration
    * @return the loaded path level configuration
    */
-  private static PathConfiguration loadPathConfiguration(GetConfigurationPResponse response,
+  public static PathConfiguration loadPathConfiguration(GetConfigurationPResponse response,
       AlluxioConfiguration clusterConf) {
     String clientVersion = clusterConf.get(PropertyKey.VERSION);
     LOG.info("Alluxio client (version {}) is trying to load path level configurations",
@@ -610,23 +610,5 @@ public final class ConfigurationUtils {
       conf = loadClusterConfiguration(response, conf);
     }
     return conf;
-  }
-
-  /**
-   * Loads both cluster and path level configurations from meta master.
-   *
-   * Only client scope properties will be loaded.
-   *
-   * @param address the meta master address
-   * @param conf the cluster level configuration
-   * @return both cluster and path level configuration
-   */
-  public static Pair<AlluxioConfiguration, PathConfiguration> loadClusterAndPathDefaults(
-      InetSocketAddress address, AlluxioConfiguration conf)
-      throws AlluxioStatusException {
-    GetConfigurationPResponse response = loadConfiguration(address, conf);
-    AlluxioConfiguration clusterConf = loadClusterConfiguration(response, conf);
-    PathConfiguration pathConf = loadPathConfiguration(response, conf);
-    return new Pair<>(clusterConf, pathConf);
   }
 }

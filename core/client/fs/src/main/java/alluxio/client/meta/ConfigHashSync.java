@@ -35,7 +35,6 @@ public final class ConfigHashSync implements HeartbeatExecutor {
 
   private final RetryHandlingMetaMasterConfigClient mClient;
   private final FileSystemContext mContext;
-  private ConfigHash mHash;
 
   /**
    * Constructs a new {@link ConfigHashSync}.
@@ -51,12 +50,15 @@ public final class ConfigHashSync implements HeartbeatExecutor {
   @Override
   public synchronized void heartbeat() throws InterruptedException {
     try {
-      ConfigHash version = mClient.getConfigHash();
-      if (!mHash.equals(version)) {
+      ConfigHash hash = mClient.getConfigHash();
+      boolean isClusterConfUpdated = !hash.getClusterConfigHash().equals(
+          mContext.getClientContext().getClusterConfHash());
+      boolean isPathConfUpdated = !hash.getPathConfigHash().equals(
+          mContext.getClientContext().getPathConfHash());
+      if (isClusterConfUpdated || isPathConfUpdated) {
         // This may take long time and block the heartbeat, but it's fine since it's meaningless
         // to run the heartbeat during the re-initialization.
         mContext.reinit();
-        mHash = version;
       }
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to meta master to get configuration version:", e);
