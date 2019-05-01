@@ -26,6 +26,8 @@ import alluxio.grpc.GetMetricsPResponse;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
+import alluxio.grpc.SnapshotPOptions;
+import alluxio.grpc.SnapshotPResponse;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.Address;
 
@@ -155,5 +157,12 @@ public final class MetaMasterClientServiceHandler
       }
       return GetMetricsPResponse.newBuilder().putAllMetrics(metricsMap).build();
     }, "getConfiguration", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void snapshot(SnapshotPOptions options,
+      StreamObserver<SnapshotPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<SnapshotPResponse>) () ->
+        mMetaMaster.snapshot(), "snapshot", "options=%s", responseObserver, options);
   }
 }

@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
+import alluxio.grpc.SnapshotPResponse;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
@@ -325,6 +326,45 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     }
 
     LOG.info("Raft server successfully restarted");
+  }
+
+  @Override
+  public SnapshotPResponse snapshot() {
+    SnapshotPResponse.Builder builder = SnapshotPResponse.newBuilder();
+    mSnapshotAllowed.set(true);
+    CopycatClient client = createClient();
+    long sequence = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, 0);
+    CompletableFuture<Void> future = client.submit(new JournalEntryCommand(
+        JournalEntry.newBuilder().setSequenceNumber(sequence).build()));
+    try {
+      future.get(5, TimeUnit.SECONDS);
+    } catch (TimeoutException | ExecutionException e) {
+      LOG.info("Exception submitting entry: {}", e.toString());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return builder.setTriggered(false)
+          .setMessage("Interrupted while submitting entry to trigger snapshot").build();
+    }
+    if (!mStateMachine.isSnapshotting()) {
+      return builder.setTriggered(false)
+          .setMessage("Do not fulfill Raft journal system snapshot requirement").build();
+    }
+    try {
+      CommonUtils.waitFor("snapshotting to finish", () -> !mStateMachine.isSnapshotting(),
+          WaitForOptions.defaults().setTimeoutMs(20 * Constants.MINUTE_MS));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return builder.setTriggered(true).setSucceed(false)
+          .setMessage("Interrupted while snapshotting").build();
+    } catch (TimeoutException e) {
+      LOG.info("Timeout waiting for snapshotting to finish", e);
+      return builder.setTriggered(true).setSucceed(false)
+          .setMessage("Timeout while snapshotting").build();
+    }
+    if (mPrimarySelector.getState() == PrimarySelector.State.PRIMARY) {
+      mSnapshotAllowed.set(false);
+    }
+    return builder.setTriggered(true).setSucceed(true).build();
   }
 
   /**

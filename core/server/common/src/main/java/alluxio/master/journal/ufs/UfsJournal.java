@@ -15,6 +15,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.SnapshotPResponse;
 import alluxio.master.Master;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
@@ -309,6 +310,15 @@ public class UfsJournal implements Journal {
     UnderFileSystemUtils.touch(mUfs, URIUtils.appendPathOrDie(location,
         ServerConfiguration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
         .toString());
+  }
+
+  /**
+   * Triggers a checkpoint in the primary master ufs journal.
+   *
+   * @return the snapshot response
+   */
+  public SnapshotPResponse checkpoint() {
+    return mTailerThread.maybeCheckpoint();
   }
 
   /**

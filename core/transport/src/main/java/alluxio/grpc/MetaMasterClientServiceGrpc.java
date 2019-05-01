@@ -159,6 +159,38 @@ public final class MetaMasterClientServiceGrpc {
      return getGetMetricsMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.SnapshotPOptions,
+      alluxio.grpc.SnapshotPResponse> getSnapshotMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "Snapshot",
+      requestType = alluxio.grpc.SnapshotPOptions.class,
+      responseType = alluxio.grpc.SnapshotPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.SnapshotPOptions,
+      alluxio.grpc.SnapshotPResponse> getSnapshotMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.SnapshotPOptions, alluxio.grpc.SnapshotPResponse> getSnapshotMethod;
+    if ((getSnapshotMethod = MetaMasterClientServiceGrpc.getSnapshotMethod) == null) {
+      synchronized (MetaMasterClientServiceGrpc.class) {
+        if ((getSnapshotMethod = MetaMasterClientServiceGrpc.getSnapshotMethod) == null) {
+          MetaMasterClientServiceGrpc.getSnapshotMethod = getSnapshotMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.SnapshotPOptions, alluxio.grpc.SnapshotPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.meta.MetaMasterClientService", "Snapshot"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.SnapshotPOptions.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.SnapshotPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("Snapshot"))
+                  .build();
+          }
+        }
+     }
+     return getSnapshotMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -234,6 +266,17 @@ public final class MetaMasterClientServiceGrpc {
       asyncUnimplementedUnaryCall(getGetMetricsMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     **
+     * Takes a snapshot of the Alluxio primary master state
+     * </pre>
+     */
+    public void snapshot(alluxio.grpc.SnapshotPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.SnapshotPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getSnapshotMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -264,6 +307,13 @@ public final class MetaMasterClientServiceGrpc {
                 alluxio.grpc.GetMetricsPOptions,
                 alluxio.grpc.GetMetricsPResponse>(
                   this, METHODID_GET_METRICS)))
+          .addMethod(
+            getSnapshotMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.SnapshotPOptions,
+                alluxio.grpc.SnapshotPResponse>(
+                  this, METHODID_SNAPSHOT)))
           .build();
     }
   }
@@ -337,6 +387,18 @@ public final class MetaMasterClientServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getGetMetricsMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     **
+     * Takes a snapshot of the Alluxio primary master state
+     * </pre>
+     */
+    public void snapshot(alluxio.grpc.SnapshotPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.SnapshotPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getSnapshotMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -403,6 +465,17 @@ public final class MetaMasterClientServiceGrpc {
     public alluxio.grpc.GetMetricsPResponse getMetrics(alluxio.grpc.GetMetricsPOptions request) {
       return blockingUnaryCall(
           getChannel(), getGetMetricsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Takes a snapshot of the Alluxio primary master state
+     * </pre>
+     */
+    public alluxio.grpc.SnapshotPResponse snapshot(alluxio.grpc.SnapshotPOptions request) {
+      return blockingUnaryCall(
+          getChannel(), getSnapshotMethod(), getCallOptions(), request);
     }
   }
 
@@ -475,12 +548,25 @@ public final class MetaMasterClientServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getGetMetricsMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     **
+     * Takes a snapshot of the Alluxio primary master state
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.SnapshotPResponse> snapshot(
+        alluxio.grpc.SnapshotPOptions request) {
+      return futureUnaryCall(
+          getChannel().newCall(getSnapshotMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_BACKUP = 0;
   private static final int METHODID_GET_CONFIG_REPORT = 1;
   private static final int METHODID_GET_MASTER_INFO = 2;
   private static final int METHODID_GET_METRICS = 3;
+  private static final int METHODID_SNAPSHOT = 4;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -514,6 +600,10 @@ public final class MetaMasterClientServiceGrpc {
         case METHODID_GET_METRICS:
           serviceImpl.getMetrics((alluxio.grpc.GetMetricsPOptions) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.GetMetricsPResponse>) responseObserver);
+          break;
+        case METHODID_SNAPSHOT:
+          serviceImpl.snapshot((alluxio.grpc.SnapshotPOptions) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.SnapshotPResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -580,6 +670,7 @@ public final class MetaMasterClientServiceGrpc {
               .addMethod(getGetConfigReportMethod())
               .addMethod(getGetMasterInfoMethod())
               .addMethod(getGetMetricsMethod())
+              .addMethod(getSnapshotMethod())
               .build();
         }
       }

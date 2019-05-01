@@ -23,6 +23,8 @@ import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.SnapshotPOptions;
+import alluxio.grpc.SnapshotPResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
@@ -93,5 +95,10 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   public Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
     return retryRPC(
         () -> mClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap());
+  }
+
+  @Override
+  public SnapshotPResponse snapshot() throws IOException {
+    return retryRPC(() -> mClient.snapshot(SnapshotPOptions.newBuilder().build()));
   }
 }

@@ -16,6 +16,7 @@ import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetricValue;
+import alluxio.grpc.SnapshotPResponse;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 
@@ -56,4 +57,11 @@ public interface MetaMasterClient extends Closeable {
    * @return a map of metrics information
    */
   Map<String, MetricValue> getMetrics() throws AlluxioStatusException;
+
+  /**
+   * Triggers a snapshot of the primary master state in master journal system.
+   *
+   * @return the snapshot response
+   */
+  SnapshotPResponse snapshot() throws IOException;
 }

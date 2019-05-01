@@ -112,6 +112,20 @@ message GetMetricsPResponse {
   map<string, MetricValue> metrics = 1;
 }
 
+message SnapshotPOptions {}
+
+/**
+ * The snapshot response has three cases:
+ * 1. failed to trigger (triggered=false and message explains why snapshot is not triggered)
+ * 2. triggered but failed (triggered=false, succeed=false and message explains why snapshot is failed)
+ * 3. succeed (triggered=true, succeed=true)
+ */
+message SnapshotPResponse {
+ optional bool triggered = 1;
+ optional bool succeed = 2;
+ optional string message = 3;
+}
+
 message SetPathConfigurationPOptions {}
 message SetPathConfigurationPRequest {
   optional string path = 1;
@@ -173,6 +187,11 @@ service MetaMasterClientService {
    * Returns a map of metrics property names and their values from Alluxio metrics system.
    */
   rpc GetMetrics(GetMetricsPOptions) returns (GetMetricsPResponse);
+
+  /**
+   * Triggers a snapshot in the primary master journal system.
+   */
+  rpc Snapshot(SnapshotPOptions) returns (SnapshotPResponse);
 }
 
 message GetMasterIdPOptions {}

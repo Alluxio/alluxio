@@ -14,6 +14,7 @@ package alluxio.master.journal.ufs;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.SnapshotPResponse;
 import alluxio.master.Master;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalUtils;
@@ -227,38 +228,49 @@ public final class UfsJournalCheckpointThread extends Thread {
 
   /**
    * Creates a new checkpoint if necessary.
+   *
+   * @return the snapshot response
    */
-  private void maybeCheckpoint() {
-    if (mShutdownInitiated) {
-      return;
-    }
+  public SnapshotPResponse maybeCheckpoint() {
+    SnapshotPResponse.Builder builder = SnapshotPResponse.newBuilder();
     long nextSequenceNumber = mJournalReader.getNextSequenceNumber();
     if (nextSequenceNumber - mNextSequenceNumberToCheckpoint < mCheckpointPeriodEntries) {
-      return;
+      return builder.setTriggered(false)
+          .setMessage("No enough journal logs to snapshot").build();
     }
+
     try {
       mNextSequenceNumberToCheckpoint = mJournal.getNextSequenceNumberToCheckpoint();
     } catch (IOException e) {
       LOG.warn("{}: Failed to get the next sequence number to checkpoint with error {}.",
           mMaster.getName(), e.getMessage());
-      return;
+      return builder.setTriggered(false)
+          .setMessage("Failed to get the next sequence number because " + e.getMessage()).build();
     }
     if (nextSequenceNumber - mNextSequenceNumberToCheckpoint < mCheckpointPeriodEntries) {
-      return;
+      return builder.setTriggered(false)
+          .setMessage("No enough journal logs to snapshot").build();
     }
 
-    writeCheckpoint(nextSequenceNumber);
+    return writeCheckpoint(nextSequenceNumber);
   }
 
-  private void writeCheckpoint(long nextSequenceNumber) {
+  /**
+   * Writes a checkpoint.
+   *
+   * @return the snapshot response
+   */
+  private SnapshotPResponse writeCheckpoint(long nextSequenceNumber) {
     LOG.info("{}: Writing checkpoint [sequence number {}].", mMaster.getName(), nextSequenceNumber);
+    SnapshotPResponse.Builder builder = SnapshotPResponse.newBuilder();
     try {
       UfsJournalCheckpointWriter journalWriter =
           mJournal.getCheckpointWriter(nextSequenceNumber);
       try {
         synchronized (mCheckpointingLock) {
           if (mShutdownInitiated) {
-            return;
+            return builder.setTriggered(false)
+                .setMessage("UFS journal shutdown initialized").build();
           }
           mCheckpointing = true;
         }
@@ -272,7 +284,8 @@ public final class UfsJournalCheckpointThread extends Thread {
         journalWriter.cancel();
         LOG.info("{}: Cancelled checkpoint [sequence number {}].", mMaster.getName(),
             nextSequenceNumber);
-        return;
+        return builder.setTriggered(true).setSucceed(false)
+            .setMessage(t.getMessage()).build();
       } finally {
         synchronized (mCheckpointingLock) {
           mCheckpointing = false;
@@ -290,8 +303,10 @@ public final class UfsJournalCheckpointThread extends Thread {
       LOG.info("{}: Finished checkpoint [sequence number {}].", mMaster.getName(),
           nextSequenceNumber);
       mNextSequenceNumberToCheckpoint = nextSequenceNumber;
+      return builder.setTriggered(true).setSucceed(true).build();
     } catch (IOException e) {
       LOG.error("{}: Failed to checkpoint.", mMaster.getName(), e);
+      return builder.setTriggered(true).setSucceed(false).setMessage(e.getMessage()).build();
     }
   }
 }

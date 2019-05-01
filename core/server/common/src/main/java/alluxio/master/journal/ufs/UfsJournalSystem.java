@@ -12,6 +12,7 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Constants;
+import alluxio.grpc.SnapshotPResponse;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.retry.ExponentialTimeBoundedRetry;
@@ -28,6 +29,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -153,5 +155,32 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     for (UfsJournal journal : mJournals.values()) {
       journal.format();
     }
+  }
+
+  @Override
+  public SnapshotPResponse snapshot() {
+    SnapshotPResponse.Builder mainResponse = SnapshotPResponse.newBuilder()
+        .setTriggered(false).setSucceed(true);
+    StringBuilder exceptionMessage = new StringBuilder();
+    for (Map.Entry<String, UfsJournal> entry : mJournals.entrySet()) {
+      SnapshotPResponse response = entry.getValue().checkpoint();
+      if (response.hasSucceed()) {
+        // If one checkpoint is triggered, we mark main response as triggered
+        mainResponse.setTriggered(true);
+        if (!response.getSucceed()) {
+          // If one checkpoint failed, we mark main response as failed
+          mainResponse.setSucceed(false);
+        }
+      }
+      if (response.hasMessage()) {
+        exceptionMessage.append(String.format("Failed to checkpoint in %s: %s%n",
+            entry.getKey(), response.getMessage()));
+      }
+    }
+    String exception = exceptionMessage.toString();
+    if (!exception.isEmpty()) {
+      mainResponse.setMessage(exception);
+    }
+    return mainResponse.build();
   }
 }

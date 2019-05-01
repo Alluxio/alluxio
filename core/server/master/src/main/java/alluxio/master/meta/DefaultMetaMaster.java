@@ -34,6 +34,7 @@ import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.SnapshotPResponse;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -310,6 +311,13 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     return new BackupResponse(backupUri,
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
             ServerConfiguration.global()));
+  }
+
+  @Override
+  public SnapshotPResponse snapshot() {
+    try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
+      return mJournalSystem.snapshot();
+    }
   }
 
   @Override
