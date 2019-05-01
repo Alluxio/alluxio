@@ -31,7 +31,6 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.LoginUser;
 import alluxio.grpc.GrpcChannel;
 import alluxio.util.SecurityUtils;
-import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
