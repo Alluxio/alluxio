@@ -90,15 +90,6 @@ public class MetricsHeartbeatContext {
         .newBuilder(ctx)
         .setMasterInquireClient(inquireClient)
         .build());
-
-    // Doesn't need to be synchronized as long as #addHeartbeat is marked synchronized
-    if (sAppId == null) {
-      sAppId = IdUtils.createOrGetAppIdFromConfig(ctx.getConf());
-      LOG.info("Created metrics heartbeat with ID {}. This ID will be used for identifying info "
-              + "from the client. It can be set manually through the {} property",
-          sAppId, PropertyKey.Name.USER_APP_ID);
-    }
-
     mClientMasterSync = new ClientMasterSync(sAppId, mMetricsMasterClient, mConf);
   }
 
@@ -180,6 +171,13 @@ public class MetricsHeartbeatContext {
               + "heartbeat will be performed on JVM exit. Security exception: {}", e.toString());
         }
       }
+    }
+
+    if (sAppId == null) {
+      sAppId = IdUtils.createOrGetAppIdFromConfig(ctx.getConf());
+      LOG.info("Created metrics heartbeat with ID {}. This ID will be used for identifying info "
+              + "from the client. It can be set manually through the {} property",
+          sAppId, PropertyKey.Name.USER_APP_ID);
     }
 
     MetricsHeartbeatContext heartbeatCtx = MASTER_METRICS_HEARTBEAT.computeIfAbsent(
