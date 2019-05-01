@@ -16,8 +16,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
+import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import net.jcip.annotations.ThreadSafe;
@@ -36,53 +36,74 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * The class should be instantiated when a new FileSystemContext is created with a
  * configuration that points to a given master. As new FileSystemContexts are created, if they
- * connect to the same master RPC address, then they can simply be added to this context so
- * that their information is included in the metrics heartbeat.
+ * utilize the same connection details, then they can simply be added to this context so
+ * that their information is included in the metrics heartbeat. To add them, one should simply
+ * call {@link #addHeartbeat(ClientContext, MasterInquireClient)} with the necessary arguments.
  *
- * For each separate master RPC address, a new instance of this class is created. As
- * FileSystemContexts are closed, they remove their application Ids from the internal metrics
- * heartbeat. When a context reaches 0 applicationIds it will automatically close and remove
- * itself from the internal MASTER_METRICS_HEARTBEAT map.
+ * For each separate set of connection details, a new instance of this class is created. As
+ * FileSystemContexts are closed, they remove themselves from the internal metrics heartbeat.
+ * When a context reaches 0 tracked contexts it will automatically close and remove itself from
+ * the internal MASTER_METRICS_HEARTBEAT map.
  *
  * When the final FileSystemContext closes and removes its heartbeat from metrics it will also
- * shutdown and close the executor service until a new FileSystemContext is created.
+ * shutdown and close the executor service until a new {@link alluxio.client.file.FileSystemContext}
+ * is created.
  */
 @ThreadSafe
 public class MetricsHeartbeatContext {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsHeartbeatContext.class);
 
-  /** A map from master RPC address to heartbeat context instances. */
-  private static final ConcurrentHashMap<String, MetricsHeartbeatContext>
-      MASTER_METRICS_HEARTBEAT = new ConcurrentHashMap<>();
+  /**
+   * A map from master RPC address to heartbeat context instances.
+   */
+  private static final ConcurrentHashMap<MasterInquireClient.ConnectDetails,
+      MetricsHeartbeatContext> MASTER_METRICS_HEARTBEAT = new ConcurrentHashMap<>();
 
-  /** A value that tracks whether or not we've registered the shutdown hook. */
+  /**
+   * A value that tracks whether or not we've registered the shutdown hook.
+   */
   private static boolean sAddedShudownHook = false;
 
-  /** The service which executes metrics heartbeats. */
+  /**
+   * Application ID for the JVM. Initialized lazily once the first heartbeat is added.
+   */
+  private static String sAppId = null;
+
+  /**
+   * The service which executes metrics heartbeats.
+   */
   private static ScheduledExecutorService sExecutorService;
 
-  private final String mMasterAddr;
+  private final MasterInquireClient.ConnectDetails mConnectDetails;
   private final MetricsMasterClient mMetricsMasterClient;
   private final ClientMasterSync mClientMasterSync;
   private ScheduledFuture<?> mMetricsMasterHeartbeatTask;
   private final AtomicInteger mCtxCount;
   private final AlluxioConfiguration mConf;
 
-  private MetricsHeartbeatContext(String masterAddr, ClientContext ctx,
+  private MetricsHeartbeatContext(ClientContext ctx,
       MasterInquireClient inquireClient) {
-    mMasterAddr = masterAddr;
     mCtxCount = new AtomicInteger(0);
+    mConnectDetails = inquireClient.getConnectDetails();
     mConf = ctx.getConf();
-    // setup metrics master client sync
     mMetricsMasterClient = new MetricsMasterClient(MasterClientContext
         .newBuilder(ctx)
         .setMasterInquireClient(inquireClient)
         .build());
-    mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, mConf);
+
+    // Doesn't need to be synchronized as long as #addHeartbeat is marked synchronized
+    if (sAppId == null) {
+      sAppId = IdUtils.createOrGetAppIdFromConfig(ctx.getConf());
+      LOG.info("Created metrics heartbeat with ID {}. This ID will be used for identifying info "
+              + "from the client. It can be set manually through the {} property",
+          sAppId, PropertyKey.Name.USER_APP_ID);
+    }
+
+    mClientMasterSync = new ClientMasterSync(sAppId, mMetricsMasterClient, mConf);
   }
 
-  private synchronized void addContext(String appId) {
-    mClientMasterSync.addAppId(appId);
+  private synchronized void addContext() {
+    // increment and lazily schedule the new heartbeat task if it is the first one
     if (mCtxCount.getAndIncrement() == 0) {
       mMetricsMasterHeartbeatTask =
           sExecutorService.scheduleWithFixedDelay(mClientMasterSync::heartbeat, 0,
@@ -101,11 +122,8 @@ public class MetricsHeartbeatContext {
    * afterwards. It will automatically close and remove itself from all tracking if the number
    * of open contexts for this heartbeat reaches 0. Never attempt to add another context with
    * the same reference after removing.
-   *
-   * @param appId the applicationId to remove
    */
-  private synchronized void removeContext(String appId) {
-    mClientMasterSync.removeAppId(appId);
+  private synchronized void removeContext() {
     if (mCtxCount.decrementAndGet() <= 0) {
       close();
     }
@@ -115,14 +133,15 @@ public class MetricsHeartbeatContext {
    * When closed, this method will remove its task from the scheduled executor.
    *
    * It will also remove itself from being tracked in the MASTER_METRICS_HEARTBEAT. It should
-   * never need to be called manually.
+   * only ever be called in {@link #removeContext()} when the context count reaches 0. Afterwards,
+   * this reference should be discarded.
    */
   private synchronized void close() {
     mMetricsMasterClient.close();
     if (mMetricsMasterHeartbeatTask != null) {
       mMetricsMasterHeartbeatTask.cancel(false);
     }
-    MASTER_METRICS_HEARTBEAT.remove(mMasterAddr);
+    MASTER_METRICS_HEARTBEAT.remove(mConnectDetails);
   }
 
   /**
@@ -134,13 +153,14 @@ public class MetricsHeartbeatContext {
    *
    * @param ctx The application's client context
    * @param inquireClient the master inquire client used to connect to the master
-   * @param appId the application id that is associated with the metrics
    */
   public static synchronized void addHeartbeat(ClientContext ctx,
-      MasterInquireClient inquireClient, String appId) {
+      MasterInquireClient inquireClient) {
     Preconditions.checkNotNull(ctx);
     Preconditions.checkNotNull(inquireClient);
-    Preconditions.checkNotNull(appId);
+
+    // Lazily initializing the executor service for first heartbeat
+    // Relies on the method being synchronized
     if (sExecutorService == null) {
       sExecutorService = Executors.newSingleThreadScheduledExecutor(
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
@@ -162,14 +182,12 @@ public class MetricsHeartbeatContext {
       }
     }
 
-    String masterAddr =
-        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-            ctx.getConf());
-
-    MetricsHeartbeatContext heartbeatCtx = MASTER_METRICS_HEARTBEAT.computeIfAbsent(masterAddr,
-        (addr) -> new MetricsHeartbeatContext(masterAddr, ctx, inquireClient));
-    heartbeatCtx.addContext(appId);
-    LOG.debug("Registered metrics heartbeat with appId: {}", appId);
+    MetricsHeartbeatContext heartbeatCtx = MASTER_METRICS_HEARTBEAT.computeIfAbsent(
+        inquireClient.getConnectDetails(),
+        (addr) -> new MetricsHeartbeatContext(ctx, inquireClient));
+    heartbeatCtx.addContext();
+    LOG.debug("Registered metrics heartbeat with appId: {}, context count: {}", sAppId,
+        heartbeatCtx.mCtxCount.get());
   }
 
   /**
@@ -182,13 +200,16 @@ public class MetricsHeartbeatContext {
    * executor threadpool until another application needs to heartbeat. If the appId which is to
    * be removed isn't found, the application will silently continue.
    *
-   * @param masterRpcAddr the master which the appId reports to
-   * @param appId the application Id to remove
+   * @param ctx The client context used to register the heartbeat
    */
-  public static synchronized void removeHeartbeat(String masterRpcAddr, String appId) {
-    MetricsHeartbeatContext heartbeatCtx = MASTER_METRICS_HEARTBEAT.get(masterRpcAddr);
+  public static synchronized void removeHeartbeat(ClientContext ctx) {
+    MasterInquireClient.ConnectDetails connectDetails =
+        MasterInquireClient.Factory.getConnectDetails(ctx.getConf());
+    MetricsHeartbeatContext heartbeatCtx = MASTER_METRICS_HEARTBEAT.get(connectDetails);
     if (heartbeatCtx != null) {
-      heartbeatCtx.removeContext(appId);
+      heartbeatCtx.removeContext();
+      LOG.debug("De-registered metrics heartbeat with appId: {}. New Context count: {}", sAppId,
+          heartbeatCtx.mCtxCount.get());
     }
 
     if (MASTER_METRICS_HEARTBEAT.isEmpty()) {
@@ -199,8 +220,8 @@ public class MetricsHeartbeatContext {
         LOG.warn("Metrics heartbeat executor did not shut down in a timely manner: ", e);
       }
       sExecutorService = null;
+      sAppId = null;
     }
-    LOG.debug("De-registered metrics heartbeat with appId: {}", appId);
   }
 
   /**

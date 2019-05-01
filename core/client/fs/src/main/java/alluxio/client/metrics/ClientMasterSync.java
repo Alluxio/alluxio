@@ -12,7 +12,6 @@
 package alluxio.client.metrics;
 
 import alluxio.Constants;
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ClientMetrics;
 import alluxio.metrics.Metric;
@@ -42,71 +41,51 @@ public final class ClientMasterSync {
   private static final Logger LOG =
       new SamplingLogger(LoggerFactory.getLogger(ClientMasterSync.class), 30 * Constants.SECOND_MS);
 
-  /** Client for communicating to metrics master. */
+  /**
+   * Client for communicating to metrics master.
+   */
   private final MetricsMasterClient mMasterClient;
-  private final ConcurrentHashSet<String> mApplicationId;
+  private final String mApplicationId;
   private final AlluxioConfiguration mConf;
 
   /**
    * Constructs a new {@link ClientMasterSync}.
    *
+   * @param appId the application id to send with metrics
    * @param masterClient the master client
    * @param conf Alluxio configuration
    */
-  public ClientMasterSync(MetricsMasterClient masterClient, AlluxioConfiguration conf) {
+  public ClientMasterSync(String appId, MetricsMasterClient masterClient,
+      AlluxioConfiguration conf) {
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
-    mApplicationId = new ConcurrentHashSet<>();
+    mApplicationId = Preconditions.checkNotNull(appId);
     mConf = conf;
   }
 
   /**
-   * Adds a new application Id to be included in the metrics heartbeat.
-   *
-   * @param appId the application identifier to be added
-   */
-  public void addAppId(String appId) {
-    Preconditions.checkNotNull(appId);
-    Preconditions.checkArgument(!appId.equals(""));
-    mApplicationId.add(appId);
-  }
-
-  /**
-   * Removes and application Id from being included in the metrics heartbeat.
-   *
-   * @param appId the application identifier to be removed
-   */
-  public void removeAppId(String appId) {
-    mApplicationId.remove(appId);
-  }
-
-  /**
-   * Sends metrics to the master for each application Id that has been added.
+   * Sends metrics to the master keyed with appId and client hostname.
    */
   public synchronized void heartbeat() {
     // Only perform the heartbeat if there are applications to track
-    if (mApplicationId.size() > 0) {
-      List<alluxio.grpc.ClientMetrics> clientMetrics = new ArrayList<>();
-      List<Metric> allClientMetrics = MetricsSystem.allClientMetrics();
-      String hostname = NetworkAddressUtils.getClientHostName(mConf);
-      for (String appId : mApplicationId) {
-        List<alluxio.grpc.Metric> metrics = new ArrayList<>();
-        for (Metric metric : allClientMetrics) {
-          metric.setInstanceId(appId);
-          metrics.add(metric.toProto());
-        }
-        clientMetrics.add(ClientMetrics.newBuilder()
-            .setHostname(hostname)
-            .setClientId(appId)
-            .addAllMetrics(metrics)
-            .build());
-      }
-      try {
-        mMasterClient.heartbeat(clientMetrics);
-      } catch (IOException e) {
-        // WARN instead of ERROR as metrics are not critical to the application function
-        LOG.warn("Failed to send metrics to master: ", e);
-        mMasterClient.disconnect();
-      }
+    List<alluxio.grpc.ClientMetrics> clientMetrics = new ArrayList<>();
+    List<Metric> allClientMetrics = MetricsSystem.allClientMetrics();
+    String hostname = NetworkAddressUtils.getClientHostName(mConf);
+    List<alluxio.grpc.Metric> metrics = new ArrayList<>();
+    for (Metric metric : allClientMetrics) {
+      metric.setInstanceId(mApplicationId);
+      metrics.add(metric.toProto());
+    }
+    clientMetrics.add(ClientMetrics.newBuilder()
+        .setHostname(hostname)
+        .setClientId(mApplicationId)
+        .addAllMetrics(metrics)
+        .build());
+    try {
+      mMasterClient.heartbeat(clientMetrics);
+    } catch (IOException e) {
+      // WARN instead of ERROR as metrics are not critical to the application function
+      LOG.warn("Failed to send metrics to master: ", e);
+      mMasterClient.disconnect();
     }
   }
 }

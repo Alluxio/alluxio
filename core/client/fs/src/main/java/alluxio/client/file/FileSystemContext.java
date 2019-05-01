@@ -111,8 +111,6 @@ public final class FileSystemContext implements Closeable {
   @GuardedBy("this")
   private WorkerNetAddress mLocalWorker;
 
-  private final String mMasterRpcAddr;
-  private final String mAppId;
   private final ClientContext mClientContext;
   private final EventLoopGroup mWorkerGroup;
 
@@ -195,18 +193,10 @@ public final class FileSystemContext implements Closeable {
     mClientContext = ctx;
     mClosed = new AtomicBoolean(false);
 
-    mAppId = ctx.getConf().isSet(PropertyKey.USER_APP_ID)
-                 ? ctx.getConf().get(PropertyKey.USER_APP_ID) : IdUtils.createFileSystemContextId();
-    LOG.info("Created filesystem context with id {}. This ID will be used for identifying info "
-            + "from the client, such as metrics. It can be set manually through the {} property",
-        mAppId, PropertyKey.Name.USER_APP_ID);
-
     mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(ctx.getConf()),
         ctx.getConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
-        String.format("alluxio-client-nettyPool-%s-%%d", mAppId), true);
-
-    mMasterRpcAddr = NetworkAddressUtils.getConnectHost(
-        NetworkAddressUtils.ServiceType.MASTER_RPC, getClusterConf());
+        String.format("alluxio-client-nettyPool-%s-%%d", IdUtils.createFileSystemContextId()),
+        true);
   }
 
   /**
@@ -222,7 +212,7 @@ public final class FileSystemContext implements Closeable {
     mClosed.set(false);
 
     if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
-      MetricsHeartbeatContext.addHeartbeat(mClientContext, masterInquireClient, mAppId);
+      MetricsHeartbeatContext.addHeartbeat(mClientContext, masterInquireClient);
     }
   }
 
@@ -252,14 +242,14 @@ public final class FileSystemContext implements Closeable {
       }
       mBlockWorkerClientPool.clear();
       if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
-        MetricsHeartbeatContext.removeHeartbeat(mMasterRpcAddr, mAppId);
+        MetricsHeartbeatContext.removeHeartbeat(mClientContext);
       }
 
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
     } else {
-      LOG.warn("Attempted to close FileSystemContext with app ID {} which has already been closed"
-          + " or not initialized.", mAppId);
+      LOG.warn("Attempted to close FileSystemContext which has already been closed or not "
+          + "initialized.");
     }
   }
 
