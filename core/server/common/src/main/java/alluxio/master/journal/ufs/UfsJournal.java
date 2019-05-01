@@ -317,7 +317,7 @@ public class UfsJournal implements Journal {
    *
    * @return the snapshot response
    */
-  public SnapshotPResponse checkpoint() {
+  public synchronized SnapshotPResponse checkpoint() {
     return mTailerThread.maybeCheckpoint();
   }
 

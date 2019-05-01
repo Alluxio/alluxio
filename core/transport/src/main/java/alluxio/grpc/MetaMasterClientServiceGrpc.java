@@ -269,7 +269,7 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Takes a snapshot of the Alluxio primary master state
+     * Triggers a snapshot in the primary master journal system.
      * </pre>
      */
     public void snapshot(alluxio.grpc.SnapshotPOptions request,
@@ -391,7 +391,7 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Takes a snapshot of the Alluxio primary master state
+     * Triggers a snapshot in the primary master journal system.
      * </pre>
      */
     public void snapshot(alluxio.grpc.SnapshotPOptions request,
@@ -470,7 +470,7 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Takes a snapshot of the Alluxio primary master state
+     * Triggers a snapshot in the primary master journal system.
      * </pre>
      */
     public alluxio.grpc.SnapshotPResponse snapshot(alluxio.grpc.SnapshotPOptions request) {
@@ -552,7 +552,7 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Takes a snapshot of the Alluxio primary master state
+     * Triggers a snapshot in the primary master journal system.
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.SnapshotPResponse> snapshot(

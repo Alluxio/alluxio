@@ -329,42 +329,60 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public SnapshotPResponse snapshot() {
+  public synchronized SnapshotPResponse snapshot() {
     SnapshotPResponse.Builder builder = SnapshotPResponse.newBuilder();
     mSnapshotAllowed.set(true);
-    CopycatClient client = createClient();
-    long sequence = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, 0);
-    CompletableFuture<Void> future = client.submit(new JournalEntryCommand(
-        JournalEntry.newBuilder().setSequenceNumber(sequence).build()));
     try {
-      future.get(5, TimeUnit.SECONDS);
-    } catch (TimeoutException | ExecutionException e) {
-      LOG.info("Exception submitting entry: {}", e.toString());
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return builder.setTriggered(false)
-          .setMessage("Interrupted while submitting entry to trigger snapshot").build();
+      CopycatClient client = createClient();
+      long sequence = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, 0);
+      CompletableFuture<Void> future = client.submit(new JournalEntryCommand(
+          JournalEntry.newBuilder().setSequenceNumber(sequence).build()));
+      try {
+        future.get(5, TimeUnit.SECONDS);
+      } catch (TimeoutException | ExecutionException e) {
+        LOG.info("Exception submitting entry: {}", e.toString());
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return builder.setTriggered(false)
+            .setMessage("Interrupted while submitting entry to trigger snapshot").build();
+      }
+      if (!mStateMachine.isSnapshotting()) {
+        return builder.setTriggered(false)
+            .setMessage("Do not fulfill Raft journal system snapshot requirement").build();
+      }
+
+      waitForSnapshotting(mStateMachine, builder);
+      if (builder.hasSucceed()) {
+        return builder.build();
+      }
+      return builder.setTriggered(true).setSucceed(true).build();
+    } finally {
+      if (mPrimarySelector.getState() == PrimarySelector.State.PRIMARY) {
+        mSnapshotAllowed.set(false);
+      }
     }
-    if (!mStateMachine.isSnapshotting()) {
-      return builder.setTriggered(false)
-          .setMessage("Do not fulfill Raft journal system snapshot requirement").build();
-    }
+  }
+
+  /**
+   * Waits for snapshotting to finish.
+   *
+   * @param stateMachine the journal state machine
+   * @param builder the snapshot response builder
+   */
+  private void waitForSnapshotting(JournalStateMachine stateMachine,
+      SnapshotPResponse.Builder builder) {
     try {
-      CommonUtils.waitFor("snapshotting to finish", () -> !mStateMachine.isSnapshotting(),
+      CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
           WaitForOptions.defaults().setTimeoutMs(20 * Constants.MINUTE_MS));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      return builder.setTriggered(true).setSucceed(false)
-          .setMessage("Interrupted while snapshotting").build();
+      builder.setTriggered(true).setSucceed(false)
+          .setMessage("Interrupted while snapshotting");
     } catch (TimeoutException e) {
       LOG.info("Timeout waiting for snapshotting to finish", e);
-      return builder.setTriggered(true).setSucceed(false)
-          .setMessage("Timeout while snapshotting").build();
+      builder.setTriggered(true).setSucceed(false)
+          .setMessage("Timeout while snapshotting");
     }
-    if (mPrimarySelector.getState() == PrimarySelector.State.PRIMARY) {
-      mSnapshotAllowed.set(false);
-    }
-    return builder.setTriggered(true).setSucceed(true).build();
   }
 
   /**

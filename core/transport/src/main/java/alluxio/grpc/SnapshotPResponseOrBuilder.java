@@ -8,60 +8,32 @@ public interface SnapshotPResponseOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <pre>
-   * whether snapshot is triggered
-   * </pre>
-   *
    * <code>optional bool triggered = 1;</code>
    */
   boolean hasTriggered();
   /**
-   * <pre>
-   * whether snapshot is triggered
-   * </pre>
-   *
    * <code>optional bool triggered = 1;</code>
    */
   boolean getTriggered();
 
   /**
-   * <pre>
-   * whether snapshot is succeed
-   * </pre>
-   *
    * <code>optional bool succeed = 2;</code>
    */
   boolean hasSucceed();
   /**
-   * <pre>
-   * whether snapshot is succeed
-   * </pre>
-   *
    * <code>optional bool succeed = 2;</code>
    */
   boolean getSucceed();
 
   /**
-   * <pre>
-   * the message to explain why snapshot is not triggered or is not succeed
-   * </pre>
-   *
    * <code>optional string message = 3;</code>
    */
   boolean hasMessage();
   /**
-   * <pre>
-   * the message to explain why snapshot is not triggered or is not succeed
-   * </pre>
-   *
    * <code>optional string message = 3;</code>
    */
   java.lang.String getMessage();
   /**
-   * <pre>
-   * the message to explain why snapshot is not triggered or is not succeed
-   * </pre>
-   *
    * <code>optional string message = 3;</code>
    */
   com.google.protobuf.ByteString

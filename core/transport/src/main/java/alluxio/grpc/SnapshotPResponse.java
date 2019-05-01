@@ -4,6 +4,14 @@
 package alluxio.grpc;
 
 /**
+ * <pre>
+ **
+ * The snapshot response has three cases:
+ * 1. failed to trigger (triggered=false and message explains why snapshot is not triggered)
+ * 2. triggered but failed (triggered=false, succeed=false and message explains why snapshot is failed)
+ * 3. succeed (triggered=true, succeed=true)
+ * </pre>
+ *
  * Protobuf type {@code alluxio.grpc.meta.SnapshotPResponse}
  */
 public  final class SnapshotPResponse extends
@@ -96,20 +104,12 @@ private static final long serialVersionUID = 0L;
   public static final int TRIGGERED_FIELD_NUMBER = 1;
   private boolean triggered_;
   /**
-   * <pre>
-   * whether snapshot is triggered
-   * </pre>
-   *
    * <code>optional bool triggered = 1;</code>
    */
   public boolean hasTriggered() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <pre>
-   * whether snapshot is triggered
-   * </pre>
-   *
    * <code>optional bool triggered = 1;</code>
    */
   public boolean getTriggered() {
@@ -119,20 +119,12 @@ private static final long serialVersionUID = 0L;
   public static final int SUCCEED_FIELD_NUMBER = 2;
   private boolean succeed_;
   /**
-   * <pre>
-   * whether snapshot is succeed
-   * </pre>
-   *
    * <code>optional bool succeed = 2;</code>
    */
   public boolean hasSucceed() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <pre>
-   * whether snapshot is succeed
-   * </pre>
-   *
    * <code>optional bool succeed = 2;</code>
    */
   public boolean getSucceed() {
@@ -142,20 +134,12 @@ private static final long serialVersionUID = 0L;
   public static final int MESSAGE_FIELD_NUMBER = 3;
   private volatile java.lang.Object message_;
   /**
-   * <pre>
-   * the message to explain why snapshot is not triggered or is not succeed
-   * </pre>
-   *
    * <code>optional string message = 3;</code>
    */
   public boolean hasMessage() {
     return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <pre>
-   * the message to explain why snapshot is not triggered or is not succeed
-   * </pre>
-   *
    * <code>optional string message = 3;</code>
    */
   public java.lang.String getMessage() {
@@ -173,10 +157,6 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <pre>
-   * the message to explain why snapshot is not triggered or is not succeed
-   * </pre>
-   *
    * <code>optional string message = 3;</code>
    */
   public com.google.protobuf.ByteString
@@ -383,6 +363,14 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   **
+   * The snapshot response has three cases:
+   * 1. failed to trigger (triggered=false and message explains why snapshot is not triggered)
+   * 2. triggered but failed (triggered=false, succeed=false and message explains why snapshot is failed)
+   * 3. succeed (triggered=true, succeed=true)
+   * </pre>
+   *
    * Protobuf type {@code alluxio.grpc.meta.SnapshotPResponse}
    */
   public static final class Builder extends
@@ -543,30 +531,18 @@ private static final long serialVersionUID = 0L;
 
     private boolean triggered_ ;
     /**
-     * <pre>
-     * whether snapshot is triggered
-     * </pre>
-     *
      * <code>optional bool triggered = 1;</code>
      */
     public boolean hasTriggered() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <pre>
-     * whether snapshot is triggered
-     * </pre>
-     *
      * <code>optional bool triggered = 1;</code>
      */
     public boolean getTriggered() {
       return triggered_;
     }
     /**
-     * <pre>
-     * whether snapshot is triggered
-     * </pre>
-     *
      * <code>optional bool triggered = 1;</code>
      */
     public Builder setTriggered(boolean value) {
@@ -576,10 +552,6 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <pre>
-     * whether snapshot is triggered
-     * </pre>
-     *
      * <code>optional bool triggered = 1;</code>
      */
     public Builder clearTriggered() {
@@ -591,30 +563,18 @@ private static final long serialVersionUID = 0L;
 
     private boolean succeed_ ;
     /**
-     * <pre>
-     * whether snapshot is succeed
-     * </pre>
-     *
      * <code>optional bool succeed = 2;</code>
      */
     public boolean hasSucceed() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <pre>
-     * whether snapshot is succeed
-     * </pre>
-     *
      * <code>optional bool succeed = 2;</code>
      */
     public boolean getSucceed() {
       return succeed_;
     }
     /**
-     * <pre>
-     * whether snapshot is succeed
-     * </pre>
-     *
      * <code>optional bool succeed = 2;</code>
      */
     public Builder setSucceed(boolean value) {
@@ -624,10 +584,6 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <pre>
-     * whether snapshot is succeed
-     * </pre>
-     *
      * <code>optional bool succeed = 2;</code>
      */
     public Builder clearSucceed() {
@@ -639,20 +595,12 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object message_ = "";
     /**
-     * <pre>
-     * the message to explain why snapshot is not triggered or is not succeed
-     * </pre>
-     *
      * <code>optional string message = 3;</code>
      */
     public boolean hasMessage() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <pre>
-     * the message to explain why snapshot is not triggered or is not succeed
-     * </pre>
-     *
      * <code>optional string message = 3;</code>
      */
     public java.lang.String getMessage() {
@@ -670,10 +618,6 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <pre>
-     * the message to explain why snapshot is not triggered or is not succeed
-     * </pre>
-     *
      * <code>optional string message = 3;</code>
      */
     public com.google.protobuf.ByteString
@@ -690,10 +634,6 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <pre>
-     * the message to explain why snapshot is not triggered or is not succeed
-     * </pre>
-     *
      * <code>optional string message = 3;</code>
      */
     public Builder setMessage(
@@ -707,10 +647,6 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <pre>
-     * the message to explain why snapshot is not triggered or is not succeed
-     * </pre>
-     *
      * <code>optional string message = 3;</code>
      */
     public Builder clearMessage() {
@@ -720,10 +656,6 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <pre>
-     * the message to explain why snapshot is not triggered or is not succeed
-     * </pre>
-     *
      * <code>optional string message = 3;</code>
      */
     public Builder setMessageBytes(
