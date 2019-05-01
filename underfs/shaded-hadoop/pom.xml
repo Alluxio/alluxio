@@ -14,10 +14,10 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.alluxio</groupId>
-    <artifactId>alluxio-parent</artifactId>
+    <artifactId>alluxio-underfs</artifactId>
     <version>2.0.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-shaded-hadoop</artifactId>
+  <artifactId>alluxio-underfs-shaded-hadoop</artifactId>
   <packaging>jar</packaging>
   <name>Alluxio Shaded HDFS</name>
   <version>${ufs.hadoop.version}</version>

@@ -64,7 +64,7 @@
       <dependencies>
         <dependency>
           <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-shaded-hadoop</artifactId>
+          <artifactId>alluxio-underfs-shaded-hadoop</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
@@ -95,7 +95,7 @@
       <dependencies>
         <dependency>
           <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-shaded-hadoop</artifactId>
+          <artifactId>alluxio-underfs-shaded-hadoop</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
@@ -107,7 +107,7 @@
       <dependencies>
         <dependency>
           <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-shaded-hadoop</artifactId>
+          <artifactId>alluxio-underfs-shaded-hadoop</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
