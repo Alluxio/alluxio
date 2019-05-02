@@ -11,6 +11,7 @@
 
 package alluxio.conf;
 
+import alluxio.conf.PropertyKey.Name;
 import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
@@ -489,8 +490,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private void checkZkConfiguration() {
     Preconditions.checkState(
         isSet(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
-        PreconditionMessage.INCONSISTENT_ZK_CONFIGURATION.toString(),
-        PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED);
+        "Inconsistent Zookeeper configuration; %s should be set if and only if %s is true. "
+            + "%s=%s, %s=%s",
+        PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED,
+        Name.ZOOKEEPER_ADDRESS, getOrDefault(PropertyKey.ZOOKEEPER_ADDRESS, ""),
+        Name.ZOOKEEPER_ENABLED, get(PropertyKey.ZOOKEEPER_ENABLED));
   }
 
   /**

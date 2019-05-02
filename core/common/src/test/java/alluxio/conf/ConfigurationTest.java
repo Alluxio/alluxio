@@ -22,6 +22,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.DefaultSupplier;
 import alluxio.SystemPropertyRule;
+import alluxio.conf.PropertyKey.Name;
 import alluxio.conf.PropertyKey.Template;
 import alluxio.util.ConfigurationUtils;
 
@@ -932,6 +933,17 @@ public class ConfigurationTest {
       assertEquals("foo",
           mConfiguration.get(Template.MASTER_JOURNAL_UFS_OPTION_PROPERTY
               .format("fs.obs.endpoint")));
+    }
+  }
+
+  @Test
+  public void validateZkConsistency() throws Exception {
+    try (Closeable p = new SystemPropertyRule(Name.ZOOKEEPER_ADDRESS, "zkhost:2181").toResource()) {
+      mThrown.expect(IllegalStateException.class);
+      mThrown.expectMessage("Inconsistent Zookeeper configuration; " +
+          "alluxio.zookeeper.address should be set if and only if alluxio.zookeeper.enabled " +
+          "is true. alluxio.zookeeper.address=zkhost:2181, alluxio.zookeeper.enabled=false");
+      resetConf();
     }
   }
 }
