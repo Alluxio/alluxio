@@ -11,11 +11,13 @@
 
 package alluxio.conf;
 
+import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationTestUtils;
@@ -939,11 +941,25 @@ public class ConfigurationTest {
   @Test
   public void validateZkConsistency() throws Exception {
     try (Closeable p = new SystemPropertyRule(Name.ZOOKEEPER_ADDRESS, "zkhost:2181").toResource()) {
-      mThrown.expect(IllegalStateException.class);
-      mThrown.expectMessage("Inconsistent Zookeeper configuration; " +
-          "alluxio.zookeeper.address should be set if and only if alluxio.zookeeper.enabled " +
-          "is true. alluxio.zookeeper.address=zkhost:2181, alluxio.zookeeper.enabled=false");
-      resetConf();
+      try {
+        resetConf();
+        fail("Expected an exception to be thrown");
+      } catch (IllegalStateException e) {
+        assertThat(e.getMessage(), containsString("Inconsistent Zookeeper configuration; " +
+            "alluxio.zookeeper.address should be set if and only if alluxio.zookeeper.enabled " +
+            "is true. alluxio.zookeeper.address=zkhost:2181, alluxio.zookeeper.enabled=false"));
+
+      }
+    }
+    try (Closeable p = new SystemPropertyRule(Name.ZOOKEEPER_ENABLED, "true").toResource()) {
+      try {
+        resetConf();
+        fail("Expected an exception to be thrown");
+      } catch (IllegalStateException e) {
+        assertThat(e.getMessage(), containsString("Inconsistent Zookeeper configuration; " +
+            "alluxio.zookeeper.address should be set if and only if alluxio.zookeeper.enabled " +
+            "is true. alluxio.zookeeper.address=, alluxio.zookeeper.enabled=true"));
+      }
     }
   }
 }
