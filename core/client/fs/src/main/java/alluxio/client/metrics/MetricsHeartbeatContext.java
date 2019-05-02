@@ -186,8 +186,7 @@ public class MetricsHeartbeatContext {
         inquireClient.getConnectDetails(),
         (addr) -> new MetricsHeartbeatContext(ctx, inquireClient));
     heartbeatCtx.addContext();
-    LOG.debug("Registered metrics heartbeat with appId: {}, context count: {}", sAppId,
-        heartbeatCtx.mCtxCount);
+    LOG.debug("Registered metrics heartbeat with appId: {}", sAppId);
   }
 
   /**
@@ -208,8 +207,7 @@ public class MetricsHeartbeatContext {
     MetricsHeartbeatContext heartbeatCtx = MASTER_METRICS_HEARTBEAT.get(connectDetails);
     if (heartbeatCtx != null) {
       heartbeatCtx.removeContext();
-      LOG.debug("De-registered metrics heartbeat with appId: {}. New Context count: {}", sAppId,
-          heartbeatCtx.mCtxCount);
+      LOG.debug("De-registered metrics heartbeat with appId: {}", sAppId);
     }
 
     if (MASTER_METRICS_HEARTBEAT.isEmpty()) {
@@ -217,7 +215,8 @@ public class MetricsHeartbeatContext {
       try {
         sExecutorService.awaitTermination(5000, TimeUnit.MILLISECONDS);
       } catch (InterruptedException e) {
-        LOG.warn("Metrics heartbeat executor did not shut down in a timely manner: ", e);
+        LOG.warn("Metrics heartbeat executor did not shut down in a timely manner: {}",
+            e.toString());
       }
       sExecutorService = null;
       sAppId = null;
