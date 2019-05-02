@@ -13,7 +13,6 @@ package alluxio.master.journal;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.SnapshotPResponse;
 import alluxio.master.Master;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
@@ -156,11 +155,9 @@ public interface JournalSystem {
   boolean isEmpty();
 
   /**
-   * Triggers a snapshot in the primary master journal system.
-   *
-   * @return the snapshot response
+   * Triggers a checkpoint in the primary master journal system.
    */
-  SnapshotPResponse snapshot();
+  void checkpoint() throws IOException;
 
   /**
    * Builder for constructing a journal system.

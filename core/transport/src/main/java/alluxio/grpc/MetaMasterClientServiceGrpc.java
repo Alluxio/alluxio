@@ -159,36 +159,36 @@ public final class MetaMasterClientServiceGrpc {
      return getGetMetricsMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.SnapshotPOptions,
-      alluxio.grpc.SnapshotPResponse> getSnapshotMethod;
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CheckpointPOptions,
+      alluxio.grpc.CheckpointPResponse> getCheckpointMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "Snapshot",
-      requestType = alluxio.grpc.SnapshotPOptions.class,
-      responseType = alluxio.grpc.SnapshotPResponse.class,
+      fullMethodName = SERVICE_NAME + '/' + "Checkpoint",
+      requestType = alluxio.grpc.CheckpointPOptions.class,
+      responseType = alluxio.grpc.CheckpointPResponse.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<alluxio.grpc.SnapshotPOptions,
-      alluxio.grpc.SnapshotPResponse> getSnapshotMethod() {
-    io.grpc.MethodDescriptor<alluxio.grpc.SnapshotPOptions, alluxio.grpc.SnapshotPResponse> getSnapshotMethod;
-    if ((getSnapshotMethod = MetaMasterClientServiceGrpc.getSnapshotMethod) == null) {
+  public static io.grpc.MethodDescriptor<alluxio.grpc.CheckpointPOptions,
+      alluxio.grpc.CheckpointPResponse> getCheckpointMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.CheckpointPOptions, alluxio.grpc.CheckpointPResponse> getCheckpointMethod;
+    if ((getCheckpointMethod = MetaMasterClientServiceGrpc.getCheckpointMethod) == null) {
       synchronized (MetaMasterClientServiceGrpc.class) {
-        if ((getSnapshotMethod = MetaMasterClientServiceGrpc.getSnapshotMethod) == null) {
-          MetaMasterClientServiceGrpc.getSnapshotMethod = getSnapshotMethod = 
-              io.grpc.MethodDescriptor.<alluxio.grpc.SnapshotPOptions, alluxio.grpc.SnapshotPResponse>newBuilder()
+        if ((getCheckpointMethod = MetaMasterClientServiceGrpc.getCheckpointMethod) == null) {
+          MetaMasterClientServiceGrpc.getCheckpointMethod = getCheckpointMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.CheckpointPOptions, alluxio.grpc.CheckpointPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterClientService", "Snapshot"))
+                  "alluxio.grpc.meta.MetaMasterClientService", "Checkpoint"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.SnapshotPOptions.getDefaultInstance()))
+                  alluxio.grpc.CheckpointPOptions.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.SnapshotPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("Snapshot"))
+                  alluxio.grpc.CheckpointPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("Checkpoint"))
                   .build();
           }
         }
      }
-     return getSnapshotMethod;
+     return getCheckpointMethod;
   }
 
   /**
@@ -269,12 +269,12 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Triggers a snapshot in the primary master journal system.
+     * Triggers a checkpoint in the primary master journal system.
      * </pre>
      */
-    public void snapshot(alluxio.grpc.SnapshotPOptions request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.SnapshotPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getSnapshotMethod(), responseObserver);
+    public void checkpoint(alluxio.grpc.CheckpointPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.CheckpointPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getCheckpointMethod(), responseObserver);
     }
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
@@ -308,12 +308,12 @@ public final class MetaMasterClientServiceGrpc {
                 alluxio.grpc.GetMetricsPResponse>(
                   this, METHODID_GET_METRICS)))
           .addMethod(
-            getSnapshotMethod(),
+            getCheckpointMethod(),
             asyncUnaryCall(
               new MethodHandlers<
-                alluxio.grpc.SnapshotPOptions,
-                alluxio.grpc.SnapshotPResponse>(
-                  this, METHODID_SNAPSHOT)))
+                alluxio.grpc.CheckpointPOptions,
+                alluxio.grpc.CheckpointPResponse>(
+                  this, METHODID_CHECKPOINT)))
           .build();
     }
   }
@@ -391,13 +391,13 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Triggers a snapshot in the primary master journal system.
+     * Triggers a checkpoint in the primary master journal system.
      * </pre>
      */
-    public void snapshot(alluxio.grpc.SnapshotPOptions request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.SnapshotPResponse> responseObserver) {
+    public void checkpoint(alluxio.grpc.CheckpointPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.CheckpointPResponse> responseObserver) {
       asyncUnaryCall(
-          getChannel().newCall(getSnapshotMethod(), getCallOptions()), request, responseObserver);
+          getChannel().newCall(getCheckpointMethod(), getCallOptions()), request, responseObserver);
     }
   }
 
@@ -470,12 +470,12 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Triggers a snapshot in the primary master journal system.
+     * Triggers a checkpoint in the primary master journal system.
      * </pre>
      */
-    public alluxio.grpc.SnapshotPResponse snapshot(alluxio.grpc.SnapshotPOptions request) {
+    public alluxio.grpc.CheckpointPResponse checkpoint(alluxio.grpc.CheckpointPOptions request) {
       return blockingUnaryCall(
-          getChannel(), getSnapshotMethod(), getCallOptions(), request);
+          getChannel(), getCheckpointMethod(), getCallOptions(), request);
     }
   }
 
@@ -552,13 +552,13 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Triggers a snapshot in the primary master journal system.
+     * Triggers a checkpoint in the primary master journal system.
      * </pre>
      */
-    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.SnapshotPResponse> snapshot(
-        alluxio.grpc.SnapshotPOptions request) {
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.CheckpointPResponse> checkpoint(
+        alluxio.grpc.CheckpointPOptions request) {
       return futureUnaryCall(
-          getChannel().newCall(getSnapshotMethod(), getCallOptions()), request);
+          getChannel().newCall(getCheckpointMethod(), getCallOptions()), request);
     }
   }
 
@@ -566,7 +566,7 @@ public final class MetaMasterClientServiceGrpc {
   private static final int METHODID_GET_CONFIG_REPORT = 1;
   private static final int METHODID_GET_MASTER_INFO = 2;
   private static final int METHODID_GET_METRICS = 3;
-  private static final int METHODID_SNAPSHOT = 4;
+  private static final int METHODID_CHECKPOINT = 4;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -601,9 +601,9 @@ public final class MetaMasterClientServiceGrpc {
           serviceImpl.getMetrics((alluxio.grpc.GetMetricsPOptions) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.GetMetricsPResponse>) responseObserver);
           break;
-        case METHODID_SNAPSHOT:
-          serviceImpl.snapshot((alluxio.grpc.SnapshotPOptions) request,
-              (io.grpc.stub.StreamObserver<alluxio.grpc.SnapshotPResponse>) responseObserver);
+        case METHODID_CHECKPOINT:
+          serviceImpl.checkpoint((alluxio.grpc.CheckpointPOptions) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.CheckpointPResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -670,7 +670,7 @@ public final class MetaMasterClientServiceGrpc {
               .addMethod(getGetConfigReportMethod())
               .addMethod(getGetMasterInfoMethod())
               .addMethod(getGetMetricsMethod())
-              .addMethod(getSnapshotMethod())
+              .addMethod(getCheckpointMethod())
               .build();
         }
       }

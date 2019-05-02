@@ -20,7 +20,6 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
-import alluxio.grpc.SnapshotPResponse;
 import alluxio.master.Master;
 import alluxio.wire.Address;
 import alluxio.wire.BackupResponse;
@@ -147,9 +146,9 @@ public interface MetaMaster extends Master {
   void masterRegister(long masterId, RegisterMasterPOptions options) throws NotFoundException;
 
   /**
-   * Triggers a snapshot in the primary master journal system.
+   * Triggers a checkpoint in the primary master journal system.
    *
-   * @return the snapshot response
+   * @return the master hostname that did the checkpoint
    */
-  SnapshotPResponse snapshot() throws IOException;
+  String checkpoint() throws IOException;
 }

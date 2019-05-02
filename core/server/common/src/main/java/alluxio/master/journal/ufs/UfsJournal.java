@@ -14,8 +14,8 @@ package alluxio.master.journal.ufs;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
+import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.SnapshotPResponse;
 import alluxio.master.Master;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
@@ -314,15 +314,16 @@ public class UfsJournal implements Journal {
 
   /**
    * Triggers a checkpoint in the primary master ufs journal.
-   *
-   * @return the snapshot response
    */
-  public synchronized SnapshotPResponse checkpoint() {
-    if (mTailerThread == null) {
-      return SnapshotPResponse.newBuilder().setTriggered(false)
-          .setMessage("UFS journal checkpoint thread is not initialized").build();
+  public synchronized void checkpoint() throws IOException {
+    UfsJournalCheckpointWriter journalWriter
+        = getCheckpointWriter(mWriter.getNextSequenceNumber());
+    try {
+      mMaster.writeToCheckpoint(journalWriter);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new CancelledException("Checkpoint is interrupted", e);
     }
-    return mTailerThread.maybeCheckpoint();
   }
 
   /**

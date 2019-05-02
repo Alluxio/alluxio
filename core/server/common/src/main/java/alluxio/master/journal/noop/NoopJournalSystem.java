@@ -11,7 +11,6 @@
 
 package alluxio.master.journal.noop;
 
-import alluxio.grpc.SnapshotPResponse;
 import alluxio.master.Master;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalSystem;
@@ -60,8 +59,7 @@ public final class NoopJournalSystem implements JournalSystem {
   public void stop() {}
 
   @Override
-  public SnapshotPResponse snapshot() {
-    return SnapshotPResponse.newBuilder().setTriggered(false)
-        .setMessage("Noop journal system does not support snapshotting").build();
+  public void checkpoint() {
+    throw new UnsupportedOperationException("Checkpoint is not supported in NoopJournalSystem");
   }
 }

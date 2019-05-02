@@ -17,6 +17,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPResponse;
+import alluxio.grpc.CheckpointPOptions;
+import alluxio.grpc.CheckpointPResponse;
 import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetConfigReportPResponse;
 import alluxio.grpc.GetMasterInfoPOptions;
@@ -26,8 +28,6 @@ import alluxio.grpc.GetMetricsPResponse;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
-import alluxio.grpc.SnapshotPOptions;
-import alluxio.grpc.SnapshotPResponse;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.Address;
 
@@ -160,9 +160,10 @@ public final class MetaMasterClientServiceHandler
   }
 
   @Override
-  public void snapshot(SnapshotPOptions options,
-      StreamObserver<SnapshotPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<SnapshotPResponse>) () ->
-        mMetaMaster.snapshot(), "snapshot", "options=%s", responseObserver, options);
+  public void checkpoint(CheckpointPOptions options,
+      StreamObserver<CheckpointPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CheckpointPResponse>) () ->
+        CheckpointPResponse.newBuilder().setMasterHostname(mMetaMaster.checkpoint()).build(),
+        "checkpoint", "options=%s", responseObserver, options);
   }
 }

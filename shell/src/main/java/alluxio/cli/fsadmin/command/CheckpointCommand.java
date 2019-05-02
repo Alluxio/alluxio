@@ -14,22 +14,21 @@ package alluxio.cli.fsadmin.command;
 import alluxio.cli.CommandUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.grpc.SnapshotPResponse;
 
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
 
 /**
- * Command for triggering a snapshot in the primary master journal system.
+ * Command for triggering a checkpoint in the primary master journal system.
  */
-public class SnapshotCommand extends AbstractFsAdminCommand {
+public class CheckpointCommand extends AbstractFsAdminCommand {
 
   /**
    * @param context fsadmin command context
    * @param alluxioConf Alluxio configuration
    */
-  public SnapshotCommand(Context context, AlluxioConfiguration alluxioConf) {
+  public CheckpointCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
   }
 
@@ -40,15 +39,8 @@ public class SnapshotCommand extends AbstractFsAdminCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    SnapshotPResponse response = mMetaClient.snapshot();
-    if (response.hasSucceed() && response.getSucceed()) {
-      mPrintStream.println("Successfully take a snapshot in the primary master journal system");
-    } else if (response.hasTriggered() && !response.getTriggered()) {
-      mPrintStream.println("Failed to trigger a snapshot: "
-          + response.getMessage());
-    } else { // Triggered but not succeed
-      mPrintStream.printf("Failed to finish snapshot with exception: %n" + response.getMessage());
-    }
+    String masterHostname = mMetaClient.checkpoint();
+    mPrintStream.println("Successfully checkpointed in " + masterHostname);
     return 0;
   }
 
@@ -59,10 +51,10 @@ public class SnapshotCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getDescription() {
-    return "triggers a snapshot in the primary master journal system. This command is mainly used "
-        + "for debugging and to avoid master journal logs from growing unbounded. Snapshotting "
-        + "requires a pause in master metadata changes, so use this command sparingly to "
-        + "avoid interfering with other users of the system.";
+    return "triggers a checkpoint in the primary master journal system. This command "
+        + "is mainly used for debugging and to avoid master journal logs "
+        + "from growing unbounded. Checkpointing requires a pause in master metadata changes, "
+        + "so use this command sparingly to avoid interfering with other users of the system.";
   }
 
   @Override

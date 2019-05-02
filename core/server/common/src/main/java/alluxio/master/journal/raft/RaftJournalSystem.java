@@ -15,7 +15,8 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.grpc.SnapshotPResponse;
+import alluxio.exception.status.CancelledException;
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
@@ -329,37 +330,33 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public synchronized SnapshotPResponse snapshot() {
-    SnapshotPResponse.Builder builder = SnapshotPResponse.newBuilder();
+  public synchronized void checkpoint() throws IOException {
     mSnapshotAllowed.set(true);
     try {
       CopycatClient client = createClient();
-      long sequence = ThreadLocalRandom.current().nextLong(Long.MIN_VALUE, 0);
+      long start = System.currentTimeMillis();
+      // If snapshot requirements are fulfilled, a snapshot will be triggered
+      // after sending an empty journal entry to Copycat
       CompletableFuture<Void> future = client.submit(new JournalEntryCommand(
-          JournalEntry.newBuilder().setSequenceNumber(sequence).build()));
+          JournalEntry.getDefaultInstance()));
       try {
-        future.get(5, TimeUnit.SECONDS);
+        future.get(10, TimeUnit.SECONDS);
       } catch (TimeoutException | ExecutionException e) {
-        LOG.info("Exception submitting entry: {}", e.toString());
+        LOG.info("Exception submitting entry to trigger snapshot", e.toString());
+        throw new IOException("Exception submitting entry to trigger snapshot", e);
       } catch (InterruptedException e) {
+        LOG.info("Interrupted when submitting entry to trigger snapshot", e.toString());
         Thread.currentThread().interrupt();
-        return builder.setTriggered(false)
-            .setMessage("Interrupted while submitting entry to trigger snapshot").build();
+        throw new CancelledException("Interrupted when submitting entry to trigger snapshot", e);
       }
-      if (!mStateMachine.isSnapshotting()) {
-        return builder.setTriggered(false)
-            .setMessage("Do not fulfill Raft journal system snapshot requirement").build();
+      if (mStateMachine.getLastSnapshotStartTime() < start) {
+        throw new IOException("Do not fulfill Copycat snapshot requirements. No snapshot is triggered");
       }
-
-      waitForSnapshotting(mStateMachine, builder);
-      if (builder.hasSucceed()) {
-        return builder.build();
+      if (mStateMachine.isSnapshotting()) {
+        waitForSnapshotting(mStateMachine);
       }
-      return builder.setTriggered(true).setSucceed(true).build();
     } finally {
-      if (mPrimarySelector.getState() == PrimarySelector.State.PRIMARY) {
-        mSnapshotAllowed.set(false);
-      }
+      mSnapshotAllowed.set(false);
     }
   }
 
@@ -367,21 +364,17 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    * Waits for snapshotting to finish.
    *
    * @param stateMachine the journal state machine
-   * @param builder the snapshot response builder
    */
-  private void waitForSnapshotting(JournalStateMachine stateMachine,
-      SnapshotPResponse.Builder builder) {
+  private void waitForSnapshotting(JournalStateMachine stateMachine) throws IOException {
     try {
       CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
           WaitForOptions.defaults().setTimeoutMs(20 * Constants.MINUTE_MS));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      builder.setTriggered(true).setSucceed(false)
-          .setMessage("Interrupted while snapshotting");
+      throw new CancelledException("Interrupted when waiting for snapshotting to finish", e);
     } catch (TimeoutException e) {
       LOG.info("Timeout waiting for snapshotting to finish", e);
-      builder.setTriggered(true).setSucceed(false)
-          .setMessage("Timeout while snapshotting");
+      throw new DeadlineExceededException("Timeout waiting for snapshotting to finish", e);
     }
   }
 

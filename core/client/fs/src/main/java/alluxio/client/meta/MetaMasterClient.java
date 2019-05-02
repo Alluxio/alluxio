@@ -16,7 +16,6 @@ import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetricValue;
-import alluxio.grpc.SnapshotPResponse;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 
@@ -59,9 +58,9 @@ public interface MetaMasterClient extends Closeable {
   Map<String, MetricValue> getMetrics() throws AlluxioStatusException;
 
   /**
-   * Triggers a snapshot of the primary master state in master journal system.
+   * Triggers a checkpoint of the primary master state in master journal system.
    *
-   * @return the snapshot response
+   * @return the hostname of the master that did the checkpoint
    */
-  SnapshotPResponse snapshot() throws IOException;
+  String checkpoint() throws IOException;
 }

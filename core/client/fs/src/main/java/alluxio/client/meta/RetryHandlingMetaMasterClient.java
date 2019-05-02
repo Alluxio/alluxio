@@ -15,6 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.CheckpointPOptions;
 import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMetricsPOptions;
@@ -23,8 +24,6 @@ import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
-import alluxio.grpc.SnapshotPOptions;
-import alluxio.grpc.SnapshotPResponse;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
@@ -98,7 +97,8 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public SnapshotPResponse snapshot() throws IOException {
-    return retryRPC(() -> mClient.snapshot(SnapshotPOptions.newBuilder().build()));
+  public String checkpoint() throws IOException {
+    return retryRPC(() -> mClient
+        .checkpoint(CheckpointPOptions.newBuilder().build()).getMasterHostname());
   }
 }
