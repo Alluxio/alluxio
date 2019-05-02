@@ -945,10 +945,9 @@ public class ConfigurationTest {
         resetConf();
         fail("Expected an exception to be thrown");
       } catch (IllegalStateException e) {
-        assertThat(e.getMessage(), containsString("Inconsistent Zookeeper configuration; " +
-            "alluxio.zookeeper.address should be set if and only if alluxio.zookeeper.enabled " +
-            "is true. alluxio.zookeeper.address=zkhost:2181, alluxio.zookeeper.enabled=false"));
-
+        assertThat(e.getMessage(), containsString("Inconsistent Zookeeper configuration; "
+            + "alluxio.zookeeper.address should be set if and only if alluxio.zookeeper.enabled "
+            + "is true. alluxio.zookeeper.address=zkhost:2181, alluxio.zookeeper.enabled=false"));
       }
     }
     try (Closeable p = new SystemPropertyRule(Name.ZOOKEEPER_ENABLED, "true").toResource()) {
@@ -956,9 +955,9 @@ public class ConfigurationTest {
         resetConf();
         fail("Expected an exception to be thrown");
       } catch (IllegalStateException e) {
-        assertThat(e.getMessage(), containsString("Inconsistent Zookeeper configuration; " +
-            "alluxio.zookeeper.address should be set if and only if alluxio.zookeeper.enabled " +
-            "is true. alluxio.zookeeper.address=, alluxio.zookeeper.enabled=true"));
+        assertThat(e.getMessage(), containsString("Inconsistent Zookeeper configuration; "
+            + "alluxio.zookeeper.address should be set if and only if alluxio.zookeeper.enabled "
+            + "is true. alluxio.zookeeper.address=, alluxio.zookeeper.enabled=true"));
       }
     }
   }
