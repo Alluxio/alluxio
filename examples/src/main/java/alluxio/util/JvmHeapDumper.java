@@ -34,7 +34,7 @@ public class JvmHeapDumper extends Thread {
   private static final String HOTSPOT_BEAN_NAME = "com.sun.management:type=HotSpotDiagnostic";
 
   private final MBeanServer mServer = ManagementFactory.getPlatformMBeanServer();
-  HotSpotDiagnosticMXBean mXBean;
+  private final HotSpotDiagnosticMXBean mXBean;
   private final long mInterval;
   private final String mDirPath;
   private final String mDumpPrefix;
