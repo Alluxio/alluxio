@@ -180,6 +180,7 @@
     <module>logserver</module>
     <module>minicluster</module>
     <module>job</module>
+    <module>shaded</module>
     <module>shell</module>
     <module>tests</module>
     <module>underfs</module>
