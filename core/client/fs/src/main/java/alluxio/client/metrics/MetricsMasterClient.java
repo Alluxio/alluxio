@@ -75,6 +75,7 @@ public class MetricsMasterClient extends AbstractMasterClient {
           .addAllClientMetrics(metrics).build());
       mClient.metricsHeartbeat(request.build());
     } catch (io.grpc.StatusRuntimeException e) {
+      disconnect();
       throw new UnavailableException(e);
     }
   }

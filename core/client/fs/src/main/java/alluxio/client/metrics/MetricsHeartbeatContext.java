@@ -24,12 +24,12 @@ import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A class used to track metrics heartbeats to a master.
@@ -56,8 +56,8 @@ public class MetricsHeartbeatContext {
   /**
    * A map from master RPC address to heartbeat context instances.
    */
-  private static final ConcurrentHashMap<MasterInquireClient.ConnectDetails,
-      MetricsHeartbeatContext> MASTER_METRICS_HEARTBEAT = new ConcurrentHashMap<>();
+  private static final Map<MasterInquireClient.ConnectDetails, MetricsHeartbeatContext>
+      MASTER_METRICS_HEARTBEAT = new ConcurrentHashMap<>(2);
 
   /**
    * A value that tracks whether or not we've registered the shutdown hook.
@@ -77,13 +77,15 @@ public class MetricsHeartbeatContext {
   private final MasterInquireClient.ConnectDetails mConnectDetails;
   private final MetricsMasterClient mMetricsMasterClient;
   private final ClientMasterSync mClientMasterSync;
-  private ScheduledFuture<?> mMetricsMasterHeartbeatTask;
-  private final AtomicInteger mCtxCount;
   private final AlluxioConfiguration mConf;
+
+  // This can only be a primitive if all accesses are synchronized
+  private int mCtxCount;
+  private ScheduledFuture<?> mMetricsMasterHeartbeatTask;
 
   private MetricsHeartbeatContext(ClientContext ctx,
       MasterInquireClient inquireClient) {
-    mCtxCount = new AtomicInteger(0);
+    mCtxCount = 0;
     mConnectDetails = inquireClient.getConnectDetails();
     mConf = ctx.getConf();
     mMetricsMasterClient = new MetricsMasterClient(MasterClientContext
@@ -95,7 +97,7 @@ public class MetricsHeartbeatContext {
 
   private synchronized void addContext() {
     // increment and lazily schedule the new heartbeat task if it is the first one
-    if (mCtxCount.getAndIncrement() == 0) {
+    if (mCtxCount++ == 0) {
       mMetricsMasterHeartbeatTask =
           sExecutorService.scheduleWithFixedDelay(mClientMasterSync::heartbeat, 0,
               mConf.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
@@ -115,7 +117,7 @@ public class MetricsHeartbeatContext {
    * the same reference after removing.
    */
   private synchronized void removeContext() {
-    if (mCtxCount.decrementAndGet() <= 0) {
+    if (--mCtxCount <= 0) {
       close();
     }
   }
@@ -185,7 +187,7 @@ public class MetricsHeartbeatContext {
         (addr) -> new MetricsHeartbeatContext(ctx, inquireClient));
     heartbeatCtx.addContext();
     LOG.debug("Registered metrics heartbeat with appId: {}, context count: {}", sAppId,
-        heartbeatCtx.mCtxCount.get());
+        heartbeatCtx.mCtxCount);
   }
 
   /**
@@ -207,7 +209,7 @@ public class MetricsHeartbeatContext {
     if (heartbeatCtx != null) {
       heartbeatCtx.removeContext();
       LOG.debug("De-registered metrics heartbeat with appId: {}. New Context count: {}", sAppId,
-          heartbeatCtx.mCtxCount.get());
+          heartbeatCtx.mCtxCount);
     }
 
     if (MASTER_METRICS_HEARTBEAT.isEmpty()) {

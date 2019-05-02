@@ -84,8 +84,7 @@ public final class ClientMasterSync {
       mMasterClient.heartbeat(clientMetrics);
     } catch (IOException e) {
       // WARN instead of ERROR as metrics are not critical to the application function
-      LOG.warn("Failed to send metrics to master: ", e);
-      mMasterClient.disconnect();
+      LOG.warn("Failed to send metrics to master: {}", e.toString());
     }
   }
 }
