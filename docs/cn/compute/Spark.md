@@ -119,7 +119,7 @@ spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2
 </configuration>
 ```
 
-在 Alluxio 1.8 （不包含 1.8）后，用户可以在 Alluxio URI 中编码 Zookeeper 服务地址（见[详细说明]({{ '/cn/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url })#ha-configuration-parameters）。
+在 Alluxio 1.8 （不包含 1.8）后，用户可以在 Alluxio URI 中编码 Zookeeper 服务地址（见[详细说明]({{ '/cn/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})#ha-configuration-parameters）。
 这样，就不需要为 Spark 配置额外设置。
 
 ### 为单个 Spark 作业自定义 Alluxio 用户属性
