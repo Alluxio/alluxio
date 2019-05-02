@@ -148,7 +148,7 @@ public interface MetaMaster extends Master {
   /**
    * Triggers a checkpoint in the primary master journal system.
    *
-   * @return the master hostname that did the checkpoint
+   * @return the hostname of the master that did the checkpoint
    */
   String checkpoint() throws IOException;
 }

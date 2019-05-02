@@ -350,7 +350,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         throw new CancelledException("Interrupted when submitting entry to trigger snapshot", e);
       }
       if (mStateMachine.getLastSnapshotStartTime() < start) {
-        throw new IOException("Do not fulfill Copycat snapshot requirements. No snapshot is triggered");
+        throw new IOException("Do not fulfill Copycat snapshot requirements. "
+            + "No snapshot is triggered");
       }
       if (mStateMachine.isSnapshotting()) {
         waitForSnapshotting(mStateMachine);

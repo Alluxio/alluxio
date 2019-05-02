@@ -58,7 +58,7 @@ public interface MetaMasterClient extends Closeable {
   Map<String, MetricValue> getMetrics() throws AlluxioStatusException;
 
   /**
-   * Triggers a checkpoint of the primary master state in master journal system.
+   * Triggers a checkpoint in the primary master journal system.
    *
    * @return the hostname of the master that did the checkpoint
    */

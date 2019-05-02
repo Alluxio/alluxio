@@ -65,7 +65,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
   private volatile long mLastPrimaryStartSequenceNumber = 0;
   private volatile long mNextSequenceNumberToRead = 0;
   private volatile boolean mSnapshotting = false;
-  // The start time of the last or current snapshot
+  // The start time of the most recent snapshot
   private volatile long mLastSnapshotStartTime = 0;
 
   /**
@@ -274,7 +274,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
   }
 
   /**
-   * @return the start time of last snapshot
+   * @return the start time of the most recent snapshot
    */
   public long getLastSnapshotStartTime() {
     return mLastSnapshotStartTime;
