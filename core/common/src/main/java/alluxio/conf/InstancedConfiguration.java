@@ -425,10 +425,10 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     int maxWorkersPerHost = getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
     if (maxWorkersPerHost > 1) {
       String message = "%s cannot be specified when allowing multiple workers per host with "
-          + PropertyKey.Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
-      Preconditions.checkState(System.getProperty(PropertyKey.Name.WORKER_RPC_PORT) == null,
+          + Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
+      Preconditions.checkState(System.getProperty(Name.WORKER_RPC_PORT) == null,
           String.format(message, PropertyKey.WORKER_RPC_PORT));
-      Preconditions.checkState(System.getProperty(PropertyKey.Name.WORKER_WEB_PORT) == null,
+      Preconditions.checkState(System.getProperty(Name.WORKER_WEB_PORT) == null,
           String.format(message, PropertyKey.WORKER_WEB_PORT));
     }
   }
@@ -442,10 +442,10 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     if (waitTime < retryInterval) {
       LOG.warn("{}={}ms is smaller than {}={}ms. Workers might not have enough time to register. "
               + "Consider either increasing {} or decreasing {}",
-          PropertyKey.Name.MASTER_WORKER_CONNECT_WAIT_TIME, waitTime,
-          PropertyKey.Name.USER_RPC_RETRY_MAX_SLEEP_MS, retryInterval,
-          PropertyKey.Name.MASTER_WORKER_CONNECT_WAIT_TIME,
-          PropertyKey.Name.USER_RPC_RETRY_MAX_SLEEP_MS);
+          Name.MASTER_WORKER_CONNECT_WAIT_TIME, waitTime,
+          Name.USER_RPC_RETRY_MAX_SLEEP_MS, retryInterval,
+          Name.MASTER_WORKER_CONNECT_WAIT_TIME,
+          Name.USER_RPC_RETRY_MAX_SLEEP_MS);
     }
     checkHeartbeatTimeout(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL,
         PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
@@ -479,7 +479,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     long usrFileBufferBytes = getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     Preconditions.checkState((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
         PreconditionMessage.INVALID_USER_FILE_BUFFER_BYTES.toString(),
-        PropertyKey.Name.USER_FILE_BUFFER_BYTES, usrFileBufferBytes);
+        Name.USER_FILE_BUFFER_BYTES, usrFileBufferBytes);
   }
 
   /**
@@ -492,7 +492,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         isSet(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
         "Inconsistent Zookeeper configuration; %s should be set if and only if %s is true. "
             + "%s=%s, %s=%s",
-        PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED,
+        Name.ZOOKEEPER_ADDRESS, Name.ZOOKEEPER_ENABLED,
         Name.ZOOKEEPER_ADDRESS, getOrDefault(PropertyKey.ZOOKEEPER_ADDRESS, ""),
         Name.ZOOKEEPER_ENABLED, get(PropertyKey.ZOOKEEPER_ENABLED));
   }
