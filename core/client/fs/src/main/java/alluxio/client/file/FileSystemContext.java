@@ -113,6 +113,7 @@ public final class FileSystemContext implements Closeable {
 
   private final ClientContext mClientContext;
   private final EventLoopGroup mWorkerGroup;
+  private final boolean mMetricsEnabled;
 
   /**
    * Creates a {@link FileSystemContext} with a null subject.
@@ -192,6 +193,7 @@ public final class FileSystemContext implements Closeable {
     Preconditions.checkNotNull(ctx, "ctx");
     mClientContext = ctx;
     mClosed = new AtomicBoolean(false);
+    mMetricsEnabled = ctx.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
 
     mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(ctx.getConf()),
         ctx.getConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
@@ -211,7 +213,7 @@ public final class FileSystemContext implements Closeable {
     mBlockMasterClientPool = new BlockMasterClientPool(mClientContext, mMasterInquireClient);
     mClosed.set(false);
 
-    if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
+    if (mMetricsEnabled) {
       MetricsHeartbeatContext.addHeartbeat(mClientContext, masterInquireClient);
     }
   }
@@ -241,7 +243,7 @@ public final class FileSystemContext implements Closeable {
         pool.close();
       }
       mBlockWorkerClientPool.clear();
-      if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
+      if (mMetricsEnabled) {
         MetricsHeartbeatContext.removeHeartbeat(mClientContext);
       }
 
