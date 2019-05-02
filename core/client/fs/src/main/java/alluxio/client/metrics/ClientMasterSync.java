@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ClientMasterSync {
-  private static final Logger LOG =
+  private static final Logger SAMPLING_LOG =
       new SamplingLogger(LoggerFactory.getLogger(ClientMasterSync.class), 30 * Constants.SECOND_MS);
 
   /**
@@ -66,25 +66,26 @@ public final class ClientMasterSync {
    * Sends metrics to the master keyed with appId and client hostname.
    */
   public synchronized void heartbeat() {
-    // Only perform the heartbeat if there are applications to track
-    List<alluxio.grpc.ClientMetrics> clientMetrics = new ArrayList<>();
-    List<Metric> allClientMetrics = MetricsSystem.allClientMetrics();
+    // TODO(zac): Support per FileSystem instance metrics
+    // Currently we only support JVM-level metrics. A list is used here because in the near
+    // future we will support sending per filesystem client-level metrics.
+    List<alluxio.grpc.ClientMetrics> fsClientMetrics = new ArrayList<>();
     String hostname = NetworkAddressUtils.getClientHostName(mConf);
     List<alluxio.grpc.Metric> metrics = new ArrayList<>();
-    for (Metric metric : allClientMetrics) {
+    for (Metric metric : MetricsSystem.allClientMetrics()) {
       metric.setInstanceId(mApplicationId);
       metrics.add(metric.toProto());
     }
-    clientMetrics.add(ClientMetrics.newBuilder()
+    fsClientMetrics.add(ClientMetrics.newBuilder()
         .setHostname(hostname)
         .setClientId(mApplicationId)
         .addAllMetrics(metrics)
         .build());
     try {
-      mMasterClient.heartbeat(clientMetrics);
+      mMasterClient.heartbeat(fsClientMetrics);
     } catch (IOException e) {
       // WARN instead of ERROR as metrics are not critical to the application function
-      LOG.warn("Failed to send metrics to master: {}", e.toString());
+      SAMPLING_LOG.warn("Failed to send metrics to master: {}", e.toString());
     }
   }
 }
