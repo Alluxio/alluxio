@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.meta;
+package alluxio.client.file;
 
-import alluxio.client.file.FileSystemContext;
+import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.wire.ConfigHash;
 
@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -33,35 +34,66 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ConfigHashSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigHashSync.class);
 
-  private final RetryHandlingMetaMasterConfigClient mClient;
-  private final FileSystemContext mContext;
+  private volatile FileSystemContext mContext;
+  private volatile RetryHandlingMetaMasterConfigClient mClient;
+
+  private volatile IOException mException;
 
   /**
    * Constructs a new {@link ConfigHashSync}.
    *
-   * @param client the meta master client
    * @param context the filesystem context
    */
-  public ConfigHashSync(RetryHandlingMetaMasterConfigClient client, FileSystemContext context) {
-    mClient = client;
+  public ConfigHashSync(FileSystemContext context) {
+    init(context);
+  }
+
+  /**
+   * Resets internal states related to context.
+   *
+   * @param context the new context
+   */
+  public void reset(FileSystemContext context) {
+    init(context);
+  }
+
+  private void init(FileSystemContext context) {
     mContext = context;
+    mClient = new RetryHandlingMetaMasterConfigClient(mContext.getMasterClientContext());
+  }
+
+  /**
+   * @return empty if there is no exception during reinitialization, otherwise, return the exception
+   */
+  public Optional<IOException> getException() {
+    if (mException == null) {
+      return Optional.empty();
+    }
+    return Optional.of(mException);
   }
 
   @Override
   public synchronized void heartbeat() throws InterruptedException {
     try {
+      if (!mContext.getClientContext().getConf().clusterDefaultsLoaded()) {
+        // Wait until the initial cluster defaults are loaded.
+        return;
+      }
       ConfigHash hash = mClient.getConfigHash();
       boolean isClusterConfUpdated = !hash.getClusterConfigHash().equals(
           mContext.getClientContext().getClusterConfHash());
       boolean isPathConfUpdated = !hash.getPathConfigHash().equals(
           mContext.getClientContext().getPathConfHash());
       if (isClusterConfUpdated || isPathConfUpdated) {
-        // This may take long time and block the heartbeat, but it's fine since it's meaningless
-        // to run the heartbeat during the re-initialization.
-        mContext.reinit();
+        try {
+          mContext.reinit();
+          mException = null;
+        } catch (IOException e) {
+          mException = e;
+        }
       }
     } catch (IOException e) {
-      LOG.error("Failed to heartbeat to meta master to get configuration version:", e);
+      LOG.error("Failed to heartbeat to meta master to get configuration hash:", e);
       mClient.disconnect();
     }
   }

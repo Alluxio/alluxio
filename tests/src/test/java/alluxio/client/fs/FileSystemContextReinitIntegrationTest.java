@@ -20,6 +20,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.HeartbeatThread;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
@@ -64,7 +65,14 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   }
 
   @Test
-  public void noConfUpdate() throws Exception {
+  public void noConfUpdateAndNoRestart() throws Exception {
+    mContext.reinit();
+    checkHash(false, false);
+  }
+
+  @Test
+  public void restartWithoutConfUpdate() throws Exception {
+    restartMasters();
     mContext.reinit();
     checkHash(false, false);
   }
@@ -87,16 +95,22 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     checkHash(false, true);
   }
 
-  @Test
+  @Test(timeout = 1000 * 30)
   public void configHashSync() throws Exception {
     checkClusterConfBeforeUpdate();
     checkPathConfBeforeUpdate();
     updateClusterConf();
     updatePathConf();
-    HeartbeatScheduler.execute(HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC);
+    HeartbeatScheduler.execute(HeartbeatThread.generateThreadName(
+        HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC, mContext.getAppId()));
     checkClusterConfAfterUpdate();
     checkPathConfAfterUpdate();
     checkHash(true, true);
+  }
+
+  private void restartMasters() throws Exception {
+    mLocalAlluxioClusterResource.get().stopMasters();
+    mLocalAlluxioClusterResource.get().startMasters();
   }
 
   private void updateClusterConf() throws Exception {
