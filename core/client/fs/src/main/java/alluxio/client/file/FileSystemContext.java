@@ -23,6 +23,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.heartbeat.HeartbeatContext;
@@ -333,15 +334,23 @@ public final class FileSystemContext implements Closeable {
    * The reinitializer will be reset with the updated context if reinitialization succeeds,
    * otherwise, the reinitializer is not reset.
    *
+   * @param updateClusterConf whether cluster level configuration should be updated
+   * @param updatePathConf whether path level configuration should be updated
    * @throws IOException when failed to close the context or update configuration
    */
-  public synchronized void reinit() throws IOException {
+  public synchronized void reinit(boolean updateClusterConf, boolean updatePathConf)
+      throws IOException {
     try {
       mReinitializer.begin();
       InetSocketAddress masterAddr = getMasterAddress();
       closeWithoutReinitializer();
-      // TODO(cc): come up with a way to only update cluster or path level configs.
-      mClientContext.updateConfigurationDefaults(masterAddr);
+      if (updateClusterConf && updatePathConf) {
+        mClientContext.updateClusterAndPathConf(masterAddr);
+      } else if (updateClusterConf) {
+        mClientContext.updateClusterConf(masterAddr);
+      } else {
+        mClientContext.updatePathConf(masterAddr);
+      }
       initWithoutReinitializer(MasterInquireClient.Factory.create(mClientContext.getConf()));
     } finally {
       mReinitializer.end();

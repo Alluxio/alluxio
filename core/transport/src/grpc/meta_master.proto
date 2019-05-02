@@ -23,6 +23,8 @@ message ConfigProperties {
 
 message GetConfigurationPOptions{
  optional bool rawValue = 1;
+ optional bool ignoreClusterConf = 2;
+ optional bool ignorePathConf = 3;
 }
 message GetConfigurationPResponse{
   repeated ConfigProperty clusterConfigs = 1;

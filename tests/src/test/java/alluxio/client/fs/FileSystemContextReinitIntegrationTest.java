@@ -57,7 +57,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   @Before
   public void before() throws IOException {
     mContext = FileSystemContext.create(ServerConfiguration.global());
-    mContext.getClientContext().updateConfigurationDefaults(mContext.getMasterAddress());
+    mContext.getClientContext().updateClusterAndPathConf(mContext.getMasterAddress());
     mClusterConfHash = mContext.getClientContext().getClusterConfHash();
     Assert.assertNotNull(mClusterConfHash);
     mPathConfHash = mContext.getClientContext().getPathConfHash();
@@ -66,14 +66,14 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
 
   @Test
   public void noConfUpdateAndNoRestart() throws Exception {
-    mContext.reinit();
+    mContext.reinit(true, true);
     checkHash(false, false);
   }
 
   @Test
   public void restartWithoutConfUpdate() throws Exception {
     restartMasters();
-    mContext.reinit();
+    mContext.reinit(true, true);
     checkHash(false, false);
   }
 
@@ -81,7 +81,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   public void clusterConfUpdate() throws Exception {
     checkClusterConfBeforeUpdate();
     updateClusterConf();
-    mContext.reinit();
+    mContext.reinit(true, true);
     checkClusterConfAfterUpdate();
     checkHash(true, false);
   }
@@ -90,7 +90,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   public void pathConfUpdate() throws Exception {
     checkPathConfBeforeUpdate();
     updatePathConf();
-    mContext.reinit();
+    mContext.reinit(true, true);
     checkPathConfAfterUpdate();
     checkHash(false, true);
   }

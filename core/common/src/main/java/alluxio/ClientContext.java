@@ -39,9 +39,10 @@ import javax.security.auth.Subject;
  */
 public class ClientContext {
   private volatile AlluxioConfiguration mClusterConf;
-  private volatile PathConfiguration mPathConf;
   private volatile String mClusterConfHash;
+  private volatile PathConfiguration mPathConf;
   private volatile String mPathConfHash;
+  private volatile boolean mIsPathConfLoaded = false;
   private final Subject mSubject;
 
   /**
@@ -103,7 +104,7 @@ public class ClientContext {
 
   /**
    * This method will load the cluster and path level configuration defaults and update
-   * the configuration.
+   * the configuration in one RPC.
    *
    * This method should be synchronized so that concurrent calls to it don't continually overwrite
    * the previous configuration.
@@ -114,18 +115,65 @@ public class ClientContext {
    * @param address the address to load cluster defaults from
    * @throws AlluxioStatusException
    */
-  public synchronized void updateConfigurationDefaults(InetSocketAddress address)
+  public synchronized void updateClusterAndPathConf(InetSocketAddress address)
       throws AlluxioStatusException {
     GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
-        mClusterConf);
-    AlluxioConfiguration clusterConf = ConfigurationUtils.loadClusterConfiguration(response,
-        mClusterConf);
-    PathConfiguration pathConf = ConfigurationUtils.loadPathConfiguration(response, mClusterConf);
+        mClusterConf, false, false);
+    AlluxioConfiguration clusterConf = ConfigurationUtils.getClusterConf(response, mClusterConf);
+    PathConfiguration pathConf = ConfigurationUtils.getPathConf(response, mClusterConf);
 
     mClusterConf = clusterConf;
-    mPathConf = pathConf;
     mClusterConfHash = response.getClusterConfigHash();
+    mPathConf = pathConf;
     mPathConfHash = response.getPathConfigHash();
+    mIsPathConfLoaded = true;
+  }
+
+  /**
+   * Updates cluster level configuration only.
+   *
+   * @param address the meta master address
+   * @throws AlluxioStatusException
+   */
+  public synchronized void updateClusterConf(InetSocketAddress address)
+      throws AlluxioStatusException {
+    GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
+        mClusterConf, false, true);
+    AlluxioConfiguration clusterConf = ConfigurationUtils.getClusterConf(response, mClusterConf);
+
+    mClusterConf = clusterConf;
+    mClusterConfHash = response.getClusterConfigHash();
+  }
+
+  /**
+   * Updates path level configuration only.
+   *
+   * @param address the meta master address
+   * @throws AlluxioStatusException
+   */
+  public synchronized void updatePathConf(InetSocketAddress address)
+      throws AlluxioStatusException {
+    GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
+        mClusterConf, true, false);
+    PathConfiguration pathConf = ConfigurationUtils.getPathConf(response, mClusterConf);
+
+    mPathConf = pathConf;
+    mPathConfHash = response.getPathConfigHash();
+    mIsPathConfLoaded = true;
+  }
+
+  /**
+   * Loads path level configuration if not loaded from meta master yet.
+   *
+   * @param address meta master address
+   * @throws AlluxioStatusException
+   */
+  public synchronized void loadPathConfIfNotLoaded(InetSocketAddress address)
+      throws AlluxioStatusException{
+    if (!mIsPathConfLoaded) {
+      updatePathConf(address);
+      mIsPathConfLoaded = true;
+    }
   }
 
   /**

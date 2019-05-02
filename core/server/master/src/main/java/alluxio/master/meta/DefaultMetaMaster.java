@@ -320,26 +320,28 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   public Configuration getConfiguration(GetConfigurationPOptions options) {
     Configuration.Builder builder = Configuration.newBuilder();
 
-    for (PropertyKey key : ServerConfiguration.keySet()) {
-      if (key.isBuiltIn()) {
-        Source source = ServerConfiguration.getSource(key);
-        String value = ServerConfiguration.getOrDefault(key, null,
-            ConfigurationValueOptions.defaults().useDisplayValue(true)
-                .useRawValue(options.getRawValue()));
-        builder.addClusterProperty(key.getName(), value, source);
+    if (!options.getIgnoreClusterConf()) {
+      for (PropertyKey key : ServerConfiguration.keySet()) {
+        if (key.isBuiltIn()) {
+          Source source = ServerConfiguration.getSource(key);
+          String value = ServerConfiguration.getOrDefault(key, null,
+              ConfigurationValueOptions.defaults().useDisplayValue(true)
+                  .useRawValue(options.getRawValue()));
+          builder.addClusterProperty(key.getName(), value, source);
+        }
       }
+      // NOTE(cc): assumes that ServerConfiguration is read-only when master is running, otherwise,
+      // the following hash might not correspond to the above cluster configuration.
+      builder.setClusterConfHash(ServerConfiguration.hash());
     }
 
-    // NOTE(cc): assumes that ServerConfiguration is read-only when master is running, otherwise,
-    // the following hash might not correspond to the above cluster configuration.
-    builder.setClusterConfHash(ServerConfiguration.hash());
-
-    PathPropertiesView pathProperties = mPathProperties.snapshot();
-    pathProperties.getProperties().forEach((path, properties) ->
-        properties.forEach((key, value) ->
-            builder.addPathProperty(path, key, value)));
-
-    builder.setPathConfHash(pathProperties.getHash());
+    if (!options.getIgnorePathConf()) {
+      PathPropertiesView pathProperties = mPathProperties.snapshot();
+      pathProperties.getProperties().forEach((path, properties) ->
+          properties.forEach((key, value) ->
+              builder.addPathProperty(path, key, value)));
+      builder.setPathConfHash(pathProperties.getHash());
+    }
 
     return builder.build();
   }
