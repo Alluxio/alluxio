@@ -165,7 +165,7 @@ public abstract class AbstractClient implements Client {
     // Bootstrap once for clients
     if (!isConnected()) {
       if (!mContext.getConf().clusterDefaultsLoaded()) {
-        mContext.updateClusterAndPathConf(mAddress);
+        mContext.updateClusterConf(mAddress);
       }
     }
   }

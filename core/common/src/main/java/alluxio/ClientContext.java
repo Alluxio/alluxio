@@ -34,6 +34,9 @@ import javax.security.auth.Subject;
  * default configuration loaded that any new clients which use the context will need to load the
  * cluster defaults upon connecting to the Alluxio master.
  *
+ * Path level configuration may not be needed for any ClientContext, it is currently only used in
+ * BaseFileSystem, so it is initially lazily loaded by FileSystemContext when it's needed.
+ *
  * Ideally only a single {@link ClientContext} should be needed when initializing an application.
  * This will use as few network resources as possible.
  */
