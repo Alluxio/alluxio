@@ -11,8 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.util.io.FileUtils;
-
 import com.google.common.base.Preconditions;
 import com.sun.management.HotSpotDiagnosticMXBean;
 import org.slf4j.Logger;
@@ -21,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.nio.file.NoSuchFileException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.management.MBeanServer;
@@ -42,6 +39,7 @@ public class JvmHeapDumper extends Thread {
 
   /**
    * Heap dumper.
+   *
    * @param intervalMs interval to make dumps on
    * @param dirPath path to store dumps
    * @param prefix prefix for dumps
@@ -60,7 +58,7 @@ public class JvmHeapDumper extends Thread {
     }
     File f = new File(String.format("%s/%s", System.getProperty("user.dir"), dirPath));
     if (!f.exists() && !f.mkdirs()) {
-        throw new RuntimeException("Couldn't create dirs " + f.getAbsolutePath());
+      throw new RuntimeException("Couldn't create dirs " + f.getAbsolutePath());
     }
     mDirPath = f.getAbsolutePath();
   }

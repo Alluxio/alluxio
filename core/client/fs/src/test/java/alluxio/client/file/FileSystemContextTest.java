@@ -11,11 +11,14 @@
 
 package alluxio.client.file;
 
+import static org.junit.Assert.fail;
+
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.resource.CloseableResource;
 
 import com.google.common.io.Closer;
 import org.junit.Before;

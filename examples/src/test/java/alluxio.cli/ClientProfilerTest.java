@@ -17,7 +17,6 @@ import org.junit.Test;
 
 public class ClientProfilerTest {
 
-
   @Test
   public void abstractFsTest() {
     try {
