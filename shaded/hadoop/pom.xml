@@ -19,14 +19,14 @@
   </parent>
   <artifactId>alluxio-shaded-hadoop</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Shaded Modules - Hadoop</name>
+  <name>Alluxio Shaded Libraries - Hadoop</name>
   <version>${ufs.hadoop.version}</version>
-  <description>Shaded Modules hadoop</description>
+  <description>Shaded Hadoop Module</description>
 
   <properties>
     <!-- The build path need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <build.path>${project.parent.basedir}/build</build.path>
+    <build.path>${project.parent.parent.basedir}/build</build.path>
     <ufs.hadoop.version>2.2.0</ufs.hadoop.version>
     <shading.prefix>alluxio.shaded.hdfs</shading.prefix>
     <!-- Composite jar name with both hadoop version and project version included -->

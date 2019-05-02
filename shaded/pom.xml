@@ -19,8 +19,8 @@
   </parent>
   <artifactId>alluxio-shaded</artifactId>
   <packaging>pom</packaging>
-  <name>Alluxio Shaded Modules</name>
-  <description>Parent POM for different shaded modules</description>
+  <name>Alluxio Shaded Libraries</name>
+  <description>Parent POM for different shaded Libraries</description>
 
   <modules>
     <module>hadoop</module>
