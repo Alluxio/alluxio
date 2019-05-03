@@ -2,7 +2,7 @@
 layout: global
 title: Running Spark on Alluxio in Kubernetes
 nickname: Spark on Kubernetes
-group: Deploying Alluxio
+group: Data Applications
 priority: 7
 ---
 
@@ -71,31 +71,37 @@ Note:
 Add the required Alluxio client jars and build a Docker image used for the Spark driver and executor
 pods. Run the following from the Spark distribution directory.
 
+Copy certificates if using minikube
 ```bash
-# If using minikube
 cp ~/.minikube/apiserver.key bin/
 cp ~/.minikube/apiserver.crt bin/
 cp ~/.minikube/ca.crt bin/
+```
 
-# Add the Alluxio client jar
+Add the Alluxio client jar
+```bash
 cp <path_to_alluxio_client>/client/alluxio-2.0.0-preview-client.jar jars/
+```
 
-# Build the Spark Docker image
+Build the Spark Docker image
+```bash
 docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 ```
 
 ### Run a Spark job
 
 The following command runs an example job to count the number of lines in the Alluxio location `/LICENSE`.
-The output and time taken can be seen in the logs for Spark driver pod. Refer to Spark [documentation]
-(https://spark.apache.org/docs/latest/running-on-kubernetes.html) for further instructions.
+The output and time taken can be seen in the logs for Spark driver pod. Refer to Spark
+[documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html) for further instructions.
 
+Create the service account (if required)
 ```bash
-# Create service account if required
 kubectl create serviceaccount spark
 kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default
+```
 
-# Run the job from the Spark distribution directory
+Run the job from the Spark distribution directory
+```bash
 ./bin/spark-submit --master k8s://https://<master>:8443 --deploy-mode cluster --name spark-alluxio --conf spark.executor.instances=1 \
 --class alluxio.examples.Count --driver-memory 500m --executor-memory 1g \
 --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
