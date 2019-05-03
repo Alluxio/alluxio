@@ -316,7 +316,11 @@ public class UfsJournal implements Journal {
    * Triggers a checkpoint in the primary master ufs journal.
    */
   public synchronized void checkpoint() throws IOException {
-    long nextSequenceNumber = mWriter.getNextSequenceNumber();
+    long nextSequenceNumber = getNextSequenceNumberToWrite();
+    if (nextSequenceNumber - getNextSequenceNumberToCheckpoint() < ServerConfiguration.getLong(
+        PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)) {
+      throw new IOException("No enough journal entries to create a checkpoint");
+    }
     UfsJournalCheckpointWriter journalWriter
         = getCheckpointWriter(nextSequenceNumber);
     LOG.info("{}: Writing checkpoint [sequence number {}].",
