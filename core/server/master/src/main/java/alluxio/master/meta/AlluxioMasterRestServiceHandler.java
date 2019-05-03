@@ -300,7 +300,7 @@ public final class AlluxioMasterRestServiceHandler {
 
       MountPointInfo mountInfo;
       try {
-        mountInfo = mFileSystemMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
+        mountInfo = mFileSystemMaster.getDisplayMountPointInfo(new AlluxioURI(MountTable.ROOT));
 
         long capacityBytes = mountInfo.getUfsCapacityBytes();
         long usedBytes = mountInfo.getUfsUsedBytes();
