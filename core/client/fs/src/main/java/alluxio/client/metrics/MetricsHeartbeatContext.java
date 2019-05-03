@@ -157,21 +157,21 @@ public class MetricsHeartbeatContext {
     if (sExecutorService == null) {
       sExecutorService = Executors.newSingleThreadScheduledExecutor(
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
+    }
 
-      // register the shutdown hook if it hasn't been set up already
-      if (!sAddedShudownHook) {
-        try {
-          Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
-          sAddedShudownHook = true;
-        } catch (IllegalStateException e) {
-          // this exception is thrown when the system is already in the process of shutting down. In
-          // such a situation, we are about to shutdown anyway and there is no need to register this
-          // shutdown hook
-        } catch (SecurityException e) {
-          LOG.info("Not registering metrics shutdown hook due to security exception. Regular "
-              + "heartbeats will still be performed to collect metrics data, but no final "
-              + "heartbeat will be performed on JVM exit. Security exception: {}", e.toString());
-        }
+    // register the shutdown hook if it hasn't been set up already
+    if (!sAddedShudownHook) {
+      try {
+        Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
+        sAddedShudownHook = true;
+      } catch (IllegalStateException e) {
+        // this exception is thrown when the system is already in the process of shutting down. In
+        // such a situation, we are about to shutdown anyway and there is no need to register this
+        // shutdown hook
+      } catch (SecurityException e) {
+        LOG.info("Not registering metrics shutdown hook due to security exception. Regular "
+            + "heartbeats will still be performed to collect metrics data, but no final "
+            + "heartbeat will be performed on JVM exit. Security exception: {}", e.toString());
       }
     }
 
