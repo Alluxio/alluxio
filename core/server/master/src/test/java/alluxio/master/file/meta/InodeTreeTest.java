@@ -44,6 +44,7 @@ import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
+import alluxio.proto.journal.Journal;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -63,6 +64,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -737,11 +739,20 @@ public final class InodeTreeTest {
   // helper for verifying that correct objects were journaled to the output stream
   private static void verifyJournal(InodeTree root, List<MutableInode<?>> journaled) {
     Iterator<alluxio.proto.journal.Journal.JournalEntry> it = root.getJournalEntryIterator();
-    for (MutableInode<?> node : journaled) {
-      assertTrue(it.hasNext());
-      assertEquals(node.toJournalEntry(), it.next());
+    // Read entries from InodeTree.
+    List<Journal.JournalEntry> treeEntries = new LinkedList<>();
+    Journal.JournalEntry entry;
+    while ((entry = it.next()) != null) {
+      treeEntries.add(entry);
     }
-    assertTrue(!it.hasNext());
+    // InodeTree signals end of iteration by returning {@code null}.
+    // Then hasNext should return {@code false}.
+    assertFalse(it.hasNext());
+
+    // Validate InodeTree entries match given entries.
+    for (MutableInode<?> node : journaled) {
+      assertTrue(treeEntries.contains(node.toJournalEntry()));
+    }
   }
 
   // verify that the tree has the given children

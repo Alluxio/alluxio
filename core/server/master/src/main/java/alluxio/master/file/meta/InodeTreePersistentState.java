@@ -12,6 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.ProcessUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
@@ -39,10 +41,11 @@ import alluxio.resource.LockResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.StreamUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.SettableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,12 +57,17 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 /**
@@ -677,35 +685,195 @@ public class InodeTreePersistentState implements Journaled {
 
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
-    // Write tree via breadth-first traversal, so that during deserialization, it may be more
-    // efficient than depth-first during deserialization due to parent directory's locality.
-    Queue<Inode> inodes = new LinkedList<>();
-    if (getRoot() != null) {
-      inodes.add(getRoot());
-    }
-    return new Iterator<Journal.JournalEntry>() {
+    /**
+     * Used to iterate this InodeTree's state, while doing a read-ahead buffering. Traversal is done
+     * concurrently and depth order for each branch is preserved in the final iteration order. This
+     * makes applying those entries later more efficient by guaranteeing that a parent of an inode
+     * is iterated before it.
+     */
+    final class BufferedIterator implements Iterator<Journal.JournalEntry> {
+
+      /** Buffered entry queue. */
+      BlockingQueue<JournalEntry> mEntryBuffer;
+      /** Iterator thread completion queue. */
+      BlockingQueue<Boolean> mCompletionQueue;
+      /** How many threads to use for enumeration. */
+      private int mIteratorThreadCount;
+      /** How many entry to pre-fetch during enumeration. */
+      private int mEntryBufferSize;
+      /** Future of entry buffering. */
+      private SettableFuture<Void> mBufferingCompleted;
+      /** Executor for coordinating thread. */
+      private ExecutorService mCoordinatorExecutor;
+      /** Executor for crawling threads. */
+      private ExecutorService mCrawlerExecutor;
+      /** Directories for iterator threads to traverse. */
+      private BlockingQueue<Inode> mDirectoriesToIterate;
+
+      public BufferedIterator() {
+        // Initialize configuration values.
+        mIteratorThreadCount =
+            ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ENUMERATOR_THREAD_COUNT);
+        mEntryBufferSize =
+            ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT);
+
+        // Create executors.
+        mCoordinatorExecutor = Executors.newSingleThreadExecutor(
+            ThreadFactoryUtils.build("inode-tree-crawler-coordinator-%d", true));
+        mCrawlerExecutor = Executors.newFixedThreadPool(mIteratorThreadCount,
+            ThreadFactoryUtils.build("inode-tree-crawler-%d", true));
+
+        // Using linked queue for fast insertion/removal from the queue.
+        mEntryBuffer = new LinkedBlockingQueue<>(mEntryBufferSize);
+
+        // Used by enumeration threads to signal completion.
+        // There can be at most mIteratorThreadCount completion signals by executor design.
+        mCompletionQueue = new ArrayBlockingQueue(mIteratorThreadCount);
+
+        // Initialize directories to iterate.
+        mDirectoriesToIterate = new LinkedBlockingQueue<>();
+        if (getRoot() != null) {
+          mDirectoriesToIterate.add(getRoot());
+        }
+        // Start buffering entries by iteration.
+        mBufferingCompleted = SettableFuture.create();
+        startBuffering();
+      }
+
+      /**
+       * Starts buffering process by launching the coordinator task, which in turn spawns crawler
+       * tasks for enumeration.
+       */
+      private void startBuffering() {
+        /**
+         * Runnable class that is used to branch out on a dir inode.
+         */
+        final class DirectoryCrawler implements Runnable {
+          // Dir to branch out.
+          private Inode mDirInode;
+
+          /**
+           * Creates an instance for given dir inode.
+           *
+           * @param dirInode the dir inode
+           */
+          public DirectoryCrawler(Inode dirInode) {
+            mDirInode = dirInode;
+          }
+
+          @Override
+          public void run() {
+            try {
+              // Buffer current dir as JournalEntry.
+              mEntryBuffer.put(mDirInode.toJournalEntry());
+
+              // Enumerate on immediate children.
+              Iterable<? extends Inode> children = mInodeStore.getChildren(mDirInode.asDirectory());
+              children.forEach((child) -> {
+                try {
+                  if (child.isDirectory()) {
+                    // Insert directory for further branching.
+                    mDirectoriesToIterate.put(child);
+                  } else {
+                    // Buffer current file as JournalEntry
+                    mEntryBuffer.put(child.toJournalEntry());
+                  }
+                } catch (InterruptedException ie) {
+                  // Continue interrupt chain.
+                  Thread.currentThread().interrupt();
+                  throw new RuntimeException("Thread interrupted while enumerating a dir.");
+                }
+              });
+            } catch (InterruptedException ie) {
+              // Continue interrupt chain.
+              Thread.currentThread().interrupt();
+              throw new RuntimeException("Thread interrupted while enumerating on a dir.");
+            } finally {
+              try {
+                // Signal completion
+                mCompletionQueue.put(true);
+              } catch (InterruptedException ie) {
+                // Continue interrupt chain.
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(
+                    "Thread interrupted while signaling completion for an enumeration.");
+              }
+            }
+          }
+        }
+
+        // Create coordinator task.
+        mCoordinatorExecutor.submit(() -> {
+          try {
+            AtomicInteger runningCrawlerCount = new AtomicInteger(0);
+            // Loop as long as there is a dir to branch or there are active enumeration thread.
+            while (runningCrawlerCount.get() > 0 || !mDirectoriesToIterate.isEmpty()) {
+
+              if (!mDirectoriesToIterate.isEmpty()) {
+                // There is a dir to enumerate.
+                runningCrawlerCount.incrementAndGet();
+                mCrawlerExecutor.submit(new DirectoryCrawler(mDirectoriesToIterate.take()));
+              } else {
+                // No dirs but there are active threads.
+                mCompletionQueue.take();
+                runningCrawlerCount.decrementAndGet();
+              }
+            }
+          } catch (InterruptedException ie) {
+            // Continue interrupt chain.
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Thread interrupted while waiting for enumeration threads.");
+          } finally {
+            // Signal completion of buffering.
+            mBufferingCompleted.set(null);
+            // Crawling completed.
+            mCrawlerExecutor.shutdown();
+          }
+        });
+        // Will be shutdown after current coordinator task is complete.
+        mCoordinatorExecutor.shutdown();
+      }
+
       @Override
       public boolean hasNext() {
-        return !inodes.isEmpty();
+        // {@code true} As long as buffering is in progress OR
+        // there are entries in the buffer.
+        //
+        // Note that because of buffering, the answer may not be correct,
+        // as the outcome of buffering is indeterminate.
+        return !mBufferingCompleted.isDone() || mEntryBuffer.size() > 0;
       }
 
       @Override
       public Journal.JournalEntry next() {
-        if (!hasNext()) {
-          throw new NoSuchElementException();
+        // Continue until taking an entry or failing due to having no entry.
+        while (true) {
+          if (!hasNext()) {
+            // Because hasNext() is not to be trusted. We return null for signaling completion.
+            return null;
+          }
+          try {
+            // Poll for the next entry.
+            // Due to indeterminacy of hasNext() call, we poll here rather than block.
+            JournalEntry entry = mEntryBuffer.poll(100, TimeUnit.MILLISECONDS);
+            if (entry != null) {
+              return entry;
+            }
+          } catch (InterruptedException ie) {
+            // Continue interrupt chain.
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Thread interrupted while taking an entry from buffer.");
+          }
         }
-        Inode inode = inodes.poll();
-        if (inode.isDirectory()) {
-          Iterables.addAll(inodes, mInodeStore.getChildren(inode.asDirectory()));
-        }
-        return inode.toJournalEntry();
       }
 
       @Override
       public void remove() {
         throw new UnsupportedOperationException("remove is not supported in inode tree iterator");
       }
-    };
+    }
+    // Create a new instance that isolates this instance of iteration.
+    return new BufferedIterator();
   }
 
   @Override

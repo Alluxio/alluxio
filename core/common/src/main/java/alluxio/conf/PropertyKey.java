@@ -1307,6 +1307,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_ENUMERATOR_THREAD_COUNT =
+      new Builder(Name.MASTER_METASTORE_INODE_ENUMERATOR_THREAD_COUNT)
+          .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
+              "Use 2 * {CPU core count} for enumeration")
+          .setDescription("The number of threads used during inode tree enumeration.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT =
+      new Builder(Name.MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT)
+          .setDefaultValue("10000")
+          .setDescription("The number of entries to buffer during read-ahead enumeration.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
       new Builder(Name.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
           .setDefaultValue("true")
@@ -3880,6 +3895,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.cache.low.water.mark.ratio";
     public static final String MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
         "alluxio.master.metastore.inode.cache.max.size";
+    public static final String MASTER_METASTORE_INODE_ENUMERATOR_THREAD_COUNT =
+        "alluxio.master.metastore.inode.enumerator.thread.count";
+    public static final String MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT =
+        "alluxio.master.metastore.inode.enumerator.buffer.count";
     public static final String MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
         "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
