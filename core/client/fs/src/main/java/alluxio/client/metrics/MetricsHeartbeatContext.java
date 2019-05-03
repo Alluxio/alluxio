@@ -57,13 +57,13 @@ public class MetricsHeartbeatContext {
   private static final Map<MasterInquireClient.ConnectDetails, MetricsHeartbeatContext>
       MASTER_METRICS_HEARTBEAT = new ConcurrentHashMap<>(2);
 
-  /** A value that tracks whether or not we've registered the shutdown hook for the JVM */
+  /** A value that tracks whether or not we've registered the shutdown hook for the JVM. */
   private static boolean sAddedShudownHook = false;
 
   /** Application ID for the JVM. Initialized lazily once the first heartbeat is added. */
   private static String sAppId = null;
 
-  /** The service which executes metrics heartbeat RPCs */
+  /** The service which executes metrics heartbeat RPCs. */
   private static ScheduledExecutorService sExecutorService;
 
   private final MasterInquireClient.ConnectDetails mConnectDetails;
