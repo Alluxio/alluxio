@@ -33,15 +33,18 @@ is needed as Alluxio's Root Under File System. If required, this can be reconfig
 
 ## Basic Setup
 
-To begin with, download the alluxio-emr.sh and alluxio-presto.json files from Github. These files will serve as the
+To begin with, download the `alluxio-emr.sh` and `alluxio-presto.json` files from Github. These files will serve as the
 main mechanisms to change the Alluxio configuration in the future. Make sure that the AWS CLI is also set up and ready
 with the required AWS Access/Secret key.
 
-1. Edit the alluxio-emr.sh file and set the value for `alluxio.underfs.address=s3a://my-bucket/emr/alluxio`.
-2. Configure the below command with the required parameters
+1. Run aws emr create-default-roles. This will set up the required IAM roles for the account to be able to use the EMR
+service.
+2. Edit the `alluxio-emr.sh` file and set the value for `alluxio.master.mount.table.root.ufs=s3a://my-bucket/emr/alluxio`
+to be your specific S3 bucket and prefix URI.
+3. Configure the below command with the required parameters
 
 ```bash
-aws emr create-cluster --release-label emr-5.23.0 --instance-count 3 --instance-type <instance-type> --applications Name=Presto Name=Hive --name '<ClusterName>' --bootstrap-actions Path=s3://bucket/path/to//alluxio-emr.sh --configurations file:///path/to/file/alluxio-presto.json --ec2-attributes KeyName=<ec2-keypair-name>
+aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh --configurations file:///path/to/file/alluxio-presto.json --ec2-attributes KeyName=<ec2-keypair-name>
 ```
 
 3. On the [EMR Console](https://console.aws.amazon.com/elasticmapreduce/home), you should be able to see the cluster
@@ -72,11 +75,11 @@ hive
 ```
 5. Create a new database to see if AWS Glue is working as expected. Check the [console](https://console.aws.amazon.com/glue/home)
 to see if the database is created.
-```
+```sql
 CREATE DATABASE glue;
 ```
 6. Use the newly created database and define a table.
-```
+```sql
 USE glue;
 create external table test1 (userid INT,
 age INT,
@@ -88,20 +91,31 @@ FIELDS TERMINATED BY '|'
 LOCATION 'alluxio:///testTable';
 ```
 7. Create the Presto /tmp directory
-```
+```bash
 #Create Presto temp directory
 sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /tmp"
 sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chmod 777 /tmp"
 presto-cli --catalog hive
 ```
 8. Insert values into the table
-```
+```sql
 USE glue;
 INSERT INTO test1 VALUES ('1', 24, 'F', 'Developer', '12345');
 ```
 9. Read back the values in the table
-```
+```sql
 SELECT * FROM test1;
 ```
 
+#Customization
+Tuning of Alluxio properties can be done in a few different locations. Depending on which service needs tuning, EMR
+offers different ways of modifying the service settings/environment variables.
 
+##Alluxio Service
+Any server-side configuration changes must be made in the `alluxio-emr.sh` bootstrap script. In the section for generating
+the `alluxio-site.properties`, add a line with the configuration needed to append to the bottom of the file.
+
+##Alluxio Client
+Generic client-side properties can also be edited via the bootstrap script as mentioned above. This is mostly for the native
+client (CLI). Property changes for a specific service like Presto/Hive should be done in the respective configuration file
+i.e. core-site.xml, hive.catalog.

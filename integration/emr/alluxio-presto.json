@@ -2,8 +2,7 @@
   {     
     "Classification": "hive-site",
     "Properties": {
-      "fs.alluxio.impl": "alluxio.hadoop.FileSystem",
-      "fs.AbstractFileSystem.alluxio.impl": "alluxio.hadoop.AlluxioFileSystem",
+      "hive.aux.jars.path": "/opt/alluxio/client/alluxio-client.jar",
       "alluxio.user.file.writetype.default": "CACHE_THROUGH",
       "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
     }
@@ -11,8 +10,6 @@
   {
     "Classification": "core-site",
     "Properties": {
-      "fs.alluxio.impl": "alluxio.hadoop.FileSystem",
-      "fs.AbstractFileSystem.alluxio.impl": "alluxio.hadoop.AlluxioFileSystem",
       "alluxio.user.file.writetype.default": "CACHE_THROUGH"
     }
   },
