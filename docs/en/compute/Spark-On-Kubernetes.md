@@ -71,7 +71,6 @@ Note:
 Add the required Alluxio client jars and build a Docker image used for the Spark driver and executor
 pods. Run the following from the Spark distribution directory.
 
-
 Copy certificates if using minikube
 ```bash
 cp ~/.minikube/apiserver.key bin/
