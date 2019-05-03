@@ -34,7 +34,7 @@ IS_MASTER=`jq '.isMaster' /mnt/var/lib/info/instance.json`
 
 #Set up alluxio-site.properties
 sudo runuser -l alluxio -c "echo 'alluxio.master.hostname=$MASTER' > /opt/alluxio/conf/alluxio-site.properties"
-sudo runuser -l alluxio -c "echo 'alluxio.master.mount.table.root.ufs=s3a://my-bucket/emr/alluxio/' >> /opt/alluxio/conf/alluxio-site.properties"
+sudo runuser -l alluxio -c "echo 'alluxio.master.mount.table.root.ufs=$1' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.memory.size=1GB' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.tieredstore.levels=1' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.tieredstore.level0.alias=MEM' >> /opt/alluxio/conf/alluxio-site.properties"
