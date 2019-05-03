@@ -335,17 +335,18 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     try {
       CopycatClient client = createClient();
       long start = System.currentTimeMillis();
+      LOG.info("Submitting empty journal entry to trigger snapshot");
       // If snapshot requirements are fulfilled, a snapshot will be triggered
       // after sending an empty journal entry to Copycat
       CompletableFuture<Void> future = client.submit(new JournalEntryCommand(
           JournalEntry.getDefaultInstance()));
       try {
-        future.get(10, TimeUnit.SECONDS);
+        future.get(1, TimeUnit.MINUTES);
       } catch (TimeoutException | ExecutionException e) {
-        LOG.info("Exception submitting entry to trigger snapshot", e.toString());
+        LOG.info("Exception submitting entry to trigger snapshot: {}", e.toString());
         throw new IOException("Exception submitting entry to trigger snapshot", e);
       } catch (InterruptedException e) {
-        LOG.info("Interrupted when submitting entry to trigger snapshot", e.toString());
+        LOG.info("Interrupted when submitting entry to trigger snapshot: {}", e.toString());
         Thread.currentThread().interrupt();
         throw new CancelledException("Interrupted when submitting entry to trigger snapshot", e);
       }
@@ -356,6 +357,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       if (mStateMachine.isSnapshotting()) {
         waitForSnapshotting(mStateMachine);
       }
+      LOG.info("Snapshotted in raft journal system");
     } finally {
       mSnapshotAllowed.set(false);
     }

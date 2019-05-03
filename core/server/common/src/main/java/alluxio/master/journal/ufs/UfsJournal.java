@@ -316,10 +316,15 @@ public class UfsJournal implements Journal {
    * Triggers a checkpoint in the primary master ufs journal.
    */
   public synchronized void checkpoint() throws IOException {
+    long nextSequenceNumber = mWriter.getNextSequenceNumber();
     UfsJournalCheckpointWriter journalWriter
-        = getCheckpointWriter(mWriter.getNextSequenceNumber());
+        = getCheckpointWriter(nextSequenceNumber);
+    LOG.info("{}: Writing checkpoint [sequence number {}].",
+        mMaster.getName(), nextSequenceNumber);
     try {
       mMaster.writeToCheckpoint(journalWriter);
+      LOG.info("{}: Finished checkpoint [sequence number {}].",
+          mMaster.getName(), nextSequenceNumber);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new CancelledException("Checkpoint is interrupted", e);

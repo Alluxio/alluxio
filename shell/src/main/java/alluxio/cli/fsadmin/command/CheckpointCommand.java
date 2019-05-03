@@ -34,7 +34,7 @@ public class CheckpointCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getCommandName() {
-    return "snapshot";
+    return "checkpoint";
   }
 
   @Override
