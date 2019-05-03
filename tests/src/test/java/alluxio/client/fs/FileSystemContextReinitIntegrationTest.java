@@ -30,6 +30,7 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.testutils.LocalAlluxioClusterResource.Config;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -114,11 +115,9 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     checkHash(true, true);
   }
 
-  @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.Name.USER_CONF_HASH_SYNC_TIMEOUT,
-      "100ms"
-  })
   @Test
+  @Config(
+      confParams = {PropertyKey.Name.USER_CONF_HASH_SYNC_TIMEOUT, "100ms"})
   public void configHashSyncTimeout() throws Exception {
     FileSystem client = mLocalAlluxioClusterResource.get().getClient(mContext);
     FileOutStream os = client.createFile(PATH_TO_UPDATE, CreateFilePOptions.newBuilder()
