@@ -18,10 +18,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.meta.MetaMasterConfigClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.conf.path.PathConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -49,10 +47,8 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   private static final String UPDATED_VALUE = ReadType.NO_CACHE.toString();
 
   private FileSystemContext mContext;
-  private AlluxioConfiguration mClusterConfBeforeUpdate;
-  private PathConfiguration mPathConfBeforeUpdate;
-  private String mClusterConfHashBeforeUpdate;
-  private String mPathConfHashBeforeUpdate;
+  private String mClusterConfHash;
+  private String mPathConfHash;
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
@@ -66,10 +62,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   public void before() throws IOException {
     mContext = FileSystemContext.create(ServerConfiguration.global());
     mContext.getClientContext().updateClusterAndPathConf(mContext.getMasterAddress());
-    mClusterConfBeforeUpdate = mContext.getClientContext().getClusterConf();
-    mClusterConfHashBeforeUpdate = mContext.getClientContext().getClusterConfHash();
-    mPathConfBeforeUpdate = mContext.getClientContext().getPathConf();
-    mPathConfHashBeforeUpdate = mContext.getClientContext().getPathConfHash();
+    updateHash();
   }
 
   @Test
@@ -113,27 +106,37 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     checkClusterConfAfterUpdate();
     checkPathConfAfterUpdate();
     checkHash(true, true);
+    updateHash();
+    triggerSync();
+    checkHash(false, false);
   }
 
   @Test
   @Config(
       confParams = {PropertyKey.Name.USER_CONF_HASH_SYNC_TIMEOUT, "100ms"})
   public void configHashSyncTimeout() throws Exception {
-    FileSystem client = mLocalAlluxioClusterResource.get().getClient(mContext);
-    FileOutStream os = client.createFile(PATH_TO_UPDATE, CreateFilePOptions.newBuilder()
-        .setRecursive(true).build());
-    updateClusterConf();
-    updatePathConf();
-    // Opened stream is not closed yet, so it should block reinitialization.
-    long start = System.currentTimeMillis();
-    triggerSync();
-    long duration = System.currentTimeMillis() - start;
-    Assert.assertTrue(duration >= 100); // triggerSync should time out after 300ms
-    checkHash(false, false);
-    os.close();
-    // Stream is closed, reinitialization should not be blocked.
-    triggerSync();
-    checkHash(true, true);
+    // Cannot use mLocalAlluxioClusterResource.get().getClient(mContext) here because the clients
+    // will be closed when restarting local masters, which in turn will close the contexts.
+    try (FileSystem client = FileSystem.Factory.create(mContext);
+      FileOutStream os = client.createFile(PATH_TO_UPDATE, CreateFilePOptions.newBuilder()
+          .setRecursive(true).build())) {
+      checkClusterConfBeforeUpdate();
+      checkPathConfBeforeUpdate();
+      updateClusterConf();
+      updatePathConf();
+      // Opened stream is not closed yet, so it should block reinitialization.
+      long start = System.currentTimeMillis();
+      triggerSync();
+      long duration = System.currentTimeMillis() - start;
+      Assert.assertTrue(duration >= 100); // triggerSync should time out after 300ms
+      checkHash(false, false);
+      os.close();
+      // Stream is closed, reinitialization should not be blocked.
+      triggerSync();
+      checkClusterConfAfterUpdate();
+      checkPathConfAfterUpdate();
+      checkHash(true, true);
+    }
   }
 
   private void triggerSync() throws Exception {
@@ -179,28 +182,26 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   }
 
   private void checkHash(boolean clusterConfHashUpdated, boolean pathConfHashUpdated) {
+    // Use Equals and NotEquals so that when test fails, the hashes are printed out for comparison.
     if (clusterConfHashUpdated) {
-      Assert.assertNotEquals(mClusterConfHashBeforeUpdate,
+      Assert.assertNotEquals(mClusterConfHash,
           mContext.getClientContext().getClusterConfHash());
-      Assert.assertNotEquals(mClusterConfBeforeUpdate,
-          mContext.getClientContext().getClusterConf());
     } else {
-      Assert.assertEquals(mClusterConfHashBeforeUpdate,
+      Assert.assertEquals(mClusterConfHash,
           mContext.getClientContext().getClusterConfHash());
-      Assert.assertEquals(mClusterConfBeforeUpdate,
-          mContext.getClientContext().getClusterConf());
     }
 
     if (pathConfHashUpdated) {
-      Assert.assertNotEquals(mPathConfHashBeforeUpdate,
+      Assert.assertNotEquals(mPathConfHash,
           mContext.getClientContext().getPathConfHash());
-      Assert.assertNotEquals(mPathConfBeforeUpdate,
-          mContext.getClientContext().getPathConf());
     } else {
-      Assert.assertEquals(mPathConfHashBeforeUpdate,
+      Assert.assertEquals(mPathConfHash,
           mContext.getClientContext().getPathConfHash());
-      Assert.assertEquals(mPathConfBeforeUpdate,
-          mContext.getClientContext().getPathConf());
     }
+  }
+
+  private void updateHash() {
+    mClusterConfHash = mContext.getClientContext().getClusterConfHash();
+    mPathConfHash = mContext.getClientContext().getPathConfHash();
   }
 }
