@@ -96,14 +96,16 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   /** A map of worker addresses to the most recent epoch time when client fails to read from it. */
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
 
-  protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
-    AlluxioConfiguration conf = context.getPathConf(new AlluxioURI(status.getPath()));
+  protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context)
+      throws IOException {
+    mContext = context;
+    mContext.blockReinit();
+    AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
     mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
     mBlockWorkerClientReadRetry = conf.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
     mStatus = status;
     mOptions = options;
-    mBlockStore = AlluxioBlockStore.create(context);
-    mContext = context;
+    mBlockStore = AlluxioBlockStore.create(mContext);
 
     mLength = mStatus.getLength();
     mBlockSize = mStatus.getBlockSizeBytes();
@@ -200,6 +202,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
   @Override
   public void close() throws IOException {
+    mContext.unblockReinit();
     closeBlockInStream(mBlockInStream);
     closeBlockInStream(mCachedPositionedReadStream);
   }

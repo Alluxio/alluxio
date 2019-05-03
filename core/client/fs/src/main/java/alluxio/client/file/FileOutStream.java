@@ -87,13 +87,14 @@ public class FileOutStream extends AbstractOutStream {
    */
   public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context)
       throws IOException {
+    mContext = context;
+    mContext.blockReinit();
     mCloser = Closer.create();
     mUri = Preconditions.checkNotNull(path, "path");
     mBlockSize = options.getBlockSizeBytes();
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mOptions = options;
-    mContext = context;
     mBlockStore = AlluxioBlockStore.create(mContext);
     mPreviousBlockOutStreams = new ArrayList<>();
     mClosed = false;
@@ -184,6 +185,7 @@ public class FileOutStream extends AbstractOutStream {
       throw mCloser.rethrow(e); // IOException will be thrown as-is.
     } finally {
       mClosed = true;
+      mContext.unblockReinit();
       mCloser.close();
     }
   }

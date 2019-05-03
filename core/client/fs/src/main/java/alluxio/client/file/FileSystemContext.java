@@ -141,6 +141,25 @@ public final class FileSystemContext implements Closeable {
   private volatile FileSystemContextReinitializer mReinitializer;
 
   /**
+   * If there is code running between {@link #blockReinit()} and {@link #unblockReinit()},
+   * reinitialization will be blocked.
+   *
+   * If reinitialization is happening, this method will block until reinitialization succeeds or
+   * fails, if it fails, an exception will be thrown explaining the reinitialization's failure and
+   * automatically calls {@link #unblockReinit()}.
+   */
+  public void blockReinit() throws IOException {
+    mReinitializer.block();
+  }
+
+  /**
+   * Must be called after {@link #blockReinit()} to unblock reinitialization.
+   */
+  public void unblockReinit() {
+    mReinitializer.unblock();
+  }
+
+  /**
    * Creates a {@link FileSystemContext} with a null subject.
    *
    * @param alluxioConf Alluxio configuration
@@ -243,7 +262,8 @@ public final class FileSystemContext implements Closeable {
   private synchronized void initWithoutReinitializer(MasterInquireClient masterInquireClient) {
     mClosed.set(false);
 
-    mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(mClientContext.getClusterConf()),
+    mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(
+        mClientContext.getClusterConf()),
         mClientContext.getClusterConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
         String.format("alluxio-client-nettyPool-%s-%%d", mAppId), true);
 
@@ -264,7 +284,8 @@ public final class FileSystemContext implements Closeable {
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
       mMetricsExecutorService
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
-              (int) mClientContext.getClusterConf().getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
+              (int) mClientContext.getClusterConf()
+                  .getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
               mClientContext.getClusterConf()));
       // register the shutdown hook
       try {
@@ -393,8 +414,8 @@ public final class FileSystemContext implements Closeable {
     } catch (AlluxioStatusException e) {
       throw new RuntimeException("Failed to load path level configuration from meta master", e);
     }
-    return new SpecificPathConfiguration(mClientContext.getClusterConf(), mClientContext.getPathConf(),
-        path);
+    return new SpecificPathConfiguration(mClientContext.getClusterConf(),
+        mClientContext.getPathConf(), path);
   }
 
   /**

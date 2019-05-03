@@ -172,7 +172,7 @@ public class ClientContext {
    * @throws AlluxioStatusException
    */
   public synchronized void loadPathConfIfNotLoaded(InetSocketAddress address)
-      throws AlluxioStatusException{
+      throws AlluxioStatusException {
     if (!mIsPathConfLoaded) {
       updatePathConf(address);
       mIsPathConfLoaded = true;

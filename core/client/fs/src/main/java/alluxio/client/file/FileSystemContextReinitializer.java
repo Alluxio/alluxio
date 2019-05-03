@@ -31,11 +31,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * if they differ from the hashes in the {@link alluxio.ClientContext} backing the
  * {@link FileSystemContext}, it tries to reinitialize the {@link FileSystemContext}.
  *
- * Each RPC needs to call {@link #block()} and {@link #allow()} to mark its lifetime, when there are
- * ongoing RPCs executing between these two methods, reinitialization is blocked.
+ * Each RPC needs to call {@link #block()} and {@link #unblock()} to mark its lifetime, when there
+ * are ongoing RPCs executing between these two methods, reinitialization is blocked.
  *
- * Reinitialization starts when there are no ongoing previous RPCs, after starting, all further RPCs
- * are blocked until the reinitialization finishes. If it succeeds, previous RPCs will use the
+ * Reinitialization starts when there are no ongoing RPCs, after starting, all further RPCs
+ * are blocked until the reinitialization finishes. If it succeeds, future RPCs will use the
  * reinitialized context, otherwise, an exception is thrown from {@link #block()}.
  */
 public final class FileSystemContextReinitializer implements Closeable {
@@ -47,9 +47,10 @@ public final class FileSystemContextReinitializer implements Closeable {
    * Synchronize between reinitialization and RPC calls using this context.
    * RPC calls acquire read lock during their lifetimes.
    * Reinitialization acquires write lock.
-   * Must be in fair mode, otherwise, the reinitialization thread might be starved.
+   * It's in non-fair mode, which means if there is ongoing RPC calls, the reinitialization will
+   * never acquire the write lock, so reinitialization will be blocked until timeout.
    */
-  private final ReadWriteLock mLock = new ReentrantReadWriteLock(true);
+  private final ReadWriteLock mLock = new ReentrantReadWriteLock();
 
   /**
    * Creates a new reinitializer for the context.
@@ -64,8 +65,8 @@ public final class FileSystemContextReinitializer implements Closeable {
     mExecutorService = Executors.newFixedThreadPool(1, ThreadFactoryUtils.build(
         "config-hash-master-heartbeat-%d", true));
     mExecutorService.submit(new HeartbeatThread(HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC,
-        mContext.getAppId(), mExecutor, (int) mContext.getClientContext().getConf().getMs(
-        PropertyKey.USER_CONF_HASH_SYNC_INTERVAL), mContext.getClientContext().getConf()));
+        mContext.getAppId(), mExecutor, (int) mContext.getClientContext().getClusterConf().getMs(
+        PropertyKey.USER_CONF_HASH_SYNC_INTERVAL), mContext.getClientContext().getClusterConf()));
   }
 
   /**
@@ -81,13 +82,11 @@ public final class FileSystemContextReinitializer implements Closeable {
   /**
    * Blocks reinitialization.
    *
-   * Designed to be called at the beginning of RPCs in {@link BaseFileSystem}.
+   * When there is code running between {@link #block()} and {@link #unblock()}, reinitialization
+   * will be blocked.
    *
    * When the context is being reinitialized, this call blocks until the reinitialization succeeds
-   * or fails. If it fails, an exception is thrown and {@link #allow()} is automatically
-   * called.
-   * Otherwise, when this call returns, the context cannot be reinitialized until allowReinit
-   * is called.
+   * or fails. If it fails, an exception is thrown and {@link #unblock()} is automatically called.
    *
    * If there is existing reinitialization exception, immediately throw it without trying to
    * block further reinitialization.
@@ -100,20 +99,18 @@ public final class FileSystemContextReinitializer implements Closeable {
     mLock.readLock().lock();
     exception = mExecutor.getException();
     if (exception.isPresent()) {
-      allow();
+      unblock();
       throw exception.get();
     }
   }
 
   /**
-   * Allows reinitialization.
+   * Unblocks reinitialization.
    *
-   * Designed to be called at the end of RPCs in {@link BaseFileSystem}.
-   *
-   * Should be paired with {@link #block()} ()}, needs to be called no matter whether the RPC
+   * Should be paired with {@link #block()}, needs to be called no matter whether the RPC
    * succeeds or fails, otherwise, the reinitialization will always be blocked.
    */
-  public void allow() {
+  public void unblock() {
     mLock.readLock().unlock();
   }
 
@@ -131,7 +128,7 @@ public final class FileSystemContextReinitializer implements Closeable {
   /**
    * Begins reinitialization.
    *
-   * Blocks until no ongoing RPCs are in the middle of {@link #block()} and {@link #allow()}.
+   * Blocks until no ongoing RPCs are in the middle of {@link #block()} and {@link #unblock()}.
    * When it returns, further RPCs calling {@link #block()} will be blocked until {@link #end()}.
    */
   public void begin() {

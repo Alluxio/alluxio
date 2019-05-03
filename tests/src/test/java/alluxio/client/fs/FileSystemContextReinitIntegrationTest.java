@@ -126,11 +126,13 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   }
 
   private void checkClusterConfBeforeUpdate() {
-    Assert.assertNotEquals(UPDATED_VALUE, mContext.getClientContext().getClusterConf().get(KEY_TO_UPDATE));
+    Assert.assertNotEquals(UPDATED_VALUE, mContext.getClientContext().getClusterConf()
+        .get(KEY_TO_UPDATE));
   }
 
   private void checkClusterConfAfterUpdate() {
-    Assert.assertEquals(UPDATED_VALUE, mContext.getClientContext().getClusterConf().get(KEY_TO_UPDATE));
+    Assert.assertEquals(UPDATED_VALUE, mContext.getClientContext().getClusterConf()
+        .get(KEY_TO_UPDATE));
   }
 
   private void checkPathConfBeforeUpdate() {
