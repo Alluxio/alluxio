@@ -8,26 +8,26 @@ public interface MetricsHeartbeatPOptionsOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+   * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
    */
-  java.util.List<alluxio.grpc.Metric> 
-      getMetricsList();
+  java.util.List<alluxio.grpc.ClientMetrics> 
+      getClientMetricsList();
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+   * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
    */
-  alluxio.grpc.Metric getMetrics(int index);
+  alluxio.grpc.ClientMetrics getClientMetrics(int index);
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+   * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
    */
-  int getMetricsCount();
+  int getClientMetricsCount();
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+   * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
    */
-  java.util.List<? extends alluxio.grpc.MetricOrBuilder> 
-      getMetricsOrBuilderList();
+  java.util.List<? extends alluxio.grpc.ClientMetricsOrBuilder> 
+      getClientMetricsOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+   * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
    */
-  alluxio.grpc.MetricOrBuilder getMetricsOrBuilder(
+  alluxio.grpc.ClientMetricsOrBuilder getClientMetricsOrBuilder(
       int index);
 }
