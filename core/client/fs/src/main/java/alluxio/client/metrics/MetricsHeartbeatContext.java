@@ -53,25 +53,17 @@ import java.util.concurrent.TimeUnit;
 public class MetricsHeartbeatContext {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsHeartbeatContext.class);
 
-  /**
-   * A map from master RPC address to heartbeat context instances.
-   */
+  /** A map from master connection details to heartbeat context instances. */
   private static final Map<MasterInquireClient.ConnectDetails, MetricsHeartbeatContext>
       MASTER_METRICS_HEARTBEAT = new ConcurrentHashMap<>(2);
 
-  /**
-   * A value that tracks whether or not we've registered the shutdown hook.
-   */
+  /** A value that tracks whether or not we've registered the shutdown hook for the JVM */
   private static boolean sAddedShudownHook = false;
 
-  /**
-   * Application ID for the JVM. Initialized lazily once the first heartbeat is added.
-   */
+  /** Application ID for the JVM. Initialized lazily once the first heartbeat is added. */
   private static String sAppId = null;
 
-  /**
-   * The service which executes metrics heartbeats.
-   */
+  /** The service which executes metrics heartbeat RPCs */
   private static ScheduledExecutorService sExecutorService;
 
   private final MasterInquireClient.ConnectDetails mConnectDetails;
