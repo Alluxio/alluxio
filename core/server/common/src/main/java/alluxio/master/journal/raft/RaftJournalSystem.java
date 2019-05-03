@@ -224,6 +224,21 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     mPrimarySelector.init(mServer);
   }
 
+  private CopycatClient createAndConnectClient() {
+    CopycatClient client = createClient();
+    try {
+      client.connect().get();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    } catch (ExecutionException e) {
+      String errorMessage = ExceptionMessage.FAILED_RAFT_CONNECT.getMessage(
+          Arrays.toString(getClusterAddresses(mConf).toArray()), e.getCause().toString());
+      throw new RuntimeException(errorMessage, e.getCause());
+    }
+    return client;
+  }
+
   private CopycatClient createClient() {
     return CopycatClient.builder(getClusterAddresses(mConf))
         .withRecoveryStrategy(RecoveryStrategies.RECOVER)
@@ -260,17 +275,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void gainPrimacy() {
     mSnapshotAllowed.set(false);
-    CopycatClient client = createClient();
-    try {
-      client.connect().get();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
-    } catch (ExecutionException e) {
-      String errorMessage = ExceptionMessage.FAILED_RAFT_CONNECT.getMessage(
-          Arrays.toString(getClusterAddresses(mConf).toArray()), e.getCause().toString());
-      throw new RuntimeException(errorMessage, e.getCause());
-    }
+    CopycatClient client = createAndConnectClient();
     try {
       catchUp(mStateMachine, client);
     } catch (TimeoutException e) {
@@ -332,8 +337,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void checkpoint() throws IOException {
     mSnapshotAllowed.set(true);
+    CopycatClient client = createAndConnectClient();
     try {
-      CopycatClient client = createClient();
       long start = System.currentTimeMillis();
       LOG.info("Submitting empty journal entry to trigger snapshot");
       // If snapshot requirements are fulfilled, a snapshot will be triggered
