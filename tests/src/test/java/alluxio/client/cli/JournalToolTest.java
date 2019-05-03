@@ -91,7 +91,7 @@ public class JournalToolTest extends BaseIntegrationTest {
       }
     };
     // Override/merge with given props.
-    if(props != null) {
+    if (props != null) {
       defaultProps.putAll(props);
     }
     // Build and start a multi-process cluster.
@@ -111,6 +111,7 @@ public class JournalToolTest extends BaseIntegrationTest {
   @After
   public void after() throws Throwable {
     mMultiProcessCluster.destroy();
+    mMultiProcessCluster.stopZk();
   }
 
   @Test

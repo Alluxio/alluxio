@@ -54,6 +54,7 @@ import io.atomix.copycat.server.storage.Log;
 import io.atomix.copycat.server.storage.Storage;
 import io.atomix.copycat.server.storage.StorageLevel;
 import io.atomix.copycat.server.storage.entry.CommandEntry;
+import io.atomix.copycat.server.storage.snapshot.Snapshot;
 import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
 import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
 import io.atomix.copycat.server.storage.util.StorageSerialization;
@@ -66,9 +67,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Layout;
-import org.apache.log4j.PatternLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +93,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Tool for converting a ufs journal to a human-readable format.
+ * Tool for converting journal to a human-readable format.
  *
  * <pre>
  * java -cp \
@@ -254,6 +252,55 @@ public final class JournalTool {
      * Dumps journal.
      */
     abstract void dumpJournal() throws Throwable;
+
+    /**
+     * Used to read checkpoint streams.
+     *
+     * @param checkpoint the checkpoint stream
+     * @param path persistence path
+     * @throws IOException
+     */
+    protected void readCheckpoint(CheckpointInputStream checkpoint, Path path) throws IOException {
+      LOG.debug("Reading checkpoint of type %s to %s%n", checkpoint.getType().name(), path);
+      switch (checkpoint.getType()) {
+        case COMPOUND:
+          readCompoundCheckpoint(checkpoint, path);
+          break;
+        case ROCKS:
+          readRocksCheckpoint(checkpoint, path);
+          break;
+        default:
+          readRegularCheckpoint(checkpoint, path);
+          break;
+      }
+    }
+
+    private void readCompoundCheckpoint(CheckpointInputStream checkpoint, Path path)
+            throws IOException {
+      Files.createDirectories(path);
+      CompoundCheckpointReader reader = new CompoundCheckpointReader(checkpoint);
+      Optional<Entry> entryOpt;
+      while ((entryOpt = reader.nextCheckpoint()).isPresent()) {
+        Entry entry = entryOpt.get();
+        Path checkpointPath = path.resolve(entry.getName().toString());
+        LOG.debug("Reading checkpoint for %s to %s%n", entry.getName(), checkpointPath);
+        readCheckpoint(entry.getStream(), checkpointPath);
+      }
+    }
+
+    private void readRocksCheckpoint(CheckpointInputStream checkpoint, Path path)
+            throws IOException {
+      TarballCheckpointReader reader = new TarballCheckpointReader(checkpoint);
+      reader.unpackToDirectory(path);
+    }
+
+    private void readRegularCheckpoint(CheckpointInputStream checkpoint, Path path)
+            throws IOException {
+      try (PrintStream out =
+                   new PrintStream(new BufferedOutputStream(new FileOutputStream(path.toFile())))) {
+        checkpoint.getType().getCheckpointFormat().parseToHumanReadable(checkpoint, out);
+      }
+    }
   }
 
   /**
@@ -327,53 +374,18 @@ public final class JournalTool {
         throw new RuntimeException(e);
       }
     }
-
-    private void readCheckpoint(CheckpointInputStream checkpoint, Path path) throws IOException {
-      LOG.debug("Reading checkpoint of type %s to %s%n", checkpoint.getType().name(), path);
-      switch (checkpoint.getType()) {
-        case COMPOUND:
-          readCompoundCheckpoint(checkpoint, path);
-          break;
-        case ROCKS:
-          readRocksCheckpoint(checkpoint, path);
-          break;
-        default:
-          readRegularCheckpoint(checkpoint, path);
-          break;
-      }
-    }
-
-    private void readCompoundCheckpoint(CheckpointInputStream checkpoint, Path path)
-        throws IOException {
-      Files.createDirectories(path);
-      CompoundCheckpointReader reader = new CompoundCheckpointReader(checkpoint);
-      Optional<Entry> entryOpt;
-      while ((entryOpt = reader.nextCheckpoint()).isPresent()) {
-        Entry entry = entryOpt.get();
-        Path checkpointPath = path.resolve(entry.getName().toString());
-        LOG.debug("Reading checkpoint for %s to %s%n", entry.getName(), checkpointPath);
-        readCheckpoint(entry.getStream(), checkpointPath);
-      }
-    }
-
-    private void readRocksCheckpoint(CheckpointInputStream checkpoint, Path path)
-        throws IOException {
-      TarballCheckpointReader reader = new TarballCheckpointReader(checkpoint);
-      reader.unpackToDirectory(path);
-    }
-
-    private void readRegularCheckpoint(CheckpointInputStream checkpoint, Path path)
-        throws IOException {
-      try (PrintStream out =
-          new PrintStream(new BufferedOutputStream(new FileOutputStream(path.toFile())))) {
-        checkpoint.getType().getCheckpointFormat().parseToHumanReadable(checkpoint, out);
-      }
-    }
   }
 
   static class RaftJournalDumper extends AbstractJournalDumper {
-    /** Timeout in seconds for joining/leaving a CopyCat cluster.  */
-    private final int sCopyCatConnectionTimeoutSeconds = 30;
+    /** Used to stop listening state form CopyCat cluster. */
+    protected final AtomicLong mLastDumpOperationTime;
+    /** Timeout to stop listening state from CopyCat cluster. */
+    private static final int COPYCAT_SILENT_PERIOD_IN_SECONDS = 30;
+    /** Timeout in seconds for joining/leaving a CopyCat cluster. */
+    private static final int COPYCAT_CONNECTION_TIMEOUT_SECONDS = 30;
+    /** Timeout in seconds for joining/leaving a CopyCat cluster. */
+    private static final int COPYCAT_SNAPSHOT_READ_TIMEOUT_SECONDS = 3600;
+
     /**
      * Creates embedded journal dumper.
      *
@@ -386,22 +398,29 @@ public final class JournalTool {
     public RaftJournalDumper(String master, long start, long end, String outputDir,
         @Nullable String inputDir) throws IOException {
       super(master, start, end, outputDir, inputDir);
+      /*
+       * We reset dump time whenever, - Writing to a snapshot is complete. - New JournalEntry
+       * command is written. So, starting the last dump time from snapshot wait time will ensure,
+       * the tool wait at most COPYCAT_SNAPSHOT_READ_TIMEOUT_SECONDS for snapshot, if there is any
+       * snapshot.
+       */
+      mLastDumpOperationTime =
+          new AtomicLong(System.currentTimeMillis() + COPYCAT_SNAPSHOT_READ_TIMEOUT_SECONDS * 1000);
     }
 
     @Override
     void dumpJournal() throws Throwable {
-      RaftJournalConfiguration conf =  RaftJournalConfiguration.defaults(getRaftServiceType());
-      /**
+      RaftJournalConfiguration conf = RaftJournalConfiguration.defaults(getRaftServiceType());
+      /*
        * Reading embedded journal actively requires a RAFT cluster with at least 1 follower node.
-       * This is due to CopyCat allowing passive membership only through followers.
-       * In that case we need to read from the journal directory supplied by the user.
-       * Since there is only one master, the on-disk state will provide a consistent view.
+       * This is due to CopyCat allowing passive membership only through followers. In that case we
+       * need to read from the journal directory supplied by the user. Since there is only one
+       * master, the on-disk state will provide a consistent view.
        */
       if (mInputDir == null && conf.getClusterAddresses().size() == 1) {
         System.err.printf("Cannot do live reading of embedded journal when "
             + "there is only one configured journal master.\n"
-            + "Please specify -inputDir option reading embedded journal files "
-            + "from disk");
+            + "Please specify -inputDir option reading embedded journal files " + "from disk");
         return;
       }
 
@@ -412,7 +431,6 @@ public final class JournalTool {
       }
 
       // Attach to CopyCat cluster passively and dump state.
-      AtomicLong lastUpdate = new AtomicLong(-1);
       try (PrintStream out =
           new PrintStream(new BufferedOutputStream(new FileOutputStream(mJournalEntryFile)))) {
         ServerSocket socket = new ServerSocket(0);
@@ -420,35 +438,49 @@ public final class JournalTool {
         CopycatServer server = CopycatServer
             .builder(new Address(NetworkAddressUtils.getConnectHost(
                 NetworkAddressUtils.ServiceType.MASTER_RAFT, ServerConfiguration.global()), port))
-            .withSnapshotAllowed(new AtomicBoolean(false))
-            .withTransport(new NettyTransport())
-            .withSerializer(RaftJournalSystem.createSerializer())
-            .withType(Member.Type.PASSIVE)
+            .withSnapshotAllowed(new AtomicBoolean(false)).withTransport(new NettyTransport())
+            .withSerializer(RaftJournalSystem.createSerializer()).withType(Member.Type.PASSIVE)
             .withStorage(Storage.builder().withStorageLevel(StorageLevel.MEMORY).build())
-            .withStateMachine(new OnceSupplier<>(new EchoJournalStateMachine((je) -> {
-              writeSelected(out, je);
-              lastUpdate.set(System.currentTimeMillis());
-            })))
+            .withStateMachine(new OnceSupplier<>(new EchoJournalStateMachine(
+                (je) -> dumpEntry(je, out), this::dumpCheckpointStream)))
             .build();
 
-        server.join(RaftJournalConfiguration.defaults(getRaftServiceType()).getClusterAddresses()
-            .stream().map(addr -> new Address(addr.getHostName(), addr.getPort()))
-            .collect(Collectors.toList())).get(sCopyCatConnectionTimeoutSeconds, TimeUnit.SECONDS);
+        server
+            .join(RaftJournalConfiguration.defaults(getRaftServiceType()).getClusterAddresses()
+                .stream().map(addr -> new Address(addr.getHostName(), addr.getPort()))
+                .collect(Collectors.toList()))
+            .get(COPYCAT_CONNECTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-        while (lastUpdate.get() < 0
-            || (System.currentTimeMillis() - lastUpdate.get() < 30*Constants.SECOND_MS)) {
+        // Whether to stop listening for state due to silent period.
+        while ((System.currentTimeMillis()
+            - mLastDumpOperationTime.get() < COPYCAT_SILENT_PERIOD_IN_SECONDS
+                * Constants.SECOND_MS)) {
           CommonUtils.sleepMs(100);
         }
 
-        server.leave().get(sCopyCatConnectionTimeoutSeconds, TimeUnit.SECONDS);
+        server.leave().get(COPYCAT_CONNECTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+      }
+    }
+
+    private void dumpEntry(JournalEntry je, PrintStream out) {
+      writeSelected(out, je);
+      mLastDumpOperationTime.set(System.currentTimeMillis());
+    }
+
+    private void dumpCheckpointStream(CheckpointInputStream checkpointStream) {
+      try {
+        Path snapshotDir = Paths.get(mCheckpointsDir, "copycat-snapshot.log");
+        readCheckpoint(checkpointStream, snapshotDir.toAbsolutePath());
+      } catch (IOException exc) {
+        LOG.error("Failed while reading checkpoint stream.", exc);
+      } finally {
+        mLastDumpOperationTime.set(System.currentTimeMillis());
       }
     }
 
     /**
      * Reads from the journal directly instead of going through the raft cluster. The state read
      * this way may be stale, but it can still be useful for debugging while the cluster is offline.
-     *
-     * @return exit code
      */
     private void readFromDir() throws Throwable {
       Serializer serializer = RaftJournalSystem.createSerializer();
@@ -458,13 +490,12 @@ public final class JournalTool {
       serializer.resolve(new ServerSerialization());
       serializer.resolve(new StorageSerialization());
 
-      SingleThreadContext context =
-              new SingleThreadContext("readJournal", serializer);
+      SingleThreadContext context = new SingleThreadContext("readJournal", serializer);
 
       try {
         // Read through the whole journal content, starting from snapshot.
-        context.execute(this::readSnapshot).get();
-        context.execute(this::readLog).get();
+        context.execute(this::readCopycatSnapshotFromDir).get();
+        context.execute(this::readCopycatLogFromDir).get();
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         throw e;
@@ -473,7 +504,7 @@ public final class JournalTool {
       }
     }
 
-    private void readLog() {
+    private void readCopycatLogFromDir() {
       try (PrintStream out =
           new PrintStream(new BufferedOutputStream(new FileOutputStream(mJournalEntryFile)))) {
         Log log = Storage.builder().withDirectory(mInputDir).build().openLog("copycat");
@@ -496,27 +527,20 @@ public final class JournalTool {
       }
     }
 
-    private void readSnapshot() {
+    private void readCopycatSnapshotFromDir() {
       Storage journalStorage = Storage.builder().withDirectory(mInputDir).build();
       if (journalStorage.openSnapshotStore("copycat").snapshots().isEmpty()) {
         LOG.debug("No snapshot found.");
         return;
       }
-      String snapshotDumpFile = PathUtils.concatPath(mCheckpointsDir, "copycat.log");
-      try (
-          SnapshotReader snapshotReader =
-              journalStorage.openSnapshotStore("copycat").currentSnapshot().reader();
-          PrintStream out =
-              new PrintStream(new BufferedOutputStream(new FileOutputStream(snapshotDumpFile)))) {
-        JournalEntryStreamReader reader =
-            new JournalEntryStreamReader(new SnapshotReaderStream(snapshotReader));
-        while (snapshotReader.hasRemaining()) {
-          try {
-            writeSelected(out, reader.readEntry());
-          } catch (IOException e) {
-            throw new RuntimeException("Failed to read snapshot", e);
-          }
-        }
+      Snapshot currentSnapshot = journalStorage.openSnapshotStore("copycat").currentSnapshot();
+
+      String snapshotDumpFile =
+          String.format("copycat-%s-%s.log", currentSnapshot.index(), currentSnapshot.timestamp());
+
+      try (CheckpointInputStream checkpointStream =
+          new CheckpointInputStream(new SnapshotReaderStream(currentSnapshot.reader()))) {
+        readCheckpoint(checkpointStream, Paths.get(mCheckpointsDir, snapshotDumpFile));
       } catch (Exception e) {
         LOG.error("Failed to read from journal.", e);
       }
@@ -530,8 +554,14 @@ public final class JournalTool {
       }
     }
 
+    /**
+     * Writes given entry after goin through range and validity checks.
+     *
+     * @param out out stream to write the entry to
+     * @param entry the entry to write to
+     */
     private void writeSelected(PrintStream out, JournalEntry entry) {
-      if(entry == null) {
+      if (entry == null) {
         return;
       }
       Preconditions.checkState(
@@ -555,6 +585,12 @@ public final class JournalTool {
       }
     }
 
+    /**
+     * Whether an entry is within the range of provided parameters to the tool.
+     *
+     * @param entry the journal entry
+     * @return {@code true} if the entry should be included in the journal log
+     */
     private boolean isSelected(JournalEntry entry) {
       long sn = entry.getSequenceNumber();
       if (sn >= mStart && sn < mEnd) {
@@ -567,11 +603,31 @@ public final class JournalTool {
       return false;
     }
 
+    /**
+     * Implementation of {@link StateMachine} that echoes its state for dumping.
+     *
+     * EchoJournalStateMachine is attached to the cluster as PASSIVE, which makes it receive all
+     * snapshots happening in the FOLLOWER node that it attaches to. For practical purposes, we
+     * will dump the first snapshot only and stop dumping snapshots afterwards.
+     */
     public static class EchoJournalStateMachine extends StateMachine implements Snapshottable {
-      private final Consumer<JournalEntry> mEntryWriter;
+      /** Used to consume JournalEntry commands coming to this state machine. */
+      private final Consumer<JournalEntry> mEntryConsumer;
+      /** Used to consume Snapshots streams coming to this state machine. */
+      private final Consumer<CheckpointInputStream> mCheckpointConsumer;
+      /** If the first snapshot is dumped. */
+      private boolean mFirstSnapshotRead = false;
 
-      public EchoJournalStateMachine(Consumer<JournalEntry> entryWriter) {
-        mEntryWriter = entryWriter;
+      /**
+       * Creates a new echo state for dumping embedded journal.
+       *
+       * @param entryConsumer consumer for JournalEntry commands
+       * @param checkpointConsumer consumer for Snapshot streams
+       */
+      public EchoJournalStateMachine(Consumer<JournalEntry> entryConsumer,
+          Consumer<CheckpointInputStream> checkpointConsumer) {
+        mEntryConsumer = entryConsumer;
+        mCheckpointConsumer = checkpointConsumer;
       }
 
       /**
@@ -590,7 +646,7 @@ public final class JournalTool {
               commit);
           throw new IllegalStateException();
         }
-        mEntryWriter.accept(entry);
+        mEntryConsumer.accept(entry);
       }
 
       @Override
@@ -600,16 +656,19 @@ public final class JournalTool {
 
       @Override
       public void install(SnapshotReader snapshotReader) {
-        JournalEntryStreamReader reader =
-            new JournalEntryStreamReader(new SnapshotReaderStream(snapshotReader));
-
-        while (snapshotReader.hasRemaining()) {
-          try {
-            mEntryWriter.accept(reader.readEntry());
-          } catch (Exception e) {
-            LOG.error("Failed to install snapshot", e);
-            throw new RuntimeException(e);
-          }
+        if (mFirstSnapshotRead) {
+          LOG.debug("Skip installing snapshot: {}", snapshotReader.readLong());
+          return;
+        }
+        // Don't read snapshots coming after this one.
+        mFirstSnapshotRead = true;
+        LOG.debug("Installing snapshot: {}", snapshotReader.readLong());
+        // Reading the snapshot.
+        try (CheckpointInputStream checkpointStream =
+            new CheckpointInputStream(new SnapshotReaderStream(snapshotReader))) {
+          mCheckpointConsumer.accept(checkpointStream);
+        } catch (Exception exc) {
+          LOG.error(exc.toString());
         }
       }
     }
