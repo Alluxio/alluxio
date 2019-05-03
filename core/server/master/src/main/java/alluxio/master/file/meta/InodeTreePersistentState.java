@@ -58,6 +58,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -697,10 +698,6 @@ public class InodeTreePersistentState implements Journaled {
       BlockingQueue<JournalEntry> mEntryBuffer;
       /** Iterator thread completion queue. */
       BlockingQueue<Boolean> mCompletionQueue;
-      /** How many threads to use for enumeration. */
-      private int mIteratorThreadCount;
-      /** How many entry to pre-fetch during enumeration. */
-      private int mEntryBufferSize;
       /** Future of entry buffering. */
       private SettableFuture<Void> mBufferingCompleted;
       /** Executor for coordinating thread. */
@@ -709,26 +706,28 @@ public class InodeTreePersistentState implements Journaled {
       private ExecutorService mCrawlerExecutor;
       /** Directories for iterator threads to traverse. */
       private BlockingQueue<Inode> mDirectoriesToIterate;
+      /** Used to keep the next element for the iteration. */
+      private JournalEntry mNextElement;
 
       public BufferedIterator() {
         // Initialize configuration values.
-        mIteratorThreadCount =
+        int iteratorThreadCount =
             ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ENUMERATOR_THREAD_COUNT);
-        mEntryBufferSize =
+        int entryBufferSize =
             ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT);
 
         // Create executors.
         mCoordinatorExecutor = Executors.newSingleThreadExecutor(
             ThreadFactoryUtils.build("inode-tree-crawler-coordinator-%d", true));
-        mCrawlerExecutor = Executors.newFixedThreadPool(mIteratorThreadCount,
+        mCrawlerExecutor = Executors.newFixedThreadPool(iteratorThreadCount,
             ThreadFactoryUtils.build("inode-tree-crawler-%d", true));
 
         // Using linked queue for fast insertion/removal from the queue.
-        mEntryBuffer = new LinkedBlockingQueue<>(mEntryBufferSize);
+        mEntryBuffer = new LinkedBlockingQueue<>(entryBufferSize);
 
         // Used by enumeration threads to signal completion.
         // There can be at most mIteratorThreadCount completion signals by executor design.
-        mCompletionQueue = new ArrayBlockingQueue(mIteratorThreadCount);
+        mCompletionQueue = new ArrayBlockingQueue(iteratorThreadCount);
 
         // Initialize directories to iterate.
         mDirectoriesToIterate = new LinkedBlockingQueue<>();
@@ -836,28 +835,33 @@ public class InodeTreePersistentState implements Journaled {
 
       @Override
       public boolean hasNext() {
-        // {@code true} As long as buffering is in progress OR
-        // there are entries in the buffer.
-        //
-        // Note that because of buffering, the answer may not be correct,
-        // as the outcome of buffering is indeterminate.
-        return !mBufferingCompleted.isDone() || mEntryBuffer.size() > 0;
-      }
+        /**
+         * This call returns {@code true) if it was able to fetch an element
+         * from an ongoing buffering. Then it stores that element to be remembered in following
+         * calls to hasNext() and next().
+         *
+         * Fetching an item from buffering requires synchronization, so this call is blocked
+         * until an entry is retrieved or buffering is completed with no entries.
+         */
 
-      @Override
-      public Journal.JournalEntry next() {
+        if (mNextElement != null) {
+          // hasNext() has been called before and cached this entry.
+          // next() hasn't been called yet.
+          return true;
+        }
+
         // Continue until taking an entry or failing due to having no entry.
         while (true) {
-          if (!hasNext()) {
-            // Because hasNext() is not to be trusted. We return null for signaling completion.
-            return null;
+          if (mBufferingCompleted.isDone() && mEntryBuffer.size() == 0) {
+            return false;
           }
           try {
             // Poll for the next entry.
             // Due to indeterminacy of hasNext() call, we poll here rather than block.
             JournalEntry entry = mEntryBuffer.poll(100, TimeUnit.MILLISECONDS);
             if (entry != null) {
-              return entry;
+              mNextElement = entry;
+              return true;
             }
           } catch (InterruptedException ie) {
             // Continue interrupt chain.
@@ -865,6 +869,27 @@ public class InodeTreePersistentState implements Journaled {
             throw new RuntimeException("Thread interrupted while taking an entry from buffer.");
           }
         }
+      }
+
+      @Override
+      public Journal.JournalEntry next() {
+        if (mNextElement == null) {
+          // It's either:
+          // -> next() has been called without a preceding hasNext().
+          // -> there is no next entry.
+          //
+          // Call hasNext() to understand which one of above conditions is true.
+          //
+          if (!hasNext()) {
+            throw new NoSuchElementException();
+          }
+          // hasNext() has been called before and stored the next element.
+          // Return and reset state for the next item.
+        }
+        // Return and reset the next element.
+        JournalEntry returningElement = mNextElement;
+        mNextElement = null;
+        return returningElement;
       }
 
       @Override

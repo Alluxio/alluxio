@@ -741,13 +741,9 @@ public final class InodeTreeTest {
     Iterator<alluxio.proto.journal.Journal.JournalEntry> it = root.getJournalEntryIterator();
     // Read entries from InodeTree.
     List<Journal.JournalEntry> treeEntries = new LinkedList<>();
-    Journal.JournalEntry entry;
-    while ((entry = it.next()) != null) {
-      treeEntries.add(entry);
+    while (it.hasNext()) {
+      treeEntries.add(it.next());
     }
-    // InodeTree signals end of iteration by returning {@code null}.
-    // Then hasNext should return {@code false}.
-    assertFalse(it.hasNext());
 
     // Validate InodeTree entries match given entries.
     for (MutableInode<?> node : journaled) {

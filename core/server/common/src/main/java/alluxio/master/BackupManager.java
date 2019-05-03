@@ -107,14 +107,6 @@ public class BackupManager {
           if (it != null) {
             while (!writerTaskFuture.isDone() && it.hasNext()) {
               JournalEntry je = it.next();
-              if (je == null) {
-                // InodeTree enumeration returns {@code null} to signal completion.
-                // And then guarantees that following call to hasNext() will return
-                // {@code false}. Since DefaultFileSystemMaster concatenates iterators,
-                // enumeration should guard against receiving a null value at any point
-                // in time of iteration.
-                continue;
-              }
               // Try to push the entry as long as writer is alive.
               while (!writerTaskFuture.isDone()) {
                 if (journalEntryQueue.offer(je, 100, TimeUnit.MILLISECONDS)) {
