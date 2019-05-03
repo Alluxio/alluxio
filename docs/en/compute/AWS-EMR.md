@@ -33,8 +33,9 @@ is needed as Alluxio's Root Under File System. If required, this can be reconfig
 
 ## Basic Setup
 
-To begin with, download the `alluxio-emr.sh` and `alluxio-presto.json` files from Github. These files will serve as the
-main mechanisms to change the Alluxio configuration in the future. Make sure that the AWS CLI is also set up and ready
+To begin with, download the `alluxio-emr.sh` and `alluxio-presto.json` files from
+[Github](https://github.com/Alluxio/alluxio/tree/master/integration/emr/). These files will serve as the main
+mechanisms to change the Alluxio configuration in the future. Make sure that the AWS CLI is also set up and ready
 with the required AWS Access/Secret key.
 
 1. Run aws emr create-default-roles. This will set up the required IAM roles for the account to be able to use the EMR
