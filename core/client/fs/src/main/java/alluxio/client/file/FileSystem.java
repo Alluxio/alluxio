@@ -214,7 +214,7 @@ public interface FileSystem extends Closeable {
     }
 
     public FileSystemKey(ClientContext ctx) {
-      this(ctx.getSubject(), ctx.getConf());
+      this(ctx.getSubject(), ctx.getClusterConf());
     }
 
     @Override

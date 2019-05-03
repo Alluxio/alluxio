@@ -81,7 +81,7 @@ public class ClientContext {
    */
   protected ClientContext(ClientContext ctx) {
     mSubject = ctx.getSubject();
-    mClusterConf = ctx.getConf();
+    mClusterConf = ctx.getClusterConf();
     mPathConf = ctx.getPathConf();
     mClusterConfHash = ctx.getClusterConfHash();
     mPathConfHash = ctx.getPathConfHash();
@@ -182,7 +182,7 @@ public class ClientContext {
   /**
    * @return the cluster level configuration backing this context
    */
-  public AlluxioConfiguration getConf() {
+  public AlluxioConfiguration getClusterConf() {
     return mClusterConf;
   }
 

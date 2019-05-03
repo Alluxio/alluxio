@@ -75,7 +75,7 @@ public final class ConfigHashSync implements HeartbeatExecutor {
   @Override
   public synchronized void heartbeat() throws InterruptedException {
     try {
-      if (!mContext.getClientContext().getConf().clusterDefaultsLoaded()) {
+      if (!mContext.getClientContext().getClusterConf().clusterDefaultsLoaded()) {
         // Wait until the initial cluster defaults are loaded.
         return;
       }

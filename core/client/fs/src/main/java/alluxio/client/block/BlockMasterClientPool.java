@@ -42,7 +42,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
    * @param masterInquireClient a client for determining the master address
    */
   public BlockMasterClientPool(ClientContext context, MasterInquireClient masterInquireClient) {
-    super(context.getConf().getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
+    super(context.getClusterConf().getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
     mClientList = new ConcurrentLinkedQueue<>();
     mMasterContext =
         MasterClientContext.newBuilder(context).setMasterInquireClient(masterInquireClient).build();

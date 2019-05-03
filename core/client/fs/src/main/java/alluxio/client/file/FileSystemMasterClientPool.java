@@ -41,7 +41,7 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
    */
   public FileSystemMasterClientPool(ClientContext context,
       MasterInquireClient masterInquireClient) {
-    super(context.getConf().getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
+    super(context.getClusterConf().getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
     mClientList = new ConcurrentLinkedQueue<>();
     mMasterContext = MasterClientContext.newBuilder(context)
             .setMasterInquireClient(masterInquireClient).build();

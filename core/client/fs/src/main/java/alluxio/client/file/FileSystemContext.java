@@ -167,7 +167,7 @@ public final class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(Subject subject, AlluxioConfiguration alluxioConf) {
     FileSystemContext context = new FileSystemContext(subject, alluxioConf);
-    context.init(MasterInquireClient.Factory.create(context.mClientContext.getConf()));
+    context.init(MasterInquireClient.Factory.create(context.mClientContext.getClusterConf()));
     return context;
   }
 
@@ -177,7 +177,7 @@ public final class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(ClientContext clientContext) {
     FileSystemContext ctx = new FileSystemContext(clientContext);
-    ctx.init(MasterInquireClient.Factory.create(clientContext.getConf()));
+    ctx.init(MasterInquireClient.Factory.create(clientContext.getClusterConf()));
     return ctx;
   }
 
@@ -217,7 +217,7 @@ public final class FileSystemContext implements Closeable {
   private FileSystemContext(ClientContext ctx) {
     Preconditions.checkNotNull(ctx, "ctx");
     mClientContext = ctx;
-    mAppId = IdUtils.createOrGetAppIdFromConfig(ctx.getConf());
+    mAppId = IdUtils.createOrGetAppIdFromConfig(ctx.getClusterConf());
     LOG.info("Created filesystem context with id {}. This ID will be used for identifying info "
             + "from the client, such as metrics. It can be set manually through the {} property",
         mAppId, PropertyKey.Name.USER_APP_ID);
@@ -243,8 +243,8 @@ public final class FileSystemContext implements Closeable {
   private synchronized void initWithoutReinitializer(MasterInquireClient masterInquireClient) {
     mClosed.set(false);
 
-    mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(mClientContext.getConf()),
-        mClientContext.getConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
+    mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(mClientContext.getClusterConf()),
+        mClientContext.getClusterConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
         String.format("alluxio-client-nettyPool-%s-%%d", mAppId), true);
 
     mMasterInquireClient = masterInquireClient;
@@ -256,7 +256,7 @@ public final class FileSystemContext implements Closeable {
     mMasterClientContext = MasterClientContext.newBuilder(mClientContext)
         .setMasterInquireClient(mMasterInquireClient).build();
 
-    if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
+    if (mClientContext.getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
       // setup metrics master client sync
       mMetricsMasterClient = new MetricsMasterClient(mMasterClientContext);
       mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, mAppId);
@@ -264,8 +264,8 @@ public final class FileSystemContext implements Closeable {
           ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
       mMetricsExecutorService
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
-              (int) mClientContext.getConf().getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
-              mClientContext.getConf()));
+              (int) mClientContext.getClusterConf().getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
+              mClientContext.getClusterConf()));
       // register the shutdown hook
       try {
         Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
@@ -314,7 +314,7 @@ public final class FileSystemContext implements Closeable {
 
       if (mMetricsMasterClient != null) {
         ThreadUtils.shutdownAndAwaitTermination(mMetricsExecutorService,
-            mClientContext.getConf().getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
+            mClientContext.getClusterConf().getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
         mMetricsMasterClient.close();
         mMetricsMasterClient = null;
         mClientMasterSync = null;
@@ -351,7 +351,7 @@ public final class FileSystemContext implements Closeable {
       } else {
         mClientContext.updatePathConf(masterAddr);
       }
-      initWithoutReinitializer(MasterInquireClient.Factory.create(mClientContext.getConf()));
+      initWithoutReinitializer(MasterInquireClient.Factory.create(mClientContext.getClusterConf()));
     } finally {
       mReinitializer.end();
     }
@@ -376,7 +376,7 @@ public final class FileSystemContext implements Closeable {
    * @return the cluster level configuration backing this {@link FileSystemContext}
    */
   public AlluxioConfiguration getClusterConf() {
-    return mClientContext.getConf();
+    return mClientContext.getClusterConf();
   }
 
   /**
@@ -393,7 +393,7 @@ public final class FileSystemContext implements Closeable {
     } catch (AlluxioStatusException e) {
       throw new RuntimeException("Failed to load path level configuration from meta master", e);
     }
-    return new SpecificPathConfiguration(mClientContext.getConf(), mClientContext.getPathConf(),
+    return new SpecificPathConfiguration(mClientContext.getClusterConf(), mClientContext.getPathConf(),
         path);
   }
 
@@ -529,7 +529,7 @@ public final class FileSystemContext implements Closeable {
     List<WorkerNetAddress> addresses = getWorkerAddresses();
     if (!addresses.isEmpty()) {
       if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName(mClientContext
-          .getConf()))) {
+          .getClusterConf()))) {
         mLocalWorker = addresses.get(0);
       }
     }
@@ -555,7 +555,7 @@ public final class FileSystemContext implements Closeable {
     // Convert the worker infos into net addresses, if there are local addresses, only keep those
     List<WorkerNetAddress> workerNetAddresses = new ArrayList<>();
     List<WorkerNetAddress> localWorkerNetAddresses = new ArrayList<>();
-    String localHostname = NetworkAddressUtils.getClientHostName(mClientContext.getConf());
+    String localHostname = NetworkAddressUtils.getClientHostName(mClientContext.getClusterConf());
     for (WorkerInfo info : infos) {
       WorkerNetAddress netAddress = info.getAddress();
       if (netAddress.getHost().equals(localHostname)) {

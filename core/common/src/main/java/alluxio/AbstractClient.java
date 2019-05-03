@@ -87,9 +87,9 @@ public abstract class AbstractClient implements Client {
    */
   public AbstractClient(ClientContext context, InetSocketAddress address) {
     this(context, address, () -> RetryUtils.defaultClientRetry(
-        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
+        context.getClusterConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
+        context.getClusterConf().getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
+        context.getClusterConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
   }
 
   /**
@@ -164,7 +164,7 @@ public abstract class AbstractClient implements Client {
       throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
-      if (!mContext.getConf().clusterDefaultsLoaded()) {
+      if (!mContext.getClusterConf().clusterDefaultsLoaded()) {
         mContext.updateClusterConf(mAddress);
       }
     }
@@ -228,7 +228,7 @@ public abstract class AbstractClient implements Client {
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
-            .newBuilder(new GrpcServerAddress(mAddress), mContext.getConf())
+            .newBuilder(new GrpcServerAddress(mAddress), mContext.getClusterConf())
             .setSubject(mContext.getSubject())
             .build();
         // Create stub for version service on host
@@ -392,10 +392,10 @@ public abstract class AbstractClient implements Client {
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
-      if (SecurityUtils.isAuthenticationEnabled(mContext.getConf())
-          && LoginUser.get(mContext.getConf()) != null) {
+      if (SecurityUtils.isAuthenticationEnabled(mContext.getClusterConf())
+          && LoginUser.get(mContext.getClusterConf()) != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-            LoginUser.get(mContext.getConf()).getName());
+            LoginUser.get(mContext.getClusterConf()).getName());
       } else {
         return metricName;
       }

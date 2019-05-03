@@ -39,7 +39,7 @@ public class JobMasterClientContextBuilder extends MasterClientContextBuilder {
   @Override
   public JobMasterClientContext build() {
     if (mMasterInquireClient == null) {
-      mMasterInquireClient = MasterInquireClient.Factory.createForJobMaster(mContext.getConf());
+      mMasterInquireClient = MasterInquireClient.Factory.createForJobMaster(mContext.getClusterConf());
     }
     return new JobMasterClientContext(mContext, mMasterInquireClient);
   }
