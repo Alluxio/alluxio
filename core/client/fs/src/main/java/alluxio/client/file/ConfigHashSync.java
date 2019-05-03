@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -74,27 +75,33 @@ public final class ConfigHashSync implements HeartbeatExecutor {
 
   @Override
   public synchronized void heartbeat() throws InterruptedException {
+    if (!mContext.getClientContext().getClusterConf().clusterDefaultsLoaded()) {
+      // Wait until the initial cluster defaults are loaded.
+      return;
+    }
+    ConfigHash hash;
     try {
-      if (!mContext.getClientContext().getClusterConf().clusterDefaultsLoaded()) {
-        // Wait until the initial cluster defaults are loaded.
-        return;
-      }
-      ConfigHash hash = mClient.getConfigHash();
-      boolean isClusterConfUpdated = !hash.getClusterConfigHash().equals(
-          mContext.getClientContext().getClusterConfHash());
-      boolean isPathConfUpdated = !hash.getPathConfigHash().equals(
-          mContext.getClientContext().getPathConfHash());
-      if (isClusterConfUpdated || isPathConfUpdated) {
-        try {
-          mContext.reinit(isClusterConfUpdated, isPathConfUpdated);
-          mException = null;
-        } catch (IOException e) {
-          mException = e;
-        }
-      }
+      hash = mClient.getConfigHash();
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to meta master to get configuration hash:", e);
       mClient.disconnect();
+      return;
+    }
+    boolean isClusterConfUpdated = !hash.getClusterConfigHash().equals(
+        mContext.getClientContext().getClusterConfHash());
+    boolean isPathConfUpdated = !hash.getPathConfigHash().equals(
+        mContext.getClientContext().getPathConfHash());
+    if (isClusterConfUpdated || isPathConfUpdated) {
+      try {
+        mContext.reinit(isClusterConfUpdated, isPathConfUpdated);
+        mException = null;
+      } catch (IOException e) {
+        LOG.error("Failed to reinitialize FileSystemContext:", e);
+        mException = e;
+      } catch (TimeoutException e) {
+        LOG.error("Failed to start reinitializing FileSystemContext:", e);
+        // Ignore and continue the heartbeat, may be able to start reinitialization next time.
+      }
     }
   }
 

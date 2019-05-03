@@ -16,11 +16,15 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.util.ThreadFactoryUtils;
 
+import org.apache.commons.lang.time.DurationFormatUtils;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -128,11 +132,22 @@ public final class FileSystemContextReinitializer implements Closeable {
   /**
    * Begins reinitialization.
    *
-   * Blocks until no ongoing RPCs are in the middle of {@link #block()} and {@link #unblock()}.
-   * When it returns, further RPCs calling {@link #block()} will be blocked until {@link #end()}.
+   * Blocks until no ongoing RPCs are in the middle of {@link #block()} and {@link #unblock()},
+   * or timeouts.
+   * When it returns without timing out, further RPCs calling {@link #block()} will be blocked
+   * until {@link #end()}.
+   *
+   * The timeout is specified as {@link PropertyKey#USER_CONF_HASH_SYNC_TIMEOUT}.
+   *
+   * @throws TimeoutException if timed out
+   * @throws InterruptedException if the current thread is interrupted while being blocked
    */
-  public void begin() {
-    mLock.writeLock().lock();
+  public void begin() throws TimeoutException, InterruptedException {
+    long timeout = mContext.getClusterConf().getMs(PropertyKey.USER_CONF_HASH_SYNC_TIMEOUT);
+    if (!mLock.writeLock().tryLock(timeout, TimeUnit.MILLISECONDS)) {
+      throw new TimeoutException("Failed to begin reinitialization after being blocked for "
+          + DurationFormatUtils.formatDurationWords(timeout, true, true));
+    }
   }
 
   /**

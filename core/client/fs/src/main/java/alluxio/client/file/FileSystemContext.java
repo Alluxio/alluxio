@@ -60,6 +60,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -357,12 +358,14 @@ public final class FileSystemContext implements Closeable {
    *
    * @param updateClusterConf whether cluster level configuration should be updated
    * @param updatePathConf whether path level configuration should be updated
+   * @throws TimeoutException when timed out during being blocked by ongoing RPCs
+   * @throws InterruptedException when the calling thread is interrupted
    * @throws IOException when failed to close the context or update configuration
    */
   public synchronized void reinit(boolean updateClusterConf, boolean updatePathConf)
-      throws IOException {
+      throws TimeoutException, InterruptedException, IOException {
+    mReinitializer.begin();
     try {
-      mReinitializer.begin();
       InetSocketAddress masterAddr = getMasterAddress();
       closeWithoutReinitializer();
       if (updateClusterConf && updatePathConf) {

@@ -2676,6 +2676,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CONF_HASH_SYNC_TIMEOUT =
+      new Builder(Name.USER_CONF_HASH_SYNC_TIMEOUT)
+          .setDefaultValue("30min")
+          .setDescription("When a hash update is detected by the hash sync heartbeat, it will try "
+              + "to update the client configurations from meta master, this update will be blocked "
+              + "if there are ongoing client RPCs or data streams, this timeout specifies the "
+              + "maximum time to be blocked before timing out.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_REPLICATION_MAX =
       new Builder(Name.USER_FILE_REPLICATION_MAX)
           .setDefaultValue(-1 /* negative value means infinity */)
@@ -4149,6 +4159,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_HASH_SYNC_INTERVAL =
         "alluxio.user.conf.hash.sync.interval";
+    public static final String USER_CONF_HASH_SYNC_TIMEOUT =
+        "alluxio.user.conf.hash.sync.timeout";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
         "alluxio.user.failed.space.request.limits";
