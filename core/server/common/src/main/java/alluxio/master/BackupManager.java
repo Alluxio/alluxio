@@ -229,13 +229,6 @@ public class BackupManager {
       // Index masters by name.
       Map<String, Master> mastersByName = Maps.uniqueIndex(masters, Master::getName);
 
-      // Pre-create journal contexts.
-      // They should be closed after applying the backup.
-      Map<Master, JournalContext> masterJCMap = new HashMap<>();
-      for (Master master : masters) {
-        masterJCMap.put(master, master.createJournalContext());
-      }
-
       // Shows how many entries have been applied.
       AtomicLong appliedEntryCount = new AtomicLong(0);
 
@@ -270,6 +263,7 @@ public class BackupManager {
       // Create applier task.
       backupApplierExecutor.submit(() -> {
         try {
+          // Read entries from backup.
           while (!readerTaskFuture.isDone() || journalEntryQueue.size() > 0) {
             // Drain current elements.
             // Draining entries makes it possible to allow writes while current ones are
@@ -284,10 +278,26 @@ public class BackupManager {
               }
               drainedEntries.add(entry);
             }
-            // Apply entries.
-            for (JournalEntry entry : drainedEntries) {
-              Master master = mastersByName.get(JournalEntryAssociation.getMasterForEntry(entry));
-              master.applyAndJournal(masterJCMap.get(master), entry);
+            // Apply drained entries.
+            // Map for storing journal contexts.
+            Map<Master, JournalContext> masterJCMap = new HashMap<>();
+            try {
+              // Pre-create journal contexts.
+              // They should be closed after applying drained entries.
+              for (Master master : masters) {
+                masterJCMap.put(master, master.createJournalContext());
+              }
+              // Apply entries.
+              for (JournalEntry entry : drainedEntries) {
+                Master master = mastersByName.get(JournalEntryAssociation.getMasterForEntry(entry));
+                master.applyAndJournal(masterJCMap.get(master), entry);
+              }
+            } finally {
+              // Close journal contexts to ensure applied entries are flushed,
+              // before next round.
+              for (JournalContext journalContext : masterJCMap.values()) {
+                journalContext.close();
+              }
             }
           }
         } catch (InterruptedException ie) {
@@ -322,11 +332,6 @@ public class BackupManager {
           throw (IOException) cause;
         } else {
           throw new IOException(cause);
-        }
-      } finally {
-        // Close journal contexts to ensure applied entries are flushed.
-        for (JournalContext journalContext : masterJCMap.values()) {
-          journalContext.close();
         }
       }
 
