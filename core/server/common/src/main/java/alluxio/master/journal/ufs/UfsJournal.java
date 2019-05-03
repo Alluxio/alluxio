@@ -319,7 +319,9 @@ public class UfsJournal implements Journal {
     long nextSequenceNumber = getNextSequenceNumberToWrite();
     if (nextSequenceNumber - getNextSequenceNumberToCheckpoint() < ServerConfiguration.getLong(
         PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)) {
-      throw new IOException("No enough journal entries to create a checkpoint");
+      LOG.info("{}: No enough journal entries to checkpoint.",
+          mMaster.getName());
+      return;
     }
     UfsJournalCheckpointWriter journalWriter
         = getCheckpointWriter(nextSequenceNumber);
