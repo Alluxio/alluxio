@@ -122,6 +122,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     FileSystem client = mLocalAlluxioClusterResource.get().getClient(mContext);
     FileOutStream os = client.createFile(PATH_TO_UPDATE, CreateFilePOptions.newBuilder()
         .setRecursive(true).build());
+    updateClusterConf();
     updatePathConf();
     // Opened stream is not closed yet, so it should block reinitialization.
     long start = System.currentTimeMillis();
@@ -132,7 +133,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     os.close();
     // Stream is closed, reinitialization should not be blocked.
     triggerSync();
-    checkHash(false, true);
+    checkHash(true, true);
   }
 
   private void triggerSync() throws Exception {
