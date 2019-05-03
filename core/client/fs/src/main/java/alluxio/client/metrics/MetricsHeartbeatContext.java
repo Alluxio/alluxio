@@ -83,8 +83,7 @@ public class MetricsHeartbeatContext {
   private int mCtxCount;
   private ScheduledFuture<?> mMetricsMasterHeartbeatTask;
 
-  private MetricsHeartbeatContext(ClientContext ctx,
-      MasterInquireClient inquireClient) {
+  private MetricsHeartbeatContext(ClientContext ctx, MasterInquireClient inquireClient) {
     mCtxCount = 0;
     mConnectDetails = inquireClient.getConnectDetails();
     mConf = ctx.getConf();
