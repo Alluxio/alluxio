@@ -141,7 +141,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
 
   private void triggerSync() throws Exception {
     HeartbeatScheduler.execute(HeartbeatThread.generateThreadName(
-        HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC, mContext.getAppId()));
+        HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC, mContext.getId()));
   }
 
   private void restartMasters() throws Exception {

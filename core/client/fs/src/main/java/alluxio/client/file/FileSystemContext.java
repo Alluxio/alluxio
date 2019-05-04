@@ -118,6 +118,7 @@ public final class FileSystemContext implements Closeable {
   private final ClientContext mClientContext;
   private final EventLoopGroup mWorkerGroup;
   private final boolean mMetricsEnabled;
+  private final String mId;
 
   /**
    * Reinitializer contains a daemon heartbeat thread to reinitialize this context when
@@ -205,6 +206,13 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
+   * @return the unique ID of this context
+   */
+  public String getId() {
+    return mId;
+  }
+
+  /**
    * Creates a file system context with a subject.
    *
    * @param subject the parent subject, set to null if not present
@@ -223,10 +231,10 @@ public final class FileSystemContext implements Closeable {
     mClosed = new AtomicBoolean(false);
     mClientContext = ctx;
     mMetricsEnabled = ctx.getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
+    mId = IdUtils.createFileSystemContextId();
     mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(ctx.getClusterConf()),
         ctx.getClusterConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
-        String.format("alluxio-client-nettyPool-%s-%%d", IdUtils.createFileSystemContextId()),
-        true);
+        String.format("alluxio-client-nettyPool-%s-%%d", mId), true);
   }
 
   /**
