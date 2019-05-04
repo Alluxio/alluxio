@@ -11,11 +11,13 @@
 
 package alluxio.master.journal;
 
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
 
@@ -28,6 +30,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
@@ -142,6 +145,11 @@ public final class AsyncJournalWriter {
    * Control flag that is used to instruct flush thread to exit.
    */
   private volatile boolean mStopFlushing = false;
+
+  /**
+   * Collection of sinks for this journal.
+   */
+  private final Set<JournalSink> mJournalSinks = new ConcurrentHashSet<>();
 
   /**
    * Creates a {@link AsyncJournalWriter}.
@@ -271,6 +279,7 @@ public final class AsyncJournalWriter {
             break;
           }
           mJournalWriter.write(entry);
+          sinkAppend(entry);
           // Remove the head entry, after the entry was successfully written.
           mQueue.poll();
           mWriteCounter++;
@@ -285,6 +294,7 @@ public final class AsyncJournalWriter {
         // Either written new entries or previous flush had been failed.
         if (mFlushCounter.get() < mWriteCounter) {
           mJournalWriter.flush();
+          sinkFlush();
           mFlushCounter.set(mWriteCounter);
         }
 
@@ -361,6 +371,36 @@ public final class AsyncJournalWriter {
        * because the permit may or may not have been used by the flush thread.
        */
       mFlushSemaphore.tryAcquire();
+    }
+  }
+
+  /**
+   * Adds a journal sink to this async writer.
+   *
+   * @param journalSink the journal sink to add
+   */
+  public void addJournalSink(JournalSink journalSink) {
+    mJournalSinks.add(journalSink);
+  }
+
+  /**
+   * Removes a journal sink from this async writer.
+   *
+   * @param journalSink the journal sink to remove
+   */
+  public void removeJournalSink(JournalSink journalSink) {
+    mJournalSinks.remove(journalSink);
+  }
+
+  private void sinkAppend(JournalEntry entry) {
+    for (JournalSink sink : mJournalSinks) {
+      sink.append(entry);
+    }
+  }
+
+  private void sinkFlush() {
+    for (JournalSink sink : mJournalSinks) {
+      sink.flush();
     }
   }
 }

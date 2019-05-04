@@ -12,6 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.journal.sink.JournalSink;
 
 import java.io.Closeable;
 import java.net.URI;
@@ -31,4 +32,14 @@ public interface Journal extends Closeable {
    *         closed.
    */
   JournalContext createJournalContext() throws UnavailableException;
+
+  /**
+   * @param journalSink the journal sink to add
+   */
+  void addJournalSink(JournalSink journalSink);
+
+  /**
+   * @param journalSink the journal sink to remove
+   */
+  void removeJournalSink(JournalSink journalSink);
 }

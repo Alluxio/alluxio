@@ -20,6 +20,7 @@ import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -282,6 +284,12 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     Preconditions.checkState(mRaftJournalWriter == null);
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
     mAsyncJournalWriter.set(new AsyncJournalWriter(mRaftJournalWriter));
+    // Add all the registered sinks to the newly created async writer
+    for (Set<JournalSink> sinks : mJournalSinks.values()) {
+      for (JournalSink sink : sinks) {
+        mAsyncJournalWriter.get().addJournalSink(sink);
+      }
+    }
   }
 
   @Override
@@ -457,5 +465,23 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    */
   public PrimarySelector getPrimarySelector() {
     return mPrimarySelector;
+  }
+
+  @Override
+  public void addJournalSink(Master master, JournalSink journalSink) {
+    super.addJournalSink(master, journalSink);
+    RaftJournal journal = mJournals.get(master.getName());
+    if (journal != null) {
+      journal.addJournalSink(journalSink);
+    }
+  }
+
+  @Override
+  public void removeJournalSink(Master master, JournalSink journalSink) {
+    super.removeJournalSink(master, journalSink);
+    RaftJournal journal = mJournals.get(master.getName());
+    if (journal != null) {
+      journal.removeJournalSink(journalSink);
+    }
   }
 }

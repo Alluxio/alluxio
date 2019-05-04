@@ -17,6 +17,7 @@ import alluxio.master.Master;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
@@ -144,6 +145,18 @@ public interface JournalSystem {
    * @return whether the journal system has been formatted
    */
   boolean isFormatted() throws IOException;
+
+  /**
+   * @param master the master for which to add the journal sink
+   * @param journalSink the journal sink to add
+   */
+  default void addJournalSink(Master master, JournalSink journalSink) {}
+
+  /**
+   * @param master the master from which to remove the journal sink
+   * @param journalSink the journal sink to remove
+   */
+  default void removeJournalSink(Master master, JournalSink journalSink) {}
 
   /**
    * Returns whether the journal is formatted and has not had any entries written to it yet. This

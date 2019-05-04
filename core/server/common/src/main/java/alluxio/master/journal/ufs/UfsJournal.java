@@ -22,6 +22,7 @@ import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.MasterJournalContext;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
@@ -93,7 +94,7 @@ public class UfsJournal implements Journal {
   /** The current log writer. Null when in secondary mode. */
   private UfsJournalLogWriter mWriter;
   /** Asynchronous journal writer. */
-  private AsyncJournalWriter mAsyncWriter;
+  private volatile AsyncJournalWriter mAsyncWriter;
   /**
    * Thread for tailing the journal, taking snapshots, and applying updates to the state machine.
    * Null when in primary mode.
@@ -392,6 +393,16 @@ public class UfsJournal implements Journal {
         throw new RuntimeException(e);
       }
     }
+  }
+
+  @Override
+  public void addJournalSink(JournalSink journalSink) {
+    mAsyncWriter.addJournalSink(journalSink);
+  }
+
+  @Override
+  public void removeJournalSink(JournalSink journalSink) {
+    mAsyncWriter.removeJournalSink(journalSink);
   }
 
   @Override

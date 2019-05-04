@@ -16,6 +16,7 @@ import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.sink.JournalSink;
 
 import java.io.IOException;
 import java.net.URI;
@@ -68,6 +69,22 @@ public class RaftJournal implements Journal {
       throw new UnavailableException("Journal has been closed");
     }
     return new RaftJournalContext(journalWriter, mStateReadLock);
+  }
+
+  @Override
+  public void addJournalSink(JournalSink journalSink) {
+    AsyncJournalWriter journalWriter = mJournalWriter.get();
+    if (journalWriter != null) {
+      journalWriter.addJournalSink(journalSink);
+    }
+  }
+
+  @Override
+  public void removeJournalSink(JournalSink journalSink) {
+    AsyncJournalWriter journalWriter = mJournalWriter.get();
+    if (journalWriter != null) {
+      journalWriter.removeJournalSink(journalSink);
+    }
   }
 
   @Override
