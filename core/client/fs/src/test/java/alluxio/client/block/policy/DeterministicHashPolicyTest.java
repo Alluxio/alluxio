@@ -20,7 +20,10 @@ import alluxio.conf.PropertyKey;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import org.junit.Assert;
+//import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -67,11 +70,11 @@ public final class DeterministicHashPolicyTest {
           DeterministicHashPolicy.class.getCanonicalName(),
           sConf);
       // For the same block, always return the same worker.
-      Assert.assertEquals(host, p.getWorker(
+      assertEquals(host, p.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(1).setLength(2 * (long) Constants.GB)))
           .getHost());
-      Assert.assertEquals(host, p.getWorker(
+      assertEquals(host, p.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(1).setLength(2 * (long) Constants.GB)))
           .getHost());
@@ -84,7 +87,7 @@ public final class DeterministicHashPolicyTest {
         DeterministicHashPolicy.class.getCanonicalName(), sConf);
     for (long blockId = 0; blockId < 100; blockId++) {
       // worker1 does not have enough capacity. It should never be picked.
-      Assert.assertNotEquals("worker1", policy.getWorker(
+      assertNotEquals("worker1", policy.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(blockId)
               .setLength(2 * (long) Constants.GB))).getHost());
@@ -109,8 +112,8 @@ public final class DeterministicHashPolicyTest {
               .setLength(2 * (long) Constants.GB))).getHost());
     }
     // With sufficient traffic, 2 (= #shards) workers should be picked to serve the block.
-    Assert.assertEquals(2, addresses1.size());
-    Assert.assertEquals(2, addresses2.size());
-    Assert.assertEquals(addresses1, addresses2);
+    assertEquals(2, addresses1.size());
+    assertEquals(2, addresses2.size());
+    assertEquals(addresses1, addresses2);
   }
 }
