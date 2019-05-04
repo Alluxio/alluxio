@@ -505,7 +505,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // When using zookeeper we get the leader master address from the alluxio.zookeeper.address
     // configuration property, so the user doesn't need to specify the authority.
     if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-      if (!uri.getAuthority().isEmpty()) {
+      if (uri.getAuthority() != null) {
         Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
         Preconditions.checkState(uri.getPort() != -1, PreconditionMessage.URI_PORT_NULL);
         Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
