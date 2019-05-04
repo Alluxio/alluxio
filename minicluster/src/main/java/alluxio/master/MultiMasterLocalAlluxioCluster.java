@@ -109,7 +109,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @return the URI of the master
    */
   public String getUri() {
-    return Constants.HEADER_FT + mHostname + ":" + getLocalAlluxioMaster().getRpcLocalPort();
+    return Constants.HEADER + "zk@" + mCuratorServer.getConnectString();
   }
 
   @Override

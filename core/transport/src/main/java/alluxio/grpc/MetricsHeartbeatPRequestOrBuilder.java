@@ -8,43 +8,15 @@ public interface MetricsHeartbeatPRequestOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional string clientId = 1;</code>
-   */
-  boolean hasClientId();
-  /**
-   * <code>optional string clientId = 1;</code>
-   */
-  java.lang.String getClientId();
-  /**
-   * <code>optional string clientId = 1;</code>
-   */
-  com.google.protobuf.ByteString
-      getClientIdBytes();
-
-  /**
-   * <code>optional string hostname = 2;</code>
-   */
-  boolean hasHostname();
-  /**
-   * <code>optional string hostname = 2;</code>
-   */
-  java.lang.String getHostname();
-  /**
-   * <code>optional string hostname = 2;</code>
-   */
-  com.google.protobuf.ByteString
-      getHostnameBytes();
-
-  /**
-   * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+   * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
    */
   boolean hasOptions();
   /**
-   * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+   * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
    */
   alluxio.grpc.MetricsHeartbeatPOptions getOptions();
   /**
-   * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+   * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
    */
   alluxio.grpc.MetricsHeartbeatPOptionsOrBuilder getOptionsOrBuilder();
 }

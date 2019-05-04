@@ -1,58 +1,110 @@
 ---
 layout: global
-title: 在Alluxio上运行Spark
+title: Apache Spark 使用 Alluxio
 nickname: Apache Spark
 group: Data Applications
 priority: 0
 ---
 
+该指南描述了如何配置 [Apache Spark](http://spark-project.org/) 来访问 Alluxio。
+
 * 内容列表
 {:toc}
 
-该指南描述了如何在Alluxio上运行[Apache Spark](http://spark-project.org/)。HDFS作为一个分布式底层存储系统的一个例子。请注意，Alluxio除HDFS之外也支持其它的底层存储系统，计算框架(如Spark)可以通过Alluxio从任意数量的底层存储系统读写数据。
+## 概览
 
-## 兼容性
-
-Alluxio直接兼容Spark 1.1或更新版本而无需修改.
+Spark 1.1 或更高版本的 Spark 应用程序可以通过其与 HDFS 兼容的接口直接访问 Alluxio 集群。
+使用 Alluxio 作为数据访问层，Spark 应用程序可以透明地访问许多不同类型的持久化存储服务（例如，AWS S3 bucket、Azure Object Store buckets、远程部署的 HDFS 等）的数据，也可以透明地访问同一类型持久化存储服务不同实例中的数据。
+为了加快 I/O 性能，用户可以主动获取数据到 Alluxio 中或将数据透明地缓存到 Alluxio 中。
+这种做法尤其是在 Spark 部署位置与数据相距较远时特别有效。
+此外，通过将计算和物理存储解耦，Alluxio 能够有助于简化系统架构。
+当底层持久化存储中真实数据的路径对 Spark 隐藏时，对底层存储的更改可以独立于应用程序逻辑；同时，Alluxio 作为邻近计算的缓存，仍然可以给计算框架提供类似 Spark 数据本地性的特性。
 
 ## 前期准备
 
-### 一般设置
+* 安装 Java 8 Update 60 或更高版本（8u60+）的 64 位 Java。
+* 已经安装并运行 Alluxio。
+  本指南假设底层持久存储为本地部署的 HDFS。例如，`${ALLUXIO_HOME}/conf/alluxio-site.properties`中包含`alluxio.master.mount.table.root.ufs=hdfs://localhost:9000/alluxio/`这一行。
+  请注意，除了 HDFS，Alluxio 还支持许多其他底层存储系统。
+  从任意数量的这些系统中访问数据与本指南的重点是垂直的，
+  [统一和透明的名称空间]({{ '/cn/advanced/Namespace-Management.html' | relativize_url }})介绍了相关内容。
+* 确保 Alluxio 客户端 jar 包是可用的。
+  在从 Alluxio [下载页面](http://www.alluxio.org/download)下载的压缩包的`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中，可以找到 Alluxio 客户端 jar 包。
+  高级用户也可以从源代码编译该客户端 jar 包，可以参考[从源代码构建 Alluxio 的步骤]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }})。
 
-* Alluxio集群根据向导搭建完成(可以是[本地模式](Running-Alluxio-Locally.html)或者[集群模式](Running-Alluxio-on-a-Cluster.html))。
+## 基础设置
 
-* 我们建议您从Alluxio[下载页面](http://www.alluxio.org/download)下载tarball.
-  另外，高级用户可以选择根据[这里](Building-Alluxio-From-Source.html#compute-framework-support)的说明将源代码编译为客户端jar包，并在本文余下部分使用于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`路径处生成的jar包。
+将 Alluxio客户端 jar 包分发在运行 Spark driver 或 executor 的节点上。具体地说，将客户端 jar 包放在每个节点上的同一本地路径（例如`{{site.ALLUXIO_CLIENT_JAR_PATH}}`）。
 
-* 为使Spark应用程序能够在Alluxio中读写文件， 必须将Alluxio客户端jar包分布在不同节点的应用程序的classpath中（每个节点必须使客户端jar包具有相同的本地路径`{{site.ALLUXIO_CLIENT_JAR_PATH}}`）
-
-* 请添加如下代码到`spark/conf/spark-defaults.conf`。
+将 Alluxio 客户端 jar 包添加到 Spark driver 和 executor 的 classpath 中，以便 Spark 应用程序能够使用客户端 jar 包在 Alluxio 中读取和写入文件。具体来说，在运行 Spark 的每个节点上，将以下几行添加到`spark/conf/spark-defaults.conf`中。
 
 ```bash
-spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
+spark.driver.extraClassPath   {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
-### 针对HDFS的额外设置
+## 示例：使用 Alluxio 作为输入和输出
 
-* 如果Alluxio运行Hadoop 1.x集群之上，创建一个新文件`spark/conf/core-site.xml`包含以下内容：
+本节介绍如何使用 Alluxio 作为 Spark 应用程序的输入和输出。
 
-```xml
-<configuration>
-  <property>
-    <name>fs.alluxio.impl</name>
-    <value>alluxio.hadoop.FileSystem</value>
-  </property>
-</configuration>
-```
+### 访问仅在Alluxio中的数据
 
-* 如果你使用zookeeper让Alluxio运行在容错模式，添加如下内容到`${SPARK_HOME}/conf/spark-defaults.conf`:
+将本地数据复制到 Alluxio 文件系统中。
+假设你在 Alluxio 项目目录中，将`LICENSE`文件放入 Alluxio，运行：
 
 ```bash
-spark.driver.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
-spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
+bin/alluxio fs copyFromLocal LICENSE /Input
 ```
-或者你可以添加内容到先前创建的Hadoop配置文件中`${SPARK_HOME}/conf/core-site.xml`:
+
+假设 Alluxio Master 运行在`localhost`上，在`spark-shell`中运行如下命令：
+
+```scala
+> val s = sc.textFile("alluxio://localhost:19998/Input")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio://localhost:19998/Output")
+```
+
+打开浏览器，查看 [http://localhost:19999/browse](http://localhost:19999/browse)。
+应该存在一个输出目录`/Output`，其中包含了输入文件`Input`的双倍内容。
+
+### 访问底层存储中的数据
+
+给出准确路径后，Alluxio 支持透明地从底层存储系统中获取数据。
+在本节中，使用 HDFS 作为分布式存储系统的示例。
+
+将`Input_HDFS`文件放入到 HDFS 中：
+
+```bash
+hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
+```
+
+请注意，Alluxio 并不知道该文件。你可以通过访问 Web UI 来验证这一点。
+假设 Alluxio Master 运行在`localhost`上，在`spark-shell`中运行如下命令：
+
+```scala
+> val s = sc.textFile("alluxio://localhost:19998/Input_HDFS")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio://localhost:19998/Output_HDFS")
+```
+
+打开浏览器，查看 [http://localhost:19999/browse](http://localhost:19999/browse)。
+应该存在一个输出目录`Output_HDFS`，其中包含了输入文件`Input_HDFS`的双倍内容。
+同时，现在输入文件`Input_HDFS`会被 100% 地加载到 Alluxio 的文件系统空间。
+
+## 高级设置
+
+### 为所有 Spark 作业自定义 Alluxio 用户属性
+
+让我们以设置 Spark 与 HA 模式的 Alluxio 服务进行通信为例。
+如果你运行多个 Alluxio master，其中 Zookeeper 服务运行在`zkHost1:2181`、`zkHost2:2181`和`zkHost3:2181`，
+将以下几行添加到`${SPARK_HOME}/conf/spark-defaults.conf`中：
+
+```bash
+spark.driver.extraJavaOptions   -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181 -Dalluxio.zookeeper.enabled=true
+spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181 -Dalluxio.zookeeper.enabled=true
+```
+
+或者，你也可以在 Hadoop 配置文件`${SPARK_HOME}/conf/core-site.xml`中添加如下属性：
 
 ```xml
 <configuration>
@@ -62,140 +114,183 @@ spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,
   </property>
   <property>
     <name>alluxio.zookeeper.address</name>
-    <value>[zookeeper_hostname]:2181</value>
+    <value>zkHost1:2181,zkHost2:2181,zkHost3:2181</value>
   </property>
 </configuration>
 ```
 
-## 检查Spark与Alluxio的集成性 (支持Spark 2.X)
+在 Alluxio 1.8 （不包含 1.8）后，用户可以在 Alluxio URI 中编码 Zookeeper 服务地址（见[详细说明]({{ '/cn/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})#ha-configuration-parameters）。
+这样，就不需要为 Spark 配置额外设置。
 
-在Alluxio上运行Spark之前，你需要确认你的Spark配置已经正确设置集成了Alluxio。Spark集成检查器可以帮助你确认。
+### 为单个 Spark 作业自定义 Alluxio 用户属性
 
-当你运行Saprk集群(或单机运行)时,你可以在Alluxio项目目录运行以下命令:
-
-```bash
-integration/checker/bin/alluxio-checker.sh spark <spark master uri> [partition number]
-```
-
-这里`partition number`是一个可选参数。
-你可以使用`-h`来显示关于这个命令的有用信息。这条命令将报告潜在的问题，可能会阻碍你在Alluxio上运行Spark。
-这将会报告你在Alluxio上运行Spark会遇到的潜在问题。
-
-
-## 使用Alluxio作为输入输出
-
-这一部分说明如何将Alluxio作为Spark应用的输入输出源。
-
-### 使用已经存于Alluxio的数据
-
-首先，我们将从Alluxio文件系统中拷贝一些本地数据。将文件`LICENSE`放到Alluxio（假定你正处在Alluxio工程目录下）:
+Spark 用户可以将 JVM 系统设置传递给 Spark 作业，通过将`"-Dproperty=value"`添加到`spark.executor.extraJavaOptions`来设置 Spark executor，将`"-Dproperty=value"`添加到`spark.driver.extraJavaOptions`中来设置 spark driver。例如，要在写入 Alluxio 时提交`CACHE_THROUGH`写模式的 Spark 作业，请执行以下操作：
 
 ```bash
-./bin/alluxio fs copyFromLocal LICENSE /LICENSE
+spark-submit \
+--conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
+--conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
+...
 ```
 
-在`spark-shell`中运行如下命令（假定Alluxio Master运行在`localhost`）:
+如果需要自定义 Spark 作业中的 Alluxio 客户端侧属性，请参见[如何配置 Spark 作业]({{ '/cn/basic/Configuration-Settings.html' | relativize_url }}#spark)。
+
+请注意，在客户端模式中，你需要设置`--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"`，而不是`--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH`（见[解释](https://spark.apache.org/docs/2.3.2/configuration.html))。
+
+## 高级用法
+
+### 从 HA 模式的 Alluxio 中访问数据
+
+如果 Spark 已经根据 [HA 模式的 Alluxio](#configure-spark-to-find-alluxio-cluster-in-ha-mode) 中的步骤进行了设置，
+你就可以使用“`alluxio://`”方案编写 URI，而无需在权限中指定 Alluxio master。
+这是因为在 HA 模式下，Alluxio 主 master 的地址将由配置的 ZooKeeper 服务提供 ，
+而不是由从 URI 推断的用户指定主机名提供。
 
 ```scala
-> val s = sc.textFile("alluxio://localhost:19998/LICENSE")
+> val s = sc.textFile("alluxio:///Input")
 > val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://localhost:19998/LICENSE2")
+> double.saveAsTextFile("alluxio:///Output")
 ```
 
-打开浏览器，查看[http://localhost:19999/browse](http://localhost:19999/browse)。可以发现多出一个输出文件`LICENSE2`,
-每一行是由文件`LICENSE`的对应行复制2次得到。
-
-### 使用来自HDFS的数据
-
-Alluxio支持在给出具体的路径时，透明的从底层文件系统中取数据。将文件`LICENSE`放到Alluxio所挂载的目录下（默认是`/alluxio`）的HDFS中，意味着在这个目录下的HDFS中的任何文件都能被Alluxio发现。通过改变位于Server上的`conf/alluxio-site.properties`文件中的 `alluxio.master.mount.table.root.ufs`属性可以修改这个设置。假定namenode节点运行在`localhost`，并且Alluxio默认的挂载目录是`alluxio`:
-
-```bash
-hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
-```
-
-注意：Alluxio没有文件的概念。你可以通过浏览web UI验证这点。在`spark-shell`中运行如下命令（假定Alluxio Master运行在`localhost`）:
+或者，如果在 Spark 配置中没有设置 Alluxio HA 的 Zookeeper 地址，则可以在 URI 中以“`zk@zkHost1:2181;zkHost2:2181;zkHost3:2181`”的格式指定 Zookeeper 地址：
 
 ```scala
-> val s = sc.textFile("alluxio://localhost:19998/LICENSE")
+> val s = sc.textFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/Input")
 > val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://localhost:19998/LICENSE2")
+> double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/Output")
 ```
 
-打开浏览器，查看[http://localhost:19999/browse](http://localhost:19999/browse)。可以发现多出一个输出文件`LICENSE2`,
-每一行是由文件`LICENSE`的对应行复制2次得到。并且，现在`LICENSE`文件出现在Alluxio文件系统空间。
+> 请注意，你必须使用分号而不是逗号来分隔不同的 ZooKeeper 地址，以便在 Spark 中引用 HA 模式的 Alluxio 的 URI；否则，Spark 会认为该 URI 无效。请参阅[连接高可用 Alluxio 的 HDFS API]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority)。
 
-注意：部分读取的块缓存默认是开启的，但如果已经将这个选项关闭的话，`LICENSE`文件很可能不在Alluxio存储（非In-Alluxio)中。这是因为Alluxio只存储完整读入块，如果文件太小，Spark作业中，每个executor读入部分块。为了避免这种情况，你可以在Spark中定制分块数目。对于这个例子，由于只有一个块，我们将设置分块数为1。
+### 缓存 RDD 到 Alluxio 中
+
+存储 RDD 到 Alluxio 内存中就是将 RDD 作为文件保存到 Alluxio 中。
+在 Alluxio 中将 RDD 保存为文件的两种常见方法是
+
+1. `saveAsTextFile`：将 RDD 作为文本文件写入，其中每个元素都是文件中的一行，
+1. `saveAsObjectFile`：通过对每个元素使用 Java 序列化，将 RDD 写到一个文件中。
+
+通过分别使用`sc.textFile`或`sc.objectFile`，可以从内存中再次读取保存在 Alluxio 中的 RDD。
 
 ```scala
-> val s = sc.textFile("alluxio://localhost:19998/LICENSE", 1)
-> val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://localhost:19998/LICENSE2")
+// as text file
+> rdd.saveAsTextFile("alluxio://localhost:19998/rdd1")
+> rdd = sc.textFile("alluxio://localhost:19998/rdd1")
+
+// as object file
+> rdd.saveAsObjectFile("alluxio://localhost:19998/rdd2")
+> rdd = sc.objectFile("alluxio://localhost:19998/rdd2")
 ```
 
-### 使用容错模式
+见博客文章[“通过 Alluxio 高效使用 Spark RDD”](https://www.alluxio.com/blog/effective-spark-rdds-with-alluxio)。
 
-当以容错模式运行Alluxio时，可以使用任何一个Alluxio master：
+### 缓存 Dataframe 到 Alluxio 中
+
+存储 Spark DataFrame 到 Alluxio 内存中就是将 DataFrame 作为文件保存到 Alluxio 中。
+DataFrame 通常用`df.write.parquet()`作为 parquet 文件写入。
+将 parquet 写入 Alluxio 后，可以使用`sqlContext.read.parquet()`从内存中读取。
 
 ```scala
-> val s = sc.textFile("alluxio://stanbyHost:19998/LICENSE")
-> val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://activeHost:19998/LICENSE2")
+> df.write.parquet("alluxio://localhost:19998/data.parquet")
+> df = sqlContext.read.parquet("alluxio://localhost:19998/data.parquet")
 ```
 
-## 数据本地化
+见博客文章“[通过 Alluxio 高效使用 Spark DataFrame](https://www.alluxio.com/blog/effective-spark-dataframes-with-alluxio)”.
 
-如果Spark任务的定位应该是`NODE_LOCAL`而实际是`ANY`，可能是因为Alluxio和Spark使用了不同的网络地址表示，可能其中一个使用了主机名而另一个使用了IP地址。请参考 [this jira ticket](
-https://issues.apache.org/jira/browse/SPARK-10149)获取更多细节（这里可以找到Spark社区的解决方案）。
+## 故障排除指南
 
-提示:Alluxio使用主机名来表示网络地址，只有0.7.1版本使用了IP地址。Spark 1.5.x版本与Alluxio0.7.1做法一致，都使用了IP地址来表示网络地址，数据本地化不加修改即可使用。但是从0.8.0往后，为了与HDFS一致，Alluxio使用主机名表示网络地址。用户启动Spark时想要获取数据本地化，可以用Spark提供的如下脚本显式指定主机名。以slave-hostname启动Spark Worker:
+### 日志配置
+
+如果是为了调试，你可以配置 Spark 应用程序的日志。
+Spark 文档解释了
+[如何配置 Spark 应用程序的日志](https://spark.apache.org/docs/latest/configuration.html#configuring-logging)。
+
+如果你用的是 YARN，则有单独一节来解释
+[如何配置 YARN 下的 Spark 应用程序的日志](https://spark.apache.org/docs/latest/running-on-yarn.html#debugging-your-application)。
+
+
+### 检查是否正确设置 Spark
+
+为了确保 Spark 在运行前已经被正确配置，Alluxio v1.8 附带的工具可以帮助检查配置。
+
+如果运行的是 2.x 版的 Spark 集群（或 Spark standalone），则可以在 Alluxio 项目目录中运行以下命令：
 
 ```bash
-$SPARK_HOME/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
+integration/checker/bin/alluxio-checker.sh spark <spark master uri>
 ```
 
-举例而言:
+例如，
 
 ```bash
-$SPARK_HOME/sbin/start-slave.sh -h simple30 spark://simple27:7077
+integration/checker/bin/alluxio-checker.sh spark spark://sparkMaster:7077
 ```
 
-也可以通过设置`$SPARK_HOME/conf/spark-env.sh`里的`SPARK_LOCAL_HOSTNAME`获取数据本地化。举例而言：
+此命令将报告可能阻止在 Alluxio 上运行 Spark 的潜在问题。
 
-```properties
+可以使用`-h`显示有关该命令的有用信息。
+
+### Spark 任务的数据本地性级别错误
+
+如果 Spark 任务的本地性级别是`ANY`（本应该是`NODE_LOCAL`），这可能是因为 Alluxio 和 Spark 使用不同的网络地址表示，可能其中一个使用主机名，而另一个使用 IP 地址。更多详情请参考 JIRA ticket [SPARK-10149](
+https://issues.apache.org/jira/browse/SPARK-10149)（这里可以找到 Spark 社区的解决方案）。
+
+注意：Alluxio worker 使用主机名来表示网络地址，以便与 HDFS 保持一致。
+有一个变通方法，可以在启动 Spark 时实现数据本地性。用户可以使用 Spark 中提供的以下脚本显式指定主机名。在每个从节点中以 slave-hostname 启动 Spark worker：
+
+```bash
+${SPARK_HOME}/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
+```
+
+例如：
+
+```bash
+${SPARK_HOME}/sbin/start-slave.sh -h simple30 spark://simple27:7077
+```
+
+你也可以在`$SPARK_HOME/conf/spark-env.sh`中设置`SPARK_LOCAL_HOSTNAME`来达到此目的。例如：
+
+```bash
 SPARK_LOCAL_HOSTNAME=simple30
 ```
 
-用以上任何一种方法，Spark Worker的地址变为主机名并且定位等级变为NODE_LOCAL，如下Spark WebUI所示：
+无论采用哪种方式，Spark Worker 地址都将变为主机名，并且本地性级别将变为`NODE_LOCAL`，如下面的 Spark WebUI 所示。
 
-![hostname]({{ site.baseurl }}/img/screenshot_datalocality_sparkwebui.png)
+![hostname]({{ '/img/screenshot_datalocality_sparkwebui.png' | relativize_url }})
 
-![locality]({{ site.baseurl }}/img/screenshot_datalocality_tasklocality.png)
+![locality]({{ '/img/screenshot_datalocality_tasklocality.png' | relativize_url }})
 
-### 在YARN上运行SPARK
+### YARN 上的 Spark 作业的数据本地性
 
-为了最大化Spark作业所能达到数据本地化的数量，应当尽可能多地使用executor,希望至少每个节点拥有一个executor。按照Alluxio所有方法的部署，所有的计算节点上也应当拥有一个Alluxio worker。
+为了最大化实现 Spark 作业的本地性，你应该尽可能多地使用 executor，我们希望每个节点至少有一个 executor。
+和部署 Alluxio 的所有方法一样，所有计算节点上也应该有一个 Alluxio worker。
 
-当一个Spark作业在YARN上运行时,Spark启动executors不会考虑数据的本地化。之后Spark在决定怎样为它的executors分配任务时会正确地考虑数据的本地化。举例而言：
-如果`host1`包含了`blockA`并且使用`blockA`的作业已经在YARN集群上以`--num-executors=1`的方式启动了,Spark会将唯一的executor放置在`host2`上，本地化就比较差。但是，如果以`--num-executors=2`的方式启动并且executors开始于`host1`和`host2`上,Spark会足够智能地将作业优先放置在`host1`上。
+当 Spark 作业在 YARN 上运行时，Spark 会在不考虑数据本地性的情况下启动其 executor。
+之后 Spark 在决定怎样为其 executor 分配任务时会正确地考虑数据的本地性。
+例如，如果`host1`包含`blockA`，并且使用`blockA`的作业已经在 YARN 集群上以`--num-executors=1`的方式启动了，Spark 可能会将唯一的 executor 放置在`host2`上，本地性会较差。
+但是，如果以`--num-executors=2`的方式启动，并且 executor 在`host1`和`host2`上启动，Spark 会足够智能地将作业优先放置在`host1`上。
 
-## `class alluxio.hadoop.FileSystem not found` 与SparkSQL和Hive MetaStore有关的问题
-为了用Alluxio客户端运行Spark Shell，Alluxio客户端的jar包必须如[之前描述](Running-Spark-on-Alluxio.html#general-setup)的那样，被添加到Spark driver和Spark executors的classpath中。可是有的时候Alluxio不能判断安全用户，从而导致类似于下面的错误。
+### `Class alluxio.hadoop.FileSystem not found`与 SparkSQL 和 Hive MetaStore 有关的问题
+
+为了用 Alluxio 客户端运行`spark-shell`，Alluxio 客户端 jar 包必须如[之前描述](#basic-setup)的那样，被添加到 Spark driver 和 Spark executor 的 classpath 中。
+然而有的时候，SparkSQL 在保存表到 Hive MetaStore（位于 Alluxio 中）中时可能会失败，出现类似于下面的错误信息：
 
 ```
 org.apache.hadoop.hive.ql.metadata.HiveException: MetaException(message:java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found)
 ```
 
-推荐的解决方案是为Spark 1.4.0以上版本配置[`spark.sql.hive.metastore.sharedPrefixes`](http://spark.apache.org/docs/2.0.0/sql-programming-guide.html#interacting-with-different-versions-of-hive-metastore).
-在Spark 1.4.0和之后的版本中，Spark为了访问hive元数据使用了独立的类加载器来加载java类。然而，这个独立的类加载器忽视了特定的包，并且让主类加载器去加载"共享"类（Hadoop的HDFS客户端就是一种"共享"类）。Alluxio客户端也应该由主类加载器加载，你可以将`alluxio`包加到配置参数`spark.sql.hive.metastore.sharedPrefixes`中，以通知Spark用主类加载器加载Alluxio。例如，该参数可以这样设置:
+推荐的解决方案是配置[`spark.sql.hive.metastore.sharedPrefixes`](http://spark.apache.org/docs/2.0.0/sql-programming-guide.html#interacting-with-different-versions-of-hive-metastore)。
+在 Spark 1.4.0 和之后的版本中，Spark 为了访问 Hive MetaStore 使用了独立的类加载器来加载 java 类。
+然而，这个独立的类加载器忽视了特定的包，并且让主类加载器去加载“共享”类（Hadoop 的 HDFS 客户端就是一种“共享”类）。
+Alluxio 客户端也应该由主类加载器加载，你可以将`alluxio`包加到配置参数`spark.sql.hive.metastore.sharedPrefixes`中，以通知 Spark 用主类加载器加载 Alluxio。例如，该参数可以在`spark/conf/spark-defaults.conf`中这样设置：
 
 ```bash
 spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
 ```
 
-## `java.io.IOException: No FileSystem for scheme: alluxio` 与在YARN上运行Spark有关的问题
+### `java.io.IOException: No FileSystem for scheme: alluxio` 与在 YARN 上运行 Spark 有关的问题
 
-
-如果你在YARN上使用基于Alluxio的Spark并遇到异常`java.io.IOException：No FileSystem for scheme：alluxio`，请将以下内容添加到 `${SPARK_HOME}/conf/core-site.xml`：
+如果你在 YARN 上使用基于 Alluxio 的 Spark 并遇到异常`java.io.IOException: No FileSystem for scheme: alluxio`，
+请将以下内容添加到`${SPARK_HOME}/conf/core-site.xml`：
 
 ```xml
 <configuration>

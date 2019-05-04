@@ -19,8 +19,7 @@ import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.meta.ConfigVersionSync;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
-import alluxio.client.metrics.ClientMasterSync;
-import alluxio.client.metrics.MetricsMasterClient;
+import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.SpecificPathConfiguration;
@@ -37,7 +36,6 @@ import alluxio.resource.LockResource;
 import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.ThreadUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
@@ -103,14 +101,7 @@ public final class FileSystemContext implements Closeable {
 
   // Marks whether the context has been closed, closing the context means releasing all resources
   // in the context like clients and thread pools.
-  private final AtomicBoolean mClosed = new AtomicBoolean(true);
-
-  @GuardedBy("this")
-  private ExecutorService mMetricsExecutorService;
-  @GuardedBy("this")
-  private MetricsMasterClient mMetricsMasterClient;
-  // volatile because it's used in MetricsMasterSyncShutDownHook.
-  private volatile ClientMasterSync mClientMasterSync;
+  private AtomicBoolean mClosed;
 
   @GuardedBy("this")
   private ExecutorService mConfigVersionExecutorService;
@@ -122,7 +113,6 @@ public final class FileSystemContext implements Closeable {
   // The data server channel pools. This pool will only grow and keys are not removed.
   private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
       mBlockWorkerClientPool = new ConcurrentHashMap<>();
-  private volatile EventLoopGroup mWorkerGroup;
 
   /** The shared master inquire client associated with the {@link FileSystemContext}. */
   @GuardedBy("this")
@@ -141,7 +131,8 @@ public final class FileSystemContext implements Closeable {
   private WorkerNetAddress mLocalWorker;
 
   private final ClientContext mClientContext;
-  private final String mAppId;
+  private final EventLoopGroup mWorkerGroup;
+  private final boolean mMetricsEnabled;
 
   /** Synchronize operations related to re-initialization. */
   private final ReadWriteLock mReinitLock = new ReentrantReadWriteLock();
@@ -223,10 +214,13 @@ public final class FileSystemContext implements Closeable {
   private FileSystemContext(ClientContext ctx) {
     Preconditions.checkNotNull(ctx, "ctx");
     mClientContext = ctx;
-    mAppId = IdUtils.createOrGetAppIdFromConfig(ctx.getConf());
-    LOG.info("Created filesystem context with id {}. This ID will be used for identifying info "
-            + "from the client, such as metrics. It can be set manually through the {} property",
-        mAppId, PropertyKey.Name.USER_APP_ID);
+    mClosed = new AtomicBoolean(false);
+    mMetricsEnabled = ctx.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
+
+    mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(ctx.getConf()),
+        ctx.getConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
+        String.format("alluxio-client-nettyPool-%s-%%d", IdUtils.createFileSystemContextId()),
+        true);
   }
 
   /**
@@ -235,17 +229,11 @@ public final class FileSystemContext implements Closeable {
    * @param masterInquireClient the client to use for determining the master
    */
   private synchronized void init(MasterInquireClient masterInquireClient) {
-    mClosed.set(false);
-
-    mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(mClientContext.getConf()),
-        mClientContext.getConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
-        String.format("alluxio-client-nettyPool-%s-%%d", mAppId), true);
-
     mMasterInquireClient = masterInquireClient;
-
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(mClientContext, mMasterInquireClient);
     mBlockMasterClientPool = new BlockMasterClientPool(mClientContext, mMasterInquireClient);
+    mClosed.set(false);
 
     MasterClientContext masterClientContext = MasterClientContext.newBuilder(mClientContext)
         .setMasterInquireClient(mMasterInquireClient).build();
@@ -258,31 +246,8 @@ public final class FileSystemContext implements Closeable {
             (int) mClientContext.getConf().getMs(PropertyKey.USER_CONF_VERSION_SYNC_INTERVAL),
             mClientContext.getConf()));
 
-    if (mClientContext.getConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
-      // setup metrics master client sync
-      mMetricsMasterClient = new MetricsMasterClient(MasterClientContext
-          .newBuilder(mClientContext)
-          .setMasterInquireClient(mMasterInquireClient)
-          .build());
-      mClientMasterSync = new ClientMasterSync(mMetricsMasterClient, mAppId);
-      mMetricsExecutorService = Executors.newFixedThreadPool(1,
-          ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
-      mMetricsExecutorService
-          .submit(new HeartbeatThread(HeartbeatContext.MASTER_METRICS_SYNC, mClientMasterSync,
-              (int) mClientContext.getConf().getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
-              mClientContext.getConf()));
-      // register the shutdown hook
-      try {
-        Runtime.getRuntime().addShutdownHook(new MetricsMasterSyncShutDownHook());
-      } catch (IllegalStateException e) {
-        // this exception is thrown when the system is already in the process of shutting down. In
-        // such a situation, we are about to shutdown anyway and there is no need to register this
-        // shutdown hook
-      } catch (SecurityException e) {
-        LOG.info("Not registering metrics shutdown hook due to security exception. Regular "
-            + "heartbeats will still be performed to collect metrics data, but no final heartbeat "
-            + "will be performed on JVM exit. Security exception: {}", e.toString());
-      }
+    if (mMetricsEnabled) {
+      MetricsHeartbeatContext.addHeartbeat(mClientContext, masterInquireClient);
     }
   }
 
@@ -317,18 +282,15 @@ public final class FileSystemContext implements Closeable {
       mMetaConfigClient = null;
       mConfigVersionSync = null;
 
-      if (mMetricsMasterClient != null) {
-        ThreadUtils.shutdownAndAwaitTermination(mMetricsExecutorService,
-            mClientContext.getConf().getMs(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT));
-        mMetricsMasterClient.close();
-        mMetricsMasterClient = null;
-        mClientMasterSync = null;
+      if (mMetricsEnabled) {
+        MetricsHeartbeatContext.removeHeartbeat(mClientContext);
       }
+
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
     } else {
-      LOG.warn("Attempted to close FileSystemContext with app ID {} which has already been closed"
-          + " or not initialized.", mAppId);
+      LOG.warn("Attempted to close FileSystemContext which has already been closed or not "
+          + "initialized.");
     }
   }
 
@@ -551,46 +513,6 @@ public final class FileSystemContext implements Closeable {
     }
 
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
-  }
-
-  /**
-   * Class that heartbeats to the metrics master before exit. The heartbeat is performed in a second
-   * thread so that we can exit early if the heartbeat is taking too long.
-   */
-  private final class MetricsMasterSyncShutDownHook extends Thread {
-    private final Thread mLastHeartbeatThread;
-
-    /**
-     * Creates a new metrics master shutdown hook.
-     */
-    public MetricsMasterSyncShutDownHook() {
-      mLastHeartbeatThread = new Thread(() -> {
-        if (mClientMasterSync != null) {
-          try {
-            mClientMasterSync.heartbeat();
-          } catch (InterruptedException e) {
-            return;
-          }
-        }
-      });
-      mLastHeartbeatThread.setDaemon(true);
-    }
-
-    @Override
-    public void run() {
-      mLastHeartbeatThread.start();
-      try {
-        // Shutdown hooks should run quickly, so we limit the wait time to 500ms. It isn't the end
-        // of the world if the final heartbeat fails.
-        mLastHeartbeatThread.join(500);
-      } catch (InterruptedException e) {
-        return;
-      } finally {
-        if (mLastHeartbeatThread.isAlive()) {
-          LOG.warn("Failed to heartbeat to the metrics master before exit");
-        }
-      }
-    }
   }
 
   /**

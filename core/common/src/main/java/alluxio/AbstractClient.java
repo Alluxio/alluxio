@@ -209,23 +209,23 @@ public abstract class AbstractClient implements Client {
       try {
         mAddress = getAddress();
       } catch (UnavailableException e) {
-        LOG.warn("Failed to determine {} rpc address ({}): {}",
+        LOG.debug("Failed to determine {} rpc address ({}): {}",
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
       if (mAddress.isUnresolved()) {
         // Sometimes the acquired addressed wasn't resolved, retry resolving before
         // using it to connect.
-        LOG.info("Retry resolving address {}", mAddress);
+        LOG.debug("Retry resolving address {}", mAddress);
         // Creates a new InetSocketAddress to force resolving the hostname again.
         mAddress = new InetSocketAddress(mAddress.getHostName(), mAddress.getPort());
         if (mAddress.isUnresolved()) {
-          LOG.warn("Failed to resolve address on retry {}", mAddress);
+          LOG.debug("Failed to resolve address on retry {}", mAddress);
         }
       }
       try {
         beforeConnect();
-        LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
+        LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
             .newBuilder(new GrpcServerAddress(mAddress), mContext.getConf())
@@ -236,11 +236,11 @@ public abstract class AbstractClient implements Client {
         mConnected = true;
         afterConnect();
         checkVersion(getServiceVersion());
-        LOG.info("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
+        LOG.debug("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
             getServiceName(), mAddress);
         return;
       } catch (IOException e) {
-        LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
+        LOG.debug("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         lastConnectFailure = e;
       }
@@ -381,7 +381,7 @@ public abstract class AbstractClient implements Client {
           throw se;
         }
       }
-      LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
+      LOG.debug("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
       onRetry.get();
       disconnect();
     }
