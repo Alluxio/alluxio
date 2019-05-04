@@ -318,6 +318,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public Configuration getConfiguration(GetConfigurationPOptions options) {
+    // NOTE(cc): there is no guarantee that the returned cluster and path configurations are
+    // consistent snapshot of the system's state at a certain time, the path configuration might
+    // be in a newer state. But it's guaranteed that the hashes are respectively correspondent to
+    // the properties.
     Configuration.Builder builder = Configuration.newBuilder();
 
     if (!options.getIgnoreClusterConf()) {

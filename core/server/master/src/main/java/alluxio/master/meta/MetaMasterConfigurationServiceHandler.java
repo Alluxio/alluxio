@@ -22,6 +22,7 @@ import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.RemovePathConfigurationPResponse;
 import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.grpc.SetPathConfigurationPResponse;
+import alluxio.wire.ConfigHash;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -41,6 +42,12 @@ public final class MetaMasterConfigurationServiceHandler
       LoggerFactory.getLogger(MetaMasterConfigurationServiceHandler.class);
 
   private final MetaMaster mMetaMaster;
+  /**
+   * The cached response of GetConfiguration to save serialization cost when configurations are
+   * not updated. Both cluster and path configurations are kept to update for each RPC
+   * even if only cluster or path configuration is requested.
+   */
+  private volatile GetConfigurationPResponse mConfiguration;
 
   /**
    * @param metaMaster the Alluxio meta master
@@ -52,9 +59,33 @@ public final class MetaMasterConfigurationServiceHandler
   @Override
   public void getConfiguration(GetConfigurationPOptions options,
       StreamObserver<GetConfigurationPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () ->
-        mMetaMaster.getConfiguration(options).toProto(), "getConfiguration", "options=%s",
-        responseObserver, options);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
+      GetConfigurationPResponse cache = mConfiguration;
+      ConfigHash hash = mMetaMaster.getConfigHash();
+      boolean isCacheLatest = false;
+      if (cache != null
+          && cache.hasClusterConfigHash()
+          && cache.getClusterConfigHash().equals(hash.getClusterConfigHash())
+          && cache.hasPathConfigHash()
+          && cache.getPathConfigHash().equals(hash.getPathConfigHash())) {
+        isCacheLatest = true;
+      }
+      if (!isCacheLatest) {
+        cache = mMetaMaster.getConfiguration(GetConfigurationPOptions.getDefaultInstance())
+            .toProto();
+        mConfiguration = cache;
+      }
+      GetConfigurationPResponse.Builder builder = GetConfigurationPResponse.newBuilder();
+      if (!options.getIgnoreClusterConf()) {
+        builder.addAllClusterConfigs(cache.getClusterConfigsList());
+        builder.setClusterConfigHash(cache.getClusterConfigHash());
+      }
+      if (!options.getIgnorePathConf()) {
+        builder.putAllPathConfigs(cache.getPathConfigsMap());
+        builder.setPathConfigHash(cache.getPathConfigHash());
+      }
+      return builder.build();
+    }, "getConfiguration", "resquest=%s", responseObserver, options);
   }
 
   @Override
