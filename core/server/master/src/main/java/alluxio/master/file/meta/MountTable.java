@@ -39,6 +39,7 @@ import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
+import jdk.internal.jline.internal.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,6 +104,7 @@ public final class MountTable implements DelegatingJournaled {
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    */
+  @Nullable
   public void add(Supplier<JournalContext> journalContext, AlluxioURI alluxioUri, AlluxioURI ufsUri,
       long mountId, MountPOptions options) throws FileAlreadyExistsException, InvalidPathException {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
@@ -269,6 +271,7 @@ public final class MountTable implements DelegatingJournaled {
    * @param ufsUri an Ufs path URI
    * @return an Alluxio path URI
    */
+  @Nullable
   public AlluxioURI reverseResolve(AlluxioURI ufsUri) {
     AlluxioURI returnVal = null;
     for (Map.Entry<String, MountInfo> mountInfoEntry : getMountTable().entrySet()) {
@@ -293,6 +296,7 @@ public final class MountTable implements DelegatingJournaled {
    * @param mountId mount id to look up ufs client
    * @return ufsClient
    */
+  @Nullable
   public UfsManager.UfsClient getUfsClient(long mountId) {
     try {
       return mUfsManager.get(mountId);
@@ -349,6 +353,7 @@ public final class MountTable implements DelegatingJournaled {
    * @throws InvalidPathException if the Alluxio path is invalid
    * @throws AccessControlException if the Alluxio path is under a readonly mount point
    */
+  @Nullable
   public void checkUnderWritableMountPoint(AlluxioURI alluxioUri)
       throws InvalidPathException, AccessControlException {
     try (LockResource r = new LockResource(mReadLock)) {
@@ -458,6 +463,7 @@ public final class MountTable implements DelegatingJournaled {
      * @param context journal context
      * @param entry add mount point entry
      */
+    @Nullable
     public void applyAndJournal(Supplier<JournalContext> context, AddMountPointEntry entry) {
       applyAndJournal(context, JournalEntry.newBuilder().setAddMountPoint(entry).build());
     }
@@ -466,10 +472,12 @@ public final class MountTable implements DelegatingJournaled {
      * @param context journal context
      * @param entry delete mount point entry
      */
+    @Nullable
     public void applyAndJournal(Supplier<JournalContext> context, DeleteMountPointEntry entry) {
       applyAndJournal(context, JournalEntry.newBuilder().setDeleteMountPoint(entry).build());
     }
 
+    @Nullable
     private void applyAddMountPoint(AddMountPointEntry entry) {
       MountInfo mountInfo =
           new MountInfo(new AlluxioURI(entry.getAlluxioPath()), new AlluxioURI(entry.getUfsPath()),
@@ -477,6 +485,7 @@ public final class MountTable implements DelegatingJournaled {
       mMountTable.put(entry.getAlluxioPath(), mountInfo);
     }
 
+    @Nullable
     private void applyDeleteMountPoint(DeleteMountPointEntry entry) {
       mMountTable.remove(entry.getAlluxioPath());
     }
@@ -494,6 +503,7 @@ public final class MountTable implements DelegatingJournaled {
     }
 
     @Override
+    @Nullable
     public void resetState() {
       MountInfo mountInfo = mMountTable.get(ROOT);
       mMountTable.clear();
@@ -554,6 +564,7 @@ public final class MountTable implements DelegatingJournaled {
         }
 
         @Override
+        @Nullable
         public void remove() {
           throw new UnsupportedOperationException("Mountable#Iterator#remove is not supported.");
         }
