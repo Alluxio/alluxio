@@ -13,14 +13,13 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.Constants;
 import alluxio.cli.CommandUtils;
+import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * Command for triggering a checkpoint in the primary master journal system.
@@ -42,16 +41,14 @@ public class CheckpointCommand extends AbstractFsAdminCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    Timer timer = new Timer();
-    timer.schedule(new TimerTask() {
-        @Override
-        public void run() {
-          mPrintStream.println("Checkpointing may take a while.");
-        }
-    }, Constants.MINUTE_MS);
-    String masterHostname = mMetaClient.checkpoint();
-    timer.cancel();
-    mPrintStream.println("Successfully checkpointed in " + masterHostname);
+    Thread thread = JobGrpcClientUtils.createProgressThread(2 * Constants.SECOND_MS, System.out);
+    thread.start();
+    try {
+      String masterHostname = mMetaClient.checkpoint();
+      mPrintStream.printf("Successfully took a checkpoint on master %s%n", masterHostname);
+    } finally {
+      thread.interrupt();
+    }
     return 0;
   }
 

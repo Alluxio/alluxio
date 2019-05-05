@@ -13,6 +13,7 @@ package alluxio.client.cli.fsadmin.command;
 
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,7 +25,8 @@ public final class CheckpointCommandIntegrationTest extends AbstractFsAdminShell
   public void checkpoint() throws Exception {
     int ret = mFsAdminShell.run("checkpoint");
     Assert.assertEquals(0, ret);
-    Assert.assertEquals(String.format("Successfully checkpointed in %s%n",
-        mLocalAlluxioClusterResource.get().getHostname()), mOutput.toString());
+    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString(String
+        .format("Successfully took a checkpoint on master %s%n",
+        mLocalAlluxioClusterResource.get().getHostname())));
   }
 }

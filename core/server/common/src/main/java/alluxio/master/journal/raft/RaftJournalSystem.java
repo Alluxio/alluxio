@@ -348,24 +348,42 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       try {
         future.get(1, TimeUnit.MINUTES);
       } catch (TimeoutException | ExecutionException e) {
-        LOG.info("Exception submitting entry to trigger snapshot: {}", e.toString());
+        LOG.warn("Exception submitting entry to trigger snapshot: {}", e.toString());
         throw new IOException("Exception submitting entry to trigger snapshot", e);
       } catch (InterruptedException e) {
-        LOG.info("Interrupted when submitting entry to trigger snapshot: {}", e.toString());
+        LOG.warn("Interrupted when submitting entry to trigger snapshot: {}", e.toString());
         Thread.currentThread().interrupt();
         throw new CancelledException("Interrupted when submitting entry to trigger snapshot", e);
       }
-      if (mStateMachine.getLastSnapshotStartTime() < start) {
-        throw new IOException("Do not fulfill Copycat snapshot requirements. "
-            + "No snapshot is triggered");
-      }
+      waitForSnapshotStart(mStateMachine, start);
       if (mStateMachine.isSnapshotting()) {
         waitForSnapshotting(mStateMachine);
       }
-      LOG.info("Snapshotted in raft journal system");
     } finally {
       mSnapshotAllowed.set(false);
     }
+  }
+
+  /**
+   * Waits for snapshotting to start.
+   *
+   * @param stateMachine the journal state machine
+   * @param start the start time to check
+   */
+  private void waitForSnapshotStart(JournalStateMachine stateMachine,
+      long start) throws IOException {
+    try {
+      CommonUtils.waitFor("snapshotting to start", () ->
+              stateMachine.getLastSnapshotStartTime() > start,
+          WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new CancelledException("Interrupted when waiting for snapshotting to start", e);
+    } catch (TimeoutException e) {
+      // Ignore
+    }
+    throw new IOException("Do not fulfill Copycat snapshot requirements. "
+        + "No snapshot is triggered");
   }
 
   /**
@@ -376,12 +394,13 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   private void waitForSnapshotting(JournalStateMachine stateMachine) throws IOException {
     try {
       CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
-          WaitForOptions.defaults().setTimeoutMs(20 * Constants.MINUTE_MS));
+          WaitForOptions.defaults().setTimeoutMs(Long.valueOf(ServerConfiguration.getMs(
+              PropertyKey.MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT)).intValue()));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new CancelledException("Interrupted when waiting for snapshotting to finish", e);
     } catch (TimeoutException e) {
-      LOG.info("Timeout waiting for snapshotting to finish", e);
+      LOG.warn("Timeout waiting for snapshotting to finish", e);
       throw new DeadlineExceededException("Timeout waiting for snapshotting to finish", e);
     }
   }

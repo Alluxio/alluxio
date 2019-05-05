@@ -157,7 +157,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void checkpoint() throws IOException {
-    for (UfsJournal  journal : mJournals.values()) {
+    for (UfsJournal journal : mJournals.values()) {
       journal.checkpoint();
     }
   }

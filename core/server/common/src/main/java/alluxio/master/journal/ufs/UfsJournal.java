@@ -317,9 +317,8 @@ public class UfsJournal implements Journal {
    */
   public synchronized void checkpoint() throws IOException {
     long nextSequenceNumber = getNextSequenceNumberToWrite();
-    if (nextSequenceNumber - getNextSequenceNumberToCheckpoint() < ServerConfiguration.getLong(
-        PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)) {
-      LOG.info("{}: No enough journal entries to checkpoint.",
+    if (nextSequenceNumber == getNextSequenceNumberToCheckpoint()) {
+      LOG.info("{}: No enough journal entries to create checkpoint.",
           mMaster.getName());
       return;
     }

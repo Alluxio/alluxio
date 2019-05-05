@@ -59,7 +59,5 @@ public final class NoopJournalSystem implements JournalSystem {
   public void stop() {}
 
   @Override
-  public void checkpoint() {
-    throw new UnsupportedOperationException("Checkpoint is not supported in NoopJournalSystem");
-  }
+  public void checkpoint() {}
 }
