@@ -11,9 +11,13 @@
 
 package alluxio.client.metrics;
 
-import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.grpc.ClientMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.logging.SamplingLogger;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -33,41 +37,55 @@ import javax.annotation.concurrent.ThreadSafe;
  * it before retrying.
  */
 @ThreadSafe
-public final class ClientMasterSync implements HeartbeatExecutor {
-  private static final Logger LOG = LoggerFactory.getLogger(ClientMasterSync.class);
+public final class ClientMasterSync {
+  private static final Logger SAMPLING_LOG =
+      new SamplingLogger(LoggerFactory.getLogger(ClientMasterSync.class), 30 * Constants.SECOND_MS);
 
-  /** Client for communicating to metrics master. */
+  /**
+   * Client for communicating to metrics master.
+   */
   private final MetricsMasterClient mMasterClient;
-  private final String mAppId;
+  private final String mApplicationId;
+  private final AlluxioConfiguration mConf;
 
   /**
    * Constructs a new {@link ClientMasterSync}.
    *
+   * @param appId the application id to send with metrics
    * @param masterClient the master client
-   * @param appId the app ID for this client
+   * @param conf Alluxio configuration
    */
-  public ClientMasterSync(MetricsMasterClient masterClient, String appId) {
+  public ClientMasterSync(String appId, MetricsMasterClient masterClient,
+      AlluxioConfiguration conf) {
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
-    mAppId = Preconditions.checkNotNull(appId, "appId");
+    mApplicationId = Preconditions.checkNotNull(appId);
+    mConf = conf;
   }
 
-  @Override
-  public synchronized void heartbeat() throws InterruptedException {
+  /**
+   * Sends metrics to the master keyed with appId and client hostname.
+   */
+  public synchronized void heartbeat() {
+    // TODO(zac): Support per FileSystem instance metrics
+    // Currently we only support JVM-level metrics. A list is used here because in the near
+    // future we will support sending per filesystem client-level metrics.
+    List<alluxio.grpc.ClientMetrics> fsClientMetrics = new ArrayList<>();
+    String hostname = NetworkAddressUtils.getClientHostName(mConf);
     List<alluxio.grpc.Metric> metrics = new ArrayList<>();
     for (Metric metric : MetricsSystem.allClientMetrics()) {
-      metric.setInstanceId(mAppId);
+      metric.setInstanceId(mApplicationId);
       metrics.add(metric.toProto());
     }
+    fsClientMetrics.add(ClientMetrics.newBuilder()
+        .setHostname(hostname)
+        .setClientId(mApplicationId)
+        .addAllMetrics(metrics)
+        .build());
     try {
-      mMasterClient.heartbeat(metrics);
+      mMasterClient.heartbeat(fsClientMetrics);
     } catch (IOException e) {
-      // An error occurred, log and ignore it or error if heartbeat timeout is reached.
-      LOG.error("Failed to heartbeat to the metrics master:", e);
-      mMasterClient.disconnect();
+      // WARN instead of ERROR as metrics are not critical to the application function
+      SAMPLING_LOG.warn("Failed to send metrics to master: {}", e.toString());
     }
-  }
-
-  @Override
-  public void close() {
   }
 }

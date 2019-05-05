@@ -11,12 +11,16 @@
 
 package alluxio.underfs.oss;
 
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.MultiRangeObjectInputStream;
 
 import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.GetObjectRequest;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.ObjectMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -30,6 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class OSSInputStream extends MultiRangeObjectInputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(OSSInputStream.class);
 
   /** Bucket name of the Alluxio OSS bucket. */
   private final String mBucketName;
@@ -44,16 +49,23 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
   private final long mContentLength;
 
   /**
+   * Policy determining the retry behavior in case the key does not exist. The key may not exist
+   * because of eventual consistency.
+   */
+  private final RetryPolicy mRetryPolicy;
+
+  /**
    * Creates a new instance of {@link OSSInputStream}.
    *
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for OSS
+   * @param retryPolicy retry policy in case the key does not exist
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
-  OSSInputStream(String bucketName, String key, OSSClient client, long multiRangeChunkSize)
-      throws IOException {
-    this(bucketName, key, client, 0L, multiRangeChunkSize);
+  OSSInputStream(String bucketName, String key, OSSClient client, RetryPolicy retryPolicy,
+      long multiRangeChunkSize) throws IOException {
+    this(bucketName, key, client, 0L, retryPolicy, multiRangeChunkSize);
   }
 
   /**
@@ -63,10 +75,11 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
    * @param key the key of the file
    * @param client the client for OSS
    * @param position the position to begin reading from
+   * @param retryPolicy retry policy in case the key does not exist
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
   OSSInputStream(String bucketName, String key, OSSClient client, long position,
-      long multiRangeChunkSize) throws IOException {
+      RetryPolicy retryPolicy, long multiRangeChunkSize) throws IOException {
     super(multiRangeChunkSize);
     mBucketName = bucketName;
     mKey = key;
@@ -74,6 +87,7 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
     mPos = position;
     ObjectMetadata meta = mOssClient.getObjectMetadata(mBucketName, key);
     mContentLength = meta == null ? 0 : meta.getContentLength();
+    mRetryPolicy = retryPolicy;
   }
 
   @Override
@@ -82,7 +96,22 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
     GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
     // OSS returns entire object if we read past the end
     req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
-    OSSObject ossObject = mOssClient.getObject(req);
-    return new BufferedInputStream(ossObject.getObjectContent());
+    OSSException lastException = null;
+    while (mRetryPolicy.attempt()) {
+      try {
+        OSSObject ossObject = mOssClient.getObject(req);
+        return new BufferedInputStream(ossObject.getObjectContent());
+      } catch (OSSException e) {
+        LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
+            mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+        if (!e.getErrorCode().equals("NoSuchKey")) {
+          throw new IOException(e);
+        }
+        // Key does not exist
+        lastException = e;
+      }
+    }
+    // Failed after retrying key does not exist
+    throw new IOException(lastException);
   }
 }

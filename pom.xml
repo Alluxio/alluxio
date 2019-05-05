@@ -173,7 +173,6 @@
 
   <modules>
     <module>alluxio-ui</module>
-    <module>alluxio-shaded-hadoop</module>
     <module>assembly</module>
     <module>core</module>
     <module>examples</module>
@@ -181,6 +180,7 @@
     <module>logserver</module>
     <module>minicluster</module>
     <module>job</module>
+    <module>shaded</module>
     <module>shell</module>
     <module>tests</module>
     <module>underfs</module>
@@ -1152,7 +1152,7 @@
             <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
           </sourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/org/apache/jsp/**,**/alluxio/proto/**,**/alluxio/grpc/**,**/alluxio/concurrent/jsr/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/alluxio/concurrent/jsr/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -1180,8 +1180,6 @@
           <excludes>
 
             <!-- Code Exclusions -->
-            <exclude>**/src/main/java/alluxio/proto/**</exclude>
-            <exclude>**/src/main/java/alluxio/grpc/**</exclude>
             <exclude>**/src/main/java/alluxio/concurrent/jsr/**</exclude>
             <exclude>**/src/main/resources/*</exclude>
             <exclude>**/src/proto/**</exclude>

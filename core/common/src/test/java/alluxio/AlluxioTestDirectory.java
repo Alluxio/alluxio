@@ -81,7 +81,7 @@ public final class AlluxioTestDirectory {
     long cutoffTimestamp = System.currentTimeMillis() - (MAX_FILE_AGE_HOURS * Constants.HOUR_MS);
     Arrays.asList(dir.listFiles()).stream()
         .filter(file -> !FileUtils.isFileNewer(file, cutoffTimestamp))
-        .forEach(file -> delete(file));
+        .forEach(AlluxioTestDirectory::delete);
   }
 
   private static void delete(File file) {

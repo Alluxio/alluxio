@@ -206,6 +206,7 @@ public class FileSystemOptions {
   public static RenamePOptions renameDefaults(AlluxioConfiguration conf) {
     return RenamePOptions.newBuilder()
         .setCommonOptions(commonDefaults(conf))
+        .setPersist(conf.getBoolean(PropertyKey.USER_FILE_PERSIST_ON_RENAME))
         .build();
   }
 

@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Deploy Alluxio on Kubernetes
-nickname: Kubernetes
-group: Deploying Alluxio
-priority: 3
+title: Running Spark on Alluxio in Kubernetes
+nickname: Spark on Kubernetes
+group: Data Applications
+priority: 7
 ---
 
 Alluxio can be run on Kubernetes. This guide demonstrates how to run a Spark job on Alluxio
@@ -71,34 +71,39 @@ Note:
 Add the required Alluxio client jars and build a Docker image used for the Spark driver and executor
 pods. Run the following from the Spark distribution directory.
 
+Copy certificates if using minikube
 ```bash
-# If using minikube
 cp ~/.minikube/apiserver.key bin/
 cp ~/.minikube/apiserver.crt bin/
 cp ~/.minikube/ca.crt bin/
+```
 
-# Add the Alluxio client jar
+Add the Alluxio client jar
+```bash
 cp <path_to_alluxio_client>/client/alluxio-2.0.0-preview-client.jar jars/
+```
 
-# Build the Spark Docker image
+Build the Spark Docker image
+```bash
 docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 ```
 
 ### Run a Spark job
 
 The following command runs an example job to count the number of lines in the Alluxio location `/LICENSE`.
-The output and time taken can be seen in the logs for Spark driver pod. Refer to Spark [documentation]
-(https://spark.apache.org/docs/latest/running-on-kubernetes.html) for further instructions.
+The output and time taken can be seen in the logs for Spark driver pod. Refer to Spark
+[documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html) for further instructions.
 
+Create the service account (if required)
 ```bash
-# Create service account if required
 kubectl create serviceaccount spark
 kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default
+```
 
-# Run the job from the Spark distribution directory
+Run the job from the Spark distribution directory
+```bash
 ./bin/spark-submit --master k8s://https://<master>:8443 --deploy-mode cluster --name spark-alluxio --conf spark.executor.instances=1 \
 --class alluxio.examples.Count --driver-memory 500m --executor-memory 1g \
---conf "spark.executor.extraJavaOptions= -Dalluxio.user.network.netty.channel=NIO -Dalluxio.worker.network.netty.channel=NIO" \
 --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
 --conf spark.kubernetes.container.image=spark-alluxio \
 --conf spark.kubernetes.authenticate.submission.caCertFile=./bin/ca.crt \
@@ -110,9 +115,3 @@ kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.type=Directory \
 local:///opt/spark/jars/alluxio-examples_2.12-1.0.jar alluxio://alluxio-master.default.svc.cluster.local:19998/LICENSE
 ```
-
-Note:
-- By default, Alpine Linux does not contain the native libraries required to create an EPOLL mode netty
-channel. On linux distributions or Docker images with the native libraries included, EPOLL can be used by
-removing the properties `alluxio.*.network.netty.channel` from the Spark executor java options.
-- With `NIO` channels, short-circuit access is not available and may decrease performance.

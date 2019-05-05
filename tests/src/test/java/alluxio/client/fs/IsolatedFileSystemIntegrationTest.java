@@ -43,6 +43,7 @@ import java.util.List;
  */
 public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
+  private static final int WORKER_UNRESERVED_BYTES = WORKER_CAPACITY_BYTES / 10 * 9;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
 
   @ClassRule
@@ -55,7 +56,7 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 100 * Constants.MB)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false)
+          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO, "0.9")
           .build();
   private FileSystem mFileSystem = null;
   private CreateFilePOptions mWriteBoth;
@@ -71,7 +72,7 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
   public void lockBlockTest1() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     int numOfFiles = 5;
-    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
+    int fileSize = WORKER_UNRESERVED_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
@@ -85,10 +86,13 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
 
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
-    Assert.assertFalse(mFileSystem.getStatus(files.get(0)).getInAlluxioPercentage() == 100);
-    for (int k = 1; k <= numOfFiles; k++) {
-      Assert.assertTrue(mFileSystem.getStatus(files.get(k)).getInAlluxioPercentage() == 100);
+    int numFilesCached = 0;
+    for (int k = 0; k <= numOfFiles; k++) {
+      if (mFileSystem.getStatus(files.get(k)).getInAlluxioPercentage() == 100) {
+        numFilesCached++;
+      }
     }
+    Assert.assertEquals(numOfFiles, numFilesCached);
   }
 
   @Test
@@ -97,7 +101,7 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     FileInStream is;
     ByteBuffer buf;
     int numOfFiles = 5;
-    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
+    int fileSize = WORKER_UNRESERVED_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
@@ -114,11 +118,15 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
 
-    for (int k = 1; k < numOfFiles; k++) {
-      URIStatus info = mFileSystem.getStatus(files.get(k));
-      Assert.assertTrue(info.getInAlluxioPercentage() == 100);
-    }
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+    int numFilesCached = 0;
+    for (int k = 0; k <= numOfFiles; k++) {
+      if (mFileSystem.getStatus(files.get(k)).getInAlluxioPercentage() == 100) {
+        numFilesCached++;
+      }
+    }
+    Assert.assertEquals(numOfFiles, numFilesCached);
     URIStatus info = mFileSystem.getStatus(files.get(numOfFiles));
     Assert.assertTrue(info.getInAlluxioPercentage() == 100);
   }
@@ -129,7 +137,7 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     FileInStream is;
     ByteBuffer buf;
     int numOfFiles = 5;
-    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
+    int fileSize = WORKER_UNRESERVED_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
@@ -149,12 +157,13 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    URIStatus info = mFileSystem.getStatus(files.get(0));
-    Assert.assertFalse(info.getInAlluxioPercentage() == 100);
-    for (int k = 1; k <= numOfFiles; k++) {
-      info = mFileSystem.getStatus(files.get(k));
-      Assert.assertTrue(info.getInAlluxioPercentage() == 100);
+    int numFilesCached = 0;
+    for (int k = 0; k <= numOfFiles; k++) {
+      if (mFileSystem.getStatus(files.get(k)).getInAlluxioPercentage() == 100) {
+        numFilesCached++;
+      }
     }
+    Assert.assertEquals(numOfFiles, numFilesCached);
   }
 
   @Test
@@ -163,7 +172,7 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     FileInStream is;
     ByteBuffer buf;
     int numOfFiles = 5;
-    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
+    int fileSize = WORKER_UNRESERVED_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
@@ -194,7 +203,7 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     FileInStream is;
     ByteBuffer buf;
     int numOfFiles = 5;
-    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
+    int fileSize = WORKER_UNRESERVED_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
@@ -229,7 +238,7 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     ByteBuffer buf1;
     ByteBuffer buf2;
     int numOfFiles = 5;
-    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
+    int fileSize = WORKER_UNRESERVED_BYTES / numOfFiles;
     List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);

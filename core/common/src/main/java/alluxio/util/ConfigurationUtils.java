@@ -472,7 +472,7 @@ public final class ConfigurationUtils {
       AlluxioConfiguration conf) throws AlluxioStatusException {
     GrpcChannel channel = null;
     try {
-      LOG.info("Alluxio client (version {}) is trying to load configuration from meta master {}",
+      LOG.debug("Alluxio client (version {}) is trying to load configuration from meta master {}",
           RuntimeConstants.VERSION, address);
       channel = GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf)
           .disableAuthentication().build();
@@ -483,11 +483,9 @@ public final class ConfigurationUtils {
       LOG.info("Alluxio client has loaded configuration from meta master {}", address);
       return response;
     } catch (io.grpc.StatusRuntimeException e) {
-      AlluxioStatusException ase = AlluxioStatusException.fromStatusRuntimeException(e);
-      LOG.warn("Failed to handshake with master {} : {}", address, ase.getMessage());
       throw new UnavailableException(String.format(
-          "Failed to handshake with master %s to load cluster default configuration values",
-          address), e);
+          "Failed to handshake with master %s to load cluster default configuration values: %s",
+          address, e.getMessage()), e);
     } catch (UnauthenticatedException e) {
       throw new RuntimeException(String.format(
           "Received authentication exception during boot-strap connect with host:%s", address),
