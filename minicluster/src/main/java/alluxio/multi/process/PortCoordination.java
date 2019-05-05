@@ -60,6 +60,8 @@ public class PortCoordination {
 
   public static final List<ReservedPort> CHECKPOINT = allocate(2, 0);
 
+  public static final List<ReservedPort> TRIGGERED_UFS_CHECKPOINT = allocate(1, 1);
+
   public static final List<ReservedPort> BACKWARDS_COMPATIBILITY = allocate(1, 1);
 
   private static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {

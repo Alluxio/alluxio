@@ -336,9 +336,9 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void checkpoint() throws IOException {
-    mSnapshotAllowed.set(true);
-    CopycatClient client = createAndConnectClient();
     try {
+      mSnapshotAllowed.set(true);
+      CopycatClient client = createAndConnectClient();
       long start = System.currentTimeMillis();
       LOG.info("Submitting empty journal entry to trigger snapshot");
       // If snapshot requirements are fulfilled, a snapshot will be triggered
