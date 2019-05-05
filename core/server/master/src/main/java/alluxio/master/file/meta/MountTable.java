@@ -39,7 +39,6 @@ import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
-import jdk.internal.jline.internal.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
