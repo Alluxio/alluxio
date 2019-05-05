@@ -1316,8 +1316,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_INODE_ENUMERATOR_THREAD_COUNT =
       new Builder(Name.MASTER_METASTORE_INODE_ENUMERATOR_THREAD_COUNT)
-          .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
-              "Use 2 * {CPU core count} for enumeration")
+          .setDefaultSupplier(() -> Math.max(1, Runtime.getRuntime().availableProcessors() / 2),
+              "Use {CPU core count} / 2 for enumeration")
           .setDescription("The number of threads used during inode tree enumeration.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
