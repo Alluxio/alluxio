@@ -20,7 +20,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.SettableFuture;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.slf4j.Logger;
@@ -30,15 +29,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
@@ -49,6 +53,8 @@ import java.util.regex.Pattern;
  */
 public class BackupManager {
   private static final Logger LOG = LoggerFactory.getLogger(BackupManager.class);
+  // Used to mark termination of reading/writing journal entries.
+  private final long mTerminationSequence = -1;
 
   /**
    * The name format of the backup files (E.g., alluxio-backup-2018-12-14-1544749081561.gz).
@@ -77,12 +83,12 @@ public class BackupManager {
     // Create gZIP compressed stream as back-up stream.
     GzipCompressorOutputStream zipStream = new GzipCompressorOutputStream(os);
 
-    // Executor for writing backup content.
-    ExecutorService backupWriterExecutor =
-        Executors.newSingleThreadExecutor(ThreadFactoryUtils.build("backup-writer-%d", true));
-    // Executor for reading master state.
-    ExecutorService backupMasterReaderExecutor = Executors
-        .newSingleThreadExecutor(ThreadFactoryUtils.build("backup-master-reader-%d", true));
+    // Executor for taking backup.
+    CompletionService<Boolean> completionService = new ExecutorCompletionService<>(
+        Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("master-backup-%d", true)));
+
+    // List of active tasks.
+    Set<Future<?>> activeTasks = new HashSet<>();
 
     // Entry queue will be used as a buffer and synchronization between readers and writer.
     // Use of {@link LinkedBlockingQueue} is preferred becaue of {@code #drainTo()} method,
@@ -94,107 +100,64 @@ public class BackupManager {
 
     // Shows how many entries have been written.
     AtomicLong writtenEntryCount = new AtomicLong(0);
+    // Whether buffering is still active.
+    AtomicBoolean bufferingActive = new AtomicBoolean(true);
 
-    // Futures for reader/writer tasks.
-    SettableFuture<Void> readerTaskFuture = SettableFuture.create();
-    SettableFuture<Void> writerTaskFuture = SettableFuture.create();
 
     // Submit master reader task.
-    backupMasterReaderExecutor.submit(() -> {
+    activeTasks.add(completionService.submit(() -> {
       try {
         for (Master master : mRegistry.getServers()) {
           Iterator<JournalEntry> it = master.getJournalEntryIterator();
-          if (it != null) {
-            while (!writerTaskFuture.isDone() && it.hasNext()) {
-              JournalEntry je = it.next();
-              // Try to push the entry as long as writer is alive.
-              while (!writerTaskFuture.isDone()) {
-                if (journalEntryQueue.offer(je, 100, TimeUnit.MILLISECONDS)) {
-                  break;
-                }
-              }
-            }
+          while (it.hasNext()) {
+            journalEntryQueue.put(it.next());
           }
         }
+        // Put termination entry for signaling the writer.
+        journalEntryQueue
+            .put(JournalEntry.newBuilder().setSequenceNumber(mTerminationSequence).build());
+        return true;
       } catch (InterruptedException ie) {
-        // Store exception.
-        readerTaskFuture.setException(ie);
-        // Continue interrupt chain.
         Thread.currentThread().interrupt();
         throw new RuntimeException("Thread interrupted while reading master state.", ie);
-      } catch (Exception exc) {
-        // Store exception.
-        readerTaskFuture.setException(exc);
       } finally {
-        readerTaskFuture.set(null);
+        // Signal reader completion.
+        bufferingActive.set(false);
       }
-    });
-    // Will shutdown as soon as the pending tasks are completed.
-    backupMasterReaderExecutor.shutdown();
+    }));
 
     // Submit writer task.
-    backupWriterExecutor.submit(() -> {
+    activeTasks.add(completionService.submit(() -> {
       try {
         List<JournalEntry> pendingEntries = new LinkedList<>();
-
-        while (!readerTaskFuture.isDone() || journalEntryQueue.size() > 0) {
+        while (bufferingActive.get() || journalEntryQueue.size() > 0) {
           // Drain pending entries.
-          pendingEntries.clear();
           if (0 == journalEntryQueue.drainTo(pendingEntries)) {
-            // No elements at the moment. Fall back to polling.
-            /**
-             * Need to poll with a timeout here because: Entries for a reader might be written
-             * already or it might not have an entry. In that case we will still go in here, without
-             * any future entry in the queue.
-             */
-            JournalEntry entry = journalEntryQueue.poll(100, TimeUnit.MILLISECONDS);
-            if (entry == null) {
-              // No entry yet.
-              continue;
-            }
-            pendingEntries.add(entry);
+            // No elements at the moment. Fall-back to blocking mode.
+            pendingEntries.add(journalEntryQueue.take());
           }
           // Write entries to back-up stream.
-          for (JournalEntry je : pendingEntries) {
-            je.writeDelimitedTo(zipStream);
+          for (JournalEntry journalEntry : pendingEntries) {
+            // Check for termination entry.
+            if (journalEntry.getSequenceNumber() == mTerminationSequence) {
+              // Reading finished.
+              return true;
+            }
+            journalEntry.writeDelimitedTo(zipStream);
             writtenEntryCount.incrementAndGet();
           }
           pendingEntries.clear();
         }
+        return true;
       } catch (InterruptedException ie) {
-        // Store exception.
-        writerTaskFuture.setException(ie);
         // Continue interrupt chain.
         Thread.currentThread().interrupt();
         throw new RuntimeException("Thread interrupted while writing to backup stream.", ie);
-      } catch (Exception exc) {
-        // Store exception.
-        writerTaskFuture.setException(exc);
-      } finally {
-        writerTaskFuture.set(null);
       }
-    });
-    // Will shutdown as soon as the pending tasks are completed.
-    backupWriterExecutor.shutdown();
+    }));
 
-    // Wait until backup is done.
-    try {
-      // Wait for master reader.
-      readerTaskFuture.get();
-      // Wait for backup writer.
-      writerTaskFuture.get();
-    } catch (InterruptedException ie) {
-      // Continue interrupt chain.
-      Thread.currentThread().interrupt();
-      throw new RuntimeException("Thread interrupted while waiting for backup threads.", ie);
-    } catch (ExecutionException ee) {
-      Throwable cause = ee.getCause();
-      if (cause instanceof IOException) {
-        throw (IOException) cause;
-      } else {
-        throw new IOException(cause);
-      }
-    }
+    // Wait until backup tasks are completed.
+    safeWaitTasks(activeTasks, completionService);
 
     // finish() instead of close() since close would close os, which is owned by the caller.
     zipStream.finish();
@@ -211,20 +174,19 @@ public class BackupManager {
         JournalEntryStreamReader reader = new JournalEntryStreamReader(gzIn)) {
       List<Master> masters = mRegistry.getServers();
 
-      // Executor for reading backup content.
-      ExecutorService backupReaderExecutor =
-          Executors.newSingleThreadExecutor(ThreadFactoryUtils.build("backup-reader-%d", true));
       // Executor for applying backup.
-      ExecutorService backupApplierExecutor =
-          Executors.newSingleThreadExecutor(ThreadFactoryUtils.build("backup-applier-%d", true));
+      CompletionService<Boolean> completionService = new ExecutorCompletionService<>(
+          Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("master-backup-%d", true)));
+
+      // List of active tasks.
+      Set<Future<?>> activeTasks = new HashSet<>();
 
       // Entry queue will be used as a buffer and synchronization between readers and appliers.
       LinkedBlockingQueue<JournalEntry> journalEntryQueue = new LinkedBlockingQueue<>(
           ServerConfiguration.getInt(PropertyKey.MASTER_BACKUP_ENTRY_BUFFER_COUNT));
 
-      // Futures for reader/writer tasks.
-      SettableFuture<Void> readerTaskFuture = SettableFuture.create();
-      SettableFuture<Void> applierTaskFuture = SettableFuture.create();
+      // Whether still reading from backup.
+      AtomicBoolean readingActive = new AtomicBoolean(true);
 
       // Index masters by name.
       Map<String, Master> mastersByName = Maps.uniqueIndex(masters, Master::getName);
@@ -233,38 +195,30 @@ public class BackupManager {
       AtomicLong appliedEntryCount = new AtomicLong(0);
 
       // Create backup reader task.
-      backupReaderExecutor.submit(() -> {
+      activeTasks.add(completionService.submit(() -> {
         try {
           JournalEntry entry;
-          while (!applierTaskFuture.isDone() && (entry = reader.readEntry()) != null) {
-            // Try to push the entry as long as applier is alive.
-            while (!applierTaskFuture.isDone()) {
-              if (journalEntryQueue.offer(entry, 100, TimeUnit.MILLISECONDS)) {
-                break;
-              }
-            }
+          while ((entry = reader.readEntry()) != null) {
+            journalEntryQueue.put(entry);
           }
+          // Put termination entry for signaling the applier.
+          journalEntryQueue
+              .put(JournalEntry.newBuilder().setSequenceNumber(mTerminationSequence).build());
+          return true;
         } catch (InterruptedException ie) {
-          // Store exception.
-          readerTaskFuture.setException(ie);
           // Continue interrupt chain.
           Thread.currentThread().interrupt();
           throw new RuntimeException("Thread interrupted while reading from backup stream.", ie);
-        } catch (Exception exc) {
-          // Store exception.
-          readerTaskFuture.setException(exc);
         } finally {
-          readerTaskFuture.set(null);
+          readingActive.set(false);
         }
-      });
-      // Will shutdown as soon as the pending tasks are completed.
-      backupReaderExecutor.shutdown();
+      }));
 
       // Create applier task.
-      backupApplierExecutor.submit(() -> {
+      activeTasks.add(completionService.submit(() -> {
         try {
           // Read entries from backup.
-          while (!readerTaskFuture.isDone() || journalEntryQueue.size() > 0) {
+          while (readingActive.get() || journalEntryQueue.size() > 0) {
             // Drain current elements.
             // Draining entries makes it possible to allow writes while current ones are
             // being applied.
@@ -289,6 +243,11 @@ public class BackupManager {
               }
               // Apply entries.
               for (JournalEntry entry : drainedEntries) {
+                // Check for termination entry.
+                if (entry.getSequenceNumber() == mTerminationSequence) {
+                  // Reading finished.
+                  return true;
+                }
                 Master master = mastersByName.get(JournalEntryAssociation.getMasterForEntry(entry));
                 master.applyAndJournal(masterJCMap.get(master), entry);
               }
@@ -300,33 +259,46 @@ public class BackupManager {
               }
             }
           }
+          return true;
         } catch (InterruptedException ie) {
-          // Store exception.
-          applierTaskFuture.setException(ie);
           // Continue interrupt chain.
           Thread.currentThread().interrupt();
           throw new RuntimeException("Thread interrupted while applying backup content.", ie);
-        } catch (Exception exc) {
-          // Store exception.
-          applierTaskFuture.setException(exc);
-        } finally {
-          applierTaskFuture.set(null);
         }
-      });
-      // Will shutdown as soon as the pending tasks are completed.
-      backupApplierExecutor.shutdown();
+      }));
 
-      // Wait until backup initialization is done.
+      // Wait until backup tasks are completed.
+      safeWaitTasks(activeTasks, completionService);
+
+      LOG.info("Restored {} entries from backup", appliedEntryCount.get());
+    }
+  }
+
+  /**
+   * Used to wait until given active tasks are completed or failed.
+   *
+   * @param activeTasks list of tasks
+   * @param completionService completion service used to launch tasks
+   * @throws IOException
+   */
+  private void safeWaitTasks(Set<Future<?>> activeTasks, CompletionService<?> completionService)
+      throws IOException {
+    // Wait until backup tasks are completed.
+    while (activeTasks.size() > 0) {
       try {
-        // Wait for backup reader.
-        readerTaskFuture.get();
-        // Wait for backup applier.
-        applierTaskFuture.get();
+        Future<?> resultFuture = completionService.take();
+        activeTasks.remove(resultFuture);
+        resultFuture.get();
       } catch (InterruptedException ie) {
+        // Cancel pending tasks.
+        activeTasks.forEach((future) -> future.cancel(true));
         // Continue interrupt chain.
         Thread.currentThread().interrupt();
         throw new RuntimeException("Thread interrupted while waiting for backup threads.", ie);
       } catch (ExecutionException ee) {
+        // Cancel pending tasks.
+        activeTasks.forEach((future) -> future.cancel(true));
+        // Throw.
         Throwable cause = ee.getCause();
         if (cause instanceof IOException) {
           throw (IOException) cause;
@@ -334,8 +306,6 @@ public class BackupManager {
           throw new IOException(cause);
         }
       }
-
-      LOG.info("Restored {} entries from backup", appliedEntryCount.get());
     }
   }
 }

@@ -45,7 +45,6 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.util.concurrent.SettableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,19 +55,24 @@ import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 /**
@@ -694,16 +698,19 @@ public class InodeTreePersistentState implements Journaled {
      */
     final class BufferedIterator implements Iterator<Journal.JournalEntry> {
 
+      // Used to signal end of iteration.
+      private final long mTerminationSequenceNumber = -1;
+
       /** Buffered entry queue. */
       BlockingQueue<JournalEntry> mEntryBuffer;
-      /** Iterator thread completion queue. */
-      BlockingQueue<Boolean> mCompletionQueue;
-      /** Future of entry buffering. */
-      private SettableFuture<Void> mBufferingCompleted;
-      /** Executor for coordinating thread. */
+      /** Whether buffering is still running. */
+      private AtomicBoolean mBufferingActive;
+      /** Completion service for crawlers. */
+      private CompletionService<Boolean> mCrawlerCompletionService;
+      /** Active crawlers. */
+      private Set<Future<?>> mActiveCrawlers;
+      /** Executor for the coordinating thread. */
       private ExecutorService mCoordinatorExecutor;
-      /** Executor for crawling threads. */
-      private ExecutorService mCrawlerExecutor;
       /** Directories for iterator threads to traverse. */
       private BlockingQueue<Inode> mDirectoriesToIterate;
       /** Used to keep the next element for the iteration. */
@@ -719,15 +726,14 @@ public class InodeTreePersistentState implements Journaled {
         // Create executors.
         mCoordinatorExecutor = Executors.newSingleThreadExecutor(
             ThreadFactoryUtils.build("inode-tree-crawler-coordinator-%d", true));
-        mCrawlerExecutor = Executors.newFixedThreadPool(iteratorThreadCount,
-            ThreadFactoryUtils.build("inode-tree-crawler-%d", true));
+        mCrawlerCompletionService =
+            new ExecutorCompletionService(Executors.newFixedThreadPool(iteratorThreadCount,
+                ThreadFactoryUtils.build("inode-tree-crawler-%d", true)));
+        // Used to keep futures of active crawlers.
+        mActiveCrawlers = new HashSet<>();
 
         // Using linked queue for fast insertion/removal from the queue.
         mEntryBuffer = new LinkedBlockingQueue<>(entryBufferSize);
-
-        // Used by enumeration threads to signal completion.
-        // There can be at most mIteratorThreadCount completion signals by executor design.
-        mCompletionQueue = new ArrayBlockingQueue(iteratorThreadCount);
 
         // Initialize directories to iterate.
         mDirectoriesToIterate = new LinkedBlockingQueue<>();
@@ -735,7 +741,7 @@ public class InodeTreePersistentState implements Journaled {
           mDirectoriesToIterate.add(getRoot());
         }
         // Start buffering entries by iteration.
-        mBufferingCompleted = SettableFuture.create();
+        mBufferingActive = new AtomicBoolean(true);
         startBuffering();
       }
 
@@ -747,7 +753,7 @@ public class InodeTreePersistentState implements Journaled {
         /**
          * Runnable class that is used to branch out on a dir inode.
          */
-        final class DirectoryCrawler implements Runnable {
+        final class DirectoryCrawler implements Callable<Boolean> {
           // Dir to branch out.
           private Inode mDirInode;
 
@@ -761,7 +767,7 @@ public class InodeTreePersistentState implements Journaled {
           }
 
           @Override
-          public void run() {
+          public Boolean call() throws Exception {
             try {
               // Buffer current dir as JournalEntry.
               mEntryBuffer.put(mDirInode.toJournalEntry());
@@ -783,20 +789,11 @@ public class InodeTreePersistentState implements Journaled {
                   throw new RuntimeException("Thread interrupted while enumerating a dir.");
                 }
               });
+              return true;
             } catch (InterruptedException ie) {
               // Continue interrupt chain.
               Thread.currentThread().interrupt();
               throw new RuntimeException("Thread interrupted while enumerating on a dir.");
-            } finally {
-              try {
-                // Signal completion
-                mCompletionQueue.put(true);
-              } catch (InterruptedException ie) {
-                // Continue interrupt chain.
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(
-                    "Thread interrupted while signaling completion for an enumeration.");
-              }
             }
           }
         }
@@ -804,29 +801,36 @@ public class InodeTreePersistentState implements Journaled {
         // Create coordinator task.
         mCoordinatorExecutor.submit(() -> {
           try {
-            AtomicInteger runningCrawlerCount = new AtomicInteger(0);
             // Loop as long as there is a dir to branch or there are active enumeration thread.
-            while (runningCrawlerCount.get() > 0 || !mDirectoriesToIterate.isEmpty()) {
-
+            while (mActiveCrawlers.size() > 0 || !mDirectoriesToIterate.isEmpty()) {
               if (!mDirectoriesToIterate.isEmpty()) {
                 // There is a dir to enumerate.
-                runningCrawlerCount.incrementAndGet();
-                mCrawlerExecutor.submit(new DirectoryCrawler(mDirectoriesToIterate.take()));
+                mActiveCrawlers.add(mCrawlerCompletionService
+                    .submit(new DirectoryCrawler(mDirectoriesToIterate.take())));
               } else {
                 // No dirs but there are active threads.
-                mCompletionQueue.take();
-                runningCrawlerCount.decrementAndGet();
+                Future<?> crawlerFuture = mCrawlerCompletionService.take();
+                mActiveCrawlers.remove(crawlerFuture);
+                crawlerFuture.get();
               }
             }
+            // Signal end of buffering.
+            mEntryBuffer.put(
+                JournalEntry.newBuilder().setSequenceNumber(mTerminationSequenceNumber).build());
           } catch (InterruptedException ie) {
+            // Cancel pending crawlers.
+            mActiveCrawlers.forEach((future) -> future.cancel(true));
             // Continue interrupt chain.
             Thread.currentThread().interrupt();
             throw new RuntimeException("Thread interrupted while waiting for enumeration threads.");
+          } catch (ExecutionException ee) {
+            // Cancel pending crawlers.
+            mActiveCrawlers.forEach((future) -> future.cancel(true));
+            LOG.error("InodeTree buffering stopped due to crawler thread failure: {}",
+                ee.getCause());
           } finally {
             // Signal completion of buffering.
-            mBufferingCompleted.set(null);
-            // Crawling completed.
-            mCrawlerExecutor.shutdown();
+            mBufferingActive.set(false);
           }
         });
         // Will be shutdown after current coordinator task is complete.
@@ -852,17 +856,26 @@ public class InodeTreePersistentState implements Journaled {
 
         // Continue until taking an entry or failing due to having no entry.
         while (true) {
-          if (mBufferingCompleted.isDone() && mEntryBuffer.size() == 0) {
+          if (!mBufferingActive.get() && mEntryBuffer.size() == 0) {
             return false;
           }
           try {
             // Poll for the next entry.
-            // Due to indeterminacy of hasNext() call, we poll here rather than block.
-            JournalEntry entry = mEntryBuffer.poll(100, TimeUnit.MILLISECONDS);
-            if (entry != null) {
-              mNextElement = entry;
-              return true;
+            JournalEntry entry = null;
+            while (mBufferingActive.get() || mEntryBuffer.size() > 0) {
+              // Poll in-case buffering is failed without proper termination.
+              entry = mEntryBuffer.poll(30, TimeUnit.SECONDS);
+              if (entry != null) {
+                break;
+              }
             }
+            // Check for termination.
+            if (entry == null || entry.getSequenceNumber() == mTerminationSequenceNumber) {
+              return false;
+            }
+            // Store entry.
+            mNextElement = entry;
+            return true;
           } catch (InterruptedException ie) {
             // Continue interrupt chain.
             Thread.currentThread().interrupt();
