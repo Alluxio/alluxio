@@ -3306,7 +3306,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey INTEGRATION_MESOS_ALLUXIO_JAR_URL =
       new Builder(Name.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
           .setDefaultValue(String.format(
-              "http://downloads.alluxio.org/downloads/files/${%s}/alluxio-${%s}-bin.tar.gz",
+              "http://downloads.alluxio.io/downloads/files/${%s}/alluxio-${%s}-bin.tar.gz",
               Name.VERSION, Name.VERSION))
           .setDescription("Url to download an Alluxio distribution from during Mesos deployment.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)

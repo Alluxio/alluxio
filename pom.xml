@@ -18,7 +18,7 @@
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
-  <url>http://alluxio.org/</url>
+  <url>http://alluxio.io/</url>
   <licenses>
     <license>
       <name>Apache License</name>
@@ -39,7 +39,7 @@
       <email>haoyuan@alluxio.com</email>
       <url>http://www.cs.berkeley.edu/~haoyuan</url>
       <organization>Alluxio Open Foundation</organization>
-      <organizationUrl>http://alluxio.org/</organizationUrl>
+      <organizationUrl>https://alluxio.io/</organizationUrl>
     </developer>
   </developers>
   <issueManagement>

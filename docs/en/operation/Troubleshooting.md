@@ -13,7 +13,7 @@ This page is a collection of high-level guides and tips regarding how to diagnos
 Alluxio.
 
 Note: this doc is not intended to be the full list of Alluxio questions.
-Join the [Alluxio community Slack Channel](https://www.alluxio.org/slack) to chat with users and
+Join the [Alluxio community Slack Channel](https://www.alluxio.io/slack) to chat with users and
 developers, or post questions on the [Alluxio Mailing List](https://groups.google.com/forum/#!forum/alluxio-users).
 
 ## Where are the Alluxio logs?

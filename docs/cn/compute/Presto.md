@@ -21,7 +21,7 @@ priority: 2
   本指南基于`presto-0.208`测试。
 * 已经安装并运行 Alluxio。
 * 确保 Alluxio 客户端 jar 包是可用的。
-  在从 Alluxio [下载页面](http://www.alluxio.org/download)下载的压缩包的`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中，可以找到 Alluxio 客户端 jar 包。
+  在从 Alluxio [下载页面](http://www.alluxio.io/download)下载的压缩包的`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中，可以找到 Alluxio 客户端 jar 包。
 * 确保 Hive metastore 正在运行以提供 Hive 表的元数据信息。
 
 ## 基础设置
