@@ -178,7 +178,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
         || !status.getDefaultAcl().isEmpty();
 
     System.out.print(formatLsString(hSize,
-        SecurityUtils.isSecurityEnabled(mFsContext.getPathConf(new AlluxioURI(status.getPath()))),
+        SecurityUtils.isSecurityEnabled(mFsContext.getClusterConf()),
         status.isFolder(),
         FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended),
         status.getOwner(), status.getGroup(), status.getLength(),
