@@ -38,13 +38,13 @@ public final class HttpUtils {
   /**
    * Uses the post method to send a url with arguments by http, this method can call RESTful Api.
    *
-   * @param url                the http url
-   * @param timeout            milliseconds to wait for the server to respond before giving up
+   * @param url the http url
+   * @param timeout milliseconds to wait for the server to respond before giving up
    * @param processInputStream the response body stream processor
    */
   public static void post(String url, Integer timeout,
                           IProcessInputStream processInputStream)
-        throws IOException {
+      throws IOException {
     Preconditions.checkNotNull(timeout, "timeout");
     Preconditions.checkNotNull(processInputStream, "processInputStream");
     PostMethod postMethod = new PostMethod(url);
@@ -67,22 +67,19 @@ public final class HttpUtils {
   /**
    * Uses the post method to send a url with arguments by http, this method can call RESTful Api.
    *
-   * @param url     the http url
+   * @param url the http url
    * @param timeout milliseconds to wait for the server to respond before giving up
    * @return the response body stream as UTF-8 string if response status is OK or CREATED
    */
   public static String post(String url, Integer timeout)
-        throws IOException {
+      throws IOException {
     final StringBuilder contentBuffer = new StringBuilder();
-    post(url, timeout, new IProcessInputStream() {
-      @Override
-      public void process(InputStream inputStream) throws IOException {
-        try (BufferedReader br = new BufferedReader(
-              new InputStreamReader(inputStream, "UTF-8"))) {
-          String line;
-          while ((line = br.readLine()) != null) {
-            contentBuffer.append(line);
-          }
+    post(url, timeout, inputStream -> {
+      try (BufferedReader br = new BufferedReader(
+          new InputStreamReader(inputStream, "UTF-8"))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+          contentBuffer.append(line);
         }
       }
     });
@@ -152,6 +149,15 @@ public final class HttpUtils {
     Preconditions.checkNotNull(url, "url");
     Preconditions.checkNotNull(timeout, "timeout");
     final StringBuilder contentBuffer = new StringBuilder();
+    get(url, timeout, inputStream -> {
+      try (BufferedReader br = new BufferedReader(
+          new InputStreamReader(inputStream, "UTF-8"))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+          contentBuffer.append(line);
+        }
+      }
+    });
     get(url, timeout, new IProcessInputStream() {
       @Override
       public void process(InputStream inputStream) throws IOException {
