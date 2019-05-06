@@ -57,6 +57,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -715,7 +716,7 @@ public class InodeTreePersistentState implements Journaled {
       /** Directories for iterator threads to traverse. */
       private BlockingQueue<Inode> mDirectoriesToIterate;
       /** Used to keep the next element for the iteration. */
-      private JournalEntry mNextElement;
+      private LinkedList<JournalEntry> mNextElements;
       /** For storing iteration failure. */
       private AtomicReference<Throwable> mBufferingFailure;
 
@@ -745,7 +746,7 @@ public class InodeTreePersistentState implements Journaled {
         }
 
         // Initialize iteration buffers.
-        mNextElement = null;
+        mNextElements = new LinkedList<>();
         mBufferingFailure = new AtomicReference<>();
 
         // Start buffering entries by iteration.
@@ -857,15 +858,21 @@ public class InodeTreePersistentState implements Journaled {
          * until an entry is retrieved or buffering is completed with no entries.
          */
 
-        // Return {@code true} if there has been a buffering failure.
-        // next() will throw it.
-        if(mBufferingFailure.get() != null) {
-          return true;
+        // Throw for buffering failure.
+        if (mBufferingFailure.get() != null) {
+          throw new RuntimeException(mBufferingFailure.get());
         }
 
-        if (mNextElement != null) {
-          // hasNext() has been called before and cached this entry.
-          // next() hasn't been called yet.
+        // Check for termination entry.
+        // This assumes the termination entry will be enqueued the last.
+        if (mNextElements.size() == 1
+            && mNextElements.peekFirst().getSequenceNumber() == mTerminationSequenceNumber) {
+          return false;
+        }
+
+        if (mNextElements.size() > 0) {
+          // hasNext() has been called before and cached some elements.
+          // next() can return the next element.
           return true;
         }
 
@@ -875,22 +882,26 @@ public class InodeTreePersistentState implements Journaled {
             return false;
           }
           try {
-            // Poll for the next entry.
-            JournalEntry entry = null;
-            while (mBufferingActive.get() || mEntryBuffer.size() > 0) {
-              // Poll in-case buffering is failed without proper termination.
-              entry = mEntryBuffer.poll(30, TimeUnit.SECONDS);
-              if (entry != null) {
-                break;
+            // Drain existing elements.
+            if (0 == mEntryBuffer.drainTo(mNextElements)) {
+              // Fall back to polling.
+              JournalEntry entry;
+              while (mBufferingActive.get() || mEntryBuffer.size() > 0) {
+                // Poll in-case buffering is failed without proper termination.
+                entry = mEntryBuffer.poll(30, TimeUnit.SECONDS);
+                if (entry != null) {
+                  mNextElements.addLast(entry);
+                  break;
+                }
               }
             }
-            // Check for termination.
-            if (entry == null || entry.getSequenceNumber() == mTerminationSequenceNumber) {
-              return false;
+            // Return true if there are more entries,
+            // unless there is only a single termination entry.
+            if (mNextElements.size() == 1) {
+              return mNextElements.peekLast().getSequenceNumber() != mTerminationSequenceNumber;
+            } else {
+              return mNextElements.size() > 0;
             }
-            // Store entry.
-            mNextElement = entry;
-            return true;
           } catch (InterruptedException ie) {
             // Continue interrupt chain.
             Thread.currentThread().interrupt();
@@ -901,16 +912,12 @@ public class InodeTreePersistentState implements Journaled {
 
       @Override
       public Journal.JournalEntry next() {
-        // Throw for buffering failure.
-        if(mBufferingFailure.get() != null) {
-          throw new RuntimeException(mBufferingFailure.get());
-        }
-        if (mNextElement == null) {
+        if (mNextElements.size() == 0) {
           // It's either:
           // -> next() has been called without a preceding hasNext().
           // -> there is no next entry.
           //
-          // Call hasNext() to understand which one of above conditions is true.
+          // Call hasNext() to understand which one of the above is true.
           //
           if (!hasNext()) {
             throw new NoSuchElementException();
@@ -918,10 +925,8 @@ public class InodeTreePersistentState implements Journaled {
           // hasNext() has been called before and stored the next element.
           // Return and reset state for the next item.
         }
-        // Return and reset the next element.
-        JournalEntry returningElement = mNextElement;
-        mNextElement = null;
-        return returningElement;
+        // Return next element.
+        return mNextElements.removeFirst();
       }
 
       @Override
