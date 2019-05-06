@@ -34,8 +34,6 @@ import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
-import alluxio.exception.status.UnauthenticatedException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -168,8 +166,6 @@ public class BaseFileSystem implements FileSystem {
       throw new FileAlreadyExistsException(e.getMessage());
     } catch (InvalidArgumentException e) {
       throw new InvalidPathException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -207,8 +203,6 @@ public class BaseFileSystem implements FileSystem {
       throw new FileAlreadyExistsException(e.getMessage());
     } catch (InvalidArgumentException e) {
       throw new InvalidPathException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -237,8 +231,6 @@ public class BaseFileSystem implements FileSystem {
       throw new DirectoryNotEmptyException(e.getMessage());
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -266,8 +258,6 @@ public class BaseFileSystem implements FileSystem {
       // The server will throw InvalidArgumentException this when a prefix of the path is a file.
       // TODO(andrew): Change the server so that a prefix being a file means the path does not exist
       return false;
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -293,8 +283,6 @@ public class BaseFileSystem implements FileSystem {
       });
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -361,8 +349,6 @@ public class BaseFileSystem implements FileSystem {
       });
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-    } catch (UnavailableException | UnauthenticatedException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -387,8 +373,6 @@ public class BaseFileSystem implements FileSystem {
       });
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -413,8 +397,6 @@ public class BaseFileSystem implements FileSystem {
         LOG.info("Mount " + ufsPath.toString() + " to " + alluxioPath.getPath());
         return null;
       });
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -424,8 +406,6 @@ public class BaseFileSystem implements FileSystem {
   public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
     try {
       return rpc(FileSystemMasterClient::getMountTable);
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -435,8 +415,6 @@ public class BaseFileSystem implements FileSystem {
   public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
     try {
       return rpc(FileSystemMasterClient::getSyncPathList);
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -514,8 +492,6 @@ public class BaseFileSystem implements FileSystem {
       });
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -542,8 +518,6 @@ public class BaseFileSystem implements FileSystem {
       });
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -567,8 +541,6 @@ public class BaseFileSystem implements FileSystem {
       });
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -590,8 +562,6 @@ public class BaseFileSystem implements FileSystem {
       });
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -612,8 +582,6 @@ public class BaseFileSystem implements FileSystem {
       });
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
@@ -636,8 +604,6 @@ public class BaseFileSystem implements FileSystem {
         LOG.debug("Unmounted {}, options: {}", path.getPath(), mergedOptions);
         return null;
       });
-    } catch (UnavailableException e) {
-      throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
     }
