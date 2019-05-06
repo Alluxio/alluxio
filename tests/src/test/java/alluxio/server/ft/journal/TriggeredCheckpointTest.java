@@ -47,32 +47,19 @@ public class TriggeredCheckpointTest {
     cluster.start();
     try {
       cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
+
+      // Get enough journal entries
+      createFiles(cluster, numFiles);
+
+      // Trigger checkpoint
+      Assert.assertEquals(cluster.getMasterAddresses().get(0).getHostname(),
+          cluster.getMetaMasterClient().checkpoint());
       String journalLocation = cluster.getJournalDir();
       UfsJournal ufsJournal = new UfsJournal(URIUtils.appendPathOrDie(new URI(journalLocation),
           Constants.FILE_SYSTEM_MASTER_NAME), new NoopMaster(""), 0);
-
-      // Creates journal entries
-      FileSystem fs = cluster.getFileSystemClient();
-      for (int i = 0; i < numFiles; i++) {
-        fs.createFile(new AlluxioURI("/file" + i)).close();
-      }
-      MetaMasterClient meta = cluster.getMetaMasterClient();
-      assertEquals(numFiles + 1,
-          meta.getMetrics().get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
-
-      // Triggers checkpoint
-      Assert.assertEquals(cluster.getMasterAddresses().get(0).getHostname(), meta.checkpoint());
       Assert.assertEquals(1, UfsJournalSnapshot.getSnapshot(ufsJournal).getCheckpoints().size());
 
-      // Restart masters to validate the created checkpoint is valid
-      cluster.stopMasters();
-      cluster.startMasters();
-      cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
-      fs = cluster.getFileSystemClient();
-      assertEquals(100, fs.listStatus(new AlluxioURI("/")).size());
-      meta = cluster.getMetaMasterClient();
-      assertEquals(101,
-          meta.getMetrics().get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
+      validateCheckpointInClusterRestart(cluster);
       cluster.notifySuccess();
     } finally {
       cluster.destroy();
@@ -81,7 +68,6 @@ public class TriggeredCheckpointTest {
 
   @Test
   public void embeddedJournal() throws Exception {
-    int numFiles = 100;
     MultiProcessCluster cluster = MultiProcessCluster
         .newBuilder(PortCoordination.TRIGGERED_EMBEDDED_CHECKPOINT)
         .setClusterName("TriggeredEmbeddedCheckpointTest")
@@ -94,30 +80,49 @@ public class TriggeredCheckpointTest {
     try {
       cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
 
-      // Creates journal entries
-      FileSystem fs = cluster.getFileSystemClient();
-      for (int i = 0; i < numFiles; i++) {
-        fs.createFile(new AlluxioURI("/file" + i)).close();
-      }
-      MetaMasterClient meta = cluster.getMetaMasterClient();
-      assertEquals(numFiles + 1,
-          meta.getMetrics().get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
+      // Get enough journal entries
+      createFiles(cluster, 100);
 
-      // Triggers checkpoint and check if checkpoint exists
-      Assert.assertEquals(cluster.getMasterAddresses().get(0).getHostname(), meta.checkpoint());
+      // Trigger checkpoint and check if checkpoint exists
+      Assert.assertEquals(cluster.getMasterAddresses().get(0).getHostname(),
+          cluster.getMetaMasterClient().checkpoint());
 
-      // Restart masters to validate the created checkpoint is valid
-      cluster.stopMasters();
-      cluster.startMasters();
-      cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
-      fs = cluster.getFileSystemClient();
-      assertEquals(100, fs.listStatus(new AlluxioURI("/")).size());
-      meta = cluster.getMetaMasterClient();
-      assertEquals(101,
-          meta.getMetrics().get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
+      validateCheckpointInClusterRestart(cluster);
       cluster.notifySuccess();
     } finally {
       cluster.destroy();
     }
+  }
+
+  /**
+   * Creates files in the cluster.
+   *
+   * @param cluster the cluster inside which to create files
+   * @param numFiles num of files to create
+   */
+  private void createFiles(MultiProcessCluster cluster, int numFiles)
+      throws Exception {
+    FileSystem fs = cluster.getFileSystemClient();
+    for (int i = 0; i < numFiles; i++) {
+      fs.createFile(new AlluxioURI("/file" + i)).close();
+    }
+    MetaMasterClient meta = cluster.getMetaMasterClient();
+    assertEquals(numFiles + 1,
+        meta.getMetrics().get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
+  }
+
+  /**
+   * Validates checkpoint by restarting the cluster.
+   *
+   * @param cluster the cluster to restart
+   */
+  private void validateCheckpointInClusterRestart(MultiProcessCluster cluster)
+      throws Exception {
+    cluster.stopMasters();
+    cluster.startMasters();
+    cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
+    assertEquals(100, cluster.getFileSystemClient().listStatus(new AlluxioURI("/")).size());
+    assertEquals(101, cluster.getMetaMasterClient().getMetrics()
+        .get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
   }
 }

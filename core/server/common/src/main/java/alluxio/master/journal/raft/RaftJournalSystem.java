@@ -341,8 +341,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       CopycatClient client = createAndConnectClient();
       long start = System.currentTimeMillis();
       LOG.info("Submitting empty journal entry to trigger snapshot");
-      // New snapshot requires new segments
-      // (defined by {@link PropertyKey#MASTER_JOURNAL_LOG_SIZE_BYTES_MAX}) in embedded journal.
+      // New snapshot requires new segments (segment size is controlled by
+      // {@link PropertyKey#MASTER_JOURNAL_LOG_SIZE_BYTES_MAX}).
       // If snapshot requirements are fulfilled, a snapshot will be triggered
       // after sending an empty journal entry to Copycat
       CompletableFuture<Void> future = client.submit(new JournalEntryCommand(
