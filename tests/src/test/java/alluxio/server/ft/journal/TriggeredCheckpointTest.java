@@ -60,9 +60,51 @@ public class TriggeredCheckpointTest {
       assertEquals(numFiles + 1,
           meta.getMetrics().get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
 
-      // Triggers checkpoint and check if checkpoint exists
+      // Triggers checkpoint
       Assert.assertEquals(cluster.getMasterAddresses().get(0).getHostname(), meta.checkpoint());
       Assert.assertEquals(1, UfsJournalSnapshot.getSnapshot(ufsJournal).getCheckpoints().size());
+
+      // Restart masters to validate the created checkpoint is valid
+      cluster.stopMasters();
+      cluster.startMasters();
+      cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
+      fs = cluster.getFileSystemClient();
+      assertEquals(100, fs.listStatus(new AlluxioURI("/")).size());
+      meta = cluster.getMetaMasterClient();
+      assertEquals(101,
+          meta.getMetrics().get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
+      cluster.notifySuccess();
+    } finally {
+      cluster.destroy();
+    }
+  }
+
+  @Test
+  public void embeddedJournal() throws Exception {
+    int numFiles = 100;
+    MultiProcessCluster cluster = MultiProcessCluster
+        .newBuilder(PortCoordination.TRIGGERED_EMBEDDED_CHECKPOINT)
+        .setClusterName("TriggeredEmbeddedCheckpointTest")
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, String.valueOf(Constants.KB))
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .build();
+    cluster.start();
+    try {
+      cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
+
+      // Creates journal entries
+      FileSystem fs = cluster.getFileSystemClient();
+      for (int i = 0; i < numFiles; i++) {
+        fs.createFile(new AlluxioURI("/file" + i)).close();
+      }
+      MetaMasterClient meta = cluster.getMetaMasterClient();
+      assertEquals(numFiles + 1,
+          meta.getMetrics().get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
+
+      // Triggers checkpoint and check if checkpoint exists
+      Assert.assertEquals(cluster.getMasterAddresses().get(0).getHostname(), meta.checkpoint());
 
       // Restart masters to validate the created checkpoint is valid
       cluster.stopMasters();
