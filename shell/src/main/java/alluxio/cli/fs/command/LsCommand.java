@@ -19,6 +19,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.util.CommonUtils;
@@ -172,7 +173,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
     }
   }
 
-  private void printLsString(URIStatus status, boolean hSize) {
+  private void printLsString(URIStatus status, boolean hSize) throws UnavailableException {
     // detect the extended acls
     boolean hasExtended = status.getAcl().hasExtended()
         || !status.getDefaultAcl().isEmpty();

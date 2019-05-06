@@ -363,12 +363,13 @@ public final class FileSystemContext implements Closeable {
    *
    * @param path the path to get the configuration for
    * @return the path level configuration for the specific path
+   * @throws UnavailableException when failed to load path level configuration from meta master
    */
-  public AlluxioConfiguration getPathConf(AlluxioURI path) {
+  public AlluxioConfiguration getPathConf(AlluxioURI path) throws UnavailableException {
     try {
       mClientContext.loadPathConfIfNotLoaded(getMasterAddress());
     } catch (AlluxioStatusException e) {
-      throw new RuntimeException("Failed to load path level configuration from meta master", e);
+      throw new UnavailableException("Failed to load path level configuration from meta master", e);
     }
     return new SpecificPathConfiguration(mClientContext.getClusterConf(),
         mClientContext.getPathConf(), path);
