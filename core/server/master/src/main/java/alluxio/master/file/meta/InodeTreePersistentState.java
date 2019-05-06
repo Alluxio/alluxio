@@ -73,6 +73,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 /**
@@ -715,11 +716,13 @@ public class InodeTreePersistentState implements Journaled {
       private BlockingQueue<Inode> mDirectoriesToIterate;
       /** Used to keep the next element for the iteration. */
       private JournalEntry mNextElement;
+      /** For storing iteration failure. */
+      private AtomicReference<Throwable> mBufferingFailure;
 
       public BufferedIterator() {
         // Initialize configuration values.
         int iteratorThreadCount =
-            ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ENUMERATOR_THREAD_COUNT);
+            ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT);
         int entryBufferSize =
             ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT);
 
@@ -740,6 +743,11 @@ public class InodeTreePersistentState implements Journaled {
         if (getRoot() != null) {
           mDirectoriesToIterate.add(getRoot());
         }
+
+        // Initialize iteration buffers.
+        mNextElement = null;
+        mBufferingFailure = new AtomicReference<>();
+
         // Start buffering entries by iteration.
         mBufferingActive = new AtomicBoolean(true);
         startBuffering();
@@ -826,8 +834,9 @@ public class InodeTreePersistentState implements Journaled {
           } catch (ExecutionException ee) {
             // Cancel pending crawlers.
             mActiveCrawlers.forEach((future) -> future.cancel(true));
-            LOG.error("InodeTree buffering stopped due to crawler thread failure: {}",
+            LOG.error("InodeTree buffering stopped due to crawler thread failure.",
                 ee.getCause());
+            mBufferingFailure.set(ee.getCause());
           } finally {
             // Signal completion of buffering.
             mBufferingActive.set(false);
@@ -847,6 +856,12 @@ public class InodeTreePersistentState implements Journaled {
          * Fetching an item from buffering requires synchronization, so this call is blocked
          * until an entry is retrieved or buffering is completed with no entries.
          */
+
+        // Return {@code true} if there has been a buffering failure.
+        // next() will throw it.
+        if(mBufferingFailure.get() != null) {
+          return true;
+        }
 
         if (mNextElement != null) {
           // hasNext() has been called before and cached this entry.
@@ -886,6 +901,10 @@ public class InodeTreePersistentState implements Journaled {
 
       @Override
       public Journal.JournalEntry next() {
+        // Throw for buffering failure.
+        if(mBufferingFailure.get() != null) {
+          throw new RuntimeException(mBufferingFailure.get());
+        }
         if (mNextElement == null) {
           // It's either:
           // -> next() has been called without a preceding hasNext().

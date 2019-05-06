@@ -103,7 +103,6 @@ public class BackupManager {
     // Whether buffering is still active.
     AtomicBoolean bufferingActive = new AtomicBoolean(true);
 
-
     // Submit master reader task.
     activeTasks.add(completionService.submit(() -> {
       try {

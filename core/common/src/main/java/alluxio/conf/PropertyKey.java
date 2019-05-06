@@ -1314,10 +1314,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_METASTORE_INODE_ENUMERATOR_THREAD_COUNT =
-      new Builder(Name.MASTER_METASTORE_INODE_ENUMERATOR_THREAD_COUNT)
-          .setDefaultSupplier(() -> Math.max(1, Runtime.getRuntime().availableProcessors() / 2),
-              "Use {CPU core count} / 2 for enumeration")
+  public static final PropertyKey MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT =
+      new Builder(Name.MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT)
+          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+              "Use {CPU core count} for enumeration")
           .setDescription("The number of threads used during inode tree enumeration.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -3904,8 +3904,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.cache.low.water.mark.ratio";
     public static final String MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
         "alluxio.master.metastore.inode.cache.max.size";
-    public static final String MASTER_METASTORE_INODE_ENUMERATOR_THREAD_COUNT =
-        "alluxio.master.metastore.inode.enumerator.thread.count";
+    public static final String MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT =
+        "alluxio.master.metastore.inode.iteration.crawler.count";
     public static final String MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT =
         "alluxio.master.metastore.inode.enumerator.buffer.count";
     public static final String MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
