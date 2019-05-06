@@ -164,9 +164,7 @@ public abstract class AbstractClient implements Client {
       throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
-      if (!mContext.getClusterConf().clusterDefaultsLoaded()) {
-        mContext.updateClusterConf(mAddress);
-      }
+      mContext.loadConfIfNotLoaded(mAddress);
     }
   }
 

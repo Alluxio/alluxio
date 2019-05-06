@@ -664,6 +664,8 @@ public class BaseFileSystem implements FileSystem {
   private <R> R rpc(Function<FileSystemMasterClient, R> fn) throws IOException, AlluxioException {
     mFsContext.blockReinit();
     FileSystemMasterClient client = mFsContext.acquireMasterClient();
+    // Lazily loads configurations from meta master during the initial connection establishment.
+    client.connect();
     try {
       return fn.accept(client);
     } finally {

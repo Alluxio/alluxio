@@ -30,7 +30,6 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.TestLoggerRule;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -95,11 +94,7 @@ public final class BaseFileSystemTest {
     when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     when(mFileContext.getClientContext()).thenReturn(mClientContext);
     when(mFileContext.getClusterConf()).thenReturn(mConf);
-    try {
-      when(mFileContext.getPathConf(any())).thenReturn(mConf);
-    } catch (UnavailableException e) {
-      throw new RuntimeException(e);
-    }
+    when(mFileContext.getPathConf(any())).thenReturn(mConf);
     mFileSystem = new DummyAlluxioFileSystem(mFileContext);
   }
 

@@ -22,7 +22,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
@@ -363,14 +362,8 @@ public final class FileSystemContext implements Closeable {
    *
    * @param path the path to get the configuration for
    * @return the path level configuration for the specific path
-   * @throws UnavailableException when failed to load path level configuration from meta master
    */
-  public AlluxioConfiguration getPathConf(AlluxioURI path) throws UnavailableException {
-    try {
-      mClientContext.loadPathConfIfNotLoaded(getMasterAddress());
-    } catch (AlluxioStatusException e) {
-      throw new UnavailableException("Failed to load path level configuration from meta master", e);
-    }
+  public AlluxioConfiguration getPathConf(AlluxioURI path) {
     return new SpecificPathConfiguration(mClientContext.getClusterConf(),
         mClientContext.getPathConf(), path);
   }

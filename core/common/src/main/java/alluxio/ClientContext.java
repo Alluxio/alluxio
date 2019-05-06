@@ -142,9 +142,7 @@ public class ClientContext {
       throws AlluxioStatusException {
     GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
         mClusterConf, false, true);
-    AlluxioConfiguration clusterConf = ConfigurationUtils.getClusterConf(response, mClusterConf);
-
-    mClusterConf = clusterConf;
+    mClusterConf = ConfigurationUtils.getClusterConf(response, mClusterConf);
     mClusterConfHash = response.getClusterConfigHash();
   }
 
@@ -158,23 +156,34 @@ public class ClientContext {
       throws AlluxioStatusException {
     GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
         mClusterConf, true, false);
-    PathConfiguration pathConf = ConfigurationUtils.getPathConf(response, mClusterConf);
-
-    mPathConf = pathConf;
+    mPathConf = ConfigurationUtils.getPathConf(response, mClusterConf);
     mPathConfHash = response.getPathConfigHash();
     mIsPathConfLoaded = true;
   }
 
   /**
-   * Loads path level configuration if not loaded from meta master yet.
+   * Loads configuration if not loaded from meta master yet.
    *
    * @param address meta master address
    * @throws AlluxioStatusException
    */
-  public synchronized void loadPathConfIfNotLoaded(InetSocketAddress address)
+  public synchronized void loadConfIfNotLoaded(InetSocketAddress address)
       throws AlluxioStatusException {
-    if (!mIsPathConfLoaded) {
-      updatePathConf(address);
+    boolean clusterConfLoaded = mClusterConf.clusterDefaultsLoaded();
+    boolean pathConfLoaded = mIsPathConfLoaded;
+    if (clusterConfLoaded && pathConfLoaded) {
+      return;
+    }
+    AlluxioConfiguration conf = mClusterConf;
+    GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address, conf,
+        clusterConfLoaded, pathConfLoaded);
+    if (!clusterConfLoaded) {
+      mClusterConf = ConfigurationUtils.getClusterConf(response, conf);
+      mClusterConfHash = response.getClusterConfigHash();
+    }
+    if (!pathConfLoaded) {
+      mPathConf = ConfigurationUtils.getPathConf(response, conf);
+      mPathConfHash = response.getPathConfigHash();
       mIsPathConfLoaded = true;
     }
   }
