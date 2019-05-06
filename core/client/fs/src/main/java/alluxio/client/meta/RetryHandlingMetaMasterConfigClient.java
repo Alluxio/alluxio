@@ -72,9 +72,9 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   }
 
   @Override
-  public Configuration getConfiguration() throws IOException {
+  public Configuration getConfiguration(GetConfigurationPOptions options) throws IOException {
     return Configuration.fromProto(retryRPC(() ->
-        mClient.getConfiguration(GetConfigurationPOptions.getDefaultInstance())));
+        mClient.getConfiguration(options)));
   }
 
   @Override
