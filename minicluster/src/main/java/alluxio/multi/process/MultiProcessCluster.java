@@ -271,10 +271,9 @@ public final class MultiProcessCluster {
         // Make sure the leader is serving.
         fs.getStatus(new AlluxioURI("/"));
         return true;
-      } catch (UnavailableException e) {
-        return false;
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        LOG.error("Failed to get status of root directory:", e);
+        return false;
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     int primaryRpcPort;
