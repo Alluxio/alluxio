@@ -701,7 +701,7 @@ public class InodeTreePersistentState implements Journaled {
     final class BufferedIterator implements Iterator<Journal.JournalEntry> {
 
       // Used to signal end of iteration.
-      private final long mTerminationSequenceNumber = -1;
+      private static final long TERMINATION_SEQ = -1;
 
       /** Buffered entry queue. */
       BlockingQueue<JournalEntry> mEntryBuffer;
@@ -825,7 +825,7 @@ public class InodeTreePersistentState implements Journaled {
             }
             // Signal end of buffering.
             mEntryBuffer.put(
-                JournalEntry.newBuilder().setSequenceNumber(mTerminationSequenceNumber).build());
+                JournalEntry.newBuilder().setSequenceNumber(TERMINATION_SEQ).build());
           } catch (InterruptedException ie) {
             // Cancel pending crawlers.
             mActiveCrawlers.forEach((future) -> future.cancel(true));
@@ -866,7 +866,7 @@ public class InodeTreePersistentState implements Journaled {
         // Check for termination entry.
         // This assumes the termination entry will be enqueued the last.
         if (mNextElements.size() == 1
-            && mNextElements.peekFirst().getSequenceNumber() == mTerminationSequenceNumber) {
+            && mNextElements.peekFirst().getSequenceNumber() == TERMINATION_SEQ) {
           return false;
         }
 
@@ -898,7 +898,7 @@ public class InodeTreePersistentState implements Journaled {
             // Return true if there are more entries,
             // unless there is only a single termination entry.
             if (mNextElements.size() == 1) {
-              return mNextElements.peekLast().getSequenceNumber() != mTerminationSequenceNumber;
+              return mNextElements.peekLast().getSequenceNumber() != TERMINATION_SEQ;
             } else {
               return mNextElements.size() > 0;
             }

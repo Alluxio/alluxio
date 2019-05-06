@@ -54,7 +54,7 @@ import java.util.regex.Pattern;
 public class BackupManager {
   private static final Logger LOG = LoggerFactory.getLogger(BackupManager.class);
   // Used to mark termination of reading/writing journal entries.
-  private final long mTerminationSequence = -1;
+  private static final long TERMINATION_SEQ = -1;
 
   /**
    * The name format of the backup files (E.g., alluxio-backup-2018-12-14-1544749081561.gz).
@@ -114,7 +114,7 @@ public class BackupManager {
         }
         // Put termination entry for signaling the writer.
         journalEntryQueue
-            .put(JournalEntry.newBuilder().setSequenceNumber(mTerminationSequence).build());
+            .put(JournalEntry.newBuilder().setSequenceNumber(TERMINATION_SEQ).build());
         return true;
       } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();
@@ -138,7 +138,7 @@ public class BackupManager {
           // Write entries to back-up stream.
           for (JournalEntry journalEntry : pendingEntries) {
             // Check for termination entry.
-            if (journalEntry.getSequenceNumber() == mTerminationSequence) {
+            if (journalEntry.getSequenceNumber() == TERMINATION_SEQ) {
               // Reading finished.
               return true;
             }
@@ -202,7 +202,7 @@ public class BackupManager {
           }
           // Put termination entry for signaling the applier.
           journalEntryQueue
-              .put(JournalEntry.newBuilder().setSequenceNumber(mTerminationSequence).build());
+              .put(JournalEntry.newBuilder().setSequenceNumber(TERMINATION_SEQ).build());
           return true;
         } catch (InterruptedException ie) {
           // Continue interrupt chain.
@@ -243,7 +243,7 @@ public class BackupManager {
               // Apply entries.
               for (JournalEntry entry : drainedEntries) {
                 // Check for termination entry.
-                if (entry.getSequenceNumber() == mTerminationSequence) {
+                if (entry.getSequenceNumber() == TERMINATION_SEQ) {
                   // Reading finished.
                   return true;
                 }
