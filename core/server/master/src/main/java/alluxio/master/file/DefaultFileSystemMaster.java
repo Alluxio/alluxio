@@ -2765,6 +2765,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             .setShared(context.getOptions().getShared())
             .createMountSpecificConf(context.getOptions().getPropertiesMap()));
     try {
+      MountPOptions.Builder mountOption = context.getOptions();
       try (CloseableResource<UnderFileSystem> ufsResource =
           mUfsManager.get(mountId).acquireUfsResource()) {
         UnderFileSystem ufs = ufsResource.get();
@@ -2775,6 +2776,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         if (!ufs.isDirectory(ufsPath.toString())) {
           throw new IOException(
               ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
+        }
+
+        if (ufs.getUnderFSType().equals("http")) {
+          mountOption.setReadOnly(true);
         }
       }
       // Check that the alluxioPath we're creating doesn't shadow a path in the parent UFS
@@ -2788,9 +2793,10 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
                   ufsResolvedPath));
         }
       }
+
       // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
       // mount.
-      mMountTable.add(journalContext, alluxioPath, ufsPath, mountId, context.getOptions().build());
+      mMountTable.add(journalContext, alluxioPath, ufsPath, mountId, mountOption.build());
     } catch (Exception e) {
       mUfsManager.removeMount(mountId);
       throw e;
