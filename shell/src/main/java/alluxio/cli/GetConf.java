@@ -174,7 +174,7 @@ public final class GetConf {
       try (RetryHandlingMetaMasterConfigClient client = clientSupplier.get()) {
         client.getConfiguration(GetConfigurationPOptions.newBuilder()
             .setIgnorePathConf(true).build()).getClusterConf().forEach(
-            prop -> confMap.put(prop.getName(), prop.toProto()));
+              prop -> confMap.put(prop.getName(), prop.toProto()));
       } catch (IOException e) {
         System.out.println("Unable to get master-side configuration: " + e.getMessage());
         return -1;
