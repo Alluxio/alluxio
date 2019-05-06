@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.allocator;
 
-import static org.junit.Assert;
+import static org.junit.Assert.fail;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
