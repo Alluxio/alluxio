@@ -44,10 +44,10 @@ public final class MetaMasterConfigurationServiceHandler
   private final MetaMaster mMetaMaster;
   /**
    * The cached response of GetConfiguration to save serialization cost when configurations are
-   * not updated. Both cluster and path configurations are kept to update for each RPC
-   * even if only cluster or path configuration is requested.
+   * not updated.
    */
-  private volatile GetConfigurationPResponse mConfiguration;
+  private volatile GetConfigurationPResponse mClusterConf;
+  private volatile GetConfigurationPResponse mPathConf;
 
   /**
    * @param metaMaster the Alluxio meta master
@@ -60,29 +60,29 @@ public final class MetaMasterConfigurationServiceHandler
   public void getConfiguration(GetConfigurationPOptions options,
       StreamObserver<GetConfigurationPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
-      GetConfigurationPResponse cache = mConfiguration;
-      ConfigHash hash = mMetaMaster.getConfigHash();
-      boolean isCacheLatest = false;
-      if (cache != null
-          && cache.hasClusterConfigHash()
-          && cache.getClusterConfigHash().equals(hash.getClusterConfigHash())
-          && cache.hasPathConfigHash()
-          && cache.getPathConfigHash().equals(hash.getPathConfigHash())) {
-        isCacheLatest = true;
-      }
-      if (!isCacheLatest) {
-        cache = mMetaMaster.getConfiguration(GetConfigurationPOptions.getDefaultInstance())
-            .toProto();
-        mConfiguration = cache;
-      }
+      GetConfigurationPResponse clusterConf = mClusterConf;
+      GetConfigurationPResponse pathConf = mPathConf;
       GetConfigurationPResponse.Builder builder = GetConfigurationPResponse.newBuilder();
+      ConfigHash hash = mMetaMaster.getConfigHash();
       if (!options.getIgnoreClusterConf()) {
-        builder.addAllClusterConfigs(cache.getClusterConfigsList());
-        builder.setClusterConfigHash(cache.getClusterConfigHash());
+        if (clusterConf == null
+            || !clusterConf.getClusterConfigHash().equals(hash.getClusterConfigHash())) {
+          clusterConf = mMetaMaster.getConfiguration(GetConfigurationPOptions.newBuilder()
+              .setIgnorePathConf(true).build()).toProto();
+          mClusterConf = clusterConf;
+        }
+        builder.addAllClusterConfigs(clusterConf.getClusterConfigsList());
+        builder.setClusterConfigHash(clusterConf.getClusterConfigHash());
       }
       if (!options.getIgnorePathConf()) {
-        builder.putAllPathConfigs(cache.getPathConfigsMap());
-        builder.setPathConfigHash(cache.getPathConfigHash());
+        if (pathConf == null
+            || !pathConf.getPathConfigHash().equals(hash.getPathConfigHash())) {
+          pathConf = mMetaMaster.getConfiguration(GetConfigurationPOptions.newBuilder()
+              .setIgnoreClusterConf(true).build()).toProto();
+          mPathConf = pathConf;
+        }
+        builder.putAllPathConfigs(pathConf.getPathConfigsMap());
+        builder.setPathConfigHash(pathConf.getPathConfigHash());
       }
       return builder.build();
     }, "getConfiguration", "resquest=%s", responseObserver, options);
