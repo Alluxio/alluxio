@@ -313,12 +313,12 @@ public class UfsJournal implements Journal {
   }
 
   /**
-   * Triggers a checkpoint in this ufs journal.
+   * Creates a checkpoint in this ufs journal.
    */
   public synchronized void checkpoint() throws IOException {
     long nextSequenceNumber = getNextSequenceNumberToWrite();
     if (nextSequenceNumber == getNextSequenceNumberToCheckpoint()) {
-      LOG.info("{}: No enough journal entries to create checkpoint.",
+      LOG.info("{}: No entries have been written since the last checkpoint.",
           mMaster.getName());
       return;
     }

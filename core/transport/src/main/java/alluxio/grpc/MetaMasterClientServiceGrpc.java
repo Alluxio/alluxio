@@ -269,7 +269,7 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Triggers a checkpoint in the primary master journal system.
+     * Creates a checkpoint in the primary master journal system.
      * </pre>
      */
     public void checkpoint(alluxio.grpc.CheckpointPOptions request,
@@ -391,7 +391,7 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Triggers a checkpoint in the primary master journal system.
+     * Creates a checkpoint in the primary master journal system.
      * </pre>
      */
     public void checkpoint(alluxio.grpc.CheckpointPOptions request,
@@ -470,7 +470,7 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Triggers a checkpoint in the primary master journal system.
+     * Creates a checkpoint in the primary master journal system.
      * </pre>
      */
     public alluxio.grpc.CheckpointPResponse checkpoint(alluxio.grpc.CheckpointPOptions request) {
@@ -552,7 +552,7 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Triggers a checkpoint in the primary master journal system.
+     * Creates a checkpoint in the primary master journal system.
      * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.CheckpointPResponse> checkpoint(

@@ -155,7 +155,7 @@ public interface JournalSystem {
   boolean isEmpty();
 
   /**
-   * Triggers a checkpoint in the primary master journal system.
+   * Creates a checkpoint in the primary master journal system.
    */
   void checkpoint() throws IOException;
 

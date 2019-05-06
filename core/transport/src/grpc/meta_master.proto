@@ -181,7 +181,7 @@ service MetaMasterClientService {
   rpc GetMetrics(GetMetricsPOptions) returns (GetMetricsPResponse);
 
   /**
-   * Triggers a checkpoint in the primary master journal system.
+   * Creates a checkpoint in the primary master journal system.
    */
   rpc Checkpoint(CheckpointPOptions) returns (CheckpointPResponse);
 }

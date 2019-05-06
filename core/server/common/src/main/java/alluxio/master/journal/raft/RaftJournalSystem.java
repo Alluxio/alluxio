@@ -358,9 +358,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         throw new CancelledException("Interrupted when submitting entry to trigger snapshot", e);
       }
       waitForSnapshotStart(mStateMachine, start);
-      if (mStateMachine.isSnapshotting()) {
-        waitForSnapshotting(mStateMachine);
-      }
+      waitForSnapshotting(mStateMachine);
     } finally {
       mSnapshotAllowed.set(false);
     }
@@ -383,8 +381,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       Thread.currentThread().interrupt();
       throw new CancelledException("Interrupted when waiting for snapshotting to start", e);
     } catch (TimeoutException e) {
-      throw new IOException("Do not fulfill Copycat snapshot requirements. "
-          + "No snapshot is triggered");
+      throw new IOException("A recent checkpoint already exists, not creating a new one");
     }
   }
 
