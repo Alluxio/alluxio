@@ -29,7 +29,8 @@ different cloud provider's storage i.e. GCS, Azure Blob Store.
 
 The majority of the pre-requisites can be found by going through the
 [AWS EMR Getting Started](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-gs.html) guide. An S3 bucket
-is needed as Alluxio's Root Under File System. If required, this can be reconfigured to be HDFS if needed.
+is needed as Alluxio's Root Under File System and to serve as the location for the bootstrap script. If required,
+the root UFS can be reconfigured to be HDFS.
 
 ## Basic Setup
 
@@ -40,7 +41,8 @@ with the required AWS Access/Secret key.
 
 1. Run aws emr create-default-roles. This will set up the required IAM roles for the account to be able to use the EMR
 service.
-2. Configure the below command with the required parameters. The root-ufs-uri should be an s3a:// or hdfs:// URI designating the root mount of the Alluxio file system.
+2. Make sure that the files that you downloaded are 
+3. Configure the below command with the required parameters. The root-ufs-uri should be an s3a:// or hdfs:// URI designating the root mount of the Alluxio file system.
 
 ```bash
 aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=<root-ufs-uri> --configurations file:///path/to/file/alluxio-presto.json --ec2-attributes KeyName=<ec2-keypair-name>
@@ -106,15 +108,15 @@ INSERT INTO test1 VALUES ('1', 24, 'F', 'Developer', '12345');
 SELECT * FROM test1;
 ```
 
-#Customization
+##Customization
 Tuning of Alluxio properties can be done in a few different locations. Depending on which service needs tuning, EMR
 offers different ways of modifying the service settings/environment variables.
 
-##Alluxio Service
+###Alluxio Service
 Any server-side configuration changes must be made in the `alluxio-emr.sh` bootstrap script. In the section for generating
 the `alluxio-site.properties`, add a line with the configuration needed to append to the bottom of the file.
 
-##Alluxio Client
+###Alluxio Client
 Generic client-side properties can also be edited via the bootstrap script as mentioned above. This is mostly for the native
 client (CLI). Property changes for a specific service like Presto/Hive should be done in the respective configuration file
 i.e. core-site.xml, hive.catalog.
