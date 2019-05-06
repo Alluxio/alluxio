@@ -142,10 +142,10 @@ Alluxio支持用户模拟，以便用户代表另一个用户访问Alluxio。这
 - `_HDFS_USER_`
   - Alluxio client会模拟HDFS client的用户（当使用Hadoop兼容的client来调用Alluxio时）
 
-## 审纪 {#auditing}
-Alluxio支持审纪日志以便系统管理员能追踪用户对文件元数据的访问操作。
+## 审计 {#auditing}
+Alluxio支持审计日志以便系统管理员能追踪用户对文件元数据的访问操作。
 
-审纪日志文件(`master_audit.log`) 包括多个审计记录条目，每个条目对应一次获取文件元数据的记录。
+审计日志文件(`master_audit.log`) 包括多个审计记录条目，每个条目对应一次获取文件元数据的记录。
 Alluxio审计日志格式如下表所示：
 
 <table class="table table-striped">
