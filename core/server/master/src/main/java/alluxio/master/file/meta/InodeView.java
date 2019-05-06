@@ -20,6 +20,7 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 import alluxio.grpc.TtlAction;
 
+import java.util.BitSet;
 import java.util.List;
 
 /**
@@ -108,14 +109,14 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
   boolean isPersisted();
 
   /**
-   * @return whether it is excluding the pinned medium or not
+   * @return the pinned location
    */
-  boolean getPinnedExclude();
+  BitSet getPinnedLocation();
 
   /**
-   * @return the pinned medium
+   * @return the pinned location list
    */
-  String getPinnedMedium();
+  List<String> getPinnedLocationList();
 
   /**
    * @return the UFS fingerprint

@@ -12,6 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.ProcessUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
@@ -52,6 +54,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -385,6 +388,19 @@ public class InodeTreePersistentState implements Journaled {
     if (entry.hasPinned() && inode.isFile()) {
       if (entry.getPinned()) {
         MutableInodeFile file = inode.asFile();
+        List<String> mediaList = ServerConfiguration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIA, ",");
+        if (entry.getPinnedMediaList().isEmpty()) {
+          BitSet pinLocation = file.getPinnedLocation();
+          pinLocation.set(0, pinLocation.size());
+        } else {
+          for (String medium : entry.getPinnedMediaList()) {
+            int index = mediaList.indexOf(medium);
+            BitSet pinLocation = file.getPinnedLocation();
+            if (index != -1) {
+              pinLocation.set(index);
+            }
+          }
+        }
         // when we pin a file with default min replication (zero), we bump the min replication
         // to one in addition to setting pinned flag, and adjust the max replication if it is
         // smaller than min replication.

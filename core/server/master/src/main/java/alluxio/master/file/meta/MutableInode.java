@@ -12,6 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.TtlAction;
 import alluxio.master.ProtobufUtils;
 import alluxio.proto.journal.File.UpdateInodeEntry;
@@ -27,9 +29,12 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -53,8 +58,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private long mParentId;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
-  private boolean mPinnedExclude;
-  private String mPinnedMedium;
+  private BitSet mPinnedLocation;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
 
@@ -70,8 +74,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mParentId = InodeTree.NO_PARENT;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
-    mPinnedExclude = false;
-    mPinnedMedium = "";
+    List<String> mediaList = ServerConfiguration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIA, ",");
+    mPinnedLocation = new BitSet(mediaList.size());
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
   }
@@ -167,10 +171,18 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   @Override
-  public boolean getPinnedExclude() { return mPinnedExclude; }
+  public BitSet getPinnedLocation() { return mPinnedLocation; }
 
   @Override
-  public String getPinnedMedium() { return mPinnedMedium; }
+  public List<String> getPinnedLocationList() {
+    List<String> mediaList = ServerConfiguration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIA, ",");
+    Preconditions.checkState(mPinnedLocation.size() == mediaList.size());
+    List<String> pinnedList = new ArrayList<>();
+    for (int i = mPinnedLocation.nextSetBit(0); i >= 0; i = mPinnedLocation.nextSetBit(i + 1)) {
+      pinnedList.add(mediaList.get(i));
+    }
+    return pinnedList;
+  }
 
   /**
    * Removes the extended ACL entries. The base entries are retained.
@@ -440,16 +452,10 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     return getThis();
   }
 
-  public T setPinnedMedium(String pinnedMedium) {
-    mPinnedMedium = pinnedMedium;
+  public T setPinnedLocation(BitSet pinnedLocation) {
+    mPinnedLocation = pinnedLocation;
     return getThis();
   }
-
-  public T setPinnedExclude(boolean pinnedExclude) {
-    mPinnedExclude = pinnedExclude;
-    return getThis();
-  }
-
 
   @Override
   public abstract FileInfo generateClientFileInfo(String path);

@@ -22,6 +22,7 @@ import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 
+import java.util.BitSet;
 import java.util.List;
 
 /**
@@ -125,15 +126,15 @@ public abstract class Inode implements InodeView {
   }
 
   @Override
-  public String getPinnedMedium() { return mDelegate.getPinnedMedium(); }
-
-  @Override
-  public boolean getPinnedExclude() { return mDelegate.getPinnedExclude(); }
-
-  @Override
   public DefaultAccessControlList getDefaultACL() throws UnsupportedOperationException {
     return mDelegate.getDefaultACL();
   }
+
+  @Override
+  public BitSet getPinnedLocation() { return mDelegate.getPinnedLocation(); }
+
+  @Override
+  public List<String> getPinnedLocationList() { return mDelegate.getPinnedLocationList(); }
 
   @Override
   public FileInfo generateClientFileInfo(String path) {
