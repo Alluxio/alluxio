@@ -11,11 +11,12 @@
 
 package alluxio.heartbeat;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 
 import org.junit.After;
-import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
