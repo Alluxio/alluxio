@@ -14,19 +14,19 @@ package alluxio.multi.process;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.cli.Format;
-import alluxio.client.meta.MetaMasterClient;
-import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.conf.Source;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.MasterInfo;
@@ -94,6 +94,7 @@ public final class MultiProcessCluster {
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
   private static final File TESTS_LOG = new File(Constants.TESTS_LOG);
+  private static final int WAIT_MASTER_SERVING_TIMEOUT_MS = 5000;
 
   private final Map<PropertyKey, String> mProperties;
   private final Map<Integer, Map<PropertyKey, String>> mMasterProperties;
@@ -234,6 +235,9 @@ public final class MultiProcessCluster {
       createWorker(i).start();
     }
     System.out.printf("Starting alluxio cluster in directory %s%n", mWorkDir.getAbsolutePath());
+    int primaryMasterIndex = getPrimaryMasterIndex(WAIT_MASTER_SERVING_TIMEOUT_MS);
+    System.out.printf("Alluxio primary master %s starts serving RPCs%n",
+        mMasterAddresses.get(primaryMasterIndex));
   }
 
   /**
@@ -267,10 +271,9 @@ public final class MultiProcessCluster {
         // Make sure the leader is serving.
         fs.getStatus(new AlluxioURI("/"));
         return true;
-      } catch (UnavailableException e) {
-        return false;
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        LOG.error("Failed to get status from primary master: ", e);
+        return false;
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     int primaryRpcPort;
