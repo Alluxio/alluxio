@@ -86,43 +86,61 @@ import javax.security.auth.Subject;
 public final class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
-  // Unique ID for each FileSystemContext.
-  private final String mId;
-  // The data server channel pools. This pool will only grow and keys are not removed.
-  private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
-      mBlockWorkerClientPool = new ConcurrentHashMap<>();
-
-  // Marks whether the context has been closed, closing the context means releasing all resources
-  // in the context like clients and thread pools.
-  private AtomicBoolean mClosed = new AtomicBoolean(false);
-
-  /** The master client context holding the inquire client. */
-  private volatile MasterClientContext mMasterClientContext;
-  /** Used in {@link #mBlockWorkerClientPool}. */
-  private volatile EventLoopGroup mWorkerGroup;
-  // Master client pools.
-  private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
-  private volatile BlockMasterClientPool mBlockMasterClientPool;
   /**
-   * Reinitializer contains a daemon heartbeat thread to reinitialize this context when
-   * configuration hashes change.
+   * Unique ID for each FileSystemContext.
    */
-  private volatile FileSystemContextReinitializer mReinitializer;
+  private final String mId;
+
+  /**
+   * Marks whether the context has been closed, closing the context means releasing all resources
+   * in the context like clients and thread pools.
+   */
+  private AtomicBoolean mClosed = new AtomicBoolean(false);
 
   @GuardedBy("this")
   private boolean mMetricsEnabled;
 
+  //
+  // Master related resources.
+  //
+  /**
+   * The master client context holding the inquire client.
+   */
+  private volatile MasterClientContext mMasterClientContext;
+  /**
+   * Master client pools.
+   */
+  private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
+  private volatile BlockMasterClientPool mBlockMasterClientPool;
+
+  //
+  // Worker related resources.
+  //
+  /**
+   * The data server channel pools. This pool will only grow and keys are not removed.
+   */
+  private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
+      mBlockWorkerClientPool = new ConcurrentHashMap<>();
+  /**
+   * Used in {@link #mBlockWorkerClientPool}.
+   */
+  private volatile EventLoopGroup mWorkerGroup;
   /**
    * Indicates whether the {@link #mLocalWorker} field has been lazily initialized yet.
    */
   @GuardedBy("this")
   private boolean mLocalWorkerInitialized;
-
   /**
    * The address of any Alluxio worker running on the local machine. This is initialized lazily.
    */
   @GuardedBy("this")
   private WorkerNetAddress mLocalWorker;
+
+  /**
+   * Reinitializer contains a daemon heartbeat thread to reinitialize this context when
+   * configuration hashes change.
+   */
+  private volatile FileSystemContextReinitializer mReinitializer;
 
   /**
    * Creates a {@link FileSystemContext} with a null subject.
