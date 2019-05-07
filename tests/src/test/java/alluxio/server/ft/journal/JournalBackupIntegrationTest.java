@@ -54,7 +54,6 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public ConfigurationRule mConf = new ConfigurationRule(new HashMap<PropertyKey, String>() {
     {
       put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false");
-      put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "3min");
     }
   }, ServerConfiguration.global());
 
