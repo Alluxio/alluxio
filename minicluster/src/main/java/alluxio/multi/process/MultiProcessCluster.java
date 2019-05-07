@@ -424,6 +424,7 @@ public final class MultiProcessCluster {
       saveWorkdir();
     }
     mCloser.close();
+    ServerConfiguration.reset();
     LOG.info("Destroyed cluster {}", mClusterName);
     mState = State.DESTROYED;
   }
