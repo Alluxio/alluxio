@@ -34,6 +34,7 @@ import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -154,21 +155,13 @@ public class BaseFileSystem implements FileSystem {
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     checkUri(path);
-    try {
-      rpc(client -> {
-        CreateDirectoryPOptions mergedOptions = FileSystemOptions.createDirectoryDefaults(
-            mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-        client.createDirectory(path, mergedOptions);
-        LOG.debug("Created directory {}, options: {}", path.getPath(), mergedOptions);
-        return null;
-      });
-    } catch (AlreadyExistsException e) {
-      throw new FileAlreadyExistsException(e.getMessage());
-    } catch (InvalidArgumentException e) {
-      throw new InvalidPathException(e.getMessage());
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    rpc(client -> {
+      CreateDirectoryPOptions mergedOptions = FileSystemOptions.createDirectoryDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      client.createDirectory(path, mergedOptions);
+      LOG.debug("Created directory {}, options: {}", path.getPath(), mergedOptions);
+      return null;
+    });
   }
 
   @Override
@@ -181,31 +174,23 @@ public class BaseFileSystem implements FileSystem {
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     checkUri(path);
-    try {
-      return rpc(client -> {
-        CreateFilePOptions mergedOptions = FileSystemOptions.createFileDefaults(
-            mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-        URIStatus status = client.createFile(path, mergedOptions);
-        LOG.debug("Created file {}, options: {}", path.getPath(), mergedOptions);
-        OutStreamOptions outStreamOptions =
-            new OutStreamOptions(mergedOptions, mFsContext.getPathConf(path));
-        outStreamOptions.setUfsPath(status.getUfsPath());
-        outStreamOptions.setMountId(status.getMountId());
-        outStreamOptions.setAcl(status.getAcl());
-        try {
-          return new FileOutStream(path, outStreamOptions, mFsContext);
-        } catch (Exception e) {
-          delete(path);
-          throw e;
-        }
-      });
-    } catch (AlreadyExistsException e) {
-      throw new FileAlreadyExistsException(e.getMessage());
-    } catch (InvalidArgumentException e) {
-      throw new InvalidPathException(e.getMessage());
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    return rpc(client -> {
+      CreateFilePOptions mergedOptions = FileSystemOptions.createFileDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      URIStatus status = client.createFile(path, mergedOptions);
+      LOG.debug("Created file {}, options: {}", path.getPath(), mergedOptions);
+      OutStreamOptions outStreamOptions =
+          new OutStreamOptions(mergedOptions, mFsContext.getPathConf(path));
+      outStreamOptions.setUfsPath(status.getUfsPath());
+      outStreamOptions.setMountId(status.getMountId());
+      outStreamOptions.setAcl(status.getAcl());
+      try {
+        return new FileOutStream(path, outStreamOptions, mFsContext);
+      } catch (Exception e) {
+        delete(path);
+        throw e;
+      }
+    });
   }
 
   @Override
@@ -229,10 +214,6 @@ public class BaseFileSystem implements FileSystem {
     } catch (FailedPreconditionException e) {
       // A little sketchy, but this should be the only case that throws FailedPrecondition.
       throw new DirectoryNotEmptyException(e.getMessage());
-    } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
     }
   }
 
@@ -244,7 +225,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public boolean exists(AlluxioURI path, final ExistsPOptions options)
-      throws InvalidPathException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     checkUri(path);
     try {
       return rpc(client -> {
@@ -254,12 +235,8 @@ public class BaseFileSystem implements FileSystem {
         client.getStatus(path, GrpcUtils.toGetStatusOptions(mergedOptions));
         return true;
       });
-    } catch (NotFoundException | InvalidArgumentException e) {
-      // The server will throw InvalidArgumentException this when a prefix of the path is a file.
-      // TODO(andrew): Change the server so that a prefix being a file means the path does not exist
+    } catch (FileDoesNotExistException | InvalidPathException e) {
       return false;
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
     }
   }
 
@@ -273,19 +250,13 @@ public class BaseFileSystem implements FileSystem {
   public void free(AlluxioURI path, final FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    try {
-      rpc(client -> {
-        FreePOptions mergedOptions = FileSystemOptions.freeDefaults(mFsContext.getPathConf(path))
-            .toBuilder().mergeFrom(options).build();
-        client.free(path, mergedOptions);
-        LOG.debug("Freed {}, options: {}", path.getPath(), mergedOptions);
-        return null;
-      });
-    } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    rpc(client -> {
+      FreePOptions mergedOptions = FileSystemOptions.freeDefaults(mFsContext.getPathConf(path))
+          .toBuilder().mergeFrom(options).build();
+      client.free(path, mergedOptions);
+      LOG.debug("Freed {}, options: {}", path.getPath(), mergedOptions);
+      return null;
+    });
   }
 
   @Override
@@ -341,17 +312,11 @@ public class BaseFileSystem implements FileSystem {
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    try {
-      return rpc(client -> {
-        GetStatusPOptions mergedOptions = FileSystemOptions.getStatusDefaults(
-            mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-        return client.getStatus(path, mergedOptions);
-      });
-    } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    return rpc(client -> {
+      GetStatusPOptions mergedOptions = FileSystemOptions.getStatusDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      return client.getStatus(path, mergedOptions);
+    });
   }
 
   @Override
@@ -364,18 +329,12 @@ public class BaseFileSystem implements FileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, final ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    try {
-      return rpc(client -> {
-        // TODO(calvin): Fix the exception handling in the master
-        ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
-            mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-        return client.listStatus(path, mergedOptions);
-      });
-    } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    return rpc(client -> {
+      // TODO(calvin): Fix the exception handling in the master
+      ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      return client.listStatus(path, mergedOptions);
+    });
   }
 
   @Override
@@ -388,36 +347,24 @@ public class BaseFileSystem implements FileSystem {
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, final MountPOptions options)
       throws IOException, AlluxioException {
     checkUri(alluxioPath);
-    try {
-      rpc(client -> {
-        MountPOptions mergedOptions = FileSystemOptions.mountDefaults(
-            mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
-        // TODO(calvin): Make this fail on the master side
-        client.mount(alluxioPath, ufsPath, mergedOptions);
-        LOG.info("Mount " + ufsPath.toString() + " to " + alluxioPath.getPath());
-        return null;
-      });
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    rpc(client -> {
+      MountPOptions mergedOptions = FileSystemOptions.mountDefaults(
+          mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
+      // TODO(calvin): Make this fail on the master side
+      client.mount(alluxioPath, ufsPath, mergedOptions);
+      LOG.info("Mount " + ufsPath.toString() + " to " + alluxioPath.getPath());
+      return null;
+    });
   }
 
   @Override
   public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
-    try {
-      return rpc(FileSystemMasterClient::getMountTable);
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    return rpc(FileSystemMasterClient::getMountTable);
   }
 
   @Override
   public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
-    try {
-      return rpc(FileSystemMasterClient::getSyncPathList);
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    return rpc(FileSystemMasterClient::getSyncPathList);
   }
 
   @Override
@@ -430,20 +377,14 @@ public class BaseFileSystem implements FileSystem {
   public void persist(final AlluxioURI path, final ScheduleAsyncPersistencePOptions options)
     throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    try {
-      rpc(client -> {
-        ScheduleAsyncPersistencePOptions mergedOptions =
-            FileSystemOptions.scheduleAsyncPersistDefaults(mFsContext.getPathConf(path)).toBuilder()
-                .mergeFrom(options).build();
-        client.scheduleAsyncPersist(path, mergedOptions);
-        LOG.debug("Scheduled persist for {}, options: {}", path.getPath(), mergedOptions);
-        return null;
-      });
-    } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    rpc(client -> {
+      ScheduleAsyncPersistencePOptions mergedOptions =
+          FileSystemOptions.scheduleAsyncPersistDefaults(mFsContext.getPathConf(path)).toBuilder()
+              .mergeFrom(options).build();
+      client.scheduleAsyncPersist(path, mergedOptions);
+      LOG.debug("Scheduled persist for {}, options: {}", path.getPath(), mergedOptions);
+      return null;
+    });
   }
 
   @Override
@@ -481,20 +422,14 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(src);
     checkUri(dst);
-    try {
-      rpc(client -> {
-        RenamePOptions mergedOptions = FileSystemOptions.renameDefaults(mFsContext.getPathConf(dst))
-            .toBuilder().mergeFrom(options).build();
-        // TODO(calvin): Update this code on the master side.
-        client.rename(src, dst, mergedOptions);
-        LOG.debug("Renamed {} to {}, options: {}", src.getPath(), dst.getPath(), mergedOptions);
-        return null;
-      });
-    } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    rpc(client -> {
+      RenamePOptions mergedOptions = FileSystemOptions.renameDefaults(mFsContext.getPathConf(dst))
+          .toBuilder().mergeFrom(options).build();
+      // TODO(calvin): Update this code on the master side.
+      client.rename(src, dst, mergedOptions);
+      LOG.debug("Renamed {} to {}, options: {}", src.getPath(), dst.getPath(), mergedOptions);
+      return null;
+    });
   }
 
   @Override
@@ -507,20 +442,14 @@ public class BaseFileSystem implements FileSystem {
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    try {
-      rpc(client -> {
-        SetAclPOptions mergedOptions = FileSystemOptions.setAclDefaults(
-            mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-        client.setAcl(path, action, entries, mergedOptions);
-        LOG.debug("Set ACL for {}, entries: {} options: {}", path.getPath(), entries,
-            mergedOptions);
-        return null;
-      });
-    } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    rpc(client -> {
+      SetAclPOptions mergedOptions = FileSystemOptions.setAclDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      client.setAcl(path, action, entries, mergedOptions);
+      LOG.debug("Set ACL for {}, entries: {} options: {}", path.getPath(), entries,
+          mergedOptions);
+      return null;
+    });
   }
 
   @Override
@@ -533,17 +462,11 @@ public class BaseFileSystem implements FileSystem {
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    try {
-      rpc(client -> {
-        client.setAttribute(path, options);
-        LOG.debug("Set attributes for {}, options: {}", path.getPath(), options);
-        return null;
-      });
-    } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    rpc(client -> {
+      client.setAttribute(path, options);
+      LOG.debug("Set attributes for {}, options: {}", path.getPath(), options);
+      return null;
+    });
   }
 
   /**
@@ -554,17 +477,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void startSync(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    try {
-      rpc(client -> {
-        client.startSync(path);
-        LOG.debug("Start syncing for {}", path.getPath());
-        return null;
-      });
-    } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    rpc(client -> {
+      client.startSync(path);
+      LOG.debug("Start syncing for {}", path.getPath());
+      return null;
+    });
   }
 
   /**
@@ -574,17 +491,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void stopSync(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    try {
-      rpc(client -> {
-        client.stopSync(path);
-        LOG.debug("Stop syncing for {}", path.getPath());
-        return null;
-      });
-    } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    rpc(client -> {
+      client.stopSync(path);
+      LOG.debug("Stop syncing for {}", path.getPath());
+      return null;
+    });
   }
 
   @Override
@@ -596,17 +507,13 @@ public class BaseFileSystem implements FileSystem {
   public void unmount(AlluxioURI path, UnmountPOptions options)
       throws IOException, AlluxioException {
     checkUri(path);
-    try {
-      rpc(client -> {
-        UnmountPOptions mergedOptions = FileSystemOptions.unmountDefaults(
-            mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-        client.unmount(path);
-        LOG.debug("Unmounted {}, options: {}", path.getPath(), mergedOptions);
-        return null;
-      });
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    }
+    rpc(client -> {
+      UnmountPOptions mergedOptions = FileSystemOptions.unmountDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      client.unmount(path);
+      LOG.debug("Unmounted {}, options: {}", path.getPath(), mergedOptions);
+      return null;
+    });
   }
 
   /**
@@ -674,6 +581,16 @@ public class BaseFileSystem implements FileSystem {
         throw new UnavailableException("Failed to acquire master client, "
             + "maybe FileSystem is being reinitialized or closed concurrently.");
       }
+    } catch (NotFoundException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    } catch (AlreadyExistsException e) {
+      throw new java.nio.file.FileAlreadyExistsException(e.getMessage());
+    } catch (InvalidArgumentException e) {
+      throw new InvalidPathException(e.getMessage());
+    } catch (UnavailableException e) {
+      throw e;
+    } catch (AlluxioStatusException e) {
+      throw e.toAlluxioException();
     } finally {
       if (client != null) {
         mFsContext.releaseMasterClient(client);
