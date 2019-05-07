@@ -11,12 +11,10 @@
 
 package alluxio.collections;
 
-import static org.junit.Assert.assertTure;
-import static org.junit.Assert.assertEquals;
-
 import alluxio.util.SleepUtils;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -121,11 +119,11 @@ public class IndexedSetConcurrencyTest {
       for (int i = ThreadLocalRandom.current().nextInt(1, MAX_REPEAT_TIMES + 1); i > 0; i--) {
         TestInfo instance = new TestInfo(ThreadLocalRandom.current().nextLong(), size);
         result += (mIndexedSet.add(instance) ? 1 : 0);
-        assertTrue(mIndexedSet.contains(mIdIndex, instance.getId()));
-        assertEquals(1, mIndexedSet.getByField(mIdIndex, instance.getId()).size());
+        Assert.assertTrue(mIndexedSet.contains(mIdIndex, instance.getId()));
+        Assert.assertEquals(1, mIndexedSet.getByField(mIdIndex, instance.getId()).size());
       }
 
-      assertTrue(result <= mIndexedSet.getByField(mSizeIndex, size).size());
+      Assert.assertTrue(result <= mIndexedSet.getByField(mSizeIndex, size).size());
 
       return result;
     }
@@ -280,7 +278,7 @@ public class IndexedSetConcurrencyTest {
       sizes.add(info.getSize());
       expectedCount++;
     }
-    assertEquals(expectedCount, mIndexedSet.size());
+    Assert.assertEquals(expectedCount, mIndexedSet.size());
 
     // Verify the size according to the id index.
     int count = 0;
@@ -288,7 +286,7 @@ public class IndexedSetConcurrencyTest {
       Set<TestInfo> elements = mIndexedSet.getByField(mIdIndex, id);
       count += elements.size();
     }
-    assertEquals(expectedCount, count);
+    Assert.assertEquals(expectedCount, count);
 
     // Verify the size according to the size index.
     count = 0;
@@ -296,7 +294,7 @@ public class IndexedSetConcurrencyTest {
       Set<TestInfo> elements = mIndexedSet.getByField(mSizeIndex, size);
       count += elements.size();
     }
-    assertEquals(expectedCount, count);
+    Assert.assertEquals(expectedCount, count);
   }
 
   @Test
@@ -355,7 +353,7 @@ public class IndexedSetConcurrencyTest {
       removed += task.getCount();
     }
 
-    assertEquals(mIndexedSet.size(), added - removed);
+    Assert.assertEquals(mIndexedSet.size(), added - removed);
     verifySet();
   }
 
