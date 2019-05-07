@@ -11,13 +11,12 @@
 
 package alluxio.collections;
 
-import static org.junit.Assert.assertTure;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.util.SleepUtils;
 
 import org.junit.After;
-
 import org.junit.Before;
 import org.junit.Test;
 
