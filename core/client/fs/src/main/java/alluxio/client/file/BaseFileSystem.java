@@ -563,7 +563,8 @@ public class BaseFileSystem implements FileSystem {
     R call(T t) throws IOException, AlluxioException;
   }
 
-  private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn) throws IOException, AlluxioException {
+  private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
+      throws IOException, AlluxioException {
     mFsContext.blockReinit();
     FileSystemMasterClient client = null;
     try {
