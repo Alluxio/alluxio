@@ -12,9 +12,9 @@
 package alluxio.security.authorization;
 
 //change import to static import
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 //
 
 import com.google.common.collect.Lists;
