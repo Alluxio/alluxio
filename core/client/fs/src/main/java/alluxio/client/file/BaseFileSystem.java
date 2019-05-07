@@ -567,10 +567,9 @@ public class BaseFileSystem implements FileSystem {
     mFsContext.blockReinit();
     FileSystemMasterClient client = null;
     try {
-      mFsContext.getClientContext().loadConfIfNotLoaded(mFsContext.getMasterAddress());
       client = mFsContext.acquireMasterClient();
       if (client != null) {
-        client.connect();
+        client.connect(); // Explicitly connect to trigger loading configuration from meta master.
         return fn.call(client);
       } else {
         throw new UnavailableException("Failed to acquire master client, "
