@@ -32,6 +32,7 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.MetricType;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.AlluxioMasterProcess;
@@ -948,7 +949,8 @@ public final class AlluxioMasterRestServiceHandler {
       for (Map.Entry<String, Gauge> entry : mr
           .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_READ_UFS)).entrySet()) {
         alluxio.metrics.Metric metric =
-            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
+                MetricType.GAUGE);
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
         if (isMounted(ufs)) {
           ufsReadSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
@@ -961,7 +963,8 @@ public final class AlluxioMasterRestServiceHandler {
       for (Map.Entry<String, Gauge> entry : mr
           .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_WRITTEN_UFS)).entrySet()) {
         alluxio.metrics.Metric metric =
-            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
+                MetricType.GAUGE);
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
         if (isMounted(ufs)) {
           ufsWriteSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
@@ -974,7 +977,8 @@ public final class AlluxioMasterRestServiceHandler {
       for (Map.Entry<String, Gauge> entry : mr
           .getGauges((name, metric) -> name.contains(WorkerMetrics.UFS_OP_PREFIX)).entrySet()) {
         alluxio.metrics.Metric metric =
-            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
+                MetricType.GAUGE);
         if (!metric.getTags().containsKey(WorkerMetrics.TAG_UFS)) {
           continue;
         }
