@@ -112,6 +112,12 @@ message GetMetricsPResponse {
   map<string, MetricValue> metrics = 1;
 }
 
+message CheckpointPOptions {}
+message CheckpointPResponse {
+ // The hostname of the master that did the checkpoint
+ optional string masterHostname = 1;
+}
+
 message SetPathConfigurationPOptions {}
 message SetPathConfigurationPRequest {
   optional string path = 1;
@@ -173,6 +179,11 @@ service MetaMasterClientService {
    * Returns a map of metrics property names and their values from Alluxio metrics system.
    */
   rpc GetMetrics(GetMetricsPOptions) returns (GetMetricsPResponse);
+
+  /**
+   * Creates a checkpoint in the primary master journal system.
+   */
+  rpc Checkpoint(CheckpointPOptions) returns (CheckpointPResponse);
 }
 
 message GetMasterIdPOptions {}
