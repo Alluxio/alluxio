@@ -45,7 +45,7 @@ service.
 3. Configure the below command with the required parameters. The root-ufs-uri should be an s3a:// or hdfs:// URI designating the root mount of the Alluxio file system.
 
 ```bash
-aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=<root-ufs-uri> --configurations file:///path/to/file/alluxio-presto.json --ec2-attributes KeyName=<ec2-keypair-name>
+aws emr create-cluster --release-label emr-5.23.0 --instance-count <num-instances> --instance-type <instance-type> --applications Name=Presto Name=Hive --name '<cluster-name>' --bootstrap-actions Path=s3://bucket/path/to/alluxio-emr.sh,Args=<web-download-url>,<root-ufs-uri>,<additional-properties> --configurations file:///path/to/file/alluxio-presto.json --ec2-attributes KeyName=<ec2-keypair-name>
 ```
 
 3. On the [EMR Console](https://console.aws.amazon.com/elasticmapreduce/home), you should be able to see the cluster
@@ -114,7 +114,8 @@ offers different ways of modifying the service settings/environment variables.
 
 ###Alluxio Service
 Any server-side configuration changes must be made in the `alluxio-emr.sh` bootstrap script. In the section for generating
-the `alluxio-site.properties`, add a line with the configuration needed to append to the bottom of the file.
+the `alluxio-site.properties`, add a line with the configuration needed to append to the bottom of the file. Options can also
+be passed as the 3rd argument to the bootstrap script with a ';' delimiter.
 
 ###Alluxio Client
 Generic client-side properties can also be edited via the bootstrap script as mentioned above. This is mostly for the native

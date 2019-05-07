@@ -3,7 +3,12 @@
 #Create user and download release
 sudo groupadd alluxio -g 600
 sudo useradd alluxio -u 600 -g 600
-wget http://downloads.alluxio.io/downloads/files/2.0.0-preview/alluxio-2.0.0-preview-bin.tar.gz
+if [ -z $1]
+then
+  wget http://downloads.alluxio.io/downloads/files/2.0.0-preview/alluxio-2.0.0-preview-bin.tar.gz
+else
+  wget "${1}"
+fi
 sudo cp alluxio-*.tar.gz /opt/
 sudo tar -xvf /opt/alluxio-*.tar.gz -C /opt/
 sudo rm -R /opt/alluxio-*.tar.gz
@@ -34,13 +39,18 @@ IS_MASTER=`jq '.isMaster' /mnt/var/lib/info/instance.json`
 
 #Set up alluxio-site.properties
 sudo runuser -l alluxio -c "echo 'alluxio.master.hostname=$MASTER' > /opt/alluxio/conf/alluxio-site.properties"
-sudo runuser -l alluxio -c "echo 'alluxio.master.mount.table.root.ufs=$1' >> /opt/alluxio/conf/alluxio-site.properties"
+sudo runuser -l alluxio -c "echo 'alluxio.master.mount.table.root.ufs=$2' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.memory.size=1GB' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.tieredstore.levels=1' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.tieredstore.level0.alias=MEM' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.master.security.impersonation.hive.users=*' >> /opt/alluxio/conf/alluxio-site.properties"
 sudo runuser -l alluxio -c "echo 'alluxio.master.security.impersonation.presto.users=*' >> /opt/alluxio/conf/alluxio-site.properties"
+
+#Inject user defined properties (semicolon separated)
+IFS=';'
+conf=($3)
+printf "%s\n" "${conf[@]}" | sudo tee -a /opt/alluxio/conf/alluxio-site.properties
 
 #No ssh
 if [ $IS_MASTER = "true" ]
