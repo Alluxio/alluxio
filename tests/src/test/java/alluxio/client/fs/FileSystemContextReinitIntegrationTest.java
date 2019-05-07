@@ -61,7 +61,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   @Before
   public void before() throws IOException {
     mContext = FileSystemContext.create(ServerConfiguration.global());
-    mContext.getClientContext().updateClusterAndPathConf(mContext.getMasterAddress());
+    mContext.getClientContext().loadConf(mContext.getMasterAddress(), true, true);
     updateHash();
   }
 

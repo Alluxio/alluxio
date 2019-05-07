@@ -53,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
@@ -84,23 +85,31 @@ import javax.security.auth.Subject;
 public final class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
-  // Master client pools.
-  private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
-  private volatile BlockMasterClientPool mBlockMasterClientPool;
-
-  // Marks whether the context has been closed, closing the context means releasing all resources
-  // in the context like clients and thread pools.
-  private AtomicBoolean mClosed;
-
+  // Unique ID for each FileSystemContext.
+  private final String mId;
   // The data server channel pools. This pool will only grow and keys are not removed.
   private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
       mBlockWorkerClientPool = new ConcurrentHashMap<>();
 
-  /** The shared master inquire client associated with the {@link FileSystemContext}. */
-  @GuardedBy("this")
-  private MasterInquireClient mMasterInquireClient;
+  // Marks whether the context has been closed, closing the context means releasing all resources
+  // in the context like clients and thread pools.
+  private AtomicBoolean mClosed = new AtomicBoolean(false);
+
   /** The master client context holding the inquire client. */
   private volatile MasterClientContext mMasterClientContext;
+  /** Used in {@link #mBlockWorkerClientPool}. */
+  private volatile EventLoopGroup mWorkerGroup;
+  // Master client pools.
+  private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
+  private volatile BlockMasterClientPool mBlockMasterClientPool;
+  /**
+   * Reinitializer contains a daemon heartbeat thread to reinitialize this context when
+   * configuration hashes change.
+   */
+  private volatile FileSystemContextReinitializer mReinitializer;
+
+  @GuardedBy("this")
+  private boolean mMetricsEnabled;
 
   /**
    * Indicates whether the {@link #mLocalWorker} field has been lazily initialized yet.
@@ -114,44 +123,15 @@ public final class FileSystemContext implements Closeable {
   @GuardedBy("this")
   private WorkerNetAddress mLocalWorker;
 
-  private final ClientContext mClientContext;
-  private final EventLoopGroup mWorkerGroup;
-  private final boolean mMetricsEnabled;
-  private final String mId;
-
-  /**
-   * Reinitializer contains a daemon heartbeat thread to reinitialize this context when
-   * configuration hashes change.
-   */
-  private volatile FileSystemContextReinitializer mReinitializer;
-
-  /**
-   * If there is code running between {@link #blockReinit()} and {@link #unblockReinit()},
-   * reinitialization will be blocked.
-   *
-   * If reinitialization is happening, this method will block until reinitialization succeeds or
-   * fails, if it fails, an exception will be thrown explaining the reinitialization's failure and
-   * automatically calls {@link #unblockReinit()}.
-   */
-  public void blockReinit() throws IOException {
-    mReinitializer.block();
-  }
-
-  /**
-   * Must be called after {@link #blockReinit()} to unblock reinitialization.
-   */
-  public void unblockReinit() {
-    mReinitializer.unblock();
-  }
-
   /**
    * Creates a {@link FileSystemContext} with a null subject.
    *
-   * @param alluxioConf Alluxio configuration
+   * @param conf Alluxio configuration
    * @return an instance of file system context with no subject associated
    */
-  public static FileSystemContext create(AlluxioConfiguration alluxioConf) {
-    return create(null, alluxioConf);
+  public static FileSystemContext create(AlluxioConfiguration conf) {
+    Preconditions.checkNotNull(conf);
+    return create(null, conf);
   }
 
   /**
@@ -161,17 +141,21 @@ public final class FileSystemContext implements Closeable {
    * @return an instance of file system context with the given subject and site-properties config
    */
   public static FileSystemContext create(Subject subject) {
+    Preconditions.checkNotNull(subject);
     return create(subject, null);
   }
 
   /**
    * @param subject the parent subject, set to null if not present
-   * @param alluxioConf Alluxio configuration
+   * @param conf Alluxio configuration
    * @return a context
    */
-  public static FileSystemContext create(Subject subject, AlluxioConfiguration alluxioConf) {
-    FileSystemContext context = new FileSystemContext(subject, alluxioConf);
-    context.init(MasterInquireClient.Factory.create(context.mClientContext.getClusterConf()));
+  public static FileSystemContext create(@Nullable Subject subject,
+      @Nullable AlluxioConfiguration conf) {
+    FileSystemContext context = new FileSystemContext();
+    ClientContext ctx = ClientContext.create(subject, conf);
+    MasterInquireClient inquireClient = MasterInquireClient.Factory.create(ctx.getClusterConf());
+    context.init(ctx, inquireClient);
     return context;
   }
 
@@ -180,8 +164,8 @@ public final class FileSystemContext implements Closeable {
    * @return the {@link alluxio.client.file.FileSystemContext}
    */
   public static FileSystemContext create(ClientContext clientContext) {
-    FileSystemContext ctx = new FileSystemContext(clientContext);
-    ctx.init(MasterInquireClient.Factory.create(clientContext.getClusterConf()));
+    FileSystemContext ctx = new FileSystemContext();
+    ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf()));
     return ctx;
   }
 
@@ -199,41 +183,17 @@ public final class FileSystemContext implements Closeable {
   @VisibleForTesting
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient,
       AlluxioConfiguration alluxioConf) {
-    FileSystemContext context = new FileSystemContext(subject, alluxioConf);
-    context.init(masterInquireClient);
+    FileSystemContext context = new FileSystemContext();
+    ClientContext ctx = ClientContext.create(subject, alluxioConf);
+    context.init(ctx, masterInquireClient);
     return context;
   }
 
   /**
-   * @return the unique ID of this context
+   * Initializes FileSystemContext ID.
    */
-  public String getId() {
-    return mId;
-  }
-
-  /**
-   * Creates a file system context with a subject.
-   *
-   * @param subject the parent subject, set to null if not present
-   */
-  private FileSystemContext(Subject subject, AlluxioConfiguration alluxioConf) {
-      this(ClientContext.create(subject, alluxioConf));
-  }
-
-  /**
-   * Creates a file system context with a subject.
-   *
-   * @param ctx the parent subject, set to null if not present
-   */
-  private FileSystemContext(ClientContext ctx) {
-    Preconditions.checkNotNull(ctx, "ctx");
-    mClosed = new AtomicBoolean(false);
-    mClientContext = ctx;
-    mMetricsEnabled = ctx.getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
+  private FileSystemContext() {
     mId = IdUtils.createFileSystemContextId();
-    mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(ctx.getClusterConf()),
-        ctx.getClusterConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
-        String.format("alluxio-client-nettyPool-%s-%%d", mId), true);
   }
 
   /**
@@ -241,21 +201,25 @@ public final class FileSystemContext implements Closeable {
    *
    * @param masterInquireClient the client to use for determining the master
    */
-  private synchronized void init(MasterInquireClient masterInquireClient) {
-    initWithoutReinitializer(masterInquireClient);
+  private synchronized void init(ClientContext clientContext,
+      MasterInquireClient masterInquireClient) {
+    initWithoutReinitializer(clientContext, masterInquireClient);
     mReinitializer = new FileSystemContextReinitializer(this);
   }
 
-  private synchronized void initWithoutReinitializer(MasterInquireClient masterInquireClient) {
+  private synchronized void initWithoutReinitializer(ClientContext ctx,
+      MasterInquireClient masterInquireClient) {
     mClosed.set(false);
-    mMasterInquireClient = masterInquireClient;
-    mFileSystemMasterClientPool =
-        new FileSystemMasterClientPool(mClientContext, mMasterInquireClient);
-    mBlockMasterClientPool = new BlockMasterClientPool(mClientContext, mMasterInquireClient);
-    mMasterClientContext = MasterClientContext.newBuilder(mClientContext)
-        .setMasterInquireClient(mMasterInquireClient).build();
+    mMasterClientContext = MasterClientContext.newBuilder(ctx)
+        .setMasterInquireClient(masterInquireClient).build();
+    mFileSystemMasterClientPool = new FileSystemMasterClientPool(mMasterClientContext);
+    mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
+    mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(getClusterConf()),
+        getClusterConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
+        String.format("alluxio-client-nettyPool-%s-%%d", mId), true);
+    mMetricsEnabled = getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
     if (mMetricsEnabled) {
-      MetricsHeartbeatContext.addHeartbeat(mClientContext, masterInquireClient);
+      MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
     }
   }
 
@@ -284,7 +248,6 @@ public final class FileSystemContext implements Closeable {
       mFileSystemMasterClientPool = null;
       mBlockMasterClientPool.close();
       mBlockMasterClientPool = null;
-      mMasterInquireClient = null;
       for (BlockWorkerClientPool pool : mBlockWorkerClientPool.values()) {
         pool.close();
       }
@@ -293,12 +256,31 @@ public final class FileSystemContext implements Closeable {
       mLocalWorker = null;
 
       if (mMetricsEnabled) {
-        MetricsHeartbeatContext.removeHeartbeat(mClientContext);
+        MetricsHeartbeatContext.removeHeartbeat(getClientContext());
       }
     } else {
       LOG.warn("Attempted to close FileSystemContext which has already been closed or not "
           + "initialized.");
     }
+  }
+
+  /**
+   * If there is code running between {@link #blockReinit()} and {@link #unblockReinit()},
+   * reinitialization will be blocked.
+   *
+   * If reinitialization is happening, this method will block until reinitialization succeeds or
+   * fails, if it fails, an exception will be thrown explaining the reinitialization's failure and
+   * automatically calls {@link #unblockReinit()}.
+   */
+  public void blockReinit() throws IOException {
+    mReinitializer.block();
+  }
+
+  /**
+   * Must be called after {@link #blockReinit()} to unblock reinitialization.
+   */
+  public void unblockReinit() {
+    mReinitializer.unblock();
   }
 
   /**
@@ -320,18 +302,20 @@ public final class FileSystemContext implements Closeable {
     try {
       InetSocketAddress masterAddr = getMasterAddress();
       closeWithoutReinitializer();
-      if (updateClusterConf && updatePathConf) {
-        mClientContext.updateClusterAndPathConf(masterAddr);
-      } else if (updateClusterConf) {
-        mClientContext.updateClusterConf(masterAddr);
-      } else {
-        mClientContext.updatePathConf(masterAddr);
-      }
-      initWithoutReinitializer(MasterInquireClient.Factory.create(mClientContext.getClusterConf()));
+      getClientContext().loadConf(masterAddr, updateClusterConf, updatePathConf);
+      initWithoutReinitializer(getClientContext(),
+          MasterInquireClient.Factory.create(getClusterConf()));
     } finally {
       mReinitializer.end();
     }
     mReinitializer.reset(this);
+  }
+
+  /**
+   * @return the unique ID of this context
+   */
+  public String getId() {
+    return mId;
   }
 
   /**
@@ -345,14 +329,14 @@ public final class FileSystemContext implements Closeable {
    * @return the {@link ClientContext} backing this {@link FileSystemContext}
    */
   public ClientContext getClientContext() {
-    return mClientContext;
+    return mMasterClientContext;
   }
 
   /**
    * @return the cluster level configuration backing this {@link FileSystemContext}
    */
   public AlluxioConfiguration getClusterConf() {
-    return mClientContext.getClusterConf();
+    return getClientContext().getClusterConf();
   }
 
   /**
@@ -364,8 +348,8 @@ public final class FileSystemContext implements Closeable {
    * @return the path level configuration for the specific path
    */
   public AlluxioConfiguration getPathConf(AlluxioURI path) {
-    return new SpecificPathConfiguration(mClientContext.getClusterConf(),
-        mClientContext.getPathConf(), path);
+    return new SpecificPathConfiguration(getClientContext().getClusterConf(),
+        getClientContext().getPathConf(), path);
   }
 
   /**
@@ -373,7 +357,7 @@ public final class FileSystemContext implements Closeable {
    * @throws UnavailableException if the master address cannot be determined
    */
   public synchronized InetSocketAddress getMasterAddress() throws UnavailableException {
-    return mMasterInquireClient.getPrimaryRpcAddress();
+    return mMasterClientContext.getMasterInquireClient().getPrimaryRpcAddress();
   }
 
   /**
@@ -434,7 +418,7 @@ public final class FileSystemContext implements Closeable {
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
-    return acquireBlockWorkerClientInternal(workerNetAddress, mClientContext.getSubject());
+    return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext().getSubject());
   }
 
   private BlockWorkerClient acquireBlockWorkerClientInternal(
@@ -462,7 +446,7 @@ public final class FileSystemContext implements Closeable {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
         getClusterConf());
     ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
-        mClientContext.getSubject(), getClusterConf()));
+        getClientContext().getSubject(), getClusterConf()));
     if (mBlockWorkerClientPool.containsKey(key)) {
       mBlockWorkerClientPool.get(key).release(client);
     } else {
@@ -499,8 +483,8 @@ public final class FileSystemContext implements Closeable {
   private void initializeLocalWorker() throws IOException {
     List<WorkerNetAddress> addresses = getWorkerAddresses();
     if (!addresses.isEmpty()) {
-      if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName(mClientContext
-          .getClusterConf()))) {
+      if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName(
+          getClusterConf()))) {
         mLocalWorker = addresses.get(0);
       }
     }
@@ -526,7 +510,7 @@ public final class FileSystemContext implements Closeable {
     // Convert the worker infos into net addresses, if there are local addresses, only keep those
     List<WorkerNetAddress> workerNetAddresses = new ArrayList<>();
     List<WorkerNetAddress> localWorkerNetAddresses = new ArrayList<>();
-    String localHostname = NetworkAddressUtils.getClientHostName(mClientContext.getClusterConf());
+    String localHostname = NetworkAddressUtils.getClientHostName(getClusterConf());
     for (WorkerInfo info : infos) {
       WorkerNetAddress netAddress = info.getAddress();
       if (netAddress.getHost().equals(localHostname)) {

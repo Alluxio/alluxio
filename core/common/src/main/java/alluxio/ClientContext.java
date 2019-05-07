@@ -116,49 +116,27 @@ public class ClientContext {
    * updates are detected on client side.
    *
    * @param address the address to load cluster defaults from
+   * @param loadClusterConf whether to load cluster level configuration
+   * @param loadPathConf whether to load path level configuration
    * @throws AlluxioStatusException
    */
-  public synchronized void updateClusterAndPathConf(InetSocketAddress address)
-      throws AlluxioStatusException {
+  public synchronized void loadConf(InetSocketAddress address, boolean loadClusterConf,
+      boolean loadPathConf) throws AlluxioStatusException {
+    AlluxioConfiguration conf = mClusterConf;
+    if (!loadClusterConf && !loadPathConf) {
+      return;
+    }
     GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
-        mClusterConf, false, false);
-    AlluxioConfiguration clusterConf = ConfigurationUtils.getClusterConf(response, mClusterConf);
-    PathConfiguration pathConf = ConfigurationUtils.getPathConf(response, mClusterConf);
-
-    mClusterConf = clusterConf;
-    mClusterConfHash = response.getClusterConfigHash();
-    mPathConf = pathConf;
-    mPathConfHash = response.getPathConfigHash();
-    mIsPathConfLoaded = true;
-  }
-
-  /**
-   * Updates cluster level configuration only.
-   *
-   * @param address the meta master address
-   * @throws AlluxioStatusException
-   */
-  public synchronized void updateClusterConf(InetSocketAddress address)
-      throws AlluxioStatusException {
-    GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
-        mClusterConf, false, true);
-    mClusterConf = ConfigurationUtils.getClusterConf(response, mClusterConf);
-    mClusterConfHash = response.getClusterConfigHash();
-  }
-
-  /**
-   * Updates path level configuration only.
-   *
-   * @param address the meta master address
-   * @throws AlluxioStatusException
-   */
-  public synchronized void updatePathConf(InetSocketAddress address)
-      throws AlluxioStatusException {
-    GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
-        mClusterConf, true, false);
-    mPathConf = ConfigurationUtils.getPathConf(response, mClusterConf);
-    mPathConfHash = response.getPathConfigHash();
-    mIsPathConfLoaded = true;
+        conf, !loadClusterConf, !loadPathConf);
+    if (loadClusterConf) {
+      mClusterConf = ConfigurationUtils.getClusterConf(response, conf);
+      mClusterConfHash = response.getClusterConfigHash();
+    }
+    if (loadPathConf) {
+      mPathConf = ConfigurationUtils.getPathConf(response, conf);
+      mPathConfHash = response.getPathConfigHash();
+      mIsPathConfLoaded = true;
+    }
   }
 
   /**
@@ -171,21 +149,7 @@ public class ClientContext {
       throws AlluxioStatusException {
     boolean clusterConfLoaded = mClusterConf.clusterDefaultsLoaded();
     boolean pathConfLoaded = mIsPathConfLoaded;
-    if (clusterConfLoaded && pathConfLoaded) {
-      return;
-    }
-    AlluxioConfiguration conf = mClusterConf;
-    GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address, conf,
-        clusterConfLoaded, pathConfLoaded);
-    if (!clusterConfLoaded) {
-      mClusterConf = ConfigurationUtils.getClusterConf(response, conf);
-      mClusterConfHash = response.getClusterConfigHash();
-    }
-    if (!pathConfLoaded) {
-      mPathConf = ConfigurationUtils.getPathConf(response, conf);
-      mPathConfHash = response.getPathConfigHash();
-      mIsPathConfLoaded = true;
-    }
+    loadConf(address, !clusterConfLoaded, !pathConfLoaded);
   }
 
   /**

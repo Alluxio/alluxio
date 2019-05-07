@@ -11,10 +11,8 @@
 
 package alluxio.client.block;
 
-import alluxio.ClientContext;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
-import alluxio.master.MasterInquireClient;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.io.Closer;
@@ -38,14 +36,12 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
   /**
    * Creates a new block master client pool.
    *
-   * @param context the information required for connecting to Alluxio
-   * @param masterInquireClient a client for determining the master address
+   * @param ctx the information required for connecting to Alluxio
    */
-  public BlockMasterClientPool(ClientContext context, MasterInquireClient masterInquireClient) {
-    super(context.getClusterConf().getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
+  public BlockMasterClientPool(MasterClientContext ctx) {
+    super(ctx.getClusterConf().getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
     mClientList = new ConcurrentLinkedQueue<>();
-    mMasterContext =
-        MasterClientContext.newBuilder(context).setMasterInquireClient(masterInquireClient).build();
+    mMasterContext = ctx;
   }
 
   @Override
