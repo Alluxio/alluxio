@@ -851,7 +851,7 @@ public class InodeTreePersistentState implements Journaled {
 
       @Override
       public boolean hasNext() {
-        /**
+        /*
          * This call returns {@code true) if it was able to fetch an element
          * from an ongoing buffering. Then it stores that element to be remembered in following
          * calls to hasNext() and next().

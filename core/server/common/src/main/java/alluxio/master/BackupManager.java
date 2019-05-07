@@ -50,6 +50,8 @@ import java.util.regex.Pattern;
  * Manages creating and restoring from backups.
  *
  * Journals are written as a series of entries in gzip format.
+ *
+ * TODO(ggezer) Abstract out common logic for backup/initFromBackup methods.
  */
 public class BackupManager {
   private static final Logger LOG = LoggerFactory.getLogger(BackupManager.class);
