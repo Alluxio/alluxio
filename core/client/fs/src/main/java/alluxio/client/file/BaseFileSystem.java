@@ -402,13 +402,13 @@ public class BaseFileSystem implements FileSystem {
       throw new FileDoesNotExistException(
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
-    return rpc(() -> {
-      OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(
-          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-      InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions,
-          mFsContext.getPathConf(path));
-      return new FileInStream(status, inStreamOptions, mFsContext);
-    });
+    // getStatus should have loaded path level configs.
+    OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(
+        mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+    InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions,
+        mFsContext.getPathConf(path));
+    // FileSystemContext reinitialization is blocked during construction and close of FileInStream.
+    return new FileInStream(status, inStreamOptions, mFsContext);
   }
 
   @Override
@@ -559,16 +559,11 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @FunctionalInterface
-  private interface Function<T, R> {
-    R accept(T t) throws IOException, AlluxioException;
+  private interface RpcCallable<T, R> {
+    R call(T t) throws IOException, AlluxioException;
   }
 
-  @FunctionalInterface
-  private interface Callable<R> {
-    R call() throws IOException, AlluxioException;
-  }
-
-  private <R> R rpc(Function<FileSystemMasterClient, R> fn) throws IOException, AlluxioException {
+  private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn) throws IOException, AlluxioException {
     mFsContext.blockReinit();
     FileSystemMasterClient client = null;
     try {
@@ -576,7 +571,7 @@ public class BaseFileSystem implements FileSystem {
       client = mFsContext.acquireMasterClient();
       if (client != null) {
         client.connect();
-        return fn.accept(client);
+        return fn.call(client);
       } else {
         throw new UnavailableException("Failed to acquire master client, "
             + "maybe FileSystem is being reinitialized or closed concurrently.");
@@ -595,16 +590,6 @@ public class BaseFileSystem implements FileSystem {
       if (client != null) {
         mFsContext.releaseMasterClient(client);
       }
-      mFsContext.unblockReinit();
-    }
-  }
-
-  private <R> R rpc(Callable<R> callable) throws IOException, AlluxioException {
-    mFsContext.blockReinit();
-    try {
-      mFsContext.getClientContext().loadConfIfNotLoaded(mFsContext.getMasterAddress());
-      return callable.call();
-    } finally {
       mFsContext.unblockReinit();
     }
   }
