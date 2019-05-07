@@ -9,13 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+import static org.junit.Assert.assertTure;
+import static org.junit.Assert.assertEquals;
+
 package alluxio.collections;
 
 import alluxio.util.SleepUtils;
 
 import org.junit.After;
-import static org.junit.Assert.assertTure;
-import static org.junit.Assert.assertEquals;
+
 import org.junit.Before;
 import org.junit.Test;
 
