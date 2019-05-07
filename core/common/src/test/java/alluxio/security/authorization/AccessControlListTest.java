@@ -11,14 +11,8 @@
 
 package alluxio.security.authorization;
 
-//change import to static import
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-//
-
 import com.google.common.collect.Lists;
-//import org.junit.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -42,8 +36,8 @@ public class AccessControlListTest {
   @Test
   public void constructor() {
     AccessControlList acl = new AccessControlList();
-    assertEquals("", acl.getOwningUser());
-    assertEquals("", acl.getOwningGroup());
+    Assert.assertEquals("", acl.getOwningUser());
+    Assert.assertEquals("", acl.getOwningGroup());
   }
 
   /**
@@ -54,8 +48,8 @@ public class AccessControlListTest {
     AccessControlList acl = new AccessControlList();
     acl.setOwningUser(OWNING_USER);
     acl.setOwningGroup(OWNING_GROUP);
-    assertEquals(OWNING_USER, acl.getOwningUser());
-    assertEquals(OWNING_GROUP, acl.getOwningGroup());
+    Assert.assertEquals(OWNING_USER, acl.getOwningUser());
+    Assert.assertEquals(OWNING_GROUP, acl.getOwningGroup());
   }
 
   /**
@@ -83,22 +77,22 @@ public class AccessControlListTest {
     acl.updateMask();
     // Verify mode.
     // owning user
-    assertTrue(checkMode(acl, OWNING_USER, Collections.emptyList(), Mode.Bits.ALL));
+    Assert.assertTrue(checkMode(acl, OWNING_USER, Collections.emptyList(), Mode.Bits.ALL));
     // owning group
-    assertTrue(checkMode(acl, OTHER_USER, Lists.newArrayList(OWNING_GROUP),
+    Assert.assertTrue(checkMode(acl, OTHER_USER, Lists.newArrayList(OWNING_GROUP),
         Mode.Bits.READ_EXECUTE));
-    assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(OWNING_GROUP),
+    Assert.assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(OWNING_GROUP),
         Mode.Bits.WRITE));
     // other
-    assertFalse(checkMode(acl, OTHER_USER, Collections.emptyList(), Mode.Bits.READ));
-    assertFalse(checkMode(acl, OTHER_USER, Collections.emptyList(), Mode.Bits.WRITE));
-    assertFalse(checkMode(acl, OTHER_USER, Collections.emptyList(), Mode.Bits.EXECUTE));
+    Assert.assertFalse(checkMode(acl, OTHER_USER, Collections.emptyList(), Mode.Bits.READ));
+    Assert.assertFalse(checkMode(acl, OTHER_USER, Collections.emptyList(), Mode.Bits.WRITE));
+    Assert.assertFalse(checkMode(acl, OTHER_USER, Collections.emptyList(), Mode.Bits.EXECUTE));
     // named user
-    assertTrue(checkMode(acl, NAMED_USER, Collections.emptyList(), Mode.Bits.ALL));
+    Assert.assertTrue(checkMode(acl, NAMED_USER, Collections.emptyList(), Mode.Bits.ALL));
     // named group
-    assertTrue(checkMode(acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP),
+    Assert.assertTrue(checkMode(acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP),
         Mode.Bits.WRITE_EXECUTE));
-    assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP),
+    Assert.assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP),
         Mode.Bits.READ));
   }
 
@@ -118,14 +112,14 @@ public class AccessControlListTest {
   @Test
   public void getMode() {
     AccessControlList acl = new AccessControlList();
-    assertEquals(0, acl.getMode());
+    Assert.assertEquals(0, acl.getMode());
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OWNING_USER).setSubject(OWNING_USER)
         .addAction(AclAction.READ).build());
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OWNING_GROUP).setSubject(OWNING_GROUP)
         .addAction(AclAction.WRITE).build());
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OTHER)
         .addAction(AclAction.EXECUTE).build());
-    assertEquals(new Mode(Mode.Bits.READ, Mode.Bits.WRITE, Mode.Bits.EXECUTE).toShort(),
+    Assert.assertEquals(new Mode(Mode.Bits.READ, Mode.Bits.WRITE, Mode.Bits.EXECUTE).toShort(),
         acl.getMode());
   }
 
@@ -137,7 +131,7 @@ public class AccessControlListTest {
     AccessControlList acl = new AccessControlList();
     short mode = new Mode(Mode.Bits.EXECUTE, Mode.Bits.WRITE, Mode.Bits.READ).toShort();
     acl.setMode(mode);
-    assertEquals(mode, acl.getMode());
+    Assert.assertEquals(mode, acl.getMode());
   }
 
   private void setPermissions(AccessControlList acl) {
@@ -172,33 +166,33 @@ public class AccessControlListTest {
     AccessControlList acl = new AccessControlList();
     setPermissions(acl);
 
-    assertTrue(checkMode(acl, OWNING_USER, Collections.emptyList(), Mode.Bits.ALL));
+    Assert.assertTrue(checkMode(acl, OWNING_USER, Collections.emptyList(), Mode.Bits.ALL));
 
-    assertTrue(checkMode(acl, NAMED_USER, Collections.emptyList(), Mode.Bits.READ_EXECUTE));
-    assertFalse(checkMode(acl, NAMED_USER, Collections.emptyList(), Mode.Bits.WRITE));
+    Assert.assertTrue(checkMode(acl, NAMED_USER, Collections.emptyList(), Mode.Bits.READ_EXECUTE));
+    Assert.assertFalse(checkMode(acl, NAMED_USER, Collections.emptyList(), Mode.Bits.WRITE));
 
-    assertTrue(checkMode(acl, OTHER_USER, Lists.newArrayList(OWNING_GROUP),
+    Assert.assertTrue(checkMode(acl, OTHER_USER, Lists.newArrayList(OWNING_GROUP),
         Mode.Bits.READ_EXECUTE));
-    assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(OWNING_GROUP),
+    Assert.assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(OWNING_GROUP),
         Mode.Bits.WRITE));
 
-    assertTrue(checkMode(acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP), Mode.Bits.READ));
-    assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP),
+    Assert.assertTrue(checkMode(acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP), Mode.Bits.READ));
+    Assert.assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP),
         Mode.Bits.WRITE));
-    assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP),
+    Assert.assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP),
         Mode.Bits.EXECUTE));
 
-    assertTrue(checkMode(acl, OTHER_USER, Lists.newArrayList(OTHER_GROUP),
+    Assert.assertTrue(checkMode(acl, OTHER_USER, Lists.newArrayList(OTHER_GROUP),
         Mode.Bits.EXECUTE));
-    assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(OTHER_GROUP),
+    Assert.assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(OTHER_GROUP),
         Mode.Bits.READ));
-    assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(OTHER_GROUP),
+    Assert.assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(OTHER_GROUP),
         Mode.Bits.WRITE));
   }
 
   private void assertMode(Mode.Bits expected, AccessControlList acl, String user,
       List<String> groups) {
-    assertEquals(expected, acl.getPermission(user, groups).toModeBits());
+    Assert.assertEquals(expected, acl.getPermission(user, groups).toModeBits());
   }
 
   /**
