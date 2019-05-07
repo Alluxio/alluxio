@@ -22,6 +22,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
@@ -300,15 +301,30 @@ public final class FileSystemContext implements Closeable {
       throws TimeoutException, InterruptedException, IOException {
     mReinitializer.begin();
     try {
-      InetSocketAddress masterAddr = getMasterAddress();
+      InetSocketAddress masterAddr;
+      try {
+        masterAddr = getMasterAddress();
+      } catch (IOException e) {
+        LOG.error("Failed to get master address during reinitialization", e);
+        return;
+      }
+      try {
+        getClientContext().loadConf(masterAddr, updateClusterConf, updatePathConf);
+      } catch (AlluxioStatusException e) {
+        // Failed to load configuration from meta master, maybe master is being restarted,
+        // or their is a temporary network problem, give up reinitialization. The heartbeat thread
+        // will try to reinitialize in the next heartbeat.
+        LOG.error("Failed to load configuration from meta master {} during reinitialization: {}",
+            masterAddr, e);
+        return;
+      }
       closeWithoutReinitializer();
-      getClientContext().loadConf(masterAddr, updateClusterConf, updatePathConf);
       initWithoutReinitializer(getClientContext(),
           MasterInquireClient.Factory.create(getClusterConf()));
+      mReinitializer.reset(this);
     } finally {
       mReinitializer.end();
     }
-    mReinitializer.reset(this);
   }
 
   /**
