@@ -203,18 +203,13 @@ public class BaseFileSystem implements FileSystem {
   public void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    try {
-      rpc(client -> {
-        DeletePOptions mergedOptions = FileSystemOptions.deleteDefaults(
-            mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-        client.delete(path, mergedOptions);
-        LOG.debug("Deleted {}, options: {}", path.getPath(), mergedOptions);
-        return null;
-      });
-    } catch (FailedPreconditionException e) {
-      // A little sketchy, but this should be the only case that throws FailedPrecondition.
-      throw new DirectoryNotEmptyException(e.getMessage());
-    }
+    rpc(client -> {
+      DeletePOptions mergedOptions = FileSystemOptions.deleteDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      client.delete(path, mergedOptions);
+      LOG.debug("Deleted {}, options: {}", path.getPath(), mergedOptions);
+      return null;
+    });
   }
 
   @Override
@@ -555,7 +550,6 @@ public class BaseFileSystem implements FileSystem {
                 uri.getAuthority(), configured));
       }
     }
-    return;
   }
 
   @FunctionalInterface
@@ -579,9 +573,12 @@ public class BaseFileSystem implements FileSystem {
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     } catch (AlreadyExistsException e) {
-      throw new java.nio.file.FileAlreadyExistsException(e.getMessage());
+      throw new FileAlreadyExistsException(e.getMessage());
     } catch (InvalidArgumentException e) {
       throw new InvalidPathException(e.getMessage());
+    } catch (FailedPreconditionException e) {
+      // A little sketchy, but this should be the only case that throws FailedPrecondition.
+      throw new DirectoryNotEmptyException(e.getMessage());
     } catch (UnavailableException e) {
       throw e;
     } catch (AlluxioStatusException e) {
