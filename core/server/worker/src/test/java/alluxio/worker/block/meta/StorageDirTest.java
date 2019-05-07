@@ -80,7 +80,7 @@ public final class StorageDirTest {
         testDirPaths, testDirCapacity, null);
 
     mTier = StorageTier.newStorageTier("MEM");
-    mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, mTestDirPath);
+    mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, mTestDirPath, "MEM");
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta =
         new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
@@ -95,7 +95,7 @@ public final class StorageDirTest {
    */
   private StorageDir newStorageDir(File testDir) throws Exception {
     return StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY,
-        testDir.getAbsolutePath());
+         testDir.getAbsolutePath(), "MEM");
   }
 
   /**

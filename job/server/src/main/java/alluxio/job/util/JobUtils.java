@@ -130,6 +130,11 @@ public final class JobUtils {
     // renamed, the job is still working on the correct file.
     URIStatus status = fs.getStatus(new AlluxioURI(path));
 
+    List<String> pinnedLocation = status.getPinnedLocation();
+    if (pinnedLocation.size() > 1)
+      throw new AlluxioException(ExceptionMessage.PINNED_TO_MULTIPLE_MEDIA.getMessage(path));
+    String medium = pinnedLocation.isEmpty() ? "" : pinnedLocation.get(0);
+
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
 
@@ -140,6 +145,7 @@ public final class JobUtils {
         LocalFirstPolicy.class.getCanonicalName(), conf));
 
     OutStreamOptions outOptions = OutStreamOptions.defaults(conf);
+    outOptions.setWriteMedium(medium);
     // Set write location policy always to local first for loading blocks for job tasks
     outOptions.setLocationPolicy(BlockLocationPolicy.Factory.create(
         LocalFirstPolicy.class.getCanonicalName(), conf));

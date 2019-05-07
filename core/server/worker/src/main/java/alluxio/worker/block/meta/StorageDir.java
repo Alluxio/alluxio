@@ -46,6 +46,7 @@ public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(StorageDir.class);
 
   private final long mCapacityBytes;
+  private final String mDirMedium;
   /** A map from block id to block metadata. */
   private Map<Long, BlockMeta> mBlockIdToBlockMap;
   /** A map from block id to temp block metadata. */
@@ -58,13 +59,15 @@ public final class StorageDir {
   private int mDirIndex;
   private StorageTier mTier;
 
-  private StorageDir(StorageTier tier, int dirIndex, long capacityBytes, String dirPath) {
+  private StorageDir(StorageTier tier, int dirIndex, long capacityBytes, String dirPath,
+      String dirMedium) {
     mTier = Preconditions.checkNotNull(tier, "tier");
     mDirIndex = dirIndex;
     mCapacityBytes = capacityBytes;
     mAvailableBytes = new AtomicLong(capacityBytes);
     mCommittedBytes = new AtomicLong(0);
     mDirPath = dirPath;
+    mDirMedium = dirMedium;
     mBlockIdToBlockMap = new HashMap<>(200);
     mBlockIdToTempBlockMap = new HashMap<>(200);
     mSessionIdToTempBlockIdsMap = new HashMap<>(200);
@@ -82,13 +85,15 @@ public final class StorageDir {
    * @param dirIndex the index of this dir in its tier
    * @param capacityBytes the initial capacity of this dir, can not be modified later
    * @param dirPath filesystem path of this dir for actual storage
+   * @param dirMedium the medium type of the storage dir
    * @return the new created {@link StorageDir}
    * @throws BlockAlreadyExistsException when metadata of existing committed blocks already exists
    * @throws WorkerOutOfSpaceException when metadata can not be added due to limited left space
    */
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
-      String dirPath) throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    StorageDir dir = new StorageDir(tier, dirIndex, capacityBytes, dirPath);
+      String dirPath, String dirMedium)
+      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
+    StorageDir dir = new StorageDir(tier, dirIndex, capacityBytes, dirPath, dirMedium);
     dir.initializeMeta();
     return dir;
   }
@@ -180,6 +185,11 @@ public final class StorageDir {
   public String getDirPath() {
     return mDirPath;
   }
+
+  /**
+   * @return the medium of the storage dir
+   */
+  public String getDirMedium() { return mDirMedium; }
 
   /**
    * Returns the {@link StorageTier} containing this {@link StorageDir}.

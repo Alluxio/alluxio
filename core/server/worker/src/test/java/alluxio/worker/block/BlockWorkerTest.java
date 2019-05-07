@@ -223,7 +223,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#createBlock(long, long, String, long)} method.
+   * Tests the {@link BlockWorker#createBlock(long, long, String, String, long)} method.
    */
   @Test
   public void createBlock() throws Exception {
@@ -240,11 +240,11 @@ public class BlockWorkerTest {
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
             String.format("%x-%x", sessionId, blockId)),
-        mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
+        mBlockWorker.createBlock(sessionId, blockId, tierAlias,"", initialBytes));
   }
 
   /**
-   * Tests the {@link BlockWorker#createBlock(long, long, String, long)} method with a tier other
+   * Tests the {@link BlockWorker#createBlock(long, long, String, String,  long)} method with a tier other
    * than MEM.
    */
   @Test
@@ -262,7 +262,7 @@ public class BlockWorkerTest {
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
             String.format("%x-%x", sessionId, blockId)),
-        mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
+        mBlockWorker.createBlock(sessionId, blockId, tierAlias, "", initialBytes));
   }
 
   /**
@@ -283,7 +283,7 @@ public class BlockWorkerTest {
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
             String.format("%x-%x", sessionId, blockId)),
-        mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
+        mBlockWorker.createBlock(sessionId, blockId, tierAlias,"", initialBytes));
   }
 
   /**

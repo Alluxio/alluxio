@@ -237,6 +237,11 @@ public class URIStatus {
   }
 
   /**
+   * @return the pinned location list
+   */
+  public List<String> getPinnedLocation() { return mInfo.getPinnedLocation(); }
+
+  /**
    * @return whether the entity referenced by this uri is a mount point
    */
   public boolean isMountPoint() {

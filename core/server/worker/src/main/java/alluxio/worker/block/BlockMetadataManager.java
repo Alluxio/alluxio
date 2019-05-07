@@ -242,6 +242,15 @@ public final class BlockMetadataManager {
     return getTier(location.tierAlias()).getDir(location.dir());
   }
 
+  public BlockStoreLocation getMedium(String mediumType) {
+    for (StorageTier tier : getTiers()) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        if (dir.getDirMedium().equals(mediumType))
+          return new BlockStoreLocation(tier.getTierAlias(), dir.getDirIndex());
+      }
+    }
+    return null;
+  }
   /**
    * Gets the metadata of a temp block.
    *

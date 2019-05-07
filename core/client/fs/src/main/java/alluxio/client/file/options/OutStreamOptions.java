@@ -31,6 +31,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.List;
 
 /**
  * Method options for writing a file.
@@ -53,6 +54,7 @@ public final class OutStreamOptions {
   private int mReplicationMin;
   private String mUfsPath;
   private long mMountId;
+  private String mWriteMedium;
 
   /**
    * @param alluxioConf Alluxio configuration
@@ -117,6 +119,15 @@ public final class OutStreamOptions {
     mReplicationDurable = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
     mReplicationMax = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
     mReplicationMin = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
+    List<String> mediaList = alluxioConf.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIA, ",");
+    mWriteMedium = mediaList.isEmpty() ? "" : mediaList.get(0);
+  }
+
+  /**
+   * @return the write medium type
+   */
+  public String getWriteMedium() {
+    return mWriteMedium;
   }
 
   /**
@@ -237,6 +248,18 @@ public final class OutStreamOptions {
    */
   public WriteType getWriteType() {
     return mWriteType;
+  }
+
+
+  /**
+   * Set the write medium type of the file
+   *
+   * @param mediumType write medium type
+   * @return the updated options object
+   */
+  public OutStreamOptions setWriteMedium(String mediumType) {
+    mWriteMedium = mediumType;
+    return this;
   }
 
   /**
