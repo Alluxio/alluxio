@@ -10,7 +10,7 @@
  */
 
 package alluxio.test.util;
-//smallfix here
+
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
