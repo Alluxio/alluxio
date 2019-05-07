@@ -17,7 +17,6 @@ package alluxio.collections;
 import alluxio.util.SleepUtils;
 
 import org.junit.After;
-
 import org.junit.Before;
 import org.junit.Test;
 
