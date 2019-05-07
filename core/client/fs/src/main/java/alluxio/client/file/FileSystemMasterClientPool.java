@@ -58,11 +58,4 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
     mClientList.add(client);
     return client;
   }
-
-  /**
-   * @return the master client context
-   */
-  public MasterClientContext getMasterClientContext() {
-    return mMasterContext;
-  }
 }
