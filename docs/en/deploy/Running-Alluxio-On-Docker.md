@@ -145,7 +145,7 @@ docker run -d \
            alluxio master
 ```
 
-Set the master rpc addresses for all the workers so that they can query the master nodes find out the leader master.
+Set the master rpc addresses for all the workers so that they can query the master nodes to find out the leader master.
 
 ```bash
 docker run -d \
