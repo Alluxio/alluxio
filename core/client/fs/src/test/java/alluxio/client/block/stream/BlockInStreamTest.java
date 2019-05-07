@@ -11,7 +11,6 @@
 
 package alluxio.client.block.stream;
 
-
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
