@@ -667,8 +667,13 @@ public class BaseFileSystem implements FileSystem {
     try {
       mFsContext.getClientContext().loadConfIfNotLoaded(mFsContext.getMasterAddress());
       client = mFsContext.acquireMasterClient();
-      client.connect();
-      return fn.accept(client);
+      if (client != null) {
+        client.connect();
+        return fn.accept(client);
+      } else {
+        throw new UnavailableException("Failed to acquire master client, "
+            + "maybe FileSystem is being reinitialized or closed concurrently.");
+      }
     } finally {
       if (client != null) {
         mFsContext.releaseMasterClient(client);

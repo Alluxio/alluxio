@@ -382,7 +382,10 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired file system master client
    */
   public FileSystemMasterClient acquireMasterClient() {
-    return mFileSystemMasterClientPool.acquire();
+    if (mFileSystemMasterClientPool != null) {
+      return mFileSystemMasterClientPool.acquire();
+    }
+    return null;
   }
 
   /**
@@ -391,7 +394,9 @@ public final class FileSystemContext implements Closeable {
    * @param masterClient a file system master client to release
    */
   public void releaseMasterClient(FileSystemMasterClient masterClient) {
-    mFileSystemMasterClientPool.release(masterClient);
+    if (mFileSystemMasterClientPool != null) {
+      mFileSystemMasterClientPool.release(masterClient);
+    }
   }
 
   /**
