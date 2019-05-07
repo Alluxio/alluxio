@@ -14,6 +14,7 @@ package alluxio.master.journal.ufs;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
+import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.master.journal.AsyncJournalWriter;
@@ -309,6 +310,29 @@ public class UfsJournal implements Journal {
     UnderFileSystemUtils.touch(mUfs, URIUtils.appendPathOrDie(location,
         ServerConfiguration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX) + System.currentTimeMillis())
         .toString());
+  }
+
+  /**
+   * Creates a checkpoint in this ufs journal.
+   */
+  public synchronized void checkpoint() throws IOException {
+    long nextSequenceNumber = getNextSequenceNumberToWrite();
+    if (nextSequenceNumber == getNextSequenceNumberToCheckpoint()) {
+      LOG.info("{}: No entries have been written since the last checkpoint.",
+          mMaster.getName());
+      return;
+    }
+    try (UfsJournalCheckpointWriter journalWriter
+             = getCheckpointWriter(nextSequenceNumber)) {
+      LOG.info("{}: Writing checkpoint [sequence number {}].",
+          mMaster.getName(), nextSequenceNumber);
+      mMaster.writeToCheckpoint(journalWriter);
+      LOG.info("{}: Finished checkpoint [sequence number {}].",
+          mMaster.getName(), nextSequenceNumber);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new CancelledException("Checkpoint is interrupted");
+    }
   }
 
   /**

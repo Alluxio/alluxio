@@ -155,6 +155,11 @@ public interface JournalSystem {
   boolean isEmpty();
 
   /**
+   * Creates a checkpoint in the primary master journal system.
+   */
+  void checkpoint() throws IOException;
+
+  /**
    * Builder for constructing a journal system.
    */
   class Builder {

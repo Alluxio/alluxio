@@ -65,6 +65,8 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
   private volatile long mLastPrimaryStartSequenceNumber = 0;
   private volatile long mNextSequenceNumberToRead = 0;
   private volatile boolean mSnapshotting = false;
+  // The start time of the most recent snapshot
+  private volatile long mLastSnapshotStartTime = 0;
 
   /**
    * @param journals master journals; these journals are still owned by the caller, not by the
@@ -186,7 +188,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
     LOG.debug("Calling snapshot");
     Preconditions.checkState(!mSnapshotting, "Cannot call snapshot multiple times concurrently");
     mSnapshotting = true;
-    long start = System.currentTimeMillis();
+    mLastSnapshotStartTime = System.currentTimeMillis();
     long snapshotId = mNextSequenceNumberToRead - 1;
     try (SnapshotWriterStream sws = new SnapshotWriterStream(writer)) {
       writer.writeLong(snapshotId);
@@ -196,7 +198,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       throw new RuntimeException(t);
     }
     LOG.info("Completed snapshot up to SN {} in {}ms", snapshotId,
-        System.currentTimeMillis() - start);
+        System.currentTimeMillis() - mLastSnapshotStartTime);
     mSnapshotting = false;
   }
 
@@ -269,6 +271,13 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
    */
   public long getLastPrimaryStartSequenceNumber() {
     return mLastPrimaryStartSequenceNumber;
+  }
+
+  /**
+   * @return the start time of the most recent snapshot
+   */
+  public long getLastSnapshotStartTime() {
+    return mLastSnapshotStartTime;
   }
 
   /**

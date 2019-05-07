@@ -144,4 +144,11 @@ public interface MetaMaster extends Master {
    * @throws NotFoundException if masterId cannot be found
    */
   void masterRegister(long masterId, RegisterMasterPOptions options) throws NotFoundException;
+
+  /**
+   * Creates a checkpoint in the primary master journal system.
+   *
+   * @return the hostname of the master that did the checkpoint
+   */
+  String checkpoint() throws IOException;
 }
