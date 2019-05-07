@@ -818,8 +818,9 @@ public class InodeTreePersistentState implements Journaled {
                     .submit(new DirectoryCrawler(mDirectoriesToIterate.take())));
               } else {
                 // No dirs but there are active threads.
-                Future<?> crawlerFuture = mCrawlerCompletionService.poll(100, TimeUnit.MILLISECONDS);
-                if(crawlerFuture != null) {
+                Future<?> crawlerFuture =
+                    mCrawlerCompletionService.poll(100, TimeUnit.MILLISECONDS);
+                if (crawlerFuture != null) {
                   mActiveCrawlers.remove(crawlerFuture);
                   crawlerFuture.get();
                 }
