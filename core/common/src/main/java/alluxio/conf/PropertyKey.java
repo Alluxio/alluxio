@@ -893,6 +893,43 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_HTTP_PREFIXES =
+      new Builder(Name.UNDERFS_HTTP_PREFIXES)
+          .setDefaultValue("http://,https://")
+          .setDescription("Optionally, specify which prefixes should run through the HTTP "
+                  + "implementation of UnderFileSystem. The delimiter is any whitespace "
+                  + "and/or ','.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_HTTP_HEADER_LAST_MODIFIED =
+      new Builder(Name.UNDERFS_HTTP_HEADER_LAST_MODIFIED)
+          .setDefaultValue("EEE, dd MMM yyyy HH:mm:ss zzz")
+          .setDescription("Date format of last modified for a http response header.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_HTTP_CONNECTION_TIMEOUT =
+      new Builder(Name.UNDERFS_HTTP_CONNECTION_TIMEOUT)
+          .setDefaultValue(60000)
+          .setDescription("Default timeout for a http connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_HTTP_PARENT_NAMES =
+      new Builder(Name.UNDERFS_HTTP_PARENT_NAMES)
+          .setDefaultValue("Parent Directory,..,../")
+          .setDescription("The text of the http linke for the parent directory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_HTTP_TITLES =
+      new Builder(Name.UNDERFS_HTTP_TITLES)
+          .setDefaultValue("Index of ,Directory listing for ")
+          .setDescription("The title of the content for a http url.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // UFS access control related properties
@@ -3732,6 +3769,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_KODO_REQUESTS_MAX = "alluxio.underfs.kodo.requests.max";
     public static final String UNDERFS_RUN_WITH_MANAGEDBLOCKING =
         "alluxio.underfs.run.with.managedblocking";
+    public static final String UNDERFS_HTTP_PREFIXES = "alluxio.underfs.http.prefixes";
+    public static final String UNDERFS_HTTP_HEADER_LAST_MODIFIED =
+          "alluxio.underfs.http.header.last.modified";
+    public static final String UNDERFS_HTTP_CONNECTION_TIMEOUT =
+          "alluxio.underfs.http.connnection.timeout";
+    public static final String UNDERFS_HTTP_PARENT_NAMES = "alluxio.underfs.http.parent.names";
+    public static final String UNDERFS_HTTP_TITLES = "alluxio.underfs.http.titles";
 
     //
     // UFS access control related properties
