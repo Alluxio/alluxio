@@ -11,7 +11,6 @@
 
 package alluxio.master.journal;
 
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -37,6 +36,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -149,14 +149,18 @@ public final class AsyncJournalWriter {
   /**
    * Collection of sinks for this journal.
    */
-  private final Set<JournalSink> mJournalSinks = new ConcurrentHashSet<>();
+//  private final Set<JournalSink> mJournalSinks = new ConcurrentHashSet<>();
+
+  /** A supplier of journal sinks for this journal writer. */
+  private final Supplier<Set<JournalSink>> mJournalSinks;
 
   /**
    * Creates a {@link AsyncJournalWriter}.
    *
    * @param journalWriter a journal writer to write to
+   * @param journalSinks a supplier for journal sinks
    */
-  public AsyncJournalWriter(JournalWriter journalWriter) {
+  public AsyncJournalWriter(JournalWriter journalWriter, Supplier<Set<JournalSink>> journalSinks) {
     mJournalWriter = Preconditions.checkNotNull(journalWriter, "journalWriter");
     mQueue = new ConcurrentLinkedQueue<>();
     mCounter = new AtomicLong(0);
@@ -165,6 +169,7 @@ public final class AsyncJournalWriter {
     mFlushBatchTimeNs = TimeUnit.NANOSECONDS.convert(
         ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS),
         TimeUnit.MILLISECONDS);
+    mJournalSinks = journalSinks;
     mFlushThread.start();
   }
 
@@ -279,7 +284,7 @@ public final class AsyncJournalWriter {
             break;
           }
           mJournalWriter.write(entry);
-          sinkAppend(entry);
+          JournalUtils.sinkAppend(mJournalSinks, entry);
           // Remove the head entry, after the entry was successfully written.
           mQueue.poll();
           mWriteCounter++;
@@ -294,7 +299,7 @@ public final class AsyncJournalWriter {
         // Either written new entries or previous flush had been failed.
         if (mFlushCounter.get() < mWriteCounter) {
           mJournalWriter.flush();
-          sinkFlush();
+          JournalUtils.sinkFlush(mJournalSinks);
           mFlushCounter.set(mWriteCounter);
         }
 
@@ -371,36 +376,6 @@ public final class AsyncJournalWriter {
        * because the permit may or may not have been used by the flush thread.
        */
       mFlushSemaphore.tryAcquire();
-    }
-  }
-
-  /**
-   * Adds a journal sink to this async writer.
-   *
-   * @param journalSink the journal sink to add
-   */
-  public void addJournalSink(JournalSink journalSink) {
-    mJournalSinks.add(journalSink);
-  }
-
-  /**
-   * Removes a journal sink from this async writer.
-   *
-   * @param journalSink the journal sink to remove
-   */
-  public void removeJournalSink(JournalSink journalSink) {
-    mJournalSinks.remove(journalSink);
-  }
-
-  private void sinkAppend(JournalEntry entry) {
-    for (JournalSink sink : mJournalSinks) {
-      sink.append(entry);
-    }
-  }
-
-  private void sinkFlush() {
-    for (JournalSink sink : mJournalSinks) {
-      sink.flush();
     }
   }
 }

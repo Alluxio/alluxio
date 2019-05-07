@@ -14,7 +14,6 @@ package alluxio.master.journal.noop;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
-import alluxio.master.journal.sink.JournalSink;
 
 import java.io.IOException;
 import java.net.URI;
@@ -46,10 +45,4 @@ public class NoopJournal implements Journal {
 
   @Override
   public void close() throws IOException {}
-
-  @Override
-  public void addJournalSink(JournalSink journalSink) {}
-
-  @Override
-  public void removeJournalSink(JournalSink journalSink) {}
 }

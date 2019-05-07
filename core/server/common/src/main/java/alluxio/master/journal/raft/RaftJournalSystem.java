@@ -55,6 +55,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -207,7 +208,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals);
+    mStateMachine = new JournalStateMachine(mJournals, () -> this.getJournalSinks(null));
     mServer = CopycatServer.builder(getLocalAddress(mConf))
         .withStorage(storage)
         .withElectionTimeout(Duration.ofMillis(mConf.getElectionTimeoutMs()))
@@ -283,13 +284,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
     Preconditions.checkState(mRaftJournalWriter == null);
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
-    mAsyncJournalWriter.set(new AsyncJournalWriter(mRaftJournalWriter));
-    // Add all the registered sinks to the newly created async writer
-    for (Set<JournalSink> sinks : mJournalSinks.values()) {
-      for (JournalSink sink : sinks) {
-        mAsyncJournalWriter.get().addJournalSink(sink);
-      }
-    }
+    mAsyncJournalWriter
+        .set(new AsyncJournalWriter(mRaftJournalWriter, () -> this.getJournalSinks(null)));
   }
 
   @Override
@@ -465,23 +461,5 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
    */
   public PrimarySelector getPrimarySelector() {
     return mPrimarySelector;
-  }
-
-  @Override
-  public void addJournalSink(Master master, JournalSink journalSink) {
-    super.addJournalSink(master, journalSink);
-    RaftJournal journal = mJournals.get(master.getName());
-    if (journal != null) {
-      journal.addJournalSink(journalSink);
-    }
-  }
-
-  @Override
-  public void removeJournalSink(Master master, JournalSink journalSink) {
-    super.removeJournalSink(master, journalSink);
-    RaftJournal journal = mJournals.get(master.getName());
-    if (journal != null) {
-      journal.removeJournalSink(journalSink);
-    }
   }
 }

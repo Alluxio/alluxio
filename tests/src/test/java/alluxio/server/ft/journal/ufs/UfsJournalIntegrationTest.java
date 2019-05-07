@@ -55,6 +55,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -138,7 +139,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     mLocalAlluxioCluster.stop();
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)),
-        new NoopMaster(), 0);
+        new NoopMaster(), 0, Collections::emptySet);
     journal.start();
     journal.gainPrimacy();
 
@@ -206,7 +207,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     String journalFolder = PathUtils
         .concatPath(mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder(),
             Constants.FILE_SYSTEM_MASTER_NAME);
-    UfsJournal journal = new UfsJournal(new URI(journalFolder), new NoopMaster(), 0);
+    UfsJournal journal =
+        new UfsJournal(new URI(journalFolder), new NoopMaster(), 0, Collections::emptySet);
     URI completedLocation = journal.getLogDir();
     Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation,
         ServerConfiguration.global())
@@ -637,7 +639,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     String journalFolder = mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder();
     UfsJournal journal = new UfsJournal(
         new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)),
-        new NoopMaster(), 0);
+        new NoopMaster(), 0, Collections::emptySet);
     if (UfsJournalSnapshot.getCurrentLog(journal) != null) {
       UnderFileSystem.Factory.create(journalFolder, ServerConfiguration.global())
           .deleteFile(UfsJournalSnapshot.getCurrentLog(journal).getLocation().toString());

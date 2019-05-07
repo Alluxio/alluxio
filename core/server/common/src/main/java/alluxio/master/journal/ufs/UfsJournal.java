@@ -42,6 +42,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -107,6 +109,9 @@ public class UfsJournal implements Journal {
 
   private State mState;
 
+  /** A supplier of journal sinks for this journal. */
+  private final Supplier<Set<JournalSink>> mJournalSinks;
+
   /**
    * @return the ufs configuration to use for the journal operations
    */
@@ -124,10 +129,12 @@ public class UfsJournal implements Journal {
    * @param master the master to manage
    * @param quietPeriodMs the amount of time to wait to pass without seeing a new journal entry when
    *        gaining primacy
+   * @param journalSinks a supplier for journal sinks
    */
-  public UfsJournal(URI location, Master master, long quietPeriodMs) {
+  public UfsJournal(URI location, Master master, long quietPeriodMs,
+      Supplier<Set<JournalSink>> journalSinks) {
     this(location, master, UnderFileSystem.Factory.create(location.toString(), getJournalUfsConf()),
-        quietPeriodMs);
+        quietPeriodMs, journalSinks);
   }
 
   /**
@@ -138,9 +145,10 @@ public class UfsJournal implements Journal {
    * @param ufs the under file system
    * @param quietPeriodMs the amount of time to wait to pass without seeing a new journal entry when
    *        gaining primacy
+   * @param journalSinks a supplier for journal sinks
    */
   UfsJournal(URI location, Master master, UnderFileSystem ufs,
-      long quietPeriodMs) {
+      long quietPeriodMs, Supplier<Set<JournalSink>> journalSinks) {
     mLocation = URIUtils.appendPathOrDie(location, VERSION);
     mMaster = master;
     mUfs = ufs;
@@ -150,6 +158,7 @@ public class UfsJournal implements Journal {
     mCheckpointDir = URIUtils.appendPathOrDie(mLocation, CHECKPOINT_DIRNAME);
     mTmpDir = URIUtils.appendPathOrDie(mLocation, TMP_DIRNAME);
     mState = State.SECONDARY;
+    mJournalSinks = journalSinks;
   }
 
   @Override
@@ -193,7 +202,7 @@ public class UfsJournal implements Journal {
    */
   public synchronized void start() throws IOException {
     mMaster.resetState();
-    mTailerThread = new UfsJournalCheckpointThread(mMaster, this);
+    mTailerThread = new UfsJournalCheckpointThread(mMaster, this, mJournalSinks);
     mTailerThread.start();
   }
 
@@ -210,7 +219,7 @@ public class UfsJournal implements Journal {
     mTailerThread = null;
     nextSequenceNumber = catchUp(nextSequenceNumber);
     mWriter = new UfsJournalLogWriter(this, nextSequenceNumber);
-    mAsyncWriter = new AsyncJournalWriter(mWriter);
+    mAsyncWriter = new AsyncJournalWriter(mWriter, mJournalSinks);
     mState = State.PRIMARY;
   }
 
@@ -226,7 +235,7 @@ public class UfsJournal implements Journal {
     mWriter = null;
     mAsyncWriter = null;
     mMaster.resetState();
-    mTailerThread = new UfsJournalCheckpointThread(mMaster, this);
+    mTailerThread = new UfsJournalCheckpointThread(mMaster, this, mJournalSinks);
     mTailerThread.start();
     mState = State.SECONDARY;
   }
@@ -377,6 +386,7 @@ public class UfsJournal implements Journal {
             JournalEntry entry = journalReader.getEntry();
             try {
               mMaster.processJournalEntry(entry);
+              JournalUtils.sinkAppend(mJournalSinks, entry);
             }  catch (Throwable t) {
               JournalUtils.handleJournalReplayFailure(LOG, t,
                     "%s: Failed to process journal entry %s", mMaster.getName(), entry);
@@ -393,16 +403,6 @@ public class UfsJournal implements Journal {
         throw new RuntimeException(e);
       }
     }
-  }
-
-  @Override
-  public void addJournalSink(JournalSink journalSink) {
-    mAsyncWriter.addJournalSink(journalSink);
-  }
-
-  @Override
-  public void removeJournalSink(JournalSink journalSink) {
-    mAsyncWriter.removeJournalSink(journalSink);
   }
 
   @Override

@@ -28,13 +28,14 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -65,8 +66,10 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public UfsJournal createJournal(Master master) {
+    Supplier<Set<JournalSink>> supplier = () -> this.getJournalSinks(master);
     UfsJournal journal =
-        new UfsJournal(URIUtils.appendPathOrDie(mBase, master.getName()), master, mQuietTimeMs);
+        new UfsJournal(URIUtils.appendPathOrDie(mBase, master.getName()), master, mQuietTimeMs,
+            supplier);
     mJournals.put(master.getName(), journal);
     return journal;
   }
@@ -78,11 +81,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
       callables.add(() -> {
         UfsJournal journal = entry.getValue();
         journal.gainPrimacy();
-        // Add all the registered sinks to the newly created async writer (in gainPrimacy)
-        for (JournalSink sink : mJournalSinks
-            .getOrDefault(entry.getKey(), Collections.emptySet())) {
-          journal.addJournalSink(sink);
-        }
         return null;
       });
     }
@@ -161,24 +159,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   public void format() throws IOException {
     for (UfsJournal journal : mJournals.values()) {
       journal.format();
-    }
-  }
-
-  @Override
-  public void addJournalSink(Master master, JournalSink journalSink) {
-    super.addJournalSink(master, journalSink);
-    UfsJournal journal = mJournals.get(master.getName());
-    if (journal != null) {
-      journal.addJournalSink(journalSink);
-    }
-  }
-
-  @Override
-  public void removeJournalSink(Master master, JournalSink journalSink) {
-    super.removeJournalSink(master, journalSink);
-    UfsJournal journal = mJournals.get(master.getName());
-    if (journal != null) {
-      journal.removeJournalSink(journalSink);
     }
   }
 }

@@ -18,6 +18,7 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.StreamUtils;
 
@@ -36,6 +37,8 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.GuardedBy;
 
@@ -66,12 +69,18 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
   private volatile long mNextSequenceNumberToRead = 0;
   private volatile boolean mSnapshotting = false;
 
+  /** A supplier of journal sinks for this journal. */
+  private final Supplier<Set<JournalSink>> mJournalSinks;
+
   /**
    * @param journals master journals; these journals are still owned by the caller, not by the
    *        journal state machine
+   * @param journalSinks a supplier for journal sinks
    */
-  public JournalStateMachine(Map<String, RaftJournal> journals) {
+  public JournalStateMachine(Map<String, RaftJournal> journals,
+      Supplier<Set<JournalSink>> journalSinks) {
     mJournals = Collections.unmodifiableMap(journals);
+    mJournalSinks = journalSinks;
     resetState();
     LOG.info("Initialized new journal state machine");
   }
@@ -171,6 +180,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
       Journaled master = mJournals.get(masterName).getStateMachine();
       LOG.trace("Applying entry to master {}: {} ", masterName, entry);
       master.processJournalEntry(entry);
+      JournalUtils.sinkAppend(mJournalSinks, entry);
     } catch (Throwable t) {
       JournalUtils.handleJournalReplayFailure(LOG, t,
           "Failed to apply journal entry to master %s. Entry: %s", masterName, entry);
