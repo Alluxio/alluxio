@@ -57,16 +57,16 @@ The `--shm-size=1G` argument will allocate a `1G` tmpfs for the worker to store 
 docker run -d \
            -p 19999:19999 \
            --net=alluxio_nw \
-           --name=alluxio_master \
+           --name=alluxio-master \
            -v ufs:/opt/alluxio/underFSStorage \
            alluxio/alluxio master
 # Launch the Alluxio worker
 docker run -d \
            --net=alluxio_nw \
-           --name=alluxio_worker \
-           --shm-size=1G -e ALLUXIO_WORKER_MEMORY_SIZE=1G \
+           --name=alluxio-worker \
+           --shm-size=1G \
            -v ufs:/opt/alluxio/underFSStorage \
-           -e ALLUXIO_MASTER_HOSTNAME=alluxio_master \
+           -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=alluxio-master" \
            alluxio/alluxio worker
 ```
 
@@ -76,14 +76,14 @@ To verify that the services came up, check `docker ps`. You should see something
 ```bash
 docker ps
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                      NAMES
-1fef7c714d25        alluxio/alluxio     "/entrypoint.sh work…"   39 seconds ago      Up 38 seconds                                  alluxio_worker
-27f92f702ac2        alluxio/alluxio     "/entrypoint.sh mast…"   44 seconds ago      Up 43 seconds       0.0.0.0:19999->19999/tcp   alluxio_master
+1fef7c714d25        alluxio/alluxio     "/entrypoint.sh work…"   39 seconds ago      Up 38 seconds                                  alluxio-worker
+27f92f702ac2        alluxio/alluxio     "/entrypoint.sh mast…"   44 seconds ago      Up 43 seconds       0.0.0.0:19999->19999/tcp   alluxio-master
 ```
 
 If you don't see the containers, run `docker logs` on their container ids to see what happened.
 The container ids were printed by the `docker run` command, and can also be found in `docker ps -a`.
 
-Visit `instance_hostname:19999` to view the Alluxio web UI. You should see one worker connected and providing
+Visit `instance-hostname:19999` to view the Alluxio web UI. You should see one worker connected and providing
 `1024MB` of space.
 
 To run tests, enter the worker container
@@ -108,16 +108,27 @@ Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to 
 Configuration changes require stopping the Alluxio Docker images, then re-launching
 them with the new configuration.
 
-To set an Alluxio configuration property, convert it to an environment variable by uppercasing
-and replacing periods with underscores. For example, `alluxio.master.hostname` converts to
-`ALLUXIO_MASTER_HOSTNAME`. You can then set the environment variable for the image with
-`-e PROPERTY=value`. Alluxio configuration values will be copied to `conf/alluxio-site.properties`
+To set an Alluxio configuration property, add it to the alluxio java options environment variable with
+
+```
+-e ALLUXIO_JAVA_OPTS="-Dalluxio.property.name=value"
+```
+
+Multiple properties should be space-separated.
+
+If a property value contains spaces, you must escape it using single quotes.
+
+```
+-e ALLUXIO_JAVA_OPTS="-Dalluxio.property1=value1 -Dalluxio.property2='value2 with spaces'"
+```
+
+Alluxio environment variables will be copied to `conf/alluxio-env.sh`
 when the image starts. If you aren't seeing a property take effect, make sure the property in
-`conf/alluxio-site.properties` within the container is spelled correctly. You can check the
+`conf/alluxio-env.sh` within the container is spelled correctly. You can check the
 contents with
 
 ```bash
-docker exec ${container_id} cat /opt/alluxio/conf/alluxio-site.properties
+docker exec ${container_id} cat /opt/alluxio/conf/alluxio-env.sh
 ```
 
 ### Run in High-Availability Mode
@@ -134,10 +145,31 @@ To run in HA mode, launch multiple Alluxio masters, point them to a shared journ
 and set their Zookeeper configuration.
 
 ```bash
-docker run -d --net=host \
+docker run -d \
            ...
-           -e ALLUXIO_MASTER_JOURNAL_FOLDER=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
-           -e ALLUXIO_ZOOKEEPER_ENABLED=true -e ALLUXIO_ZOOKEEPER_ADDRESS=zkhost1:2181,zkhost2:2181,zkhost3:2181 \
+           -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.embedded.journal.addresses=master-hostname-1:19200,master-hostname-2:19200,master-hostname-3:19200 -Dalluxio.master.hostname=master-hostname-1 \
+           alluxio master
+```
+
+Set the master rpc addresses for all the workers so that they can query the master nodes to find out the leader master.
+
+```bash
+docker run -d \
+           ...
+           -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.rpc.addresses=master-hostname-1:19998,master-hostname-2:19998,master-hostname-3:19998" \
+           alluxio worker
+```
+
+#### Zookeeper-based leader election
+
+To run in HA mode with Zookeeper, Alluxio needs a shared journal directory
+that all masters have access to, usually either NFS or HDFS.
+
+Point them to a shared journal and set their Zookeeper configuration.
+
+```bash
+docker run -d \
+           -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal -Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
            alluxio master
 ```
 
@@ -147,7 +179,7 @@ to discover the current leader.
 ```bash
 docker run -d \
            ...
-           -e ALLUXIO_ZOOKEEPER_ENABLED=true -e ALLUXIO_ZOOKEEPER_ADDRESS=zkhost1:2181,zkhost2:2181,zkhost3:2181 \
+           -e ALLUXIO_JAVA_OPTS="-Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
            alluxio worker
 ```
 
@@ -167,15 +199,14 @@ chmod a+w /tmp/domain
 
 When starting workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`
 to share the domain socket directory. Also set domain socket properties by passing
-`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain` and
-`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true` when launching worker containers.
+`alluxio.worker.data.server.domain.socket.address=/opt/domain` and
+`alluxio.worker.data.server.domain.socket.as.uuid=true` when launching worker containers.
 
 ```bash
 docker run -d \
            ...
            -v /tmp/domain:/opt/domain \
-           -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain \
-           -e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true \
+           -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true" \
            alluxio worker
 ```
 
