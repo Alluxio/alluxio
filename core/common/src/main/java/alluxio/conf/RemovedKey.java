@@ -11,10 +11,17 @@
 
 package alluxio.conf;
 
-import alluxio.grpc.Scope;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
 
 /**
- * This class contains {@link PropertyKey} which should all be annotated with {@link Removed}.
+ * This class contains old {@link PropertyKey}s which have been removed from use
  *
  * This class is used to track keys which were deprecated in previous versions and subsequently
  * removed in a future version. We still keep them here so that it is possible to provide users
@@ -23,200 +30,152 @@ import alluxio.grpc.Scope;
  * Being removed and still used by an application denotes an error.
  *
  * @see InstancedConfiguration#validate()
+ * @see PropertyKey#fromString(String)
  */
 public class RemovedKey {
 
   private static final String V2_REMOVED = "v2.0 removed the ability to configure this parameter.";
 
-  @Removed(message = "The alluxio web UI overhaul in v2.0 removed this parameter.")
-  public static final PropertyKey WEB_TEMP_PATH =
-      new PropertyKey.Builder(PropertyKey.Name.WEB_TEMP_PATH)
-          .setDefaultValue(String.format("${%s}/web/", PropertyKey.Name.WORK_DIR))
-          .setDescription("Path to store temporary web server files.")
-          .setScope(Scope.SERVER)
-          .build();
+  private static final Map<String, String> REMOVED_KEYS = new HashMap<String, String>(20) {
+    {
+      put(Name.WEB_TEMP_PATH, "The alluxio web UI overhaul in v2.0 removed this parameter.");
+      put(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS, V2_REMOVED);
+      put(Name.SWIFT_USE_PUBLIC_URI_KEY, V2_REMOVED);
+      put(Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL, V2_REMOVED);
+      put(Name.MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT, V2_REMOVED);
+      put(Name.MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL, V2_REMOVED);
+      put(Name.MASTER_JOURNAL_FORMATTER_CLASS, "v2.0 removed the ability to specify the master "
+          + "journal formatter");
+      put(Name.LOGSERVER_LOGS_DIR, V2_REMOVED);
+      put(Name.LOGSERVER_HOSTNAME, V2_REMOVED);
+      put(Name.SWIFT_API_KEY, V2_REMOVED + " Use " + PropertyKey.Name.SWIFT_PASSWORD_KEY + " "
+          + "instead.");
+      put(Name.USER_FAILED_SPACE_REQUEST_LIMITS, V2_REMOVED);
+      put(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, V2_REMOVED);
+      put(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES, V2_REMOVED);
+      put(Name.USER_HOSTNAME, V2_REMOVED + " Use "
+          + PropertyKey.Template.LOCALITY_TIER.format("node")
+          + " instead to set the client hostname.");
+      put(Name.USER_NETWORK_SOCKET_TIMEOUT, V2_REMOVED);
+      put("alluxio.security.authentication.socket.timeout", V2_REMOVED);
+      put("alluxio.security.authentication.socket.timeout.ms", V2_REMOVED);
+      put(Name.USER_RPC_RETRY_MAX_NUM_RETRY, V2_REMOVED);
+      put(Name.MASTER_RETRY, V2_REMOVED);
+      put(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES, V2_REMOVED);
+      put(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES, V2_REMOVED);
+      put(Name.WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO, "Use alluxio.worker.tieredstore.levelX"
+          + ".watermark.{high/low}.ratio instead");
+      put(Name.WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO, "Use alluxio.worker.tieredstore.levelX"
+          + ".watermark.{high/low}.ratio instead");
+      put(Name.WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO, "Use alluxio.worker.tieredstore.levelX"
+          + ".watermark.{high/low}.ratio instead");
+      put(Name.WORKER_TIERED_STORE_RETRY, V2_REMOVED);
 
-  @Removed
-  public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
-      new PropertyKey.Builder(PropertyKey.Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS)
-          .setAlias(new String[]{"alluxio.underfs.s3a.consistency.timeout.ms"})
-          .setDefaultValue("1min")
-          .setDescription("The duration to wait for metadata consistency from the under "
-              + "storage. This is only used by internal Alluxio operations which should be "
-              + "successful, but may appear unsuccessful due to eventual consistency.")
-          .setScope(Scope.SERVER)
-          .build();
+      put(Name.TEST_REMOVED_KEY, "This key is used only for testing. It is always removed");
+    }
+  };
 
-  @Removed(message = V2_REMOVED)
-  public static final PropertyKey SWIFT_USE_PUBLIC_URI_KEY =
-      new PropertyKey.Builder(PropertyKey.Name.SWIFT_USE_PUBLIC_URI_KEY)
-          .setDescription("Whether the REST server is in a public domain: true (default) or false.")
-          .build();
+  static final class Name {
+    public static final String LOGSERVER_HOSTNAME = "alluxio.logserver.hostname";
+    public static final String LOGSERVER_LOGS_DIR = "alluxio.logserver.logs.dir";
+    public static final String MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL =
+        "alluxio.master.activesync.batchinterval";
+    public static final String MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =
+        "alluxio.master.activesync.retry.timeout";
+    public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
+        "alluxio.master.client.socket.cleanup.interval";
+    public static final String MASTER_JOURNAL_FORMATTER_CLASS =
+        "alluxio.master.journal.formatter.class";
+    public static final String MASTER_RETRY = "alluxio.master.retry";
+    public static final String SWIFT_API_KEY = "fs.swift.apikey";
+    public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
+    public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
+        "alluxio.underfs.s3a.consistency.timeout";
+    public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
+        "alluxio.user.failed.space.request.limits";
+    public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
+        "alluxio.user.file.cache.partially.read.block";
+    public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
+        "alluxio.user.file.seek.buffer.size.bytes";
+    public static final String USER_NETWORK_SOCKET_TIMEOUT =
+        "alluxio.user.network.socket.timeout";
+    public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
+        "alluxio.user.rpc.retry.max.num.retry";
+    public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
+        "alluxio.user.ufs.delegation.read.buffer.size.bytes";
+    public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
+        "alluxio.user.ufs.delegation.write.buffer.size.bytes";
+    public static final String USER_HOSTNAME = "alluxio.user.hostname";
+    public static final String WEB_TEMP_PATH = "alluxio.web.temp.path";
+    public static final String WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
+        Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(0);
+    public static final String WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
+        Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(1);
+    public static final String WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
+        Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(2);
+    public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
 
-  @Removed(message = V2_REMOVED)
-  public static final PropertyKey MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
-      new PropertyKey.Builder(PropertyKey.Name.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL)
-          .setDefaultValue("10min")
-          .setDescription("Interval for removing closed client sockets from internal tracking.")
-          .setIsHidden(true)
-          .setScope(Scope.MASTER)
-          .build();
+    public static final String TEST_REMOVED_KEY = "alluxio.test.removed.key";
+  }
 
-  @Removed(message = V2_REMOVED)
-  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =
-      new PropertyKey.Builder(PropertyKey.Name.MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT)
-          .setDescription("Retry period before active ufs syncer gives up on connecting to the ufs")
-          .setDefaultValue("1hour")
-          .setScope(Scope.MASTER)
-          .build();
+  static final class Template {
 
-  @Removed(message = V2_REMOVED)
-  public static final PropertyKey MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL =
-      new PropertyKey.Builder(PropertyKey.Name.MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL)
-          .setDefaultValue("1sec")
-          .setDescription("Time interval to batch incoming events for active syncing UFS")
-          .setScope(Scope.MASTER)
-          .build();
+    private static final List<Template> TEMPLATES = new ArrayList<>();
 
-  @Removed(message = "v2.0 removed the ability to specify the master journal formatter")
-  public static final PropertyKey MASTER_JOURNAL_FORMATTER_CLASS =
-      new PropertyKey.Builder(PropertyKey.Name.MASTER_JOURNAL_FORMATTER_CLASS)
-          .setDefaultValue("alluxio.master.journalv0.ProtoBufJournalFormatter")
-          .setDescription("The class to serialize the journal in a specified format.")
-          .setScope(Scope.MASTER)
-          .build();
+    public static final Template WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO = new Template(
+        "alluxio.worker.tieredstore.level%d.reserved.ratio",
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.reserved\\.ratio",
+        "The keys associated with this template have been removed");
 
-  @Removed(message = V2_REMOVED)
-  public static final PropertyKey LOGSERVER_LOGS_DIR =
-      new PropertyKey.Builder(PropertyKey.Name.LOGSERVER_LOGS_DIR)
-          .setDefaultValue(String.format("${%s}/logs", PropertyKey.Name.WORK_DIR))
-          .setDescription("Default location for remote log files.")
-          .setIgnoredSiteProperty(true)
-          .setScope(Scope.SERVER)
-          .build();
+    private final String mFormat;
+    private final Pattern mPattern;
+    private final String mMessage;
 
-  @Removed(message = V2_REMOVED)
-  public static final PropertyKey LOGSERVER_HOSTNAME =
-      new PropertyKey.Builder(PropertyKey.Name.LOGSERVER_HOSTNAME)
-          .setDescription("The hostname of Alluxio logserver.")
-          .setIgnoredSiteProperty(true)
-          .setScope(Scope.SERVER)
-          .build();
+    private Template(String format, String re, String removalMessage) {
+      mFormat = format;
+      mPattern = Pattern.compile(re);
+      mMessage = removalMessage;
+      TEMPLATES.add(this);
+    }
 
-  @Removed(message = V2_REMOVED + " Use " + PropertyKey.Name.SWIFT_PASSWORD_KEY + " instead.")
-  public static final PropertyKey SWIFT_API_KEY =
-      new PropertyKey.Builder(PropertyKey.Name.SWIFT_API_KEY)
-      .setDescription("The API key used for user:tenant authentication.")
-      .build();
+    private String format(Object... o) {
+      return String.format(mFormat, o);
+    }
 
-  @Removed(message = V2_REMOVED)
-  public static final PropertyKey USER_FAILED_SPACE_REQUEST_LIMITS =
-      new PropertyKey.Builder(PropertyKey.Name.USER_FAILED_SPACE_REQUEST_LIMITS)
-          .setDefaultValue(3)
-          .setDescription("The number of times to request space from the file system before "
-              + "aborting.")
-          .setScope(Scope.CLIENT)
-          .build();
+    private boolean matches(String input) {
+      Matcher matcher = mPattern.matcher(input);
+      return matcher.matches();
+    }
+  }
 
-  @Removed(message = V2_REMOVED)
-  public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
-      new PropertyKey.Builder(PropertyKey.Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK)
-          .setDefaultValue(true)
-          .setDescription("This property is deprecated as of 1.7 and has no effect. Use the read "
-              + "type to control caching behavior.")
-          .setScope(Scope.CLIENT)
-          .build();
+  /**
+   * returns whether or not the given property key exists in the removed key list.
+   *
+   * @param key the property key to check
+   * @return whether or not the key has been removed
+   */
+  static boolean isRemoved(String key) {
+    return getMessage(key) != null;
+  }
 
-  @Removed(message = V2_REMOVED)
-  public static final PropertyKey USER_FILE_SEEK_BUFFER_SIZE_BYTES =
-      new PropertyKey.Builder(PropertyKey.Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES)
-          .setDefaultValue("1MB")
-          .setDescription("The file seek buffer size. This is only used when "
-              + "alluxio.user.file.cache.partially.read.block is enabled.")
-          .setScope(Scope.CLIENT)
-          .build();
+  /**
+   * gets the message pertaining to a removed key or template.
+   *
+   * @param key the property key to check
+   * @return whether or not the key has been removed
+   */
+  @Nullable
+  public static String getMessage(String key) {
+    String msg;
+    if ((msg = REMOVED_KEYS.getOrDefault(key, null)) != null) {
+      return msg;
+    }
 
-  @Removed(message = V2_REMOVED + " Use alluxio.locality.node instead to set"
-      + " the client hostname.")
-  public static final PropertyKey USER_HOSTNAME =
-      new PropertyKey.Builder(PropertyKey.Name.USER_HOSTNAME)
-      .setDescription("The hostname to use for the client.")
-      .setScope(Scope.CLIENT)
-      .build();
-
-  @Removed(message = V2_REMOVED)
-  public static final PropertyKey USER_NETWORK_SOCKET_TIMEOUT =
-      new PropertyKey.Builder(PropertyKey.Name.USER_NETWORK_SOCKET_TIMEOUT)
-          .setAlias(new String[]{
-              "alluxio.security.authentication.socket.timeout",
-              "alluxio.security.authentication.socket.timeout.ms"})
-          .setDefaultValue("10min")
-          .setDescription("The time out of a socket created by a user to connect to the master.")
-          .setScope(Scope.CLIENT)
-          .build();
-
-  @Removed
-  public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
-      new PropertyKey.Builder(PropertyKey.Name.USER_RPC_RETRY_MAX_NUM_RETRY)
-          .setAlias(new String[]{PropertyKey.Name.MASTER_RETRY})
-          .setDefaultValue(100)
-          .setDescription("Alluxio client RPCs automatically retry for transient errors with "
-              + "an exponential backoff. This property determines the maximum number of "
-              + "retries. This property has been deprecated by time-based retry using: "
-              + PropertyKey.Name.USER_RPC_RETRY_MAX_DURATION)
-          .setScope(Scope.CLIENT)
-          .build();
-
-  @Removed
-  public static final PropertyKey USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
-      new PropertyKey.Builder(PropertyKey.Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES)
-          .setDefaultValue("8MB")
-          .setDescription("Size of the read buffer when reading from the UFS through the "
-              + "Alluxio worker. Each read request will fetch at least this many bytes, "
-              + "unless the read reaches the end of the file.")
-          .setScope(Scope.CLIENT)
-          .build();
-
-  @Removed
-  public static final PropertyKey USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
-      new PropertyKey.Builder(PropertyKey.Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES)
-          .setDefaultValue("2MB")
-          .setDescription("Size of the write buffer when writing to the UFS through the "
-              + "Alluxio worker. Each write request will write at least this many bytes, "
-              + "unless the write is at the end of the file.")
-          .setScope(Scope.CLIENT)
-          .build();
-
-  @Removed(message = "Use alluxio.worker.tieredstore.levelX.watermark.{high/low}.ratio instead")
-  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
-      new PropertyKey.Builder(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 0)
-          .setDescription("Fraction of space reserved in the top storage tier. "
-              + "This has been deprecated, please use high and low watermark instead.")
-          .setScope(Scope.WORKER)
-          .build();
-
-  @Removed(message = "Use alluxio.worker.tieredstore.levelX.watermark.{high/low}.ratio instead")
-  public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
-      new PropertyKey.Builder(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 1)
-          .setDescription("Fraction of space reserved in the second storage tier. "
-              + "This has been deprecated, please use high and low watermark instead.")
-          .setScope(Scope.WORKER)
-          .build();
-
-  @Removed(message = "Use alluxio.worker.tieredstore.levelX.watermark.{high/low}.ratio instead")
-  public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
-      new PropertyKey.Builder(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 2)
-          .setDescription("Fraction of space reserved in the third storage tier. "
-              + "This has been deprecated, please use high and low watermark instead.")
-          .setScope(Scope.WORKER)
-          .build();
-
-  // Removed keys - never use these. They will throw an exception during validation
-  @Removed(message = "This key is used only for testing. It is always removed")
-  public static final PropertyKey TEST_REMOVED_KEY =
-      new PropertyKey.Builder("alluxio.test.removed.key")
-          .build();
-
-  private static final class Name {
+    for (Template t : Template.TEMPLATES) {
+      if (t.matches(key)) {
+        return t.mMessage;
+      }
+    }
+    return null;
   }
 }

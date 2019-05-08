@@ -28,13 +28,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
@@ -50,6 +49,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class PropertyKey implements Comparable<PropertyKey> {
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.class);
+
   // The following two maps must be the first to initialize within this file.
   /** A map from default property key's string name to the key. */
   private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new ConcurrentHashMap<>();
@@ -1898,9 +1899,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("false")
           .setDescription("If true, the property " + Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS
               + "is the path to the home directory for the domain socket and a unique identifier "
-              + "is used as the domain socket name. In addition, clients ignore "
-              + Name.USER_HOSTNAME + " while detecting a local worker for short circuit ops. "
-              + "If false, the property is the absolute path to the UNIX domain socket.")
+              + "is used as the domain socket name. If false, the property is the absolute path "
+              + "to the UNIX domain socket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
@@ -2345,13 +2345,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1sec")
           .setDescription("The time period of space reserver service, which "
               + "keeps certain portion of available space on each layer.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_TIERED_STORE_RETRY =
-      new Builder(Name.WORKER_TIERED_STORE_RETRY)
-          .setDefaultValue(3)
-          .setDescription("The number of retries that the worker uses to process blocks.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3494,7 +3487,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String VERSION = "alluxio.version";
     public static final String WEB_FILE_INFO_ENABLED = "alluxio.web.file.info.enabled";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
-    public static final String WEB_TEMP_PATH = "alluxio.web.temp.path";
     public static final String WEB_THREADS = "alluxio.web.threads";
     public static final String WEBUI_CORS_ENABLED = "alluxio.webui.cors.enabled";
     public static final String WEBUI_REFRESH_INTERVAL_MS =
@@ -3546,8 +3538,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
     public static final String UNDERFS_S3A_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3a.bulk.delete.enabled";
-    public static final String UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
-        "alluxio.underfs.s3a.consistency.timeout";
     public static final String UNDERFS_S3A_DEFAULT_MODE = "alluxio.underfs.s3a.default.mode";
     public static final String UNDERFS_S3A_DIRECTORY_SUFFIX =
         "alluxio.underfs.s3a.directory.suffix";
@@ -3607,14 +3597,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
     public static final String S3A_ACCESS_KEY = "aws.accessKeyId";
     public static final String S3A_SECRET_KEY = "aws.secretKey";
-    public static final String SWIFT_API_KEY = "fs.swift.apikey";
     public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
     public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
     public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
     public static final String SWIFT_REGION_KEY = "fs.swift.region";
     public static final String SWIFT_SIMULATION = "fs.swift.simulation";
     public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
-    public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
     public static final String SWIFT_USER_KEY = "fs.swift.user";
     public static final String KODO_ACCESS_KEY = "fs.kodo.accesskey";
     public static final String KODO_SECRET_KEY = "fs.kodo.secretkey";
@@ -3629,8 +3617,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_BACKUP_DIRECTORY =
         "alluxio.master.backup.directory";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
-    public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
-        "alluxio.master.client.socket.cleanup.interval";
     public static final String MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
         "alluxio.master.cluster.metrics.update.interval";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
@@ -3669,8 +3655,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_TOLERATE_CORRUPTION
         = "alluxio.master.journal.tolerate.corruption";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
-    public static final String MASTER_JOURNAL_FORMATTER_CLASS =
-        "alluxio.master.journal.formatter.class";
     public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
         "alluxio.master.journal.log.size.bytes.max";
     public static final String MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
@@ -3732,7 +3716,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_REPLICATION_CHECK_INTERVAL_MS =
         "alluxio.master.replication.check.interval.ms";
-    public static final String MASTER_RETRY = "alluxio.master.retry";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
@@ -3754,10 +3737,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.levels";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
-    public static final String MASTER_ACTIVE_UFS_SYNC_RETRY_TIMEOUT =
-        "alluxio.master.activesync.retry.timeout";
-    public static final String MASTER_ACTIVE_UFS_SYNC_BATCH_INTERVAL =
-        "alluxio.master.activesync.batchinterval";
     public static final String MASTER_ACTIVE_UFS_SYNC_INTERVAL =
         "alluxio.master.activesync.interval";
     public static final String MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY =
@@ -3900,7 +3879,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_TIERED_STORE_LEVELS = "alluxio.worker.tieredstore.levels";
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval";
-    public static final String WORKER_TIERED_STORE_RETRY = "alluxio.worker.tieredstore.retry";
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
@@ -3936,8 +3914,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // Log server related properties
     //
-    public static final String LOGSERVER_LOGS_DIR = "alluxio.logserver.logs.dir";
-    public static final String LOGSERVER_HOSTNAME = "alluxio.logserver.hostname";
     public static final String LOGSERVER_PORT = "alluxio.logserver.port";
     public static final String LOGSERVER_THREADS_MAX = "alluxio.logserver.threads.max";
     public static final String LOGSERVER_THREADS_MIN = "alluxio.logserver.threads.min";
@@ -3964,11 +3940,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
-    public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
-        "alluxio.user.failed.space.request.limits";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
-    public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
-        "alluxio.user.file.cache.partially.read.block";
     public static final String USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY =
         "alluxio.user.file.copyfromlocal.block.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
@@ -3992,8 +3964,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_REPLICATION_DURABLE =
         "alluxio.user.file.replication.durable";
     public static final String USER_FILE_UFS_TIER_ENABLED = "alluxio.user.file.ufs.tier.enabled";
-    public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
-        "alluxio.user.file.seek.buffer.size.bytes";
     public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
         "alluxio.user.file.waitcompleted.poll";
     public static final String USER_FILE_CREATE_TTL =
@@ -4004,7 +3974,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
     public static final String USER_HEARTBEAT_INTERVAL_MS = "alluxio.user.heartbeat.interval";
-    public static final String USER_HOSTNAME = "alluxio.user.hostname";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";
     public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
@@ -4031,8 +4000,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.reader.buffer.size.messages";
     public static final String USER_NETWORK_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.network.reader.chunk.size.bytes";
-    public static final String USER_NETWORK_SOCKET_TIMEOUT =
-        "alluxio.user.network.socket.timeout";
     public static final String USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
         "alluxio.user.network.writer.buffer.size.messages";
     public static final String USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
@@ -4047,13 +4014,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =
         "alluxio.user.rpc.retry.max.duration";
-    public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
-        "alluxio.user.rpc.retry.max.num.retry";
     public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep";
-    public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
-        "alluxio.user.ufs.delegation.read.buffer.size.bytes";
-    public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
-        "alluxio.user.ufs.delegation.write.buffer.size.bytes";
     public static final String USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
         "alluxio.user.ufs.block.location.all.fallback.enabled";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY =
@@ -4149,7 +4110,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JVM_MONITOR_ENABLED = "alluxio.master.jvm.monitor.enabled";
     public static final String WORKER_JVM_MONITOR_ENABLED = "alluxio.worker.jvm.monitor.enabled";
 
-    private Name() {} // prevent instantiation
+    private Name() {
+    } // prevent instantiation
   }
 
   /**
@@ -4203,10 +4165,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO(
         "alluxio.worker.tieredstore.level%d.watermark.low.ratio",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.watermark\\.low\\.ratio"),
-
-    @Removed(message = "The keys associated with this template have been removed")
-    WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO("alluxio.worker.tieredstore.level%d.reserved.ratio",
-        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.reserved\\.ratio"),
 
     /**
      * @deprecated This template is always deprecated. It is used only for testing.
@@ -4383,8 +4341,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         return key;
       }
     }
-    throw new IllegalArgumentException(
-        ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(input));
+
+    if (isRemoved(input)) {
+      String errorMsg = String.format("%s is no longer a valid property. %s", input,
+          PropertyKey.getRemovalMessage(input));
+      LOG.error(errorMsg);
+      throw new IllegalArgumentException(errorMsg);
+    } else {
+      throw new IllegalArgumentException(
+          ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(input));
+    }
   }
 
   /**
@@ -4477,9 +4443,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         return false;
       }
     }
-    if (!isRemoved(key)) {
-      DEFAULT_KEYS_MAP.put(name, key);
-    }
+
+    DEFAULT_KEYS_MAP.put(name, key);
     if (aliases != null) {
       for (String alias : aliases) {
         DEFAULT_ALIAS_MAP.put(alias, key);
@@ -4621,63 +4586,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     return mDisplayType;
   }
 
-  private static Map<PropertyKey, Deprecated> sDeprecatedKeys;
-  private static Map<Template, Deprecated> sDeprecatedTemplates;
-
-  private static Map<PropertyKey, Removed> sRemovedKeys;
-  private static Map<Template, Removed> sRemovedTemplates;
-
-  /**
-   * Given a class to search, a field type, and an annotation type will return a map of all
-   * fields which are marked with the given annotation to the instance of the annotation.
-   *
-   * @param searchClass the class to search through for fields
-   * @param fieldType the class of the field to search for
-   * @param annotationClazz the annotation to look for
-   * @param <I> The class to search through for annotatated fields
-   * @param <J> The class of the field to look for
-   * @param <K> a class extending Annotation
-   * @return a map
-   */
-  private static <I, J, K extends Annotation> Map<J, K> populateAnnotatedKeyMap(
-      Class<I> searchClass, Class<J> fieldType, Class<K> annotationClazz) {
-    Map<J, K> annotations = new HashMap<>();
-    for (Field field : searchClass.getDeclaredFields()) {
-      if (!field.getType().equals(fieldType)) {
-        continue;
-      }
-
-      K keyAnnotation = field.getAnnotation(annotationClazz);
-
-      try {
-        // Field#get parameter can be null if retrieving a static field (all PKs are static)
-        // See https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Field.html
-        // This also works with Template enums
-        J key = fieldType.cast(field.get(null));
-        if (keyAnnotation != null) {
-          annotations.put(key, keyAnnotation);
-        }
-      } catch (IllegalAccessException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    return annotations;
-  }
-
-  private static <J extends Annotation> J getKeyAnnotation(Map<PropertyKey, J> keyAnnotationMap,
-      Map<Template, J> templateAnnotationMap, PropertyKey key) {
-    if (keyAnnotationMap.containsKey(key)) {
-      return keyAnnotationMap.get(key);
-    } else {
-      for (Map.Entry<Template, J> e : templateAnnotationMap.entrySet()) {
-        Matcher match = e.getKey().match(key.getName());
-        if (match.matches()) {
-          return e.getValue();
-        }
-      }
-    }
-    return null;
-  }
+  static final AnnotatedKeyChecker<Deprecated> DEPRECATED_CHECKER =
+      new AnnotatedKeyChecker<>(PropertyKey.class, PropertyKey.Template.class, Deprecated.class);
 
   /**
    * Returns whether or not the given property key is marked as deprecated.
@@ -4693,13 +4603,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @see #getDeprecationMessage(PropertyKey)
    */
   public static boolean isDeprecated(PropertyKey key) {
-    if (sDeprecatedTemplates == null || sDeprecatedKeys == null) {
-      sDeprecatedKeys =
-          populateAnnotatedKeyMap(PropertyKey.class, PropertyKey.class, Deprecated.class);
-      sDeprecatedTemplates =
-          populateAnnotatedKeyMap(Template.class, Template.class, Deprecated.class);
-    }
-    return getKeyAnnotation(sDeprecatedKeys, sDeprecatedTemplates, key) != null;
+    return DEPRECATED_CHECKER.hasAnnotation(key);
   }
 
   /**
@@ -4713,30 +4617,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * Returns whether or not a property key has been removed from use.
    *
-   * If a PropertyKey is deemed as "Removed" it will be marked with the {@link Removed}
-   * annotation This method can be used to detect if a key being utilized has been removed.
+   * If a PropertyKey or {@link Template} is deemed as "Removed" it will exist within
+   * {@link RemovedKey}. This method can be used to detect if a key being utilized has been removed.
    *
    * @param key the property key to check
    * @return true this property key is removed, false otherwise
-   * @see Removed
    * @see RemovedKey
    * @see #isDeprecated(alluxio.conf.PropertyKey)
+   * @see Deprecated
    */
-  public static boolean isRemoved(PropertyKey key) {
-    if (sRemovedKeys == null || sRemovedTemplates == null) {
-      sRemovedKeys = populateAnnotatedKeyMap(RemovedKey.class, PropertyKey.class, Removed.class);
-      sRemovedTemplates =
-          populateAnnotatedKeyMap(Template.class, Template.class, Removed.class);
-    }
-    return getKeyAnnotation(sRemovedKeys, sRemovedTemplates, key) != null;
-  }
-
-  /**
-   * @param name of the property key to check
-   * @return true this property key is removed, false otherwise
-   */
-  public static boolean isRemoved(String name) {
-    return isRemoved(PropertyKey.fromString(name));
+  public static boolean isRemoved(String key) {
+    return RemovedKey.isRemoved(key);
   }
 
   /**
@@ -4745,7 +4636,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public static String getDeprecationMessage(PropertyKey key) {
     if (isDeprecated(key)) {
-      Deprecated annotation = getKeyAnnotation(sDeprecatedKeys, sDeprecatedTemplates, key);
+      Deprecated annotation = DEPRECATED_CHECKER.getAnnotation(key);
       if (annotation != null) {
         return annotation.message();
       }
@@ -4757,13 +4648,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param key the property key to get the removal message from
    * @return the message, or empty string is the property key isn't removed
    */
-  public static String getRemovalMessage(PropertyKey key) {
-    if (isRemoved(key)) {
-      Removed annotation = getKeyAnnotation(sRemovedKeys, sRemovedTemplates, key);
-      if (annotation != null) {
-        return annotation.message();
-      }
-    }
-    return "";
+  public static String getRemovalMessage(String key) {
+    String msg = RemovedKey.getMessage(key);
+    return msg == null ? "" : msg;
   }
 }

@@ -9,13 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.conf;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.DefaultSupplier;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Builder;
 import alluxio.conf.PropertyKey.Template;
@@ -298,7 +299,6 @@ public final class PropertyKeyTest {
     assertTrue(PropertyKey.isDeprecated(PropertyKey.TEST_DEPRECATED_KEY));
 
     assertTrue(PropertyKey.isDeprecated(Template.TEST_DEPRECATED_TEMPLATE.format("removed")));
-    assertTrue(PropertyKey.isRemoved(RemovedKey.TEST_REMOVED_KEY));
-    assertTrue(PropertyKey.isRemoved(RemovedKey.TEST_REMOVED_KEY.getName()));
+    assertTrue(PropertyKey.isRemoved(RemovedKey.Name.TEST_REMOVED_KEY));
   }
 }

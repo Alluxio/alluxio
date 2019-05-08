@@ -947,23 +947,24 @@ public class ConfigurationTest {
   @Test
   public void removedKeyThrowsException() {
     try {
-      mConfiguration.set(PropertyKey.fromString(RemovedKey.TEST_REMOVED_KEY.getName()), "true");
+      mConfiguration.set(PropertyKey.fromString(RemovedKey.Name.TEST_REMOVED_KEY),
+          "true");
       mConfiguration.validate();
       fail("Should have thrown a runtime exception when validating with a removed key");
     } catch (RuntimeException e) {
       assertTrue(e.getMessage().contains(
           String.format("%s is no longer a valid property",
-              RemovedKey.TEST_REMOVED_KEY.getName())));
+              RemovedKey.Name.TEST_REMOVED_KEY)));
     }
     mConfiguration = ConfigurationTestUtils.defaults();
     try {
-      mConfiguration.set(RemovedKey.TEST_REMOVED_KEY, "true");
+      mConfiguration.set(PropertyKey.fromString(RemovedKey.Name.TEST_REMOVED_KEY), "true");
       mConfiguration.validate();
       fail("Should have thrown a runtime exception when validating with a removed key");
     } catch (RuntimeException e) {
       assertTrue(e.getMessage().contains(
           String.format("%s is no longer a valid property",
-              RemovedKey.TEST_REMOVED_KEY.getName())));
+              RemovedKey.Name.TEST_REMOVED_KEY)));
     }
   }
 

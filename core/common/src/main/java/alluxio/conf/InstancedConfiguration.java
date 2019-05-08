@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -348,7 +347,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     if (!getBoolean(PropertyKey.CONF_VALIDATION_ENABLED)) {
       return;
     }
-    List<String> removalMessages = new ArrayList<>();
     for (PropertyKey key : keySet()) {
       Preconditions.checkState(
           getSource(key).getType() != Source.Type.SITE_PROPERTY || !key.isIgnoredSiteProperty(),
@@ -360,17 +358,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       if (PropertyKey.isDeprecated(key) && getSource(key).compareTo(Source.DEFAULT) != 0) {
         LOG.warn("{} is deprecated. Please avoid using this key in the future. {}", key.getName(),
             PropertyKey.getDeprecationMessage(key));
-      } else if (PropertyKey.isRemoved(key)) {
-        String errorMsg = String.format("%s is no longer a valid property. %s", key.getName(),
-            PropertyKey.getRemovalMessage(key));
-        removalMessages.add(errorMsg);
-        LOG.error(errorMsg);
       }
-    }
-
-    if (removalMessages.size() > 0) {
-      String msg = String.join("\n", removalMessages);
-      throw new RuntimeException(msg);
     }
 
     checkTimeouts();
