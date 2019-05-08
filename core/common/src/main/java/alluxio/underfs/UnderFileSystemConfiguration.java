@@ -16,13 +16,11 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -130,16 +128,14 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   }
 
   /**
-   * @param userPropertiesOnly  whether to use only the user properties
    * @param options options for formatting the configuration values
-   * @return a map from all configuration property names to their values; values may potentially be
-   *         null
+   * @return a map from all user configuration property names to their values; values may
+   * potentially be null
    */
-  public Map<String, String> toMap(boolean userPropertiesOnly, ConfigurationValueOptions options) {
+  public Map<String, String> toUserPropertyMap(ConfigurationValueOptions options) {
     Map<String, String> map = new HashMap<>();
-    Set<PropertyKey> keys = userPropertiesOnly ? userKeySet() : keySet();
     // Cannot use Collectors.toMap because we support null keys.
-    keys.forEach(key -> map.put(key.getName(), getOrDefault(key, null, options)));
+    userKeySet().forEach(key -> map.put(key.getName(), getOrDefault(key, null, options)));
     return map;
   }
 }

@@ -100,7 +100,7 @@ public class MountInfo {
     UnderFileSystemConfiguration conf =
         UnderFileSystemConfiguration.defaults(new InstancedConfiguration(
             new AlluxioProperties())).createMountSpecificConf(info.getProperties());
-    Map<String, String> displayConf = conf.toMap(true,
+    Map<String, String> displayConf = conf.toUserPropertyMap(
         ConfigurationValueOptions.defaults().useDisplayValue(true));
     info.setProperties(displayConf);
     return info;
