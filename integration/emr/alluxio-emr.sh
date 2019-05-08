@@ -1,9 +1,20 @@
 #!/bin/bash
-#This script is meant for bootstrapping the Alluxio service to an EMR cluster. Arguments for the script are listed below.
-# 1. Download URI (ex. http://downloads.alluxio.io/downloads/files/2.0.0-preview/alluxio-2.0.0-preview-bin.tar.gz)
-# 2. Root UFS URI (ex. s3a://my-bucket/alluxio-emr/mount)
-# 3. Extra Alluxio Options. These will be appended to alluxio-site.properties. Multiple options can be specified using ';' as a delimiter
-#    (ex. alluxio.user.file.writetype.default=CACHE_THROUGH;alluxio.user.file.readtype.default=CACHE)
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+# This script is meant for bootstrapping the Alluxio service to an EMR cluster. Arguments for the script are listed below.
+# Arg 1. Download URI (ex. http://downloads.alluxio.io/downloads/files/2.0.0-preview/alluxio-2.0.0-preview-bin.tar.gz)
+# Arg 2. Root UFS URI (ex. s3a://my-bucket/alluxio-emr/mount)
+# Arg 3. Extra Alluxio Options. These will be appended to alluxio-site.properties. Multiple options can be specified using ';' as a delimiter
+#        (ex. alluxio.user.file.writetype.default=CACHE_THROUGH;alluxio.user.file.readtype.default=CACHE)
 
 #Create user
 sudo groupadd alluxio -g 600
