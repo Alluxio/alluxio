@@ -116,6 +116,12 @@ To set an Alluxio configuration property, add it to the alluxio java options env
 
 Multiple properties should be space-separated.
 
+If a property value contains spaces, you must escape it using single quotes.
+
+```
+-e ALLUXIO_JAVA_OPTS="-Dalluxio.property1=value1 -Dalluxio.property2='value2 with spaces'"
+```
+
 Alluxio environment variables will be copied to `conf/alluxio-env.sh`
 when the image starts. If you aren't seeing a property take effect, make sure the property in
 `conf/alluxio-env.sh` within the container is spelled correctly. You can check the
