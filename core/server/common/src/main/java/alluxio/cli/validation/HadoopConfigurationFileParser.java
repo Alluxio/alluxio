@@ -45,7 +45,7 @@ public class HadoopConfigurationFileParser {
    * @param path path to the xml file
    * @return Map from property names to values
    */
-@Nullable
+  @Nullable
   public Map<String, String> parseXmlConfiguration(final String path) {
     File xmlFile;
     xmlFile = new File(path);
