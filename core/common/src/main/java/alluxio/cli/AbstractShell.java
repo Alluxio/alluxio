@@ -105,6 +105,7 @@ public abstract class AbstractShell implements Closeable {
       cmdline = command.parseAndValidateArgs(args);
     } catch (InvalidArgumentException e) {
       System.out.println("Usage: " + command.getUsage());
+      System.out.println(command.getDescription());
       LOG.error("Invalid arguments for command {}:", command.getCommandName(), e);
       return -1;
     }
