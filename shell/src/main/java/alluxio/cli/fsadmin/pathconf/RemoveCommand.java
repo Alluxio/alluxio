@@ -19,6 +19,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -62,12 +63,12 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    AlluxioURI path = new AlluxioURI(cl.getArgs()[1]);
+    AlluxioURI path = new AlluxioURI(cl.getArgs()[0]);
     if (cl.hasOption(KEYS_OPTION_NAME)) {
       String[] keys = cl.getOptionValue(KEYS_OPTION_NAME).split(",");
       Set<PropertyKey> propertyKeys = new HashSet<>();
@@ -84,13 +85,18 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
   @Override
   public String getUsage() {
     return String.format("%s [--%s <key1,key2,key3>] <path>%n"
-        + "\t--%s: %s%n",
+        + "\t--%s: %s",
         getCommandName(), KEYS_OPTION_NAME,
         KEYS_OPTION_NAME, KEYS_OPTION.getDescription());
   }
 
+  @VisibleForTesting
+  public static String description() {
+    return "Removes all or specific properties from path's path level configurations.";
+  }
+
   @Override
   public String getDescription() {
-    return "Removes all or specific properties from path's path level configurations.";
+    return description();
   }
 }

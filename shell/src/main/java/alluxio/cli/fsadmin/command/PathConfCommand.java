@@ -12,19 +12,14 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.Command;
-import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.pathconf.AddCommand;
 import alluxio.cli.fsadmin.pathconf.ListCommand;
 import alluxio.cli.fsadmin.pathconf.RemoveCommand;
 import alluxio.cli.fsadmin.pathconf.ShowCommand;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.status.InvalidArgumentException;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
+import com.google.common.annotations.VisibleForTesting;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -43,8 +38,7 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
     SUB_COMMANDS.put("remove", RemoveCommand::new);
   }
 
-  private Context mContext;
-  private AlluxioConfiguration mConf;
+  private Map<String, Command> mSubCommands = new HashMap<>();
 
   /**
    * @param context fsadmin command context
@@ -52,38 +46,24 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
    */
   public PathConfCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
-    mContext = context;
-    mConf = alluxioConf;
+    SUB_COMMANDS.forEach((name, constructor) -> {
+      mSubCommands.put(name, constructor.apply(context, alluxioConf));
+    });
+  }
+
+  @Override
+  public boolean hasSubCommand() {
+    return true;
+  }
+
+  @Override
+  public Map<String, Command> getSubCommands() {
+    return mSubCommands;
   }
 
   @Override
   public String getCommandName() {
     return "pathConf";
-  }
-
-  @Override
-  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
-  }
-
-  @Override
-  public Options getOptions() {
-    Options options = new Options();
-    SUB_COMMANDS.forEach((cmd, constructor) ->
-        constructor.apply(mContext, mConf).getOptions().getOptions().forEach(
-            option -> options.addOption(option)));
-    return options;
-  }
-
-  @Override
-  public int run(CommandLine cl) throws AlluxioException, IOException {
-    String[] args = cl.getArgs();
-    if (!SUB_COMMANDS.containsKey(args[0])) {
-      throw new InvalidArgumentException("Unknown sub-command: " + args[0]);
-    }
-    Command cmd = SUB_COMMANDS.get(args[0]).apply(mContext, mConf);
-    cmd.run(cl);
-    return 0;
   }
 
   @Override
@@ -95,8 +75,13 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
     return usage.toString();
   }
 
+  @VisibleForTesting
+  public static String description() {
+    return "Manage path level configuration, see sub-commands' descriptions for more details.";
+  }
+
   @Override
   public String getDescription() {
-    return "Manage path level configuration, see sub-commands' descriptions for more details.";
+    return description();
   }
 }
