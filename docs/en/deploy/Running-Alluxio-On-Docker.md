@@ -146,29 +146,6 @@ and set their Zookeeper configuration.
 
 ```bash
 docker run -d \
-           ...
-           -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.embedded.journal.addresses=master-hostname-1:19200,master-hostname-2:19200,master-hostname-3:19200 -Dalluxio.master.hostname=master-hostname-1 \
-           alluxio master
-```
-
-Set the master rpc addresses for all the workers so that they can query the master nodes to find out the leader master.
-
-```bash
-docker run -d \
-           ...
-           -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.rpc.addresses=master-hostname-1:19998,master-hostname-2:19998,master-hostname-3:19998" \
-           alluxio worker
-```
-
-#### Zookeeper-based leader election
-
-To run in HA mode with Zookeeper, Alluxio needs a shared journal directory
-that all masters have access to, usually either NFS or HDFS.
-
-Point them to a shared journal and set their Zookeeper configuration.
-
-```bash
-docker run -d \
            -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal -Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
            alluxio master
 ```
