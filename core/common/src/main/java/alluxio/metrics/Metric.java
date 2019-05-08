@@ -68,7 +68,7 @@ public final class Metric implements Serializable {
    */
   public Metric(MetricsSystem.InstanceType instanceType, String hostname, String id, String name,
       Double value) {
-    Preconditions.checkNotNull(name,"name");
+    Preconditions.checkNotNull(name, "name");
     mInstanceType = instanceType;
     mHostname = hostname;
     mInstanceId = id;
