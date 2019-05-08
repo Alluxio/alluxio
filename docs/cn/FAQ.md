@@ -10,7 +10,7 @@ priority: 10
 
 1. 什么是Alluxio?
 
-   [Alluxio](http://www.alluxio.io/)（之前名为Tachyon），是一个开源的具有内存级速度的虚拟分布式存储系统，
+   [Alluxio](https://www.alluxio.io/)（之前名为Tachyon），是一个开源的具有内存级速度的虚拟分布式存储系统，
    使得应用程序可以以内存级速度与任何存储系统中的数据进行交互。
 
 2. Alluxio可以运行在哪些平台和Java版本上?
