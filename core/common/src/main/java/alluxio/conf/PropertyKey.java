@@ -1117,6 +1117,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_BACKUP_ENTRY_BUFFER_COUNT =
+      new Builder(Name.MASTER_BACKUP_ENTRY_BUFFER_COUNT)
+          .setDefaultValue("10000")
+          .setDescription("How many journal entries to buffer during a back-up.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_BIND_HOST =
       new Builder(Name.MASTER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
@@ -1311,6 +1318,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The number of inodes to cache on-heap. "
               + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
               + "the on-heap inode cache")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT =
+      new Builder(Name.MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT)
+          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+              "Use {CPU core count} for enumeration")
+          .setDescription("The number of threads used during inode tree enumeration.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT =
+      new Builder(Name.MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT)
+          .setDefaultValue("10000")
+          .setDescription("The number of entries to buffer during read-ahead enumeration.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -3457,7 +3479,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JOB_MASTER_HOSTNAME =
       new Builder(Name.JOB_MASTER_HOSTNAME)
           .setDescription("The hostname of the Alluxio job master.")
-          .setDefaultValue("${alluxio.master.hostname}")
+          .setDefaultValue(String.format("${%s}", Name.MASTER_HOSTNAME))
           .build();
   public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL =
       new Builder(Name.JOB_MASTER_LOST_WORKER_INTERVAL)
@@ -3497,6 +3519,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JOB_WORKER_HOSTNAME =
       new Builder(Name.JOB_WORKER_HOSTNAME)
           .setDescription("The hostname of the Alluxio job worker.")
+          .setDefaultValue(String.format("${%s}", Name.WORKER_HOSTNAME))
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey JOB_WORKER_RPC_PORT =
@@ -3778,6 +3801,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.audit.logging.queue.capacity";
     public static final String MASTER_BACKUP_DIRECTORY =
         "alluxio.master.backup.directory";
+    public static final String MASTER_BACKUP_ENTRY_BUFFER_COUNT =
+        "alluxio.master.backup.entry.buffer.count";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL =
         "alluxio.master.client.socket.cleanup.interval";
@@ -3857,6 +3882,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.cache.low.water.mark.ratio";
     public static final String MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
         "alluxio.master.metastore.inode.cache.max.size";
+    public static final String MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT =
+        "alluxio.master.metastore.inode.iteration.crawler.count";
+    public static final String MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT =
+        "alluxio.master.metastore.inode.enumerator.buffer.count";
     public static final String MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
         "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
