@@ -439,8 +439,7 @@ public final class MetricsSystem {
         // this method is called represents the value which should be added to the master's
         // counter.
         double diff = prev != null ? m.getValue() - prev.getValue() : m.getValue();
-        rpcMetrics.add(new Metric(m.getInstanceType(), m.getHostname(), m.getInstanceId(),
-            m.getMetricType(), m.getName(), diff).toProto());
+        rpcMetrics.add(m.toProto().toBuilder().setValue(diff).build());
       } else {
         rpcMetrics.add(m.toProto());
       }
