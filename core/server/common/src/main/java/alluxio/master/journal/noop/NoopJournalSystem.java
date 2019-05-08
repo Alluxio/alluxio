@@ -57,4 +57,7 @@ public final class NoopJournalSystem implements JournalSystem {
 
   @Override
   public void stop() {}
+
+  @Override
+  public void checkpoint() {}
 }

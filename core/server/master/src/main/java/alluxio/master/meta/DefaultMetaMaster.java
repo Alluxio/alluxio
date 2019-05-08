@@ -313,6 +313,15 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
+  public String checkpoint() throws IOException {
+    try (LockResource lr = new LockResource(mMasterContext.pauseStateLock())) {
+      mJournalSystem.checkpoint();
+    }
+    return NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
+        ServerConfiguration.global());
+  }
+
+  @Override
   public ConfigCheckReport getConfigCheckReport() {
     return mConfigChecker.getConfigCheckReport();
   }
