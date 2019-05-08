@@ -810,7 +810,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                             "target": "_blank",
                           },
                           "innerText": "Project Website",
-                          "url": "https://alluxio.org/",
+                          "url": "https://alluxio.io/",
                         },
                         Object {
                           "attributes": Object {
@@ -828,7 +828,7 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                             "target": "_blank",
                           },
                           "innerText": "Slack Channel",
-                          "url": "https://www.alluxio.org/slack",
+                          "url": "https://www.alluxio.io/slack",
                         },
                       ]
                     }
@@ -845,20 +845,20 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                           className="justify-content-center nav"
                         >
                           <NavItem
-                            key="https://alluxio.org/"
+                            key="https://alluxio.io/"
                             tag="li"
                           >
                             <li
                               className="nav-item"
                             >
                               <NavLink
-                                href="https://alluxio.org/"
+                                href="https://alluxio.io/"
                                 tag="a"
                                 target="_blank"
                               >
                                 <a
                                   className="nav-link"
-                                  href="https://alluxio.org/"
+                                  href="https://alluxio.io/"
                                   onClick={[Function]}
                                   target="_blank"
                                 >
@@ -912,20 +912,20 @@ exports[`Metrics App with connected component Matches snapshot 1`] = `
                             </li>
                           </NavItem>
                           <NavItem
-                            key="https://www.alluxio.org/slack"
+                            key="https://www.alluxio.io/slack"
                             tag="li"
                           >
                             <li
                               className="nav-item"
                             >
                               <NavLink
-                                href="https://www.alluxio.org/slack"
+                                href="https://www.alluxio.io/slack"
                                 tag="a"
                                 target="_blank"
                               >
                                 <a
                                   className="nav-link"
-                                  href="https://www.alluxio.org/slack"
+                                  href="https://www.alluxio.io/slack"
                                   onClick={[Function]}
                                   target="_blank"
                                 >
