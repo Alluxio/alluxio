@@ -1,21 +1,33 @@
 #!/bin/bash
+#This script is meant for bootstrapping the Alluxio service to an EMR cluster. Arguments for the script are listed below.
+# 1. Download URI (ex. http://downloads.alluxio.io/downloads/files/2.0.0-preview/alluxio-2.0.0-preview-bin.tar.gz)
+# 2. Root UFS URI (ex. s3a://my-bucket/alluxio-emr/mount)
+# 3. Extra Alluxio Options. These will be appended to alluxio-site.properties. Multiple options can be specified using ';' as a delimiter
+#    (ex. alluxio.user.file.writetype.default=CACHE_THROUGH;alluxio.user.file.readtype.default=CACHE)
 
-#Create user and download release
+#Create user
 sudo groupadd alluxio -g 600
 sudo useradd alluxio -u 600 -g 600
+
+#Download the release
+#TODO Add metadata header tag to the wget for filtering out in download metrics.
 if [ -z $1]
 then
-  wget http://downloads.alluxio.io/downloads/files/2.0.0-preview/alluxio-2.0.0-preview-bin.tar.gz
+  echo "No Download URL Provided. Please go to http://downloads.alluxio.io to see available release downloads."
 else
   wget "${1}"
 fi
-sudo cp alluxio-*.tar.gz /opt/
-sudo tar -xvf /opt/alluxio-*.tar.gz -C /opt/
-sudo rm -R /opt/alluxio-*.tar.gz
-sudo mv /opt/alluxio-* /opt/alluxio
+RELEASE=`basename ${1}`
+RELEASE_UNZIP=${RELEASE%"-bin.tar.gz"}
+
+#Unpack and inflate the release tar
+#TODO logic for different compression formats, s3 URIs, git URIs, etc.
+sudo cp $RELEASE /opt/
+sudo tar -xvf /opt/$RELEASE -C /opt/
+sudo rm -R /opt/$RELEASE
+sudo mv /opt/$RELEASE_UNZIP /opt/alluxio
 sudo chown -R alluxio:alluxio /opt/alluxio
-sudo rm -R /opt/alluxio-*.tar.gz
-rm alluxio-*.tar.gz
+rm $RELEASE
 sudo runuser -l alluxio -c "cp /opt/alluxio/conf/alluxio-site.properties.template /opt/alluxio/conf/alluxio-site.properties"
 
 #Get hostnames and load into masters/workers file

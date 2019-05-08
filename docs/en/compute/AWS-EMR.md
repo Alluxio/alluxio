@@ -39,7 +39,7 @@ To begin with, download the `alluxio-emr.sh` and `alluxio-presto.json` files fro
 mechanisms to change the Alluxio configuration in the future. Make sure that the AWS CLI is also set up and ready
 with the required AWS Access/Secret key.
 
-1. Run aws emr create-default-roles. This will set up the required IAM roles for the account to be able to use the EMR
+1. Run `aws emr create-default-roles`. This will set up the required IAM roles for the account to be able to use the EMR
 service.
 2. Make sure that the files that you downloaded are 
 3. Configure the below command with the required parameters. The root-ufs-uri should be an s3a:// or hdfs:// URI designating the root mount of the Alluxio file system.
@@ -108,16 +108,16 @@ INSERT INTO test1 VALUES ('1', 24, 'F', 'Developer', '12345');
 SELECT * FROM test1;
 ```
 
-##Customization
+## Customization
 Tuning of Alluxio properties can be done in a few different locations. Depending on which service needs tuning, EMR
 offers different ways of modifying the service settings/environment variables.
 
-###Alluxio Service
+### Alluxio Service
 Any server-side configuration changes must be made in the `alluxio-emr.sh` bootstrap script. In the section for generating
 the `alluxio-site.properties`, add a line with the configuration needed to append to the bottom of the file. Options can also
 be passed as the 3rd argument to the bootstrap script with a ';' delimiter.
 
-###Alluxio Client
+### Alluxio Client
 Generic client-side properties can also be edited via the bootstrap script as mentioned above. This is mostly for the native
 client (CLI). Property changes for a specific service like Presto/Hive should be done in the respective configuration file
-i.e. core-site.xml, hive.catalog.
+i.e. `core-site.xml`, `hive.catalog`.
