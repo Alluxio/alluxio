@@ -73,11 +73,20 @@ public interface MetricOrBuilder extends
   double getValue();
 
   /**
-   * <code>map&lt;string, string&gt; tags = 6;</code>
+   * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+   */
+  boolean hasMetricType();
+  /**
+   * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+   */
+  alluxio.grpc.MetricType getMetricType();
+
+  /**
+   * <code>map&lt;string, string&gt; tags = 7;</code>
    */
   int getTagsCount();
   /**
-   * <code>map&lt;string, string&gt; tags = 6;</code>
+   * <code>map&lt;string, string&gt; tags = 7;</code>
    */
   boolean containsTags(
       java.lang.String key);
@@ -88,19 +97,19 @@ public interface MetricOrBuilder extends
   java.util.Map<java.lang.String, java.lang.String>
   getTags();
   /**
-   * <code>map&lt;string, string&gt; tags = 6;</code>
+   * <code>map&lt;string, string&gt; tags = 7;</code>
    */
   java.util.Map<java.lang.String, java.lang.String>
   getTagsMap();
   /**
-   * <code>map&lt;string, string&gt; tags = 6;</code>
+   * <code>map&lt;string, string&gt; tags = 7;</code>
    */
 
   java.lang.String getTagsOrDefault(
       java.lang.String key,
       java.lang.String defaultValue);
   /**
-   * <code>map&lt;string, string&gt; tags = 6;</code>
+   * <code>map&lt;string, string&gt; tags = 7;</code>
    */
 
   java.lang.String getTagsOrThrow(
