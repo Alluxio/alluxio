@@ -229,9 +229,9 @@ public interface AlluxioConfiguration {
   boolean clusterDefaultsLoaded();
 
   /**
-   * @return hash of properties, if hashing is not supported, return null
+   * @return hash of properties, if hashing is not supported, return empty string
    */
   default String hash() {
-    return null;
+    return "";
   }
 }
