@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.master.MasterClientContext;
 import alluxio.wire.ConfigHash;
 
 import org.slf4j.Logger;
@@ -35,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ConfigHashSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigHashSync.class);
 
-  private volatile FileSystemContext mContext;
+  private final FileSystemContext mContext;
   private volatile RetryHandlingMetaMasterConfigClient mClient;
 
   private volatile IOException mException;
@@ -46,21 +47,17 @@ public final class ConfigHashSync implements HeartbeatExecutor {
    * @param context the filesystem context
    */
   public ConfigHashSync(FileSystemContext context) {
-    init(context);
+    mContext = context;
+    mClient = new RetryHandlingMetaMasterConfigClient(mContext.getMasterClientContext());
   }
 
   /**
-   * Resets internal states related to context.
+   * Resets the internal meta master client based on the new configuration.
    *
-   * @param context the new context
+   * @param context the context containing the new configuration
    */
-  public void reset(FileSystemContext context) {
-    init(context);
-  }
-
-  private void init(FileSystemContext context) {
-    mContext = context;
-    mClient = new RetryHandlingMetaMasterConfigClient(mContext.getMasterClientContext());
+  public void resetMetaMasterConfigClient(MasterClientContext context) {
+    mClient = new RetryHandlingMetaMasterConfigClient(context);
   }
 
   /**

@@ -339,7 +339,7 @@ public final class FileSystemContext implements Closeable {
       closeWithoutReinitializer();
       initWithoutReinitializer(getClientContext(),
           MasterInquireClient.Factory.create(getClusterConf()));
-      mReinitializer.reset(this);
+      mReinitializer.onSuccess();
     } finally {
       mReinitializer.end();
     }

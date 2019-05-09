@@ -43,8 +43,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * reinitialized context, otherwise, an exception is thrown from {@link #block()}.
  */
 public final class FileSystemContextReinitializer implements Closeable {
-  private volatile FileSystemContext mContext;
-  private volatile ConfigHashSync mExecutor;
+  private final FileSystemContext mContext;
+  private final ConfigHashSync mExecutor;
   private final ExecutorService mExecutorService;
 
   /**
@@ -74,13 +74,14 @@ public final class FileSystemContextReinitializer implements Closeable {
   }
 
   /**
-   * Resets internal states related to context without restarting the heartbeat.
+   * Notifies that the reinitialization has succeeded.
    *
-   * @param context the new context
+   * It will reset internal state that might be affected by the reinitialized context,
+   * e.g. the meta master client used in the heartbeat might need to be reset because of
+   * new configurations.
    */
-  public void reset(FileSystemContext context) {
-    mContext = context;
-    mExecutor.reset(mContext);
+  public void onSuccess() {
+    mExecutor.resetMetaMasterConfigClient(mContext.getMasterClientContext());
   }
 
   /**
