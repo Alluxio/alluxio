@@ -28,6 +28,7 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
+import alluxio.resource.LockResource;
 import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NettyUtils;
@@ -284,22 +285,16 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * If there is code running between {@link #blockReinit()} and {@link #unblockReinit()},
-   * reinitialization will be blocked.
+   * Acquires the lock to block reinitialization.
    *
    * If reinitialization is happening, this method will block until reinitialization succeeds or
-   * fails, if it fails, an exception will be thrown explaining the reinitialization's failure and
-   * automatically calls {@link #unblockReinit()}.
+   * fails, if it fails, a RuntimeException will be thrown explaining the reinitialization's
+   * failure and automatically closes the resource.
+   *
+   * @return a lock resource with the lock locked
    */
-  public void blockReinit() throws IOException {
-    mReinitializer.block();
-  }
-
-  /**
-   * Must be called after {@link #blockReinit()} to unblock reinitialization.
-   */
-  public void unblockReinit() {
-    mReinitializer.unblock();
+  public LockResource acquireBlockReinitLockResource() {
+    return mReinitializer.acquireReadLockResource();
   }
 
   /**
@@ -317,8 +312,7 @@ public final class FileSystemContext implements Closeable {
    */
   public synchronized void reinit(boolean updateClusterConf, boolean updatePathConf)
       throws TimeoutException, InterruptedException, IOException {
-    mReinitializer.begin();
-    try {
+    try (LockResource r = mReinitializer.acquireWriteLockResource()) {
       InetSocketAddress masterAddr;
       try {
         masterAddr = getMasterAddress();
@@ -340,8 +334,6 @@ public final class FileSystemContext implements Closeable {
       initWithoutReinitializer(getClientContext(),
           MasterInquireClient.Factory.create(getClusterConf()));
       mReinitializer.onSuccess();
-    } finally {
-      mReinitializer.end();
     }
   }
 
@@ -394,26 +386,18 @@ public final class FileSystemContext implements Closeable {
     return mMasterClientContext.getMasterInquireClient().getPrimaryRpcAddress();
   }
 
-  /**
-   * Acquires a file system master client from the file system master client pool.
-   *
-   * @return the acquired file system master client
-   */
-  public FileSystemMasterClient acquireMasterClient() {
-    if (mFileSystemMasterClientPool != null) {
+  private FileSystemMasterClient acquireMasterClient() {
+    try (LockResource r = acquireBlockReinitLockResource()) {
       return mFileSystemMasterClientPool.acquire();
     }
-    return null;
   }
 
-  /**
-   * Releases a file system master client into the file system master client pool.
-   *
-   * @param masterClient a file system master client to release
-   */
-  public void releaseMasterClient(FileSystemMasterClient masterClient) {
-    if (mFileSystemMasterClientPool != null) {
-      mFileSystemMasterClientPool.release(masterClient);
+  private void releaseMasterClient(FileSystemMasterClient client) {
+    try (LockResource r = acquireBlockReinitLockResource()) {
+      if (!client.isClosed()) {
+        // The client might have been closed during reinitialization.
+        mFileSystemMasterClientPool.release(client);
+      }
     }
   }
 
@@ -424,12 +408,27 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired file system master client resource
    */
   public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
-    return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
+    return new CloseableResource<FileSystemMasterClient>(acquireMasterClient()) {
       @Override
       public void close() {
-        mFileSystemMasterClientPool.release(get());
+        releaseMasterClient(get());
       }
     };
+  }
+
+  private BlockMasterClient acquireBlockMasterClient() {
+    try (LockResource r = acquireBlockReinitLockResource()) {
+      return mBlockMasterClientPool.acquire();
+    }
+  }
+
+  private void releaseBlockMasterClient(BlockMasterClient client) {
+    try (LockResource r = acquireBlockReinitLockResource()) {
+      if (!client.isClosed()) {
+        // The client might have been closed during reinitialization.
+        mBlockMasterClientPool.release(client);
+      }
+    }
   }
 
   /**
@@ -439,10 +438,10 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired block master client resource
    */
   public CloseableResource<BlockMasterClient> acquireBlockMasterClientResource() {
-    return new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
+    return new CloseableResource<BlockMasterClient>(acquireBlockMasterClient()) {
       @Override
       public void close() {
-        mBlockMasterClientPool.release(get());
+        releaseBlockMasterClient(get());
       }
     };
   }
@@ -457,7 +456,9 @@ public final class FileSystemContext implements Closeable {
    */
   public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
       throws IOException {
-    return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext().getSubject());
+    try (LockResource r = acquireBlockReinitLockResource()) {
+      return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext().getSubject());
+    }
   }
 
   private BlockWorkerClient acquireBlockWorkerClientInternal(
@@ -482,19 +483,25 @@ public final class FileSystemContext implements Closeable {
    */
   public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
       BlockWorkerClient client) {
-    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
-        getClusterConf());
-    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
-        getClientContext().getSubject(), getClusterConf()));
-    if (mBlockWorkerClientPool.containsKey(key)) {
-      mBlockWorkerClientPool.get(key).release(client);
-    } else {
-      LOG.warn("No client pool for key {}, closing client instead. Context is closed: {}",
-          key, mClosed.get());
-      try {
-        client.close();
-      } catch (IOException e) {
-        LOG.warn("Error closing block worker client for key {}", key, e);
+    if (client.isShutdown()) {
+      // Client might have been shutdown during reinitialization.
+      return;
+    }
+    try (LockResource r = acquireBlockReinitLockResource()) {
+      SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
+          getClusterConf());
+      ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
+          getClientContext().getSubject(), getClusterConf()));
+      if (mBlockWorkerClientPool.containsKey(key)) {
+        mBlockWorkerClientPool.get(key).release(client);
+      } else {
+        LOG.warn("No client pool for key {}, closing client instead. Context is closed: {}",
+            key, mClosed.get());
+        try {
+          client.close();
+        } catch (IOException e) {
+          LOG.warn("Error closing block worker client for key {}", key, e);
+        }
       }
     }
   }

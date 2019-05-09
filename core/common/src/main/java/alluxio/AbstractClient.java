@@ -411,4 +411,9 @@ public abstract class AbstractClient implements Client {
   private String getQualifiedFailureMetricName(String metricName) {
     return getQualifiedMetricName(metricName + "Failures");
   }
+
+  @Override
+  public boolean isClosed() {
+    return mClosed;
+  }
 }

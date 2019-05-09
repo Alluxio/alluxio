@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.conf.PropertyKey;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.resource.LockResource;
 import alluxio.util.ThreadFactoryUtils;
 
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -35,12 +36,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * if they differ from the hashes in the {@link alluxio.ClientContext} backing the
  * {@link FileSystemContext}, it tries to reinitialize the {@link FileSystemContext}.
  *
- * Each RPC needs to call {@link #block()} and {@link #unblock()} to mark its lifetime, when there
+ * Each RPC needs to call {@link #acquireReadLockResource()} to mark its lifetime, when there
  * are ongoing RPCs executing between these two methods, reinitialization is blocked.
  *
  * Reinitialization starts when there are no ongoing RPCs, after starting, all further RPCs
  * are blocked until the reinitialization finishes. If it succeeds, future RPCs will use the
- * reinitialized context, otherwise, an exception is thrown from {@link #block()}.
+ * reinitialized context, otherwise, an exception is thrown from {@link #acquireReadLockResource()}.
  */
 public final class FileSystemContextReinitializer implements Closeable {
   private final FileSystemContext mContext;
@@ -85,38 +86,50 @@ public final class FileSystemContextReinitializer implements Closeable {
   }
 
   /**
-   * Blocks reinitialization.
-   *
-   * When there is code running between {@link #block()} and {@link #unblock()}, reinitialization
-   * will be blocked.
+   * Acquires the read lock to block reinitialization.
    *
    * When the context is being reinitialized, this call blocks until the reinitialization succeeds
-   * or fails. If it fails, an exception is thrown and {@link #unblock()} is automatically called.
+   * or fails. If it fails, a RuntimeException is thrown and the read lock will not be locked.
    *
-   * If there is existing reinitialization exception, immediately throw it without trying to
-   * block further reinitialization.
+   * If there is an existing reinitialization exception, immediately throw a RuntimeException
+   * without trying to block further reinitialization.
+   *
+   * @return a resource holding the locked read lock
    */
-  public void block() throws IOException {
+  public LockResource acquireReadLockResource() {
     Optional<IOException> exception = mExecutor.getException();
     if (exception.isPresent()) {
-      throw exception.get();
+      throw new RuntimeException(exception.get());
     }
     mLock.readLock().lock();
     exception = mExecutor.getException();
     if (exception.isPresent()) {
-      unblock();
-      throw exception.get();
+      mLock.readLock().unlock();
+      throw new RuntimeException(exception.get());
     }
+    return new LockResource(mLock.readLock(), false);
   }
 
   /**
-   * Unblocks reinitialization.
+   * Acquires the write lock to start reinitialization.
    *
-   * Should be paired with {@link #block()}, needs to be called no matter whether the RPC
-   * succeeds or fails, otherwise, the reinitialization will always be blocked.
+   * Blocks until read lock is not held or times out.
+   * When it returns without timing out, no further read lock can be acquired until the returned
+   * resource is closed.
+   *
+   * The timeout is specified as {@link PropertyKey#USER_CONF_HASH_SYNC_TIMEOUT}.
+   *
+   * @return a resource holding the locked write lock
+   * @throws TimeoutException if timed out
+   * @throws InterruptedException if the current thread is interrupted while being blocked
    */
-  public void unblock() {
-    mLock.readLock().unlock();
+  public LockResource acquireWriteLockResource() throws TimeoutException, InterruptedException {
+    long timeout = mContext.getClusterConf().getMs(PropertyKey.USER_CONF_HASH_SYNC_TIMEOUT);
+    if (!mLock.writeLock().tryLock(timeout, TimeUnit.MILLISECONDS)) {
+      throw new TimeoutException("Failed to begin reinitialization after being blocked for "
+          + DurationFormatUtils.formatDurationWords(timeout, true, true));
+    }
+    return new LockResource(mLock.writeLock(), false);
   }
 
   /**
@@ -128,35 +141,5 @@ public final class FileSystemContextReinitializer implements Closeable {
     if (!mExecutorService.isShutdown()) {
       mExecutorService.shutdownNow();
     }
-  }
-
-  /**
-   * Begins reinitialization.
-   *
-   * Blocks until no ongoing RPCs are in the middle of {@link #block()} and {@link #unblock()},
-   * or timeouts.
-   * When it returns without timing out, further RPCs calling {@link #block()} will be blocked
-   * until {@link #end()}.
-   *
-   * The timeout is specified as {@link PropertyKey#USER_CONF_HASH_SYNC_TIMEOUT}.
-   *
-   * @throws TimeoutException if timed out
-   * @throws InterruptedException if the current thread is interrupted while being blocked
-   */
-  public void begin() throws TimeoutException, InterruptedException {
-    long timeout = mContext.getClusterConf().getMs(PropertyKey.USER_CONF_HASH_SYNC_TIMEOUT);
-    if (!mLock.writeLock().tryLock(timeout, TimeUnit.MILLISECONDS)) {
-      throw new TimeoutException("Failed to begin reinitialization after being blocked for "
-          + DurationFormatUtils.formatDurationWords(timeout, true, true));
-    }
-  }
-
-  /**
-   * Ends reinitialization.
-   *
-   * RPCs blocking on {@link #block()} should be unblocked.
-   */
-  public void end() {
-    mLock.writeLock().unlock();
   }
 }

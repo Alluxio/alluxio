@@ -31,6 +31,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,10 +97,13 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   /** A map of worker addresses to the most recent epoch time when client fails to read from it. */
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
 
+  private Closer mCloser;
+
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context)
       throws IOException {
     mContext = context;
-    mContext.blockReinit();
+    mCloser = Closer.create();
+    mCloser.register(mContext.acquireBlockReinitLockResource());
     AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
     mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
     mBlockWorkerClientReadRetry = conf.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
@@ -202,9 +206,9 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
   @Override
   public void close() throws IOException {
-    mContext.unblockReinit();
     closeBlockInStream(mBlockInStream);
     closeBlockInStream(mCachedPositionedReadStream);
+    mCloser.close();
   }
 
   /* Bounded Stream methods */

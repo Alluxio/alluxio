@@ -52,6 +52,8 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.master.MasterInquireClient;
+import alluxio.resource.CloseableResource;
+import alluxio.resource.LockResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.util.FileSystemOptions;
@@ -559,17 +561,12 @@ public class BaseFileSystem implements FileSystem {
 
   private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
       throws IOException, AlluxioException {
-    mFsContext.blockReinit();
-    FileSystemMasterClient client = null;
-    try {
-      client = mFsContext.acquireMasterClient();
-      if (client != null) {
-        client.connect(); // Explicitly connect to trigger loading configuration from meta master.
-        return fn.call(client);
-      } else {
-        throw new UnavailableException("Failed to acquire master client, "
-            + "maybe FileSystem is being reinitialized or closed concurrently.");
-      }
+    try (LockResource r = mFsContext.acquireBlockReinitLockResource();
+         CloseableResource<FileSystemMasterClient> client =
+             mFsContext.acquireMasterClientResource()) {
+      // Explicitly connect to trigger loading configuration from meta master.
+      client.get().connect();
+      return fn.call(client.get());
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     } catch (AlreadyExistsException e) {
@@ -583,11 +580,6 @@ public class BaseFileSystem implements FileSystem {
       throw e;
     } catch (AlluxioStatusException e) {
       throw e.toAlluxioException();
-    } finally {
-      if (client != null) {
-        mFsContext.releaseMasterClient(client);
-      }
-      mFsContext.unblockReinit();
     }
   }
 }
