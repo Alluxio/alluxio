@@ -3479,7 +3479,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JOB_MASTER_HOSTNAME =
       new Builder(Name.JOB_MASTER_HOSTNAME)
           .setDescription("The hostname of the Alluxio job master.")
-          .setDefaultValue("${alluxio.master.hostname}")
+          .setDefaultValue(String.format("${%s}", Name.MASTER_HOSTNAME))
           .build();
   public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL =
       new Builder(Name.JOB_MASTER_LOST_WORKER_INTERVAL)
@@ -3519,6 +3519,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JOB_WORKER_HOSTNAME =
       new Builder(Name.JOB_WORKER_HOSTNAME)
           .setDescription("The hostname of the Alluxio job worker.")
+          .setDefaultValue(String.format("${%s}", Name.WORKER_HOSTNAME))
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey JOB_WORKER_RPC_PORT =
