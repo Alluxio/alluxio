@@ -89,6 +89,7 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * Unique ID for each FileSystemContext.
+   * One example usage is to uniquely identify the heartbeat thread for ConfigHashSync.
    */
   private final String mId;
 
