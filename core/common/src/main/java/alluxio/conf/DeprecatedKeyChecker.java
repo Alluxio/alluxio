@@ -11,7 +11,6 @@
 
 package alluxio.conf;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,60 +23,48 @@ import javax.annotation.Nullable;
  * This annotation checker should be used to determine whether a {@link PropertyKey} or
  * {@link alluxio.conf.PropertyKey.Template} has a given annotation.
  *
- * The class is mainly useful for {@link Deprecated} annotations, but could add more in the future.
- *
- * @param <T> The type of annotation this checker should be used for
+ * The class is mainly useful to check for {@link Deprecated} annotations on property keys and
+ * return the associated message, if any.
  */
-public class AnnotatedKeyChecker<T extends Annotation> {
+public class DeprecatedKeyChecker {
+  private static final Class<PropertyKey.Template> TEMPLATE_CLASS =
+      PropertyKey.Template.class;
+  private static final Class<PropertyKey> KEY_CLASS = PropertyKey.class;
 
-  private Map<PropertyKey, T> mAnnotatedKeys;
-  private Map<PropertyKey.Template, T> mAnnotatedTemplates;
-  private final Class<?> mKeySearchClass;
-  private final Class<?> mTemplateSearchClass;
-  private final Class<T> mAnnotationClass;
+  private Map<PropertyKey, Deprecated> mAnnotatedKeys;
+  private Map<PropertyKey.Template, Deprecated> mAnnotatedTemplates;
   private AtomicBoolean mInitialized = new AtomicBoolean(false);
 
   /**
-   * Create a new instance of {@link AnnotatedKeyChecker}.
-   *
-   * @param keySearchClass the class to search for {@link PropertyKey}s
-   * @param templateSearchClass the class to search for {@link alluxio.conf.PropertyKey.Template}
-   * @param annotationClass the class of the annotation
+   * Create a new instance of {@link DeprecatedKeyChecker}.
    */
-  public AnnotatedKeyChecker(Class<?> keySearchClass,
-      Class<?> templateSearchClass, Class<T> annotationClass) {
-    mKeySearchClass = keySearchClass;
-    mTemplateSearchClass = templateSearchClass;
-    mAnnotationClass = annotationClass;
-  }
+  public DeprecatedKeyChecker() { }
 
   /**
    * Given a class to search, a field type, and an annotation type will return a map of all
    * fields which are marked with the given annotation to the instance of the annotation.
    *
-   * @param searchClass the class to search through for fields
-   * @param fieldType the class of the field to search for
-   * @param annotationClazz the annotation to look for
-   * @param <I> The class to search through for annotatated fields
-   * @param <J> The class of the field to look for
-   * @param <K> a class extending Annotation
-   * @return a map
+   * @param searchType the class to search through of the given type
+   * @param <T> The type of the field to retrieve
+   * @return a map of all fields within {@code searchType} class of the type T that are annotated
+   *         with the {@link Deprecated} annotation
    */
-  private static <I, J, K extends Annotation> Map<J, K> populateAnnotatedKeyMap(
-      Class<I> searchClass, Class<J> fieldType, Class<K> annotationClazz) {
-    Map<J, K> annotations = new HashMap<>();
-    for (Field field : searchClass.getDeclaredFields()) {
-      if (!field.getType().equals(fieldType)) {
+  private static <T> Map<T, Deprecated> populateAnnotatedKeyMap(Class<T> searchType) {
+    Map<T, Deprecated> annotations = new HashMap<>();
+    // Iterate over all fields in the class
+    for (Field field : searchType.getDeclaredFields()) {
+      // If the field isn't equal to the class type, skip it
+      if (!field.getType().equals(searchType)) {
         continue;
       }
 
-      K keyAnnotation = field.getAnnotation(annotationClazz);
+      Deprecated keyAnnotation = field.getAnnotation(Deprecated.class);
 
       try {
         // Field#get parameter can be null if retrieving a static field (all PKs are static)
         // See https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Field.html
         // This also works with Template enums
-        J key = fieldType.cast(field.get(null));
+        T key = searchType.cast(field.get(null));
         if (keyAnnotation != null) {
           annotations.put(key, keyAnnotation);
         }
@@ -88,14 +75,14 @@ public class AnnotatedKeyChecker<T extends Annotation> {
     return annotations;
   }
 
-  private T getKeyAnnotation(PropertyKey key) {
+  private Deprecated getKeyAnnotation(PropertyKey key) {
     if (!mInitialized.get()) {
       initialize();
     }
     if (mAnnotatedKeys.containsKey(key)) {
       return mAnnotatedKeys.get(key);
     } else {
-      for (Map.Entry<PropertyKey.Template, T> e : mAnnotatedTemplates.entrySet()) {
+      for (Map.Entry<PropertyKey.Template, Deprecated> e : mAnnotatedTemplates.entrySet()) {
         Matcher match = e.getKey().match(key.getName());
         if (match.matches()) {
           return e.getValue();
@@ -108,10 +95,9 @@ public class AnnotatedKeyChecker<T extends Annotation> {
   private void initialize() {
     if (!mInitialized.getAndSet(true)) {
       mAnnotatedKeys =
-          populateAnnotatedKeyMap(mKeySearchClass, PropertyKey.class, mAnnotationClass);
+          populateAnnotatedKeyMap(KEY_CLASS);
       mAnnotatedTemplates =
-          populateAnnotatedKeyMap(mTemplateSearchClass, PropertyKey.Template.class,
-              mAnnotationClass);
+          populateAnnotatedKeyMap(TEMPLATE_CLASS);
     }
   }
 
@@ -120,7 +106,7 @@ public class AnnotatedKeyChecker<T extends Annotation> {
    *
    * It first checks if the specific key has the annotation, otherwise it will fall back to checking
    * if the key's name matches any of the PropertyKey templates. If no keys or templates match, it
-   * will return false. This will only return true when the key is marked with a {@link T}
+   * will return false. This will only return true when the key is marked with a {@link Deprecated}
    * annotation.
    *
    * @param key the property key to check
@@ -139,7 +125,7 @@ public class AnnotatedKeyChecker<T extends Annotation> {
    * @return the annotation if it exists, null otherwise
    */
   @Nullable
-  public T getAnnotation(PropertyKey key) {
+  public Deprecated getAnnotation(PropertyKey key) {
     return getKeyAnnotation(key);
   }
 }

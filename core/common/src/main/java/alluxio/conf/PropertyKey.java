@@ -4586,8 +4586,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     return mDisplayType;
   }
 
-  static final AnnotatedKeyChecker<Deprecated> DEPRECATED_CHECKER =
-      new AnnotatedKeyChecker<>(PropertyKey.class, PropertyKey.Template.class, Deprecated.class);
+  private static final DeprecatedKeyChecker DEPRECATED_CHECKER = new DeprecatedKeyChecker();
 
   /**
    * Returns whether or not the given property key is marked as deprecated.
