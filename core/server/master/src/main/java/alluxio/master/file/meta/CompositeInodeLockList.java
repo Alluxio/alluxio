@@ -69,56 +69,51 @@ public class CompositeInodeLockList implements InodeLockList {
 
   @Override
   public void unlockLastInode() {
-    if (mSubLockList.isEmpty()) {
-      return;
+    if (!mSubLockList.isEmpty()) {
+      mSubLockList.unlockLastInode();
     }
-    mSubLockList.unlockLastInode();
   }
 
   @Override
   public void unlockLastEdge() {
-    if (mSubLockList.isEmpty()) {
-      return;
+    if (!mSubLockList.isEmpty()) {
+      mSubLockList.unlockLastEdge();
     }
-    mSubLockList.unlockLastEdge();
   }
 
   @Override
   public void downgradeLastInode() {
-    if (!canDowngradeLast()) {
-      return;
+    if (canDowngradeLast()) {
+      mSubLockList.downgradeLastInode();
     }
-    mSubLockList.downgradeLastInode();
   }
 
   @Override
   public void downgradeLastEdge() {
-    if (!canDowngradeLast()) {
-      return;
+    if (canDowngradeLast()) {
+      mSubLockList.downgradeLastEdge();
     }
-    mSubLockList.downgradeLastEdge();
   }
 
   @Override
   public void pushWriteLockedEdge(Inode inode, String childName) {
-    if (!canDowngradeLast()) {
-      // Can't downgrade, just acquire new locks instead.
-      mSubLockList.lockInode(inode, LockMode.WRITE);
-      mSubLockList.lockEdge(inode, childName, LockMode.WRITE);
+    if (canDowngradeLast()) {
+      mSubLockList.pushWriteLockedEdge(inode, childName);
       return;
     }
-    mSubLockList.pushWriteLockedEdge(inode, childName);
+    // Can't downgrade, just acquire new locks instead.
+    mSubLockList.lockInode(inode, LockMode.WRITE);
+    mSubLockList.lockEdge(inode, childName, LockMode.WRITE);
   }
 
   @Override
   public void downgradeEdgeToInode(Inode inode, LockMode mode) {
-    mode = nextLockMode(mode);
-    if (mSubLockList.isEmpty()) {
-      // Can't downgrade, just acquire new locks instead.
-      mSubLockList.lockInode(inode, LockMode.WRITE);
+    if (canDowngradeLast()) {
+      mSubLockList.downgradeEdgeToInode(inode, mode);
       return;
     }
-    mSubLockList.downgradeEdgeToInode(inode, mode);
+    // Can't downgrade, just acquire new locks instead.
+    mSubLockList.lockInode(inode, LockMode.WRITE);
   }
 
   private boolean canDowngradeLast() {
