@@ -103,6 +103,9 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       throws IOException {
     mContext = context;
     mCloser = Closer.create();
+    // Acquire a lock to block FileSystemContext reinitialization, this needs to be done before
+    // using mContext.
+    // The lock will be released in close().
     mCloser.register(mContext.acquireBlockReinitLockResource());
     AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
     mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);

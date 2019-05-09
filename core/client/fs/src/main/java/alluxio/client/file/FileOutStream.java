@@ -89,6 +89,9 @@ public class FileOutStream extends AbstractOutStream {
       throws IOException {
     mContext = context;
     mCloser = Closer.create();
+    // Acquire a lock to block FileSystemContext reinitialization, this needs to be done before
+    // using mContext.
+    // The lock will be released in close().
     mCloser.register(mContext.acquireBlockReinitLockResource());
     mUri = Preconditions.checkNotNull(path, "path");
     mBlockSize = options.getBlockSizeBytes();
