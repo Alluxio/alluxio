@@ -156,17 +156,6 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Creates a {@link FileSystemContext} with the configuration loaded from site-properties.
-   *
-   * @param subject The subject to connect to Alluxio with
-   * @return an instance of file system context with the given subject and site-properties config
-   */
-  public static FileSystemContext create(Subject subject) {
-    Preconditions.checkNotNull(subject);
-    return create(subject, null);
-  }
-
-  /**
    * @param subject the parent subject, set to null if not present
    * @param conf Alluxio configuration
    * @return a context
