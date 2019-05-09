@@ -102,8 +102,8 @@ public final class AddCommand extends AbstractFsAdminCommand {
    */
   @VisibleForTesting
   public static String description() {
-    return "Adds properties to the path level configurations, "
-        + "only client scope properties can be added.";
+    return "Adds properties to the path level configurations. "
+        + "Only client scope properties can be added.";
   }
 
   /**
