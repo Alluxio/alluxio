@@ -243,7 +243,6 @@ public class LockedInodePath implements Closeable {
     Preconditions.checkState(fullPathExists());
 
     mLockList.unlockLastInode();
-    mLockList.unlockLastEdge();
   }
 
   /**
