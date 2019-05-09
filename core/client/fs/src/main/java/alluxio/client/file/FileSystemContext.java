@@ -291,10 +291,19 @@ public final class FileSystemContext implements Closeable {
    * fails, if it fails, a RuntimeException will be thrown explaining the reinitialization's
    * failure and automatically closes the resource.
    *
+   * RuntimeException is thrown because this method is called before requiring resources from the
+   * context, if reinitialization fails, the resources might be half closed, to prevent resource
+   * leaks, we thrown RuntimeException here to force callers to fail since there is no way to
+   * recover.
+   *
    * @return a lock resource with the lock locked
    */
   public LockResource acquireBlockReinitLockResource() {
-    return mReinitializer.acquireReadLockResource();
+    try {
+      return mReinitializer.acquireReadLockResource();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**

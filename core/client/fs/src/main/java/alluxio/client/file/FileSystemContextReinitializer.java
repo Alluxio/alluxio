@@ -89,23 +89,24 @@ public final class FileSystemContextReinitializer implements Closeable {
    * Acquires the read lock to block reinitialization.
    *
    * When the context is being reinitialized, this call blocks until the reinitialization succeeds
-   * or fails. If it fails, a RuntimeException is thrown and the read lock will not be locked.
+   * or fails. If it fails, an exception is thrown and the read lock will not be locked.
    *
-   * If there is an existing reinitialization exception, immediately throw a RuntimeException
+   * If there is an existing reinitialization exception, immediately throw an exception
    * without trying to block further reinitialization.
    *
+   * @throws IOException when reinitialization fails before or during this method
    * @return a resource holding the locked read lock
    */
-  public LockResource acquireReadLockResource() {
+  public LockResource acquireReadLockResource() throws IOException {
     Optional<IOException> exception = mExecutor.getException();
     if (exception.isPresent()) {
-      throw new RuntimeException(exception.get());
+      throw exception.get();
     }
     mLock.readLock().lock();
     exception = mExecutor.getException();
     if (exception.isPresent()) {
       mLock.readLock().unlock();
-      throw new RuntimeException(exception.get());
+      throw exception.get();
     }
     return new LockResource(mLock.readLock(), false);
   }

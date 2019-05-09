@@ -82,6 +82,7 @@ public final class ConfigHashSync implements HeartbeatExecutor {
       hash = mClient.getConfigHash();
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to meta master to get configuration hash:", e);
+      // Disconnect to reconnect in the next heartbeat.
       mClient.disconnect();
       return;
     }
@@ -97,8 +98,11 @@ public final class ConfigHashSync implements HeartbeatExecutor {
         LOG.error("Failed to reinitialize FileSystemContext:", e);
         // Meta master might be temporarily unavailable, retry in next heartbeat.
       } catch (IOException e) {
-        LOG.error("Failed to close FileSystemContext which might cause resource leaks", e);
+        LOG.error("Failed to close FileSystemContext, interrupting the heartbeat thread", e);
         mException = e;
+        // If the heartbeat keeps running, the context might be reinitialized successfully in the
+        // next heartbeat, then the resources that are not closed in the old context are leaked.
+        Thread.currentThread().interrupt();
       } catch (TimeoutException e) {
         LOG.error("Failed to start reinitializing FileSystemContext:", e);
         // There is still ongoing client operations, may be able to reinitialize in the next
