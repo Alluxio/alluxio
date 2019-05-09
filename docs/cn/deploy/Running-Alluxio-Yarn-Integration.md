@@ -15,7 +15,7 @@ priority: 4
 
 **一个运行的YARN的集群**
 
-**下载到本地的 [Alluxio](https://alluxio.org/download)**
+**下载到本地的 [Alluxio](https://alluxio.io/download)**
 
 ## 配置
 通过一些特定的属性来定制Alluxio master和worker(比如，在各个worker节点上设置分层存储)，查阅[Configuration settings](Configuration-Settings.html)

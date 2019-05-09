@@ -17,7 +17,7 @@ as Alluxio's under storage system.
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio server binaries to each of
 these machines. You can either
-[download the precompiled binaries directly](http://www.alluxio.org/download)
+[download the precompiled binaries directly](http://www.alluxio.io/download)
 with the correct Hadoop version (recommended), or
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 (for advanced users).

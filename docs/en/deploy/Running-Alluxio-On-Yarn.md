@@ -72,7 +72,7 @@ YARN to request containers for launching the master and workers.
 
 **A running YARN cluster**
 
-**[Alluxio downloaded locally](https://www.alluxio.org/download)**
+**[Alluxio downloaded locally](https://www.alluxio.io/download)**
 
 ### Launch Alluxio
 
