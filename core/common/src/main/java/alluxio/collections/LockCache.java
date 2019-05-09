@@ -252,6 +252,9 @@ public class LockCache<K> {
     return mSoftLimit;
   }
 
+  /**
+   * @return all entries in the cache, for debugging purposes
+   */
   @VisibleForTesting
   public Map<K, ReentrantReadWriteLock> getEntryMap() {
     Map<K, ReentrantReadWriteLock> entries = new HashMap<>();

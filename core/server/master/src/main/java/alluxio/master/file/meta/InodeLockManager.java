@@ -112,6 +112,9 @@ public class InodeLockManager {
     return mEdgeLocks.getRawReadWriteLock(edge).getWriteHoldCount() > 0;
   }
 
+  /**
+   * Asserts that all locks have been released, throwing an exception if any locks are still taken.
+   */
   @VisibleForTesting
   public void assertAllLocksReleased() {
     assertAllLocksReleased(mEdgeLocks);
