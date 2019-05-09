@@ -133,6 +133,9 @@ public final class ShowCommand extends AbstractFsAdminCommand {
         ALL_OPTION_NAME, ALL_OPTION.getDescription());
   }
 
+  /**
+   * @return command's description
+   */
   @VisibleForTesting
   public static String description() {
     return "Shows path level configurations.";

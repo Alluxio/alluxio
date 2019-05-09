@@ -72,6 +72,7 @@ public final class PathConfCommandIntegrationTest extends AbstractFsAdminShellTe
     String output = mOutput.toString();
     Assert.assertEquals(ListCommand.description(), lastLine(output));
   }
+
   @Test
   public void removeCommandWrongNumberOfArgs() {
     int ret = mFsAdminShell.run("pathConf", "remove", "1", "2");
@@ -87,6 +88,7 @@ public final class PathConfCommandIntegrationTest extends AbstractFsAdminShellTe
     String output = mOutput.toString();
     Assert.assertEquals(RemoveCommand.description(), lastLine(output));
   }
+
   @Test
   public void showCommandWrongNumberOfArgs() {
     int ret = mFsAdminShell.run("pathConf", "show", "1", "2");

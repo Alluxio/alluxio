@@ -90,6 +90,9 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
         KEYS_OPTION_NAME, KEYS_OPTION.getDescription());
   }
 
+  /**
+   * @return command's description
+   */
   @VisibleForTesting
   public static String description() {
     return "Removes all or specific properties from path's path level configurations.";

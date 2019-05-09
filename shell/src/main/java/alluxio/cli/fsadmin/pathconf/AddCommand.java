@@ -18,6 +18,7 @@ import alluxio.cli.fsadmin.command.Context;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.Scope;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
@@ -72,12 +73,19 @@ public final class AddCommand extends AbstractFsAdminCommand {
   @Override
   public int run(CommandLine cl) throws IOException {
     AlluxioURI path = new AlluxioURI(cl.getArgs()[0]);
-    Map<PropertyKey, String> properties = new HashMap<>();
+    Map<PropertyKey, String> propertyMap = new HashMap<>();
     if (cl.hasOption(PROPERTY_OPTION_NAME)) {
-      Maps.fromProperties(cl.getOptionProperties(PROPERTY_OPTION_NAME)).forEach((key, value) ->
-          properties.put(PropertyKey.fromString(key), value));
-      mMetaConfigClient.setPathConfiguration(path, properties);
+      Map<String, String> properties = Maps.fromProperties(
+          cl.getOptionProperties(PROPERTY_OPTION_NAME));
+      for (Map.Entry<String, String> property : properties.entrySet()) {
+        PropertyKey key = PropertyKey.fromString(property.getKey());
+        if (key.getScope() != Scope.CLIENT) {
+          throw new InvalidArgumentException(nonClientScopePropertyException(key));
+        }
+        propertyMap.put(key, property.getValue());
+      }
     }
+    mMetaConfigClient.setPathConfiguration(path, propertyMap);
     return 0;
   }
 
@@ -89,9 +97,23 @@ public final class AddCommand extends AbstractFsAdminCommand {
         PROPERTY_OPTION_NAME, PROPERTY_OPTION.getDescription());
   }
 
+  /**
+   * @return command's description
+   */
   @VisibleForTesting
   public static String description() {
-    return "Adds properties to the path level configurations.";
+    return "Adds properties to the path level configurations, "
+        + "only client scope properties can be added.";
+  }
+
+  /**
+   * @param key the property key
+   * @return the exception message for a non-client scope property key
+   */
+  @VisibleForTesting
+  public static String nonClientScopePropertyException(PropertyKey key) {
+    return "Only client scope properties can be set for path level configuration, but property key "
+        + key + " has scope " + key.getScope().toString();
   }
 
   @Override

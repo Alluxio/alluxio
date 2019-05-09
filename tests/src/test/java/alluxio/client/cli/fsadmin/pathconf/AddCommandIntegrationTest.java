@@ -12,6 +12,7 @@
 package alluxio.client.cli.fsadmin.pathconf;
 
 import alluxio.cli.fsadmin.FileSystemAdminShell;
+import alluxio.cli.fsadmin.pathconf.AddCommand;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.cli.fs.AbstractShellIntegrationTest;
@@ -107,7 +108,7 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
       int ret = shell.run("pathConf", "add", "--property", "unknown=value", "/");
       Assert.assertEquals(-1, ret);
       String output = mOutput.toString();
-      Assert.assertEquals("Invalid property key unknown", output);
+      Assert.assertEquals("Invalid property key unknown\n", output);
     }
   }
 
@@ -139,6 +140,18 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
       ret = shell.run("pathConf", "show", "/");
       Assert.assertEquals(0, ret);
       Assert.assertEquals(format(PROPERTY_KEY11, PROPERTY_VALUE12) + "\n", mOutput.toString());
+    }
+  }
+
+  @Test
+  public void nonClientScopeKey() throws Exception {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+      PropertyKey key = PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT;
+      int ret = shell.run("pathConf", "add", "--property",
+          format(key, "10ms"), "/");
+      Assert.assertEquals(-1, ret);
+      String output = mOutput.toString();
+      Assert.assertEquals(AddCommand.nonClientScopePropertyException(key) + "\n", output);
     }
   }
 }

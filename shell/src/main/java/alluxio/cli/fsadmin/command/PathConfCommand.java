@@ -75,6 +75,9 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
     return usage.toString();
   }
 
+  /**
+   * @return command's description
+   */
   @VisibleForTesting
   public static String description() {
     return "Manage path level configuration, see sub-commands' descriptions for more details.";
