@@ -24,6 +24,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.Striped;
 
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
@@ -109,6 +110,26 @@ public class InodeLockManager {
   @VisibleForTesting
   boolean edgeWriteLockedByCurrentThread(Edge edge) {
     return mEdgeLocks.getRawReadWriteLock(edge).getWriteHoldCount() > 0;
+  }
+
+  @VisibleForTesting
+  public void assertAllLocksReleased() {
+    assertAllLocksReleased(mEdgeLocks);
+    assertAllLocksReleased(mInodeLocks);
+  }
+
+  private <T> void assertAllLocksReleased(LockCache<T> cache) {
+    for (Entry<T, ReentrantReadWriteLock> entry : cache.getEntryMap().entrySet()) {
+      ReentrantReadWriteLock lock = entry.getValue();
+      if (lock.isWriteLocked()) {
+        throw new RuntimeException(
+            String.format("Found a write-locked lock for %s", entry.getKey()));
+      }
+      if (lock.getReadLockCount() > 0) {
+        throw new RuntimeException(
+            String.format("Found a read-locked lock for %s", entry.getKey()));
+      }
+    }
   }
 
   /**
