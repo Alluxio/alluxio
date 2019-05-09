@@ -259,7 +259,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
     checkOnlyNodesReadLocked(mRootDir);
     checkOnlyNodesWriteLocked();
-    checkOnlyIncomingEdgesReadLocked(mRootDir);
+    checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA);
     checkOnlyIncomingEdgesWriteLocked();
   }
 
@@ -276,7 +276,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     checkOnlyNodesReadLocked(mRootDir);
     checkOnlyNodesWriteLocked();
     checkOnlyIncomingEdgesReadLocked(mRootDir);
-    checkOnlyIncomingEdgesWriteLocked();
+    checkOnlyIncomingEdgesWriteLocked(mDirA);
   }
 
   @Test
@@ -292,7 +292,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     checkOnlyNodesReadLocked(mRootDir);
     checkOnlyNodesWriteLocked(mDirA, mDirB);
     checkOnlyIncomingEdgesReadLocked(mRootDir);
-    checkOnlyIncomingEdgesWriteLocked(mDirA, mDirB);
+    checkOnlyIncomingEdgesWriteLocked(mDirA, mDirB, mFileC);
 
     pathC.close();
 
