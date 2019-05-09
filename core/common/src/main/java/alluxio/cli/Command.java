@@ -21,6 +21,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * An interface for all the commands that can be run from a shell.
@@ -42,6 +44,23 @@ public interface Command {
   }
 
   /**
+   * If a command has sub-commands, the first argument should be the sub-command's name,
+   * all arguments and options will be parsed for the sub-command.
+   *
+   * @return whether this command has sub-commands
+   */
+  default boolean hasSubCommand() {
+    return false;
+  }
+
+  /**
+   * @return a map from sub-command names to sub-command instances
+   */
+  default Map<String, Command> getSubCommands() {
+    return new HashMap<>();
+  }
+
+  /**
    * Parses and validates the arguments.
    *
    * @param args the arguments for the command, excluding the command name
@@ -56,7 +75,7 @@ public interface Command {
       cmdline = parser.parse(opts, args);
     } catch (ParseException e) {
       throw new InvalidArgumentException(
-          String.format("Failed to parse args for %s", getCommandName()), e);
+          String.format("Failed to parse args for %s: %s", getCommandName(), e.getMessage()), e);
     }
     validateArgs(cmdline);
     return cmdline;
@@ -76,7 +95,9 @@ public interface Command {
    * @param cl the parsed command line for the arguments
    * @return the result of running the command
    */
-  int run(CommandLine cl) throws AlluxioException, IOException;
+  default int run(CommandLine cl) throws AlluxioException, IOException {
+    return 0;
+  }
 
   /**
    * @return the usage information of the command
