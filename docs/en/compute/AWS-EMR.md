@@ -101,7 +101,7 @@ presto-cli --catalog hive
 8. Insert values into the table
 ```sql
 USE glue;
-INSERT INTO test1 VALUES ('1', 24, 'F', 'Developer', '12345');
+INSERT INTO test1 VALUES (1, 24, 'F', 'Developer', '12345');
 ```
 9. Read back the values in the table
 ```sql
