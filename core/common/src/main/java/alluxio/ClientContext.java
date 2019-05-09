@@ -147,9 +147,7 @@ public class ClientContext {
    */
   public synchronized void loadConfIfNotLoaded(InetSocketAddress address)
       throws AlluxioStatusException {
-    boolean clusterConfLoaded = mClusterConf.clusterDefaultsLoaded();
-    boolean pathConfLoaded = mIsPathConfLoaded;
-    loadConf(address, !clusterConfLoaded, !pathConfLoaded);
+    loadConf(address, !mClusterConf.clusterDefaultsLoaded(), !mIsPathConfLoaded);
   }
 
   /**
