@@ -336,7 +336,7 @@ public final class FileSystemContext implements Closeable {
         // or their is a temporary network problem, give up reinitialization. The heartbeat thread
         // will try to reinitialize in the next heartbeat.
         throw new UnavailableException(String.format("Failed to load configuration from meta master"
-            + " {} during reinitialization", masterAddr), e);
+            + " %s during reinitialization", masterAddr), e);
       }
       closeWithoutReinitializer();
       initWithoutReinitializer(getClientContext(),
