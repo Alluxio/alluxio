@@ -17,6 +17,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ public final class HeartbeatThread implements Runnable {
    * @return the thread name combined of executorName and threadId, if threadId is empty or null,
    *    return executorName
    */
+  @VisibleForTesting
   public static String generateThreadName(String executorName, String threadId) {
     if (threadId == null || threadId.isEmpty()) {
       return executorName;
