@@ -308,17 +308,17 @@ public final class FileSystemContext implements Closeable {
    * @param updatePathConf whether path level configuration should be updated
    * @throws TimeoutException when timed out during being blocked by ongoing RPCs
    * @throws InterruptedException when the calling thread is interrupted
-   * @throws IOException when failed to close the context or update configuration
+   * @throws UnavailableException when failed to load configuration from master
+   * @throws IOException when failed to close the context
    */
   public synchronized void reinit(boolean updateClusterConf, boolean updatePathConf)
-      throws TimeoutException, InterruptedException, IOException {
+      throws TimeoutException, InterruptedException, UnavailableException, IOException {
     try (LockResource r = mReinitializer.acquireWriteLockResource()) {
       InetSocketAddress masterAddr;
       try {
         masterAddr = getMasterAddress();
       } catch (IOException e) {
-        LOG.error("Failed to get master address during reinitialization", e);
-        return;
+        throw new UnavailableException("Failed to get master address during reinitialization", e);
       }
       try {
         getClientContext().loadConf(masterAddr, updateClusterConf, updatePathConf);
@@ -326,9 +326,8 @@ public final class FileSystemContext implements Closeable {
         // Failed to load configuration from meta master, maybe master is being restarted,
         // or their is a temporary network problem, give up reinitialization. The heartbeat thread
         // will try to reinitialize in the next heartbeat.
-        LOG.error("Failed to load configuration from meta master {} during reinitialization: {}",
-            masterAddr, e);
-        return;
+        throw new UnavailableException(String.format("Failed to load configuration from meta master"
+            + " {} during reinitialization", masterAddr), e);
       }
       closeWithoutReinitializer();
       initWithoutReinitializer(getClientContext(),

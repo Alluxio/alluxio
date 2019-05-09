@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.ConfigHash;
@@ -92,12 +93,16 @@ public final class ConfigHashSync implements HeartbeatExecutor {
       try {
         mContext.reinit(isClusterConfUpdated, isPathConfUpdated);
         mException = null;
-      } catch (IOException e) {
+      } catch (UnavailableException e) {
         LOG.error("Failed to reinitialize FileSystemContext:", e);
+        // Meta master might be temporarily unavailable, retry in next heartbeat.
+      } catch (IOException e) {
+        LOG.error("Failed to close FileSystemContext which might cause resource leaks", e);
         mException = e;
       } catch (TimeoutException e) {
         LOG.error("Failed to start reinitializing FileSystemContext:", e);
-        // Ignore and continue the heartbeat, may be able to start reinitialization next time.
+        // There is still ongoing client operations, may be able to reinitialize in the next
+        // heartbeat when there is no active client operation.
       }
     }
   }
