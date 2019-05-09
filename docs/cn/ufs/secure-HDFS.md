@@ -16,7 +16,7 @@ priority: 3
 ## 初始步骤
 
 要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。
-你可以或者[下载对应hadoop版本的预编译二进制包](http://www.alluxio.org/download)(推荐)，
+你可以或者[下载对应hadoop版本的预编译二进制包](http://www.alluxio.io/download)(推荐)，
 或者[从源码编译Alluxio](Building-Alluxio-From-Source.html)(高级用户)。
 
 注意，当从源码编译Alluxio时，默认预编译的Alluxio服务器二进制包适用于HDFS `2.2.0`。若使用其他版本的Hadoop，需要指定正确的Hadoop配置文件，然后在你的Alluxio目录下运行一下命令：

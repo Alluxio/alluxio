@@ -29,7 +29,7 @@ Spark 1.1 或更高版本的 Spark 应用程序可以通过其与 HDFS 兼容的
   从任意数量的这些系统中访问数据与本指南的重点是垂直的，
   [统一和透明的名称空间]({{ '/cn/advanced/Namespace-Management.html' | relativize_url }})介绍了相关内容。
 * 确保 Alluxio 客户端 jar 包是可用的。
-  在从 Alluxio [下载页面](http://www.alluxio.org/download)下载的压缩包的`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中，可以找到 Alluxio 客户端 jar 包。
+  在从 Alluxio [下载页面](http://www.alluxio.io/download)下载的压缩包的`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中，可以找到 Alluxio 客户端 jar 包。
   高级用户也可以从源代码编译该客户端 jar 包，可以参考[从源代码构建 Alluxio 的步骤]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }})。
 
 ## 基础设置

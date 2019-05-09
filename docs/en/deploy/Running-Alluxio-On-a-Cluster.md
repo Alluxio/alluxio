@@ -29,7 +29,7 @@ The following sections describe how to install and configure Alluxio with a sing
 
 #### Alluxio download and installation
 
-To deploy Alluxio in a cluster, first [download](https://alluxio.org/download) the Alluxio tar file,
+To deploy Alluxio in a cluster, first [download](https://alluxio.io/download) the Alluxio tar file,
 and copy it to every node (master node, worker nodes). Extract the tarball to the same path on
 every node.
 
@@ -127,7 +127,7 @@ The common prerequisites of setting up HA cluster are:
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 * A shared storage system to mount to Alluxio (accessible by all Alluxio nodes). For example, HDFS or Amazon S3. 
 
-To deploy Alluxio in a cluster, first [download](https://alluxio.org/download) the Alluxio tar file,
+To deploy Alluxio in a cluster, first [download](https://alluxio.io/download) the Alluxio tar file,
 and copy it to every node (master nodes, worker nodes). Extract the tarball to the same path on
 every node.
 

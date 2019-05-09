@@ -19,7 +19,7 @@ priority: 3
 
 **[加分项]** 如果你有一个[包含 access key id 和 secret accsee key 的 AWS 账户](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html)，你可以完成额外的任务。需要你 AWS 账户信息的章节都有**[加分项]**这一标签。
 
-**注意** 本指南旨在让你快速开始与 Alluxio 系统进行交互。Alluxio 在运行大数据工作负载的分布式环境中表现最好。这些特性都难以适用于本地环境。如果你有兴趣运行一个更大规模的、能够突出 Alluxio 性能优势的例子，可以请求一个[沙箱集群](https://www.alluxio.org/sandbox/request)来一键免费部署Spark、Alluxio和S3。
+**注意** 本指南旨在让你快速开始与 Alluxio 系统进行交互。Alluxio 在运行大数据工作负载的分布式环境中表现最好。这些特性都难以适用于本地环境。如果你有兴趣运行一个更大规模的、能够突出 Alluxio 性能优势的例子，可以请求一个[沙箱集群](https://www.alluxio.io/sandbox-request)来一键免费部署Spark、Alluxio和S3。
 
 ## 前期准备
 
@@ -35,7 +35,7 @@ priority: 3
 
 ## 下载 Alluxio
 
-首先，从[这里](http://www.alluxio.org/download)下载 Alluxio。选择为默认 Hadoop 版本构建的{{site.ALLUXIO_RELEASED_VERSION}}预编译版。
+首先，从[这里](http://www.alluxio.io/download)下载 Alluxio。选择为默认 Hadoop 版本构建的{{site.ALLUXIO_RELEASED_VERSION}}预编译版。
 
 接着，你可以用如下命令解压下载包。
 

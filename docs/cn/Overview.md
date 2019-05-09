@@ -16,9 +16,9 @@ Alluxio 以内存为中心的架构使得数据的访问速度能比现有方案
 在大数据生态系统中，Alluxio 位于数据驱动框架或应用（如 Apache Spark、Presto、Tensorflow、Apache HBase、Apache Hive 或 Apache Flink）和各种持久化存储系统（如 Amazon S3、Google Cloud Storage、OpenStack Swift、GlusterFS、HDFS、IBM Cleversafe、EMC ECS、Ceph、NFS 和 Alibaba OSS）之间。
 Alluxio 统一了存储在这些不同存储系统中的数据，为其上层数据驱动应用提供统一的客户端 API 和全局命名空间。
 
-Alluxio 项目源自 UC Berkeley 的 [AMPLab](https://amplab.cs.berkeley.edu/software/)（见[论文](https://www.alluxio.org/resources/white-papers)），处于伯克利数据分析栈 ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) 的数据层。
+Alluxio 项目源自 UC Berkeley 的 [AMPLab](https://amplab.cs.berkeley.edu/software/)（见[论文](https://docs.alluxio.io/os/user/stable/en/Getting-Started.html)），处于伯克利数据分析栈 ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) 的数据层。
 它基于 [Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE) 开源，
-并被部署应用在[世界各地的多家知名公司](https://www.alluxio.org/community/powered-by-alluxio)。
+并被部署应用在[世界各地的多家知名公司](https://www.alluxio.io/powered-by-alluxio)。
 Alluxio 是发展最快的开源大数据项目之一。在五年的时间里，已有超过 200 个组织机构的 [900 多名贡献者](https://github.com/alluxio/alluxio/graphs/contributors)参与到 Alluxio 的开发中，包括
 [阿里巴巴](http://www.alibaba.com)、
 [Alluxio](http://www.alluxio.com/)、
@@ -33,7 +33,7 @@ Alluxio 是发展最快的开源大数据项目之一。在五年的时间里，
 [UC Berkeley](https://amplab.cs.berkeley.edu/)、
 和 [Yahoo](https://www.yahoo.com/)。
 
-到今天为止，Alluxio 已经在[数百家机构](https://www.alluxio.org/community/powered-by-alluxio)的生产中进行了部署，并且在超过 1000 个节点的集群上运行着。
+到今天为止，Alluxio 已经在[数百家机构](https://www.alluxio.io/powered-by-alluxio)的生产中进行了部署，并且在超过 1000 个节点的集群上运行着。
 
 <p align="center">
 <img src="{{ "/img/stack.png" | relativize_url }}" width="800" alt="Ecosystem"/>
@@ -67,20 +67,20 @@ Alluxio 将三个关键的创新领域结合在一起，提供了一套独特的
 
 ## 下载和其他
 
-你可以从 [Alluxio 下载页面](http://alluxio.org/download)获取已发布版本。
+你可以从 [Alluxio 下载页面](http://alluxio.io/download)获取已发布版本。
 每个版本都是由已编译二进制文件组成，与各种 Hadoop 版本兼容。
 如果你想从源码编译生成 Alluxio，请前往[从 Master 分支构建 Alluxio]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }})。
 如果你有任何疑问，请联系我们[用户邮件列表](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)（
 对于无法使用 Google Group 的用户，请使用它的[镜像](http://alluxio-users.85194.x6.nabble.com/))
-或者我们的[社区Slack频道](https://alluxio.org/slack).。
+或者我们的[社区Slack频道](https://alluxio.io/slack).。
 
-- [下载](http://alluxio.org/download/)
+- [下载](http://alluxio.io/download/)
 - [用户文档]({{ '/cn/Getting-Started.html' | relativize_url }})
 - [开发者文档]({{ '/cn/contributor/Contributor-Getting-Started.html' | relativize_url }})
 - [Meetup](https://www.meetup.com/Alluxio/)
 - [Issue Tracking](https://github.com/Alluxio/alluxio/issues)
-- [社区Slack频道](https://alluxio.org/slack)
+- [社区Slack频道](https://alluxio.io/slack)
 - [用户邮件列表](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 - [视频](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA) |
 - [Github](https://github.com/alluxio/alluxio/) |
-- [已发布版本](https://www.alluxio.org/download/releases)
+- [已发布版本](https://www.alluxio.io/download/releases)
