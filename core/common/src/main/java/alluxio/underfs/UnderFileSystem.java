@@ -66,42 +66,18 @@ public interface UnderFileSystem extends Closeable {
     private Factory() {} // prevent instantiation
 
     /**
-     * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
-     * only be used for journal operations and tests.
-     *
-     * @param path the file path storing over the ufs
-     * @return instance of the under layer file system
-     */
-    public static UnderFileSystem create(String path, AlluxioConfiguration conf) {
-      return create(path, UnderFileSystemConfiguration.defaults(conf), conf);
-    }
-
-    /**
-     * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
-     * only be used for journal operations and tests.
-     *
-     * @param path journal path in ufs
-     * @return the instance of under file system for Alluxio journal directory
-     */
-    public static UnderFileSystem create(URI path, AlluxioConfiguration conf) {
-      return create(path.toString(), conf);
-    }
-
-    /**
      * Creates a client for operations involved with the under file system. An
      * {@link IllegalArgumentException} is thrown if there is no under file system for the given
      * path or if no under file system could successfully be created.
      *
      * @param path path
-     * @param ufsConf optional configuration object for the UFS, may be null
-     * @param alluxioConf Alluxio configuration
+     * @param ufsConf configuration object for the UFS
      * @return client for the under file system
      */
-    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf,
-        AlluxioConfiguration alluxioConf) {
+    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories =
-          UnderFileSystemFactoryRegistry.findAll(path, ufsConf, alluxioConf);
+          UnderFileSystemFactoryRegistry.findAll(path, ufsConf);
       if (factories.isEmpty()) {
         throw new IllegalArgumentException("No Under File System Factory found for: " + path);
       }
@@ -115,8 +91,7 @@ public interface UnderFileSystem extends Closeable {
           // when creation is done.
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf, alluxioConf),
-              alluxioConf);
+          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf));
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
@@ -344,6 +319,8 @@ public interface UnderFileSystem extends Closeable {
    * @return the block size in bytes
    */
   long getBlockSizeByte(String path) throws IOException;
+
+
 
   /**
    * Gets the directory status. The caller must already know the path is a directory. This method

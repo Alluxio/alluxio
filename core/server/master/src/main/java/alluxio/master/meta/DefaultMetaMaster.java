@@ -182,7 +182,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     if (URIUtils.isLocalFilesystem(ServerConfiguration
         .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))) {
       mUfs = UnderFileSystem.Factory
-          .create("/", UnderFileSystemConfiguration.defaults());
+          .create("/", UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     } else {
       mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     }
@@ -270,7 +270,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         : ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
     UnderFileSystem ufs = mUfs;
     if (options.getLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
-      ufs = UnderFileSystem.Factory.create("/", UnderFileSystemConfiguration.defaults());
+      ufs = UnderFileSystem.Factory.create("/",
+          UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
       LOG.info("Backing up to local filesystem in directory {}", dir);
     } else {
       LOG.info("Backing up to root UFS in directory {}", dir);

@@ -928,8 +928,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsDirectoryStatus ufsStatus = new
         UfsDirectoryStatus("test", "owner", "group", (short) 511);
-    Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any(),
-        Matchers.any(AlluxioConfiguration.class))).thenReturn(mockUfs);
+    Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any())).thenReturn(mockUfs);
     Mockito.when(mockUfs.isDirectory(ufsBase)).thenReturn(true);
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), ""))
         .thenReturn(new AlluxioURI(ufsBase));

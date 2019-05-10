@@ -47,8 +47,8 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
    * @param ufsConf UFS configuration
    */
   public SleepingUnderFileSystem(AlluxioURI uri, SleepingUnderFileSystemOptions options,
-      UnderFileSystemConfiguration ufsConf, AlluxioConfiguration alluxioConf) {
-    super(uri, ufsConf, alluxioConf);
+      UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
     mOptions = options;
   }
 

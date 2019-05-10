@@ -81,9 +81,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param uri the {@link AlluxioURI} used to create this ufs
    * @param ufsConf UFS configuration
    */
-  protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
-      AlluxioConfiguration alluxioConf) {
-    super(uri, ufsConf, alluxioConf);
+  protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
     int numThreads = mAlluxioConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
     mExecutorService = ExecutorServiceFactories.fixedThreadPool(
         "alluxio-underfs-object-service-worker", numThreads).create();

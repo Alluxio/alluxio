@@ -201,8 +201,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   private UnderFileSystemFactory mountUnmount(FileSystem fs) throws Exception {
     SleepingUnderFileSystem sleepingUfs = new SleepingUnderFileSystem(new AlluxioURI("sleep:///"),
-        new SleepingUnderFileSystemOptions(), UnderFileSystemConfiguration.defaults(),
-        ServerConfiguration.global());
+        new SleepingUnderFileSystemOptions(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     SleepingUnderFileSystemFactory sleepingUfsFactory =
         new SleepingUnderFileSystemFactory(sleepingUfs);
     UnderFileSystemFactoryRegistry.register(sleepingUfsFactory);

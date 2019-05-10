@@ -31,15 +31,13 @@ public interface UnderFileSystemFactory
    *
    * @param path file path
    * @param conf optional configuration object for the UFS, may be null
-   * @param alluxioConf configuration object for alluxio
    * @return the client
    */
-  UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf);
+  UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf);
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, UnderFileSystemConfiguration, AlluxioConfiguration)} can succeed for
+   * {@link #create(String, UnderFileSystemConfiguration)} can succeed for
    * this path.
    *
    * @param path file path
@@ -49,7 +47,7 @@ public interface UnderFileSystemFactory
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, UnderFileSystemConfiguration, AlluxioConfiguration)} can succeed for
+   * {@link #create(String, UnderFileSystemConfiguration)} can succeed for
    * this path.
    *
    * @param path file path

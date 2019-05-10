@@ -22,6 +22,7 @@ import alluxio.master.NoopMaster;
 import alluxio.master.ServiceUtils;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.URIUtils;
@@ -97,7 +98,8 @@ public final class JournalUpgrader {
           new UfsJournal(getJournalLocation(ServerConfiguration
               .get(PropertyKey.MASTER_JOURNAL_FOLDER)), new NoopMaster(master), 0);
 
-      mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0, alluxioConf);
+      mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0,
+          UnderFileSystemConfiguration.defaults(alluxioConf));
 
       mCheckpointV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "checkpoint.data");
       mCompletedLogsV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "completed");

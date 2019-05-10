@@ -45,13 +45,6 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   private boolean mShared;
 
   /**
-   * @return default UFS configuration
-   */
-  public static UnderFileSystemConfiguration defaults() {
-    return new UnderFileSystemConfiguration(ConfigurationUtils.defaults());
-  }
-
-  /**
    * @param alluxioConf Alluxio configuration
    * @return ufs configuration from a given alluxio configuration
    */

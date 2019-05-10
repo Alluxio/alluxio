@@ -13,7 +13,6 @@ package alluxio.underfs.kodo;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -38,10 +37,9 @@ public class KodoUnderFileSystemFactory implements UnderFileSystemFactory {
    * @return
    */
   @Override
-  public UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf) {
+  public UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
-    return KodoUnderFileSystem.creatInstance(new AlluxioURI(path), conf, alluxioConf);
+    return KodoUnderFileSystem.creatInstance(new AlluxioURI(path), conf);
   }
 
   /**
