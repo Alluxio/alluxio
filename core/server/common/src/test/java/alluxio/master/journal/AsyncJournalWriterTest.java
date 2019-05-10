@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 
 import java.io.IOException;
+import java.util.Collections;
 
 /**
  * Unit tests for {@link AsyncJournalWriter}.
@@ -53,7 +54,7 @@ public class AsyncJournalWriterTest {
     mMockJournalWriter = PowerMockito.mock(JournalWriter.class);
     doNothing().when(mMockJournalWriter).write(any(JournalEntry.class));
     doNothing().when(mMockJournalWriter).flush();
-    mAsyncJournalWriter = new AsyncJournalWriter(mMockJournalWriter);
+    mAsyncJournalWriter = new AsyncJournalWriter(mMockJournalWriter, Collections::emptySet);
   }
 
   /**

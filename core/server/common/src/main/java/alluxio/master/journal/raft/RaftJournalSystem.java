@@ -207,7 +207,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals);
+    mStateMachine = new JournalStateMachine(mJournals, () -> this.getJournalSinks(null));
     mServer = CopycatServer.builder(getLocalAddress(mConf))
         .withStorage(storage)
         .withElectionTimeout(Duration.ofMillis(mConf.getElectionTimeoutMs()))
@@ -288,7 +288,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
     Preconditions.checkState(mRaftJournalWriter == null);
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
-    mAsyncJournalWriter.set(new AsyncJournalWriter(mRaftJournalWriter));
+    mAsyncJournalWriter
+        .set(new AsyncJournalWriter(mRaftJournalWriter, () -> this.getJournalSinks(null)));
   }
 
   @Override
