@@ -25,14 +25,14 @@ public final class RuntimeConstants {
 
   static {
     if (VERSION.endsWith("SNAPSHOT")) {
-      ALLUXIO_DOCS_URL = "https://www.alluxio.org/docs/master";
-      ALLUXIO_JAVADOC_URL = "https://www.alluxio.org/javadoc/master";
+      ALLUXIO_DOCS_URL = "https://docs.alluxio.io/os/user/edge";
+      ALLUXIO_JAVADOC_URL = "https://docs.alluxio.io/os/javadoc/edge";
     } else {
       String[] majorMinor = VERSION.split("\\.");
       ALLUXIO_DOCS_URL =
-          String.format("https://www.alluxio.org/docs/%s.%s", majorMinor[0], majorMinor[1]);
+          String.format("https://docs.alluxio.io/os/user/%s.%s", majorMinor[0], majorMinor[1]);
       ALLUXIO_JAVADOC_URL =
-          String.format("https://www.alluxio.org/javadoc/%s.%s", majorMinor[0], majorMinor[1]);
+          String.format("https://docs.alluxio.io/os/javadoc/%s.%s", majorMinor[0], majorMinor[1]);
     }
   }
 

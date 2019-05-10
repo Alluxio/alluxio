@@ -31,6 +31,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.net.URI;
+import java.util.Collections;
 
 public class TriggeredCheckpointTest {
   @Test
@@ -56,7 +57,7 @@ public class TriggeredCheckpointTest {
           cluster.getMetaMasterClient().checkpoint());
       String journalLocation = cluster.getJournalDir();
       UfsJournal ufsJournal = new UfsJournal(URIUtils.appendPathOrDie(new URI(journalLocation),
-          Constants.FILE_SYSTEM_MASTER_NAME), new NoopMaster(""), 0);
+          Constants.FILE_SYSTEM_MASTER_NAME), new NoopMaster(""), 0, Collections::emptySet);
       Assert.assertEquals(1, UfsJournalSnapshot.getSnapshot(ufsJournal).getCheckpoints().size());
 
       validateCheckpointInClusterRestart(cluster);

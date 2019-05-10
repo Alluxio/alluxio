@@ -41,7 +41,7 @@ with the required AWS Access/Secret key.
 
 1. Run `aws emr create-default-roles`. This will set up the required IAM roles for the account to be able to use the EMR
 service.
-2. Make sure that the files that you downloaded are 
+2. Make sure that the `alluxio-emr.sh` script is uploaded to a location in S3 and `alluxio-presto.json` is saved somewhere on your local filesystem.
 3. Configure the below command with the required parameters. The root-ufs-uri should be an s3a:// or hdfs:// URI designating the root mount of the Alluxio file system.
 
 ```bash
@@ -101,7 +101,7 @@ presto-cli --catalog hive
 8. Insert values into the table
 ```sql
 USE glue;
-INSERT INTO test1 VALUES ('1', 24, 'F', 'Developer', '12345');
+INSERT INTO test1 VALUES (1, 24, 'F', 'Developer', '12345');
 ```
 9. Read back the values in the table
 ```sql
