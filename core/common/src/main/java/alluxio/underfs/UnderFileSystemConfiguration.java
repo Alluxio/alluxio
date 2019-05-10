@@ -11,8 +11,25 @@
 
 package alluxio.underfs;
 
+<<<<<<< HEAD
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+||||||| parent of ccd8032ea0... Hide credentials in mount command
+import alluxio.annotation.PublicApi;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Source;
+import alluxio.util.ConfigurationUtils;
+=======
+import alluxio.annotation.PublicApi;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Source;
+import alluxio.util.ConfigurationUtils;
+>>>>>>> ccd8032ea0... Hide credentials in mount command
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -129,5 +146,17 @@ public final class UnderFileSystemConfiguration {
   public UnderFileSystemConfiguration setUserSpecifiedConf(Map<String, String> ufsConf) {
     mUfsConf = ufsConf;
     return this;
+  }
+
+  /**
+   * @param options options for formatting the configuration values
+   * @return a map from all user configuration property names to their values; values may
+   * potentially be null
+   */
+  public Map<String, String> toUserPropertyMap(ConfigurationValueOptions options) {
+    Map<String, String> map = new HashMap<>();
+    // Cannot use Collectors.toMap because we support null keys.
+    userKeySet().forEach(key -> map.put(key.getName(), getOrDefault(key, null, options)));
+    return map;
   }
 }

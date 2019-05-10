@@ -12,11 +12,22 @@
 package alluxio.master.file.meta.options;
 
 import alluxio.AlluxioURI;
+<<<<<<< HEAD
 import alluxio.master.file.options.MountOptions;
+||||||| parent of ccd8032ea0... Hide credentials in mount command
+import alluxio.grpc.MountPOptions;
+=======
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.grpc.MountPOptions;
+import alluxio.underfs.UnderFileSystemConfiguration;
+>>>>>>> ccd8032ea0... Hide credentials in mount command
 import alluxio.wire.MountPointInfo;
 
 import com.google.common.base.Preconditions;
 
+import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -83,6 +94,21 @@ public final class MountInfo {
     info.setReadOnly(mOptions.isReadOnly());
     info.setProperties(mOptions.getProperties());
     info.setShared(mOptions.isShared());
+    return info;
+  }
+
+  /**
+   * @return the {@link MountPointInfo} for the mount point. Some information is formatted
+   * for display purpose.
+   */
+  public MountPointInfo toDisplayMountPointInfo() {
+    MountPointInfo info = toMountPointInfo();
+    UnderFileSystemConfiguration conf =
+        UnderFileSystemConfiguration.defaults(new InstancedConfiguration(
+            new AlluxioProperties())).createMountSpecificConf(info.getProperties());
+    Map<String, String> displayConf = conf.toUserPropertyMap(
+        ConfigurationValueOptions.defaults().useDisplayValue(true));
+    info.setProperties(displayConf);
     return info;
   }
 
