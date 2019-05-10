@@ -210,10 +210,73 @@ public final class JournalSinkTest {
         standbyEntries);
   }
 
+  @Test
+  public void writeInodePaths() throws Exception {
+    String path = "/file";
+    createFile(path);
+    final long createId1 = findFile("file", path);
+    assertNotEquals(-1, createId1);
+    assertNotEquals(-1, findCompleteFile(createId1, path));
+
+    path = "/for_nested_file/nested_file";
+    createFile(path);
+    assertNotEquals(-1, findDir("for_nested_file", new AlluxioURI(path).getParent().getPath()));
+    final long createId2 = findFile("nested_file", path);
+    assertNotEquals(-1, createId2);
+    assertNotEquals(-1, findCompleteFile(createId2, path));
+
+    path = "/dir";
+    createDir(path);
+    assertNotEquals(-1, findDir("dir", path));
+
+    path = "/for_nested_dir/nested_dir";
+    createDir(path);
+    assertNotEquals(-1, findDir("for_nested_dir", new AlluxioURI(path).getParent().getPath()));
+    assertNotEquals(-1, findDir("nested_dir", path));
+
+    path = "/rename_src";
+    String newPath = "/rename_dst";
+    createFile(path);
+    mFileSystemMaster.rename(new AlluxioURI(path), new AlluxioURI(newPath),
+        RenameContext.defaults());
+    final long renameId = findFile("rename_src", path);
+    assertNotEquals(-1, renameId);
+    assertNotEquals(-1, findCompleteFile(renameId, path));
+    assertNotEquals(-1, findRename("rename_dst", path, newPath));
+
+    path = "/deleted_file";
+    createFile(path);
+    mFileSystemMaster.delete(new AlluxioURI(path), DeleteContext.defaults());
+    final long deleteId = findFile("deleted_file", path);
+    assertNotEquals(-1, deleteId);
+    assertNotEquals(-1, findCompleteFile(deleteId, path));
+    assertNotEquals(-1, findDelete(deleteId, path));
+
+    path = "/deleted_dir/file1";
+    createFile(path);
+    mFileSystemMaster.delete(new AlluxioURI("/deleted_dir"),
+        DeleteContext.create(DeletePOptions.newBuilder().setRecursive(true)));
+    final long deleteId1 = findFile("file1", path);
+    assertNotEquals(-1, deleteId1);
+    assertNotEquals(-1, findCompleteFile(deleteId1, path));
+    assertNotEquals(-1, findDelete(deleteId1, path));
+  }
+
   private long findFile(String name) throws Exception {
     while (!mEntries.isEmpty()) {
       JournalEntry entry = mEntries.poll();
       if (entry.hasInodeFile() && entry.getInodeFile().getName().equals(name)) {
+        return entry.getInodeFile().getId();
+      }
+    }
+    return INVALID_ID;
+  }
+
+  private long findFile(String name, String path) throws Exception {
+    while (!mEntries.isEmpty()) {
+      JournalEntry entry = mEntries.poll();
+      if (entry.hasInodeFile() && entry.getInodeFile().getName().equals(name)
+          && entry.getInodeFile().getPath().equals(path)) {
         return entry.getInodeFile().getId();
       }
     }
@@ -230,6 +293,17 @@ public final class JournalSinkTest {
     return INVALID_ID;
   }
 
+  private long findDir(String name, String path) throws Exception {
+    while (!mEntries.isEmpty()) {
+      JournalEntry entry = mEntries.poll();
+      if (entry.hasInodeDirectory() && entry.getInodeDirectory().getName().equals(name)
+          && entry.getInodeDirectory().getPath().equals(path)) {
+        return entry.getInodeDirectory().getId();
+      }
+    }
+    return INVALID_ID;
+  }
+
   private long findRename(String newName) throws Exception {
     while (!mEntries.isEmpty()) {
       JournalEntry entry = mEntries.poll();
@@ -240,10 +314,44 @@ public final class JournalSinkTest {
     return INVALID_ID;
   }
 
+  private long findRename(String newName, String path, String newPath) throws Exception {
+    while (!mEntries.isEmpty()) {
+      JournalEntry entry = mEntries.poll();
+      if (entry.hasRename() && entry.getRename().getNewName().equals(newName)
+          && entry.getRename().getNewPath().equals(newPath)
+          && entry.getRename().getPath().equals(path)) {
+        return entry.getRename().getId();
+      }
+    }
+    return INVALID_ID;
+  }
+
+  private long findCompleteFile(long id, String path) throws Exception {
+    while (!mEntries.isEmpty()) {
+      JournalEntry entry = mEntries.poll();
+      if (entry.hasUpdateInodeFile() && entry.getUpdateInodeFile().getId() == id
+          && entry.getUpdateInodeFile().getPath().equals(path)) {
+        return entry.getUpdateInodeFile().getId();
+      }
+    }
+    return INVALID_ID;
+  }
+
   private long findDelete(long id) throws Exception {
     while (!mEntries.isEmpty()) {
       JournalEntry entry = mEntries.poll();
       if (entry.hasDeleteFile() && entry.getDeleteFile().getId() == id) {
+        return entry.getDeleteFile().getId();
+      }
+    }
+    return INVALID_ID;
+  }
+
+  private long findDelete(long id, String path) throws Exception {
+    while (!mEntries.isEmpty()) {
+      JournalEntry entry = mEntries.poll();
+      if (entry.hasDeleteFile() && entry.getDeleteFile().getId() == id
+          && entry.getDeleteFile().getPath().equals(path)) {
         return entry.getDeleteFile().getId();
       }
     }

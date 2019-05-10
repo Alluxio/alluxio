@@ -707,7 +707,7 @@ public class InodeTree implements DelegatingJournaled {
         newDir.setDefaultACL(pair.getSecond());
       }
       mState.applyAndJournal(rpcContext, newDir,
-          inodePath.getUri().join(newDir.getName()).getPath());
+          inodePath.getUri().getLeadingPath(k));
 
       inodePath.addNextInode(Inode.wrap(newDir));
 
@@ -791,7 +791,7 @@ public class InodeTree implements DelegatingJournaled {
     newInode.setPinned(currentInodeDirectory.isPinned());
 
     mState.applyAndJournal(rpcContext, newInode,
-        inodePath.getUri().join(newInode.getName()).getPath());
+        inodePath.getUri().getPath());
     Inode inode = Inode.wrap(newInode);
     inodePath.addNextInode(inode);
     createdInodes.add(inode);
