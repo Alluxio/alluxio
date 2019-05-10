@@ -2227,6 +2227,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   @Override
   public Set<Long> getPinIdList() {
+    // return both the explicitly pinned inodes and not persisted inodes which should not be evicted
     return Sets.union(mInodeTree.getPinIdSet(), mInodeTree.getToBePersistedIds());
   }
 
