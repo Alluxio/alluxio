@@ -1180,6 +1180,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
     }
     Builder entry = UpdateInodeFileEntry.newBuilder()
         .setId(inode.getId())
+        .setPath(inodePath.getUri().getPath())
         .setCompleted(true)
         .setLength(length);
 
@@ -2047,6 +2048,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         .setOpTimeMs(context.getOperationTimeMs())
         .setNewParentId(dstParentInode.getId())
         .setNewName(dstName)
+        .setPath(srcPath.getPath())
+        .setNewPath(dstPath.getPath())
         .build());
 
     // 3. Do UFS operations if necessary.
@@ -2105,6 +2108,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           .setOpTimeMs(context.getOperationTimeMs())
           .setNewName(srcName)
           .setNewParentId(srcParentInode.getId())
+          .setPath(dstPath.getPath())
+          .setNewPath(srcPath.getPath())
           .build());
       throw t;
     }

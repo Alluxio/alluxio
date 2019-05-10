@@ -163,6 +163,9 @@ public class InodeTree implements DelegatingJournaled {
   /** Only the root inode should have the empty string as its name. */
   public static final String ROOT_INODE_NAME = "";
 
+  /** Path of the root inode. */
+  public static final String ROOT_PATH = "/";
+
   /** Number of retries when trying to lock a path, from a given id. */
   public static final int PATH_TRAVERSAL_RETRIES = 1000;
 
@@ -230,7 +233,7 @@ public class InodeTree implements DelegatingJournaled {
               .mergeFrom(CreateDirectoryPOptions.newBuilder().setMode(mode.toProto()))
               .setOwner(owner).setGroup(group));
       root.setPersistenceState(PersistenceState.PERSISTED);
-      mState.applyAndJournal(context, root);
+      mState.applyAndJournal(context, root, ROOT_PATH);
     }
   }
 
@@ -703,7 +706,8 @@ public class InodeTree implements DelegatingJournaled {
         newDir.setInternalAcl(pair.getFirst());
         newDir.setDefaultACL(pair.getSecond());
       }
-      mState.applyAndJournal(rpcContext, newDir);
+      mState.applyAndJournal(rpcContext, newDir,
+          inodePath.getUri().join(newDir.getName()).getPath());
 
       inodePath.addNextInode(Inode.wrap(newDir));
 
@@ -786,7 +790,8 @@ public class InodeTree implements DelegatingJournaled {
     }
     newInode.setPinned(currentInodeDirectory.isPinned());
 
-    mState.applyAndJournal(rpcContext, newInode);
+    mState.applyAndJournal(rpcContext, newInode,
+        inodePath.getUri().join(newInode.getName()).getPath());
     Inode inode = Inode.wrap(newInode);
     inodePath.addNextInode(inode);
     createdInodes.add(inode);
@@ -858,6 +863,7 @@ public class InodeTree implements DelegatingJournaled {
         .setId(inode.getId())
         .setRecursive(false)
         .setOpTimeMs(opTimeMs)
+        .setPath(inodePath.getUri().getPath())
         .build());
 
     if (inode.isFile()) {
