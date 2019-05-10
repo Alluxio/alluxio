@@ -4110,8 +4110,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JVM_MONITOR_ENABLED = "alluxio.master.jvm.monitor.enabled";
     public static final String WORKER_JVM_MONITOR_ENABLED = "alluxio.worker.jvm.monitor.enabled";
 
-    private Name() {
-    } // prevent instantiation
+    private Name() {} // prevent instantiation
   }
 
   /**

@@ -255,8 +255,8 @@ public class NetworkAddressUtilsTest {
   @Test
   public void getLocalNodeNameClient() throws Exception {
     CommonUtils.PROCESS_TYPE.set(ProcessType.CLIENT);
-    try (Closeable c = new ConfigurationRule(PropertyKey.LOCALITY_TIER_NODE, "client",
-        mConfiguration)
+    try (Closeable c =
+        new ConfigurationRule(PropertyKey.LOCALITY_TIER_NODE, "client", mConfiguration)
         .toResource()) {
       assertEquals("client", NetworkAddressUtils.getLocalNodeName(mConfiguration));
     }
