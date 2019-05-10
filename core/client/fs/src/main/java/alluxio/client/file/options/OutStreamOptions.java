@@ -250,9 +250,8 @@ public final class OutStreamOptions {
     return mWriteType;
   }
 
-
   /**
-   * Set the write medium type of the file
+   * Set the write medium type of the file.
    *
    * @param mediumType write medium type
    * @return the updated options object

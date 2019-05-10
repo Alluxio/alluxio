@@ -12,8 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.TtlAction;
 import alluxio.master.ProtobufUtils;
 import alluxio.proto.journal.File.UpdateInodeEntry;
@@ -29,12 +27,9 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -444,6 +439,10 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     return getThis();
   }
 
+  /**
+   * @param mediumTypes the medium types to pin to
+   * @return the updated object
+   */
   public T setMediumTypes(Set<String> mediumTypes) {
     mMediumTypes = mediumTypes;
     return getThis();

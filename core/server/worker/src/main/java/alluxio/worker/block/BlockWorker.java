@@ -104,7 +104,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
-  String createBlock(long sessionId, long blockId, String tierAlias, String medium, long initialBytes)
+  String createBlock(long sessionId, long blockId, String tierAlias,
+      String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**

@@ -571,7 +571,7 @@ public final class InodeTreeTest {
     // unpin nested folder
     try (
         LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, LockPattern.WRITE_INODE)) {
-      mTree.setPinned(RpcContext.NOOP, inodePath, false, Collections.emptyList(),0);
+      mTree.setPinned(RpcContext.NOOP, inodePath, false, Collections.emptyList(), 0);
     }
     assertEquals(0, mTree.getPinIdSet().size());
   }

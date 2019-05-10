@@ -54,7 +54,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -389,7 +388,8 @@ public class InodeTreePersistentState implements Journaled {
     if (entry.hasPinned() && inode.isFile()) {
       if (entry.getPinned()) {
         MutableInodeFile file = inode.asFile();
-        List<String> mediaList = ServerConfiguration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIA, ",");
+        List<String> mediaList = ServerConfiguration.getList(
+            PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIA, ",");
         if (entry.getMediumTypeList().isEmpty()) {
           // if user does not specify a pinned media list, any location is OK
           file.setMediumTypes(new HashSet<>());

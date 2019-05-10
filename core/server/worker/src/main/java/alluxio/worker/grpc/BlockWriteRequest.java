@@ -51,7 +51,9 @@ public final class BlockWriteRequest extends WriteRequest {
   /**
    * @return the medium type this block is writing to
    */
-  public String getMediumType() { return mMediumType; }
+  public String getMediumType() {
+    return mMediumType;
+  }
 
   /**
    * @return the options to create blocks in UFS

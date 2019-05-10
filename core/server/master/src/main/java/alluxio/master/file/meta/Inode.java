@@ -22,7 +22,6 @@ import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 
-import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 
@@ -132,7 +131,9 @@ public abstract class Inode implements InodeView {
   }
 
   @Override
-  public Set<String> getMediumTypes() { return mDelegate.getMediumTypes(); }
+  public Set<String> getMediumTypes() {
+    return mDelegate.getMediumTypes();
+  }
 
   @Override
   public FileInfo generateClientFileInfo(String path) {

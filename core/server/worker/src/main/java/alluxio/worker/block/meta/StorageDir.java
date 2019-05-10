@@ -189,7 +189,9 @@ public final class StorageDir {
   /**
    * @return the medium of the storage dir
    */
-  public String getDirMedium() { return mDirMedium; }
+  public String getDirMedium() {
+    return mDirMedium;
+  }
 
   /**
    * Returns the {@link StorageTier} containing this {@link StorageDir}.

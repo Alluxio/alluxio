@@ -20,7 +20,6 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 import alluxio.grpc.TtlAction;
 
-import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 
@@ -108,7 +107,6 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
    * @return true if the file has persisted, false otherwise
    */
   boolean isPersisted();
-
 
   /**
    * @return the pinned medium types set

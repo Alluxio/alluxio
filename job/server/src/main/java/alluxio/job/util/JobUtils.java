@@ -131,8 +131,9 @@ public final class JobUtils {
     URIStatus status = fs.getStatus(new AlluxioURI(path));
 
     List<String> pinnedLocation = status.getPinnedLocation();
-    if (pinnedLocation.size() > 1)
+    if (pinnedLocation.size() > 1) {
       throw new AlluxioException(ExceptionMessage.PINNED_TO_MULTIPLE_MEDIA.getMessage(path));
+    }
     String medium = pinnedLocation.isEmpty() ? "" : pinnedLocation.get(0);
 
     OpenFilePOptions openOptions =

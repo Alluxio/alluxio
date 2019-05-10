@@ -242,11 +242,18 @@ public final class BlockMetadataManager {
     return getTier(location.tierAlias()).getDir(location.dir());
   }
 
+  /**
+   * Get the block store location based on the medium type.
+   *
+   * @param mediumType medium type
+   * @return the blockstorelocation object
+   */
   public BlockStoreLocation getMedium(String mediumType) {
     for (StorageTier tier : getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        if (dir.getDirMedium().equals(mediumType))
+        if (dir.getDirMedium().equals(mediumType)) {
           return new BlockStoreLocation(tier.getTierAlias(), dir.getDirIndex());
+        }
       }
     }
     return null;
