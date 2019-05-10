@@ -64,7 +64,9 @@ public class SimpleInodeLockList implements InodeLockList {
   public void lockInode(Inode inode, LockMode mode) {
     mode = nextLockMode(mode);
     if (!mEntries.isEmpty()) {
-      Preconditions.checkState(!endsInInode());
+      Preconditions.checkState(!endsInInode(),
+          "Cannot lock inode %s for lock list %s because the lock list already ends in an inode",
+          inode.getId(), this);
       String lastEdgeName = ((EdgeEntry) lastEntry()).getEdge().getName();
       Preconditions.checkState(inode.getName().equals(lastEdgeName),
           "Expected to lock inode %s but locked inode %s", lastEdgeName, inode.getName());
@@ -76,26 +78,30 @@ public class SimpleInodeLockList implements InodeLockList {
   public void lockEdge(Inode lastInode, String childName, LockMode mode) {
     mode = nextLockMode(mode);
     long edgeParentId = lastInode.getId();
+    Edge edge = new Edge(lastInode.getId(), childName);
     if (!mEntries.isEmpty()) {
-      Preconditions.checkState(endsInInode());
-      Preconditions.checkState(lastInode().getId() == edgeParentId);
+      Preconditions.checkState(endsInInode(),
+          "Cannot lock edge %s when lock list %s already ends in an edge", edge, this);
+      Preconditions.checkState(lastInode().getId() == edgeParentId,
+          "Cannot lock edge %s when the last inode id in %s is %s", edge, this, lastInode.getId());
     }
-    addEntry(createEdgeEntry(new Edge(edgeParentId, childName), mode));
+    addEntry(createEdgeEntry(edge, mode));
   }
 
   @Override
   public void lockRootEdge(LockMode mode) {
-    Preconditions.checkState(mEntries.isEmpty());
+    Preconditions.checkState(mEntries.isEmpty(),
+        "Cannot lock root edge when lock list %s is nonempty", this);
     addEntry(createEdgeEntry(ROOT_EDGE, mode));
-    if (mode == LockMode.WRITE) {
-      mFirstWriteLockIndex = 0;
-    }
   }
 
   @Override
   public void pushWriteLockedEdge(Inode inode, String childName) {
-    Preconditions.checkState(!endsInInode());
-    Preconditions.checkState(endsInWriteLock());
+    Edge edge = new Edge(inode.getId(), childName);
+    Preconditions.checkState(!endsInInode(),
+        "Cannot push edge write lock to edge %s; lock list %s ends in an inode", edge, this);
+    Preconditions.checkState(endsInWriteLock(),
+        "Cannot push write lock; lock list %s ends in a read lock");
 
     if (endsInMultipleWriteLocks()) {
       // If the lock before the edge lock is already WRITE, we can just acquire more WRITE locks.
@@ -104,7 +110,7 @@ public class SimpleInodeLockList implements InodeLockList {
     } else {
       EdgeEntry lastEdgeEntry = createEdgeEntry(lastEdge(), LockMode.READ);
       InodeEntry inodeEntry = createInodeEntry(inode, LockMode.READ);
-      EdgeEntry nextEdgeEntry = createEdgeEntry(new Edge(inode.getId(), childName), LockMode.WRITE);
+      EdgeEntry nextEdgeEntry = createEdgeEntry(edge, LockMode.WRITE);
       removeLastEntry(); // Remove edge write lock
       addEntry(lastEdgeEntry);
       addEntry(inodeEntry);
@@ -114,38 +120,46 @@ public class SimpleInodeLockList implements InodeLockList {
 
   @Override
   public void unlockLastInode() {
-    Preconditions.checkState(endsInInode());
-    Preconditions.checkState(!mEntries.isEmpty());
+    Preconditions.checkState(endsInInode(),
+        "Cannot unlock last inode when the lock list %s ends in an edge", this);
+    Preconditions.checkState(!mEntries.isEmpty(),
+        "Cannot unlock last inode when the lock list is empty");
     removeLastEntry();
   }
 
   @Override
   public void unlockLastEdge() {
-    Preconditions.checkState(!endsInInode());
-    Preconditions.checkState(!mEntries.isEmpty());
+    Preconditions.checkState(!endsInInode(),
+        "Cannot unlock last edge when the lock list %s ends in an inode", this);
+    Preconditions.checkState(!mEntries.isEmpty(),
+        "Cannot unlock last edge when the lock list is empty");
     removeLastEntry();
   }
 
   @Override
   public void downgradeLastInode() {
-    Preconditions.checkState(endsInInode());
-    Preconditions.checkState(!mEntries.isEmpty());
-    Preconditions.checkState(endsInWriteLock());
+    Preconditions.checkState(endsInInode(),
+        "Cannot downgrade last inode when lock list %s ends in an edge", this);
+    Preconditions.checkState(!mEntries.isEmpty(),
+        "Cannot downgrade last inode when the lock list is empty");
+    Preconditions.checkState(endsInWriteLock(),
+        "Cannot downgrade last inode when lock list %s is not write locked", this);
 
-    if (endsInMultipleWriteLocks()) {
-      return; // No point in changing from write lock to read lock when the parent lock is WRITE.
+    if (!endsInMultipleWriteLocks()) {
+      InodeEntry newEntry = createInodeEntry(lastInode(), LockMode.READ);
+      removeLastEntry();
+      addEntry(newEntry);
     }
-
-    InodeEntry newEntry = createInodeEntry(lastInode(), LockMode.READ);
-    removeLastEntry();
-    addEntry(newEntry);
   }
 
   @Override
   public void downgradeLastEdge() {
-    Preconditions.checkState(!endsInInode());
-    Preconditions.checkState(!mEntries.isEmpty());
-    Preconditions.checkState(endsInWriteLock());
+    Preconditions.checkState(!endsInInode(),
+        "Cannot downgrade last edge when lock list %s ends in an inode", this);
+    Preconditions.checkState(!mEntries.isEmpty(),
+        "Cannot downgrade last edge when the lock list is empty");
+    Preconditions.checkState(endsInWriteLock(),
+        "Cannot downgrade last edge when lock list %s is not write locked", this);
 
     if (!endsInMultipleWriteLocks()) {
       EdgeEntry newEntry = createEdgeEntry(lastEdge(), LockMode.READ);
@@ -156,9 +170,16 @@ public class SimpleInodeLockList implements InodeLockList {
 
   @Override
   public void downgradeEdgeToInode(Inode inode, LockMode mode) {
-    Preconditions.checkState(!endsInInode());
-    Preconditions.checkState(!mEntries.isEmpty());
-    Preconditions.checkState(endsInWriteLock());
+    Preconditions.checkState(!endsInInode(),
+        "Cannot downgrade from an edge write lock to an inode lock when lock list %s "
+            + "already ends in an inode",
+        this);
+    Preconditions.checkState(!mEntries.isEmpty(),
+        "Cannot downgrade from an edge write lock to an inode lock when the lock list is empty");
+    Preconditions.checkState(endsInWriteLock(),
+        "Cannot downgrade from an edge write lock to an inode lock when lock list %s "
+            + "is not write locked",
+        this);
 
     if (endsInMultipleWriteLocks()) {
       lockInode(inode, LockMode.WRITE);
@@ -278,7 +299,8 @@ public class SimpleInodeLockList implements InodeLockList {
    * @return the last inode
    */
   private Inode lastInode() {
-    Preconditions.checkState(endsInInode());
+    Preconditions.checkState(endsInInode(),
+        "Cannot get last inode for lock list %s which does not end in an inode", this);
     return ((InodeEntry) lastEntry()).getInode();
   }
 
@@ -286,7 +308,8 @@ public class SimpleInodeLockList implements InodeLockList {
    * @return the last edge
    */
   private Edge lastEdge() {
-    Preconditions.checkState(!endsInInode());
+    Preconditions.checkState(!endsInInode(),
+        "Cannot get last edge for lock list %s which does not end in an edge", this);
     return ((EdgeEntry) lastEntry()).getEdge();
   }
 
@@ -315,7 +338,7 @@ public class SimpleInodeLockList implements InodeLockList {
         .filter(e -> e instanceof InodeEntry)
         .map(e -> ((InodeEntry) e).getInode().getName())
         .collect(Collectors.joining("/"));
-    return String.format("Path: <%s>%nEntries: %s%nFirst write-locked index: %s", path, mEntries,
+    return String.format("Path: <%s>, Entries: %s, First write-locked index: %s", path, mEntries,
         mFirstWriteLockIndex);
   }
 
