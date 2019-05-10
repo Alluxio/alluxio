@@ -163,11 +163,12 @@ public final class JournalTool {
         journalDumper = new RaftJournalDumper(sMaster, sStart, sEnd, sOutputDir, sInputDir);
         break;
       default:
-        System.err.printf("Unsupported journal type: %s\n", journalType.name());
+        System.err.println(String.format("Unsupported journal type: %s", journalType.name()));
         return;
     }
 
-    System.out.printf("Dumping journal of type %s to %s\n", journalType.name(), sOutputDir);
+    System.out.println(
+        String.format("Dumping journal of type %s to %s", journalType.name(), sOutputDir));
     journalDumper.dumpJournal();
   }
 
@@ -418,9 +419,10 @@ public final class JournalTool {
        * master, the on-disk state will provide a consistent view.
        */
       if (mInputDir == null && conf.getClusterAddresses().size() == 1) {
-        System.err.printf("Cannot do live reading of embedded journal when "
-            + "there is only one configured journal master.\n"
-            + "Please specify -inputDir option reading embedded journal files " + "from disk");
+        System.err.println("Cannot do live reading of embedded journal when "
+            + "there is only one configured journal master.");
+        System.err.println(
+            "Please specify -inputDir option reading embedded journal files from disk");
         return;
       }
 
