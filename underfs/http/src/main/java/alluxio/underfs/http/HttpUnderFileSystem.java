@@ -273,7 +273,7 @@ public class HttpUnderFileSystem extends ConsistentUnderFileSystem {
 
     List<String> parentNames = mAlluxioConf.getList(PropertyKey.UNDERFS_HTTP_PARENT_NAMES, ",");
     int flagIndex = -1;
-    for (int i = 0; flagIndex == -1 && i < listElements.size(); i ++) {
+    for (int i = 0; flagIndex == -1 && i < listElements.size(); i++) {
       for (final String flag : parentNames) {
         if (listElements.get(i).text().equalsIgnoreCase(flag)) {
           flagIndex = i;
@@ -283,7 +283,7 @@ public class HttpUnderFileSystem extends ConsistentUnderFileSystem {
     }
 
     List<UfsStatus> statusList = new ArrayList<>();
-    for (int i = (flagIndex == -1 ? 0 : flagIndex); i < listElements.size(); i ++) {
+    for (int i = (flagIndex == -1 ? 0 : flagIndex); i < listElements.size(); i++) {
       Element listElement = listElements.get(i);
       String href = listElement.attr("href");
       String fileName = listElement.text();
