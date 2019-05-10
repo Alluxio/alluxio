@@ -9,36 +9,74 @@ package alluxio.grpc;
 public enum MetricType
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
+   * <pre>
+   * GAUGE is the simplest type of metric. If you're not sure which to use, gauge is a safe choice. It is represents a
+   * general K-V pair.
+   * </pre>
+   *
    * <code>GAUGE = 0;</code>
    */
   GAUGE(0),
   /**
+   * <pre>
+   * COUNTER represents values which can be incremented or decremented over time by certain operations. It does not rely
+   * on timing to determine the value.
+   * </pre>
+   *
    * <code>COUNTER = 1;</code>
    */
   COUNTER(1),
   /**
+   * <pre>
+   * METER represents a metric value at a _rate_. The value of the metric varies with the time over which events are
+   * recorded
+   * </pre>
+   *
    * <code>METER = 2;</code>
    */
   METER(2),
   /**
+   * <pre>
+   * TIMER represents a histogram of the rate of the specified events.
+   * </pre>
+   *
    * <code>TIMER = 3;</code>
    */
   TIMER(3),
   ;
 
   /**
+   * <pre>
+   * GAUGE is the simplest type of metric. If you're not sure which to use, gauge is a safe choice. It is represents a
+   * general K-V pair.
+   * </pre>
+   *
    * <code>GAUGE = 0;</code>
    */
   public static final int GAUGE_VALUE = 0;
   /**
+   * <pre>
+   * COUNTER represents values which can be incremented or decremented over time by certain operations. It does not rely
+   * on timing to determine the value.
+   * </pre>
+   *
    * <code>COUNTER = 1;</code>
    */
   public static final int COUNTER_VALUE = 1;
   /**
+   * <pre>
+   * METER represents a metric value at a _rate_. The value of the metric varies with the time over which events are
+   * recorded
+   * </pre>
+   *
    * <code>METER = 2;</code>
    */
   public static final int METER_VALUE = 2;
   /**
+   * <pre>
+   * TIMER represents a histogram of the rate of the specified events.
+   * </pre>
+   *
    * <code>TIMER = 3;</code>
    */
   public static final int TIMER_VALUE = 3;
