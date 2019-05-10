@@ -32,7 +32,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class CompositeInodeLockList implements InodeLockList {
   /** The base lock list for this composite list. */
   private final InodeLockList mBaseLockList;
+  /** An extension lock list for taking additional locks on top of the locks in mBaseLockList. */
   private final InodeLockList mSubLockList;
+
+  /** The size of the base lock list, saved for fast lookup. */
   private final int mBaseListSize;
 
   /**

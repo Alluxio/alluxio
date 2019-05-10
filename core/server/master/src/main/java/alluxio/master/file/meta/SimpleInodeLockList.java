@@ -30,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class SimpleInodeLockList implements InodeLockList {
-  private static final Logger LOG = LoggerFactory.getLogger(InodeLockList.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SimpleInodeLockList.class);
 
   private static final int INITIAL_CAPACITY = 8;
   private static final Edge ROOT_EDGE = new Edge(-1, "");
