@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -335,6 +336,7 @@ public interface UnderFileSystem extends Closeable {
    *         return null if ACL is unsupported or disabled
    * @throws IOException if ACL is supported and enabled but cannot be retrieved
    */
+  @Nullable
   Pair<AccessControlList, DefaultAccessControlList> getAclPair(String path) throws IOException;
 
   /**
@@ -534,6 +536,7 @@ public interface UnderFileSystem extends Closeable {
    *         this abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    */
+  @Nullable
   UfsStatus[] listStatus(String path) throws IOException;
 
   /**
@@ -556,6 +559,7 @@ public interface UnderFileSystem extends Closeable {
    *         abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    */
+  @Nullable
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
 
   /**

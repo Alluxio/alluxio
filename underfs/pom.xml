@@ -26,13 +26,13 @@
     <module>cos</module>
     <module>gcs</module>
     <module>hdfs</module>
+    <module>http</module>
     <module>local</module>
     <module>oss</module>
     <module>s3a</module>
     <module>swift</module>
     <module>wasb</module>
     <module>kodo</module>
-    <module>http</module>
   </modules>
 
   <properties>
