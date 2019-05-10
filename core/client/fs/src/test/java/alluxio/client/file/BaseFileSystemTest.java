@@ -27,9 +27,9 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
+import alluxio.TestLoggerRule;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.TestLoggerRule;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -93,7 +93,8 @@ public final class BaseFileSystemTest {
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     when(mFileContext.getClientContext()).thenReturn(mClientContext);
-    when(mFileContext.getConf()).thenReturn(mConf);
+    when(mFileContext.getClusterConf()).thenReturn(mConf);
+    when(mFileContext.getPathConf(any())).thenReturn(mConf);
     mFileSystem = new DummyAlluxioFileSystem(mFileContext);
   }
 

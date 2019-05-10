@@ -52,10 +52,10 @@ public class RaftJournalConfiguration {
     return new RaftJournalConfiguration()
         .setClusterAddresses(ConfigurationUtils
             .getEmbeddedJournalAddresses(ServerConfiguration.global(), serviceType))
-        .setElectionTimeoutMs(
-            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))
         .setHeartbeatIntervalMs(
             ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL))
+        .setElectionTimeoutMs(
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))
         .setLocalAddress(NetworkAddressUtils.getConnectAddress(serviceType,
             ServerConfiguration.global()))
         .setMaxLogSize(ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))

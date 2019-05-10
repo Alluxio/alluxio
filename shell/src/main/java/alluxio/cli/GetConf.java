@@ -16,7 +16,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.client.RetryHandlingMetaMasterConfigClient;
+import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.grpc.ConfigProperty;
 import alluxio.master.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
@@ -171,7 +171,8 @@ public final class GetConf {
     if (cmd.hasOption(MASTER_OPTION_NAME)) {
       // load cluster-wide configuration
       try (RetryHandlingMetaMasterConfigClient client = clientSupplier.get()) {
-        client.getConfiguration().forEach(prop -> confMap.put(prop.getName(), prop));
+        client.getConfiguration().getClusterConf().forEach(
+            prop -> confMap.put(prop.getName(), prop.toProto()));
       } catch (IOException e) {
         System.out.println("Unable to get master-side configuration: " + e.getMessage());
         return -1;

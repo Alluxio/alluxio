@@ -51,7 +51,7 @@ public final class GrpcManagedChannelPoolTest {
   public void testEqualKeys() throws Exception {
     GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf);
     GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf);
-    
+
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
     GrpcServer server1 =
@@ -102,7 +102,7 @@ public final class GrpcManagedChannelPoolTest {
   public void testEqualKeysComplex() throws Exception {
     GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf);
     GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf);
-    
+
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
     GrpcServer server1 =
@@ -141,7 +141,7 @@ public final class GrpcManagedChannelPoolTest {
   public void testNotEqualKeys() throws Exception {
     GrpcManagedChannelPool.ChannelKey key1 = GrpcManagedChannelPool.ChannelKey.create(sConf);
     GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf);
-    
+
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
     GrpcServer server1 =
@@ -174,7 +174,7 @@ public final class GrpcManagedChannelPoolTest {
         .setPoolingStrategy(GrpcManagedChannelPool.PoolingStrategy.DISABLED);
     GrpcManagedChannelPool.ChannelKey key2 = GrpcManagedChannelPool.ChannelKey.create(sConf)
         .setPoolingStrategy(GrpcManagedChannelPool.PoolingStrategy.DISABLED);
-    
+
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
     GrpcServer server1 =

@@ -23,7 +23,7 @@ The guide will cover the following tasks:
 The optional sections will be labeled with **[Bonus]**.
 
 **Note**  This guide is designed to start an Alluxio system with minimal setup on a single machine.
-To try Alluxio in a distributed environment with more realistic workloads, request [a sandbox cluster](https://www.alluxio.org/sandbox/request) with Alluxio and Spark installed on AWS for free.
+To try Alluxio in a distributed environment with more realistic workloads, request [a sandbox cluster](https://www.alluxio.io/sandbox-request/) with Alluxio and Spark installed on AWS for free.
 
 ## Prerequisites
 
@@ -34,7 +34,7 @@ To try Alluxio in a distributed environment with more realistic workloads, reque
 
 ## Downloading Alluxio
 
-Download Alluxio from [this page](https://www.alluxio.org/download). Select the
+Download Alluxio from [this page](https://www.alluxio.io/download). Select the
 {{site.ALLUXIO_RELEASED_VERSION}} release followed by the distribution built for default Hadoop.
 Unpack the downloaded file with the following commands.
 

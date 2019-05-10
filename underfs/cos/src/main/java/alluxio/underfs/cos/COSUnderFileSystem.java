@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -301,9 +302,10 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected InputStream openObject(String key, OpenOptions options) throws IOException {
+  protected InputStream openObject(String key, OpenOptions options,
+      RetryPolicy retryPolicy) throws IOException {
     try {
-      return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset(),
+      return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset(), retryPolicy,
           mAlluxioConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (CosClientException e) {
       throw new IOException(e.getMessage());

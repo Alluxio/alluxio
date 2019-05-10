@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
- * "License"). You may not use this work except in compliance with the License, which is available
- * at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -13,6 +13,7 @@ package alluxio.grpc;
 
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
+
 import io.grpc.Server;
 
 import java.io.IOException;
@@ -33,6 +34,7 @@ public final class GrpcServer {
    * Create a new instance of {@link GrpcServer}.
    *
    * @param server the wrapped server
+   * @param serverShutdownTimeoutMs server shutdown timeout in milliseconds
    */
   public GrpcServer(Server server, long serverShutdownTimeoutMs) {
     mServer = server;
@@ -53,7 +55,7 @@ public final class GrpcServer {
   }
 
   /**
-   * @return the port that server is bound to, or null if the server is not bound to an address yet.
+   * @return the port that server is bound to, or null if the server is not bound to an address yet
    */
   public int getBindPort() {
     return mServer.getPort();
@@ -62,7 +64,7 @@ public final class GrpcServer {
   /**
    * Shuts down the server.
    *
-   * @return {@code true} if the server was successfully terminated.
+   * @return {@code true} if the server was successfully terminated
    * @throws InterruptedException
    */
   public boolean shutdown() {

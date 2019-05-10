@@ -11,6 +11,8 @@
 
 package alluxio.client.block.stream;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -32,7 +34,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,7 +80,7 @@ public class BlockInStreamTest {
     PowerMockito.when(mMockContext.acquireBlockWorkerClient(Matchers.any(WorkerNetAddress.class)))
         .thenReturn(workerClient);
     PowerMockito.when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
-    PowerMockito.when(mMockContext.getConf()).thenReturn(mConf);
+    PowerMockito.when(mMockContext.getClusterConf()).thenReturn(mConf);
     PowerMockito.doNothing().when(mMockContext)
         .releaseBlockWorkerClient(Matchers.any(WorkerNetAddress.class),
             Matchers.any(BlockWorkerClient.class));
@@ -94,7 +95,7 @@ public class BlockInStreamTest {
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-    Assert.assertTrue(stream.isShortCircuit());
+    assertTrue(stream.isShortCircuit());
   }
 
   @Test
@@ -103,7 +104,7 @@ public class BlockInStreamTest {
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.REMOTE;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-    Assert.assertFalse(stream.isShortCircuit());
+    assertFalse(stream.isShortCircuit());
   }
 
   @Test
@@ -112,7 +113,7 @@ public class BlockInStreamTest {
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.UFS;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-    Assert.assertFalse(stream.isShortCircuit());
+    assertFalse(stream.isShortCircuit());
   }
 
   @Test
@@ -125,7 +126,7 @@ public class BlockInStreamTest {
       BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
       BlockInStream stream =
           BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-      Assert.assertFalse(stream.isShortCircuit());
+      assertFalse(stream.isShortCircuit());
     }
   }
 
@@ -139,6 +140,6 @@ public class BlockInStreamTest {
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
     BlockInStream stream = BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType,
         mOptions);
-    Assert.assertFalse(stream.isShortCircuit());
+    assertFalse(stream.isShortCircuit());
   }
 }

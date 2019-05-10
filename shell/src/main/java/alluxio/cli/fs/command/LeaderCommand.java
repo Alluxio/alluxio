@@ -61,7 +61,7 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
 
         List<InetSocketAddress> addresses = Arrays.asList(address);
         MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
-                new ExponentialBackoffRetry(50, 100, 2), mFsContext.getConf()
+                new ExponentialBackoffRetry(50, 100, 2), mFsContext.getClusterConf()
         );
         try {
           inquireClient.getPrimaryRpcAddress();

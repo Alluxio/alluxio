@@ -57,12 +57,12 @@ public class MapReduceIntegrationChecker {
   private static final String FAIL_TO_FIND_CLASS_MESSAGE = "Please distribute "
       + "the Alluxio client jar on the classpath of the application across different nodes.\n\n"
       + "For details, please refer to: "
-      + "https://www.alluxio.org/docs/master/en/Running-Hadoop-MapReduce-on-Alluxio.html\n";
+      + "https://docs.alluxio.io/os/user/stable/en/compute/Hadoop-MapReduce.html\n";
   private static final String FAIL_TO_FIND_FS_MESSAGE = "Please check the fs.alluxio.impl "
       + "and fs.AbstractFileSystem.alluxio.impl properties "
       + "in core-site.xml file of your Hadoop installation.\n\n"
       + "For details, please refer to: "
-      + "https://www.alluxio.org/docs/master/en/Running-Hadoop-MapReduce-on-Alluxio.html\n";
+      + "https://docs.alluxio.io/os/user/stable/en/compute/Hadoop-MapReduce.html\n";
   private static final String TEST_FAILED_MESSAGE = "***** Integration test failed. *****\n";
   private static final String TEST_PASSED_MESSAGE = "***** Integration test passed. *****\n";
 

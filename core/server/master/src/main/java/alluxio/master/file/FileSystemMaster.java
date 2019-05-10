@@ -70,11 +70,6 @@ public interface FileSystemMaster extends Master {
   void cleanupUfs();
 
   /**
-   * @return the status of the startup consistency check and inconsistent paths if it is complete
-   */
-  StartupConsistencyCheck getStartupConsistencyCheck();
-
-  /**
    * Returns the file id for a given path. If the given path does not exist in Alluxio, the method
    * attempts to load it from UFS.
    * <p>
@@ -221,12 +216,12 @@ public interface FileSystemMaster extends Master {
   Map<String, MountPointInfo>  getMountTable();
 
   /**
-   * Gets the mount point information of an Alluxio path.
+   * Gets the mount point information of an Alluxio path for display purpose.
    *
    * @param path an Alluxio path which must be a mount point
    * @return the mount point information
    */
-  MountPointInfo getMountPointInfo(AlluxioURI path) throws InvalidPathException;
+  MountPointInfo getDisplayMountPointInfo(AlluxioURI path) throws InvalidPathException;
 
   /**
    * @return the number of files and directories

@@ -327,6 +327,7 @@ message FileSystemCommand {
 message RenamePResponse {}
 message RenamePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional bool persist = 2;
 }
 message RenamePRequest {
   /** the source path of the file or directory */
@@ -498,7 +499,7 @@ service FileSystemMasterClientService {
    * If the path points to a directory, the method returns a list with file information for the
    * directory contents.
    */
-  rpc ListStatus(ListStatusPRequest) returns (ListStatusPResponse);
+  rpc ListStatus(ListStatusPRequest) returns (stream ListStatusPResponse);
 
   /**
    * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given

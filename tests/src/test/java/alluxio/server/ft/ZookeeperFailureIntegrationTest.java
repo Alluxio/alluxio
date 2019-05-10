@@ -19,9 +19,9 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ListStatusPRequest;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
@@ -37,6 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Integration tests for Alluxio high availability when Zookeeper has failures.
@@ -70,9 +72,9 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
   public void zkFailure() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_FAILURE)
         .setClusterName("ZookeeperFailure")
-        .setDeployMode(DeployMode.ZOOKEEPER_HA)
-        .setNumMasters(1)
+        .setNumMasters(2)
         .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         .build();
     mCluster.start();
 
@@ -82,7 +84,13 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     CommonUtils.waitFor("a successful operation to be performed", () -> thread.successes() > 0);
     mCluster.stopZk();
     long zkStopTime = System.currentTimeMillis();
-    CommonUtils.waitFor("operations to start failing", () -> thread.getLatestFailure() != null);
+    // Wait until 3 different failures are encountered on the thread.
+    // PS: First failures could be related to worker capacity depending on process shutdown order,
+    // thus still leaving RPC server reachable.
+    AtomicInteger failureCounter = new AtomicInteger(3);
+    AtomicReference<Throwable> lastFailure = new AtomicReference<>(null);
+    CommonUtils.waitFor("operations to start failing", () -> failureCounter.getAndAdd(
+        (lastFailure.getAndSet(thread.getLatestFailure()) != lastFailure.get()) ? -1 : 0) <= 0);
 
     assertFalse(rpcServiceAvailable());
     LOG.info("First operation failed {}ms after stopping the Zookeeper cluster",

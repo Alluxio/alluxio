@@ -11,7 +11,8 @@
 
 package alluxio.util;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 /**
@@ -27,7 +28,7 @@ public class HFSUtilsTest {
     String testRequestSize = "0";
     String testSectorSize = "512";
     long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(1L, result);
+    assertEquals(1L, result);
   }
 
   @Test
@@ -35,7 +36,7 @@ public class HFSUtilsTest {
     String testRequestSize = "20";
     String testSectorSize = "512";
     long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(1L, result);
+    assertEquals(1L, result);
   }
 
   @Test
@@ -43,7 +44,7 @@ public class HFSUtilsTest {
     String testRequestSize = "512";
     String testSectorSize = "512";
     long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(2L, result);
+    assertEquals(2L, result);
   }
 
   @Test
@@ -51,7 +52,7 @@ public class HFSUtilsTest {
     String testRequestSize = "1048576"; // 1MB
     String testSectorSize = "512";
     long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(2080L, result); // 1MB/512B = 2048
+    assertEquals(2080L, result); // 1MB/512B = 2048
   }
 
   @Test
@@ -59,7 +60,7 @@ public class HFSUtilsTest {
     String testRequestSize = "1073741824"; // 1GB
     String testSectorSize = "512";
     long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(2128667L, result); // 1GB/512B = 2097152
+    assertEquals(2128667L, result); // 1GB/512B = 2097152
   }
 
   @Test
@@ -67,7 +68,7 @@ public class HFSUtilsTest {
     String testRequestSize = "107374182400"; // 100GB
     String testSectorSize = "512";
     long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(212866577L, result); // 100GB/512B = 209715200
+    assertEquals(212866577L, result); // 100GB/512B = 209715200
   }
 
   @Test
@@ -75,7 +76,7 @@ public class HFSUtilsTest {
     String testRequestSize = "549755813888"; // 512GB
     String testSectorSize = "512";
     long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(1089876870L, result);
+    assertEquals(1089876870L, result);
   }
 
   @Test
@@ -83,6 +84,6 @@ public class HFSUtilsTest {
     String testRequestSize = "1099511627776"; // 1TB
     String testSectorSize = "512";
     long result = HFSUtils.getNumSector(testRequestSize, testSectorSize);
-    Assert.assertEquals(2179753739L, result);
+    assertEquals(2179753739L, result);
   }
 }

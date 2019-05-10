@@ -12,10 +12,14 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.master.MasterClientContext;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.util.CommonUtils;
@@ -34,7 +38,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
 
   @Test
   public void asyncWrite() throws Exception {
-
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
     FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
@@ -56,6 +59,20 @@ public final class FileOutStreamAsyncWriteIntegrationTest
 
     checkFileInAlluxio(filePath, length);
     checkFileInUnderStorage(filePath, length);
+  }
+
+  @Test
+  public void asyncWriteTemporaryPin() throws Exception {
+    AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.ASYNC_THROUGH, 100);
+    URIStatus status = mFileSystem.getStatus(filePath);
+    alluxio.worker.file.FileSystemMasterClient fsMasterClient = new
+        alluxio.worker.file.FileSystemMasterClient(MasterClientContext
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+
+    Assert.assertTrue(fsMasterClient.getPinList().contains(status.getFileId()));
+    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, filePath);
+    Assert.assertFalse(fsMasterClient.getPinList().contains(status.getFileId()));
   }
 
   @Test

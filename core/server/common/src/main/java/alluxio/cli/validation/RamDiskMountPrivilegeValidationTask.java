@@ -83,8 +83,8 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
       // Makes sure Alluxio worker can mount ramfs by checking sudo privilege.
       if (!checkSudoPrivilege()) {
         System.err.println("No sudo privilege to mount ramfs. "
-            + "If you would like to run Alluxio worker without sudo privilege, "
-            + "please visit http://www.alluxio.org/docs/master/en/Running-Alluxio-Locally.html#"
+            + "If you would like to run Alluxio worker without sudo privilege, please visit "
+            + "https://docs.alluxio.io/os/user/stable/en/deploy/Running-Alluxio-Locally.html#"
             + "can-i-still-try-alluxio-on-linux-without-sudo-privileges");
         return TaskResult.FAILED;
       }

@@ -17,7 +17,7 @@ The prerequisite for this part is that you have
 [Java](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) (JDK 8
 or above) installed.
 
-[Download](https://alluxio.org/download) the binary distribution of Alluxio
+[Download](https://alluxio.io/download) the binary distribution of Alluxio
 {{site.ALLUXIO_RELEASED_VERSION}}
 
 To run in standalone mode, do the following:
@@ -68,11 +68,15 @@ To verify that Alluxio is running, you can visit
 
 To run a more comprehensive sanity check:
 
-{% include Running-Alluxio-Locally/run-tests.md %}
+```bash
+./bin/alluxio runTests
+```
 
 You can stop Alluxio any time by running:
 
-{% include Running-Alluxio-Locally/Alluxio-stop.md %}
+```bash
+./bin/alluxio-stop.sh local
+```
 
 
 ## FAQ

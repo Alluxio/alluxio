@@ -99,12 +99,29 @@ public abstract class AbstractShell implements Closeable {
       }
     }
 
-    String[] args = Arrays.copyOfRange(argv, 1, argv.length);
     CommandLine cmdline;
     try {
+      String[] args;
+      if (command.hasSubCommand()) {
+        if (argv.length < 2) {
+          throw new InvalidArgumentException("No sub-command is specified");
+        }
+        if (!command.getSubCommands().containsKey(argv[1])) {
+          throw new InvalidArgumentException("Unknown sub-command: " + argv[1]);
+        }
+        command = command.getSubCommands().get(argv[1]);
+        if (argv.length > 2) {
+          args = Arrays.copyOfRange(argv, 2, argv.length);
+        } else {
+          args = new String[]{};
+        }
+      } else {
+        args = Arrays.copyOfRange(argv, 1, argv.length);
+      }
       cmdline = command.parseAndValidateArgs(args);
     } catch (InvalidArgumentException e) {
       System.out.println("Usage: " + command.getUsage());
+      System.out.println(command.getDescription());
       LOG.error("Invalid arguments for command {}:", command.getCommandName(), e);
       return -1;
     }
