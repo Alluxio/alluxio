@@ -21,6 +21,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,8 +33,7 @@ import java.io.InputStreamReader;
 public final class HttpUtils {
   private static final Logger LOG = LoggerFactory.getLogger(HttpUtils.class);
 
-  private HttpUtils() {
-  }
+  private HttpUtils() {}
 
   /**
    * Uses the post method to send a url with arguments by http, this method can call RESTful Api.
@@ -42,8 +42,7 @@ public final class HttpUtils {
    * @param timeout milliseconds to wait for the server to respond before giving up
    * @param processInputStream the response body stream processor
    */
-  public static void post(String url, Integer timeout,
-                          IProcessInputStream processInputStream)
+  public static void post(String url, Integer timeout, IProcessInputStream processInputStream)
       throws IOException {
     Preconditions.checkNotNull(timeout, "timeout");
     Preconditions.checkNotNull(processInputStream, "processInputStream");
@@ -71,12 +70,10 @@ public final class HttpUtils {
    * @param timeout milliseconds to wait for the server to respond before giving up
    * @return the response body stream as UTF-8 string if response status is OK or CREATED
    */
-  public static String post(String url, Integer timeout)
-      throws IOException {
+  public static String post(String url, Integer timeout) throws IOException {
     final StringBuilder contentBuffer = new StringBuilder();
     post(url, timeout, inputStream -> {
-      try (BufferedReader br = new BufferedReader(
-          new InputStreamReader(inputStream, "UTF-8"))) {
+      try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))) {
         String line;
         while ((line = br.readLine()) != null) {
           contentBuffer.append(line);
@@ -89,84 +86,64 @@ public final class HttpUtils {
   /**
    * Uses the get method to send a url with arguments by http, this method can call RESTful Api.
    *
-   * @param url     the http url
+   * @param url the http url
    * @param timeout milliseconds to wait for the server to respond before giving up
    * @return the response body stream if response status is OK or CREATED
    */
-  public static InputStream getInputStream(String url, Integer timeout)
-        throws IOException {
+  public static InputStream getInputStream(String url, Integer timeout) throws IOException {
     Preconditions.checkNotNull(url, "url");
     Preconditions.checkNotNull(timeout, "timeout");
     GetMethod getMethod = new GetMethod(url);
-    try {
-      HttpClient httpClient = new HttpClient();
-      httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(timeout);
-      httpClient.getHttpConnectionManager().getParams().setSoTimeout(timeout);
-      int statusCode = httpClient.executeMethod(getMethod);
-      if (statusCode == HttpStatus.SC_OK || statusCode == HttpStatus.SC_CREATED) {
-        InputStream inputStream = getMethod.getResponseBodyAsStream();
-        return inputStream;
-      } else {
-        throw new IOException("Failed to perform GET request. Status code: " + statusCode);
-      }
-    } finally {
-      // getMethod.releaseConnection();
+    HttpClient httpClient = new HttpClient();
+    httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(timeout);
+    httpClient.getHttpConnectionManager().getParams().setSoTimeout(timeout);
+    int statusCode = httpClient.executeMethod(getMethod);
+    if (statusCode != HttpStatus.SC_OK && statusCode != HttpStatus.SC_CREATED) {
+      throw new IOException("Failed to perform GET request. Status code: " + statusCode);
     }
+    InputStream inputStream = getMethod.getResponseBodyAsStream();
+    return new BufferedInputStream(inputStream) {
+      @Override
+      public void close() throws IOException {
+        getMethod.releaseConnection();
+      }
+    };
   }
 
   /**
    * Uses the get method to send a url with arguments by http, this method can call RESTful Api.
    *
-   * @param url                the http url
-   * @param timeout            milliseconds to wait for the server to respond before giving up
+   * @param url the http url
+   * @param timeout milliseconds to wait for the server to respond before giving up
    * @param processInputStream the response body stream processor
    */
-  public static void get(String url, Integer timeout,
-                         IProcessInputStream processInputStream)
-        throws IOException {
+  public static void get(String url, Integer timeout, IProcessInputStream processInputStream)
+      throws IOException {
     Preconditions.checkNotNull(url, "url");
     Preconditions.checkNotNull(timeout, "timeout");
     Preconditions.checkNotNull(processInputStream, "processInputStream");
-    InputStream inputStream = getInputStream(url, timeout);
-    try {
+
+    try (InputStream inputStream = getInputStream(url, timeout)) {
       processInputStream.process(inputStream);
-    } catch (IOException e) {
-      throw e;
-    } finally {
-      inputStream.close();
     }
   }
 
   /**
    * Uses the get method to send a url with arguments by http, this method can call RESTful Api.
    *
-   * @param url     the http url
+   * @param url the http url
    * @param timeout milliseconds to wait for the server to respond before giving up
    * @return the response content string if response status is OK or CREATED
    */
-  public static String get(String url, Integer timeout)
-        throws IOException {
+  public static String get(String url, Integer timeout) throws IOException {
     Preconditions.checkNotNull(url, "url");
     Preconditions.checkNotNull(timeout, "timeout");
     final StringBuilder contentBuffer = new StringBuilder();
     get(url, timeout, inputStream -> {
-      try (BufferedReader br = new BufferedReader(
-          new InputStreamReader(inputStream, "UTF-8"))) {
+      try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))) {
         String line;
         while ((line = br.readLine()) != null) {
           contentBuffer.append(line);
-        }
-      }
-    });
-    get(url, timeout, new IProcessInputStream() {
-      @Override
-      public void process(InputStream inputStream) throws IOException {
-        try (BufferedReader br = new BufferedReader(
-              new InputStreamReader(inputStream, "UTF-8"))) {
-          String line;
-          while ((line = br.readLine()) != null) {
-            contentBuffer.append(line);
-          }
         }
       }
     });
@@ -195,13 +172,14 @@ public final class HttpUtils {
         LOG.error("Failed to perform HEAD request. Status code: {}", statusCode);
       }
     } catch (Exception e) {
-      LOG.error("Error to execute URL request: {}", e.getMessage());
+      LOG.error("Failed to execute URL request: {}", url, e);
     } finally {
       headMethod.releaseConnection();
     }
 
     return null;
   }
+
   /**
    * This interface should be implemented by the http response body stream processor.
    */

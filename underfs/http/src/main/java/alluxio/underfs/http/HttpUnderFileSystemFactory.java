@@ -12,13 +12,11 @@
 package alluxio.underfs.http;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.base.Preconditions;
 
@@ -38,24 +36,13 @@ public class HttpUnderFileSystemFactory implements UnderFileSystemFactory {
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
       AlluxioConfiguration alluxioConf) {
-    Preconditions.checkArgument(path != null, "path may not be null");
+    Preconditions.checkNotNull(path, "path");
     return new HttpUnderFileSystem(new AlluxioURI(path), conf, alluxioConf);
   }
 
   @Override
   public boolean supportsPath(String path) {
-    if (path != null) {
-      // This loads the configuration from the JVM's system properties and the site properties file
-      // on disk. Because of this, setting the property UNDERFS_HTTP_PREFIXES programatically *not*
-      // work.
-      AlluxioConfiguration alluxioConf = new InstancedConfiguration(ConfigurationUtils.defaults());
-
-      for (final String prefix : alluxioConf.getList(PropertyKey.UNDERFS_HTTP_PREFIXES, ",")) {
-        if (path.startsWith(prefix)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return path != null
+        && (path.startsWith(Constants.HEADER_HTTP) || path.startsWith(Constants.HEADER_HTTPS));
   }
 }
