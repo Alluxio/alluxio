@@ -2227,7 +2227,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   @Override
   public Set<Long> getPinIdList() {
-    return mInodeTree.getPinIdSet();
+    return Sets.union(mInodeTree.getPinIdSet(), mInodeTree.getToBePersistedIds());
   }
 
   @Override
