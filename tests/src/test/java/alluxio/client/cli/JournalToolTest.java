@@ -33,12 +33,8 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.util.io.PathUtils;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Layout;
-import org.apache.log4j.PatternLayout;
 import org.hamcrest.Matchers;
 import org.junit.After;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -65,13 +61,6 @@ public class JournalToolTest extends BaseIntegrationTest {
 
   private final ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
 
-  @BeforeClass
-  public static void beforeclass() {
-
-    Layout layout = new PatternLayout("%d [%t] %-5p %c %x - %m%n");
-    org.apache.log4j.Logger.getRootLogger().addAppender(new ConsoleAppender(layout));
-  }
-
   @Rule
   public SystemOutRule mSystemOutRule = new SystemOutRule(mOutput);
 
@@ -96,7 +85,7 @@ public class JournalToolTest extends BaseIntegrationTest {
     }
     // Build and start a multi-process cluster.
     mMultiProcessCluster = MultiProcessCluster
-        .newBuilder(PortCoordination.MULTI_PROCESS_SIMPLE_CLUSTER)
+        .newBuilder(PortCoordination.JOURNAL_TOOL)
         .setNumMasters(MASTER_COUNT)
         .setNumWorkers(WORKER_COUNT)
         .addProperties(defaultProps)
@@ -111,7 +100,6 @@ public class JournalToolTest extends BaseIntegrationTest {
   @After
   public void after() throws Throwable {
     mMultiProcessCluster.destroy();
-    mMultiProcessCluster.stopZk();
   }
 
   @Test
