@@ -376,7 +376,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtl(entry.getTtl())
         .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
         .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
-            Constants.INVALID_UFS_FINGERPRINT);
+            Constants.INVALID_UFS_FINGERPRINT)
+        .setXAttr(entry.getXAttrMap());
     if (entry.hasAcl()) {
       ret.mAcl = ProtoUtils.fromProto(entry.getAcl());
     } else {
@@ -393,6 +394,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
 
   /**
    * Creates an {@link MutableInodeFile}.
+   *
+   * Setting xAttributes is not yet supported on clients. It is intentionally left out.
    *
    * @param blockContainerId block container id of this inode
    * @param parentId id of the parent of this inode
@@ -450,6 +453,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setUfsFingerprint(getUfsFingerprint())
         .setAcl(ProtoUtils.toProto(mAcl))
+        .putAllXAttr(getXAttr())
         .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
@@ -467,6 +471,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setReplicationMin(getReplicationMin())
         .setPersistJobId(getPersistJobId())
         .setPersistJobTempUfsPath(getTempUfsPath())
+        .putAllXAttr(getXAttr())
         .build();
   }
 
@@ -495,6 +500,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setReplicationMax(inode.getReplicationMax())
         .setReplicationMin(inode.getReplicationMin())
         .setPersistJobId(inode.getPersistJobId())
-        .setTempUfsPath(inode.getPersistJobTempUfsPath());
+        .setTempUfsPath(inode.getPersistJobTempUfsPath())
+        .setXAttr(inode.getXAttrMap());
   }
 }

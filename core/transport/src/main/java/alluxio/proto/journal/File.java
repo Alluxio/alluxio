@@ -7821,10 +7821,44 @@ public final class File {
      */
     com.google.protobuf.ByteString
         getUfsFingerprintBytes();
+
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     */
+    int getXAttrCount();
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     */
+    boolean containsXAttr(
+        java.lang.String key);
+    /**
+     * Use {@link #getXAttrMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getXAttr();
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getXAttrMap();
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     */
+
+    java.lang.String getXAttrOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue);
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     */
+
+    java.lang.String getXAttrOrThrow(
+        java.lang.String key);
   }
   /**
    * <pre>
-   * next available id: 16
+   * next available id: 17
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.UpdateInodeEntry}
@@ -7980,6 +8014,19 @@ public final class File {
               ufsFingerprint_ = bs;
               break;
             }
+            case 130: {
+              if (!((mutable_bitField0_ & 0x00008000) == 0x00008000)) {
+                xAttr_ = com.google.protobuf.MapField.newMapField(
+                    XAttrDefaultEntryHolder.defaultEntry);
+                mutable_bitField0_ |= 0x00008000;
+              }
+              com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+              xAttr__ = input.readMessage(
+                  XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              xAttr_.getMutableMap().put(
+                  xAttr__.getKey(), xAttr__.getValue());
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -7997,6 +8044,17 @@ public final class File {
       return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 16:
+          return internalGetXAttr();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeEntry_fieldAccessorTable
@@ -8372,6 +8430,82 @@ public final class File {
       }
     }
 
+    public static final int XATTR_FIELD_NUMBER = 16;
+    private static final class XAttrDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeEntry_XAttrEntry_descriptor, 
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> xAttr_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetXAttr() {
+      if (xAttr_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            XAttrDefaultEntryHolder.defaultEntry);
+      }
+      return xAttr_;
+    }
+
+    public int getXAttrCount() {
+      return internalGetXAttr().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     */
+
+    public boolean containsXAttr(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetXAttr().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getXAttrMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+      return getXAttrMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     */
+
+    public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+      return internalGetXAttr().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     */
+
+    public java.lang.String getXAttrOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetXAttr().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     */
+
+    public java.lang.String getXAttrOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetXAttr().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -8429,6 +8563,12 @@ public final class File {
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 15, ufsFingerprint_);
       }
+      com.google.protobuf.GeneratedMessageV3
+        .serializeStringMapTo(
+          output,
+          internalGetXAttr(),
+          XAttrDefaultEntryHolder.defaultEntry,
+          16);
       unknownFields.writeTo(output);
     }
 
@@ -8491,6 +8631,16 @@ public final class File {
       }
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(15, ufsFingerprint_);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetXAttr().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        xAttr__ = XAttrDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(16, xAttr__);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -8582,6 +8732,8 @@ public final class File {
         result = result && getUfsFingerprint()
             .equals(other.getUfsFingerprint());
       }
+      result = result && internalGetXAttr().equals(
+          other.internalGetXAttr());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -8659,6 +8811,10 @@ public final class File {
       if (hasUfsFingerprint()) {
         hash = (37 * hash) + UFS_FINGERPRINT_FIELD_NUMBER;
         hash = (53 * hash) + getUfsFingerprint().hashCode();
+      }
+      if (!internalGetXAttr().getMap().isEmpty()) {
+        hash = (37 * hash) + XATTR_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetXAttr().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -8755,7 +8911,7 @@ public final class File {
     }
     /**
      * <pre>
-     * next available id: 16
+     * next available id: 17
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.UpdateInodeEntry}
@@ -8769,6 +8925,28 @@ public final class File {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor;
       }
 
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMapField(
+          int number) {
+        switch (number) {
+          case 16:
+            return internalGetXAttr();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMutableMapField(
+          int number) {
+        switch (number) {
+          case 16:
+            return internalGetMutableXAttr();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeEntry_fieldAccessorTable
@@ -8828,6 +9006,7 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00002000);
         ufsFingerprint_ = "";
         bitField0_ = (bitField0_ & ~0x00004000);
+        internalGetMutableXAttr().clear();
         return this;
       }
 
@@ -8916,6 +9095,8 @@ public final class File {
           to_bitField0_ |= 0x00004000;
         }
         result.ufsFingerprint_ = ufsFingerprint_;
+        result.xAttr_ = internalGetXAttr();
+        result.xAttr_.makeImmutable();
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -9013,6 +9194,8 @@ public final class File {
           ufsFingerprint_ = other.ufsFingerprint_;
           onChanged();
         }
+        internalGetMutableXAttr().mergeFrom(
+            other.internalGetXAttr());
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -9828,6 +10011,129 @@ public final class File {
   bitField0_ |= 0x00004000;
         ufsFingerprint_ = value;
         onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> xAttr_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      internalGetXAttr() {
+        if (xAttr_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              XAttrDefaultEntryHolder.defaultEntry);
+        }
+        return xAttr_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      internalGetMutableXAttr() {
+        onChanged();;
+        if (xAttr_ == null) {
+          xAttr_ = com.google.protobuf.MapField.newMapField(
+              XAttrDefaultEntryHolder.defaultEntry);
+        }
+        if (!xAttr_.isMutable()) {
+          xAttr_ = xAttr_.copy();
+        }
+        return xAttr_;
+      }
+
+      public int getXAttrCount() {
+        return internalGetXAttr().getMap().size();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       */
+
+      public boolean containsXAttr(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        return internalGetXAttr().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getXAttrMap()} instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+        return getXAttrMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       */
+
+      public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+        return internalGetXAttr().getMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       */
+
+      public java.lang.String getXAttrOrDefault(
+          java.lang.String key,
+          java.lang.String defaultValue) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetXAttr().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       */
+
+      public java.lang.String getXAttrOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetXAttr().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+
+      public Builder clearXAttr() {
+        internalGetMutableXAttr().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       */
+
+      public Builder removeXAttr(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableXAttr().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+      getMutableXAttr() {
+        return internalGetMutableXAttr().getMutableMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       */
+      public Builder putXAttr(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        if (value == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableXAttr().getMutableMap()
+            .put(key, value);
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       */
+
+      public Builder putAllXAttr(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableXAttr().getMutableMap()
+            .putAll(values);
         return this;
       }
       public final Builder setUnknownFields(
@@ -10794,7 +11100,7 @@ public final class File {
 
     /**
      * <pre>
-     * Overwirte the blocks list
+     * Overwrite the blocks list
      * </pre>
      *
      * <code>repeated int64 set_blocks = 7;</code>
@@ -10802,7 +11108,7 @@ public final class File {
     java.util.List<java.lang.Long> getSetBlocksList();
     /**
      * <pre>
-     * Overwirte the blocks list
+     * Overwrite the blocks list
      * </pre>
      *
      * <code>repeated int64 set_blocks = 7;</code>
@@ -10810,7 +11116,7 @@ public final class File {
     int getSetBlocksCount();
     /**
      * <pre>
-     * Overwirte the blocks list
+     * Overwrite the blocks list
      * </pre>
      *
      * <code>repeated int64 set_blocks = 7;</code>
@@ -10857,10 +11163,44 @@ public final class File {
      */
     com.google.protobuf.ByteString
         getTempUfsPathBytes();
+
+    /**
+     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     */
+    int getXAttrsCount();
+    /**
+     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     */
+    boolean containsXAttrs(
+        java.lang.String key);
+    /**
+     * Use {@link #getXAttrsMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getXAttrs();
+    /**
+     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getXAttrsMap();
+    /**
+     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     */
+
+    java.lang.String getXAttrsOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue);
+    /**
+     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     */
+
+    java.lang.String getXAttrsOrThrow(
+        java.lang.String key);
   }
   /**
    * <pre>
-   * next available id: 12
+   * next available id: 13
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.UpdateInodeFileEntry}
@@ -10985,6 +11325,19 @@ public final class File {
               tempUfsPath_ = bs;
               break;
             }
+            case 98: {
+              if (!((mutable_bitField0_ & 0x00000400) == 0x00000400)) {
+                xAttrs_ = com.google.protobuf.MapField.newMapField(
+                    XAttrsDefaultEntryHolder.defaultEntry);
+                mutable_bitField0_ |= 0x00000400;
+              }
+              com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+              xAttrs__ = input.readMessage(
+                  XAttrsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              xAttrs_.getMutableMap().put(
+                  xAttrs__.getKey(), xAttrs__.getValue());
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -11005,6 +11358,17 @@ public final class File {
       return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeFileEntry_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 12:
+          return internalGetXAttrs();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeFileEntry_fieldAccessorTable
@@ -11092,7 +11456,7 @@ public final class File {
     private java.util.List<java.lang.Long> setBlocks_;
     /**
      * <pre>
-     * Overwirte the blocks list
+     * Overwrite the blocks list
      * </pre>
      *
      * <code>repeated int64 set_blocks = 7;</code>
@@ -11103,7 +11467,7 @@ public final class File {
     }
     /**
      * <pre>
-     * Overwirte the blocks list
+     * Overwrite the blocks list
      * </pre>
      *
      * <code>repeated int64 set_blocks = 7;</code>
@@ -11113,7 +11477,7 @@ public final class File {
     }
     /**
      * <pre>
-     * Overwirte the blocks list
+     * Overwrite the blocks list
      * </pre>
      *
      * <code>repeated int64 set_blocks = 7;</code>
@@ -11209,6 +11573,82 @@ public final class File {
       }
     }
 
+    public static final int XATTRS_FIELD_NUMBER = 12;
+    private static final class XAttrsDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeFileEntry_XAttrsEntry_descriptor, 
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> xAttrs_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetXAttrs() {
+      if (xAttrs_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            XAttrsDefaultEntryHolder.defaultEntry);
+      }
+      return xAttrs_;
+    }
+
+    public int getXAttrsCount() {
+      return internalGetXAttrs().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     */
+
+    public boolean containsXAttrs(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetXAttrs().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getXAttrsMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getXAttrs() {
+      return getXAttrsMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     */
+
+    public java.util.Map<java.lang.String, java.lang.String> getXAttrsMap() {
+      return internalGetXAttrs().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     */
+
+    public java.lang.String getXAttrsOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetXAttrs().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     */
+
+    public java.lang.String getXAttrsOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetXAttrs().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -11251,6 +11691,12 @@ public final class File {
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 11, tempUfsPath_);
       }
+      com.google.protobuf.GeneratedMessageV3
+        .serializeStringMapTo(
+          output,
+          internalGetXAttrs(),
+          XAttrsDefaultEntryHolder.defaultEntry,
+          12);
       unknownFields.writeTo(output);
     }
 
@@ -11302,6 +11748,16 @@ public final class File {
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(11, tempUfsPath_);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetXAttrs().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        xAttrs__ = XAttrsDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(12, xAttrs__);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -11366,6 +11822,8 @@ public final class File {
         result = result && getTempUfsPath()
             .equals(other.getTempUfsPath());
       }
+      result = result && internalGetXAttrs().equals(
+          other.internalGetXAttrs());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -11422,6 +11880,10 @@ public final class File {
       if (hasTempUfsPath()) {
         hash = (37 * hash) + TEMP_UFS_PATH_FIELD_NUMBER;
         hash = (53 * hash) + getTempUfsPath().hashCode();
+      }
+      if (!internalGetXAttrs().getMap().isEmpty()) {
+        hash = (37 * hash) + XATTRS_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetXAttrs().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -11518,7 +11980,7 @@ public final class File {
     }
     /**
      * <pre>
-     * next available id: 12
+     * next available id: 13
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.UpdateInodeFileEntry}
@@ -11532,6 +11994,28 @@ public final class File {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeFileEntry_descriptor;
       }
 
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMapField(
+          int number) {
+        switch (number) {
+          case 12:
+            return internalGetXAttrs();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMutableMapField(
+          int number) {
+        switch (number) {
+          case 12:
+            return internalGetMutableXAttrs();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeFileEntry_fieldAccessorTable
@@ -11576,6 +12060,7 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000100);
         tempUfsPath_ = "";
         bitField0_ = (bitField0_ & ~0x00000200);
+        internalGetMutableXAttrs().clear();
         return this;
       }
 
@@ -11641,6 +12126,8 @@ public final class File {
           to_bitField0_ |= 0x00000100;
         }
         result.tempUfsPath_ = tempUfsPath_;
+        result.xAttrs_ = internalGetXAttrs();
+        result.xAttrs_.makeImmutable();
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -11722,6 +12209,8 @@ public final class File {
           tempUfsPath_ = other.tempUfsPath_;
           onChanged();
         }
+        internalGetMutableXAttrs().mergeFrom(
+            other.internalGetXAttrs());
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -11919,7 +12408,7 @@ public final class File {
       }
       /**
        * <pre>
-       * Overwirte the blocks list
+       * Overwrite the blocks list
        * </pre>
        *
        * <code>repeated int64 set_blocks = 7;</code>
@@ -11930,7 +12419,7 @@ public final class File {
       }
       /**
        * <pre>
-       * Overwirte the blocks list
+       * Overwrite the blocks list
        * </pre>
        *
        * <code>repeated int64 set_blocks = 7;</code>
@@ -11940,7 +12429,7 @@ public final class File {
       }
       /**
        * <pre>
-       * Overwirte the blocks list
+       * Overwrite the blocks list
        * </pre>
        *
        * <code>repeated int64 set_blocks = 7;</code>
@@ -11950,7 +12439,7 @@ public final class File {
       }
       /**
        * <pre>
-       * Overwirte the blocks list
+       * Overwrite the blocks list
        * </pre>
        *
        * <code>repeated int64 set_blocks = 7;</code>
@@ -11964,7 +12453,7 @@ public final class File {
       }
       /**
        * <pre>
-       * Overwirte the blocks list
+       * Overwrite the blocks list
        * </pre>
        *
        * <code>repeated int64 set_blocks = 7;</code>
@@ -11977,7 +12466,7 @@ public final class File {
       }
       /**
        * <pre>
-       * Overwirte the blocks list
+       * Overwrite the blocks list
        * </pre>
        *
        * <code>repeated int64 set_blocks = 7;</code>
@@ -11992,7 +12481,7 @@ public final class File {
       }
       /**
        * <pre>
-       * Overwirte the blocks list
+       * Overwrite the blocks list
        * </pre>
        *
        * <code>repeated int64 set_blocks = 7;</code>
@@ -12173,6 +12662,129 @@ public final class File {
   bitField0_ |= 0x00000200;
         tempUfsPath_ = value;
         onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> xAttrs_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      internalGetXAttrs() {
+        if (xAttrs_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              XAttrsDefaultEntryHolder.defaultEntry);
+        }
+        return xAttrs_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      internalGetMutableXAttrs() {
+        onChanged();;
+        if (xAttrs_ == null) {
+          xAttrs_ = com.google.protobuf.MapField.newMapField(
+              XAttrsDefaultEntryHolder.defaultEntry);
+        }
+        if (!xAttrs_.isMutable()) {
+          xAttrs_ = xAttrs_.copy();
+        }
+        return xAttrs_;
+      }
+
+      public int getXAttrsCount() {
+        return internalGetXAttrs().getMap().size();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       */
+
+      public boolean containsXAttrs(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        return internalGetXAttrs().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getXAttrsMap()} instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getXAttrs() {
+        return getXAttrsMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       */
+
+      public java.util.Map<java.lang.String, java.lang.String> getXAttrsMap() {
+        return internalGetXAttrs().getMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       */
+
+      public java.lang.String getXAttrsOrDefault(
+          java.lang.String key,
+          java.lang.String defaultValue) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetXAttrs().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       */
+
+      public java.lang.String getXAttrsOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetXAttrs().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+
+      public Builder clearXAttrs() {
+        internalGetMutableXAttrs().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       */
+
+      public Builder removeXAttrs(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableXAttrs().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+      getMutableXAttrs() {
+        return internalGetMutableXAttrs().getMutableMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       */
+      public Builder putXAttrs(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        if (value == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableXAttrs().getMutableMap()
+            .put(key, value);
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       */
+
+      public Builder putAllXAttrs(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableXAttrs().getMutableMap()
+            .putAll(values);
         return this;
       }
       public final Builder setUnknownFields(
@@ -12399,10 +13011,44 @@ public final class File {
      * <code>optional .alluxio.proto.shared.AccessControlList defaultAcl = 16;</code>
      */
     alluxio.proto.shared.Acl.AccessControlListOrBuilder getDefaultAclOrBuilder();
+
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     */
+    int getXAttrCount();
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     */
+    boolean containsXAttr(
+        java.lang.String key);
+    /**
+     * Use {@link #getXAttrMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getXAttr();
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getXAttrMap();
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     */
+
+    java.lang.String getXAttrOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue);
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     */
+
+    java.lang.String getXAttrOrThrow(
+        java.lang.String key);
   }
   /**
    * <pre>
-   * next available id: 17
+   * next available id: 18
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
@@ -12570,6 +13216,19 @@ public final class File {
               bitField0_ |= 0x00008000;
               break;
             }
+            case 138: {
+              if (!((mutable_bitField0_ & 0x00010000) == 0x00010000)) {
+                xAttr_ = com.google.protobuf.MapField.newMapField(
+                    XAttrDefaultEntryHolder.defaultEntry);
+                mutable_bitField0_ |= 0x00010000;
+              }
+              com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+              xAttr__ = input.readMessage(
+                  XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              xAttr_.getMutableMap().put(
+                  xAttr__.getKey(), xAttr__.getValue());
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -12587,6 +13246,17 @@ public final class File {
       return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 17:
+          return internalGetXAttr();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable
@@ -12956,6 +13626,82 @@ public final class File {
       return defaultAcl_ == null ? alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance() : defaultAcl_;
     }
 
+    public static final int XATTR_FIELD_NUMBER = 17;
+    private static final class XAttrDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeDirectoryEntry_XAttrEntry_descriptor, 
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> xAttr_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetXAttr() {
+      if (xAttr_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            XAttrDefaultEntryHolder.defaultEntry);
+      }
+      return xAttr_;
+    }
+
+    public int getXAttrCount() {
+      return internalGetXAttr().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     */
+
+    public boolean containsXAttr(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetXAttr().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getXAttrMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+      return getXAttrMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     */
+
+    public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+      return internalGetXAttr().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     */
+
+    public java.lang.String getXAttrOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetXAttr().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     */
+
+    public java.lang.String getXAttrOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetXAttr().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -13016,6 +13762,12 @@ public final class File {
       if (((bitField0_ & 0x00008000) == 0x00008000)) {
         output.writeMessage(16, getDefaultAcl());
       }
+      com.google.protobuf.GeneratedMessageV3
+        .serializeStringMapTo(
+          output,
+          internalGetXAttr(),
+          XAttrDefaultEntryHolder.defaultEntry,
+          17);
       unknownFields.writeTo(output);
     }
 
@@ -13083,6 +13835,16 @@ public final class File {
       if (((bitField0_ & 0x00008000) == 0x00008000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(16, getDefaultAcl());
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetXAttr().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        xAttr__ = XAttrDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(17, xAttr__);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -13179,6 +13941,8 @@ public final class File {
         result = result && getDefaultAcl()
             .equals(other.getDefaultAcl());
       }
+      result = result && internalGetXAttr().equals(
+          other.internalGetXAttr());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -13261,6 +14025,10 @@ public final class File {
       if (hasDefaultAcl()) {
         hash = (37 * hash) + DEFAULTACL_FIELD_NUMBER;
         hash = (53 * hash) + getDefaultAcl().hashCode();
+      }
+      if (!internalGetXAttr().getMap().isEmpty()) {
+        hash = (37 * hash) + XATTR_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetXAttr().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -13357,7 +14125,7 @@ public final class File {
     }
     /**
      * <pre>
-     * next available id: 17
+     * next available id: 18
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
@@ -13371,6 +14139,28 @@ public final class File {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor;
       }
 
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMapField(
+          int number) {
+        switch (number) {
+          case 17:
+            return internalGetXAttr();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMutableMapField(
+          int number) {
+        switch (number) {
+          case 17:
+            return internalGetMutableXAttr();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable
@@ -13437,6 +14227,7 @@ public final class File {
           defaultAclBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00008000);
+        internalGetMutableXAttr().clear();
         return this;
       }
 
@@ -13533,6 +14324,8 @@ public final class File {
         } else {
           result.defaultAcl_ = defaultAclBuilder_.build();
         }
+        result.xAttr_ = internalGetXAttr();
+        result.xAttr_.makeImmutable();
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -13631,6 +14424,8 @@ public final class File {
         if (other.hasDefaultAcl()) {
           mergeDefaultAcl(other.getDefaultAcl());
         }
+        internalGetMutableXAttr().mergeFrom(
+            other.internalGetXAttr());
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -14522,6 +15317,129 @@ public final class File {
         }
         return defaultAclBuilder_;
       }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> xAttr_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      internalGetXAttr() {
+        if (xAttr_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              XAttrDefaultEntryHolder.defaultEntry);
+        }
+        return xAttr_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      internalGetMutableXAttr() {
+        onChanged();;
+        if (xAttr_ == null) {
+          xAttr_ = com.google.protobuf.MapField.newMapField(
+              XAttrDefaultEntryHolder.defaultEntry);
+        }
+        if (!xAttr_.isMutable()) {
+          xAttr_ = xAttr_.copy();
+        }
+        return xAttr_;
+      }
+
+      public int getXAttrCount() {
+        return internalGetXAttr().getMap().size();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       */
+
+      public boolean containsXAttr(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        return internalGetXAttr().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getXAttrMap()} instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+        return getXAttrMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       */
+
+      public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+        return internalGetXAttr().getMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       */
+
+      public java.lang.String getXAttrOrDefault(
+          java.lang.String key,
+          java.lang.String defaultValue) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetXAttr().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       */
+
+      public java.lang.String getXAttrOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetXAttr().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+
+      public Builder clearXAttr() {
+        internalGetMutableXAttr().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       */
+
+      public Builder removeXAttr(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableXAttr().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+      getMutableXAttr() {
+        return internalGetMutableXAttr().getMutableMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       */
+      public Builder putXAttr(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        if (value == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableXAttr().getMutableMap()
+            .put(key, value);
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       */
+
+      public Builder putAllXAttr(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableXAttr().getMutableMap()
+            .putAll(values);
+        return this;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
@@ -15405,10 +16323,44 @@ public final class File {
      * <code>optional int32 replication_durable = 24;</code>
      */
     int getReplicationDurable();
+
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     */
+    int getXAttrCount();
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     */
+    boolean containsXAttr(
+        java.lang.String key);
+    /**
+     * Use {@link #getXAttrMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getXAttr();
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getXAttrMap();
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     */
+
+    java.lang.String getXAttrOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue);
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     */
+
+    java.lang.String getXAttrOrThrow(
+        java.lang.String key);
   }
   /**
    * <pre>
-   * next available id: 25
+   * next available id: 26
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
@@ -15635,6 +16587,19 @@ public final class File {
               replicationDurable_ = input.readInt32();
               break;
             }
+            case 202: {
+              if (!((mutable_bitField0_ & 0x01000000) == 0x01000000)) {
+                xAttr_ = com.google.protobuf.MapField.newMapField(
+                    XAttrDefaultEntryHolder.defaultEntry);
+                mutable_bitField0_ |= 0x01000000;
+              }
+              com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+              xAttr__ = input.readMessage(
+                  XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              xAttr_.getMutableMap().put(
+                  xAttr__.getKey(), xAttr__.getValue());
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -15655,6 +16620,17 @@ public final class File {
       return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeFileEntry_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 25:
+          return internalGetXAttr();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable
@@ -16199,6 +17175,82 @@ public final class File {
       return replicationDurable_;
     }
 
+    public static final int XATTR_FIELD_NUMBER = 25;
+    private static final class XAttrDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeFileEntry_XAttrEntry_descriptor, 
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> xAttr_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetXAttr() {
+      if (xAttr_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            XAttrDefaultEntryHolder.defaultEntry);
+      }
+      return xAttr_;
+    }
+
+    public int getXAttrCount() {
+      return internalGetXAttr().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     */
+
+    public boolean containsXAttr(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetXAttr().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getXAttrMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+      return getXAttrMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     */
+
+    public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+      return internalGetXAttr().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     */
+
+    public java.lang.String getXAttrOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetXAttr().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     */
+
+    public java.lang.String getXAttrOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetXAttr().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -16283,6 +17335,12 @@ public final class File {
       if (((bitField0_ & 0x00400000) == 0x00400000)) {
         output.writeInt32(24, replicationDurable_);
       }
+      com.google.protobuf.GeneratedMessageV3
+        .serializeStringMapTo(
+          output,
+          internalGetXAttr(),
+          XAttrDefaultEntryHolder.defaultEntry,
+          25);
       unknownFields.writeTo(output);
     }
 
@@ -16385,6 +17443,16 @@ public final class File {
       if (((bitField0_ & 0x00400000) == 0x00400000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(24, replicationDurable_);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetXAttr().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        xAttr__ = XAttrDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(25, xAttr__);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -16518,6 +17586,8 @@ public final class File {
         result = result && (getReplicationDurable()
             == other.getReplicationDurable());
       }
+      result = result && internalGetXAttr().equals(
+          other.internalGetXAttr());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -16636,6 +17706,10 @@ public final class File {
         hash = (37 * hash) + REPLICATION_DURABLE_FIELD_NUMBER;
         hash = (53 * hash) + getReplicationDurable();
       }
+      if (!internalGetXAttr().getMap().isEmpty()) {
+        hash = (37 * hash) + XATTR_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetXAttr().hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -16731,7 +17805,7 @@ public final class File {
     }
     /**
      * <pre>
-     * next available id: 25
+     * next available id: 26
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
@@ -16745,6 +17819,28 @@ public final class File {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeFileEntry_descriptor;
       }
 
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMapField(
+          int number) {
+        switch (number) {
+          case 25:
+            return internalGetXAttr();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMutableMapField(
+          int number) {
+        switch (number) {
+          case 25:
+            return internalGetMutableXAttr();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable
@@ -16822,6 +17918,7 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00400000);
         replicationDurable_ = 0;
         bitField0_ = (bitField0_ & ~0x00800000);
+        internalGetMutableXAttr().clear();
         return this;
       }
 
@@ -16947,6 +18044,8 @@ public final class File {
           to_bitField0_ |= 0x00400000;
         }
         result.replicationDurable_ = replicationDurable_;
+        result.xAttr_ = internalGetXAttr();
+        result.xAttr_.makeImmutable();
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -17080,6 +18179,8 @@ public final class File {
         if (other.hasReplicationDurable()) {
           setReplicationDurable(other.getReplicationDurable());
         }
+        internalGetMutableXAttr().mergeFrom(
+            other.internalGetXAttr());
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -18261,6 +19362,129 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00800000);
         replicationDurable_ = 0;
         onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> xAttr_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      internalGetXAttr() {
+        if (xAttr_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              XAttrDefaultEntryHolder.defaultEntry);
+        }
+        return xAttr_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      internalGetMutableXAttr() {
+        onChanged();;
+        if (xAttr_ == null) {
+          xAttr_ = com.google.protobuf.MapField.newMapField(
+              XAttrDefaultEntryHolder.defaultEntry);
+        }
+        if (!xAttr_.isMutable()) {
+          xAttr_ = xAttr_.copy();
+        }
+        return xAttr_;
+      }
+
+      public int getXAttrCount() {
+        return internalGetXAttr().getMap().size();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       */
+
+      public boolean containsXAttr(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        return internalGetXAttr().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getXAttrMap()} instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+        return getXAttrMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       */
+
+      public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+        return internalGetXAttr().getMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       */
+
+      public java.lang.String getXAttrOrDefault(
+          java.lang.String key,
+          java.lang.String defaultValue) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetXAttr().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       */
+
+      public java.lang.String getXAttrOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetXAttr().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+
+      public Builder clearXAttr() {
+        internalGetMutableXAttr().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       */
+
+      public Builder removeXAttr(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableXAttr().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+      getMutableXAttr() {
+        return internalGetMutableXAttr().getMutableMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       */
+      public Builder putXAttr(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        if (value == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableXAttr().getMutableMap()
+            .put(key, value);
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       */
+
+      public Builder putAllXAttr(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableXAttr().getMutableMap()
+            .putAll(values);
         return this;
       }
       public final Builder setUnknownFields(
@@ -20038,845 +21262,6 @@ public final class File {
     }
 
     public alluxio.proto.journal.File.PersistFileEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface ReinitializeFileEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.ReinitializeFileEntry)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>optional string path = 1;</code>
-     */
-    boolean hasPath();
-    /**
-     * <code>optional string path = 1;</code>
-     */
-    java.lang.String getPath();
-    /**
-     * <code>optional string path = 1;</code>
-     */
-    com.google.protobuf.ByteString
-        getPathBytes();
-
-    /**
-     * <code>optional int64 block_size_bytes = 2;</code>
-     */
-    boolean hasBlockSizeBytes();
-    /**
-     * <code>optional int64 block_size_bytes = 2;</code>
-     */
-    long getBlockSizeBytes();
-
-    /**
-     * <code>optional int64 ttl = 3;</code>
-     */
-    boolean hasTtl();
-    /**
-     * <code>optional int64 ttl = 3;</code>
-     */
-    long getTtl();
-
-    /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
-     */
-    boolean hasTtlAction();
-    /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
-     */
-    alluxio.proto.journal.File.PTtlAction getTtlAction();
-  }
-  /**
-   * <pre>
-   * next available id: 5
-   * </pre>
-   *
-   * Protobuf type {@code alluxio.proto.journal.ReinitializeFileEntry}
-   */
-  public  static final class ReinitializeFileEntry extends
-      com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.ReinitializeFileEntry)
-      ReinitializeFileEntryOrBuilder {
-  private static final long serialVersionUID = 0L;
-    // Use ReinitializeFileEntry.newBuilder() to construct.
-    private ReinitializeFileEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-      super(builder);
-    }
-    private ReinitializeFileEntry() {
-      path_ = "";
-      blockSizeBytes_ = 0L;
-      ttl_ = 0L;
-      ttlAction_ = 0;
-    }
-
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
-      return this.unknownFields;
-    }
-    private ReinitializeFileEntry(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      this();
-      if (extensionRegistry == null) {
-        throw new java.lang.NullPointerException();
-      }
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-            case 10: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000001;
-              path_ = bs;
-              break;
-            }
-            case 16: {
-              bitField0_ |= 0x00000002;
-              blockSizeBytes_ = input.readInt64();
-              break;
-            }
-            case 24: {
-              bitField0_ |= 0x00000004;
-              ttl_ = input.readInt64();
-              break;
-            }
-            case 32: {
-              int rawValue = input.readEnum();
-              alluxio.proto.journal.File.PTtlAction value = alluxio.proto.journal.File.PTtlAction.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(4, rawValue);
-              } else {
-                bitField0_ |= 0x00000008;
-                ttlAction_ = rawValue;
-              }
-              break;
-            }
-          }
-        }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e).setUnfinishedMessage(this);
-      } finally {
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor;
-    }
-
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_ReinitializeFileEntry_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              alluxio.proto.journal.File.ReinitializeFileEntry.class, alluxio.proto.journal.File.ReinitializeFileEntry.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int PATH_FIELD_NUMBER = 1;
-    private volatile java.lang.Object path_;
-    /**
-     * <code>optional string path = 1;</code>
-     */
-    public boolean hasPath() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <code>optional string path = 1;</code>
-     */
-    public java.lang.String getPath() {
-      java.lang.Object ref = path_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          path_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>optional string path = 1;</code>
-     */
-    public com.google.protobuf.ByteString
-        getPathBytes() {
-      java.lang.Object ref = path_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        path_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int BLOCK_SIZE_BYTES_FIELD_NUMBER = 2;
-    private long blockSizeBytes_;
-    /**
-     * <code>optional int64 block_size_bytes = 2;</code>
-     */
-    public boolean hasBlockSizeBytes() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional int64 block_size_bytes = 2;</code>
-     */
-    public long getBlockSizeBytes() {
-      return blockSizeBytes_;
-    }
-
-    public static final int TTL_FIELD_NUMBER = 3;
-    private long ttl_;
-    /**
-     * <code>optional int64 ttl = 3;</code>
-     */
-    public boolean hasTtl() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <code>optional int64 ttl = 3;</code>
-     */
-    public long getTtl() {
-      return ttl_;
-    }
-
-    public static final int TTLACTION_FIELD_NUMBER = 4;
-    private int ttlAction_;
-    /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
-     */
-    public boolean hasTtlAction() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
-     */
-    public alluxio.proto.journal.File.PTtlAction getTtlAction() {
-      alluxio.proto.journal.File.PTtlAction result = alluxio.proto.journal.File.PTtlAction.valueOf(ttlAction_);
-      return result == null ? alluxio.proto.journal.File.PTtlAction.DELETE : result;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, path_);
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeInt64(2, blockSizeBytes_);
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeInt64(3, ttl_);
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeEnum(4, ttlAction_);
-      }
-      unknownFields.writeTo(output);
-    }
-
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, path_);
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(2, blockSizeBytes_);
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(3, ttl_);
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(4, ttlAction_);
-      }
-      size += unknownFields.getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof alluxio.proto.journal.File.ReinitializeFileEntry)) {
-        return super.equals(obj);
-      }
-      alluxio.proto.journal.File.ReinitializeFileEntry other = (alluxio.proto.journal.File.ReinitializeFileEntry) obj;
-
-      boolean result = true;
-      result = result && (hasPath() == other.hasPath());
-      if (hasPath()) {
-        result = result && getPath()
-            .equals(other.getPath());
-      }
-      result = result && (hasBlockSizeBytes() == other.hasBlockSizeBytes());
-      if (hasBlockSizeBytes()) {
-        result = result && (getBlockSizeBytes()
-            == other.getBlockSizeBytes());
-      }
-      result = result && (hasTtl() == other.hasTtl());
-      if (hasTtl()) {
-        result = result && (getTtl()
-            == other.getTtl());
-      }
-      result = result && (hasTtlAction() == other.hasTtlAction());
-      if (hasTtlAction()) {
-        result = result && ttlAction_ == other.ttlAction_;
-      }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasPath()) {
-        hash = (37 * hash) + PATH_FIELD_NUMBER;
-        hash = (53 * hash) + getPath().hashCode();
-      }
-      if (hasBlockSizeBytes()) {
-        hash = (37 * hash) + BLOCK_SIZE_BYTES_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getBlockSizeBytes());
-      }
-      if (hasTtl()) {
-        hash = (37 * hash) + TTL_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getTtl());
-      }
-      if (hasTtlAction()) {
-        hash = (37 * hash) + TTLACTION_FIELD_NUMBER;
-        hash = (53 * hash) + ttlAction_;
-      }
-      hash = (29 * hash) + unknownFields.hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static alluxio.proto.journal.File.ReinitializeFileEntry parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static alluxio.proto.journal.File.ReinitializeFileEntry parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static alluxio.proto.journal.File.ReinitializeFileEntry parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static alluxio.proto.journal.File.ReinitializeFileEntry parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static alluxio.proto.journal.File.ReinitializeFileEntry parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static alluxio.proto.journal.File.ReinitializeFileEntry parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static alluxio.proto.journal.File.ReinitializeFileEntry parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static alluxio.proto.journal.File.ReinitializeFileEntry parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static alluxio.proto.journal.File.ReinitializeFileEntry parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-    public static alluxio.proto.journal.File.ReinitializeFileEntry parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static alluxio.proto.journal.File.ReinitializeFileEntry parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input);
-    }
-    public static alluxio.proto.journal.File.ReinitializeFileEntry parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessageV3
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(alluxio.proto.journal.File.ReinitializeFileEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * <pre>
-     * next available id: 5
-     * </pre>
-     *
-     * Protobuf type {@code alluxio.proto.journal.ReinitializeFileEntry}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.ReinitializeFileEntry)
-        alluxio.proto.journal.File.ReinitializeFileEntryOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor;
-      }
-
-      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_ReinitializeFileEntry_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                alluxio.proto.journal.File.ReinitializeFileEntry.class, alluxio.proto.journal.File.ReinitializeFileEntry.Builder.class);
-      }
-
-      // Construct using alluxio.proto.journal.File.ReinitializeFileEntry.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessageV3
-                .alwaysUseFieldBuilders) {
-        }
-      }
-      public Builder clear() {
-        super.clear();
-        path_ = "";
-        bitField0_ = (bitField0_ & ~0x00000001);
-        blockSizeBytes_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000002);
-        ttl_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000004);
-        ttlAction_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000008);
-        return this;
-      }
-
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor;
-      }
-
-      public alluxio.proto.journal.File.ReinitializeFileEntry getDefaultInstanceForType() {
-        return alluxio.proto.journal.File.ReinitializeFileEntry.getDefaultInstance();
-      }
-
-      public alluxio.proto.journal.File.ReinitializeFileEntry build() {
-        alluxio.proto.journal.File.ReinitializeFileEntry result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      public alluxio.proto.journal.File.ReinitializeFileEntry buildPartial() {
-        alluxio.proto.journal.File.ReinitializeFileEntry result = new alluxio.proto.journal.File.ReinitializeFileEntry(this);
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
-        result.path_ = path_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
-        result.blockSizeBytes_ = blockSizeBytes_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
-        }
-        result.ttl_ = ttl_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
-        }
-        result.ttlAction_ = ttlAction_;
-        result.bitField0_ = to_bitField0_;
-        onBuilt();
-        return result;
-      }
-
-      public Builder clone() {
-        return (Builder) super.clone();
-      }
-      public Builder setField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return (Builder) super.setField(field, value);
-      }
-      public Builder clearField(
-          com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
-      }
-      public Builder clearOneof(
-          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
-      }
-      public Builder setRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
-      }
-      public Builder addRepeatedField(
-          com.google.protobuf.Descriptors.FieldDescriptor field,
-          java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
-      }
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof alluxio.proto.journal.File.ReinitializeFileEntry) {
-          return mergeFrom((alluxio.proto.journal.File.ReinitializeFileEntry)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(alluxio.proto.journal.File.ReinitializeFileEntry other) {
-        if (other == alluxio.proto.journal.File.ReinitializeFileEntry.getDefaultInstance()) return this;
-        if (other.hasPath()) {
-          bitField0_ |= 0x00000001;
-          path_ = other.path_;
-          onChanged();
-        }
-        if (other.hasBlockSizeBytes()) {
-          setBlockSizeBytes(other.getBlockSizeBytes());
-        }
-        if (other.hasTtl()) {
-          setTtl(other.getTtl());
-        }
-        if (other.hasTtlAction()) {
-          setTtlAction(other.getTtlAction());
-        }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
-        return this;
-      }
-
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        alluxio.proto.journal.File.ReinitializeFileEntry parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (alluxio.proto.journal.File.ReinitializeFileEntry) e.getUnfinishedMessage();
-          throw e.unwrapIOException();
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object path_ = "";
-      /**
-       * <code>optional string path = 1;</code>
-       */
-      public boolean hasPath() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <code>optional string path = 1;</code>
-       */
-      public java.lang.String getPath() {
-        java.lang.Object ref = path_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            path_ = s;
-          }
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>optional string path = 1;</code>
-       */
-      public com.google.protobuf.ByteString
-          getPathBytes() {
-        java.lang.Object ref = path_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          path_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string path = 1;</code>
-       */
-      public Builder setPath(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-        path_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string path = 1;</code>
-       */
-      public Builder clearPath() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        path_ = getDefaultInstance().getPath();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string path = 1;</code>
-       */
-      public Builder setPathBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-        path_ = value;
-        onChanged();
-        return this;
-      }
-
-      private long blockSizeBytes_ ;
-      /**
-       * <code>optional int64 block_size_bytes = 2;</code>
-       */
-      public boolean hasBlockSizeBytes() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <code>optional int64 block_size_bytes = 2;</code>
-       */
-      public long getBlockSizeBytes() {
-        return blockSizeBytes_;
-      }
-      /**
-       * <code>optional int64 block_size_bytes = 2;</code>
-       */
-      public Builder setBlockSizeBytes(long value) {
-        bitField0_ |= 0x00000002;
-        blockSizeBytes_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int64 block_size_bytes = 2;</code>
-       */
-      public Builder clearBlockSizeBytes() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        blockSizeBytes_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private long ttl_ ;
-      /**
-       * <code>optional int64 ttl = 3;</code>
-       */
-      public boolean hasTtl() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
-      }
-      /**
-       * <code>optional int64 ttl = 3;</code>
-       */
-      public long getTtl() {
-        return ttl_;
-      }
-      /**
-       * <code>optional int64 ttl = 3;</code>
-       */
-      public Builder setTtl(long value) {
-        bitField0_ |= 0x00000004;
-        ttl_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int64 ttl = 3;</code>
-       */
-      public Builder clearTtl() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        ttl_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private int ttlAction_ = 0;
-      /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
-       */
-      public boolean hasTtlAction() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
-       */
-      public alluxio.proto.journal.File.PTtlAction getTtlAction() {
-        alluxio.proto.journal.File.PTtlAction result = alluxio.proto.journal.File.PTtlAction.valueOf(ttlAction_);
-        return result == null ? alluxio.proto.journal.File.PTtlAction.DELETE : result;
-      }
-      /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
-       */
-      public Builder setTtlAction(alluxio.proto.journal.File.PTtlAction value) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        bitField0_ |= 0x00000008;
-        ttlAction_ = value.getNumber();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 4 [default = DELETE];</code>
-       */
-      public Builder clearTtlAction() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        ttlAction_ = 0;
-        onChanged();
-        return this;
-      }
-      public final Builder setUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFields(unknownFields);
-      }
-
-      public final Builder mergeUnknownFields(
-          final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.mergeUnknownFields(unknownFields);
-      }
-
-
-      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.ReinitializeFileEntry)
-    }
-
-    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.ReinitializeFileEntry)
-    private static final alluxio.proto.journal.File.ReinitializeFileEntry DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new alluxio.proto.journal.File.ReinitializeFileEntry();
-    }
-
-    public static alluxio.proto.journal.File.ReinitializeFileEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<ReinitializeFileEntry>
-        PARSER = new com.google.protobuf.AbstractParser<ReinitializeFileEntry>() {
-      public ReinitializeFileEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new ReinitializeFileEntry(input, extensionRegistry);
-      }
-    };
-
-    public static com.google.protobuf.Parser<ReinitializeFileEntry> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ReinitializeFileEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public alluxio.proto.journal.File.ReinitializeFileEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -25720,6 +26105,11 @@ public final class File {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_UpdateInodeEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_UpdateInodeEntry_XAttrEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_proto_journal_UpdateInodeEntry_XAttrEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -25730,10 +26120,20 @@ public final class File {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_UpdateInodeFileEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_UpdateInodeFileEntry_XAttrsEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_proto_journal_UpdateInodeFileEntry_XAttrsEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_InodeDirectoryEntry_XAttrEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_proto_journal_InodeDirectoryEntry_XAttrEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor;
   private static final 
@@ -25744,6 +26144,11 @@ public final class File {
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_InodeFileEntry_XAttrEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_proto_journal_InodeFileEntry_XAttrEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor;
   private static final 
@@ -25759,11 +26164,6 @@ public final class File {
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_PersistFileEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor;
-  private static final 
-    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_proto_journal_ReinitializeFileEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_RenameEntry_descriptor;
   private static final 
@@ -25813,7 +26213,7 @@ public final class File {
       "id\030\001 \001(\003\022\021\n\trecursive\030\002 \001(\010\022\022\n\nop_time_m" +
       "s\030\003 \001(\003\022\023\n\013alluxioOnly\030\004 \001(\010\"-\n\025DeleteMo" +
       "untPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\033\n\rN" +
-      "ewBlockEntry\022\n\n\002id\030\001 \001(\003\"\222\003\n\020UpdateInode" +
+      "ewBlockEntry\022\n\n\002id\030\001 \001(\003\"\203\004\n\020UpdateInode" +
       "Entry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004" +
       "name\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n" +
       "\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022" +
@@ -25823,76 +26223,84 @@ public final class File {
       "tl\030\014 \001(\003\022<\n\tttlAction\030\r \001(\0162!.alluxio.pr" +
       "oto.journal.PTtlAction:\006DELETE\0224\n\003acl\030\016 " +
       "\001(\0132\'.alluxio.proto.shared.AccessControl" +
-      "List\022\027\n\017ufs_fingerprint\030\017 \001(\t\"\231\001\n\031Update" +
-      "InodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\023\n\013mount" +
-      "_point\030\002 \001(\010\022\036\n\026direct_children_loaded\030\003" +
-      " \001(\010\022;\n\ndefaultAcl\030\004 \001(\0132\'.alluxio.proto" +
-      ".shared.AccessControlList\"\347\001\n\024UpdateInod" +
-      "eFileEntry\022\n\n\002id\030\001 \001(\003\022\030\n\020block_size_byt" +
-      "es\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\021\n\tcompleted\030\004 " +
-      "\001(\010\022\021\n\tcacheable\030\005 \001(\010\022\022\n\nset_blocks\030\007 \003" +
-      "(\003\022\027\n\017replication_max\030\010 \001(\005\022\027\n\017replicati" +
-      "on_min\030\t \001(\005\022\026\n\016persist_job_id\030\n \001(\003\022\025\n\r" +
-      "temp_ufs_path\030\013 \001(\t\"\311\003\n\023InodeDirectoryEn" +
-      "try\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004na" +
-      "me\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006p" +
-      "inned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n" +
-      "\031last_modification_time_ms\030\007 \001(\003\022\r\n\005owne" +
-      "r\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004mode\030\n \001(\005\022\023\n\013" +
-      "mount_point\030\013 \001(\010\022\036\n\026direct_children_loa" +
-      "ded\030\014 \001(\010\022\013\n\003ttl\030\r \001(\003\022<\n\tttlAction\030\016 \001(" +
+      "List\022\027\n\017ufs_fingerprint\030\017 \001(\t\022A\n\005xAttr\030\020" +
+      " \003(\01322.alluxio.proto.journal.UpdateInode" +
+      "Entry.XAttrEntry\032,\n\nXAttrEntry\022\013\n\003key\030\001 " +
+      "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\231\001\n\031UpdateInodeDi" +
+      "rectoryEntry\022\n\n\002id\030\001 \001(\003\022\023\n\013mount_point\030" +
+      "\002 \001(\010\022\036\n\026direct_children_loaded\030\003 \001(\010\022;\n" +
+      "\ndefaultAcl\030\004 \001(\0132\'.alluxio.proto.shared" +
+      ".AccessControlList\"\337\002\n\024UpdateInodeFileEn" +
+      "try\022\n\n\002id\030\001 \001(\003\022\030\n\020block_size_bytes\030\002 \001(" +
+      "\003\022\016\n\006length\030\003 \001(\003\022\021\n\tcompleted\030\004 \001(\010\022\021\n\t" +
+      "cacheable\030\005 \001(\010\022\022\n\nset_blocks\030\007 \003(\003\022\027\n\017r" +
+      "eplication_max\030\010 \001(\005\022\027\n\017replication_min\030" +
+      "\t \001(\005\022\026\n\016persist_job_id\030\n \001(\003\022\025\n\rtemp_uf" +
+      "s_path\030\013 \001(\t\022G\n\006xAttrs\030\014 \003(\01327.alluxio.p" +
+      "roto.journal.UpdateInodeFileEntry.XAttrs" +
+      "Entry\032-\n\013XAttrsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
+      "ue\030\002 \001(\t:\0028\001\"\275\004\n\023InodeDirectoryEntry\022\n\n\002" +
+      "id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(" +
+      "\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006pinned\030\005" +
+      " \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_m" +
+      "odification_time_ms\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t" +
+      "\022\r\n\005group\030\t \001(\t\022\014\n\004mode\030\n \001(\005\022\023\n\013mount_p" +
+      "oint\030\013 \001(\010\022\036\n\026direct_children_loaded\030\014 \001" +
+      "(\010\022\013\n\003ttl\030\r \001(\003\022<\n\tttlAction\030\016 \001(\0162!.all" +
+      "uxio.proto.journal.PTtlAction:\006DELETE\0224\n" +
+      "\003acl\030\017 \001(\0132\'.alluxio.proto.shared.Access" +
+      "ControlList\022;\n\ndefaultAcl\030\020 \001(\0132\'.alluxi" +
+      "o.proto.shared.AccessControlList\022D\n\005xAtt" +
+      "r\030\021 \003(\01325.alluxio.proto.journal.InodeDir" +
+      "ectoryEntry.XAttrEntry\032,\n\nXAttrEntry\022\013\n\003" +
+      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"O\n\036InodeDir" +
+      "ectoryIdGeneratorEntry\022\024\n\014container_id\030\001" +
+      " \001(\003\022\027\n\017sequence_number\030\002 \001(\003\"\270\005\n\016InodeF" +
+      "ileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022" +
+      "\014\n\004name\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t" +
+      "\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001" +
+      "(\003\022!\n\031last_modification_time_ms\030\007 \001(\003\022\030\n" +
+      "\020block_size_bytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022" +
+      "\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n" +
+      "\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005owner\030\016 \001(" +
+      "\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(\005\022<\n\tttlAct" +
+      "ion\030\021 \001(\0162!.alluxio.proto.journal.PTtlAc" +
+      "tion:\006DELETE\022\027\n\017ufs_fingerprint\030\022 \001(\t\0224\n" +
+      "\003acl\030\023 \001(\0132\'.alluxio.proto.shared.Access" +
+      "ControlList\022\027\n\017replication_max\030\024 \001(\005\022\027\n\017" +
+      "replication_min\030\025 \001(\005\022\026\n\016persist_job_id\030" +
+      "\026 \001(\003\022\025\n\rtemp_ufs_path\030\027 \001(\t\022\033\n\023replicat" +
+      "ion_durable\030\030 \001(\005\022?\n\005xAttr\030\031 \003(\01320.allux" +
+      "io.proto.journal.InodeFileEntry.XAttrEnt" +
+      "ry\032,\n\nXAttrEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002" +
+      " \001(\t:\0028\001\"O\n\036InodeLastModificationTimeEnt" +
+      "ry\022\n\n\002id\030\001 \001(\003\022!\n\031last_modification_time" +
+      "_ms\030\002 \001(\003\"#\n\025PersistDirectoryEntry\022\n\n\002id" +
+      "\030\001 \001(\003\"B\n\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016" +
+      "\n\006length\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"h\n\013Re" +
+      "nameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022" +
+      "\022\n\nop_time_ms\030\003 \001(\003\022\025\n\rnew_parent_id\030\004 \001" +
+      "(\003\022\020\n\010new_name\030\005 \001(\t\"\247\001\n\013SetAclEntry\022\n\n\002" +
+      "id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\0224\n\006action\030\003" +
+      " \001(\0162$.alluxio.proto.journal.PSetAclActi" +
+      "on\022/\n\007entries\030\004 \003(\0132\036.alluxio.proto.shar" +
+      "ed.AclEntry\022\021\n\trecursive\030\005 \001(\010\"\311\002\n\021SetAt" +
+      "tributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002" +
+      " \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tper" +
+      "sisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 \001" +
+      "(\t\022\022\n\npermission\030\010 \001(\005\022<\n\tttlAction\030\t \001(" +
       "\0162!.alluxio.proto.journal.PTtlAction:\006DE" +
-      "LETE\0224\n\003acl\030\017 \001(\0132\'.alluxio.proto.shared" +
-      ".AccessControlList\022;\n\ndefaultAcl\030\020 \001(\0132\'" +
-      ".alluxio.proto.shared.AccessControlList\"" +
-      "O\n\036InodeDirectoryIdGeneratorEntry\022\024\n\014con" +
-      "tainer_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003" +
-      "\"\311\004\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparen" +
-      "t_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_" +
-      "state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_" +
-      "time_ms\030\006 \001(\003\022!\n\031last_modification_time_" +
-      "ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006le" +
-      "ngth\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheab" +
-      "le\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n" +
-      "\005owner\030\016 \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(" +
-      "\005\022<\n\tttlAction\030\021 \001(\0162!.alluxio.proto.jou" +
-      "rnal.PTtlAction:\006DELETE\022\027\n\017ufs_fingerpri" +
-      "nt\030\022 \001(\t\0224\n\003acl\030\023 \001(\0132\'.alluxio.proto.sh" +
-      "ared.AccessControlList\022\027\n\017replication_ma" +
-      "x\030\024 \001(\005\022\027\n\017replication_min\030\025 \001(\005\022\026\n\016pers" +
-      "ist_job_id\030\026 \001(\003\022\025\n\rtemp_ufs_path\030\027 \001(\t\022" +
-      "\033\n\023replication_durable\030\030 \001(\005\"O\n\036InodeLas" +
-      "tModificationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031la" +
-      "st_modification_time_ms\030\002 \001(\003\"#\n\025Persist" +
-      "DirectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFil" +
-      "eEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop" +
-      "_time_ms\030\003 \001(\003\"\212\001\n\025ReinitializeFileEntry" +
-      "\022\014\n\004path\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003" +
-      "\022\013\n\003ttl\030\003 \001(\003\022<\n\tttlAction\030\004 \001(\0162!.allux" +
-      "io.proto.journal.PTtlAction:\006DELETE\"h\n\013R" +
-      "enameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t" +
-      "\022\022\n\nop_time_ms\030\003 \001(\003\022\025\n\rnew_parent_id\030\004 " +
-      "\001(\003\022\020\n\010new_name\030\005 \001(\t\"\247\001\n\013SetAclEntry\022\n\n" +
-      "\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\0224\n\006action\030" +
-      "\003 \001(\0162$.alluxio.proto.journal.PSetAclAct" +
-      "ion\022/\n\007entries\030\004 \003(\0132\036.alluxio.proto.sha" +
-      "red.AclEntry\022\021\n\trecursive\030\005 \001(\010\"\311\002\n\021SetA" +
-      "ttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030" +
-      "\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpe" +
-      "rsisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 " +
-      "\001(\t\022\022\n\npermission\030\010 \001(\005\022<\n\tttlAction\030\t \001" +
-      "(\0162!.alluxio.proto.journal.PTtlAction:\006D" +
-      "ELETE\022\027\n\017ufs_fingerprint\030\n \001(\t\022\024\n\014persis" +
-      "tJobId\030\013 \001(\003\022\023\n\013tempUfsPath\030\014 \001(\t\022\027\n\017rep" +
-      "lication_max\030\r \001(\005\022\027\n\017replication_min\030\016 " +
-      "\001(\005\"b\n\022UpdateUfsModeEntry\022\017\n\007ufsPath\030\001 \001" +
-      "(\t\022;\n\007ufsMode\030\002 \001(\0162\036.alluxio.proto.jour" +
-      "nal.UfsMode:\nREAD_WRITE*\"\n\nPTtlAction\022\n\n" +
-      "\006DELETE\020\000\022\010\n\004FREE\020\001*X\n\rPSetAclAction\022\013\n\007" +
-      "REPLACE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002\022\016\n\nREM" +
-      "OVE_ALL\020\003\022\022\n\016REMOVE_DEFAULT\020\004*7\n\007UfsMode" +
-      "\022\r\n\tNO_ACCESS\020\000\022\r\n\tREAD_ONLY\020\001\022\016\n\nREAD_W" +
-      "RITE\020\002"
+      "LETE\022\027\n\017ufs_fingerprint\030\n \001(\t\022\024\n\014persist" +
+      "JobId\030\013 \001(\003\022\023\n\013tempUfsPath\030\014 \001(\t\022\027\n\017repl" +
+      "ication_max\030\r \001(\005\022\027\n\017replication_min\030\016 \001" +
+      "(\005\"b\n\022UpdateUfsModeEntry\022\017\n\007ufsPath\030\001 \001(" +
+      "\t\022;\n\007ufsMode\030\002 \001(\0162\036.alluxio.proto.journ" +
+      "al.UfsMode:\nREAD_WRITE*\"\n\nPTtlAction\022\n\n\006" +
+      "DELETE\020\000\022\010\n\004FREE\020\001*X\n\rPSetAclAction\022\013\n\007R" +
+      "EPLACE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002\022\016\n\nREMO" +
+      "VE_ALL\020\003\022\022\n\016REMOVE_DEFAULT\020\004*7\n\007UfsMode\022" +
+      "\r\n\tNO_ACCESS\020\000\022\r\n\tREAD_ONLY\020\001\022\016\n\nREAD_WR" +
+      "ITE\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -25973,7 +26381,13 @@ public final class File {
     internal_static_alluxio_proto_journal_UpdateInodeEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "OverwriteModificationTime", "Owner", "Group", "Mode", "Ttl", "TtlAction", "Acl", "UfsFingerprint", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "OverwriteModificationTime", "Owner", "Group", "Mode", "Ttl", "TtlAction", "Acl", "UfsFingerprint", "XAttr", });
+    internal_static_alluxio_proto_journal_UpdateInodeEntry_XAttrEntry_descriptor =
+      internal_static_alluxio_proto_journal_UpdateInodeEntry_descriptor.getNestedTypes().get(0);
+    internal_static_alluxio_proto_journal_UpdateInodeEntry_XAttrEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_UpdateInodeEntry_XAttrEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_descriptor =
       getDescriptor().getMessageTypes().get(11);
     internal_static_alluxio_proto_journal_UpdateInodeDirectoryEntry_fieldAccessorTable = new
@@ -25985,13 +26399,25 @@ public final class File {
     internal_static_alluxio_proto_journal_UpdateInodeFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_UpdateInodeFileEntry_descriptor,
-        new java.lang.String[] { "Id", "BlockSizeBytes", "Length", "Completed", "Cacheable", "SetBlocks", "ReplicationMax", "ReplicationMin", "PersistJobId", "TempUfsPath", });
+        new java.lang.String[] { "Id", "BlockSizeBytes", "Length", "Completed", "Cacheable", "SetBlocks", "ReplicationMax", "ReplicationMin", "PersistJobId", "TempUfsPath", "XAttrs", });
+    internal_static_alluxio_proto_journal_UpdateInodeFileEntry_XAttrsEntry_descriptor =
+      internal_static_alluxio_proto_journal_UpdateInodeFileEntry_descriptor.getNestedTypes().get(0);
+    internal_static_alluxio_proto_journal_UpdateInodeFileEntry_XAttrsEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_UpdateInodeFileEntry_XAttrsEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor =
       getDescriptor().getMessageTypes().get(13);
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "MountPoint", "DirectChildrenLoaded", "Ttl", "TtlAction", "Acl", "DefaultAcl", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "MountPoint", "DirectChildrenLoaded", "Ttl", "TtlAction", "Acl", "DefaultAcl", "XAttr", });
+    internal_static_alluxio_proto_journal_InodeDirectoryEntry_XAttrEntry_descriptor =
+      internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor.getNestedTypes().get(0);
+    internal_static_alluxio_proto_journal_InodeDirectoryEntry_XAttrEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_InodeDirectoryEntry_XAttrEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor =
       getDescriptor().getMessageTypes().get(14);
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new
@@ -26003,7 +26429,13 @@ public final class File {
     internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeFileEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", "TtlAction", "UfsFingerprint", "Acl", "ReplicationMax", "ReplicationMin", "PersistJobId", "TempUfsPath", "ReplicationDurable", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", "TtlAction", "UfsFingerprint", "Acl", "ReplicationMax", "ReplicationMin", "PersistJobId", "TempUfsPath", "ReplicationDurable", "XAttr", });
+    internal_static_alluxio_proto_journal_InodeFileEntry_XAttrEntry_descriptor =
+      internal_static_alluxio_proto_journal_InodeFileEntry_descriptor.getNestedTypes().get(0);
+    internal_static_alluxio_proto_journal_InodeFileEntry_XAttrEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_InodeFileEntry_XAttrEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor =
       getDescriptor().getMessageTypes().get(16);
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable = new
@@ -26022,32 +26454,26 @@ public final class File {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_PersistFileEntry_descriptor,
         new java.lang.String[] { "Id", "Length", "OpTimeMs", });
-    internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(19);
-    internal_static_alluxio_proto_journal_ReinitializeFileEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor,
-        new java.lang.String[] { "Path", "BlockSizeBytes", "Ttl", "TtlAction", });
     internal_static_alluxio_proto_journal_RenameEntry_descriptor =
-      getDescriptor().getMessageTypes().get(20);
+      getDescriptor().getMessageTypes().get(19);
     internal_static_alluxio_proto_journal_RenameEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_RenameEntry_descriptor,
         new java.lang.String[] { "Id", "DstPath", "OpTimeMs", "NewParentId", "NewName", });
     internal_static_alluxio_proto_journal_SetAclEntry_descriptor =
-      getDescriptor().getMessageTypes().get(21);
+      getDescriptor().getMessageTypes().get(20);
     internal_static_alluxio_proto_journal_SetAclEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_SetAclEntry_descriptor,
         new java.lang.String[] { "Id", "OpTimeMs", "Action", "Entries", "Recursive", });
     internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor =
-      getDescriptor().getMessageTypes().get(22);
+      getDescriptor().getMessageTypes().get(21);
     internal_static_alluxio_proto_journal_SetAttributeEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor,
         new java.lang.String[] { "Id", "OpTimeMs", "Pinned", "Ttl", "Persisted", "Owner", "Group", "Permission", "TtlAction", "UfsFingerprint", "PersistJobId", "TempUfsPath", "ReplicationMax", "ReplicationMin", });
     internal_static_alluxio_proto_journal_UpdateUfsModeEntry_descriptor =
-      getDescriptor().getMessageTypes().get(23);
+      getDescriptor().getMessageTypes().get(22);
     internal_static_alluxio_proto_journal_UpdateUfsModeEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_UpdateUfsModeEntry_descriptor,

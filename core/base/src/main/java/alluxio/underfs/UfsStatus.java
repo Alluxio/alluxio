@@ -14,6 +14,9 @@ package alluxio.underfs;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -33,6 +36,7 @@ public abstract class UfsStatus {
   protected final String mGroup;
   protected final short mMode;
 
+  protected final Map<String, String> mXAttr;
   /**
    * Creates new instance of {@link UfsStatus}.
    *
@@ -42,15 +46,17 @@ public abstract class UfsStatus {
    * @param group of the file
    * @param mode of the file
    * @param lastModifiedTimeMs last modified epoch time in ms, or null if it is not available
+   * @param xAttrs any extended attributes on the inode
    */
   protected UfsStatus(String name, boolean isDirectory, String owner, String group, short mode,
-      Long lastModifiedTimeMs) {
+      Long lastModifiedTimeMs, @Nullable Map<String, String> xAttrs) {
     mIsDirectory = isDirectory;
     mName = name;
     mOwner = owner;
     mGroup = group;
     mMode = mode;
     mLastModifiedTimeMs = lastModifiedTimeMs;
+    mXAttr = xAttrs == null ? new HashMap<>(0) : xAttrs;
   }
 
   /**
@@ -65,6 +71,7 @@ public abstract class UfsStatus {
     mGroup = status.mGroup;
     mMode = status.mMode;
     mLastModifiedTimeMs = status.mLastModifiedTimeMs;
+    mXAttr = status.mXAttr;
   }
 
   /**
@@ -152,9 +159,17 @@ public abstract class UfsStatus {
     return mOwner;
   }
 
+  /**
+   * Returns the extended attributes from the Ufs, if any.
+   * @return a map of the extended attributes. If none, the map will be empty
+   */
+  public Map<String, String> getXAttr() {
+    return mXAttr;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hashCode(mName, mIsDirectory, mOwner, mGroup, mMode);
+    return Objects.hashCode(mName, mIsDirectory, mOwner, mGroup, mMode, mXAttr);
   }
 
   /**
@@ -175,7 +190,8 @@ public abstract class UfsStatus {
         .add("name", mName)
         .add("owner", mOwner)
         .add("group", mGroup)
-        .add("mode", mMode);
+        .add("mode", mMode)
+        .add("xAttr", mXAttr);
   }
 
   @Override
@@ -191,6 +207,7 @@ public abstract class UfsStatus {
         && Objects.equal(mIsDirectory, that.mIsDirectory)
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
-        && Objects.equal(mMode, that.mMode);
+        && Objects.equal(mMode, that.mMode)
+        && Objects.equal(mXAttr, that.mXAttr);
   }
 }

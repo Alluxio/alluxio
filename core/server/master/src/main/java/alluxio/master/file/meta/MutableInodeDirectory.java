@@ -111,6 +111,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
   /**
    * Generates client file info for a folder.
    *
+   * xAttr is intentionally left out as the information is not yet exposed to clients
+   *
    * @param path the path of the folder in the filesystem
    * @return the generated {@link FileInfo}
    */
@@ -199,6 +201,9 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
       ret.mDefaultAcl = (DefaultAccessControlList) ProtoUtils.fromProto(entry.getDefaultAcl());
     } else {
       ret.mDefaultAcl = new DefaultAccessControlList();
+    }
+    if (entry.getXAttrCount() > 0) {
+      ret.setXAttr(entry.getXAttrMap());
     }
     return ret;
   }

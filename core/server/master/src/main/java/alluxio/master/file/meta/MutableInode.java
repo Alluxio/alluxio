@@ -30,7 +30,9 @@ import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -55,6 +57,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private boolean mPinned;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
+  private Map<String, String> mXAttr;
 
   protected MutableInode(long id, boolean isDirectory) {
     mCreationTimeMs = System.currentTimeMillis();
@@ -70,6 +73,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mPinned = false;
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
+    mXAttr = new HashMap<>(1);
   }
 
   @Override
@@ -160,6 +164,11 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   @Override
   public AccessControlList getACL() {
     return mAcl;
+  }
+
+  @Override
+  public Map<String, String> getXAttr() {
+    return mXAttr;
   }
 
   /**
@@ -430,6 +439,15 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     return getThis();
   }
 
+  /**
+   * @param xAttr The new set of extended attributes
+   * @return the updated object
+   */
+  public T setXAttr(Map<String, String> xAttr) {
+    mXAttr = xAttr;
+    return getThis();
+  }
+
   @Override
   public abstract FileInfo generateClientFileInfo(String path);
 
@@ -525,6 +543,9 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.hasUfsFingerprint()) {
       setUfsFingerprint(entry.getUfsFingerprint());
     }
+    if (entry.getXAttrCount() > 0) {
+      setXAttr(entry.getXAttrMap());
+    }
   }
 
   @Override
@@ -560,7 +581,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .add("owner", mAcl.getOwningUser())
         .add("group", mAcl.getOwningGroup())
         .add("permission", mAcl.getMode())
-        .add("ufsFingerprint", mUfsFingerprint);
+        .add("ufsFingerprint", mUfsFingerprint)
+        .add("xAttr", mXAttr);
   }
 
   protected InodeMeta.Inode.Builder toProtoBuilder() {
@@ -576,7 +598,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .setPersistenceState(getPersistenceState().name())
         .setIsPinned(isPinned())
         .setAccessAcl(ProtoUtils.toProto(getACL()))
-        .setUfsFingerprint(getUfsFingerprint());
+        .setUfsFingerprint(getUfsFingerprint())
+        .putAllXAttr(getXAttr());
   }
 
   /**

@@ -11,7 +11,7 @@ import "proto/shared/acl.proto";
  * General inode metadata. This includes most inode metadata, but does not include the inode's
  * children or time of last modification.
  *
- * next available id: 27
+ * next available id: 28
  */
 message Inode {
     optional int64 id = 1;
@@ -48,4 +48,8 @@ message Inode {
     // Used for recovering in-progress file persist jobs on master start.
     optional int64 persist_job_id = 23;
     optional string persist_job_temp_ufs_path = 24;
+
+    // Extended attributes, general purpose. Should be used with care as strings will use a comparatively large amount
+    // of memory
+    map<string, string> xAttr = 27;
 }

@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import java.util.Map;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -18,16 +20,20 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class UfsDirectoryStatus extends UfsStatus {
+
   /**
-   * Creates new instance of {@link UfsDirectoryStatus} without providing last modified time.
+   * Creates new instance of {@link UfsDirectoryStatus}.
    *
    * @param name relative path of directory
    * @param owner of the directory
    * @param group of the directory
    * @param mode of the directory
+   * @param lastModifiedTimeMs of the directory
+   * @param xAttr extended attributes, if any
    */
-  public UfsDirectoryStatus(String name, String owner, String group, short mode) {
-    super(name, true, owner, group, mode, null);
+  public UfsDirectoryStatus(String name, String owner, String group, short mode,
+      long lastModifiedTimeMs, Map<String, String> xAttr) {
+    super(name, true, owner, group, mode, lastModifiedTimeMs, xAttr);
   }
 
   /**
@@ -41,7 +47,20 @@ public class UfsDirectoryStatus extends UfsStatus {
    */
   public UfsDirectoryStatus(String name, String owner, String group, short mode,
       long lastModifiedTimeMs) {
-    super(name, true, owner, group, mode, lastModifiedTimeMs);
+    super(name, true, owner, group, mode, lastModifiedTimeMs, null);
+  }
+
+  /**
+   * Creates new instance of {@link UfsDirectoryStatus} without providing last modified time or
+   * extended attributes.
+   *
+   * @param name relative path of directory
+   * @param owner of the directory
+   * @param group of the directory
+   * @param mode of the directory
+   */
+  public UfsDirectoryStatus(String name, String owner, String group, short mode) {
+    super(name, true, owner, group, mode, null, null);
   }
 
   /**
