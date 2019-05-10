@@ -26,9 +26,9 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -152,21 +152,19 @@ public interface JournalSystem {
    * @param master the master for which to add the journal sink
    * @param journalSink the journal sink to add
    */
-  default void addJournalSink(Master master, JournalSink journalSink) {}
+  void addJournalSink(Master master, JournalSink journalSink);
 
   /**
    * @param master the master from which to remove the journal sink
    * @param journalSink the journal sink to remove
    */
-  default void removeJournalSink(Master master, JournalSink journalSink) {}
+  void removeJournalSink(Master master, JournalSink journalSink);
 
   /**
-   * @param master the master from which to remove the journal sink
+   * @param master the master to get the journal sinks for, or null to get all sinks
    * @return a set of {@link JournalSink} for the given master, or all sinks if master is null
    */
-  default Set<JournalSink> getJournalSinks(Master master) {
-    return Collections.emptySet();
-  }
+  Set<JournalSink> getJournalSinks(@Nullable Master master);
 
   /**
    * Returns whether the journal is formatted and has not had any entries written to it yet. This

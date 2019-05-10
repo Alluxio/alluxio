@@ -14,6 +14,7 @@ package alluxio.master.journal;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.master.Master;
 import alluxio.master.journal.sink.JournalSink;
+import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -58,55 +60,38 @@ public abstract class AbstractJournalSystem implements JournalSystem {
 
   @Override
   public void addJournalSink(Master master, JournalSink journalSink) {
-    mSinkLock.writeLock().lock();
-    try {
-      mJournalSinks.compute(master.getName(), (key, entry) -> {
-        if (entry == null) {
-          Set<JournalSink> s = new HashSet<>();
-          s.add(journalSink);
-          return s;
-        } else {
-          entry.add(journalSink);
-          return entry;
-        }
-      });
+    try (LockResource r = new LockResource(mSinkLock.writeLock())) {
+      mJournalSinks.computeIfAbsent(master.getName(), (key) -> new HashSet<>()).add(journalSink);
       mAllJournalSinks.add(journalSink);
-    } finally {
-      mSinkLock.writeLock().unlock();
     }
   }
 
   @Override
   public void removeJournalSink(Master master, JournalSink journalSink) {
-    mSinkLock.writeLock().lock();
-    try {
-      mJournalSinks.computeIfPresent(master.getName(), (key, entry) -> {
-        if (entry != null) {
-          entry.remove(journalSink);
-          return entry;
+    try (LockResource r = new LockResource(mSinkLock.writeLock())) {
+      Set<JournalSink> sinks = mJournalSinks.get(master.getName());
+      if (sinks != null) {
+        sinks.remove(journalSink);
+        if (sinks.isEmpty()) {
+          mJournalSinks.remove(master.getName());
         }
-        return null;
-      });
-      // Compute the full set of sinks on removal.
-      mAllJournalSinks.clear();
-      for (Set<JournalSink> sinks : mJournalSinks.values()) {
-        mAllJournalSinks.addAll(sinks);
       }
-    } finally {
-      mSinkLock.writeLock().unlock();
+      // Compute the full set of sinks on removal. Simply removing it may be incorrect, if the same
+      // sink is associated with other masters.
+      mAllJournalSinks.clear();
+      for (Set<JournalSink> s : mJournalSinks.values()) {
+        mAllJournalSinks.addAll(s);
+      }
     }
   }
 
   @Override
-  public Set<JournalSink> getJournalSinks(Master master) {
-    mSinkLock.readLock().lock();
-    try {
+  public Set<JournalSink> getJournalSinks(@Nullable Master master) {
+    try (LockResource r = new LockResource(mSinkLock.readLock())) {
       if (master == null) {
         return mAllJournalSinks;
       }
       return mJournalSinks.getOrDefault(master.getName(), Collections.emptySet());
-    } finally {
-      mSinkLock.readLock().unlock();
     }
   }
 

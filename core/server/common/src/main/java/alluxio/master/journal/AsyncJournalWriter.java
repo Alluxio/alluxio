@@ -146,11 +146,6 @@ public final class AsyncJournalWriter {
    */
   private volatile boolean mStopFlushing = false;
 
-  /**
-   * Collection of sinks for this journal.
-   */
-//  private final Set<JournalSink> mJournalSinks = new ConcurrentHashSet<>();
-
   /** A supplier of journal sinks for this journal writer. */
   private final Supplier<Set<JournalSink>> mJournalSinks;
 
