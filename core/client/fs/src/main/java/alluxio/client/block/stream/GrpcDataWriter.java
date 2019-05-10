@@ -128,7 +128,7 @@ public final class GrpcDataWriter implements DataWriter {
 
     WriteRequestCommand.Builder builder =
         WriteRequestCommand.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type)
-            .setMediumType(options.getWriteMedium());
+            .setMediumType(options.getMediumType());
     if (type == RequestType.UFS_FILE) {
       Protocol.CreateUfsFileOptions ufsFileOptions =
           Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())

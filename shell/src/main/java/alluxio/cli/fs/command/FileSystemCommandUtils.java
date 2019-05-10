@@ -60,10 +60,10 @@ public final class FileSystemCommandUtils {
    * @param pinned the state to be set
    */
   public static void setPinned(FileSystem fs, AlluxioURI path, boolean pinned,
-      List<String> pinnedMedia)
+      List<String> mediumTypes)
       throws AlluxioException, IOException {
     SetAttributePOptions options = SetAttributePOptions.newBuilder().setPinned(pinned)
-        .addAllPinnedMedia(pinnedMedia)
+        .addAllPinnedMedia(mediumTypes)
         .build();
     fs.setAttribute(path, options);
   }

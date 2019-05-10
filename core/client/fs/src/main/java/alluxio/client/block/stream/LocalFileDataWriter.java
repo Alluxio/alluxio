@@ -83,7 +83,7 @@ public final class LocalFileDataWriter implements DataWriter {
       CreateLocalBlockRequest.Builder builder =
           CreateLocalBlockRequest.newBuilder().setBlockId(blockId)
               .setTier(options.getWriteTier()).setSpaceToReserve(fileBufferByes)
-              .setMediumType(options.getWriteMedium());
+              .setMediumType(options.getMediumType());
       if (options.getWriteType() == WriteType.ASYNC_THROUGH
           && conf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
         builder.setCleanupOnFailure(false);

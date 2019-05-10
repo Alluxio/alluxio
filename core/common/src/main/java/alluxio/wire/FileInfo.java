@@ -45,7 +45,7 @@ public final class FileInfo implements Serializable {
   private boolean mCompleted;
   private boolean mFolder;
   private boolean mPinned;
-  private List<String> mPinnedLocation = new ArrayList<>();
+  private List<String> mMediumTypes = new ArrayList<>();
   private boolean mCacheable;
   private boolean mPersisted;
   private ArrayList<Long> mBlockIds = new ArrayList<>();
@@ -302,8 +302,8 @@ public final class FileInfo implements Serializable {
   /**
    * @return a list of pinned locations
    */
-  public List<String> getPinnedLocation() {
-    return mPinnedLocation;
+  public List<String> getMediumTypes() {
+    return mMediumTypes;
   }
 
   /**
@@ -584,11 +584,11 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param pinnedLocation the pinned locations
+   * @param mediumTypes the pinned locations
    * @return the file information
    */
-  public FileInfo setPinnedLocation(List<String> pinnedLocation) {
-    mPinnedLocation = pinnedLocation;
+  public FileInfo setMediumTypes(List<String> mediumTypes) {
+    mMediumTypes = mediumTypes;
     return this;
   }
 
@@ -616,7 +616,7 @@ public final class FileInfo implements Serializable {
         && mUfsFingerprint.equals(that.mUfsFingerprint)
         && Objects.equal(mAcl, that.mAcl)
         && Objects.equal(mDefaultAcl, that.mDefaultAcl)
-        && Objects.equal(mPinnedLocation, that.mPinnedLocation);
+        && Objects.equal(mMediumTypes, that.mMediumTypes);
   }
 
   @Override
@@ -625,7 +625,7 @@ public final class FileInfo implements Serializable {
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode, mReplicationMax,
         mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction,
-        mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mPinnedLocation);
+        mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes);
   }
 
   @Override
@@ -636,7 +636,7 @@ public final class FileInfo implements Serializable {
         .add("path", mPath)
         .add("ufsPath", mUfsPath).add("length", mLength).add("blockSizeBytes", mBlockSizeBytes)
         .add("creationTimeMs", mCreationTimeMs).add("completed", mCompleted).add("folder", mFolder)
-        .add("pinned", mPinned).add("pinnedlocation", mPinnedLocation)
+        .add("pinned", mPinned).add("pinnedlocation", mMediumTypes)
         .add("cacheable", mCacheable).add("persisted", mPersisted)
         .add("blockIds", mBlockIds).add("inMemoryPercentage", mInMemoryPercentage)
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)

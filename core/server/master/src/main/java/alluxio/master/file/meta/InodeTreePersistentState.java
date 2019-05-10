@@ -56,6 +56,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -389,15 +390,14 @@ public class InodeTreePersistentState implements Journaled {
       if (entry.getPinned()) {
         MutableInodeFile file = inode.asFile();
         List<String> mediaList = ServerConfiguration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIA, ",");
-        if (entry.getPinnedMediaList().isEmpty()) {
-          BitSet pinLocation = file.getPinnedLocation();
-          pinLocation.set(0, pinLocation.size());
+        if (entry.getMediumTypeList().isEmpty()) {
+          // if user does not specify a pinned media list, any location is OK
+          file.setMediumTypes(new HashSet<>());
         } else {
-          for (String medium : entry.getPinnedMediaList()) {
+          for (String medium : entry.getMediumTypeList()) {
             int index = mediaList.indexOf(medium);
-            BitSet pinLocation = file.getPinnedLocation();
             if (index != -1) {
-              pinLocation.set(index);
+              file.getMediumTypes().add(medium);
             }
           }
         }

@@ -54,7 +54,7 @@ public final class OutStreamOptions {
   private int mReplicationMin;
   private String mUfsPath;
   private long mMountId;
-  private String mWriteMedium;
+  private String mMediumType;
 
   /**
    * @param alluxioConf Alluxio configuration
@@ -120,14 +120,14 @@ public final class OutStreamOptions {
     mReplicationMax = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
     mReplicationMin = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
     List<String> mediaList = alluxioConf.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIA, ",");
-    mWriteMedium = mediaList.isEmpty() ? "" : mediaList.get(0);
+    mMediumType = mediaList.isEmpty() ? "" : mediaList.get(0);
   }
 
   /**
    * @return the write medium type
    */
-  public String getWriteMedium() {
-    return mWriteMedium;
+  public String getMediumType() {
+    return mMediumType;
   }
 
   /**
@@ -257,8 +257,8 @@ public final class OutStreamOptions {
    * @param mediumType write medium type
    * @return the updated options object
    */
-  public OutStreamOptions setWriteMedium(String mediumType) {
-    mWriteMedium = mediumType;
+  public OutStreamOptions setMediumType(String mediumType) {
+    mMediumType = mediumType;
     return this;
   }
 
@@ -433,7 +433,8 @@ public final class OutStreamOptions {
         && Objects.equal(mReplicationMin, that.mReplicationMin)
         && Objects.equal(mUfsPath, that.mUfsPath)
         && Objects.equal(mWriteTier, that.mWriteTier)
-        && Objects.equal(mWriteType, that.mWriteType);
+        && Objects.equal(mWriteType, that.mWriteType)
+        && Objects.equal(mMediumType, that.mMediumType);
   }
 
   @Override
@@ -453,7 +454,8 @@ public final class OutStreamOptions {
         mReplicationMin,
         mUfsPath,
         mWriteTier,
-        mWriteType
+        mWriteType,
+        mMediumType
     );
   }
 
@@ -475,6 +477,7 @@ public final class OutStreamOptions {
         .add("replicationDurable", mReplicationDurable)
         .add("replicationMax", mReplicationMax)
         .add("replicationMin", mReplicationMin)
+        .add("mediumType", mMediumType)
         .toString();
   }
 }

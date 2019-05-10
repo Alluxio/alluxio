@@ -49,8 +49,8 @@ public final class PinCommand extends AbstractFileSystemCommand {
       throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     // args[0] is the path, args[1] to args[end] is the list of possible media to pin
-    List<String> pinnedMedia = Arrays.asList(Arrays.copyOfRange(args, 1, args.length));
-    FileSystemCommandUtils.setPinned(mFileSystem, path, true, pinnedMedia);
+    List<String> mediumTypes = Arrays.asList(Arrays.copyOfRange(args, 1, args.length));
+    FileSystemCommandUtils.setPinned(mFileSystem, path, true, mediumTypes);
     System.out.println("File '" + path + "' was successfully pinned.");
   }
 

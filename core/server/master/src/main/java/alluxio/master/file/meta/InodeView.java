@@ -22,6 +22,7 @@ import alluxio.grpc.TtlAction;
 
 import java.util.BitSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Read-only view of an inode.
@@ -108,15 +109,11 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
    */
   boolean isPersisted();
 
-  /**
-   * @return the pinned location
-   */
-  BitSet getPinnedLocation();
 
   /**
-   * @return the pinned location list
+   * @return the pinned medium types set
    */
-  List<String> getPinnedLocationList();
+  Set<String> getMediumTypes();
 
   /**
    * @return the UFS fingerprint

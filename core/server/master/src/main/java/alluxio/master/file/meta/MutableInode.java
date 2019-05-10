@@ -35,7 +35,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -58,7 +60,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private long mParentId;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
-  private BitSet mPinnedLocation;
+  private Set<String> mMediumTypes;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
 
@@ -74,8 +76,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mParentId = InodeTree.NO_PARENT;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
-    List<String> mediaList = ServerConfiguration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIA, ",");
-    mPinnedLocation = new BitSet(mediaList.size());
+    mMediumTypes = new HashSet<>();
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
   }
@@ -171,17 +172,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   @Override
-  public BitSet getPinnedLocation() { return mPinnedLocation; }
-
-  @Override
-  public List<String> getPinnedLocationList() {
-    List<String> mediaList = ServerConfiguration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIA, ",");
-    Preconditions.checkState(mPinnedLocation.size() == mediaList.size());
-    List<String> pinnedList = new ArrayList<>();
-    for (int i = mPinnedLocation.nextSetBit(0); i >= 0; i = mPinnedLocation.nextSetBit(i + 1)) {
-      pinnedList.add(mediaList.get(i));
-    }
-    return pinnedList;
+  public Set<String> getMediumTypes() {
+    return mMediumTypes;
   }
 
   /**
@@ -452,8 +444,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     return getThis();
   }
 
-  public T setPinnedLocation(BitSet pinnedLocation) {
-    mPinnedLocation = pinnedLocation;
+  public T setMediumTypes(Set<String> mediumTypes) {
+    mMediumTypes = mediumTypes;
     return getThis();
   }
 
@@ -528,6 +520,9 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.hasMode()) {
       setMode((short) entry.getMode());
     }
+    if (entry.getMediumTypeCount() != 0) {
+      setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+    }
     if (entry.hasName()) {
       setName(entry.getName());
     }
@@ -551,6 +546,9 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     }
     if (entry.hasUfsFingerprint()) {
       setUfsFingerprint(entry.getUfsFingerprint());
+    }
+    if (entry.getMediumTypeCount() != 0) {
+      setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
     }
   }
 
@@ -587,7 +585,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .add("owner", mAcl.getOwningUser())
         .add("group", mAcl.getOwningGroup())
         .add("permission", mAcl.getMode())
-        .add("ufsFingerprint", mUfsFingerprint);
+        .add("ufsFingerprint", mUfsFingerprint)
+        .add("mediatypes", mMediumTypes);
   }
 
   protected InodeMeta.Inode.Builder toProtoBuilder() {
@@ -603,7 +602,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .setPersistenceState(getPersistenceState().name())
         .setIsPinned(isPinned())
         .setAccessAcl(ProtoUtils.toProto(getACL()))
-        .setUfsFingerprint(getUfsFingerprint());
+        .setUfsFingerprint(getUfsFingerprint())
+        .addAllMediumType(getMediumTypes());
   }
 
   /**

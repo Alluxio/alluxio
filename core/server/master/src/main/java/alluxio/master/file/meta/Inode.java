@@ -24,6 +24,7 @@ import com.google.common.base.Preconditions;
 
 import java.util.BitSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Base class for read only inodes.
@@ -131,10 +132,7 @@ public abstract class Inode implements InodeView {
   }
 
   @Override
-  public BitSet getPinnedLocation() { return mDelegate.getPinnedLocation(); }
-
-  @Override
-  public List<String> getPinnedLocationList() { return mDelegate.getPinnedLocationList(); }
+  public Set<String> getMediumTypes() { return mDelegate.getMediumTypes(); }
 
   @Override
   public FileInfo generateClientFileInfo(String path) {

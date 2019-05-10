@@ -1629,7 +1629,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_MEDIA =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIA)
           .setDefaultValue("MEM, SSD, HDD")
-          .setDescription("The list of medias we support in the system.")
+          .setDescription("The list of media we support in the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();

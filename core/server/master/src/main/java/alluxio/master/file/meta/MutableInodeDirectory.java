@@ -25,6 +25,8 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * Alluxio file system's directory representation in the file system master.
@@ -138,6 +140,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
     ret.setAcl(mAcl);
     ret.setDefaultAcl(mDefaultAcl);
+    ret.setMediumTypes(new ArrayList<>(getMediumTypes()));
     return ret;
   }
 
@@ -200,6 +203,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     } else {
       ret.mDefaultAcl = new DefaultAccessControlList();
     }
+
+    ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
     return ret;
   }
 
@@ -244,6 +249,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
         .setAcl(ProtoUtils.toProto(mAcl))
         .setDefaultAcl(ProtoUtils.toProto(mDefaultAcl))
+        .addAllMediumType(getMediumTypes())
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }
@@ -277,6 +283,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setMountPoint(inode.getIsMountPoint())
         .setDirectChildrenLoaded(inode.getHasDirectChildrenLoaded())
         .setChildCount(inode.getChildCount())
-        .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()));
+        .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()))
+        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
   }
 }
