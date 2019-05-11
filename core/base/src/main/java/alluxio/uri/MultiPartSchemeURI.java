@@ -82,7 +82,6 @@ public final class MultiPartSchemeURI extends StandardURI {
    * @param uriScheme the scheme of the URI
    * @return the combined scheme
    */
-
   @Nullable
   private String getFullScheme(String schemePrefix, String uriScheme) {
     if (uriScheme == null) {
