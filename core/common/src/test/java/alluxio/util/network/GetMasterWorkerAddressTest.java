@@ -17,7 +17,9 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+
 import org.junit.Test;
+
 import java.net.InetSocketAddress;
 
 /**
