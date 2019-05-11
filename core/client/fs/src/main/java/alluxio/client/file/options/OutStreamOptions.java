@@ -31,7 +31,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.List;
 
 /**
  * Method options for writing a file.
