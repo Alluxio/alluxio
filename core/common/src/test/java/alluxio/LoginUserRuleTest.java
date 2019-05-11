@@ -11,12 +11,13 @@
 
 package alluxio;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.conf.InstancedConfiguration;
 import alluxio.security.LoginUser;
 import alluxio.security.LoginUserTestUtils;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runners.model.Statement;
 
@@ -33,9 +34,9 @@ public final class LoginUserRuleTest {
   private final Statement mStatement = new Statement() {
     @Override
     public void evaluate() throws Throwable {
-      Assert.assertEquals(RULE_USER, LoginUser.get(mConfiguration).getName());
+      assertEquals(RULE_USER, LoginUser.get(mConfiguration).getName());
       LoginUserTestUtils.resetLoginUser(TESTCASE_USER);
-      Assert.assertEquals(TESTCASE_USER, LoginUser.get(mConfiguration).getName());
+      assertEquals(TESTCASE_USER, LoginUser.get(mConfiguration).getName());
     }
   };
 
@@ -48,7 +49,7 @@ public final class LoginUserRuleTest {
   public void userSetBeforeRule() throws Throwable {
     LoginUserTestUtils.resetLoginUser(OUTSIDE_RULE_USER);
     new LoginUserRule(RULE_USER, mConfiguration).apply(mStatement, null).evaluate();
-    Assert.assertEquals(OUTSIDE_RULE_USER, LoginUser.get(mConfiguration).getName());
+    assertEquals(OUTSIDE_RULE_USER, LoginUser.get(mConfiguration).getName());
   }
 
   @Test
@@ -56,6 +57,6 @@ public final class LoginUserRuleTest {
     LoginUserTestUtils.resetLoginUser();
     String user = LoginUser.get(mConfiguration).getName();
     new LoginUserRule(RULE_USER, mConfiguration).apply(mStatement, null).evaluate();
-    Assert.assertEquals(user, LoginUser.get(mConfiguration).getName());
+    assertEquals(user, LoginUser.get(mConfiguration).getName());
   }
 }

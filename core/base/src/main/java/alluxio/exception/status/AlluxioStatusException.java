@@ -30,6 +30,7 @@ import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 
 import com.google.common.base.Preconditions;
+import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 
@@ -40,7 +41,7 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
 
 /**
- * An exception thrown by Alluxio. {@link #getStatus()} can be used to determine the represented
+ * An exception thrown by Alluxio. {@link #getStatusCode()} can be used to determine the represented
  * class of error.
  */
 public class AlluxioStatusException extends IOException {
@@ -50,37 +51,24 @@ public class AlluxioStatusException extends IOException {
 
   /**
    * @param status the status code for this exception
-   * @param message the exception message
    */
-  public AlluxioStatusException(Status status, String message) {
-    super(message);
+  public AlluxioStatusException(Status status) {
+    super(status.getDescription(), status.getCause());
     mStatus = status;
   }
 
   /**
-   * @param status the status code for this exception
-   * @param cause the cause of the exception
+   * @return the internal status for this exception
    */
-  public AlluxioStatusException(Status status, Throwable cause) {
-    super(cause.getMessage(), cause);
-    mStatus = status;
-  }
-
-  /**
-   * @param status the status code for this exception
-   * @param message the exception message
-   * @param cause the cause of the exception
-   */
-  public AlluxioStatusException(Status status, String message, Throwable cause) {
-    super(message, cause);
-    mStatus = status;
+  public Status getStatus() {
+    return mStatus;
   }
 
   /**
    * @return the status code for this exception
    */
-  public Status getStatus() {
-    return mStatus;
+  public Status.Code getStatusCode() {
+    return mStatus.getCode();
   }
 
   /**
@@ -88,14 +76,14 @@ public class AlluxioStatusException extends IOException {
    *         otherwise return a generic {@link AlluxioException}
    */
   public AlluxioException toAlluxioException() {
-    switch (mStatus) {
+    switch (mStatus.getCode()) {
       // Fall throughs are intentional.
       case PERMISSION_DENIED:
       case UNAUTHENTICATED:
         return new AccessControlException(getMessage(), this);
       case ABORTED:
       case ALREADY_EXISTS:
-      case CANCELED:
+      case CANCELLED:
       case DATA_LOSS:
       case DEADLINE_EXCEEDED:
       case FAILED_PRECONDITION:
@@ -116,8 +104,7 @@ public class AlluxioStatusException extends IOException {
    * @return a gRPC status exception representation of this exception
    */
   public StatusException toGrpcStatusException() {
-    return io.grpc.Status.fromCode(mStatus.toGrpcCode()).withDescription(getMessage())
-        .asException();
+    return mStatus.asException();
   }
 
   /**
@@ -125,93 +112,46 @@ public class AlluxioStatusException extends IOException {
    * The status must not be null or {@link Status#OK}.
    *
    * @param status the status
-   * @param m the message
    * @return an {@link AlluxioStatusException} for the given status and message
    */
-  public static AlluxioStatusException from(Status status, String m) {
+  public static AlluxioStatusException from(Status status) {
     Preconditions.checkNotNull(status, "status");
     Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
-    switch (status) {
-      case CANCELED:
-        return new CanceledException(m);
+    String message = status.getDescription();
+    Throwable cause = status.getCause();
+    switch (status.getCode()) {
+      case CANCELLED:
+        return new CancelledException(message, cause);
       case INVALID_ARGUMENT:
-        return new InvalidArgumentException(m);
+        return new InvalidArgumentException(message, cause);
       case DEADLINE_EXCEEDED:
-        return new DeadlineExceededException(m);
+        return new DeadlineExceededException(message, cause);
       case NOT_FOUND:
-        return new NotFoundException(m);
+        return new NotFoundException(message, cause);
       case ALREADY_EXISTS:
-        return new AlreadyExistsException(m);
+        return new AlreadyExistsException(message, cause);
       case PERMISSION_DENIED:
-        return new PermissionDeniedException(m);
+        return new PermissionDeniedException(message, cause);
       case UNAUTHENTICATED:
-        return new UnauthenticatedException(m);
+        return new UnauthenticatedException(message, cause);
       case RESOURCE_EXHAUSTED:
-        return new ResourceExhaustedException(m);
+        return new ResourceExhaustedException(message, cause);
       case FAILED_PRECONDITION:
-        return new FailedPreconditionException(m);
+        return new FailedPreconditionException(message, cause);
       case ABORTED:
-        return new AbortedException(m);
+        return new AbortedException(message, cause);
       case OUT_OF_RANGE:
-        return new OutOfRangeException(m);
+        return new OutOfRangeException(message, cause);
       case UNIMPLEMENTED:
-        return new UnimplementedException(m);
+        return new UnimplementedException(message, cause);
       case INTERNAL:
-        return new InternalException(m);
+        return new InternalException(message, cause);
       case UNAVAILABLE:
-        return new UnavailableException(m);
+        return new UnavailableException(message, cause);
       case DATA_LOSS:
-        return new DataLossException(m);
+        return new DataLossException(message, cause);
       default:
-        return new UnknownException(m);
-    }
-  }
-
-  /**
-   * Converts an Alluxio exception from status and message representation to native representation.
-   * The status must not be null or {@link Status#OK}.
-   *
-   * @param status the status
-   * @param m the message
-   * @param cause the cause
-   * @return an {@link AlluxioStatusException} for the given status and message
-   */
-  public static AlluxioStatusException from(Status status, String m, Throwable cause) {
-    Preconditions.checkNotNull(status, "status");
-    Preconditions.checkArgument(status != Status.OK, "OK is not an error status");
-    switch (status) {
-      case CANCELED:
-        return new CanceledException(m, cause);
-      case INVALID_ARGUMENT:
-        return new InvalidArgumentException(m, cause);
-      case DEADLINE_EXCEEDED:
-        return new DeadlineExceededException(m, cause);
-      case NOT_FOUND:
-        return new NotFoundException(m, cause);
-      case ALREADY_EXISTS:
-        return new AlreadyExistsException(m, cause);
-      case PERMISSION_DENIED:
-        return new PermissionDeniedException(m, cause);
-      case UNAUTHENTICATED:
-        return new UnauthenticatedException(m, cause);
-      case RESOURCE_EXHAUSTED:
-        return new ResourceExhaustedException(m, cause);
-      case FAILED_PRECONDITION:
-        return new FailedPreconditionException(m, cause);
-      case ABORTED:
-        return new AbortedException(m, cause);
-      case OUT_OF_RANGE:
-        return new OutOfRangeException(m, cause);
-      case UNIMPLEMENTED:
-        return new UnimplementedException(m, cause);
-      case INTERNAL:
-        return new InternalException(m, cause);
-      case UNAVAILABLE:
-        return new UnavailableException(m, cause);
-      case DATA_LOSS:
-        return new DataLossException(m, cause);
-      default:
-        return new UnknownException(m, cause);
+        return new UnknownException(message, cause);
     }
   }
 
@@ -231,7 +171,7 @@ public class AlluxioStatusException extends IOException {
     } catch (AlluxioException e) {
       return fromAlluxioException(e);
     } catch (InterruptedException e) {
-      return new CanceledException(e);
+      return new CancelledException(e);
     } catch (RuntimeException e) {
       throw new IllegalStateException("Expected a checked exception but got " + e);
     } catch (Exception e) {
@@ -266,8 +206,7 @@ public class AlluxioStatusException extends IOException {
    * @return the converted {@link AlluxioStatusException}
    */
   public static AlluxioStatusException fromStatusRuntimeException(StatusRuntimeException e) {
-    return AlluxioStatusException.from(Status.from(e.getStatus().getCode()),
-        e.getStatus().getDescription(), e);
+    return AlluxioStatusException.from(e.getStatus().withCause(e));
   }
 
   /**

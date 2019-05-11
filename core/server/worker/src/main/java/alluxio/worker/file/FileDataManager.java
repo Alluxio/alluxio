@@ -266,7 +266,7 @@ public final class FileDataManager {
         mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       String dstPath = prepareUfsFilePath(fileInfo, ufs);
-      OutputStream outputStream = ufs.create(dstPath,
+      OutputStream outputStream = ufs.createNonexistingFile(dstPath,
           CreateOptions.defaults(ServerConfiguration.global())
           .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
           .setMode(new Mode((short) fileInfo.getMode())));

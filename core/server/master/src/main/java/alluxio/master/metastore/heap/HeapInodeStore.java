@@ -48,11 +48,6 @@ public class HeapInodeStore implements InodeStore {
   private final TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>> mEdges =
       new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>(4));
 
-  /**
-   * @param args inode store arguments
-   */
-  public HeapInodeStore(InodeStoreArgs args) {}
-
   @Override
   public void remove(Long inodeId) {
     mInodes.remove(inodeId);

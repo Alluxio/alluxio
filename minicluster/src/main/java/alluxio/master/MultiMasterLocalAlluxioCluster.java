@@ -82,8 +82,8 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     setAlluxioWorkDirectory();
     setHostname();
     for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
-        .testConfigurationDefaults(ServerConfiguration.global(), mHostname, mWorkDirectory)
-        .entrySet()) {
+        .testConfigurationDefaults(ServerConfiguration.global(),
+            mHostname, mWorkDirectory).entrySet()) {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, 0);
@@ -109,7 +109,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @return the URI of the master
    */
   public String getUri() {
-    return Constants.HEADER_FT + mHostname + ":" + getLocalAlluxioMaster().getRpcLocalPort();
+    return Constants.HEADER + "zk@" + mCuratorServer.getConnectString();
   }
 
   @Override
@@ -239,7 +239,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     String path = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     if (ufs.isDirectory(path)) {
-      ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true));
+      ufs.deleteExistingDirectory(path, DeleteOptions.defaults().setRecursive(true));
     }
     if (!ufs.mkdirs(path)) {
       throw new IOException("Failed to make folder: " + path);

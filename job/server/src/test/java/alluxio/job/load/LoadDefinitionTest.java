@@ -11,6 +11,8 @@
 
 package alluxio.job.load;
 
+import static org.mockito.Matchers.any;
+
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.block.AlluxioBlockStore;
@@ -19,8 +21,10 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.ServerConfiguration;
-import alluxio.job.JobMasterContext;
+import alluxio.job.JobServerContext;
+import alluxio.job.SelectExecutorsContext;
 import alluxio.job.load.LoadDefinition.LoadTask;
+import alluxio.underfs.UfsManager;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
@@ -49,7 +53,7 @@ import java.util.Map;
  * Tests {@link LoadDefinition}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystem.class, JobMasterContext.class, FileSystemContext.class,
+@PrepareForTest({FileSystem.class, JobServerContext.class, FileSystemContext.class,
     AlluxioBlockStore.class})
 public class LoadDefinitionTest {
   private static final String TEST_URI = "/test";
@@ -67,27 +71,27 @@ public class LoadDefinitionTest {
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host2"), 0, 0))
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host3"), 0, 0)).build();
 
+  private JobServerContext mJobServerContext;
   private FileSystem mMockFileSystem;
   private AlluxioBlockStore mMockBlockStore;
-  private JobMasterContext mMockJobMasterContext;
   private FileSystemContext mMockFsContext;
 
   @Before
   public void before() throws Exception {
-    mMockJobMasterContext = Mockito.mock(JobMasterContext.class);
     mMockFileSystem = PowerMockito.mock(FileSystem.class);
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mMockFsContext = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    PowerMockito.when(AlluxioBlockStore.create(Mockito.any(FileSystemContext.class)))
+    PowerMockito.when(AlluxioBlockStore.create(any(FileSystemContext.class)))
         .thenReturn(mMockBlockStore);
     Mockito.when(mMockBlockStore.getAllWorkers()).thenReturn(BLOCK_WORKERS);
     PowerMockito.when(mMockFsContext.getClientContext())
         .thenReturn(ClientContext.create(ServerConfiguration.global()));
-    PowerMockito.when(mMockFsContext.getConf())
+    PowerMockito.when(mMockFsContext.getClusterConf()).thenReturn(ServerConfiguration.global());
+    PowerMockito.when(mMockFsContext.getPathConf(any(AlluxioURI.class)))
         .thenReturn(ServerConfiguration.global());
-    Mockito.when(mMockJobMasterContext.getFileSystem()).thenReturn(mMockFileSystem);
-    Mockito.when(mMockJobMasterContext.getFsContext()).thenReturn(mMockFsContext);
+    mJobServerContext = new JobServerContext(mMockFileSystem, mMockFsContext,
+        Mockito.mock(UfsManager.class));
   }
 
   @Test
@@ -98,7 +102,7 @@ public class LoadDefinitionTest {
     LoadConfig config = new LoadConfig(TEST_URI, replication);
     Map<WorkerInfo, ArrayList<LoadTask>> assignments =
         new LoadDefinition().selectExecutors(config,
-            JOB_WORKERS, mMockJobMasterContext);
+            JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
     // Check that we are loading the right number of blocks.
     int totalBlockLoads = 0;
     for (List<LoadTask> blocks : assignments.values()) {
@@ -115,8 +119,8 @@ public class LoadDefinitionTest {
     createFileWithNoLocations(TEST_URI, 10);
     LoadConfig config = new LoadConfig(TEST_URI, 1);
     Map<WorkerInfo, ArrayList<LoadTask>> assignments =
-        new LoadDefinition().selectExecutors(config,
-            JOB_WORKERS, mMockJobMasterContext);
+        new LoadDefinition().selectExecutors(config, JOB_WORKERS,
+            new SelectExecutorsContext(1, mJobServerContext));
     Assert.assertEquals(1, assignments.size());
     Assert.assertEquals(10, assignments.values().iterator().next().size());
   }
@@ -126,8 +130,8 @@ public class LoadDefinitionTest {
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 5); // set replication to 5
     try {
-      new LoadDefinition().selectExecutors(config,
-          JOB_WORKERS, mMockJobMasterContext);
+      new LoadDefinition().selectExecutors(config, JOB_WORKERS,
+          new SelectExecutorsContext(1, mJobServerContext));
       Assert.fail();
     } catch (Exception e) {
       Assert.assertThat(e.getMessage(), CoreMatchers.containsString(
@@ -145,7 +149,7 @@ public class LoadDefinitionTest {
     LoadConfig config = new LoadConfig(TEST_URI, 2); // set replication to 2
     try {
       new LoadDefinition().selectExecutors(config,
-          JOB_WORKERS, mMockJobMasterContext);
+          JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
       Assert.fail();
     } catch (Exception e) {
       Assert.assertThat(e.getMessage(),

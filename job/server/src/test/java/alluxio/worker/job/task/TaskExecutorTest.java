@@ -14,7 +14,8 @@ package alluxio.worker.job.task;
 import alluxio.job.JobConfig;
 import alluxio.job.JobDefinition;
 import alluxio.job.JobDefinitionRegistry;
-import alluxio.job.JobWorkerContext;
+import alluxio.job.JobServerContext;
+import alluxio.job.RunTaskContext;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -32,7 +33,7 @@ import java.io.Serializable;
  * Tests {@link TaskExecutor}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TaskExecutorManager.class, JobDefinitionRegistry.class, JobWorkerContext.class})
+@PrepareForTest({TaskExecutorManager.class, JobDefinitionRegistry.class, JobServerContext.class})
 public final class TaskExecutorTest {
   private TaskExecutorManager mTaskExecutorManager;
   private JobDefinitionRegistry mRegistry;
@@ -50,14 +51,14 @@ public final class TaskExecutorTest {
     int taskId = 2;
     JobConfig jobConfig = Mockito.mock(JobConfig.class);
     Serializable taskArgs = Lists.newArrayList(1);
-    JobWorkerContext context = Mockito.mock(JobWorkerContext.class);
+    RunTaskContext context = Mockito.mock(RunTaskContext.class);
     Integer taskResult = 1;
     @SuppressWarnings("unchecked")
     JobDefinition<JobConfig, Serializable, Serializable> jobDefinition =
         Mockito.mock(JobDefinition.class);
     Mockito.when(mRegistry.getJobDefinition(jobConfig)).thenReturn(jobDefinition);
     Mockito.when(jobDefinition.runTask(Mockito.eq(jobConfig), Mockito.eq(taskArgs),
-        Mockito.any(JobWorkerContext.class))).thenReturn(taskResult);
+        Mockito.any(RunTaskContext.class))).thenReturn(taskResult);
 
     TaskExecutor executor =
         new TaskExecutor(jobId, taskId, jobConfig, taskArgs, context, mTaskExecutorManager);
@@ -73,7 +74,7 @@ public final class TaskExecutorTest {
     int taskId = 2;
     JobConfig jobConfig = Mockito.mock(JobConfig.class);
     Serializable taskArgs = Lists.newArrayList(1);
-    JobWorkerContext context = Mockito.mock(JobWorkerContext.class);
+    RunTaskContext context = Mockito.mock(RunTaskContext.class);
     @SuppressWarnings("unchecked")
     JobDefinition<JobConfig, Serializable, Serializable> jobDefinition =
         Mockito.mock(JobDefinition.class);
@@ -95,7 +96,7 @@ public final class TaskExecutorTest {
     int taskId = 2;
     JobConfig jobConfig = Mockito.mock(JobConfig.class);
     Serializable taskArgs = Lists.newArrayList(1);
-    JobWorkerContext context = Mockito.mock(JobWorkerContext.class);
+    RunTaskContext context = Mockito.mock(RunTaskContext.class);
     @SuppressWarnings("unchecked")
     JobDefinition<JobConfig, Serializable, Serializable> jobDefinition =
         Mockito.mock(JobDefinition.class);

@@ -42,9 +42,9 @@ import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
-import alluxio.master.metastore.InodeStore.InodeStoreArgs;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
+import alluxio.proto.journal.Journal;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -64,6 +64,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -122,8 +123,7 @@ public final class InodeTreeTest {
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class));
     InodeLockManager lockManager = new InodeLockManager();
-    mInodeStore = context.getInodeStoreFactory()
-        .apply(new InodeStoreArgs(lockManager, ServerConfiguration.global()));
+    mInodeStore = context.getInodeStoreFactory().apply(lockManager);
     mTree = new InodeTree(mInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);
 
     mRegistry.start(true);
@@ -739,11 +739,16 @@ public final class InodeTreeTest {
   // helper for verifying that correct objects were journaled to the output stream
   private static void verifyJournal(InodeTree root, List<MutableInode<?>> journaled) {
     Iterator<alluxio.proto.journal.Journal.JournalEntry> it = root.getJournalEntryIterator();
-    for (MutableInode<?> node : journaled) {
-      assertTrue(it.hasNext());
-      assertEquals(node.toJournalEntry(), it.next());
+    // Read entries from InodeTree.
+    List<Journal.JournalEntry> treeEntries = new LinkedList<>();
+    while (it.hasNext()) {
+      treeEntries.add(it.next());
     }
-    assertTrue(!it.hasNext());
+
+    // Validate InodeTree entries match given entries.
+    for (MutableInode<?> node : journaled) {
+      assertTrue(treeEntries.contains(node.toJournalEntry()));
+    }
   }
 
   // verify that the tree has the given children

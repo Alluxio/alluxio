@@ -130,12 +130,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
     Map<IndexDefinition<T, ?>, FieldIndex<T, ?>> indices = new HashMap<>();
 
     for (IndexDefinition<T, ?> indexDefinition : indexDefinitions) {
-      FieldIndex<T, ?> index;
-      if (indexDefinition.isUnique()) {
-        index = new UniqueFieldIndex<>(indexDefinition);
-      } else {
-        index = new NonUniqueFieldIndex<>(indexDefinition);
-      }
+      FieldIndex<T, ?> index = indexDefinition.isUnique()
+          ? new UniqueFieldIndex<>(indexDefinition) : new NonUniqueFieldIndex<>(indexDefinition);
 
       indices.put(indexDefinition, index);
     }

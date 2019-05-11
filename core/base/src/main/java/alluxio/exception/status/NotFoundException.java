@@ -11,6 +11,8 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status;
+
 /**
  * Exception indicating that some requested entity (e.g., file or directory) was not found.
  */
@@ -22,14 +24,14 @@ public class NotFoundException extends AlluxioStatusException {
    * @param message the exception message
    */
   public NotFoundException(String message) {
-    super(STATUS, message);
+    super(STATUS.withDescription(message));
   }
 
   /**
    * @param cause the cause of the exception
    */
   public NotFoundException(Throwable cause) {
-    super(STATUS, cause);
+    super(STATUS.withDescription(cause.getMessage()).withCause(cause));
   }
 
   /**
@@ -37,6 +39,6 @@ public class NotFoundException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public NotFoundException(String message, Throwable cause) {
-    super(STATUS, message, cause);
+    super(STATUS.withDescription(message).withCause(cause));
   }
 }

@@ -11,7 +11,6 @@
 
 package alluxio.master.metastore;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeView;
@@ -52,7 +51,7 @@ public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable 
 
   @Override
   default Optional<Inode> get(long id) {
-    return getMutable(id).map(inode -> Inode.wrap(inode));
+    return getMutable(id).map(Inode::wrap);
   }
 
   /**
@@ -219,38 +218,7 @@ public interface InodeStore extends ReadOnlyInodeStore, Checkpointed, Closeable 
   }
 
   /**
-   * Arguments for creating an inode store.
-   */
-  class InodeStoreArgs {
-    private final InodeLockManager mLockManager;
-    private final AlluxioConfiguration mConf;
-
-    /**
-     * @param lockManager inode lock manager
-     * @param conf configuration
-     */
-    public InodeStoreArgs(InodeLockManager lockManager, AlluxioConfiguration conf) {
-      mLockManager = lockManager;
-      mConf = conf;
-    }
-
-    /**
-     * @return the inode lock manager
-     */
-    public InodeLockManager getLockManager() {
-      return mLockManager;
-    }
-
-    /**
-     * @return the configuration
-     */
-    public AlluxioConfiguration getConf() {
-      return mConf;
-    }
-  }
-
-  /**
    * Factory for creating inode stores.
    */
-  interface Factory extends Function<InodeStoreArgs, InodeStore> {}
+  interface Factory extends Function<InodeLockManager, InodeStore> {}
 }

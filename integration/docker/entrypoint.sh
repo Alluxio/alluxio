@@ -21,6 +21,7 @@ function printUsage {
   echo -e " master [--no-format]    \t Start Alluxio master. If --no-format is specified, do not format"
   echo -e " worker [--no-format]    \t Start Alluxio worker. If --no-format is specified, do not format"
   echo -e " proxy                   \t Start Alluxio proxy"
+  echo -e " fuse                    \t Start Alluxio fuse"
 }
 
 if [[ $# -lt 1 ]]; then
@@ -57,23 +58,19 @@ alluxio_env_vars=(
   ALLUXIO_JOB_WORKER_JAVA_OPTS
 )
 
-for keyvaluepair in $(env); do
-  # split around the "="
-  key=$(echo ${keyvaluepair} | cut -d= -f1)
-  value=$(echo ${keyvaluepair} | cut -d= -f2-)
-  if [[ "${alluxio_env_vars[*]}" =~ "${key}" ]]; then
-    echo "export ${key}=${value}" >> conf/alluxio-env.sh
-  else
-    # check if property name is valid
-    if confkey=$(bin/alluxio runClass alluxio.cli.GetConfKey ${key} 2> /dev/null); then
-      echo "${confkey}=${value}" >> conf/alluxio-site.properties
+function writeConf {
+  local IFS=$'\n' # split by line instead of space
+  for keyvaluepair in $(env); do
+    # split around the first "="
+    key=$(echo ${keyvaluepair} | cut -d= -f1)
+    value=$(echo ${keyvaluepair} | cut -d= -f2-)
+    if [[ "${alluxio_env_vars[*]}" =~ "${key}" ]]; then
+      echo "export ${key}=\"${value}\"" >> conf/alluxio-env.sh
     fi
-  fi
-done
+  done
+}
 
-if [ "$ENABLE_FUSE" = true ]; then
-  integration/fuse/bin/alluxio-fuse mount /alluxio-fuse /
-fi
+writeConf
 
 case ${service,,} in
   master)
@@ -102,6 +99,10 @@ case ${service,,} in
     ;;
   proxy)
     integration/docker/bin/alluxio-proxy.sh
+    ;;
+  fuse)
+    integration/fuse/bin/alluxio-fuse mount -o allow_other /alluxio-fuse /
+    tail -f /opt/alluxio/logs/fuse.log
     ;;
   *)
     printUsage

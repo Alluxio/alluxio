@@ -11,6 +11,8 @@
 
 package alluxio.exception.status;
 
+import io.grpc.Status;
+
 /**
  * Exception indicating that some resource has been exhausted, perhaps a per-user quota, or perhaps
  * the entire file system is out of space.
@@ -23,14 +25,14 @@ public class ResourceExhaustedException extends AlluxioStatusException {
    * @param message the exception message
    */
   public ResourceExhaustedException(String message) {
-    super(STATUS, message);
+    super(STATUS.withDescription(message));
   }
 
   /**
    * @param cause the cause of the exception
    */
   public ResourceExhaustedException(Throwable cause) {
-    super(STATUS, cause);
+    super(STATUS.withDescription(cause.getMessage()).withCause(cause));
   }
 
   /**
@@ -38,6 +40,6 @@ public class ResourceExhaustedException extends AlluxioStatusException {
    * @param cause the cause of the exception
    */
   public ResourceExhaustedException(String message, Throwable cause) {
-    super(STATUS, message, cause);
+    super(STATUS.withDescription(message).withCause(cause));
   }
 }

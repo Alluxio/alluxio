@@ -194,6 +194,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/checker/bin/mapreduce-checker.sh",
 		"integration/checker/bin/spark-checker.sh",
 		"integration/docker/Dockerfile",
+		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
 		"integration/docker/bin/alluxio-master.sh",
 		"integration/docker/bin/alluxio-proxy.sh",
@@ -201,6 +202,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/fuse/bin/alluxio-fuse",
+		"integration/kubernetes/alluxio-fuse.yaml.template",
+		"integration/kubernetes/alluxio-fuse-client.yaml.template",
 		"integration/kubernetes/alluxio-journal-volume.yaml.template",
 		"integration/kubernetes/alluxio-master.yaml.template",
 		"integration/kubernetes/alluxio-worker.yaml.template",
@@ -305,9 +308,13 @@ func generateTarball(hadoopClients []string) error {
 	fmt.Printf("Creating %s:\n", tarball)
 
 	for _, dir := range []string{
-		"assembly", "client", "logs", "integration/fuse", "integration/checker",
+		"assembly", "client", "logs", "integration/fuse", "integration/checker", "logs/user",
 	} {
 		mkdir(filepath.Join(dstPath, dir))
+	}
+
+	if err := os.Chmod(filepath.Join(dstPath, "logs/user"), 0777); err != nil {
+		return err
 	}
 
 	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
@@ -315,13 +322,13 @@ func generateTarball(hadoopClients []string) error {
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 	run("adding Alluxio checker jar", "mv", fmt.Sprintf("integration/checker/target/alluxio-checker-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "checker", fmt.Sprintf("alluxio-checker-%v.jar", version)))
 
-	masterWebappDir := "alluxio-ui/master"
-	run("creating alluxio-ui master webapp directory", "mkdir", "-p", filepath.Join(dstPath, masterWebappDir))
-	run("copying alluxio-ui master webapp build directory", "cp", "-r", filepath.Join(masterWebappDir, "build"), filepath.Join(dstPath, masterWebappDir))
+	masterWebappDir := "webui/master"
+	run("creating webui master webapp directory", "mkdir", "-p", filepath.Join(dstPath, masterWebappDir))
+	run("copying webui master webapp build directory", "cp", "-r", filepath.Join(masterWebappDir, "build"), filepath.Join(dstPath, masterWebappDir))
 
-	workerWebappDir := "alluxio-ui/worker"
-	run ("creating alluxio-ui worker webapp directory", "mkdir", "-p", filepath.Join(dstPath, workerWebappDir))
-	run("copying alluxio-ui worker webapp build directory", "cp", "-r", filepath.Join(workerWebappDir, "build"), filepath.Join(dstPath, workerWebappDir))
+	workerWebappDir := "webui/worker"
+	run ("creating webui worker webapp directory", "mkdir", "-p", filepath.Join(dstPath, workerWebappDir))
+	run("copying webui worker webapp build directory", "cp", "-r", filepath.Join(workerWebappDir, "build"), filepath.Join(dstPath, workerWebappDir))
 
 	if includeYarnIntegration(hadoopVersion) {
 		// Update the YARN jar path

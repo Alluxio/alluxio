@@ -11,6 +11,10 @@
 
 package alluxio.worker.block.evictor;
 
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
+
 import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -20,7 +24,6 @@ import alluxio.worker.block.meta.StorageTier;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,7 +76,7 @@ public final class EvictorContractTest extends EvictorTestBase {
         }
       }
     } catch (Exception e) {
-      Assert.fail("Failed to find implementation of allocate strategy");
+      fail("Failed to find implementation of allocate strategy");
     }
     return list;
   }
@@ -114,7 +117,7 @@ public final class EvictorContractTest extends EvictorTestBase {
     // the eviction plan should be empty.
     for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        Assert.assertTrue(mEvictor.freeSpaceWithView(dir.getCapacityBytes(),
+        assertTrue(mEvictor.freeSpaceWithView(dir.getCapacityBytes(),
             dir.toBlockStoreLocation(), mManagerView).isEmpty());
       }
     }
@@ -131,7 +134,7 @@ public final class EvictorContractTest extends EvictorTestBase {
     long capacity = dir.getCapacityBytes();
     long cachedBytes = capacity / 2 + 1;
     TieredBlockStoreTestUtils.cache(SESSION_ID, BLOCK_ID, cachedBytes, dir, mMetaManager, mEvictor);
-    Assert.assertTrue(mEvictor.freeSpaceWithView(capacity - cachedBytes,
+    assertTrue(mEvictor.freeSpaceWithView(capacity - cachedBytes,
         dir.toBlockStoreLocation(), mManagerView).isEmpty());
   }
 
@@ -155,7 +158,7 @@ public final class EvictorContractTest extends EvictorTestBase {
       }
     }
 
-    Assert.assertTrue(mEvictor.freeSpaceWithView(dirLeft.getCapacityBytes(),
+    assertTrue(mEvictor.freeSpaceWithView(dirLeft.getCapacityBytes(),
         BlockStoreLocation.anyDirInTier(dirLeft.getParentTier().getTierAlias()), mManagerView)
         .isEmpty());
   }
@@ -242,10 +245,10 @@ public final class EvictorContractTest extends EvictorTestBase {
     TieredBlockStoreTestUtils.cache(SESSION_ID, BLOCK_ID, dirCapacity, dir, mMetaManager, mEvictor);
 
     // request space larger than total capacity, no eviction plan should be available
-    Assert.assertNull(mEvictor.freeSpaceWithView(totalCapacity + 1, BlockStoreLocation.anyTier(),
+    assertNull(mEvictor.freeSpaceWithView(totalCapacity + 1, BlockStoreLocation.anyTier(),
         mManagerView));
     // request space larger than capacity for the random directory, no eviction plan should be
     // available
-    Assert.assertNull(mEvictor.freeSpaceWithView(dirCapacity + 1, dirLocation, mManagerView));
+    assertNull(mEvictor.freeSpaceWithView(dirCapacity + 1, dirLocation, mManagerView));
   }
 }

@@ -16,8 +16,6 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private MetricsHeartbeatPRequest() {
-    clientId_ = "";
-    hostname_ = "";
   }
 
   @java.lang.Override
@@ -52,20 +50,8 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 10: {
-            com.google.protobuf.ByteString bs = input.readBytes();
-            bitField0_ |= 0x00000001;
-            clientId_ = bs;
-            break;
-          }
-          case 18: {
-            com.google.protobuf.ByteString bs = input.readBytes();
-            bitField0_ |= 0x00000002;
-            hostname_ = bs;
-            break;
-          }
-          case 26: {
             alluxio.grpc.MetricsHeartbeatPOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000004) == 0x00000004)) {
+            if (((bitField0_ & 0x00000001) == 0x00000001)) {
               subBuilder = options_.toBuilder();
             }
             options_ = input.readMessage(alluxio.grpc.MetricsHeartbeatPOptions.PARSER, extensionRegistry);
@@ -73,7 +59,7 @@ private static final long serialVersionUID = 0L;
               subBuilder.mergeFrom(options_);
               options_ = subBuilder.buildPartial();
             }
-            bitField0_ |= 0x00000004;
+            bitField0_ |= 0x00000001;
             break;
           }
         }
@@ -101,106 +87,22 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int CLIENTID_FIELD_NUMBER = 1;
-  private volatile java.lang.Object clientId_;
+  public static final int OPTIONS_FIELD_NUMBER = 1;
+  private alluxio.grpc.MetricsHeartbeatPOptions options_;
   /**
-   * <code>optional string clientId = 1;</code>
+   * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
    */
-  public boolean hasClientId() {
+  public boolean hasOptions() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional string clientId = 1;</code>
-   */
-  public java.lang.String getClientId() {
-    java.lang.Object ref = clientId_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        clientId_ = s;
-      }
-      return s;
-    }
-  }
-  /**
-   * <code>optional string clientId = 1;</code>
-   */
-  public com.google.protobuf.ByteString
-      getClientIdBytes() {
-    java.lang.Object ref = clientId_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      clientId_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
-  }
-
-  public static final int HOSTNAME_FIELD_NUMBER = 2;
-  private volatile java.lang.Object hostname_;
-  /**
-   * <code>optional string hostname = 2;</code>
-   */
-  public boolean hasHostname() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
-  }
-  /**
-   * <code>optional string hostname = 2;</code>
-   */
-  public java.lang.String getHostname() {
-    java.lang.Object ref = hostname_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        hostname_ = s;
-      }
-      return s;
-    }
-  }
-  /**
-   * <code>optional string hostname = 2;</code>
-   */
-  public com.google.protobuf.ByteString
-      getHostnameBytes() {
-    java.lang.Object ref = hostname_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      hostname_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
-  }
-
-  public static final int OPTIONS_FIELD_NUMBER = 3;
-  private alluxio.grpc.MetricsHeartbeatPOptions options_;
-  /**
-   * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
-   */
-  public boolean hasOptions() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
-  }
-  /**
-   * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+   * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
    */
   public alluxio.grpc.MetricsHeartbeatPOptions getOptions() {
     return options_ == null ? alluxio.grpc.MetricsHeartbeatPOptions.getDefaultInstance() : options_;
   }
   /**
-   * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+   * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
    */
   public alluxio.grpc.MetricsHeartbeatPOptionsOrBuilder getOptionsOrBuilder() {
     return options_ == null ? alluxio.grpc.MetricsHeartbeatPOptions.getDefaultInstance() : options_;
@@ -212,6 +114,12 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    if (hasOptions()) {
+      if (!getOptions().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -219,13 +127,7 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, clientId_);
-    }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, hostname_);
-    }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      output.writeMessage(3, getOptions());
+      output.writeMessage(1, getOptions());
     }
     unknownFields.writeTo(output);
   }
@@ -236,14 +138,8 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, clientId_);
-    }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, hostname_);
-    }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, getOptions());
+        .computeMessageSize(1, getOptions());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -261,16 +157,6 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.MetricsHeartbeatPRequest other = (alluxio.grpc.MetricsHeartbeatPRequest) obj;
 
     boolean result = true;
-    result = result && (hasClientId() == other.hasClientId());
-    if (hasClientId()) {
-      result = result && getClientId()
-          .equals(other.getClientId());
-    }
-    result = result && (hasHostname() == other.hasHostname());
-    if (hasHostname()) {
-      result = result && getHostname()
-          .equals(other.getHostname());
-    }
     result = result && (hasOptions() == other.hasOptions());
     if (hasOptions()) {
       result = result && getOptions()
@@ -287,14 +173,6 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasClientId()) {
-      hash = (37 * hash) + CLIENTID_FIELD_NUMBER;
-      hash = (53 * hash) + getClientId().hashCode();
-    }
-    if (hasHostname()) {
-      hash = (37 * hash) + HOSTNAME_FIELD_NUMBER;
-      hash = (53 * hash) + getHostname().hashCode();
-    }
     if (hasOptions()) {
       hash = (37 * hash) + OPTIONS_FIELD_NUMBER;
       hash = (53 * hash) + getOptions().hashCode();
@@ -429,16 +307,12 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      clientId_ = "";
-      bitField0_ = (bitField0_ & ~0x00000001);
-      hostname_ = "";
-      bitField0_ = (bitField0_ & ~0x00000002);
       if (optionsBuilder_ == null) {
         options_ = null;
       } else {
         optionsBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000004);
+      bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
 
@@ -465,14 +339,6 @@ private static final long serialVersionUID = 0L;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
-      }
-      result.clientId_ = clientId_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-        to_bitField0_ |= 0x00000002;
-      }
-      result.hostname_ = hostname_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-        to_bitField0_ |= 0x00000004;
       }
       if (optionsBuilder_ == null) {
         result.options_ = options_;
@@ -521,16 +387,6 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.MetricsHeartbeatPRequest other) {
       if (other == alluxio.grpc.MetricsHeartbeatPRequest.getDefaultInstance()) return this;
-      if (other.hasClientId()) {
-        bitField0_ |= 0x00000001;
-        clientId_ = other.clientId_;
-        onChanged();
-      }
-      if (other.hasHostname()) {
-        bitField0_ |= 0x00000002;
-        hostname_ = other.hostname_;
-        onChanged();
-      }
       if (other.hasOptions()) {
         mergeOptions(other.getOptions());
       }
@@ -540,6 +396,11 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
+      if (hasOptions()) {
+        if (!getOptions().isInitialized()) {
+          return false;
+        }
+      }
       return true;
     }
 
@@ -562,169 +423,17 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.lang.Object clientId_ = "";
-    /**
-     * <code>optional string clientId = 1;</code>
-     */
-    public boolean hasClientId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <code>optional string clientId = 1;</code>
-     */
-    public java.lang.String getClientId() {
-      java.lang.Object ref = clientId_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          clientId_ = s;
-        }
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
-    }
-    /**
-     * <code>optional string clientId = 1;</code>
-     */
-    public com.google.protobuf.ByteString
-        getClientIdBytes() {
-      java.lang.Object ref = clientId_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        clientId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>optional string clientId = 1;</code>
-     */
-    public Builder setClientId(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-      clientId_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string clientId = 1;</code>
-     */
-    public Builder clearClientId() {
-      bitField0_ = (bitField0_ & ~0x00000001);
-      clientId_ = getDefaultInstance().getClientId();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string clientId = 1;</code>
-     */
-    public Builder setClientIdBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-      clientId_ = value;
-      onChanged();
-      return this;
-    }
-
-    private java.lang.Object hostname_ = "";
-    /**
-     * <code>optional string hostname = 2;</code>
-     */
-    public boolean hasHostname() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional string hostname = 2;</code>
-     */
-    public java.lang.String getHostname() {
-      java.lang.Object ref = hostname_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          hostname_ = s;
-        }
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
-    }
-    /**
-     * <code>optional string hostname = 2;</code>
-     */
-    public com.google.protobuf.ByteString
-        getHostnameBytes() {
-      java.lang.Object ref = hostname_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        hostname_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>optional string hostname = 2;</code>
-     */
-    public Builder setHostname(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-      hostname_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string hostname = 2;</code>
-     */
-    public Builder clearHostname() {
-      bitField0_ = (bitField0_ & ~0x00000002);
-      hostname_ = getDefaultInstance().getHostname();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string hostname = 2;</code>
-     */
-    public Builder setHostnameBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-      hostname_ = value;
-      onChanged();
-      return this;
-    }
-
     private alluxio.grpc.MetricsHeartbeatPOptions options_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.MetricsHeartbeatPOptions, alluxio.grpc.MetricsHeartbeatPOptions.Builder, alluxio.grpc.MetricsHeartbeatPOptionsOrBuilder> optionsBuilder_;
     /**
-     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
      */
     public boolean hasOptions() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
      */
     public alluxio.grpc.MetricsHeartbeatPOptions getOptions() {
       if (optionsBuilder_ == null) {
@@ -734,7 +443,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
      */
     public Builder setOptions(alluxio.grpc.MetricsHeartbeatPOptions value) {
       if (optionsBuilder_ == null) {
@@ -746,11 +455,11 @@ private static final long serialVersionUID = 0L;
       } else {
         optionsBuilder_.setMessage(value);
       }
-      bitField0_ |= 0x00000004;
+      bitField0_ |= 0x00000001;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
      */
     public Builder setOptions(
         alluxio.grpc.MetricsHeartbeatPOptions.Builder builderForValue) {
@@ -760,15 +469,15 @@ private static final long serialVersionUID = 0L;
       } else {
         optionsBuilder_.setMessage(builderForValue.build());
       }
-      bitField0_ |= 0x00000004;
+      bitField0_ |= 0x00000001;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
      */
     public Builder mergeOptions(alluxio.grpc.MetricsHeartbeatPOptions value) {
       if (optionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004) &&
+        if (((bitField0_ & 0x00000001) == 0x00000001) &&
             options_ != null &&
             options_ != alluxio.grpc.MetricsHeartbeatPOptions.getDefaultInstance()) {
           options_ =
@@ -780,11 +489,11 @@ private static final long serialVersionUID = 0L;
       } else {
         optionsBuilder_.mergeFrom(value);
       }
-      bitField0_ |= 0x00000004;
+      bitField0_ |= 0x00000001;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
      */
     public Builder clearOptions() {
       if (optionsBuilder_ == null) {
@@ -793,19 +502,19 @@ private static final long serialVersionUID = 0L;
       } else {
         optionsBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000004);
+      bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
      */
     public alluxio.grpc.MetricsHeartbeatPOptions.Builder getOptionsBuilder() {
-      bitField0_ |= 0x00000004;
+      bitField0_ |= 0x00000001;
       onChanged();
       return getOptionsFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
      */
     public alluxio.grpc.MetricsHeartbeatPOptionsOrBuilder getOptionsOrBuilder() {
       if (optionsBuilder_ != null) {
@@ -816,7 +525,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 3;</code>
+     * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.MetricsHeartbeatPOptions, alluxio.grpc.MetricsHeartbeatPOptions.Builder, alluxio.grpc.MetricsHeartbeatPOptionsOrBuilder> 

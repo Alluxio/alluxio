@@ -169,4 +169,58 @@ public interface BlockHeartbeatPRequestOrBuilder extends
    * <code>optional .alluxio.grpc.block.BlockHeartbeatPOptions options = 5;</code>
    */
   alluxio.grpc.BlockHeartbeatPOptionsOrBuilder getOptionsOrBuilder();
+
+  /**
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+   */
+  int getLostStorageCount();
+  /**
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+   */
+  boolean containsLostStorage(
+      java.lang.String key);
+  /**
+   * Use {@link #getLostStorageMap()} instead.
+   */
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, alluxio.grpc.StorageList>
+  getLostStorage();
+  /**
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+   */
+  java.util.Map<java.lang.String, alluxio.grpc.StorageList>
+  getLostStorageMap();
+  /**
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+   */
+
+  alluxio.grpc.StorageList getLostStorageOrDefault(
+      java.lang.String key,
+      alluxio.grpc.StorageList defaultValue);
+  /**
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+   */
+
+  alluxio.grpc.StorageList getLostStorageOrThrow(
+      java.lang.String key);
 }

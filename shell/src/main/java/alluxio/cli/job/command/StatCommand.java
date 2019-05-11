@@ -69,7 +69,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     long id = Long.parseLong(cl.getArgs()[0]);
     try (CloseableResource<JobMasterClient> client =
-        JobContext.create(mFsContext.getConf())
+        JobContext.create(mFsContext.getClusterConf())
             .acquireMasterClientResource()) {
       JobInfo info = client.get().getStatus(id);
       System.out.print(formatOutput(cl, info));

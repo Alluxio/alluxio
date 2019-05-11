@@ -17,7 +17,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import org.apache.http.HttpStatus;
+import org.apache.commons.httpclient.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +60,7 @@ public class S3AInputStream extends InputStream {
    * @param retryPolicy retry policy in case the key does not exist
    */
   public S3AInputStream(String bucketName, String key, AmazonS3 client, RetryPolicy retryPolicy) {
-    this(bucketName, key, client, retryPolicy, 0L);
+    this(bucketName, key, client, 0L, retryPolicy);
   }
 
   /**
@@ -70,16 +70,16 @@ public class S3AInputStream extends InputStream {
    * @param bucketName the bucket the object resides in
    * @param key the path of the object to read
    * @param client the s3 client to use for operations
-   * @param retryPolicy retry policy in case the key does not exist
    * @param position the position to begin reading from
+   * @param retryPolicy retry policy in case the key does not exist
    */
-  public S3AInputStream(String bucketName, String key, AmazonS3 client, RetryPolicy retryPolicy,
-      long position) {
+  public S3AInputStream(String bucketName, String key, AmazonS3 client,
+      long position, RetryPolicy retryPolicy) {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
-    mRetryPolicy = retryPolicy;
     mPos = position;
+    mRetryPolicy = retryPolicy;
   }
 
   @Override
@@ -120,7 +120,7 @@ public class S3AInputStream extends InputStream {
   }
 
   @Override
-  public long skip(long n) {
+  public long skip(long n) throws IOException {
     if (n <= 0) {
       return 0;
     }
@@ -133,7 +133,7 @@ public class S3AInputStream extends InputStream {
   /**
    * Opens a new stream at mPos if the wrapped stream mIn is null.
    */
-  private void openStream() {
+  private void openStream() throws IOException {
     if (mIn != null) { // stream is already open
       return;
     }
@@ -151,14 +151,14 @@ public class S3AInputStream extends InputStream {
         LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
             mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
         if (e.getStatusCode() != HttpStatus.SC_NOT_FOUND) {
-          throw e;
+          throw new IOException(e);
         }
         // Key does not exist
         lastException = e;
       }
     }
     // Failed after retrying key does not exist
-    throw lastException;
+    throw new IOException(lastException);
   }
 
   /**

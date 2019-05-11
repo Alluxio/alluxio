@@ -11,11 +11,12 @@
 
 package alluxio.heartbeat;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -151,7 +152,7 @@ public final class HeartbeatThreadTest {
           HeartbeatScheduler.execute(mThreadName);
         }
 
-        Assert.assertEquals("The executor counter is wrong.", numIterations, executor.getCounter());
+        assertEquals("The executor counter is wrong.", numIterations, executor.getCounter());
       } catch (Exception e) {
         throw new RuntimeException(e.getMessage());
       }

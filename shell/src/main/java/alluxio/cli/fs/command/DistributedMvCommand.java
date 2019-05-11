@@ -22,8 +22,9 @@ import alluxio.job.migrate.MigrateConfig;
 
 import org.apache.commons.cli.CommandLine;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Moves a file or directory specified by args.
@@ -60,7 +61,7 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
     thread.start();
     try {
       JobGrpcClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(), null, true,
-          true), 3, mFsContext.getConf());
+          true), 3, mFsContext.getPathConf(dstPath));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;
