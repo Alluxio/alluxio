@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.util.network;
-
 import static org.junit.Assert.assertEquals;
+
+package alluxio.util.network;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
@@ -20,7 +20,6 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 //import org.junit.Assert;
 import org.junit.Test;
-
 import java.net.InetSocketAddress;
 
 /**
