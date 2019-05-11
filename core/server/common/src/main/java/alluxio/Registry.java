@@ -113,7 +113,6 @@ public class Registry<T extends Server<U>, U> {
    */
   public List<T> getServers() {
     List<T> servers = new ArrayList<>(mRegistry.values());
-    //Collections.sort(servers, new DependencyComparator());
     servers.sort(new DependencyComparator());
     return servers;
   }
