@@ -9,16 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import static org.junit.Assert.assertEquals;
-
 package alluxio.util.network;
+
+import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
-
-//import org.junit.Assert;
 import org.junit.Test;
 import java.net.InetSocketAddress;
 
