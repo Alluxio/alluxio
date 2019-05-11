@@ -82,7 +82,7 @@ public class SpaceReserverTest {
         new int[]{0, 1}, new String[] {"MEM", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}},
         new long[][]{new long[]{0}, new long[]{0}},
-        new String[][]{new String[]{"MEM"}, new String[]{"HDD"}},"/");
+        new String[][]{new String[]{"MEM"}, new String[]{"HDD"}}, "/");
 
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, "0.81",

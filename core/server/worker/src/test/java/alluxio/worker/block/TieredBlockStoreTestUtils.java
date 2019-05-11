@@ -64,7 +64,8 @@ public final class TieredBlockStoreTestUtils {
    * @param workerDataFolder when specified it sets up the alluxio.worker.data.folder property
    */
   public static void setupConfWithMultiTier(String baseDir, int[] tierOrdinal, String[] tierAlias,
-      String[][] tierPath, long[][] tierCapacity, String[][] tierMediumType, String workerDataFolder) throws Exception {
+      String[][] tierPath, long[][] tierCapacity, String[][] tierMediumType,
+      String workerDataFolder) throws Exception {
     // make sure dimensions are legal
     Preconditions.checkNotNull(tierOrdinal, "tierOrdinal");
     Preconditions.checkNotNull(tierAlias, "tierAlias");
@@ -112,7 +113,8 @@ public final class TieredBlockStoreTestUtils {
    * @param workerDataFolder when specified it sets up the alluxio.worker.data.folder property
    */
   public static void setupConfWithSingleTier(String baseDir, int tierOrdinal, String tierAlias,
-      String[] tierPath, long[] tierCapacity, String[] tierMedia, String workerDataFolder) throws Exception {
+      String[] tierPath, long[] tierCapacity, String[] tierMedia, String workerDataFolder)
+      throws Exception {
     if (baseDir != null) {
       tierPath = createDirHierarchy(baseDir, tierPath);
     }
