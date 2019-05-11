@@ -11,11 +11,13 @@
 
 package alluxio.client.file.policy;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -38,7 +40,7 @@ public final class SpecificHostPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
-    Assert.assertEquals("worker2",
+    assertEquals("worker2",
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
 
@@ -54,6 +56,6 @@ public final class SpecificHostPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
-    Assert.assertNull(policy.getWorkerForNextBlock(workerInfoList, Constants.MB));
+    assertNull(policy.getWorkerForNextBlock(workerInfoList, Constants.MB));
   }
 }
