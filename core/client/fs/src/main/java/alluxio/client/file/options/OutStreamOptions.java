@@ -120,8 +120,7 @@ public final class OutStreamOptions {
     mReplicationDurable = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
     mReplicationMax = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
     mReplicationMin = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
-    List<String> mediaList = alluxioConf.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIA, ",");
-    mMediumType = mediaList.isEmpty() ? "" : mediaList.get(0);
+    mMediumType = "";
   }
 
   /**
