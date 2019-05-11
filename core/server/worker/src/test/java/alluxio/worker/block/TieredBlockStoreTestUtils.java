@@ -43,6 +43,7 @@ public final class TieredBlockStoreTestUtils {
   public static final String[] TIER_ALIAS = {"MEM", "SSD"};
   public static final String[][] TIER_PATH = {{"/mem/0", "/mem/1"}, {"/ssd/0", "/ssd/1", "/ssd/2"}};
   public static final long[][] TIER_CAPACITY_BYTES = {{2000, 3000}, {10000, 20000, 30000}};
+  public static final String[][] TIER_MEDIA_TYPES = {{"MEM", "MEM"}, {"SSD", "SSD", "SSD"}};
   public static final String WORKER_DATA_FOLDER = "/alluxioworker/";
 
   /**
@@ -58,15 +59,18 @@ public final class TieredBlockStoreTestUtils {
    *        same list index in tierAlias
    * @param tierCapacity like {@link #TIER_CAPACITY_BYTES}, should be in the same dimension with
    *        tierPath, each element is the capacity of the corresponding dir in tierPath
+   * @param tierMediumType should be in the same dimension with tierPath, each element is the
+   *                       medium type of the corresponding dir in tierPath
    * @param workerDataFolder when specified it sets up the alluxio.worker.data.folder property
    */
   public static void setupConfWithMultiTier(String baseDir, int[] tierOrdinal, String[] tierAlias,
-      String[][] tierPath, long[][] tierCapacity, String workerDataFolder) throws Exception {
+      String[][] tierPath, long[][] tierCapacity, String[][] tierMediumType, String workerDataFolder) throws Exception {
     // make sure dimensions are legal
     Preconditions.checkNotNull(tierOrdinal, "tierOrdinal");
     Preconditions.checkNotNull(tierAlias, "tierAlias");
     Preconditions.checkNotNull(tierPath, "tierPath");
     Preconditions.checkNotNull(tierCapacity, "tierCapacity");
+    Preconditions.checkNotNull(tierMediumType, "tierMediumType");
 
     Preconditions.checkArgument(tierOrdinal.length > 0, "length of tierLevel should be > 0");
     Preconditions.checkArgument(tierOrdinal.length == tierAlias.length,
@@ -75,6 +79,8 @@ public final class TieredBlockStoreTestUtils {
         "tierPath and tierLevel should have the same length");
     Preconditions.checkArgument(tierOrdinal.length == tierCapacity.length,
         "tierCapacity and tierLevel should have the same length");
+    Preconditions.checkArgument(tierOrdinal.length == tierMediumType.length,
+        "tierMediumType and tierLevel should have the same length");
     int nTier = tierOrdinal.length;
 
     tierPath = createDirHierarchy(baseDir, tierPath);
@@ -85,7 +91,7 @@ public final class TieredBlockStoreTestUtils {
 
     // sets up each tier in turn
     for (int i = 0; i < nTier; i++) {
-      setupConfTier(tierOrdinal[i], tierAlias[i], tierPath[i], tierCapacity[i]);
+      setupConfTier(tierOrdinal[i], tierAlias[i], tierPath[i], tierCapacity[i], tierMediumType[i]);
     }
   }
 
@@ -106,7 +112,7 @@ public final class TieredBlockStoreTestUtils {
    * @param workerDataFolder when specified it sets up the alluxio.worker.data.folder property
    */
   public static void setupConfWithSingleTier(String baseDir, int tierOrdinal, String tierAlias,
-      String[] tierPath, long[] tierCapacity, String workerDataFolder) throws Exception {
+      String[] tierPath, long[] tierCapacity, String[] tierMedia, String workerDataFolder) throws Exception {
     if (baseDir != null) {
       tierPath = createDirHierarchy(baseDir, tierPath);
     }
@@ -114,7 +120,7 @@ public final class TieredBlockStoreTestUtils {
       ServerConfiguration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
     ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
-    setupConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity);
+    setupConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity, tierMedia);
   }
 
   /**
@@ -125,9 +131,10 @@ public final class TieredBlockStoreTestUtils {
    * @param tierCapacity capacity of the tier
    */
   private static void setupConfTier(int ordinal, String tierAlias, String[] tierPath,
-      long[] tierCapacity) {
+      long[] tierCapacity, String[] tierMediumType) {
     Preconditions.checkNotNull(tierPath, "tierPath");
     Preconditions.checkNotNull(tierCapacity, "tierCapacity");
+    Preconditions.checkNotNull(tierMediumType, "tierMediumType");
     Preconditions.checkArgument(tierPath.length == tierCapacity.length,
         "tierPath and tierCapacity should have the same length");
 
@@ -144,6 +151,11 @@ public final class TieredBlockStoreTestUtils {
     ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(ordinal),
             tierCapacityString);
+
+    String tierMediumString = StringUtils.join(tierMediumType, ",");
+    ServerConfiguration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIATYPE.format(ordinal),
+            tierMediumString);
   }
 
   /**
@@ -220,7 +232,7 @@ public final class TieredBlockStoreTestUtils {
    */
   public static void setupDefaultConf(String baseDir) throws Exception {
     setupConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS, TIER_PATH, TIER_CAPACITY_BYTES,
-        WORKER_DATA_FOLDER);
+        TIER_MEDIA_TYPES, WORKER_DATA_FOLDER);
   }
 
   /**

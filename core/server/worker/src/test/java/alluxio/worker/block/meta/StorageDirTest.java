@@ -75,9 +75,10 @@ public final class StorageDirTest {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
     String[] testDirPaths = {mTestDirPath};
     long[] testDirCapacity = {1};
+    String[] testDirMediumType = {"MEM"};
 
     TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL, "MEM",
-        testDirPaths, testDirCapacity, null);
+        testDirPaths, testDirCapacity, testDirMediumType,null);
 
     mTier = StorageTier.newStorageTier("MEM");
     mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, mTestDirPath, "MEM");
