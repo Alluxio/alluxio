@@ -69,17 +69,17 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<MutableInode<?>> getMutable(long id) {
+  public Optional<MutableInode<?>> getMutable(long id, ReadOption option) {
     return Optional.ofNullable(mInodes.get(id));
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId) {
+  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
     return children(inodeId).values();
   }
 
   @Override
-  public Iterable<? extends Inode> getChildren(Long inodeId) {
+  public Iterable<? extends Inode> getChildren(Long inodeId, ReadOption option) {
     return children(inodeId).values().stream()
         .map(this::get)
         .filter(Optional::isPresent)
@@ -89,19 +89,19 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<Long> getChildId(Long inodeId, String child) {
+  public Optional<Long> getChildId(Long inodeId, String child, ReadOption option) {
     return Optional.ofNullable(children(inodeId).get(child));
   }
 
   @Override
-  public Optional<Inode> getChild(Long inodeId, String child) {
+  public Optional<Inode> getChild(Long inodeId, String child, ReadOption option) {
     return getChildId(inodeId, child)
         .flatMap(this::get)
         .map(Inode::wrap);
   }
 
   @Override
-  public boolean hasChildren(InodeDirectoryView dir) {
+  public boolean hasChildren(InodeDirectoryView dir, ReadOption option) {
     return !children(dir.getId()).isEmpty();
   }
 
