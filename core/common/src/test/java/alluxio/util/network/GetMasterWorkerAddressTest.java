@@ -11,7 +11,7 @@
 
 package alluxio.util.network;
 
-import org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
