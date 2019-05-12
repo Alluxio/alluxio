@@ -74,7 +74,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <S> the type of configuration to be used when creating the extension
  */
 @NotThreadSafe
-public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>, S extends AlluxioConfiguration> {
+public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
+    S extends AlluxioConfiguration> {
   private static final Logger LOG = LoggerFactory.getLogger(ExtensionFactoryRegistry.class);
 
   /**
