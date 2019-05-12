@@ -75,7 +75,7 @@ public final class ByteIOUtilsTest {
     for (long v : values) {
       for (int pos = 0; pos < 8; pos++) {
         ByteIOUtils.writeLong(mBuf, 0, v);
-        assertEquals(v, ByteIOUtils.readLong(mBuf, 0)); 
+        assertEquals(v, ByteIOUtils.readLong(mBuf, 0));
       }
     }
   }
