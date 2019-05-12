@@ -401,16 +401,15 @@ public final class TieredBlockStoreTest {
   public void createBlockMetaWithMediumType() throws Exception {
     BlockStoreLocation loc = mBlockStore.getMedium("MEM");
     TempBlockMeta tempBlockMeta = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID,
-        loc,1 );
+        loc, 1);
     assertEquals(1, tempBlockMeta.getBlockSize());
     assertEquals(mTestDir1, tempBlockMeta.getParentDir());
 
     BlockStoreLocation loc2 = mBlockStore.getMedium("SSD");
     TempBlockMeta tempBlockMeta2 = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID2,
-        loc2,1 );
+        loc2, 1);
     assertEquals(1, tempBlockMeta2.getBlockSize());
     assertEquals(mTestDir4, tempBlockMeta2.getParentDir());
-
   }
 
   /**
