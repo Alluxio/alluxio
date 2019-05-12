@@ -83,7 +83,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
     super(uri, ufsConf);
-    int numThreads = mAlluxioConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
+    int numThreads = mUfsConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
     mExecutorService = ExecutorServiceFactories.fixedThreadPool(
         "alluxio-underfs-object-service-worker", numThreads).create();
   }
@@ -458,7 +458,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     @Override
     protected int getBatchSize() {
       // Delete batch size is same as listing length
-      return getListingChunkLength(mAlluxioConf);
+      return getListingChunkLength(mUfsConf);
     }
 
     @Override
@@ -475,7 +475,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return mAlluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override

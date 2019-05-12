@@ -57,6 +57,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   private static final String NAME_SEPARATOR = ":";
 
   private final UnderFileSystem mUnderFileSystem;
+  private final UnderFileSystemConfiguration mConf;
   private final String mPath;
 
   /**
@@ -68,10 +69,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    *
    */
   // TODO(adit): Remove this method. ALLUXIO-2643.
-  UnderFileSystemWithLogging(String path, UnderFileSystem ufs) {
+  UnderFileSystemWithLogging(String path, UnderFileSystem ufs, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
     mPath = path;
     mUnderFileSystem = ufs;
+    mConf = conf;
   }
 
   @Override
@@ -962,10 +964,10 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
-      if (SecurityUtils.isAuthenticationEnabled(mUnderFileSystem.getConf())
-          && AuthenticatedClientUser.get(mUnderFileSystem.getConf()) != null) {
+      if (SecurityUtils.isAuthenticationEnabled(mConf)
+          && AuthenticatedClientUser.get(mConf) != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-            AuthenticatedClientUser.get(mUnderFileSystem.getConf()).getName(), WorkerMetrics.TAG_UFS,
+            AuthenticatedClientUser.get(mConf).getName(), WorkerMetrics.TAG_UFS,
             MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
             mUnderFileSystem.getUnderFSType());
       }

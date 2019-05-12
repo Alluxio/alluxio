@@ -91,7 +91,7 @@ public interface UnderFileSystem extends Closeable {
           // when creation is done.
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf));
+          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
@@ -319,8 +319,6 @@ public interface UnderFileSystem extends Closeable {
    * @return the block size in bytes
    */
   long getBlockSizeByte(String path) throws IOException;
-
-
 
   /**
    * Gets the directory status. The caller must already know the path is a directory. This method

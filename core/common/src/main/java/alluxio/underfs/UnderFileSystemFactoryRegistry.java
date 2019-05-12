@@ -109,7 +109,8 @@ public final class UnderFileSystemFactoryRegistry {
   public static List<UnderFileSystemFactory> findAll(String path,
       UnderFileSystemConfiguration ufsConf) {
     List<UnderFileSystemFactory> eligibleFactories = sRegistryInstance.findAll(path, ufsConf);
-    if (eligibleFactories.isEmpty()) {
+    if (eligibleFactories.isEmpty() && ufsConf.isSet(PropertyKey.UNDERFS_VERSION)) {
+      String configuredVersion = ufsConf.get(PropertyKey.UNDERFS_VERSION);
       // Versioned factories ignore version if not set
       ufsConf.unset(PropertyKey.UNDERFS_VERSION);
       // Check if any versioned factory supports the default configuration
@@ -121,11 +122,11 @@ public final class UnderFileSystemFactoryRegistry {
         }
       }
       if (!supportedVersions.isEmpty()) {
-        String configuredVersion = ufsConf.get(PropertyKey.UNDERFS_VERSION);
         LOG.warn("Versions [{}] are supported for path {} but you have configured version: {}",
             StringUtils.join(supportedVersions, ","), path,
             configuredVersion);
       }
+      ufsConf.set(PropertyKey.UNDERFS_VERSION, configuredVersion);
     }
     return eligibleFactories;
   }
