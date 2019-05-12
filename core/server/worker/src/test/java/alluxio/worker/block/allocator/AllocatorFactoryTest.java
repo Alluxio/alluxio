@@ -10,6 +10,7 @@
  */
 
 package alluxio.worker.block.allocator;
+
 import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.ServerConfiguration;
@@ -18,7 +19,6 @@ import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import org.junit.After;
-
 
 import org.junit.Before;
 import org.junit.Rule;
