@@ -14,7 +14,6 @@ package alluxio.heartbeat;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.ImmutableList;
-
 import org.junit.Test;
 
 /**
