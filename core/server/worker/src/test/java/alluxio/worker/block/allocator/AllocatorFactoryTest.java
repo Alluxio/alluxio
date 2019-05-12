@@ -19,7 +19,6 @@ import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import org.junit.After;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
