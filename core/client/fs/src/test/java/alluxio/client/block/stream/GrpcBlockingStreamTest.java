@@ -35,7 +35,6 @@ import io.grpc.Status;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
 import io.grpc.stub.StreamObserver;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
