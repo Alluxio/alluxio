@@ -172,7 +172,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     awaitClientTermination();
     // Fail the creation of UFS
     doThrow(new RuntimeException()).when(factory).create(anyString(),
-        any(UnderFileSystemConfiguration.class), ServerConfiguration.global());
+        any(UnderFileSystemConfiguration.class));
     createFsMasterFromJournal();
   }
 
@@ -191,7 +191,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     awaitClientTermination();
     // Fail the creation of UFS
     doThrow(new RuntimeException()).when(factory).create(anyString(),
-        any(UnderFileSystemConfiguration.class), ServerConfiguration.global());
+        any(UnderFileSystemConfiguration.class));
     createFsMasterFromJournal();
   }
 

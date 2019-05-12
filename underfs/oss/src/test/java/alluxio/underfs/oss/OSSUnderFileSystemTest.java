@@ -13,10 +13,8 @@ package alluxio.underfs.oss;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.ConfigurationUtils;
 
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.ServiceException;

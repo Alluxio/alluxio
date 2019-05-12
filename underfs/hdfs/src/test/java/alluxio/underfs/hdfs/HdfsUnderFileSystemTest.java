@@ -14,7 +14,6 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.ConfigurationTest;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
@@ -39,7 +38,7 @@ public final class HdfsUnderFileSystemTest {
                 "org.apache.hadoop.security.ShellBasedUnixGroupsMapping", "fs.hdfs.impl",
             PropertyKey.UNDERFS_HDFS_IMPL.getDefaultValue()));
     mHdfsUnderFileSystem = HdfsUnderFileSystem.createInstance(new AlluxioURI("file:///"),
-        conf, mAlluxioConf);
+        conf);
   }
 
   /**

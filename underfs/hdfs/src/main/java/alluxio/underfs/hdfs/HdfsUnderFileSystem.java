@@ -91,7 +91,6 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
-  protected UnderFileSystemConfiguration mUfsConf;
 
   private HdfsActiveSyncProvider mHdfsActiveSyncer;
 
@@ -114,7 +113,6 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
    * @param hdfsConf the configuration for HDFS
-   * @param alluxioConf Alluxio configuration
    */
   public HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration hdfsConf) {
@@ -139,7 +137,6 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     }
     mHdfsAclProvider = hdfsAclProvider;
 
-    mUfsConf = conf;
     Path path = new Path(ufsUri.toString());
     // UserGroupInformation.setConfiguration(hdfsConf) will trigger service loading.
     // Stash the classloader to prevent service loading throwing exception due to

@@ -65,6 +65,17 @@ public interface UnderFileSystem extends Closeable {
     private Factory() {} // prevent instantiation
 
     /**
+     * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
+     * only be used for journal operations and tests.
+     *
+     * @param path journal path in ufs
+     * @return the instance of under file system for Alluxio journal directory
+     */
+    public static UnderFileSystem create(String path, AlluxioConfiguration conf) {
+      return create(path, UnderFileSystemConfiguration.defaults(conf));
+    }
+
+    /**
      * Creates a client for operations involved with the under file system. An
      * {@link IllegalArgumentException} is thrown if there is no under file system for the given
      * path or if no under file system could successfully be created.
