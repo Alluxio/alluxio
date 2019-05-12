@@ -69,7 +69,7 @@ public final class AllocatorFactoryTest {
   public void createMaxFreeAllocator() {
     ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mManagerView);
-    Assert.assertTrue(allocator instanceof MaxFreeAllocator);
+    assertTrue(allocator instanceof MaxFreeAllocator);
   }
 
   /**
@@ -81,7 +81,7 @@ public final class AllocatorFactoryTest {
     ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS,
         RoundRobinAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mManagerView);
-    Assert.assertTrue(allocator instanceof RoundRobinAllocator);
+    assertTrue(allocator instanceof RoundRobinAllocator);
   }
 
   /**
