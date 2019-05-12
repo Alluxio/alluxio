@@ -71,7 +71,7 @@ This will not execute any unit tests but _will_ execute maven plugins such as `c
 To speed up compilation you may use the following command:
 
 ```bash
-mvn -T 2C compile -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip -pl '!alluxio-ui'
+mvn -T 2C compile -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip -pl '!webui'
 ```
 
 This command will skip many of our checks that are in place to help keep our code neat.
@@ -83,7 +83,7 @@ We recommend running all checks before committing.
 - `-Dfindbugs.skip` skips findbugs execution
 - `-Dcheckstyle.skip` skips code-style checking
 - `-Dlicense.skip` skips checking files for license headers
-- `-pl '!alluxio-ui'` skips building the Alluxio UI module.
+- `-pl '!webui'` skips building the Alluxio UI module.
 If this module isn't compiled then the UI cannot be accessed locally.
 
 You may replace the `compile` target in the above command with any other valid maven target to skip

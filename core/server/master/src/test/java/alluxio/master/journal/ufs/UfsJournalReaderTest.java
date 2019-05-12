@@ -36,6 +36,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.net.URI;
+import java.util.Collections;
 
 /**
  * Unit tests for {@link UfsJournalReader}.
@@ -52,9 +53,17 @@ public final class UfsJournalReaderTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
+<<<<<<< HEAD
     mUfs = Mockito.spy(UnderFileSystem.Factory.create(location.toString(),
         UnderFileSystemConfiguration.defaults(ServerConfiguration.global())));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
+||||||| merged common ancestors
+    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location, ServerConfiguration.global()));
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
+=======
+    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location, ServerConfiguration.global()));
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
+>>>>>>> master
   }
 
   @After

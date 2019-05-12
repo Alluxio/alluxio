@@ -33,6 +33,7 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -49,9 +50,17 @@ public final class UfsJournalCheckpointThreadTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
+<<<<<<< HEAD
     mUfs = Mockito.spy(UnderFileSystem.Factory.create(location.toString(),
         UnderFileSystemConfiguration.defaults(ServerConfiguration.global())));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
+||||||| merged common ancestors
+    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location, ServerConfiguration.global()));
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
+=======
+    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location, ServerConfiguration.global()));
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
+>>>>>>> master
   }
 
   @After
@@ -69,7 +78,7 @@ public final class UfsJournalCheckpointThreadTest {
     buildIncompleteLog(10, 15);
     MockMaster mockMaster = new MockMaster();
     UfsJournalCheckpointThread checkpointThread =
-        new UfsJournalCheckpointThread(mockMaster, mJournal);
+        new UfsJournalCheckpointThread(mockMaster, mJournal, Collections::emptySet);
     checkpointThread.start();
     CommonUtils.waitFor("checkpoint", () -> {
       try {
@@ -100,7 +109,7 @@ public final class UfsJournalCheckpointThreadTest {
     buildIncompleteLog(10, 15);
     MockMaster mockMaster = new MockMaster();
     UfsJournalCheckpointThread checkpointThread =
-        new UfsJournalCheckpointThread(mockMaster, mJournal);
+        new UfsJournalCheckpointThread(mockMaster, mJournal, Collections::emptySet);
     checkpointThread.start();
     checkpointThread.awaitTermination(true);
 

@@ -11,12 +11,13 @@
 
 package alluxio.worker.block.allocator;
 
+import static org.junit.Assert.fail;
+
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,7 +55,7 @@ public final class AllocatorContractTest extends AllocatorTestBase {
         }
       }
     } catch (Exception e) {
-      Assert.fail("Failed to find implementation of allocate strategy");
+      fail("Failed to find implementation of allocate strategy");
     }
   }
 

@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
+import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
 
@@ -116,5 +117,17 @@ public final class UnderFileSystemConfiguration extends InstancedConfiguration {
     ufsConf.mReadOnly = mReadOnly;
     ufsConf.mShared = mShared;
     return ufsConf;
+  }
+
+  /**
+   * @param options options for formatting the configuration values
+   * @return a map from all user configuration property names to their values; values may
+   * potentially be null
+   */
+  public Map<String, String> toUserPropertyMap(ConfigurationValueOptions options) {
+    Map<String, String> map = new HashMap<>();
+    // Cannot use Collectors.toMap because we support null keys.
+    userKeySet().forEach(key -> map.put(key.getName(), getOrDefault(key, null, options)));
+    return map;
   }
 }

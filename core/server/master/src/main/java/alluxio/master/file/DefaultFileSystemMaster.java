@@ -1310,28 +1310,28 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   public Map<String, MountPointInfo> getMountTable() {
     SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
-      mountPoints.put(mountPoint.getKey(), getMountPointInfo(mountPoint.getValue()));
+      mountPoints.put(mountPoint.getKey(), getDisplayMountPointInfo(mountPoint.getValue()));
     }
     return mountPoints;
   }
 
   @Override
-  public MountPointInfo getMountPointInfo(AlluxioURI path) throws InvalidPathException {
+  public MountPointInfo getDisplayMountPointInfo(AlluxioURI path) throws InvalidPathException {
     if (!mMountTable.isMountPoint(path)) {
       throw new InvalidPathException(
           ExceptionMessage.PATH_MUST_BE_MOUNT_POINT.getMessage(path));
     }
-    return getMountPointInfo(mMountTable.getMountTable().get(path.toString()));
+    return getDisplayMountPointInfo(mMountTable.getMountTable().get(path.toString()));
   }
 
   /**
-   * Gets the mount point information from a mount information.
+   * Gets the mount point information for display from a mount information.
    *
    * @param mountInfo the mount information to transform
    * @return the mount point information
    */
-  private MountPointInfo getMountPointInfo(MountInfo mountInfo) {
-    MountPointInfo info = mountInfo.toMountPointInfo();
+  private MountPointInfo getDisplayMountPointInfo(MountInfo mountInfo) {
+    MountPointInfo info = mountInfo.toDisplayMountPointInfo();
     try (CloseableResource<UnderFileSystem> ufsResource =
              mUfsManager.get(mountInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
@@ -2227,7 +2227,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
   @Override
   public Set<Long> getPinIdList() {
-    return mInodeTree.getPinIdSet();
+    // return both the explicitly pinned inodes and not persisted inodes which should not be evicted
+    return Sets.union(mInodeTree.getPinIdSet(), mInodeTree.getToBePersistedIds());
   }
 
   @Override

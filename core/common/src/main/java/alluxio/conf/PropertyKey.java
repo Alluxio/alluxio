@@ -418,7 +418,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WEB_RESOURCES =
       new Builder(Name.WEB_RESOURCES)
-          .setDefaultValue(String.format("${%s}/alluxio-ui/", Name.HOME))
+          .setDefaultValue(String.format("${%s}/webui/", Name.HOME))
           .setDescription("Path to the web application resources.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)

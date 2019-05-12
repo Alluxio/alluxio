@@ -23,6 +23,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.net.URI;
+import java.util.Collections;
 
 /**
  * Unit tests for {@link UfsJournal}.
@@ -40,7 +41,7 @@ public final class UfsJournalTest {
   public void before() throws Exception {
     mJournal =
         new UfsJournal(URIUtils.appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()),
-            "FileSystemMaster"), new NoopMaster(), 0);
+            "FileSystemMaster"), new NoopMaster(), 0, Collections::emptySet);
   }
 
   /**
