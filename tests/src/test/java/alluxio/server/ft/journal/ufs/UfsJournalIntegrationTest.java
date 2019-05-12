@@ -42,6 +42,7 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.master.MasterTestUtils;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -208,12 +209,12 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
             Constants.FILE_SYSTEM_MASTER_NAME);
     UfsJournal journal = new UfsJournal(new URI(journalFolder), new NoopMaster(), 0);
     URI completedLocation = journal.getLogDir();
-    Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation,
-        ServerConfiguration.global())
+    Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation.toString(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()))
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
-    Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation,
-        ServerConfiguration.global())
+    Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation.toString(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()))
         .listStatus(completedLocation.toString()).length > 1);
     multiEditLogTestUtil();
   }

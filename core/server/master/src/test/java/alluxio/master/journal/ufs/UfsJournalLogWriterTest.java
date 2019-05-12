@@ -23,6 +23,7 @@ import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalReader.State;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 
 import org.junit.After;
@@ -61,7 +62,8 @@ public final class UfsJournalLogWriterTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
-    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location, ServerConfiguration.global()));
+    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location.toString(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global())));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
   }
 

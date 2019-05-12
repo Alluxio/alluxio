@@ -23,6 +23,7 @@ import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 
@@ -51,7 +52,8 @@ public final class UfsJournalReaderTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
-    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location, ServerConfiguration.global()));
+    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location.toString(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global())));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
   }
 
