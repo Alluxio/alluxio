@@ -22,7 +22,9 @@ import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -45,7 +47,7 @@ public final class FileInfo implements Serializable {
   private boolean mCompleted;
   private boolean mFolder;
   private boolean mPinned;
-  private List<String> mMediumTypes = new ArrayList<>();
+  private Set<String> mMediumTypes = new HashSet<>();
   private boolean mCacheable;
   private boolean mPersisted;
   private ArrayList<Long> mBlockIds = new ArrayList<>();
@@ -300,9 +302,9 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @return a list of pinned locations
+   * @return a set of pinned locations
    */
-  public List<String> getMediumTypes() {
+  public Set<String> getMediumTypes() {
     return mMediumTypes;
   }
 
@@ -587,7 +589,7 @@ public final class FileInfo implements Serializable {
    * @param mediumTypes the pinned locations
    * @return the file information
    */
-  public FileInfo setMediumTypes(List<String> mediumTypes) {
+  public FileInfo setMediumTypes(Set<String> mediumTypes) {
     mMediumTypes = mediumTypes;
     return this;
   }

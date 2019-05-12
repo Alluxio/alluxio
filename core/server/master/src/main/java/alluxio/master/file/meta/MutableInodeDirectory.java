@@ -140,7 +140,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
     ret.setAcl(mAcl);
     ret.setDefaultAcl(mDefaultAcl);
-    ret.setMediumTypes(new ArrayList<>(getMediumTypes()));
+    ret.setMediumTypes(getMediumTypes());
     return ret;
   }
 

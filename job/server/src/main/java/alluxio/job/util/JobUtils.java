@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -130,11 +131,12 @@ public final class JobUtils {
     // renamed, the job is still working on the correct file.
     URIStatus status = fs.getStatus(new AlluxioURI(path));
 
-    List<String> pinnedLocation = status.getPinnedLocation();
+    Set<String> pinnedLocation = status.getPinnedLocation();
     if (pinnedLocation.size() > 1) {
       throw new AlluxioException(ExceptionMessage.PINNED_TO_MULTIPLE_MEDIA.getMessage(path));
     }
-    String medium = pinnedLocation.isEmpty() ? "" : pinnedLocation.get(0);
+    // since there is only one element in the set, we take the first element in the set
+    String medium = pinnedLocation.isEmpty() ? "" : pinnedLocation.iterator().next();
 
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();

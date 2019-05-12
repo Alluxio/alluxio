@@ -92,7 +92,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     ret.setCacheable(isCacheable());
     ret.setFolder(isDirectory());
     ret.setPinned(isPinned());
-    ret.setMediumTypes(new ArrayList<>(getMediumTypes()));
+    ret.setMediumTypes(getMediumTypes());
     ret.setCompleted(isCompleted());
     ret.setPersisted(isPersisted());
     ret.setBlockIds(getBlockIds());
