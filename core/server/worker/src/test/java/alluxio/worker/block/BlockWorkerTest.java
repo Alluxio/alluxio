@@ -266,7 +266,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#createBlockRemote(long, long, String, long)} method.
+   * Tests the {@link BlockWorker#createBlockRemote(long, long, String, String, long)} method.
    */
   @Test
   public void createBlockRemote() throws Exception {
