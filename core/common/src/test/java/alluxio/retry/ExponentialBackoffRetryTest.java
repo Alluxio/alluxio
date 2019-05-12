@@ -11,7 +11,6 @@
 
 package alluxio.retry;
 
-
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -23,7 +22,6 @@ public final class ExponentialBackoffRetryTest {
 
   /**
    * Ensures that a lot of retries always produce a positive time.
-   * 
    */
   @Test
   public void largeRetriesProducePositiveTime() {
