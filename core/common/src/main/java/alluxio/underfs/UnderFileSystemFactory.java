@@ -50,10 +50,10 @@ public interface UnderFileSystemFactory
    * this path.
    *
    * @param path file path
-   * @param conf optional configuration object for the UFS, may be null
+   * @param conf configuration object for the UFS
    * @return true if the path is supported, false otherwise
    */
-  default boolean supportsPath(String path, @Nullable UnderFileSystemConfiguration conf) {
+  default boolean supportsPath(String path, UnderFileSystemConfiguration conf) {
     return supportsPath(path);
   }
 
