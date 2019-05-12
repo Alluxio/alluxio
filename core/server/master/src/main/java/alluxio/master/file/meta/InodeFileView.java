@@ -26,6 +26,11 @@ public interface InodeFileView extends InodeView {
   long getPersistJobId();
 
   /**
+   * @return the persistence initial wait time of this file
+   */
+  long getPersistenceWaitTime();
+
+  /**
    * @return the durable number of block replication
    */
   int getReplicationDurable();

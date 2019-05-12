@@ -575,7 +575,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           mPersistRequests.put(inodeFile.getId(), new alluxio.time.ExponentialTimer(
               ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
               ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-              ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+              inodeFile.getPersistenceWaitTime(),
               ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
         } else {
           AlluxioURI path;
@@ -585,7 +585,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             LOG.error("Failed to determine path for inode with id {}", id, e);
             continue;
           }
-          addPersistJob(id, inodeFile.getPersistJobId(), path, inodeFile.getTempUfsPath());
+          addPersistJob(id, inodeFile.getPersistJobId(),
+              inodeFile.getPersistenceWaitTime(), path, inodeFile.getTempUfsPath());
         }
       }
       if (ServerConfiguration
@@ -2004,7 +2005,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       mPersistRequests.put(srcInode.getId(), new alluxio.time.ExponentialTimer(
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+          srcInode.asFile().getPersistenceWaitTime(),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
   }
@@ -3001,7 +3002,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       mPersistRequests.put(inode.getId(), new alluxio.time.ExponentialTimer(
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+          inode.getPersistenceWaitTime(),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
   }
@@ -3689,16 +3690,18 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   /**
    * @param fileId file ID
    * @param jobId persist job ID
+   * @param persistenceWaitTime persistence initial wait time
    * @param uri Alluxio Uri of the file
    * @param tempUfsPath temp UFS path
    */
-  private void addPersistJob(long fileId, long jobId, AlluxioURI uri, String tempUfsPath) {
+  private void addPersistJob(long fileId, long jobId, long persistenceWaitTime, AlluxioURI uri,
+      String tempUfsPath) {
     alluxio.time.ExponentialTimer timer = mPersistRequests.remove(fileId);
     if (timer == null) {
       timer = new alluxio.time.ExponentialTimer(
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS),
+          persistenceWaitTime,
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS));
     }
     mPersistJobs.put(fileId, new PersistJob(jobId, fileId, uri, tempUfsPath, timer));

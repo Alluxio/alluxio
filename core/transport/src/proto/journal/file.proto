@@ -117,7 +117,6 @@ message UpdateInodeFileEntry {
   optional int32 replication_min = 9;
   optional int64 persist_job_id = 10;
   optional string temp_ufs_path = 11;
-
 }
 
 // next available id: 17
@@ -151,7 +150,7 @@ enum PTtlAction {
   FREE = 1;
 }
 
-// next available id: 25
+// next available id: 26
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -177,6 +176,7 @@ message InodeFileEntry {
   optional int64 persist_job_id = 22;
   optional string temp_ufs_path = 23;
   optional int32 replication_durable = 24;
+  optional int64 persistence_wait_time = 25;
 }
 
 // next available id: 3

@@ -78,6 +78,7 @@ public class FileSystemOptions {
         .setCommonOptions(commonDefaults(conf))
         .setMode(ModeUtils.applyFileUMask(Mode.defaults(),
             conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
+        .setPersistenceWaitTime(conf.getMs(PropertyKey.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME))
         .setRecursive(false)
         .setReplicationDurable(conf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE))
         .setReplicationMax(conf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX))

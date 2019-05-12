@@ -92,6 +92,7 @@ message CreateFilePOptions {
   optional int32 writeTier = 7;
   optional WritePType writeType = 8;
   optional FileSystemMasterCommonPOptions commonOptions = 9;
+  optional int64 persistenceWaitTime = 10;
 }
 message CreateFilePRequest {
   /** the path of the file */
