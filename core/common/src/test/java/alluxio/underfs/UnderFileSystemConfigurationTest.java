@@ -18,7 +18,6 @@ import static org.junit.Assert.fail;
 
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
-import alluxio.conf.ConfigurationTest;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 

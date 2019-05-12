@@ -16,7 +16,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
-import alluxio.util.ConfigurationUtils;
 
 import java.util.HashMap;
 import java.util.Map;

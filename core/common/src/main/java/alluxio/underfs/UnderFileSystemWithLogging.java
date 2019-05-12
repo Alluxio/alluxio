@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.metrics.CommonMetrics;

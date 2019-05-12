@@ -12,7 +12,6 @@
 package alluxio.underfs;
 
 import alluxio.annotation.PublicApi;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.extensions.ExtensionFactory;
 
 import javax.annotation.Nullable;
