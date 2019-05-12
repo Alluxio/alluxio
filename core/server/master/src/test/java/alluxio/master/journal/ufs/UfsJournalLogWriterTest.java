@@ -23,7 +23,6 @@ import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalReader.State;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 
 import org.junit.After;
