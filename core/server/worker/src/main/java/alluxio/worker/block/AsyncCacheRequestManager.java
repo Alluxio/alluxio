@@ -197,7 +197,7 @@ public class AsyncCacheRequestManager {
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
     try {
       mBlockWorker.createBlockRemote(Sessions.ASYNC_CACHE_SESSION_ID, blockId,
-          mStorageTierAssoc.getAlias(0), blockSize);
+          mStorageTierAssoc.getAlias(0), "", blockSize);
     } catch (BlockAlreadyExistsException e) {
       // It is already cached
       return true;

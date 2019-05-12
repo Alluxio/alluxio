@@ -366,9 +366,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void createBlockRemote(long sessionId, long blockId, String tierAlias, long initialBytes)
+  public void createBlockRemote(long sessionId, long blockId, String tierAlias,
+      String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation loc;
+    if (!medium.isEmpty()) {
+      loc = mBlockStore.getMedium(medium);
+    } else {
+      loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    }
     mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
   }
 
