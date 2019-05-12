@@ -11,9 +11,11 @@
 
 package alluxio.security.authorization;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.exception.ExceptionMessage;
 
-import org.junit.Assert;
+//import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -34,19 +36,19 @@ public final class ModeParserTest {
   @Test
   public void numerics() {
     Mode parsed = ModeParser.parse("777");
-    Assert.assertEquals(Mode.Bits.ALL, parsed.getOwnerBits());
-    Assert.assertEquals(Mode.Bits.ALL, parsed.getGroupBits());
-    Assert.assertEquals(Mode.Bits.ALL, parsed.getOtherBits());
+    assertEquals(Mode.Bits.ALL, parsed.getOwnerBits());
+    assertEquals(Mode.Bits.ALL, parsed.getGroupBits());
+    assertEquals(Mode.Bits.ALL, parsed.getOtherBits());
 
     parsed = ModeParser.parse("755");
-    Assert.assertEquals(Mode.Bits.ALL, parsed.getOwnerBits());
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE, parsed.getGroupBits());
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE, parsed.getOtherBits());
+    assertEquals(Mode.Bits.ALL, parsed.getOwnerBits());
+    assertEquals(Mode.Bits.READ_EXECUTE, parsed.getGroupBits());
+    assertEquals(Mode.Bits.READ_EXECUTE, parsed.getOtherBits());
 
     parsed = ModeParser.parse("644");
-    Assert.assertEquals(Mode.Bits.READ_WRITE, parsed.getOwnerBits());
-    Assert.assertEquals(Mode.Bits.READ, parsed.getGroupBits());
-    Assert.assertEquals(Mode.Bits.READ, parsed.getOtherBits());
+    assertEquals(Mode.Bits.READ_WRITE, parsed.getOwnerBits());
+    assertEquals(Mode.Bits.READ, parsed.getGroupBits());
+    assertEquals(Mode.Bits.READ, parsed.getOtherBits());
   }
 
   @Test
