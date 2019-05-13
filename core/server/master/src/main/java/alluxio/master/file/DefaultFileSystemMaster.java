@@ -527,8 +527,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       if (root == null) {
         try (JournalContext context = createJournalContext()) {
           mInodeTree.initializeRoot(
-              SecurityUtils.getOwnerFromLoginModule(ServerConfiguration.global()),
-              SecurityUtils.getGroupFromLoginModule(ServerConfiguration.global()),
+              SecurityUtils.getOwner(mMasterContext.getUserState()),
+              SecurityUtils.getGroup(mMasterContext.getUserState(), ServerConfiguration.global()),
               ModeUtils.applyDirectoryUMask(Mode.createFullAccess(),
                   ServerConfiguration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)),
               context);
@@ -537,7 +537,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         // For backwards-compatibility:
         // Empty root owner indicates that previously the master had no security. In this case, the
         // master is allowed to be started with security turned on.
-        String serverOwner = SecurityUtils.getOwnerFromLoginModule(ServerConfiguration.global());
+        String serverOwner = SecurityUtils.getOwner(mMasterContext.getUserState());
         if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
             && !root.getOwner().isEmpty() && !root.getOwner().equals(serverOwner)) {
           // user is not the previous owner
@@ -600,29 +600,29 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_BLOCK_INTEGRITY_CHECK,
                 new BlockIntegrityChecker(this), blockIntegrityCheckInterval,
-                ServerConfiguration.global()));
+                ServerConfiguration.global(), mMasterContext.getUserState()));
       }
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree),
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS),
-              ServerConfiguration.global()));
+              ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
               new LostFileDetector(this, mInodeTree),
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL),
-              ServerConfiguration.global()));
+              ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_REPLICATION_CHECK,
           new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,
               mSafeModeManager, mJobMasterClientPool),
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS),
-          ServerConfiguration.global()));
+          ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
               new PersistenceScheduler(),
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS),
-              ServerConfiguration.global()));
+              ServerConfiguration.global(), mMasterContext.getUserState()));
       mPersistCheckerPool =
           new java.util.concurrent.ThreadPoolExecutor(PERSIST_CHECKER_POOL_THREADS,
               PERSIST_CHECKER_POOL_THREADS, 1, java.util.concurrent.TimeUnit.MINUTES,
@@ -633,12 +633,12 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_CHECKER,
               new PersistenceChecker(),
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS),
-              ServerConfiguration.global()));
+              ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_METRICS_TIME_SERIES,
               new TimeSeriesRecorder(),
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL),
-              ServerConfiguration.global()));
+              ServerConfiguration.global(), mMasterContext.getUserState()));
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
         mAsyncAuditLogWriter.start();
@@ -647,7 +647,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
                 (int) ServerConfiguration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL),
-                ServerConfiguration.global()));
+                ServerConfiguration.global(), mMasterContext.getUserState()));
       }
       mSyncManager.start();
     }

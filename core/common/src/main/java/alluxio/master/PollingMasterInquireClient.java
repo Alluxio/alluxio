@@ -25,6 +25,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
 
@@ -50,6 +51,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   private final MultiMasterConnectDetails mConnectDetails;
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
   private final AlluxioConfiguration mConfiguration;
+  private final UserState mUserState;
 
   /**
    * @param masterAddresses the potential master addresses
@@ -72,6 +74,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
     mRetryPolicySupplier = retryPolicySupplier;
     mConfiguration = alluxioConf;
+    mUserState = UserState.Factory.create(mConfiguration);
   }
 
   @Override
@@ -109,7 +112,8 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   private void pingMetaService(InetSocketAddress address) throws AlluxioStatusException {
     GrpcChannel channel =
-        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), mConfiguration).build();
+        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), mConfiguration)
+            .setSubject(mUserState.getSubject()).build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
     ServiceType serviceType

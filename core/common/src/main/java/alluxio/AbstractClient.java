@@ -19,6 +19,7 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
+import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceType;
@@ -28,8 +29,6 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
-import alluxio.security.LoginUser;
-import alluxio.grpc.GrpcChannel;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
@@ -229,7 +228,7 @@ public abstract class AbstractClient implements Client {
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
             .newBuilder(new GrpcServerAddress(mAddress), mContext.getConf())
-            .setSubject(mContext.getSubject())
+            .setSubject(mContext.getUserState().getSubject())
             .build();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
@@ -393,9 +392,9 @@ public abstract class AbstractClient implements Client {
   private String getQualifiedMetricName(String metricName) {
     try {
       if (SecurityUtils.isAuthenticationEnabled(mContext.getConf())
-          && LoginUser.get(mContext.getConf()) != null) {
+          && mContext.getUserState().getUser() != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-            LoginUser.get(mContext.getConf()).getName());
+            mContext.getUserState().getUser().getName());
       } else {
         return metricName;
       }

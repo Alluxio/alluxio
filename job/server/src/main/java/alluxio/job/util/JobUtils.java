@@ -139,7 +139,7 @@ public final class JobUtils {
     inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
         LocalFirstPolicy.class.getCanonicalName(), conf));
 
-    OutStreamOptions outOptions = OutStreamOptions.defaults(conf);
+    OutStreamOptions outOptions = OutStreamOptions.defaults(context.getClientContext());
     // Set write location policy always to local first for loading blocks for job tasks
     outOptions.setLocationPolicy(BlockLocationPolicy.Factory.create(
         LocalFirstPolicy.class.getCanonicalName(), conf));

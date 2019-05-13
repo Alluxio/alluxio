@@ -23,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import javax.security.auth.Subject;
 import javax.security.sasl.SaslException;
 
 /**
@@ -39,11 +40,18 @@ public class SaslHandlersTest {
 
   @Test
   public void testCreateClientSimpleNullSubject() throws UnauthenticatedException {
-    // Test allow null subject
+    // Test null subject
+    mThrown.expect(UnauthenticatedException.class);
+    mThrown.expectMessage("client subject not provided");
     SaslClientHandler client = new SaslClientHandlerPlain(null, mConfiguration);
-    Assert.assertNotNull(client);
-    Assert.assertEquals(PlainSaslServerProvider.MECHANISM,
-        client.getSaslClient().getMechanismName());
+  }
+
+  @Test
+  public void testCreateClientSimpleEmptySubject() throws UnauthenticatedException {
+    // Test subject with no user
+    mThrown.expect(UnauthenticatedException.class);
+    mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
+    SaslClientHandler client = new SaslClientHandlerPlain(new Subject(), mConfiguration);
   }
 
   @Test

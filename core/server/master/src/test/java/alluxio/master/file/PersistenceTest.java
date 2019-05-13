@@ -46,9 +46,9 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metrics.MetricsMasterFactory;
-import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
+import alluxio.security.user.UserState;
 import alluxio.time.ExponentialTimer;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -95,7 +95,8 @@ public final class PersistenceTest {
 
   @Before
   public void before() throws Exception {
-    AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
+    UserState s = UserState.Factory.create(ServerConfiguration.global());
+    AuthenticatedClientUser.set(s.getUser().getName());
     TemporaryFolder tmpFolder = new TemporaryFolder();
     tmpFolder.create();
     File ufsRoot = tmpFolder.newFolder();
@@ -307,7 +308,8 @@ public final class PersistenceTest {
    */
   @Test(timeout = 20000)
   public void retryPersistJobRenameDelete() throws Exception {
-    AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
+    UserState s = UserState.Factory.create(ServerConfiguration.global());
+    AuthenticatedClientUser.set(s.getUser().getName());
     // Create src file and directory, checking the internal state.
     AlluxioURI alluxioDirSrc = new AlluxioURI("/src");
     mFileSystemMaster.createDirectory(alluxioDirSrc,

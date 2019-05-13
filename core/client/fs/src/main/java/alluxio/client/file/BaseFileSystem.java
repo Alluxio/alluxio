@@ -205,7 +205,7 @@ public class BaseFileSystem implements FileSystem {
     }
 
     OutStreamOptions outStreamOptions =
-        new OutStreamOptions(options, mFsContext.getPathConf(path));
+        new OutStreamOptions(options, mFsContext.getClientContext(), mFsContext.getPathConf(path));
     outStreamOptions.setUfsPath(status.getUfsPath());
     outStreamOptions.setMountId(status.getMountId());
     outStreamOptions.setAcl(status.getAcl());

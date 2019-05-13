@@ -28,7 +28,6 @@ import java.io.IOException;
 public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void chmod() throws IOException, AlluxioException {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     mFsShell.run("chmod", "777", "/testFile");
     int permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
@@ -43,7 +42,6 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
    */
   @Test
   public void chmodRecursively() throws IOException, AlluxioException {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile",
         WritePType.MUST_CACHE, 10);
     mFsShell.run("chmod", "-R", "777", "/testDir");
@@ -58,7 +56,6 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chmodSymbolic() throws IOException, AlluxioException {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     mFsShell.run("chmod", "a=rwx", "/testFile");
     int permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
@@ -73,7 +70,6 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
    */
   @Test
   public void chmodWildCard() throws IOException, AlluxioException {
-    clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile1",
         WritePType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir2/testFile2",

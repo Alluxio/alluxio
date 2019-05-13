@@ -11,24 +11,27 @@
 
 package alluxio.client.file.options;
 
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
-import alluxio.util.SecurityUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -54,22 +57,33 @@ public final class OutStreamOptions {
   private long mMountId;
 
   /**
-   * @param alluxioConf Alluxio configuration
+   * @param context Alluxio client context
+   * @param alluxioConf the Alluxio configuration
    * @return the default {@link OutStreamOptions}
    */
-  public static OutStreamOptions defaults(AlluxioConfiguration alluxioConf) {
-    return new OutStreamOptions(alluxioConf);
+  public static OutStreamOptions defaults(ClientContext context, AlluxioConfiguration alluxioConf) {
+    return new OutStreamOptions(context, alluxioConf);
+  }
+
+  /**
+   * @param context Alluxio client context
+   * @return the default {@link OutStreamOptions}
+   */
+  public static OutStreamOptions defaults(ClientContext context) {
+    return new OutStreamOptions(context, context.getConf());
   }
 
   /**
    * Creates an {@link OutStreamOptions} instance from given options.
    *
    * @param options CreateFile options
-   * @param alluxioConf Alluxio configuration
+   * @param context Alluxio client context
+   * @param alluxioConf the Alluxio configuration
    * @throws Exception if {@link BlockLocationPolicy} can't be loaded
    */
-  public OutStreamOptions(CreateFilePOptions options, AlluxioConfiguration alluxioConf) {
-    this(alluxioConf);
+  public OutStreamOptions(CreateFilePOptions options, ClientContext context,
+      AlluxioConfiguration alluxioConf) {
+    this(context, alluxioConf);
     if (options.hasCommonOptions()) {
       mCommonOptions = mCommonOptions.toBuilder().mergeFrom(options.getCommonOptions()).build();
     }
@@ -102,7 +116,7 @@ public final class OutStreamOptions {
     }
   }
 
-  private OutStreamOptions(AlluxioConfiguration alluxioConf) {
+  private OutStreamOptions(ClientContext context, AlluxioConfiguration alluxioConf) {
     mCommonOptions = FileSystemOptions.commonDefaults(alluxioConf);
     mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mLocationPolicy = BlockLocationPolicy.Factory.create(
@@ -110,8 +124,13 @@ public final class OutStreamOptions {
         alluxioConf);
     mWriteTier = alluxioConf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = alluxioConf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-    mOwner = SecurityUtils.getOwnerFromLoginModule(alluxioConf);
-    mGroup = SecurityUtils.getGroupFromLoginModule(alluxioConf);
+    try {
+      mOwner = context.getUserState().getUser().getName();
+      mGroup = CommonUtils.getPrimaryGroupName(mOwner, context.getConf());
+    } catch (IOException e) {
+      mOwner = "";
+      mGroup = "";
+    }
     mMode = ModeUtils.applyFileUMask(Mode.defaults(), alluxioConf
         .get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     mMountId = IdUtils.INVALID_MOUNT_ID;
