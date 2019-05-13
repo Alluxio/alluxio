@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.http;
+package alluxio.underfs.web;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -25,32 +25,32 @@ import org.junit.Test;
 import java.io.IOException;
 
 /**
- * Unit tests for the {@link HttpUnderFileSystem}.
+ * Unit tests for the {@link WebUnderFileSystem}.
  */
-public class HttpUnderFileSystemTest {
-  private String mHttpUfsRoot;
-  private UnderFileSystem mHttpUfs;
+public class WebUnderFileSystemTest {
+  private String mWebUfsRoot;
+  private UnderFileSystem mWebUfs;
   private static AlluxioConfiguration sConf =
       new InstancedConfiguration(ConfigurationUtils.defaults());
 
   @Before
   public void before() throws IOException {
-    mHttpUfsRoot = "https://archive.apache.org/dist/";
-    mHttpUfs = UnderFileSystem.Factory.create(mHttpUfsRoot, sConf);
+    mWebUfsRoot = "https://archive.apache.org/dist/";
+    mWebUfs = UnderFileSystem.Factory.create(mWebUfsRoot, sConf);
   }
 
   @Test
   public void exists() throws IOException {
-    assertTrue(mHttpUfs.exists(mHttpUfsRoot));
+    assertTrue(mWebUfs.exists(mWebUfsRoot));
   }
 
   @Test
   public void isDirectory() throws IOException {
-    assertTrue(mHttpUfs.isDirectory(mHttpUfsRoot));
+    assertTrue(mWebUfs.isDirectory(mWebUfsRoot));
   }
 
   @Test
   public void isFile() throws IOException {
-    assertFalse(mHttpUfs.isFile(mHttpUfsRoot));
+    assertFalse(mWebUfs.isFile(mWebUfsRoot));
   }
 }

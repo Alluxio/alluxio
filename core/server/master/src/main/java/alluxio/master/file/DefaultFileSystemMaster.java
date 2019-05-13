@@ -2660,7 +2660,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
               ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
         }
 
-        if (UnderFileSystemUtils.isHttp(ufs)) {
+        if (UnderFileSystemUtils.isWeb(ufs)) {
           mountOption.setReadOnly(true);
         }
       }

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.http;
+package alluxio.underfs.web;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -23,21 +23,21 @@ import com.google.common.base.Preconditions;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory for creating {@link HttpUnderFileSystem}.
+ * Factory for creating {@link WebUnderFileSystem}.
  */
 @ThreadSafe
-public class HttpUnderFileSystemFactory implements UnderFileSystemFactory {
+public class WebUnderFileSystemFactory implements UnderFileSystemFactory {
 
   /**
-   * Constructs a new {@link HttpUnderFileSystemFactory}.
+   * Constructs a new {@link WebUnderFileSystemFactory}.
    */
-  public HttpUnderFileSystemFactory() {}
+  public WebUnderFileSystemFactory() {}
 
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
       AlluxioConfiguration alluxioConf) {
     Preconditions.checkNotNull(path, "path");
-    return new HttpUnderFileSystem(new AlluxioURI(path), conf, alluxioConf);
+    return new WebUnderFileSystem(new AlluxioURI(path), conf, alluxioConf);
   }
 
   @Override

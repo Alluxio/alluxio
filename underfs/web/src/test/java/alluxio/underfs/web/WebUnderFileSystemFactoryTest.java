@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.http;
+package alluxio.underfs.web;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
@@ -21,12 +21,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for the {@link HttpUnderFileSystemFactory}.
+ * Unit tests for the {@link WebUnderFileSystemFactory}.
  */
-public class HttpUnderFileSystemFactoryTest {
+public class WebUnderFileSystemFactoryTest {
 
   /**
-   * This test ensures the http UFS module correctly accepts paths that begin with / or file://.
+   * This test ensures the web UFS module correctly accepts paths that begin with / or file://.
    */
   @Test
   public void factory() {

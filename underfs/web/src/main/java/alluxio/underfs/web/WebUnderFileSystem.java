@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.http;
+package alluxio.underfs.web;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
@@ -49,29 +49,30 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Http {@link UnderFileSystem} implementation.
+ * Web {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public class HttpUnderFileSystem extends ConsistentUnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(HttpUnderFileSystem.class);
+public class WebUnderFileSystem extends ConsistentUnderFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(WebUnderFileSystem.class);
   private int mTimeout;
+  private final String mUnsupportedMsg = "Unsupported operation for WebUnderFileSystem.";
 
   /**
-   * Constructs a new {@link HttpUnderFileSystem}.
+   * Constructs a new {@link WebUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param ufsConf UFS configuration
    * @param alluxioConf Alluxio configuration
    */
-  public HttpUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
+  public WebUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
       AlluxioConfiguration alluxioConf) {
     super(uri, ufsConf, alluxioConf);
-    mTimeout = (int) mAlluxioConf.getMs(PropertyKey.UNDERFS_HTTP_CONNECTION_TIMEOUT);
+    mTimeout = (int) mAlluxioConf.getMs(PropertyKey.UNDERFS_WEB_CONNECTION_TIMEOUT);
   }
 
   @Override
   public String getUnderFSType() {
-    return "http";
+    return "web";
   }
 
   @Override
@@ -82,17 +83,17 @@ public class HttpUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    throw new IOException("Invalid operation for HttpUnderFileSystem.");
+    throw new IOException(mUnsupportedMsg);
   }
 
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
-    return false;
+    throw new IOException(mUnsupportedMsg);
   }
 
   @Override
   public boolean deleteFile(String path) throws IOException {
-    return false;
+    throw new IOException(mUnsupportedMsg);
   }
 
   @Override
@@ -166,7 +167,7 @@ public class HttpUnderFileSystem extends ConsistentUnderFileSystem {
         contentLength = Long.parseLong(header.getValue());
       } else if (headerName.equalsIgnoreCase("Last-Modified")) {
         lastModified = parseTimestamp(header.getValue(),
-            mAlluxioConf.get(PropertyKey.UNDERFS_HTTP_HEADER_LAST_MODIFIED));
+            mAlluxioConf.get(PropertyKey.UNDERFS_WEB_HEADER_LAST_MODIFIED));
       }
     }
 
@@ -205,7 +206,7 @@ public class HttpUnderFileSystem extends ConsistentUnderFileSystem {
       Elements titleElements = Jsoup.connect(path).get().select("title");
       if (titleElements.size() > 0) {
         String title = titleElements.get(0).text();
-        List<String> titles = mAlluxioConf.getList(PropertyKey.UNDERFS_HTTP_TITLES, ",");
+        List<String> titles = mAlluxioConf.getList(PropertyKey.UNDERFS_WEB_TITLES, ",");
         for (final String t : titles) {
           if (title.contains(t)) {
             return true;
@@ -271,7 +272,7 @@ public class HttpUnderFileSystem extends ConsistentUnderFileSystem {
       return null;
     }
 
-    List<String> parentNames = mAlluxioConf.getList(PropertyKey.UNDERFS_HTTP_PARENT_NAMES, ",");
+    List<String> parentNames = mAlluxioConf.getList(PropertyKey.UNDERFS_WEB_PARENT_NAMES, ",");
     int flagIndex = -1;
     for (int i = 0; flagIndex == -1 && i < listElements.size(); i++) {
       for (final String flag : parentNames) {
@@ -287,7 +288,7 @@ public class HttpUnderFileSystem extends ConsistentUnderFileSystem {
       Element listElement = listElements.get(i);
       String href = listElement.attr("href");
       String fileName = listElement.text();
-      if (!new HttpUnderFileSystemFactory().supportsPath(href)) {
+      if (!new WebUnderFileSystemFactory().supportsPath(href)) {
         href = path + "/" + href;
       }
 
@@ -305,7 +306,7 @@ public class HttpUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
-    return false;
+    throw new IOException(mUnsupportedMsg);
   }
 
   @Override
@@ -322,36 +323,36 @@ public class HttpUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
-    return false;
+    throw new IOException(mUnsupportedMsg);
   }
 
   @Override
   public boolean renameFile(String src, String dst) throws IOException {
-    return false;
+    throw new IOException(mUnsupportedMsg);
   }
 
   @Override
   public void setOwner(String path, String user, String group) throws IOException {
-    // No-op
+    throw new IOException(mUnsupportedMsg);
   }
 
   @Override
   public void setMode(String path, short mode) throws IOException {
-    // No-op
+    throw new IOException(mUnsupportedMsg);
   }
 
   @Override
   public void connectFromMaster(String hostname) throws IOException {
-    // No-op
+    throw new IOException(mUnsupportedMsg);
   }
 
   @Override
   public void connectFromWorker(String hostname) throws IOException {
-    // No-op
+    throw new IOException(mUnsupportedMsg);
   }
 
   @Override
   public boolean supportsFlush() {
-    return true;
+    return false;
   }
 }
