@@ -70,6 +70,14 @@ public final class CurrentUser implements Principal {
 
   @Override
   public boolean equals(Object o) {
-    return Objects.equal(mName, mServiceName);
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CurrentUser)) {
+      return false;
+    }
+    CurrentUser other = (CurrentUser) o;
+    return Objects.equal(mName, other.mName)
+        && Objects.equal(mServiceName, other.mServiceName);
   }
 }
