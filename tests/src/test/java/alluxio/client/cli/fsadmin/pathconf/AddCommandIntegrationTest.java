@@ -180,7 +180,7 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
       mOutput.reset();
       ret = shell.run("pathConf", "show", "/");
       Assert.assertEquals(0, ret);
-      Assert.assertEquals(READ_TYPE_CACHE+ "\n", mOutput.toString());
+      Assert.assertEquals(READ_TYPE_CACHE + "\n", mOutput.toString());
     }
   }
 
