@@ -33,6 +33,7 @@ import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.ReadOnlyInodeStore.ReadOption;
 import alluxio.master.metastore.heap.HeapInodeStore;
 
 import com.google.common.collect.ImmutableMap;
@@ -199,7 +200,7 @@ public class CachingInodeStoreMockedBackingStoreTest {
     for (int id = 100; id < 100 + CACHE_SIZE * 2; id++) {
       assertTrue(mStore.getChild(TEST_INODE_DIR, "child" + id).isPresent());
     }
-    verify(mBackingStore, Mockito.atLeastOnce()).getMutable(anyLong());
+    verify(mBackingStore, Mockito.atLeastOnce()).getMutable(anyLong(), any(ReadOption.class));
   }
 
   @Test
