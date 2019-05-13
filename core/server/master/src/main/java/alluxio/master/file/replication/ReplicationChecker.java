@@ -30,6 +30,7 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.wire.BlockInfo;
 
+import alluxio.wire.BlockLocation;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -137,9 +138,22 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     // Nothing to clean up
   }
 
+  private boolean checkCorrectlyReplicated(InodeFile file, BlockInfo blockInfo) {
+    Set<String> pinnedMediumTypes = file.getMediumTypes();
+    if (blockInfo == null && !pinnedMediumTypes.isEmpty()) {
+      return false;
+    }
+    Set<String> storedMediumTypes = new HashSet<>();
+    for (BlockLocation loc : blockInfo.getLocations()) {
+      storedMediumTypes.add(loc.getMediumType());
+    }
+    // if all pinned medium type is found in block locations, then it is correctly pinned.
+    return storedMediumTypes.containsAll(pinnedMediumTypes);
+  }
+
   private void check(Set<Long> inodes, ReplicationHandler handler, Mode mode) {
     Set<Long> lostBlocks = mBlockMaster.getLostBlocks();
-    Set<Triple<AlluxioURI, Long, Integer>> requests = new HashSet<>();
+    Set<ReplicationRequest> requests = new HashSet<>();
     for (long inodeId : inodes) {
       // TODO(binfan): calling lockFullInodePath locks the entire path from root to the target
       // file and may increase lock contention in this tree. Investigate if we could avoid
@@ -167,12 +181,18 @@ public final class ReplicationChecker implements HeartbeatExecutor {
                 maxReplicas = file.getReplicationDurable();
               }
               if (currentReplicas > maxReplicas) {
-                requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
+                requests.add(new ReplicationRequest(Mode.EVICT, inodePath.getUri(), blockId,
                     currentReplicas - maxReplicas));
               }
               break;
             case REPLICATE:
               int minReplicas = file.getReplicationMin();
+              // check if it is correctly replicated
+              if (currentReplicas > 0 && (!checkCorrectlyReplicated(file, blockInfo))) {
+                // some copy is in memory and it is not correctly replicated
+                requests.add(new ReplicationRequest(Mode.EVICT, inodePath.getUri(), blockId, 1));
+                currentReplicas--;
+              }
               if (file.getPersistenceState() == PersistenceState.TO_BE_PERSISTED
                   && file.getReplicationDurable() > minReplicas) {
                 minReplicas = file.getReplicationDurable();
@@ -182,7 +202,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
                 if (!file.isPersisted() && lostBlocks.contains(blockId)) {
                   continue;
                 }
-                requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
+                requests.add(new ReplicationRequest(Mode.REPLICATE, inodePath.getUri(), blockId,
                     minReplicas - currentReplicas));
               }
               break;
@@ -194,12 +214,12 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.getMessage());
       }
     }
-    for (Triple<AlluxioURI, Long, Integer> entry : requests) {
-      AlluxioURI uri = entry.getLeft();
-      long blockId = entry.getMiddle();
-      int numReplicas = entry.getRight();
+    for (ReplicationRequest entry : requests) {
+      AlluxioURI uri = entry.mUri;
+      long blockId = entry.mBlockId;
+      int numReplicas = entry.mReplicas;
       try {
-        switch (mode) {
+        switch (entry.mMode) {
           case EVICT:
             handler.evict(uri, blockId, numReplicas);
             mQuietPeriodSeconds /= 2;
@@ -227,6 +247,27 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             uri, blockId, numReplicas, e.getMessage());
         LOG.debug("Exception: ", e);
       }
+    }
+  }
+
+  private class ReplicationRequest {
+    private AlluxioURI mUri;
+    private long mBlockId;
+    private int mReplicas;
+    private Mode mMode;
+
+    /**
+     * Constructor for ReplicationRequest object
+     * @param mode mode
+     * @param alluxioUri alluxioUri
+     * @param blockId blockid
+     * @param replica number of replicas to replicate or evict
+     */
+    public ReplicationRequest(Mode mode, AlluxioURI alluxioUri, long blockId, int replica) {
+      mUri = alluxioUri;
+      mMode = mode;
+      mBlockId = blockId;
+      mReplicas = replica;
     }
   }
 }

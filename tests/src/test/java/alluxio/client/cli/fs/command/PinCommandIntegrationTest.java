@@ -80,7 +80,7 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
         fileSize);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     assertTrue(fileExists(filePathA));
-    assertEquals(0, mFsShell.run("pin", filePathA.toString()));
+    assertEquals(0, mFsShell.run("pin", filePathA.toString(), "MEM"));
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_PIN_LIST_SYNC);
 
     FileSystemTestUtils.createByteFile(mFileSystem, filePathB, WritePType.MUST_CACHE,
