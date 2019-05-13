@@ -29,65 +29,6 @@ import java.util.Set;
  */
 public interface ReadOnlyInodeStore extends Closeable {
   /**
-   * Options of reading from the inode store.
-   */
-  class ReadOption {
-    private static final ReadOption DEFAULT = new ReadOption(false);
-
-    private final boolean mSkipCachingAndEviction;
-
-    private ReadOption(boolean skipCachingAndEviction) {
-      mSkipCachingAndEviction = skipCachingAndEviction;
-    }
-
-    /**
-     * @return whether to skip the caching and eviction when reading from the inode store
-     */
-    public boolean shouldSkipCachingAndEviction() {
-      return mSkipCachingAndEviction;
-    }
-
-    /**
-     * @return a new builder
-     */
-    public static Builder newBuilder() {
-      return new Builder();
-    }
-
-    /**
-     * @return the singleton instance of the default option
-     */
-    public static ReadOption defaults() {
-      return DEFAULT;
-    }
-
-    /**
-     * Builder for {@link ReadOption}.
-     */
-    public static class Builder {
-      private boolean mSkipCachingAndEviction = false;
-
-      /**
-       * Sets whether to skip caching and eviction.
-       *
-       * @param skip skip or not
-       * @return the builder
-       */
-      public Builder setSkipCachingAndEviction(boolean skip) {
-        mSkipCachingAndEviction = skip;
-        return this;
-      }
-
-      /**
-       * @return the built option
-       */
-      public ReadOption build() {
-        return new ReadOption(mSkipCachingAndEviction);
-      }
-    }
-  }
-
-  /**
    * @param id an inode id
    * @param option the options
    * @return the inode with the given id, if it exists

@@ -18,6 +18,7 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.ReadOption;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.util.io.PathUtils;
 

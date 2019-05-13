@@ -12,8 +12,7 @@
 package alluxio.master.metastore.caching;
 
 import alluxio.Constants;
-import alluxio.master.metastore.ReadOnlyInodeStore;
-import alluxio.master.metastore.ReadOnlyInodeStore.ReadOption;
+import alluxio.master.metastore.ReadOption;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 
@@ -104,8 +103,8 @@ public abstract class Cache<K, V> implements Closeable {
    * @return the value, or empty if the key doesn't exist in the cache or in the backing store
    */
   public Optional<V> get(K key, ReadOption option) {
-    if (option.shouldSkipCachingAndEviction() || cacheIsFull()) {
-      return getWithoutCachingAndEviction(key);
+    if (option.shouldSkipCache() || cacheIsFull()) {
+      return getSkipCache(key);
     }
     Entry result = mMap.compute(key, (k, entry) -> {
       if (entry != null) {
@@ -133,7 +132,7 @@ public abstract class Cache<K, V> implements Closeable {
    * @return the result of {@link #get(Object, ReadOption)} with default option
    */
   public Optional<V> get(K key) {
-    return get(key, ReadOnlyInodeStore.ReadOption.defaults());
+    return get(key, ReadOption.defaults());
   }
 
   /**
@@ -143,7 +142,7 @@ public abstract class Cache<K, V> implements Closeable {
    * @param key the key to get the value for
    * @return the value, or empty if the key doesn't exist in the cache or in the backing store
    */
-  private Optional<V> getWithoutCachingAndEviction(K key) {
+  private Optional<V> getSkipCache(K key) {
     Entry entry = mMap.get(key);
     if (entry == null) {
       return load(key);
