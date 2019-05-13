@@ -269,6 +269,7 @@ public final class MountTable implements DelegatingJournaled {
    * @param ufsUri an Ufs path URI
    * @return an Alluxio path URI
    */
+  @Nullable
   public AlluxioURI reverseResolve(AlluxioURI ufsUri) {
     AlluxioURI returnVal = null;
     for (Map.Entry<String, MountInfo> mountInfoEntry : getMountTable().entrySet()) {
@@ -293,6 +294,7 @@ public final class MountTable implements DelegatingJournaled {
    * @param mountId mount id to look up ufs client
    * @return ufsClient
    */
+  @Nullable
   public UfsManager.UfsClient getUfsClient(long mountId) {
     try {
       return mUfsManager.get(mountId);

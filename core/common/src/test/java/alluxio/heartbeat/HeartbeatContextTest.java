@@ -11,8 +11,9 @@
 
 package alluxio.heartbeat;
 
+import static org.junit.Assert.assertTrue;
+
 import com.google.common.collect.ImmutableList;
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -23,7 +24,7 @@ public final class HeartbeatContextTest {
   public void allThreadsUseSleepingTimer() {
     for (String threadName : HeartbeatContext.getTimerClasses().keySet()) {
       Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(threadName);
-      Assert.assertTrue(timerClass.isAssignableFrom(SleepingTimer.class));
+      assertTrue(timerClass.isAssignableFrom(SleepingTimer.class));
     }
   }
 
@@ -31,10 +32,10 @@ public final class HeartbeatContextTest {
   public void canTemporarilySwitchToScheduledTimer() throws Exception {
     try (ManuallyScheduleHeartbeat.Resource h =
         new ManuallyScheduleHeartbeat.Resource(ImmutableList.of(HeartbeatContext.WORKER_CLIENT))) {
-      Assert.assertTrue(HeartbeatContext.getTimerClass(HeartbeatContext.WORKER_CLIENT)
+      assertTrue(HeartbeatContext.getTimerClass(HeartbeatContext.WORKER_CLIENT)
           .isAssignableFrom(ScheduledTimer.class));
     }
-    Assert.assertTrue(HeartbeatContext.getTimerClass(HeartbeatContext.WORKER_CLIENT)
+    assertTrue(HeartbeatContext.getTimerClass(HeartbeatContext.WORKER_CLIENT)
         .isAssignableFrom(SleepingTimer.class));
   }
 }

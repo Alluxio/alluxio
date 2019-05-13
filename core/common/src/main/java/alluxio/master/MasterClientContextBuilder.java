@@ -29,7 +29,7 @@ public class MasterClientContextBuilder {
    * @param ctx The {@link ClientContext} to base the configuration on
    */
   public MasterClientContextBuilder(ClientContext ctx) {
-    mContext = Preconditions.checkNotNull(ctx);
+    mContext = Preconditions.checkNotNull(ctx, "ctx");
   }
 
   /**

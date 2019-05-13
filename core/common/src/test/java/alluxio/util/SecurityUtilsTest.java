@@ -11,6 +11,8 @@
 
 package alluxio.util;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -18,7 +20,6 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,13 +39,13 @@ public final class SecurityUtilsTest {
   public void getOwnerFromGrpcClient() throws Exception {
     // When security is not enabled, user and group are not set
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    Assert.assertEquals("", SecurityUtils.getOwnerFromGrpcClient(mConfiguration));
+    assertEquals("", SecurityUtils.getOwnerFromGrpcClient(mConfiguration));
 
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mConfiguration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         IdentityUserGroupsMapping.class.getName());
     AuthenticatedClientUser.set("test_client_user");
-    Assert.assertEquals("test_client_user", SecurityUtils.getOwnerFromGrpcClient(mConfiguration));
+    assertEquals("test_client_user", SecurityUtils.getOwnerFromGrpcClient(mConfiguration));
   }
 
   /**
@@ -54,12 +55,12 @@ public final class SecurityUtilsTest {
   public void getGroupFromGrpcClient() throws Exception {
     // When security is not enabled, user and group are not set
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    Assert.assertEquals("", SecurityUtils.getGroupFromGrpcClient(mConfiguration));
+    assertEquals("", SecurityUtils.getGroupFromGrpcClient(mConfiguration));
 
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mConfiguration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
         IdentityUserGroupsMapping.class.getName());
     AuthenticatedClientUser.set("test_client_user");
-    Assert.assertEquals("test_client_user", SecurityUtils.getGroupFromGrpcClient(mConfiguration));
+    assertEquals("test_client_user", SecurityUtils.getGroupFromGrpcClient(mConfiguration));
   }
 }

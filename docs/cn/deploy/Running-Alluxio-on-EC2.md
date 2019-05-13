@@ -27,7 +27,7 @@ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.
 
 **安装Alluxio**
 
-下载[Alluxio](https://alluxio.org/download)到你本地的机器上并解压(unzip)。
+下载[Alluxio](https://alluxio.io/download)到你本地的机器上并解压(unzip)。
 
 **安装python库依赖**
 

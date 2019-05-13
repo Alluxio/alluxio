@@ -41,6 +41,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.FileChannel;
+import java.util.Collections;
 
 /**
  * Unit tests for {@link UfsJournalLogWriter}.
@@ -62,7 +63,7 @@ public final class UfsJournalLogWriterTest {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
     mUfs = Mockito.spy(UnderFileSystem.Factory.create(location, ServerConfiguration.global()));
-    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
   }
 
   @After

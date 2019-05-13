@@ -19,6 +19,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.Configuration;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
@@ -64,8 +65,16 @@ public final class ListCommand extends AbstractFsAdminCommand {
     return "list";
   }
 
+  /**
+   * @return command's description
+   */
+  @VisibleForTesting
+  public static String description() {
+    return "List paths that have path level configuration.";
+  }
+
   @Override
   public String getDescription() {
-    return "List paths that have path level configuration.";
+    return description();
   }
 }
