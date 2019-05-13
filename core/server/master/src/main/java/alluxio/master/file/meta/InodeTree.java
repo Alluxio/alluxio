@@ -808,19 +808,21 @@ public class InodeTree implements DelegatingJournaled {
   /**
    * Returns {@link LockedInodePath}s for all descendants of inodePath.
    *
-   * The descendents are implicitly locked because the current thread holds a write lock on
-   * inodePath, so no new locks are acquired in this method.
-   *
    * @param inodePath a locked inode path. It must be write-locked
    * @return all descendants
    */
-  public List<LockedInodePath> getImplicitlyLockedDescendants(LockedInodePath inodePath) {
+  public LockedInodePathList getDescendants(LockedInodePath inodePath) {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE
         || (inodePath.getLockPattern() == LockPattern.WRITE_INODE && inodePath.fullPathExists()));
 
     List<LockedInodePath> descendants = new ArrayList<>();
-    gatherDescendants(inodePath, descendants);
-    return descendants;
+    try {
+      gatherDescendants(inodePath, descendants);
+    } catch (Throwable t) {
+      descendants.forEach(LockedInodePath::close);
+      throw t;
+    }
+    return new LockedInodePathList(descendants);
   }
 
   private void gatherDescendants(LockedInodePath inodePath, List<LockedInodePath> descendants) {
