@@ -59,7 +59,7 @@ public class AlluxioProperties {
   /** Map of property sources. */
   private final ConcurrentHashMap<PropertyKey, Source> mSources = new ConcurrentHashMap<>();
 
-  private Version mVersion = new Version(() -> keySet().stream()
+  private Hash mHash = new Hash(() -> keySet().stream()
       .filter(key -> get(key) != null)
       .sorted(Comparator.comparing(PropertyKey::getName))
       .map(key -> String.format("%s:%s:%s", key.getName(), get(key), getSource(key)).getBytes()));
@@ -109,7 +109,7 @@ public class AlluxioProperties {
     if (!mUserProps.containsKey(key) || source.compareTo(getSource(key)) >= 0) {
       mUserProps.put(key, Optional.ofNullable(value));
       mSources.put(key, source);
-      mVersion.markOutdated();
+      mHash.markOutdated();
     }
   }
 
@@ -153,7 +153,7 @@ public class AlluxioProperties {
       }
       put(propertyKey, value, source);
     }
-    mVersion.markOutdated();
+    mHash.markOutdated();
   }
 
   /**
@@ -166,7 +166,7 @@ public class AlluxioProperties {
     if (mUserProps.containsKey(key)) {
       mUserProps.remove(key);
       mSources.remove(key);
-      mVersion.markOutdated();
+      mHash.markOutdated();
     }
   }
 
@@ -249,7 +249,7 @@ public class AlluxioProperties {
   @VisibleForTesting
   public void setSource(PropertyKey key, Source source) {
     mSources.put(key, source);
-    mVersion.markOutdated();
+    mHash.markOutdated();
   }
 
   /**
@@ -265,9 +265,9 @@ public class AlluxioProperties {
   }
 
   /**
-   * @return the current version of the properties
+   * @return the current hash of the properties
    */
-  public String version() {
-    return mVersion.get();
+  public String hash() {
+    return mHash.get();
   }
 }

@@ -4,18 +4,18 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.meta.GetConfigVersionPOptions}
+ * Protobuf type {@code alluxio.grpc.meta.GetConfigHashPOptions}
  */
-public  final class GetConfigVersionPOptions extends
+public  final class GetConfigHashPOptions extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.meta.GetConfigVersionPOptions)
-    GetConfigVersionPOptionsOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.meta.GetConfigHashPOptions)
+    GetConfigHashPOptionsOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use GetConfigVersionPOptions.newBuilder() to construct.
-  private GetConfigVersionPOptions(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use GetConfigHashPOptions.newBuilder() to construct.
+  private GetConfigHashPOptions(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private GetConfigVersionPOptions() {
+  private GetConfigHashPOptions() {
   }
 
   @java.lang.Override
@@ -23,7 +23,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private GetConfigVersionPOptions(
+  private GetConfigHashPOptions(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -62,14 +62,14 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigVersionPOptions_descriptor;
+    return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPOptions_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigVersionPOptions_fieldAccessorTable
+    return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPOptions_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.GetConfigVersionPOptions.class, alluxio.grpc.GetConfigVersionPOptions.Builder.class);
+            alluxio.grpc.GetConfigHashPOptions.class, alluxio.grpc.GetConfigHashPOptions.Builder.class);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -102,10 +102,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.GetConfigVersionPOptions)) {
+    if (!(obj instanceof alluxio.grpc.GetConfigHashPOptions)) {
       return super.equals(obj);
     }
-    alluxio.grpc.GetConfigVersionPOptions other = (alluxio.grpc.GetConfigVersionPOptions) obj;
+    alluxio.grpc.GetConfigHashPOptions other = (alluxio.grpc.GetConfigHashPOptions) obj;
 
     boolean result = true;
     result = result && unknownFields.equals(other.unknownFields);
@@ -124,69 +124,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static alluxio.grpc.GetConfigVersionPOptions parseFrom(
+  public static alluxio.grpc.GetConfigHashPOptions parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.GetConfigVersionPOptions parseFrom(
+  public static alluxio.grpc.GetConfigHashPOptions parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.GetConfigVersionPOptions parseFrom(
+  public static alluxio.grpc.GetConfigHashPOptions parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.GetConfigVersionPOptions parseFrom(
+  public static alluxio.grpc.GetConfigHashPOptions parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.GetConfigVersionPOptions parseFrom(byte[] data)
+  public static alluxio.grpc.GetConfigHashPOptions parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.GetConfigVersionPOptions parseFrom(
+  public static alluxio.grpc.GetConfigHashPOptions parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.GetConfigVersionPOptions parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.GetConfigHashPOptions parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.GetConfigVersionPOptions parseFrom(
+  public static alluxio.grpc.GetConfigHashPOptions parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.GetConfigVersionPOptions parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.GetConfigHashPOptions parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.GetConfigVersionPOptions parseDelimitedFrom(
+  public static alluxio.grpc.GetConfigHashPOptions parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.GetConfigVersionPOptions parseFrom(
+  public static alluxio.grpc.GetConfigHashPOptions parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.GetConfigVersionPOptions parseFrom(
+  public static alluxio.grpc.GetConfigHashPOptions parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -198,7 +198,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.GetConfigVersionPOptions prototype) {
+  public static Builder newBuilder(alluxio.grpc.GetConfigHashPOptions prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -213,25 +213,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.meta.GetConfigVersionPOptions}
+   * Protobuf type {@code alluxio.grpc.meta.GetConfigHashPOptions}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.meta.GetConfigVersionPOptions)
-      alluxio.grpc.GetConfigVersionPOptionsOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.meta.GetConfigHashPOptions)
+      alluxio.grpc.GetConfigHashPOptionsOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigVersionPOptions_descriptor;
+      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPOptions_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigVersionPOptions_fieldAccessorTable
+      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPOptions_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.GetConfigVersionPOptions.class, alluxio.grpc.GetConfigVersionPOptions.Builder.class);
+              alluxio.grpc.GetConfigHashPOptions.class, alluxio.grpc.GetConfigHashPOptions.Builder.class);
     }
 
-    // Construct using alluxio.grpc.GetConfigVersionPOptions.newBuilder()
+    // Construct using alluxio.grpc.GetConfigHashPOptions.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -253,23 +253,23 @@ private static final long serialVersionUID = 0L;
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigVersionPOptions_descriptor;
+      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPOptions_descriptor;
     }
 
-    public alluxio.grpc.GetConfigVersionPOptions getDefaultInstanceForType() {
-      return alluxio.grpc.GetConfigVersionPOptions.getDefaultInstance();
+    public alluxio.grpc.GetConfigHashPOptions getDefaultInstanceForType() {
+      return alluxio.grpc.GetConfigHashPOptions.getDefaultInstance();
     }
 
-    public alluxio.grpc.GetConfigVersionPOptions build() {
-      alluxio.grpc.GetConfigVersionPOptions result = buildPartial();
+    public alluxio.grpc.GetConfigHashPOptions build() {
+      alluxio.grpc.GetConfigHashPOptions result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.GetConfigVersionPOptions buildPartial() {
-      alluxio.grpc.GetConfigVersionPOptions result = new alluxio.grpc.GetConfigVersionPOptions(this);
+    public alluxio.grpc.GetConfigHashPOptions buildPartial() {
+      alluxio.grpc.GetConfigHashPOptions result = new alluxio.grpc.GetConfigHashPOptions(this);
       onBuilt();
       return result;
     }
@@ -301,16 +301,16 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.GetConfigVersionPOptions) {
-        return mergeFrom((alluxio.grpc.GetConfigVersionPOptions)other);
+      if (other instanceof alluxio.grpc.GetConfigHashPOptions) {
+        return mergeFrom((alluxio.grpc.GetConfigHashPOptions)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.GetConfigVersionPOptions other) {
-      if (other == alluxio.grpc.GetConfigVersionPOptions.getDefaultInstance()) return this;
+    public Builder mergeFrom(alluxio.grpc.GetConfigHashPOptions other) {
+      if (other == alluxio.grpc.GetConfigHashPOptions.getDefaultInstance()) return this;
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -324,11 +324,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.GetConfigVersionPOptions parsedMessage = null;
+      alluxio.grpc.GetConfigHashPOptions parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.GetConfigVersionPOptions) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.GetConfigHashPOptions) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -348,39 +348,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.meta.GetConfigVersionPOptions)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.meta.GetConfigHashPOptions)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.meta.GetConfigVersionPOptions)
-  private static final alluxio.grpc.GetConfigVersionPOptions DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.meta.GetConfigHashPOptions)
+  private static final alluxio.grpc.GetConfigHashPOptions DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.GetConfigVersionPOptions();
+    DEFAULT_INSTANCE = new alluxio.grpc.GetConfigHashPOptions();
   }
 
-  public static alluxio.grpc.GetConfigVersionPOptions getDefaultInstance() {
+  public static alluxio.grpc.GetConfigHashPOptions getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<GetConfigVersionPOptions>
-      PARSER = new com.google.protobuf.AbstractParser<GetConfigVersionPOptions>() {
-    public GetConfigVersionPOptions parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<GetConfigHashPOptions>
+      PARSER = new com.google.protobuf.AbstractParser<GetConfigHashPOptions>() {
+    public GetConfigHashPOptions parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new GetConfigVersionPOptions(input, extensionRegistry);
+      return new GetConfigHashPOptions(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<GetConfigVersionPOptions> parser() {
+  public static com.google.protobuf.Parser<GetConfigHashPOptions> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<GetConfigVersionPOptions> getParserForType() {
+  public com.google.protobuf.Parser<GetConfigHashPOptions> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.GetConfigVersionPOptions getDefaultInstanceForType() {
+  public alluxio.grpc.GetConfigHashPOptions getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

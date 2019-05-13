@@ -49,7 +49,7 @@ public class MasterClientContextBuilder {
    */
   public MasterClientContext build() {
     if (mMasterInquireClient == null) {
-      mMasterInquireClient = MasterInquireClient.Factory.create(mContext.getConf());
+      mMasterInquireClient = MasterInquireClient.Factory.create(mContext.getClusterConf());
     }
     return new MasterClientContext(mContext, mMasterInquireClient);
   }

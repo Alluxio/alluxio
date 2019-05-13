@@ -159,34 +159,34 @@ public class AlluxioPropertiesTest {
   }
 
   @Test
-  public void version() {
-    String version0 = mProperties.version();
+  public void hash() {
+    String hash0 = mProperties.hash();
 
     mProperties.set(mKeyWithValue, "new value");
-    String version1 = mProperties.version();
-    Assert.assertNotEquals(version0, version1);
+    String hash1 = mProperties.hash();
+    Assert.assertNotEquals(hash0, hash1);
 
     mProperties.remove(mKeyWithValue);
-    String version2 = mProperties.version();
-    Assert.assertEquals(version0, version2);
+    String hash2 = mProperties.hash();
+    Assert.assertEquals(hash0, hash2);
 
     mProperties.set(mKeyWithValue, "new value");
-    String version3 = mProperties.version();
-    Assert.assertEquals(version1, version3);
+    String hash3 = mProperties.hash();
+    Assert.assertEquals(hash1, hash3);
 
     mProperties.set(mKeyWithValue, "updated new value");
-    String version4 = mProperties.version();
-    Assert.assertNotEquals(version0, version4);
-    Assert.assertNotEquals(version1, version4);
-    Assert.assertNotEquals(version2, version4);
-    Assert.assertNotEquals(version3, version4);
+    String hash4 = mProperties.hash();
+    Assert.assertNotEquals(hash0, hash4);
+    Assert.assertNotEquals(hash1, hash4);
+    Assert.assertNotEquals(hash2, hash4);
+    Assert.assertNotEquals(hash3, hash4);
 
     mProperties.set(mKeyWithoutValue, "value");
-    String version5 = mProperties.version();
-    Assert.assertNotEquals(version0, version5);
-    Assert.assertNotEquals(version1, version5);
-    Assert.assertNotEquals(version2, version5);
-    Assert.assertNotEquals(version3, version5);
-    Assert.assertNotEquals(version4, version5);
+    String hash5 = mProperties.hash();
+    Assert.assertNotEquals(hash0, hash5);
+    Assert.assertNotEquals(hash1, hash5);
+    Assert.assertNotEquals(hash2, hash5);
+    Assert.assertNotEquals(hash3, hash5);
+    Assert.assertNotEquals(hash4, hash5);
   }
 }

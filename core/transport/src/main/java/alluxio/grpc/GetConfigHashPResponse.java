@@ -4,20 +4,20 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.meta.GetConfigVersionPResponse}
+ * Protobuf type {@code alluxio.grpc.meta.GetConfigHashPResponse}
  */
-public  final class GetConfigVersionPResponse extends
+public  final class GetConfigHashPResponse extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.meta.GetConfigVersionPResponse)
-    GetConfigVersionPResponseOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.meta.GetConfigHashPResponse)
+    GetConfigHashPResponseOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use GetConfigVersionPResponse.newBuilder() to construct.
-  private GetConfigVersionPResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use GetConfigHashPResponse.newBuilder() to construct.
+  private GetConfigHashPResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private GetConfigVersionPResponse() {
-    clusterConfigVersion_ = "";
-    pathConfigVersion_ = "";
+  private GetConfigHashPResponse() {
+    clusterConfigHash_ = "";
+    pathConfigHash_ = "";
   }
 
   @java.lang.Override
@@ -25,7 +25,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private GetConfigVersionPResponse(
+  private GetConfigHashPResponse(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -54,13 +54,13 @@ private static final long serialVersionUID = 0L;
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
-            clusterConfigVersion_ = bs;
+            clusterConfigHash_ = bs;
             break;
           }
           case 18: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000002;
-            pathConfigVersion_ = bs;
+            pathConfigHash_ = bs;
             break;
           }
         }
@@ -77,30 +77,30 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigVersionPResponse_descriptor;
+    return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPResponse_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigVersionPResponse_fieldAccessorTable
+    return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPResponse_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.GetConfigVersionPResponse.class, alluxio.grpc.GetConfigVersionPResponse.Builder.class);
+            alluxio.grpc.GetConfigHashPResponse.class, alluxio.grpc.GetConfigHashPResponse.Builder.class);
   }
 
   private int bitField0_;
-  public static final int CLUSTERCONFIGVERSION_FIELD_NUMBER = 1;
-  private volatile java.lang.Object clusterConfigVersion_;
+  public static final int CLUSTERCONFIGHASH_FIELD_NUMBER = 1;
+  private volatile java.lang.Object clusterConfigHash_;
   /**
-   * <code>optional string clusterConfigVersion = 1;</code>
+   * <code>optional string clusterConfigHash = 1;</code>
    */
-  public boolean hasClusterConfigVersion() {
+  public boolean hasClusterConfigHash() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional string clusterConfigVersion = 1;</code>
+   * <code>optional string clusterConfigHash = 1;</code>
    */
-  public java.lang.String getClusterConfigVersion() {
-    java.lang.Object ref = clusterConfigVersion_;
+  public java.lang.String getClusterConfigHash() {
+    java.lang.Object ref = clusterConfigHash_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
@@ -108,41 +108,41 @@ private static final long serialVersionUID = 0L;
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       if (bs.isValidUtf8()) {
-        clusterConfigVersion_ = s;
+        clusterConfigHash_ = s;
       }
       return s;
     }
   }
   /**
-   * <code>optional string clusterConfigVersion = 1;</code>
+   * <code>optional string clusterConfigHash = 1;</code>
    */
   public com.google.protobuf.ByteString
-      getClusterConfigVersionBytes() {
-    java.lang.Object ref = clusterConfigVersion_;
+      getClusterConfigHashBytes() {
+    java.lang.Object ref = clusterConfigHash_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      clusterConfigVersion_ = b;
+      clusterConfigHash_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
     }
   }
 
-  public static final int PATHCONFIGVERSION_FIELD_NUMBER = 2;
-  private volatile java.lang.Object pathConfigVersion_;
+  public static final int PATHCONFIGHASH_FIELD_NUMBER = 2;
+  private volatile java.lang.Object pathConfigHash_;
   /**
-   * <code>optional string pathConfigVersion = 2;</code>
+   * <code>optional string pathConfigHash = 2;</code>
    */
-  public boolean hasPathConfigVersion() {
+  public boolean hasPathConfigHash() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional string pathConfigVersion = 2;</code>
+   * <code>optional string pathConfigHash = 2;</code>
    */
-  public java.lang.String getPathConfigVersion() {
-    java.lang.Object ref = pathConfigVersion_;
+  public java.lang.String getPathConfigHash() {
+    java.lang.Object ref = pathConfigHash_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
@@ -150,22 +150,22 @@ private static final long serialVersionUID = 0L;
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       if (bs.isValidUtf8()) {
-        pathConfigVersion_ = s;
+        pathConfigHash_ = s;
       }
       return s;
     }
   }
   /**
-   * <code>optional string pathConfigVersion = 2;</code>
+   * <code>optional string pathConfigHash = 2;</code>
    */
   public com.google.protobuf.ByteString
-      getPathConfigVersionBytes() {
-    java.lang.Object ref = pathConfigVersion_;
+      getPathConfigHashBytes() {
+    java.lang.Object ref = pathConfigHash_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      pathConfigVersion_ = b;
+      pathConfigHash_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
@@ -185,10 +185,10 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, clusterConfigVersion_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, clusterConfigHash_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, pathConfigVersion_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, pathConfigHash_);
     }
     unknownFields.writeTo(output);
   }
@@ -199,10 +199,10 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, clusterConfigVersion_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, clusterConfigHash_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, pathConfigVersion_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, pathConfigHash_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -214,21 +214,21 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.GetConfigVersionPResponse)) {
+    if (!(obj instanceof alluxio.grpc.GetConfigHashPResponse)) {
       return super.equals(obj);
     }
-    alluxio.grpc.GetConfigVersionPResponse other = (alluxio.grpc.GetConfigVersionPResponse) obj;
+    alluxio.grpc.GetConfigHashPResponse other = (alluxio.grpc.GetConfigHashPResponse) obj;
 
     boolean result = true;
-    result = result && (hasClusterConfigVersion() == other.hasClusterConfigVersion());
-    if (hasClusterConfigVersion()) {
-      result = result && getClusterConfigVersion()
-          .equals(other.getClusterConfigVersion());
+    result = result && (hasClusterConfigHash() == other.hasClusterConfigHash());
+    if (hasClusterConfigHash()) {
+      result = result && getClusterConfigHash()
+          .equals(other.getClusterConfigHash());
     }
-    result = result && (hasPathConfigVersion() == other.hasPathConfigVersion());
-    if (hasPathConfigVersion()) {
-      result = result && getPathConfigVersion()
-          .equals(other.getPathConfigVersion());
+    result = result && (hasPathConfigHash() == other.hasPathConfigHash());
+    if (hasPathConfigHash()) {
+      result = result && getPathConfigHash()
+          .equals(other.getPathConfigHash());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -241,82 +241,82 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasClusterConfigVersion()) {
-      hash = (37 * hash) + CLUSTERCONFIGVERSION_FIELD_NUMBER;
-      hash = (53 * hash) + getClusterConfigVersion().hashCode();
+    if (hasClusterConfigHash()) {
+      hash = (37 * hash) + CLUSTERCONFIGHASH_FIELD_NUMBER;
+      hash = (53 * hash) + getClusterConfigHash().hashCode();
     }
-    if (hasPathConfigVersion()) {
-      hash = (37 * hash) + PATHCONFIGVERSION_FIELD_NUMBER;
-      hash = (53 * hash) + getPathConfigVersion().hashCode();
+    if (hasPathConfigHash()) {
+      hash = (37 * hash) + PATHCONFIGHASH_FIELD_NUMBER;
+      hash = (53 * hash) + getPathConfigHash().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.GetConfigVersionPResponse parseFrom(
+  public static alluxio.grpc.GetConfigHashPResponse parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.GetConfigVersionPResponse parseFrom(
+  public static alluxio.grpc.GetConfigHashPResponse parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.GetConfigVersionPResponse parseFrom(
+  public static alluxio.grpc.GetConfigHashPResponse parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.GetConfigVersionPResponse parseFrom(
+  public static alluxio.grpc.GetConfigHashPResponse parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.GetConfigVersionPResponse parseFrom(byte[] data)
+  public static alluxio.grpc.GetConfigHashPResponse parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.GetConfigVersionPResponse parseFrom(
+  public static alluxio.grpc.GetConfigHashPResponse parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.GetConfigVersionPResponse parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.GetConfigHashPResponse parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.GetConfigVersionPResponse parseFrom(
+  public static alluxio.grpc.GetConfigHashPResponse parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.GetConfigVersionPResponse parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.GetConfigHashPResponse parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.GetConfigVersionPResponse parseDelimitedFrom(
+  public static alluxio.grpc.GetConfigHashPResponse parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.GetConfigVersionPResponse parseFrom(
+  public static alluxio.grpc.GetConfigHashPResponse parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.GetConfigVersionPResponse parseFrom(
+  public static alluxio.grpc.GetConfigHashPResponse parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -328,7 +328,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.GetConfigVersionPResponse prototype) {
+  public static Builder newBuilder(alluxio.grpc.GetConfigHashPResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -343,25 +343,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.meta.GetConfigVersionPResponse}
+   * Protobuf type {@code alluxio.grpc.meta.GetConfigHashPResponse}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.meta.GetConfigVersionPResponse)
-      alluxio.grpc.GetConfigVersionPResponseOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.meta.GetConfigHashPResponse)
+      alluxio.grpc.GetConfigHashPResponseOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigVersionPResponse_descriptor;
+      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPResponse_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigVersionPResponse_fieldAccessorTable
+      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPResponse_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.GetConfigVersionPResponse.class, alluxio.grpc.GetConfigVersionPResponse.Builder.class);
+              alluxio.grpc.GetConfigHashPResponse.class, alluxio.grpc.GetConfigHashPResponse.Builder.class);
     }
 
-    // Construct using alluxio.grpc.GetConfigVersionPResponse.newBuilder()
+    // Construct using alluxio.grpc.GetConfigHashPResponse.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -378,42 +378,42 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      clusterConfigVersion_ = "";
+      clusterConfigHash_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
-      pathConfigVersion_ = "";
+      pathConfigHash_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigVersionPResponse_descriptor;
+      return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPResponse_descriptor;
     }
 
-    public alluxio.grpc.GetConfigVersionPResponse getDefaultInstanceForType() {
-      return alluxio.grpc.GetConfigVersionPResponse.getDefaultInstance();
+    public alluxio.grpc.GetConfigHashPResponse getDefaultInstanceForType() {
+      return alluxio.grpc.GetConfigHashPResponse.getDefaultInstance();
     }
 
-    public alluxio.grpc.GetConfigVersionPResponse build() {
-      alluxio.grpc.GetConfigVersionPResponse result = buildPartial();
+    public alluxio.grpc.GetConfigHashPResponse build() {
+      alluxio.grpc.GetConfigHashPResponse result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.GetConfigVersionPResponse buildPartial() {
-      alluxio.grpc.GetConfigVersionPResponse result = new alluxio.grpc.GetConfigVersionPResponse(this);
+    public alluxio.grpc.GetConfigHashPResponse buildPartial() {
+      alluxio.grpc.GetConfigHashPResponse result = new alluxio.grpc.GetConfigHashPResponse(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.clusterConfigVersion_ = clusterConfigVersion_;
+      result.clusterConfigHash_ = clusterConfigHash_;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
-      result.pathConfigVersion_ = pathConfigVersion_;
+      result.pathConfigHash_ = pathConfigHash_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -446,24 +446,24 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.GetConfigVersionPResponse) {
-        return mergeFrom((alluxio.grpc.GetConfigVersionPResponse)other);
+      if (other instanceof alluxio.grpc.GetConfigHashPResponse) {
+        return mergeFrom((alluxio.grpc.GetConfigHashPResponse)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.GetConfigVersionPResponse other) {
-      if (other == alluxio.grpc.GetConfigVersionPResponse.getDefaultInstance()) return this;
-      if (other.hasClusterConfigVersion()) {
+    public Builder mergeFrom(alluxio.grpc.GetConfigHashPResponse other) {
+      if (other == alluxio.grpc.GetConfigHashPResponse.getDefaultInstance()) return this;
+      if (other.hasClusterConfigHash()) {
         bitField0_ |= 0x00000001;
-        clusterConfigVersion_ = other.clusterConfigVersion_;
+        clusterConfigHash_ = other.clusterConfigHash_;
         onChanged();
       }
-      if (other.hasPathConfigVersion()) {
+      if (other.hasPathConfigHash()) {
         bitField0_ |= 0x00000002;
-        pathConfigVersion_ = other.pathConfigVersion_;
+        pathConfigHash_ = other.pathConfigHash_;
         onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
@@ -479,11 +479,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.GetConfigVersionPResponse parsedMessage = null;
+      alluxio.grpc.GetConfigHashPResponse parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.GetConfigVersionPResponse) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.GetConfigHashPResponse) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -494,24 +494,24 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.lang.Object clusterConfigVersion_ = "";
+    private java.lang.Object clusterConfigHash_ = "";
     /**
-     * <code>optional string clusterConfigVersion = 1;</code>
+     * <code>optional string clusterConfigHash = 1;</code>
      */
-    public boolean hasClusterConfigVersion() {
+    public boolean hasClusterConfigHash() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string clusterConfigVersion = 1;</code>
+     * <code>optional string clusterConfigHash = 1;</code>
      */
-    public java.lang.String getClusterConfigVersion() {
-      java.lang.Object ref = clusterConfigVersion_;
+    public java.lang.String getClusterConfigHash() {
+      java.lang.Object ref = clusterConfigHash_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          clusterConfigVersion_ = s;
+          clusterConfigHash_ = s;
         }
         return s;
       } else {
@@ -519,75 +519,75 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string clusterConfigVersion = 1;</code>
+     * <code>optional string clusterConfigHash = 1;</code>
      */
     public com.google.protobuf.ByteString
-        getClusterConfigVersionBytes() {
-      java.lang.Object ref = clusterConfigVersion_;
+        getClusterConfigHashBytes() {
+      java.lang.Object ref = clusterConfigHash_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        clusterConfigVersion_ = b;
+        clusterConfigHash_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>optional string clusterConfigVersion = 1;</code>
+     * <code>optional string clusterConfigHash = 1;</code>
      */
-    public Builder setClusterConfigVersion(
+    public Builder setClusterConfigHash(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-      clusterConfigVersion_ = value;
+      clusterConfigHash_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string clusterConfigVersion = 1;</code>
+     * <code>optional string clusterConfigHash = 1;</code>
      */
-    public Builder clearClusterConfigVersion() {
+    public Builder clearClusterConfigHash() {
       bitField0_ = (bitField0_ & ~0x00000001);
-      clusterConfigVersion_ = getDefaultInstance().getClusterConfigVersion();
+      clusterConfigHash_ = getDefaultInstance().getClusterConfigHash();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string clusterConfigVersion = 1;</code>
+     * <code>optional string clusterConfigHash = 1;</code>
      */
-    public Builder setClusterConfigVersionBytes(
+    public Builder setClusterConfigHashBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-      clusterConfigVersion_ = value;
+      clusterConfigHash_ = value;
       onChanged();
       return this;
     }
 
-    private java.lang.Object pathConfigVersion_ = "";
+    private java.lang.Object pathConfigHash_ = "";
     /**
-     * <code>optional string pathConfigVersion = 2;</code>
+     * <code>optional string pathConfigHash = 2;</code>
      */
-    public boolean hasPathConfigVersion() {
+    public boolean hasPathConfigHash() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional string pathConfigVersion = 2;</code>
+     * <code>optional string pathConfigHash = 2;</code>
      */
-    public java.lang.String getPathConfigVersion() {
-      java.lang.Object ref = pathConfigVersion_;
+    public java.lang.String getPathConfigHash() {
+      java.lang.Object ref = pathConfigHash_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          pathConfigVersion_ = s;
+          pathConfigHash_ = s;
         }
         return s;
       } else {
@@ -595,53 +595,53 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string pathConfigVersion = 2;</code>
+     * <code>optional string pathConfigHash = 2;</code>
      */
     public com.google.protobuf.ByteString
-        getPathConfigVersionBytes() {
-      java.lang.Object ref = pathConfigVersion_;
+        getPathConfigHashBytes() {
+      java.lang.Object ref = pathConfigHash_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        pathConfigVersion_ = b;
+        pathConfigHash_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>optional string pathConfigVersion = 2;</code>
+     * <code>optional string pathConfigHash = 2;</code>
      */
-    public Builder setPathConfigVersion(
+    public Builder setPathConfigHash(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000002;
-      pathConfigVersion_ = value;
+      pathConfigHash_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string pathConfigVersion = 2;</code>
+     * <code>optional string pathConfigHash = 2;</code>
      */
-    public Builder clearPathConfigVersion() {
+    public Builder clearPathConfigHash() {
       bitField0_ = (bitField0_ & ~0x00000002);
-      pathConfigVersion_ = getDefaultInstance().getPathConfigVersion();
+      pathConfigHash_ = getDefaultInstance().getPathConfigHash();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string pathConfigVersion = 2;</code>
+     * <code>optional string pathConfigHash = 2;</code>
      */
-    public Builder setPathConfigVersionBytes(
+    public Builder setPathConfigHashBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000002;
-      pathConfigVersion_ = value;
+      pathConfigHash_ = value;
       onChanged();
       return this;
     }
@@ -656,39 +656,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.meta.GetConfigVersionPResponse)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.meta.GetConfigHashPResponse)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.meta.GetConfigVersionPResponse)
-  private static final alluxio.grpc.GetConfigVersionPResponse DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.meta.GetConfigHashPResponse)
+  private static final alluxio.grpc.GetConfigHashPResponse DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.GetConfigVersionPResponse();
+    DEFAULT_INSTANCE = new alluxio.grpc.GetConfigHashPResponse();
   }
 
-  public static alluxio.grpc.GetConfigVersionPResponse getDefaultInstance() {
+  public static alluxio.grpc.GetConfigHashPResponse getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<GetConfigVersionPResponse>
-      PARSER = new com.google.protobuf.AbstractParser<GetConfigVersionPResponse>() {
-    public GetConfigVersionPResponse parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<GetConfigHashPResponse>
+      PARSER = new com.google.protobuf.AbstractParser<GetConfigHashPResponse>() {
+    public GetConfigHashPResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new GetConfigVersionPResponse(input, extensionRegistry);
+      return new GetConfigHashPResponse(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<GetConfigVersionPResponse> parser() {
+  public static com.google.protobuf.Parser<GetConfigHashPResponse> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<GetConfigVersionPResponse> getParserForType() {
+  public com.google.protobuf.Parser<GetConfigHashPResponse> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.GetConfigVersionPResponse getDefaultInstanceForType() {
+  public alluxio.grpc.GetConfigHashPResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

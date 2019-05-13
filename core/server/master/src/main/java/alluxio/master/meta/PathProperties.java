@@ -12,7 +12,7 @@
 package alluxio.master.meta;
 
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Version;
+import alluxio.conf.Hash;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
@@ -57,10 +57,19 @@ public final class PathProperties implements DelegatingJournaled {
   @GuardedBy("mLock")
   private final State mState = new State();
   @GuardedBy("mLock")
-  private Version mVersion = new Version(() -> mState.getProperties().entrySet().stream()
+  private Hash mHash = new Hash(() -> mState.getProperties().entrySet().stream()
       .flatMap(pathProperties -> pathProperties.getValue().entrySet().stream()
           .map(property -> String.format("%s:%s:%s", pathProperties.getKey(), property.getKey(),
               property.getValue()).getBytes())));
+
+  /**
+   * @return a snapshot of properties and corresponding hash
+   */
+  public PathPropertiesView snapshot() {
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      return new PathPropertiesView(get(), hash());
+    }
+  }
 
   /**
    * @return a copy of path level properties which is a map from path to property key values
@@ -88,7 +97,7 @@ public final class PathProperties implements DelegatingJournaled {
         properties.forEach((key, value) -> newProperties.put(key.getName(), value));
         mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder().setPath(path)
             .putAllProperties(newProperties).build());
-        mVersion.markOutdated();
+        mHash.markOutdated();
       }
     }
   }
@@ -111,7 +120,7 @@ public final class PathProperties implements DelegatingJournaled {
           mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder()
               .setPath(path).putAllProperties(properties).build());
         }
-        mVersion.markOutdated();
+        mHash.markOutdated();
       }
     }
   }
@@ -127,17 +136,17 @@ public final class PathProperties implements DelegatingJournaled {
       Map<String, String> properties = mState.getProperties(path);
       if (!properties.isEmpty()) {
         mState.applyAndJournal(ctx, RemovePathPropertiesEntry.newBuilder().setPath(path).build());
-        mVersion.markOutdated();
+        mHash.markOutdated();
       }
     }
   }
 
   /**
-   * @return the current version of properties
+   * @return the current hash of properties
    */
-  public String version() {
+  public String hash() {
     try (LockResource r = new LockResource(mLock.readLock())) {
-      return mVersion.get();
+      return mHash.get();
     }
   }
 

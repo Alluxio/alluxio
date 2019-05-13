@@ -2628,12 +2628,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_CONF_VERSION_SYNC_INTERVAL =
-      new Builder(Name.USER_CONF_VERSION_SYNC_INTERVAL)
-          .setAlias(new String[]{"alluxio.user.conf.version.sync.interval"})
+  public static final PropertyKey USER_CONF_SYNC_INTERVAL =
+      new Builder(Name.USER_CONF_SYNC_INTERVAL)
           .setDefaultValue("3sec")
-          .setDescription("The time period of client master hearbeat to "
-              + "update the configuration versions in meta master.")
+          .setDescription("The time period of client master heartbeat to "
+              + "update the configuration if necessary from meta master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CONF_SYNC_TIMEOUT =
+      new Builder(Name.USER_CONF_SYNC_TIMEOUT)
+          .setDefaultValue("30min")
+          .setDescription("When a configuration update is detected by the heartbeat, it will try "
+              + "to update the client configurations from meta master, this update will be blocked "
+              + "if there are ongoing client RPCs or data streams, this timeout specifies the "
+              + "maximum time to be blocked before timing out.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4114,8 +4123,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.write.location.policy.class";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
-    public static final String USER_CONF_VERSION_SYNC_INTERVAL =
-        "alluxio.user.conf.version.sync.interval";
+    public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
+    public static final String USER_CONF_SYNC_TIMEOUT = "alluxio.user.conf.sync.timeout";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
         "alluxio.user.failed.space.request.limits";

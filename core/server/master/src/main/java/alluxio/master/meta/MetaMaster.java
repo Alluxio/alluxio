@@ -15,8 +15,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BackupPOptions;
-import alluxio.grpc.ConfigProperties;
-import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
@@ -24,6 +22,8 @@ import alluxio.master.Master;
 import alluxio.wire.Address;
 import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigHash;
+import alluxio.wire.Configuration;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -53,23 +53,12 @@ public interface MetaMaster extends Master {
    * @param options method options
    * @return configuration information list
    */
-  List<ConfigProperty> getConfiguration(GetConfigurationPOptions options);
+  Configuration getConfiguration(GetConfigurationPOptions options);
 
   /**
-   * @param options get configuration options
-   * @return a mapping from path to path level properties
+   * @return hashes of cluster and path level configuration
    */
-  Map<String, ConfigProperties> getPathConfiguration(GetConfigurationPOptions options);
-
-  /**
-   * @return version of cluster level configuration
-   */
-  String getConfigurationVersion();
-
-  /**
-   * @return version of path level configuration
-   */
-  String getPathConfigurationVersion();
+  ConfigHash getConfigHash();
 
   /**
    * Sets properties for a path.
