@@ -12,7 +12,7 @@ priority: 1
 Alluxio supports a RESTful API that is compatible with the basic operations of the Amazon
 [S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html).
 
-The [REST API documentation](http://www.alluxio.org/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
+The [REST API documentation](https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
 is generated as part of Alluxio build and accessible through
 `${ALLUXIO_HOME}/core/server/proxy/target/miredot/index.html`.
 

@@ -13,6 +13,7 @@ package alluxio.master.metrics;
 
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricsSystem.InstanceType;
@@ -20,6 +21,7 @@ import alluxio.metrics.MetricsSystem.InstanceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -93,13 +95,7 @@ public class MetricsStore {
       return;
     }
     synchronized (mWorkerMetrics) {
-      mWorkerMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, null));
-      for (Metric metric : metrics) {
-        if (metric.getHostname() == null) {
-          continue; // ignore metrics whose hostname is null
-        }
-        mWorkerMetrics.add(metric);
-      }
+      putReportedMetrics(mWorkerMetrics, getFullInstanceId(hostname, null), metrics);
     }
   }
 
@@ -111,21 +107,55 @@ public class MetricsStore {
    * @param clientId the id of the client
    * @param metrics the new metrics
    */
-  public void putClientMetrics(String hostname, String clientId,
-      List<Metric> metrics) {
+  public void putClientMetrics(String hostname, String clientId, List<Metric> metrics) {
     if (metrics.isEmpty()) {
       return;
     }
     LOG.debug("Removing metrics for id {} to replace with {}", clientId, metrics);
     synchronized (mClientMetrics) {
-      mClientMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, clientId));
-      for (Metric metric : metrics) {
-        if (metric.getHostname() == null) {
-          continue; // ignore metrics whose hostname is null
-        }
-        mClientMetrics.add(metric);
+      putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
+    }
+  }
+
+  /**
+   * Update the reported metrics with the given instanceId and set of metrics received from a
+   * worker or client.
+   *
+   * Any metrics from the given instanceId which are not reported in the new set of metrics are
+   * removed. Metrics of {@link MetricType} COUNTER are incremented by the reported values.
+   * Otherwise, all metrics are simply replaced.
+   *
+   * @param metricSet the {@link IndexedSet} of client or worker metrics to update
+   * @param instanceId the instance id, derived from {@link #getFullInstanceId(String, String)}
+   * @param reportedMetrics the metrics received by the RPC handler
+   */
+  private static void putReportedMetrics(IndexedSet<Metric> metricSet, String instanceId,
+      List<Metric> reportedMetrics) {
+    List<Metric> newMetrics = new ArrayList<>(reportedMetrics.size());
+    for (Metric metric : reportedMetrics) {
+      if (metric.getHostname() == null) {
+        continue; // ignore metrics whose hostname is null
+      }
+
+      // If a metric is COUNTER, the value sent via RPC should be the incremental value; i.e.
+      // the amount the value has changed since the last RPC. The master should equivalently
+      // increment its value based on the received metric rather than replacing it.
+      if (metric.getMetricType() == MetricType.COUNTER) {
+        // FULL_NAME_INDEX is a unique index, so getFirstByField will return the same results as
+        // getByField
+        Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
+        double oldVal = oldMetric == null ? 0.0 : oldMetric.getValue();
+        Metric newMetric = new Metric(metric.getInstanceType(), metric.getHostname(),
+            metric.getMetricType(), metric.getName(), oldVal + metric.getValue());
+        metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
+        newMetrics.add(newMetric);
+      } else {
+        metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
+        newMetrics.add(metric);
       }
     }
+    metricSet.removeByField(ID_INDEX, instanceId);
+    metricSet.addAll(newMetrics);
   }
 
   /**

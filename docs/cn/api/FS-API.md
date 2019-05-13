@@ -134,4 +134,4 @@ in.close();
 ### Javadoc
 
 想要获得更多API信息，请参考
-[Alluxio javadocs](http://www.alluxio.org/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/index.html)
+[Alluxio javadocs](https://docs.alluxio.io/os/javadoc/stable/index.html)

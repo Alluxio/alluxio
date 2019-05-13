@@ -25,6 +25,7 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.wire.Configuration;
 import alluxio.wire.Property;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -82,7 +83,7 @@ public final class ShowCommand extends AbstractFsAdminCommand {
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   private String format(String key, String value) {
@@ -91,9 +92,9 @@ public final class ShowCommand extends AbstractFsAdminCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    String targetPath = cl.getArgs()[1];
+    String targetPath = cl.getArgs()[0];
     Configuration configuration = mMetaConfigClient.getConfiguration(
-        GetConfigurationPOptions.newBuilder().setIgnoreClusterConf(true).build());
+        GetConfigurationPOptions.getDefaultInstance());
 
     if (cl.hasOption(ALL_OPTION_NAME)) {
       Map<String, AlluxioConfiguration> pathConfMap = new HashMap<>();
@@ -129,13 +130,21 @@ public final class ShowCommand extends AbstractFsAdminCommand {
   @Override
   public String getUsage() {
     return String.format("show [--%s] <path>%n"
-        + "\t--%s: %s%n",
+        + "\t--%s: %s",
         ALL_OPTION_NAME,
         ALL_OPTION_NAME, ALL_OPTION.getDescription());
   }
 
+  /**
+   * @return command's description
+   */
+  @VisibleForTesting
+  public static String description() {
+    return "Shows path level configurations.";
+  }
+
   @Override
   public String getDescription() {
-    return "Shows path level configurations.";
+    return description();
   }
 }

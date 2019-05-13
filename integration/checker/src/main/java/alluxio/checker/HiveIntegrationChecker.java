@@ -42,11 +42,11 @@ public class HiveIntegrationChecker {
       + "Please distribute the Alluxio client jar on the HIVE_AUX_JARS_PATH "
       + "of all Hive nodes.\n\n"
       + "For details, please refer to: "
-      + "https://www.alluxio.org/docs/master/en/Running-Hive-with-Alluxio.html\n";
+      + "https://docs.alluxio.io/os/user/stable/en/compute/Hive.html\n";
   private static final String FAIL_TO_FIND_FS_MESSAGE = "Please check the fs.alluxio.impl property "
       + "in core-site.xml file of your Hadoop installation.\n\n"
       + "For details, please refer to: "
-      + "https://www.alluxio.org/docs/master/en/Debugging-Guide.html\n";
+      + "https://docs.alluxio.io/os/user/stable/en/operation/Troubleshooting.html\n";
   private static final String TEST_FAILED_MESSAGE = "***** Integration test failed. *****\n";
   private static final String TEST_PASSED_MESSAGE = "***** Integration test passed. *****\n";
 

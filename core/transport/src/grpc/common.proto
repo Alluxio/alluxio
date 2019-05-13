@@ -51,7 +51,22 @@ message Metric {
   optional string instanceId = 3;
   optional string name = 4;
   optional double value = 5;
-  map<string,string> tags = 6;
+  required MetricType metricType = 6;
+  map<string,string> tags = 7;
+}
+
+enum MetricType {
+  // GAUGE is the simplest type of metric. If you're not sure which to use, gauge is a safe choice. It is represents a
+  // general K-V pair.
+  GAUGE = 0;
+  // COUNTER represents values which can be incremented or decremented over time by certain operations. It does not rely
+  // on timing to determine the value.
+  COUNTER = 1;
+  // METER represents a metric value at a _rate_. The value of the metric varies with the time over which events are
+  // recorded
+  METER = 2;
+  // TIMER represents a histogram of the rate of the specified events.
+  TIMER = 3;
 }
 
 enum CommandType {

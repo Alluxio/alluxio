@@ -11,6 +11,8 @@
 
 package alluxio.client.file;
 
+import static org.junit.Assert.fail;
+
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -19,7 +21,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.resource.CloseableResource;
 
 import com.google.common.io.Closer;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -60,7 +61,7 @@ public final class FileSystemContextTest {
     long start = System.currentTimeMillis();
     acquireThread.join(timeoutMs);
     if (System.currentTimeMillis() - start < timeoutMs) {
-      Assert.fail("Acquired a master client when the client pool was full.");
+      fail("Acquired a master client when the client pool was full.");
     }
 
     // Release all the clients
@@ -72,7 +73,7 @@ public final class FileSystemContextTest {
     start = System.currentTimeMillis();
     acquireThread.join(timeoutMs);
     if (System.currentTimeMillis() - start >= timeoutMs) {
-      Assert.fail("Failed to acquire a master client within " + timeoutMs + "ms. Deadlock?");
+      fail("Failed to acquire a master client within " + timeoutMs + "ms. Deadlock?");
     }
   }
 

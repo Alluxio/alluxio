@@ -14,6 +14,7 @@ package alluxio.client.cli.fsadmin.pathconf;
 import alluxio.AlluxioURI;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fsadmin.FileSystemAdminShell;
+import alluxio.cli.fsadmin.pathconf.AddCommand;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.cli.fs.AbstractShellIntegrationTest;
@@ -38,6 +39,8 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
   private static final String PATH2 = "/a/b/c";
   private static final String READ_TYPE_NO_CACHE =
       format(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
+  private static final String READ_TYPE_CACHE =
+      format(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.CACHE.toString());
   private static final String WRITE_TYPE_CACHE_THROUGH =
       format(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
   private static final String WRITE_TYPE_THROUGH =
@@ -53,6 +56,17 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
       int ret = shell.run("pathConf", "list");
       Assert.assertEquals(0, ret);
       String output = mOutput.toString();
+      Assert.assertEquals("", output);
+
+      ret = shell.run("pathConf", "show", PATH1);
+      Assert.assertEquals(0, ret);
+      output = mOutput.toString();
+      Assert.assertEquals("", output);
+
+      mOutput.reset();
+      ret = shell.run("pathConf", "show", PATH2);
+      Assert.assertEquals(0, ret);
+      output = mOutput.toString();
       Assert.assertEquals("", output);
 
       mOutput.reset();
@@ -97,12 +111,22 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
   }
 
   @Test
+  public void invalidPropertyKey() throws Exception {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+      int ret = shell.run("pathConf", "add", "--property", "unknown=value", "/");
+      Assert.assertEquals(-1, ret);
+      String output = mOutput.toString();
+      Assert.assertEquals("Invalid property key unknown\n", output);
+    }
+  }
+
+  @Test
   public void immediatelyEffectiveForShellCommands() throws Exception {
     // Tests that after adding some path configuration, it's immediately effective for command
     // line calls afterwards.
     InstancedConfiguration conf = ServerConfiguration.global();
     try (FileSystemShell fsShell = new FileSystemShell(conf);
-        FileSystemAdminShell fsAdminShell = new FileSystemAdminShell(conf)) {
+         FileSystemAdminShell fsAdminShell = new FileSystemAdminShell(conf)) {
       Assert.assertEquals(0,
           fsAdminShell.run("pathConf", "add", "--property", WRITE_TYPE_THROUGH, PATH1));
       Assert.assertEquals(0,
@@ -128,6 +152,47 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
       status = fs.getStatus(target);
       Assert.assertEquals(100, status.getInMemoryPercentage());
       Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
+    }
+  }
+
+  @Test
+  public void addNoProperty() throws Exception {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+      int ret = shell.run("pathConf", "add", "/");
+      Assert.assertEquals(0, ret);
+    }
+  }
+
+  @Test
+  public void overwriteProperty() throws Exception {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+      int ret = shell.run("pathConf", "add", "--property", READ_TYPE_NO_CACHE, "/");
+      Assert.assertEquals(0, ret);
+
+      mOutput.reset();
+      ret = shell.run("pathConf", "show", "/");
+      Assert.assertEquals(0, ret);
+      Assert.assertEquals(READ_TYPE_NO_CACHE + "\n", mOutput.toString());
+
+      ret = shell.run("pathConf", "add", "--property", READ_TYPE_CACHE, "/");
+      Assert.assertEquals(0, ret);
+
+      mOutput.reset();
+      ret = shell.run("pathConf", "show", "/");
+      Assert.assertEquals(0, ret);
+      Assert.assertEquals(READ_TYPE_CACHE+ "\n", mOutput.toString());
+    }
+  }
+
+  @Test
+  public void nonClientScopeKey() throws Exception {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+      PropertyKey key = PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT;
+      int ret = shell.run("pathConf", "add", "--property",
+          format(key, "10ms"), "/");
+      Assert.assertEquals(-1, ret);
+      String output = mOutput.toString();
+      Assert.assertEquals(AddCommand.nonClientScopePropertyException(key) + "\n", output);
     }
   }
 }
