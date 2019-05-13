@@ -236,6 +236,16 @@ public final class JournalSinkTest {
         new AlluxioURI(path).getParent().getPath()));
     assertNotEquals(INVALID_ID, findDir("nested_dir", path));
 
+    path = "/for_nested_dir/nested_dir/nested_dir_2";
+    createDir(path);
+    assertNotEquals(INVALID_ID, findDir("nested_dir_2", path));
+
+    path = "/for_nested_dir/nested_dir_3/nested_dir_4";
+    createDir(path);
+    assertNotEquals(INVALID_ID, findDir("nested_dir_3",
+        new AlluxioURI(path).getParent().getPath()));
+    assertNotEquals(INVALID_ID, findDir("nested_dir_4", path));
+
     path = "/rename_src";
     String newPath = "/rename_dst";
     createFile(path);
