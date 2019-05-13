@@ -22,6 +22,7 @@ import alluxio.security.user.UserState;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
+import org.hamcrest.core.StringStartsWith;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,7 +52,8 @@ public class GrpcSecurityTest {
   @Test
   public void testServerUnsupportedAuthentication() {
     mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage("Authentication type not supported:" + AuthType.KERBEROS.name());
+    mThrown.expectMessage(new StringStartsWith(
+        "No factory could create a UserState with authType: " + AuthType.KERBEROS.name()));
     createServer(AuthType.KERBEROS);
   }
 
