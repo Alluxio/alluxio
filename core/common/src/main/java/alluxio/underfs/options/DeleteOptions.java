@@ -16,6 +16,9 @@ import alluxio.annotation.PublicApi;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -26,6 +29,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class DeleteOptions {
   // Whether to delete a directory with children
   private boolean mRecursive;
+
+  private Map<String, String> mXAttr;
 
   /**
    * @return the default {@link DeleteOptions}
@@ -39,6 +44,7 @@ public final class DeleteOptions {
    */
   private DeleteOptions() {
     mRecursive = false;
+    mXAttr = new HashMap<>();
   }
 
   /**
@@ -46,6 +52,13 @@ public final class DeleteOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @return the extended attribute options
+   */
+  public Map<String, String> getXAttr() {
+    return mXAttr;
   }
 
   /**
@@ -59,6 +72,15 @@ public final class DeleteOptions {
     return this;
   }
 
+  /**
+   * @param xAttr any extended attributes from the inode
+   * @return the updated options object
+   */
+  public DeleteOptions setXAttr(Map<String, String> xAttr) {
+    mXAttr = xAttr;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -68,18 +90,23 @@ public final class DeleteOptions {
       return false;
     }
     DeleteOptions that = (DeleteOptions) o;
-    return Objects.equal(mRecursive, that.mRecursive);
+    return Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mXAttr, that.mXAttr);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive);
+    return Objects.hashCode(
+        mRecursive,
+        mXAttr
+    );
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("recursive", mRecursive)
+        .add("xAttr", mXAttr)
         .toString();
   }
 }

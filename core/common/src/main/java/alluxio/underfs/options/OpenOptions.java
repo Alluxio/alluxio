@@ -16,6 +16,9 @@ import alluxio.annotation.PublicApi;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -28,6 +31,8 @@ public final class OpenOptions {
   private long mOffset;
 
   private long mLength;
+
+  private Map<String, String> mXAttr;
 
   /**
    * If true, attempt to recover after failed opened attempts. Extra effort may be required in
@@ -49,6 +54,7 @@ public final class OpenOptions {
     mOffset = 0;
     mLength = Long.MAX_VALUE;
     mRecoverFailedOpen = false;
+    mXAttr = new HashMap<>();
   }
 
   /**
@@ -70,6 +76,13 @@ public final class OpenOptions {
    */
   public boolean getRecoverFailedOpen() {
     return mRecoverFailedOpen;
+  }
+
+  /**
+   * @return the extended attributes
+   */
+  public Map<String, String> getXattr() {
+    return mXAttr;
   }
 
   /**
@@ -101,6 +114,15 @@ public final class OpenOptions {
     return this;
   }
 
+  /**
+   * @param xAttr any extended attributes on the inode
+   * @return the updated option object
+   */
+  public OpenOptions setXAttr(Map<String, String> xAttr) {
+    mXAttr = xAttr;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -110,13 +132,20 @@ public final class OpenOptions {
       return false;
     }
     OpenOptions that = (OpenOptions) o;
-    return Objects.equal(mOffset, that.mOffset) && Objects.equal(mLength, that.mLength)
-        && Objects.equal(mRecoverFailedOpen, that.mRecoverFailedOpen);
+    return Objects.equal(mOffset, that.mOffset)
+        && Objects.equal(mLength, that.mLength)
+        && Objects.equal(mRecoverFailedOpen, that.mRecoverFailedOpen)
+        && Objects.equal(mXAttr, that.mXAttr);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mOffset, mLength, mRecoverFailedOpen);
+    return Objects.hashCode(
+        mOffset,
+        mLength,
+        mRecoverFailedOpen,
+        mXAttr
+    );
   }
 
   @Override
@@ -125,6 +154,7 @@ public final class OpenOptions {
         .add("offset", mOffset)
         .add("length", mLength)
         .add("recoverFailedOpen", mRecoverFailedOpen)
+        .add("xAttr", mXAttr)
         .toString();
   }
 }
