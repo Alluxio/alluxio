@@ -429,6 +429,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setBlockSizeBytes(options.getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)
         .setName(name)
+        .setPersistenceWaitTime(options.getPersistenceWaitTime())
         .setReplicationDurable(options.getReplicationDurable())
         .setReplicationMax(options.getReplicationMax())
         .setReplicationMin(options.getReplicationMin())
@@ -441,8 +442,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setMode(context.getMode().toShort())
         .setAcl(context.getAcl())
         .setPersistenceState(context.isPersisted() ? PersistenceState.PERSISTED
-            : PersistenceState.NOT_PERSISTED)
-        .setPersistenceWaitTime(options.getPersistenceWaitTime());
+            : PersistenceState.NOT_PERSISTED);
   }
 
   @Override
