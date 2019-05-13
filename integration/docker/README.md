@@ -30,7 +30,7 @@ copied to `/opt/alluxio/conf`.
 
 ## Building docker image with FUSE support
 To build a docker image with 
-[FUSE](https://www.alluxio.org/docs/master/en/Mounting-Alluxio-FS-with-FUSE.html) support, run
+[FUSE](https://docs.alluxio.io/os/user/stable/en/api/FUSE-API.html) support, run
 
 ```bash
 docker build -f Dockerfile.fuse -t alluxio-fuse .

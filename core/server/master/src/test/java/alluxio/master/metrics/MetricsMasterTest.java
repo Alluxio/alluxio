@@ -14,6 +14,7 @@ package alluxio.master.metrics;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.clock.ManualClock;
+import alluxio.grpc.MetricType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -75,16 +76,22 @@ public class MetricsMasterTest {
         new SumInstancesAggregator("metricA", MetricsSystem.InstanceType.WORKER, "metricA"));
     mMetricsMaster.addAggregator(
         new SumInstancesAggregator("metricB", MetricsSystem.InstanceType.WORKER, "metricB"));
-    List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metricA", 10),
-        Metric.from("worker.192_1_1_1.metricB", 20));
+
+    List<Metric> metrics1 = Lists.newArrayList(
+        Metric.from("worker.192_1_1_1.metricA", 10, MetricType.GAUGE),
+        Metric.from("worker.192_1_1_1.metricB", 20, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
-    List<Metric> metrics2 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metricA", 1),
-        Metric.from("worker.192_1_1_2.metricB", 2));
+
+    List<Metric> metrics2 = Lists.newArrayList(
+        Metric.from("worker.192_1_1_2.metricA", 1, MetricType.GAUGE),
+        Metric.from("worker.192_1_1_2.metricB", 2, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
     assertEquals(11L, getGauge("metricA"));
     assertEquals(22L, getGauge("metricB"));
+
     // override metrics from hostname 192_1_1_2
-    List<Metric> metrics3 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metricA", 3));
+    List<Metric> metrics3 = Lists.newArrayList(
+        Metric.from("worker.192_1_1_2.metricA", 3, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics3);
     assertEquals(13L, getGauge("metricA"));
     assertEquals(20L, getGauge("metricB"));
@@ -94,11 +101,13 @@ public class MetricsMasterTest {
   public void testMultiValueAggregator() throws Exception {
     mMetricsMaster.addAggregator(
         new SingleTagValueAggregator("metric", MetricsSystem.InstanceType.WORKER, "metric", "tag"));
-    List<Metric> metrics1 = Lists.newArrayList(Metric.from("worker.192_1_1_1.metric.tag:v1", 10),
-        Metric.from("worker.192_1_1_1.metric.tag:v2", 20));
+    List<Metric> metrics1 = Lists.newArrayList(
+        Metric.from("worker.192_1_1_1.metric.tag:v1", 10, MetricType.GAUGE),
+        Metric.from("worker.192_1_1_1.metric.tag:v2", 20, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
-    List<Metric> metrics2 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metric.tag:v1", 1),
-        Metric.from("worker.192_1_1_2.metric.tag:v2", 2));
+    List<Metric> metrics2 = Lists.newArrayList(
+        Metric.from("worker.192_1_1_2.metric.tag:v1", 1, MetricType.GAUGE),
+        Metric.from("worker.192_1_1_2.metric.tag:v2", 2, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
     assertEquals(11L, getGauge("metric", "tag", "v1"));
@@ -111,14 +120,17 @@ public class MetricsMasterTest {
         new SumInstancesAggregator("metric1", MetricsSystem.InstanceType.CLIENT, "metric1"));
     mMetricsMaster.addAggregator(
         new SumInstancesAggregator("metric2", MetricsSystem.InstanceType.CLIENT, "metric2"));
-    List<Metric> metrics1 = Lists.newArrayList(Metric.from("client.192_1_1_1:A.metric1", 10),
-        Metric.from("client.192_1_1_1:A.metric2", 20));
+    List<Metric> metrics1 = Lists.newArrayList(
+        Metric.from("client.192_1_1_1:A.metric1", 10, MetricType.GAUGE),
+        Metric.from("client.192_1_1_1:A.metric2", 20, MetricType.GAUGE));
     mMetricsMaster.clientHeartbeat("A", "192.1.1.1", metrics1);
-    List<Metric> metrics2 = Lists.newArrayList(Metric.from("client.192_1_1_1:B.metric1", 15),
-        Metric.from("client.192_1_1_1:B.metric2", 25));
+    List<Metric> metrics2 = Lists.newArrayList(
+        Metric.from("client.192_1_1_1:B.metric1", 15, MetricType.GAUGE),
+        Metric.from("client.192_1_1_1:B.metric2", 25, MetricType.GAUGE));
     mMetricsMaster.clientHeartbeat("B", "192.1.1.1", metrics2);
-    List<Metric> metrics3 = Lists.newArrayList(Metric.from("client.192_1_1_2:C.metric1", 1),
-        Metric.from("client.192_1_1_2:C.metric2", 2));
+    List<Metric> metrics3 = Lists.newArrayList(
+        Metric.from("client.192_1_1_2:C.metric1", 1, MetricType.GAUGE),
+        Metric.from("client.192_1_1_2:C.metric2", 2, MetricType.GAUGE));
     mMetricsMaster.clientHeartbeat("C", "192.1.1.2", metrics3);
     assertEquals(26L, getGauge("metric1"));
     assertEquals(47L, getGauge("metric2"));

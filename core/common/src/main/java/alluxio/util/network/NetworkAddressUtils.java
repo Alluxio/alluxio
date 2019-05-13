@@ -648,11 +648,17 @@ public final class NetworkAddressUtils {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
     GrpcChannel channel =
-        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).build();
-    ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
-        ServiceVersionClientServiceGrpc.newBlockingStub(channel);
-    versionClient.getServiceVersion(
-        GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
-    channel.shutdown();
+        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).disableAuthentication()
+            .build();
+    try {
+      ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
+          ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+      versionClient.getServiceVersion(
+          GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
+    } catch (Throwable t) {
+      throw AlluxioStatusException.fromThrowable(t);
+    } finally {
+      channel.shutdown();
+    }
   }
 }

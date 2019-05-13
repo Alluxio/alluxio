@@ -18,7 +18,7 @@
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
-  <url>http://alluxio.org/</url>
+  <url>https://www.alluxio.io/</url>
   <licenses>
     <license>
       <name>Apache License</name>
@@ -39,7 +39,7 @@
       <email>haoyuan@alluxio.com</email>
       <url>http://www.cs.berkeley.edu/~haoyuan</url>
       <organization>Alluxio Open Foundation</organization>
-      <organizationUrl>http://alluxio.org/</organizationUrl>
+      <organizationUrl>https://alluxio.io/</organizationUrl>
     </developer>
   </developers>
   <issueManagement>
@@ -172,7 +172,6 @@
   </properties>
 
   <modules>
-    <module>alluxio-ui</module>
     <module>assembly</module>
     <module>core</module>
     <module>examples</module>
@@ -184,6 +183,7 @@
     <module>shell</module>
     <module>tests</module>
     <module>underfs</module>
+    <module>webui</module>
   </modules>
 
   <dependencyManagement>
@@ -1191,7 +1191,7 @@
             <exclude>**/\?/.java/**/*</exclude>
 
             <!-- Build and Packaging Exclusions -->
-            <exclude>alluxio-ui/node_modules/*</exclude>
+            <exclude>webui/node_modules/*</exclude>
             <exclude>build/**/*</exclude>
             <exclude>conf/alluxio-env.sh</exclude>
             <exclude>conf/alluxio-site.properties</exclude>
@@ -1203,13 +1203,13 @@
             <exclude>**/.checkstyle</exclude>
             <exclude>**/src/main/assembly/*</exclude>
             <exclude>**/.idea/**</exclude>
-            <exclude>alluxio-ui/**/.nvmrc</exclude>
-            <exclude>alluxio-ui/**/*.svg</exclude>
-            <exclude>alluxio-ui/**/.env*</exclude>
-            <exclude>alluxio-ui/**/node/**</exclude>
-            <exclude>alluxio-ui/**/node_modules/**</exclude>
-            <exclude>alluxio-ui/**/src/**/*.css</exclude>
-            <exclude>alluxio-ui/**/build/**</exclude>
+            <exclude>webui/**/.nvmrc</exclude>
+            <exclude>webui/**/*.svg</exclude>
+            <exclude>webui/**/.env*</exclude>
+            <exclude>webui/**/node/**</exclude>
+            <exclude>webui/**/node_modules/**</exclude>
+            <exclude>webui/**/src/**/*.css</exclude>
+            <exclude>webui/**/build/**</exclude>
 
             <!-- Documentation Exclusions -->
             <exclude>docs/**/*</exclude>

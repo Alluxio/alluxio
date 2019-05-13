@@ -11,7 +11,7 @@ priority: 10
 
 ## What is Alluxio?
 
-[Alluxio](http://www.alluxio.org/), formerly Tachyon, is an open source, memory speed, virtual
+[Alluxio](http://www.alluxio.io/), formerly Tachyon, is an open source, memory speed, virtual
 distributed storage. It enables any application to interact with any data from any storage system
 at memory speed. Read more about Alluxio [Overview]({{ '/en/Overview.html' | relativize_url }}).
 
@@ -85,15 +85,15 @@ No, Alluxio can run on many under storage systems such as Amazon S3 or Swift in 
 
 ## How can I learn more about Alluxio?
 
-Join the [Alluxio community Slack Channel](https://www.alluxio.org/slack) to chat with users and
+Join the [Alluxio community Slack Channel](https://www.alluxio.io/slack) to chat with users and
 developers.
 
-Read the recent [blogs](https://alluxio.org/resources/posts) and
-[presentations](https://alluxio.org/resources/presentations).
+Read the recent [blogs](https://www.alluxio.io/blog) and
+[presentations](https://www.alluxio.io/resources/presentations/).
 
 Join the meetup group for Alluxio at
 [http://www.meetup.com/Alluxio/](http://www.meetup.com/Alluxio/).
-Other Alluxio events can be found [here](https://alluxio.org/resources/events).
+Other Alluxio events can be found [here](https://www.alluxio.io/events/).
 
 ## Where can I report issues or propose new features?
 
@@ -104,7 +104,7 @@ To report an issue or propose a feature, post on the Github issue.
 ## Where can I get more help?
 
 For any questions related to installation, contribution or feedback, please
-join our [Alluxio community Slack Channel](https://www.alluxio.org/slack) or
+join our [Alluxio community Slack Channel](https://www.alluxio.io/slack) or
 send an email to the
 [Alluxio User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).
 We look forward to seeing you there.

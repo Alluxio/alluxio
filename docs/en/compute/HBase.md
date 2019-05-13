@@ -17,7 +17,7 @@ that you can easily store HBase tables into Alluxio at various storage levels.
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
-downloaded from Alluxio [download page](http://www.alluxio.org/download).
+downloaded from Alluxio [download page](http://www.alluxio.io/download).
 Alternatively, advanced users can compile this client jar from the source code
 by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 * [Deploy HBase](https://hbase.apache.org/book.html#configuration)

@@ -14,7 +14,6 @@ package alluxio.client.metrics;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ClientMetrics;
-import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.util.network.NetworkAddressUtils;
@@ -72,9 +71,8 @@ public final class ClientMasterSync {
     List<alluxio.grpc.ClientMetrics> fsClientMetrics = new ArrayList<>();
     String hostname = NetworkAddressUtils.getClientHostName(mConf);
     List<alluxio.grpc.Metric> metrics = new ArrayList<>();
-    for (Metric metric : MetricsSystem.allClientMetrics()) {
-      metric.setInstanceId(mApplicationId);
-      metrics.add(metric.toProto());
+    for (alluxio.grpc.Metric metric : MetricsSystem.reportClientMetrics()) {
+      metrics.add(metric.toBuilder().setInstanceId(mApplicationId).build());
     }
     fsClientMetrics.add(ClientMetrics.newBuilder()
         .setHostname(hostname)

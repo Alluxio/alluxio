@@ -11,7 +11,8 @@
 
 package alluxio;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 import org.junit.runners.model.Statement;
 
@@ -29,17 +30,17 @@ public class SystemErrRuleTest {
     @Override
     public void evaluate() throws Throwable {
       System.err.println("2048");
-      Assert.assertEquals("2048\n", OUTPUT.toString());
+      assertEquals("2048\n", OUTPUT.toString());
       OUTPUT.reset();
 
       System.err.println("1234");
-      Assert.assertEquals("1234\n", OUTPUT.toString());
+      assertEquals("1234\n", OUTPUT.toString());
     }
   };
 
   @Test
   public void testSystemErrRule() throws Throwable {
     new SystemErrRule(OUTPUT).apply(mStatement, null).evaluate();
-    Assert.assertEquals(System.err, ORIGINAL_SYSTEM_ERR);
+    assertEquals(System.err, ORIGINAL_SYSTEM_ERR);
   }
 }

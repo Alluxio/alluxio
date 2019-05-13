@@ -14,6 +14,7 @@ package alluxio.master.journal.ufs;
 import alluxio.Constants;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
@@ -28,10 +29,13 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -62,8 +66,10 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public UfsJournal createJournal(Master master) {
+    Supplier<Set<JournalSink>> supplier = () -> this.getJournalSinks(master);
     UfsJournal journal =
-        new UfsJournal(URIUtils.appendPathOrDie(mBase, master.getName()), master, mQuietTimeMs);
+        new UfsJournal(URIUtils.appendPathOrDie(mBase, master.getName()), master, mQuietTimeMs,
+            supplier);
     mJournals.put(master.getName(), journal);
     return journal;
   }
@@ -71,8 +77,9 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   @Override
   public void gainPrimacy() {
     List<Callable<Void>> callables = new ArrayList<>();
-    for (UfsJournal journal : mJournals.values()) {
+    for (Map.Entry<String, UfsJournal> entry : mJournals.entrySet()) {
       callables.add(() -> {
+        UfsJournal journal = entry.getValue();
         journal.gainPrimacy();
         return null;
       });

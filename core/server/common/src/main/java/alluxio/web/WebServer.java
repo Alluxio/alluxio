@@ -79,7 +79,7 @@ public abstract class WebServer {
     try {
       mServerConnector.open();
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(String.format("Failed to listen on address %s", mAddress), e);
     }
 
     System.setProperty("org.apache.jasper.compiler.disablejsr199", "false");

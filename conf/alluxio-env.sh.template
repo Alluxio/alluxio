@@ -19,7 +19,7 @@
 # affect jobs (e.g., Spark job or MapReduce job) that are using Alluxio client
 # as a library. Alternatively, it is recommended to create alluxio-site.properties file,
 # which supports all the configuration options provided by Alluxio
-# (http://www.alluxio.org/documentation/en/Configuration-Settings.html),
+# (https://docs.alluxio.io/os/user/stable/en/reference/Properties-List.html),
 # and is respected by both external jobs and Alluxio servers (or shell).
 
 # The directory where log files are stored. (Default: ${ALLUXIO_HOME}/logs).

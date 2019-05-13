@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -66,6 +67,7 @@ public final class RoundRobinAllocator implements Allocator {
    *         otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
+  @Nullable
   private StorageDirView allocateBlock(long sessionId, long blockSize,
       BlockStoreLocation location) {
     Preconditions.checkNotNull(location, "location");
