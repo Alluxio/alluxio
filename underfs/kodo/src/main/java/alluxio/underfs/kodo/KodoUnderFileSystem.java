@@ -121,7 +121,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean createEmptyObject(String key) {
+  public boolean createEmptyObject(String key) {
     try {
       mKodoClinet.createEmptyObject(key);
       return true;

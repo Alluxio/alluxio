@@ -28,6 +28,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.util.Base64;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -377,7 +378,8 @@ public class S3ALowLevelOutputStream extends OutputStream {
   /**
    * Waits for the submitted upload tasks to finish.
    */
-  private void waitForAllPartsUpload() throws IOException {
+  @VisibleForTesting
+  public void waitForAllPartsUpload() throws IOException {
     int beforeSize = mTags.size();
     try {
       for (ListenableFuture<PartETag> future : mTagFutures) {

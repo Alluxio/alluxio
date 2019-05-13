@@ -29,6 +29,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -759,7 +760,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param key the key to create
    * @return true if the operation was successful
    */
-  protected abstract boolean createEmptyObject(String key);
+  @VisibleForTesting
+  public abstract boolean createEmptyObject(String key);
 
   /**
    * Creates an {@link OutputStream} for object uploads.

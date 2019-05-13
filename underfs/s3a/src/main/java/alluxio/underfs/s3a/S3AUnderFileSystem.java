@@ -53,6 +53,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.util.Base64;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -317,7 +318,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean createEmptyObject(String key) {
+  public boolean createEmptyObject(String key) {
     try {
       ObjectMetadata meta = new ObjectMetadata();
       meta.setContentLength(0);
@@ -601,5 +602,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     } catch (AmazonClientException e) {
       throw new IOException(e);
     }
+  }
+
+  /**
+   * @return the Amazon S3 client
+   */
+  @VisibleForTesting
+  public AmazonS3Client getS3Client() {
+    return mClient;
   }
 }

@@ -126,7 +126,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean createEmptyObject(String key) {
+  public boolean createEmptyObject(String key) {
     try {
       ObjectMetadata objMeta = new ObjectMetadata();
       objMeta.setContentLength(0);
