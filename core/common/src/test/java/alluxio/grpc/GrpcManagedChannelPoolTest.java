@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.security.user.UserState;
 
 import io.grpc.ManagedChannel;
 import org.junit.After;
@@ -54,8 +55,9 @@ public final class GrpcManagedChannelPoolTest {
 
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
+    UserState us = UserState.Factory.create(sConf);
     GrpcServer server1 =
-        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf).build().start();
+        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf, us).build().start();
 
     SocketAddress address = new InetSocketAddress("localhost", server1.getBindPort());
 
@@ -105,8 +107,9 @@ public final class GrpcManagedChannelPoolTest {
 
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
+    UserState us = UserState.Factory.create(sConf);
     GrpcServer server1 =
-        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf).build().start();
+        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf, us).build().start();
 
     SocketAddress address = new InetSocketAddress("localhost", server1.getBindPort());
 
@@ -144,10 +147,11 @@ public final class GrpcManagedChannelPoolTest {
 
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
+    UserState us = UserState.Factory.create(sConf);
     GrpcServer server1 =
-        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf).build().start();
+        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf, us).build().start();
     GrpcServer server2 =
-        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf).build().start();
+        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf, us).build().start();
 
     SocketAddress address1 = new InetSocketAddress("localhost", server1.getBindPort());
     SocketAddress address2 = new InetSocketAddress("localhost", server2.getBindPort());
@@ -177,8 +181,9 @@ public final class GrpcManagedChannelPoolTest {
 
     InetSocketAddress bindAddress =  new InetSocketAddress("0.0.0.0", 0);
 
+    UserState us = UserState.Factory.create(sConf);
     GrpcServer server1 =
-        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf).build().start();
+        GrpcServerBuilder.forAddress("localhost", bindAddress, sConf, us).build().start();
 
     SocketAddress address = new InetSocketAddress("localhost", server1.getBindPort());
 

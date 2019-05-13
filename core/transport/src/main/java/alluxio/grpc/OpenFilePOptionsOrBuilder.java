@@ -37,4 +37,21 @@ public interface OpenFilePOptionsOrBuilder extends
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
+
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional bool skipTransformation = 1001;</code>
+   */
+  boolean hasSkipTransformation();
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional bool skipTransformation = 1001;</code>
+   */
+  boolean getSkipTransformation();
 }

@@ -23,7 +23,7 @@ import alluxio.multi.process.Clients;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.Builder;
 import alluxio.multi.process.PortCoordination;
-import alluxio.security.LoginUser;
+import alluxio.security.user.UserState;
 import alluxio.testutils.BaseIntegrationTest;
 
 import org.apache.commons.io.FileUtils;
@@ -89,9 +89,9 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
 
   @Test
   public void readOldJournals() throws Exception {
+    UserState s = UserState.Factory.create(ServerConfiguration.global());
     Assume.assumeTrue("Journals must be replayed by the same user that generated them, so this "
-        + "test must be run as root", LoginUser.get(ServerConfiguration.global()).getName()
-        .equals("root"));
+        + "test must be run as root", s.getUser().getName().equals("root"));
     // Starts a cluster from each old journal, and checks that all operation checks pass.
     List<Journal> journals = Arrays
         .asList(new File(BackwardsCompatibilityJournalGenerator.OLD_JOURNALS_RESOURCE).listFiles())

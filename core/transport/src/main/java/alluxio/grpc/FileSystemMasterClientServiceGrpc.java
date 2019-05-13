@@ -703,6 +703,102 @@ public final class FileSystemMasterClientServiceGrpc {
      return getUpdateUfsModeMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetDelegationTokenPRequest,
+      alluxio.grpc.GetDelegationTokenPResponse> getGetDelegationTokenMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetDelegationToken",
+      requestType = alluxio.grpc.GetDelegationTokenPRequest.class,
+      responseType = alluxio.grpc.GetDelegationTokenPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetDelegationTokenPRequest,
+      alluxio.grpc.GetDelegationTokenPResponse> getGetDelegationTokenMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetDelegationTokenPRequest, alluxio.grpc.GetDelegationTokenPResponse> getGetDelegationTokenMethod;
+    if ((getGetDelegationTokenMethod = FileSystemMasterClientServiceGrpc.getGetDelegationTokenMethod) == null) {
+      synchronized (FileSystemMasterClientServiceGrpc.class) {
+        if ((getGetDelegationTokenMethod = FileSystemMasterClientServiceGrpc.getGetDelegationTokenMethod) == null) {
+          FileSystemMasterClientServiceGrpc.getGetDelegationTokenMethod = getGetDelegationTokenMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetDelegationTokenPRequest, alluxio.grpc.GetDelegationTokenPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.file.FileSystemMasterClientService", "GetDelegationToken"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetDelegationTokenPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetDelegationTokenPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetDelegationToken"))
+                  .build();
+          }
+        }
+     }
+     return getGetDelegationTokenMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RenewDelegationTokenPRequest,
+      alluxio.grpc.RenewDelegationTokenPResponse> getRenewDelegationTokenMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "RenewDelegationToken",
+      requestType = alluxio.grpc.RenewDelegationTokenPRequest.class,
+      responseType = alluxio.grpc.RenewDelegationTokenPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.RenewDelegationTokenPRequest,
+      alluxio.grpc.RenewDelegationTokenPResponse> getRenewDelegationTokenMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.RenewDelegationTokenPRequest, alluxio.grpc.RenewDelegationTokenPResponse> getRenewDelegationTokenMethod;
+    if ((getRenewDelegationTokenMethod = FileSystemMasterClientServiceGrpc.getRenewDelegationTokenMethod) == null) {
+      synchronized (FileSystemMasterClientServiceGrpc.class) {
+        if ((getRenewDelegationTokenMethod = FileSystemMasterClientServiceGrpc.getRenewDelegationTokenMethod) == null) {
+          FileSystemMasterClientServiceGrpc.getRenewDelegationTokenMethod = getRenewDelegationTokenMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.RenewDelegationTokenPRequest, alluxio.grpc.RenewDelegationTokenPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.file.FileSystemMasterClientService", "RenewDelegationToken"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.RenewDelegationTokenPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.RenewDelegationTokenPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("RenewDelegationToken"))
+                  .build();
+          }
+        }
+     }
+     return getRenewDelegationTokenMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CancelDelegationTokenPRequest,
+      alluxio.grpc.CancelDelegationTokenPResponse> getCancelDelegationTokenMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CancelDelegationToken",
+      requestType = alluxio.grpc.CancelDelegationTokenPRequest.class,
+      responseType = alluxio.grpc.CancelDelegationTokenPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.CancelDelegationTokenPRequest,
+      alluxio.grpc.CancelDelegationTokenPResponse> getCancelDelegationTokenMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.CancelDelegationTokenPRequest, alluxio.grpc.CancelDelegationTokenPResponse> getCancelDelegationTokenMethod;
+    if ((getCancelDelegationTokenMethod = FileSystemMasterClientServiceGrpc.getCancelDelegationTokenMethod) == null) {
+      synchronized (FileSystemMasterClientServiceGrpc.class) {
+        if ((getCancelDelegationTokenMethod = FileSystemMasterClientServiceGrpc.getCancelDelegationTokenMethod) == null) {
+          FileSystemMasterClientServiceGrpc.getCancelDelegationTokenMethod = getCancelDelegationTokenMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.CancelDelegationTokenPRequest, alluxio.grpc.CancelDelegationTokenPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.file.FileSystemMasterClientService", "CancelDelegationToken"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.CancelDelegationTokenPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.CancelDelegationTokenPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("CancelDelegationToken"))
+                  .build();
+          }
+        }
+     }
+     return getCancelDelegationTokenMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -970,6 +1066,39 @@ public final class FileSystemMasterClientServiceGrpc {
       asyncUnimplementedUnaryCall(getUpdateUfsModeMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     **
+     * Returns the delegation token for the client user.
+     * </pre>
+     */
+    public void getDelegationToken(alluxio.grpc.GetDelegationTokenPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetDelegationTokenPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetDelegationTokenMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Renews the delegation token.
+     * </pre>
+     */
+    public void renewDelegationToken(alluxio.grpc.RenewDelegationTokenPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.RenewDelegationTokenPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getRenewDelegationTokenMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Cancels the delegation token.
+     * </pre>
+     */
+    public void cancelDelegationToken(alluxio.grpc.CancelDelegationTokenPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.CancelDelegationTokenPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getCancelDelegationTokenMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -1119,6 +1248,27 @@ public final class FileSystemMasterClientServiceGrpc {
                 alluxio.grpc.UpdateUfsModePRequest,
                 alluxio.grpc.UpdateUfsModePResponse>(
                   this, METHODID_UPDATE_UFS_MODE)))
+          .addMethod(
+            getGetDelegationTokenMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetDelegationTokenPRequest,
+                alluxio.grpc.GetDelegationTokenPResponse>(
+                  this, METHODID_GET_DELEGATION_TOKEN)))
+          .addMethod(
+            getRenewDelegationTokenMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.RenewDelegationTokenPRequest,
+                alluxio.grpc.RenewDelegationTokenPResponse>(
+                  this, METHODID_RENEW_DELEGATION_TOKEN)))
+          .addMethod(
+            getCancelDelegationTokenMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.CancelDelegationTokenPRequest,
+                alluxio.grpc.CancelDelegationTokenPResponse>(
+                  this, METHODID_CANCEL_DELEGATION_TOKEN)))
           .build();
     }
   }
@@ -1401,6 +1551,42 @@ public final class FileSystemMasterClientServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getUpdateUfsModeMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     **
+     * Returns the delegation token for the client user.
+     * </pre>
+     */
+    public void getDelegationToken(alluxio.grpc.GetDelegationTokenPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetDelegationTokenPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetDelegationTokenMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Renews the delegation token.
+     * </pre>
+     */
+    public void renewDelegationToken(alluxio.grpc.RenewDelegationTokenPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.RenewDelegationTokenPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getRenewDelegationTokenMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Cancels the delegation token.
+     * </pre>
+     */
+    public void cancelDelegationToken(alluxio.grpc.CancelDelegationTokenPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.CancelDelegationTokenPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getCancelDelegationTokenMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -1660,6 +1846,39 @@ public final class FileSystemMasterClientServiceGrpc {
     public alluxio.grpc.UpdateUfsModePResponse updateUfsMode(alluxio.grpc.UpdateUfsModePRequest request) {
       return blockingUnaryCall(
           getChannel(), getUpdateUfsModeMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns the delegation token for the client user.
+     * </pre>
+     */
+    public alluxio.grpc.GetDelegationTokenPResponse getDelegationToken(alluxio.grpc.GetDelegationTokenPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getGetDelegationTokenMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Renews the delegation token.
+     * </pre>
+     */
+    public alluxio.grpc.RenewDelegationTokenPResponse renewDelegationToken(alluxio.grpc.RenewDelegationTokenPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getRenewDelegationTokenMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Cancels the delegation token.
+     * </pre>
+     */
+    public alluxio.grpc.CancelDelegationTokenPResponse cancelDelegationToken(alluxio.grpc.CancelDelegationTokenPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getCancelDelegationTokenMethod(), getCallOptions(), request);
     }
   }
 
@@ -1927,6 +2146,42 @@ public final class FileSystemMasterClientServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getUpdateUfsModeMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     **
+     * Returns the delegation token for the client user.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetDelegationTokenPResponse> getDelegationToken(
+        alluxio.grpc.GetDelegationTokenPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetDelegationTokenMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Renews the delegation token.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.RenewDelegationTokenPResponse> renewDelegationToken(
+        alluxio.grpc.RenewDelegationTokenPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getRenewDelegationTokenMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Cancels the delegation token.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.CancelDelegationTokenPResponse> cancelDelegationToken(
+        alluxio.grpc.CancelDelegationTokenPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getCancelDelegationTokenMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_CHECK_CONSISTENCY = 0;
@@ -1950,6 +2205,9 @@ public final class FileSystemMasterClientServiceGrpc {
   private static final int METHODID_STOP_SYNC = 18;
   private static final int METHODID_UNMOUNT = 19;
   private static final int METHODID_UPDATE_UFS_MODE = 20;
+  private static final int METHODID_GET_DELEGATION_TOKEN = 21;
+  private static final int METHODID_RENEW_DELEGATION_TOKEN = 22;
+  private static final int METHODID_CANCEL_DELEGATION_TOKEN = 23;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -2052,6 +2310,18 @@ public final class FileSystemMasterClientServiceGrpc {
           serviceImpl.updateUfsMode((alluxio.grpc.UpdateUfsModePRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.UpdateUfsModePResponse>) responseObserver);
           break;
+        case METHODID_GET_DELEGATION_TOKEN:
+          serviceImpl.getDelegationToken((alluxio.grpc.GetDelegationTokenPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetDelegationTokenPResponse>) responseObserver);
+          break;
+        case METHODID_RENEW_DELEGATION_TOKEN:
+          serviceImpl.renewDelegationToken((alluxio.grpc.RenewDelegationTokenPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.RenewDelegationTokenPResponse>) responseObserver);
+          break;
+        case METHODID_CANCEL_DELEGATION_TOKEN:
+          serviceImpl.cancelDelegationToken((alluxio.grpc.CancelDelegationTokenPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.CancelDelegationTokenPResponse>) responseObserver);
+          break;
         default:
           throw new AssertionError();
       }
@@ -2134,6 +2404,9 @@ public final class FileSystemMasterClientServiceGrpc {
               .addMethod(getStopSyncMethod())
               .addMethod(getUnmountMethod())
               .addMethod(getUpdateUfsModeMethod())
+              .addMethod(getGetDelegationTokenMethod())
+              .addMethod(getRenewDelegationTokenMethod())
+              .addMethod(getCancelDelegationTokenMethod())
               .build();
         }
       }

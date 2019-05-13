@@ -20,6 +20,26 @@ public enum ChannelAuthenticationScheme
    * <code>CUSTOM = 2;</code>
    */
   CUSTOM(2),
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>KERBEROS = 1000;</code>
+   */
+  KERBEROS(1000),
+  /**
+   * <code>DELEGATION_TOKEN = 1001;</code>
+   */
+  DELEGATION_TOKEN(1001),
+  /**
+   * <pre>
+   * ALLUXIO CS END
+   * </pre>
+   *
+   * <code>CAPABILITY_TOKEN = 1002;</code>
+   */
+  CAPABILITY_TOKEN(1002),
   ;
 
   /**
@@ -34,6 +54,26 @@ public enum ChannelAuthenticationScheme
    * <code>CUSTOM = 2;</code>
    */
   public static final int CUSTOM_VALUE = 2;
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>KERBEROS = 1000;</code>
+   */
+  public static final int KERBEROS_VALUE = 1000;
+  /**
+   * <code>DELEGATION_TOKEN = 1001;</code>
+   */
+  public static final int DELEGATION_TOKEN_VALUE = 1001;
+  /**
+   * <pre>
+   * ALLUXIO CS END
+   * </pre>
+   *
+   * <code>CAPABILITY_TOKEN = 1002;</code>
+   */
+  public static final int CAPABILITY_TOKEN_VALUE = 1002;
 
 
   public final int getNumber() {
@@ -53,6 +93,9 @@ public enum ChannelAuthenticationScheme
       case 0: return NOSASL;
       case 1: return SIMPLE;
       case 2: return CUSTOM;
+      case 1000: return KERBEROS;
+      case 1001: return DELEGATION_TOKEN;
+      case 1002: return CAPABILITY_TOKEN;
       default: return null;
     }
   }

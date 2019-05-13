@@ -101,4 +101,29 @@ public interface ReadRequestOrBuilder extends
    * <code>optional int64 offset_received = 7;</code>
    */
   long getOffsetReceived();
+
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1000;</code>
+   */
+  boolean hasCapability();
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1000;</code>
+   */
+  alluxio.proto.security.CapabilityProto.Capability getCapability();
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1000;</code>
+   */
+  alluxio.proto.security.CapabilityProto.CapabilityOrBuilder getCapabilityOrBuilder();
 }

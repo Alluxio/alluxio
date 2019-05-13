@@ -34,13 +34,15 @@ public final class AuthenticationServerProto {
       "message\030\002 \001(\014\022\020\n\010clientId\030\003 \001(\t\022L\n\024authe" +
       "nticationScheme\030\004 \001(\0162..alluxio.grpc.sas" +
       "l.ChannelAuthenticationScheme*-\n\017SaslMes" +
-      "sageType\022\r\n\tCHALLENGE\020\000\022\013\n\007SUCCESS\020\001*A\n\033" +
+      "sageType\022\r\n\tCHALLENGE\020\000\022\013\n\007SUCCESS\020\001*~\n\033" +
       "ChannelAuthenticationScheme\022\n\n\006NOSASL\020\000\022" +
-      "\n\n\006SIMPLE\020\001\022\n\n\006CUSTOM\020\0022o\n\031SaslAuthentic" +
-      "ationService\022R\n\014authenticate\022\036.alluxio.g" +
-      "rpc.sasl.SaslMessage\032\036.alluxio.grpc.sasl" +
-      ".SaslMessage(\0010\001B+\n\014alluxio.grpcB\031Authen" +
-      "ticationServerProtoP\001"
+      "\n\n\006SIMPLE\020\001\022\n\n\006CUSTOM\020\002\022\r\n\010KERBEROS\020\350\007\022\025" +
+      "\n\020DELEGATION_TOKEN\020\351\007\022\025\n\020CAPABILITY_TOKE" +
+      "N\020\352\0072o\n\031SaslAuthenticationService\022R\n\014aut" +
+      "henticate\022\036.alluxio.grpc.sasl.SaslMessag" +
+      "e\032\036.alluxio.grpc.sasl.SaslMessage(\0010\001B+\n" +
+      "\014alluxio.grpcB\031AuthenticationServerProto" +
+      "P\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

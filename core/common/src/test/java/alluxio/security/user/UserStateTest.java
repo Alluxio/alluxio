@@ -9,39 +9,26 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.security;
+package alluxio.security.user;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 
 import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /**
- * Unit test for {@link alluxio.security.LoginUser}.
+ * Unit test for {@link UserState}.
  */
-public final class LoginUserTest {
-
-  /**
-   * The exception expected to be thrown.
-   */
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
-
+public final class UserStateTest {
   private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
-
-  @Before
-  public void before() throws Exception {
-    LoginUserTestUtils.resetLoginUser();
-  }
 
   @After
   public void after() {
@@ -55,7 +42,8 @@ public final class LoginUserTest {
   public void getSimpleLoginUser() throws Exception {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
 
-    User loginUser = LoginUser.get(mConfiguration);
+    UserState s = UserState.Factory.create(mConfiguration);
+    User loginUser = s.getUser();
 
     assertNotNull(loginUser);
     assertEquals(System.getProperty("user.name"), loginUser.getName());
@@ -70,7 +58,8 @@ public final class LoginUserTest {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user");
 
-    User loginUser = LoginUser.get(mConfiguration);
+    UserState s = UserState.Factory.create(mConfiguration);
+    User loginUser = s.getUser();
 
     assertNotNull(loginUser);
     assertEquals("alluxio-user", loginUser.getName());
@@ -85,7 +74,8 @@ public final class LoginUserTest {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user, superuser");
 
-    User loginUser = LoginUser.get(mConfiguration);
+    UserState s = UserState.Factory.create(mConfiguration);
+    User loginUser = s.getUser();
 
     // The user list is considered as a single user name.
     assertNotNull(loginUser);
@@ -102,7 +92,8 @@ public final class LoginUserTest {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mConfiguration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
 
-    User loginUser = LoginUser.get(mConfiguration);
+    UserState s = UserState.Factory.create(mConfiguration);
+    User loginUser = s.getUser();
 
     assertNotNull(loginUser);
     assertEquals(System.getProperty("user.name"), loginUser.getName());
@@ -115,7 +106,8 @@ public final class LoginUserTest {
   public void getCustomLoginUser() throws Exception {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
 
-    User loginUser = LoginUser.get(mConfiguration);
+    UserState s = UserState.Factory.create(mConfiguration);
+    User loginUser = s.getUser();
 
     assertNotNull(loginUser);
     assertEquals(System.getProperty("user.name"), loginUser.getName());
@@ -130,7 +122,8 @@ public final class LoginUserTest {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     mConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user");
 
-    User loginUser = LoginUser.get(mConfiguration);
+    UserState s = UserState.Factory.create(mConfiguration);
+    User loginUser = s.getUser();
 
     assertNotNull(loginUser);
     assertEquals("alluxio-user", loginUser.getName());
@@ -146,7 +139,8 @@ public final class LoginUserTest {
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     mConfiguration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
 
-    User loginUser = LoginUser.get(mConfiguration);
+    UserState s = UserState.Factory.create(mConfiguration);
+    User loginUser = s.getUser();
 
     assertNotNull(loginUser);
     assertEquals(System.getProperty("user.name"), loginUser.getName());
@@ -154,17 +148,12 @@ public final class LoginUserTest {
 
   // TODO(dong): getKerberosLoginUserTest()
 
-  /**
-   * Tests whether we can get exception when getting a login user in non-security mode.
-   */
   @Test
   public void securityEnabled() throws Exception {
-    // TODO(dong): add Kerberos in the white list when it is supported.
-    // throw exception when AuthType is not "SIMPLE", or "CUSTOM"
     mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
 
-    mThrown.expect(UnsupportedOperationException.class);
-    mThrown.expectMessage("User is not supported in NOSASL mode");
-    LoginUser.get(mConfiguration);
+    // without security, the user will be blank.
+    User u = UserState.Factory.create(mConfiguration).getUser();
+    Assert.assertEquals("", u.getName());
   }
 }

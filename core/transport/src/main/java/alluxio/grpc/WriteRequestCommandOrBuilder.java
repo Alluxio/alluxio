@@ -105,4 +105,29 @@ public interface WriteRequestCommandOrBuilder extends
    * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
    */
   alluxio.proto.dataserver.Protocol.CreateUfsBlockOptionsOrBuilder getCreateUfsBlockOptionsOrBuilder();
+
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1000;</code>
+   */
+  boolean hasCapability();
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1000;</code>
+   */
+  alluxio.proto.security.CapabilityProto.Capability getCapability();
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1000;</code>
+   */
+  alluxio.proto.security.CapabilityProto.CapabilityOrBuilder getCapabilityOrBuilder();
 }

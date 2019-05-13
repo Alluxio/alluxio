@@ -24,4 +24,29 @@ public interface OpenLocalBlockRequestOrBuilder extends
    * <code>optional bool promote = 2;</code>
    */
   boolean getPromote();
+
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1001;</code>
+   */
+  boolean hasCapability();
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1001;</code>
+   */
+  alluxio.proto.security.CapabilityProto.Capability getCapability();
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1001;</code>
+   */
+  alluxio.proto.security.CapabilityProto.CapabilityOrBuilder getCapabilityOrBuilder();
 }

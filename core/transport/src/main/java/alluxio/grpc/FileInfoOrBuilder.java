@@ -338,4 +338,46 @@ public interface FileInfoOrBuilder extends
    * <code>optional int32 replicationMin = 30;</code>
    */
   int getReplicationMin();
+
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+   */
+  boolean hasCapability();
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+   */
+  alluxio.proto.security.CapabilityProto.Capability getCapability();
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+   */
+  alluxio.proto.security.CapabilityProto.CapabilityOrBuilder getCapabilityOrBuilder();
+
+  /**
+   * <pre>
+   * ALLUXIO CS END
+   * </pre>
+   *
+   * <code>optional bool encrypted = 1004;</code>
+   */
+  boolean hasEncrypted();
+  /**
+   * <pre>
+   * ALLUXIO CS END
+   * </pre>
+   *
+   * <code>optional bool encrypted = 1004;</code>
+   */
+  boolean getEncrypted();
 }

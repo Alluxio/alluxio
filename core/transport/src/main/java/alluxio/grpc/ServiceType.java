@@ -60,6 +60,14 @@ public enum ServiceType
    * <code>FILE_SYSTEM_WORKER_WORKER_SERVICE = 12;</code>
    */
   FILE_SYSTEM_WORKER_WORKER_SERVICE(12),
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>PRIVILEGE_MASTER_CLIENT_SERVICE = 1001;</code>
+   */
+  PRIVILEGE_MASTER_CLIENT_SERVICE(1001),
   ;
 
   /**
@@ -114,6 +122,14 @@ public enum ServiceType
    * <code>FILE_SYSTEM_WORKER_WORKER_SERVICE = 12;</code>
    */
   public static final int FILE_SYSTEM_WORKER_WORKER_SERVICE_VALUE = 12;
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>PRIVILEGE_MASTER_CLIENT_SERVICE = 1001;</code>
+   */
+  public static final int PRIVILEGE_MASTER_CLIENT_SERVICE_VALUE = 1001;
 
 
   public final int getNumber() {
@@ -143,6 +159,7 @@ public enum ServiceType
       case 10: return JOB_MASTER_CLIENT_SERVICE;
       case 11: return JOB_MASTER_WORKER_SERVICE;
       case 12: return FILE_SYSTEM_WORKER_WORKER_SERVICE;
+      case 1001: return PRIVILEGE_MASTER_CLIENT_SERVICE;
       default: return null;
     }
   }

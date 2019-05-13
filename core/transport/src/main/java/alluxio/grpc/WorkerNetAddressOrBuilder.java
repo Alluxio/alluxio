@@ -74,4 +74,21 @@ public interface WorkerNetAddressOrBuilder extends
    * <code>optional .alluxio.grpc.TieredIdentity tieredIdentity = 6;</code>
    */
   alluxio.grpc.TieredIdentityOrBuilder getTieredIdentityOrBuilder();
+
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional int32 secureRpcPort = 1001;</code>
+   */
+  boolean hasSecureRpcPort();
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional int32 secureRpcPort = 1001;</code>
+   */
+  int getSecureRpcPort();
 }

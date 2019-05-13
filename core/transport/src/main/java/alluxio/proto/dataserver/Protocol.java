@@ -130,17 +130,23 @@ public final class Protocol {
     /**
      * <pre>
      * If set to true, the block is possibly stored as a UFS block.
+     * ALLUXIO CS REPLACE
+     * optional bool block_in_ufs_tier = 8;
+     * ALLUXIO CS WITH
      * </pre>
      *
-     * <code>optional bool block_in_ufs_tier = 8;</code>
+     * <code>optional bool block_in_ufs_tier = 1000;</code>
      */
     boolean hasBlockInUfsTier();
     /**
      * <pre>
      * If set to true, the block is possibly stored as a UFS block.
+     * ALLUXIO CS REPLACE
+     * optional bool block_in_ufs_tier = 8;
+     * ALLUXIO CS WITH
      * </pre>
      *
-     * <code>optional bool block_in_ufs_tier = 8;</code>
+     * <code>optional bool block_in_ufs_tier = 1000;</code>
      */
     boolean getBlockInUfsTier();
   }
@@ -240,7 +246,7 @@ public final class Protocol {
               user_ = bs;
               break;
             }
-            case 64: {
+            case 8000: {
               bitField0_ |= 0x00000080;
               blockInUfsTier_ = input.readBool();
               break;
@@ -465,14 +471,17 @@ public final class Protocol {
       }
     }
 
-    public static final int BLOCK_IN_UFS_TIER_FIELD_NUMBER = 8;
+    public static final int BLOCK_IN_UFS_TIER_FIELD_NUMBER = 1000;
     private boolean blockInUfsTier_;
     /**
      * <pre>
      * If set to true, the block is possibly stored as a UFS block.
+     * ALLUXIO CS REPLACE
+     * optional bool block_in_ufs_tier = 8;
+     * ALLUXIO CS WITH
      * </pre>
      *
-     * <code>optional bool block_in_ufs_tier = 8;</code>
+     * <code>optional bool block_in_ufs_tier = 1000;</code>
      */
     public boolean hasBlockInUfsTier() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
@@ -480,9 +489,12 @@ public final class Protocol {
     /**
      * <pre>
      * If set to true, the block is possibly stored as a UFS block.
+     * ALLUXIO CS REPLACE
+     * optional bool block_in_ufs_tier = 8;
+     * ALLUXIO CS WITH
      * </pre>
      *
-     * <code>optional bool block_in_ufs_tier = 8;</code>
+     * <code>optional bool block_in_ufs_tier = 1000;</code>
      */
     public boolean getBlockInUfsTier() {
       return blockInUfsTier_;
@@ -522,7 +534,7 @@ public final class Protocol {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 7, user_);
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        output.writeBool(8, blockInUfsTier_);
+        output.writeBool(1000, blockInUfsTier_);
       }
       unknownFields.writeTo(output);
     }
@@ -560,7 +572,7 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(8, blockInUfsTier_);
+          .computeBoolSize(1000, blockInUfsTier_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1358,9 +1370,12 @@ public final class Protocol {
       /**
        * <pre>
        * If set to true, the block is possibly stored as a UFS block.
+       * ALLUXIO CS REPLACE
+       * optional bool block_in_ufs_tier = 8;
+       * ALLUXIO CS WITH
        * </pre>
        *
-       * <code>optional bool block_in_ufs_tier = 8;</code>
+       * <code>optional bool block_in_ufs_tier = 1000;</code>
        */
       public boolean hasBlockInUfsTier() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
@@ -1368,9 +1383,12 @@ public final class Protocol {
       /**
        * <pre>
        * If set to true, the block is possibly stored as a UFS block.
+       * ALLUXIO CS REPLACE
+       * optional bool block_in_ufs_tier = 8;
+       * ALLUXIO CS WITH
        * </pre>
        *
-       * <code>optional bool block_in_ufs_tier = 8;</code>
+       * <code>optional bool block_in_ufs_tier = 1000;</code>
        */
       public boolean getBlockInUfsTier() {
         return blockInUfsTier_;
@@ -1378,9 +1396,12 @@ public final class Protocol {
       /**
        * <pre>
        * If set to true, the block is possibly stored as a UFS block.
+       * ALLUXIO CS REPLACE
+       * optional bool block_in_ufs_tier = 8;
+       * ALLUXIO CS WITH
        * </pre>
        *
-       * <code>optional bool block_in_ufs_tier = 8;</code>
+       * <code>optional bool block_in_ufs_tier = 1000;</code>
        */
       public Builder setBlockInUfsTier(boolean value) {
         bitField0_ |= 0x00000080;
@@ -1391,9 +1412,12 @@ public final class Protocol {
       /**
        * <pre>
        * If set to true, the block is possibly stored as a UFS block.
+       * ALLUXIO CS REPLACE
+       * optional bool block_in_ufs_tier = 8;
+       * ALLUXIO CS WITH
        * </pre>
        *
-       * <code>optional bool block_in_ufs_tier = 8;</code>
+       * <code>optional bool block_in_ufs_tier = 1000;</code>
        */
       public Builder clearBlockInUfsTier() {
         bitField0_ = (bitField0_ & ~0x00000080);
@@ -4197,20 +4221,20 @@ public final class Protocol {
     java.lang.String[] descriptorData = {
       "\n\037proto/dataserver/protocol.proto\022\030allux" +
       "io.proto.dataserver\032\035proto/dataserver/st" +
-      "atus.proto\032\026proto/shared/acl.proto\"\276\001\n\023O" +
+      "atus.proto\032\026proto/shared/acl.proto\"\277\001\n\023O" +
       "penUfsBlockOptions\022\020\n\010ufs_path\030\001 \001(\t\022\026\n\016" +
       "offset_in_file\030\002 \001(\003\022\022\n\nblock_size\030\003 \001(\003" +
       "\022\035\n\025maxUfsReadConcurrency\030\004 \001(\005\022\017\n\007mount" +
       "Id\030\005 \001(\003\022\020\n\010no_cache\030\006 \001(\010\022\014\n\004user\030\007 \001(\t" +
-      "\022\031\n\021block_in_ufs_tier\030\010 \001(\010\"\234\001\n\024CreateUf" +
-      "sFileOptions\022\020\n\010ufs_path\030\001 \001(\t\022\r\n\005owner\030" +
-      "\002 \001(\t\022\r\n\005group\030\003 \001(\t\022\014\n\004mode\030\004 \001(\005\022\020\n\010mo" +
-      "unt_id\030\005 \001(\003\0224\n\003acl\030\006 \001(\0132\'.alluxio.prot" +
-      "o.shared.AccessControlList\"Y\n\025CreateUfsB" +
-      "lockOptions\022\034\n\024bytes_in_block_store\030\001 \001(" +
-      "\003\022\020\n\010mount_id\030\002 \001(\003\022\020\n\010fallback\030\003 \001(\010\"J\n" +
-      "\010Response\022-\n\006status\030\001 \001(\0162\035.alluxio.prot" +
-      "o.status.PStatus\022\017\n\007message\030\002 \001(\t"
+      "\022\032\n\021block_in_ufs_tier\030\350\007 \001(\010\"\234\001\n\024CreateU" +
+      "fsFileOptions\022\020\n\010ufs_path\030\001 \001(\t\022\r\n\005owner" +
+      "\030\002 \001(\t\022\r\n\005group\030\003 \001(\t\022\014\n\004mode\030\004 \001(\005\022\020\n\010m" +
+      "ount_id\030\005 \001(\003\0224\n\003acl\030\006 \001(\0132\'.alluxio.pro" +
+      "to.shared.AccessControlList\"Y\n\025CreateUfs" +
+      "BlockOptions\022\034\n\024bytes_in_block_store\030\001 \001" +
+      "(\003\022\020\n\010mount_id\030\002 \001(\003\022\020\n\010fallback\030\003 \001(\010\"J" +
+      "\n\010Response\022-\n\006status\030\001 \001(\0162\035.alluxio.pro" +
+      "to.status.PStatus\022\017\n\007message\030\002 \001(\t"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

@@ -14,17 +14,18 @@ package alluxio.server.auth;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.GetStatusContext;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.user.TestUserState;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.master.MasterTestUtils;
@@ -78,8 +79,6 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
     fs.createFile(new AlluxioURI("/testFile")).close();
     mLocalAlluxioClusterResource.get().stopFS();
 
-    LoginUserTestUtils.resetLoginUser(SUPER_USER);
-
     // user alluxio can recover master from journal
     MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
@@ -102,12 +101,11 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
     fs.createFile(new AlluxioURI("/testFile")).close();
     mLocalAlluxioClusterResource.get().stopFS();
 
-    LoginUserTestUtils.resetLoginUser(USER);
-
     mThrown.expect(PermissionDeniedException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED
         .getMessage("Unauthorized user on root"));
     // user jack cannot recover master from journal, in which the root is owned by alluxio.
-    MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    MasterTestUtils.createLeaderFileSystemMasterFromJournal(
+        new TestUserState(USER, ServerConfiguration.global()));
   }
 }

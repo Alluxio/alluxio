@@ -44,6 +44,7 @@ private static final long serialVersionUID = 0L;
     ufsFingerprint_ = "";
     replicationMax_ = 0;
     replicationMin_ = 0;
+    encrypted_ = false;
   }
 
   @java.lang.Override
@@ -274,6 +275,24 @@ private static final long serialVersionUID = 0L;
           case 240: {
             bitField0_ |= 0x08000000;
             replicationMin_ = input.readInt32();
+            break;
+          }
+          case 8026: {
+            alluxio.proto.security.CapabilityProto.Capability.Builder subBuilder = null;
+            if (((bitField0_ & 0x10000000) == 0x10000000)) {
+              subBuilder = capability_.toBuilder();
+            }
+            capability_ = input.readMessage(alluxio.proto.security.CapabilityProto.Capability.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(capability_);
+              capability_ = subBuilder.buildPartial();
+            }
+            bitField0_ |= 0x10000000;
+            break;
+          }
+          case 8032: {
+            bitField0_ |= 0x20000000;
+            encrypted_ = input.readBool();
             break;
           }
         }
@@ -986,6 +1005,62 @@ private static final long serialVersionUID = 0L;
     return replicationMin_;
   }
 
+  public static final int CAPABILITY_FIELD_NUMBER = 1003;
+  private alluxio.proto.security.CapabilityProto.Capability capability_;
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+   */
+  public boolean hasCapability() {
+    return ((bitField0_ & 0x10000000) == 0x10000000);
+  }
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+   */
+  public alluxio.proto.security.CapabilityProto.Capability getCapability() {
+    return capability_ == null ? alluxio.proto.security.CapabilityProto.Capability.getDefaultInstance() : capability_;
+  }
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+   */
+  public alluxio.proto.security.CapabilityProto.CapabilityOrBuilder getCapabilityOrBuilder() {
+    return capability_ == null ? alluxio.proto.security.CapabilityProto.Capability.getDefaultInstance() : capability_;
+  }
+
+  public static final int ENCRYPTED_FIELD_NUMBER = 1004;
+  private boolean encrypted_;
+  /**
+   * <pre>
+   * ALLUXIO CS END
+   * </pre>
+   *
+   * <code>optional bool encrypted = 1004;</code>
+   */
+  public boolean hasEncrypted() {
+    return ((bitField0_ & 0x20000000) == 0x20000000);
+  }
+  /**
+   * <pre>
+   * ALLUXIO CS END
+   * </pre>
+   *
+   * <code>optional bool encrypted = 1004;</code>
+   */
+  public boolean getEncrypted() {
+    return encrypted_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -1087,6 +1162,12 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x08000000) == 0x08000000)) {
       output.writeInt32(30, replicationMin_);
+    }
+    if (((bitField0_ & 0x10000000) == 0x10000000)) {
+      output.writeMessage(1003, getCapability());
+    }
+    if (((bitField0_ & 0x20000000) == 0x20000000)) {
+      output.writeBool(1004, encrypted_);
     }
     unknownFields.writeTo(output);
   }
@@ -1213,6 +1294,14 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x08000000) == 0x08000000)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(30, replicationMin_);
+    }
+    if (((bitField0_ & 0x10000000) == 0x10000000)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(1003, getCapability());
+    }
+    if (((bitField0_ & 0x20000000) == 0x20000000)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(1004, encrypted_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -1373,6 +1462,16 @@ private static final long serialVersionUID = 0L;
       result = result && (getReplicationMin()
           == other.getReplicationMin());
     }
+    result = result && (hasCapability() == other.hasCapability());
+    if (hasCapability()) {
+      result = result && getCapability()
+          .equals(other.getCapability());
+    }
+    result = result && (hasEncrypted() == other.hasEncrypted());
+    if (hasEncrypted()) {
+      result = result && (getEncrypted()
+          == other.getEncrypted());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -1517,6 +1616,15 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + REPLICATIONMIN_FIELD_NUMBER;
       hash = (53 * hash) + getReplicationMin();
     }
+    if (hasCapability()) {
+      hash = (37 * hash) + CAPABILITY_FIELD_NUMBER;
+      hash = (53 * hash) + getCapability().hashCode();
+    }
+    if (hasEncrypted()) {
+      hash = (37 * hash) + ENCRYPTED_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getEncrypted());
+    }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -1645,6 +1753,7 @@ private static final long serialVersionUID = 0L;
         getFileBlockInfosFieldBuilder();
         getAclFieldBuilder();
         getDefaultAclFieldBuilder();
+        getCapabilityFieldBuilder();
       }
     }
     public Builder clear() {
@@ -1721,6 +1830,14 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x10000000);
       replicationMin_ = 0;
       bitField0_ = (bitField0_ & ~0x20000000);
+      if (capabilityBuilder_ == null) {
+        capability_ = null;
+      } else {
+        capabilityBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x40000000);
+      encrypted_ = false;
+      bitField0_ = (bitField0_ & ~0x80000000);
       return this;
     }
 
@@ -1879,6 +1996,18 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x08000000;
       }
       result.replicationMin_ = replicationMin_;
+      if (((from_bitField0_ & 0x40000000) == 0x40000000)) {
+        to_bitField0_ |= 0x10000000;
+      }
+      if (capabilityBuilder_ == null) {
+        result.capability_ = capability_;
+      } else {
+        result.capability_ = capabilityBuilder_.build();
+      }
+      if (((from_bitField0_ & 0x80000000) == 0x80000000)) {
+        to_bitField0_ |= 0x20000000;
+      }
+      result.encrypted_ = encrypted_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -2054,6 +2183,12 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasReplicationMin()) {
         setReplicationMin(other.getReplicationMin());
+      }
+      if (other.hasCapability()) {
+        mergeCapability(other.getCapability());
+      }
+      if (other.hasEncrypted()) {
+        setEncrypted(other.getEncrypted());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -3765,6 +3900,208 @@ private static final long serialVersionUID = 0L;
     public Builder clearReplicationMin() {
       bitField0_ = (bitField0_ & ~0x20000000);
       replicationMin_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private alluxio.proto.security.CapabilityProto.Capability capability_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.proto.security.CapabilityProto.Capability, alluxio.proto.security.CapabilityProto.Capability.Builder, alluxio.proto.security.CapabilityProto.CapabilityOrBuilder> capabilityBuilder_;
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+     */
+    public boolean hasCapability() {
+      return ((bitField0_ & 0x40000000) == 0x40000000);
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+     */
+    public alluxio.proto.security.CapabilityProto.Capability getCapability() {
+      if (capabilityBuilder_ == null) {
+        return capability_ == null ? alluxio.proto.security.CapabilityProto.Capability.getDefaultInstance() : capability_;
+      } else {
+        return capabilityBuilder_.getMessage();
+      }
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+     */
+    public Builder setCapability(alluxio.proto.security.CapabilityProto.Capability value) {
+      if (capabilityBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        capability_ = value;
+        onChanged();
+      } else {
+        capabilityBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x40000000;
+      return this;
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+     */
+    public Builder setCapability(
+        alluxio.proto.security.CapabilityProto.Capability.Builder builderForValue) {
+      if (capabilityBuilder_ == null) {
+        capability_ = builderForValue.build();
+        onChanged();
+      } else {
+        capabilityBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x40000000;
+      return this;
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+     */
+    public Builder mergeCapability(alluxio.proto.security.CapabilityProto.Capability value) {
+      if (capabilityBuilder_ == null) {
+        if (((bitField0_ & 0x40000000) == 0x40000000) &&
+            capability_ != null &&
+            capability_ != alluxio.proto.security.CapabilityProto.Capability.getDefaultInstance()) {
+          capability_ =
+            alluxio.proto.security.CapabilityProto.Capability.newBuilder(capability_).mergeFrom(value).buildPartial();
+        } else {
+          capability_ = value;
+        }
+        onChanged();
+      } else {
+        capabilityBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x40000000;
+      return this;
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+     */
+    public Builder clearCapability() {
+      if (capabilityBuilder_ == null) {
+        capability_ = null;
+        onChanged();
+      } else {
+        capabilityBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x40000000);
+      return this;
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+     */
+    public alluxio.proto.security.CapabilityProto.Capability.Builder getCapabilityBuilder() {
+      bitField0_ |= 0x40000000;
+      onChanged();
+      return getCapabilityFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+     */
+    public alluxio.proto.security.CapabilityProto.CapabilityOrBuilder getCapabilityOrBuilder() {
+      if (capabilityBuilder_ != null) {
+        return capabilityBuilder_.getMessageOrBuilder();
+      } else {
+        return capability_ == null ?
+            alluxio.proto.security.CapabilityProto.Capability.getDefaultInstance() : capability_;
+      }
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional .alluxio.proto.security.Capability capability = 1003;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.proto.security.CapabilityProto.Capability, alluxio.proto.security.CapabilityProto.Capability.Builder, alluxio.proto.security.CapabilityProto.CapabilityOrBuilder> 
+        getCapabilityFieldBuilder() {
+      if (capabilityBuilder_ == null) {
+        capabilityBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.proto.security.CapabilityProto.Capability, alluxio.proto.security.CapabilityProto.Capability.Builder, alluxio.proto.security.CapabilityProto.CapabilityOrBuilder>(
+                getCapability(),
+                getParentForChildren(),
+                isClean());
+        capability_ = null;
+      }
+      return capabilityBuilder_;
+    }
+
+    private boolean encrypted_ ;
+    /**
+     * <pre>
+     * ALLUXIO CS END
+     * </pre>
+     *
+     * <code>optional bool encrypted = 1004;</code>
+     */
+    public boolean hasEncrypted() {
+      return ((bitField0_ & 0x80000000) == 0x80000000);
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS END
+     * </pre>
+     *
+     * <code>optional bool encrypted = 1004;</code>
+     */
+    public boolean getEncrypted() {
+      return encrypted_;
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS END
+     * </pre>
+     *
+     * <code>optional bool encrypted = 1004;</code>
+     */
+    public Builder setEncrypted(boolean value) {
+      bitField0_ |= 0x80000000;
+      encrypted_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS END
+     * </pre>
+     *
+     * <code>optional bool encrypted = 1004;</code>
+     */
+    public Builder clearEncrypted() {
+      bitField0_ = (bitField0_ & ~0x80000000);
+      encrypted_ = false;
       onChanged();
       return this;
     }

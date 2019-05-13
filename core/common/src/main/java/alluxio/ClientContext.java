@@ -16,6 +16,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.security.user.UserState;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -42,7 +43,7 @@ import javax.security.auth.Subject;
 public class ClientContext {
   private volatile AlluxioConfiguration mConf;
   private volatile PathConfiguration mPathConf;
-  private final Subject mSubject;
+  private volatile UserState mUserState;
 
   /**
    * A client context with information about the subject and configuration of the client.
@@ -76,16 +77,14 @@ public class ClientContext {
    * This constructor does not create a copy of the configuration.
    */
   protected ClientContext(ClientContext ctx) {
-    mSubject = ctx.getSubject();
     mConf = ctx.getConf();
     mPathConf = ctx.getPathConf();
+    mUserState = ctx.getUserState();
   }
 
   private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
-    if (subject != null) {
-      mSubject = subject;
-    } else {
-      mSubject = new Subject();
+    if (subject == null) {
+      subject = new Subject();
     }
     // Copy the properties so that future modification doesn't affect this ClientContext.
     if (alluxioConf != null) {
@@ -95,6 +94,7 @@ public class ClientContext {
       mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
     }
     mPathConf = PathConfiguration.create(new HashMap<>());
+    mUserState = UserState.Factory.create(mConf, subject);
   }
 
   /**
@@ -115,6 +115,7 @@ public class ClientContext {
         ConfigurationUtils.loadClusterAndPathDefaults(address, mConf, mPathConf);
     mConf = conf.getFirst();
     mPathConf = conf.getSecond();
+    mUserState = UserState.Factory.create(mConf, mUserState.getSubject());
   }
 
   /**
@@ -135,6 +136,13 @@ public class ClientContext {
    * @return the Subject backing this context
    */
   public Subject getSubject() {
-    return mSubject;
+    return mUserState.getSubject();
+  }
+
+  /**
+   * @return the UserState for this context
+   */
+  public UserState getUserState() {
+    return mUserState;
   }
 }

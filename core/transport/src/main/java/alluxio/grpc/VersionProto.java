@@ -37,7 +37,7 @@ public final class VersionProto {
       "on\"S\n\031GetServiceVersionPRequest\0226\n\013servi" +
       "ceType\030\001 \001(\0162!.alluxio.grpc.version.Serv" +
       "iceType\"-\n\032GetServiceVersionPResponse\022\017\n" +
-      "\007version\030\001 \001(\003*\276\003\n\013ServiceType\022\023\n\017UNKNOW" +
+      "\007version\030\001 \001(\003*\344\003\n\013ServiceType\022\023\n\017UNKNOW" +
       "N_SERVICE\020\000\022%\n!FILE_SYSTEM_MASTER_CLIENT" +
       "_SERVICE\020\001\022%\n!FILE_SYSTEM_MASTER_WORKER_" +
       "SERVICE\020\002\022\"\n\036FILE_SYSTEM_MASTER_JOB_SERV" +
@@ -48,12 +48,13 @@ public final class VersionProto {
       "RVICE\020\010\022!\n\035METRICS_MASTER_CLIENT_SERVICE" +
       "\020\t\022\035\n\031JOB_MASTER_CLIENT_SERVICE\020\n\022\035\n\031JOB" +
       "_MASTER_WORKER_SERVICE\020\013\022%\n!FILE_SYSTEM_" +
-      "WORKER_WORKER_SERVICE\020\0142\225\001\n\033ServiceVersi" +
-      "onClientService\022v\n\021getServiceVersion\022/.a" +
-      "lluxio.grpc.version.GetServiceVersionPRe" +
-      "quest\0320.alluxio.grpc.version.GetServiceV" +
-      "ersionPResponseB\036\n\014alluxio.grpcB\014Version" +
-      "ProtoP\001"
+      "WORKER_WORKER_SERVICE\020\014\022$\n\037PRIVILEGE_MAS" +
+      "TER_CLIENT_SERVICE\020\351\0072\225\001\n\033ServiceVersion" +
+      "ClientService\022v\n\021getServiceVersion\022/.all" +
+      "uxio.grpc.version.GetServiceVersionPRequ" +
+      "est\0320.alluxio.grpc.version.GetServiceVer" +
+      "sionPResponseB\036\n\014alluxio.grpcB\014VersionPr" +
+      "otoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

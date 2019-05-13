@@ -26,6 +26,7 @@ private static final long serialVersionUID = 0L;
     dataPort_ = 0;
     webPort_ = 0;
     domainSocketPath_ = "";
+    secureRpcPort_ = 0;
   }
 
   @java.lang.Override
@@ -97,6 +98,11 @@ private static final long serialVersionUID = 0L;
               tieredIdentity_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000020;
+            break;
+          }
+          case 8008: {
+            bitField0_ |= 0x00000040;
+            secureRpcPort_ = input.readInt32();
             break;
           }
         }
@@ -274,6 +280,29 @@ private static final long serialVersionUID = 0L;
     return tieredIdentity_ == null ? alluxio.grpc.TieredIdentity.getDefaultInstance() : tieredIdentity_;
   }
 
+  public static final int SECURERPCPORT_FIELD_NUMBER = 1001;
+  private int secureRpcPort_;
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional int32 secureRpcPort = 1001;</code>
+   */
+  public boolean hasSecureRpcPort() {
+    return ((bitField0_ & 0x00000040) == 0x00000040);
+  }
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional int32 secureRpcPort = 1001;</code>
+   */
+  public int getSecureRpcPort() {
+    return secureRpcPort_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -304,6 +333,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000020) == 0x00000020)) {
       output.writeMessage(6, getTieredIdentity());
     }
+    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      output.writeInt32(1001, secureRpcPort_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -333,6 +365,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000020) == 0x00000020)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(6, getTieredIdentity());
+    }
+    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(1001, secureRpcPort_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -380,6 +416,11 @@ private static final long serialVersionUID = 0L;
       result = result && getTieredIdentity()
           .equals(other.getTieredIdentity());
     }
+    result = result && (hasSecureRpcPort() == other.hasSecureRpcPort());
+    if (hasSecureRpcPort()) {
+      result = result && (getSecureRpcPort()
+          == other.getSecureRpcPort());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -414,6 +455,10 @@ private static final long serialVersionUID = 0L;
     if (hasTieredIdentity()) {
       hash = (37 * hash) + TIEREDIDENTITY_FIELD_NUMBER;
       hash = (53 * hash) + getTieredIdentity().hashCode();
+    }
+    if (hasSecureRpcPort()) {
+      hash = (37 * hash) + SECURERPCPORT_FIELD_NUMBER;
+      hash = (53 * hash) + getSecureRpcPort();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -566,6 +611,8 @@ private static final long serialVersionUID = 0L;
         tieredIdentityBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000020);
+      secureRpcPort_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000040);
       return this;
     }
 
@@ -618,6 +665,10 @@ private static final long serialVersionUID = 0L;
       } else {
         result.tieredIdentity_ = tieredIdentityBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+        to_bitField0_ |= 0x00000040;
+      }
+      result.secureRpcPort_ = secureRpcPort_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -681,6 +732,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasTieredIdentity()) {
         mergeTieredIdentity(other.getTieredIdentity());
+      }
+      if (other.hasSecureRpcPort()) {
+        setSecureRpcPort(other.getSecureRpcPort());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -1074,6 +1128,54 @@ private static final long serialVersionUID = 0L;
         tieredIdentity_ = null;
       }
       return tieredIdentityBuilder_;
+    }
+
+    private int secureRpcPort_ ;
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional int32 secureRpcPort = 1001;</code>
+     */
+    public boolean hasSecureRpcPort() {
+      return ((bitField0_ & 0x00000040) == 0x00000040);
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional int32 secureRpcPort = 1001;</code>
+     */
+    public int getSecureRpcPort() {
+      return secureRpcPort_;
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional int32 secureRpcPort = 1001;</code>
+     */
+    public Builder setSecureRpcPort(int value) {
+      bitField0_ |= 0x00000040;
+      secureRpcPort_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional int32 secureRpcPort = 1001;</code>
+     */
+    public Builder clearSecureRpcPort() {
+      bitField0_ = (bitField0_ & ~0x00000040);
+      secureRpcPort_ = 0;
+      onChanged();
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

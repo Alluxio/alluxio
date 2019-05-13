@@ -28,4 +28,21 @@ public interface GetStatusPOptionsOrBuilder extends
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 2;</code>
    */
   alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder getCommonOptionsOrBuilder();
+
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.grpc.Bits accessMode = 1000;</code>
+   */
+  boolean hasAccessMode();
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional .alluxio.grpc.Bits accessMode = 1000;</code>
+   */
+  alluxio.grpc.Bits getAccessMode();
 }

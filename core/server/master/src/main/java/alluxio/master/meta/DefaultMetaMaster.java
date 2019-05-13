@@ -227,12 +227,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL),
-          ServerConfiguration.global()));
+          ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
           new LogConfigReportHeartbeatExecutor(),
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL),
-              ServerConfiguration.global()));
+              ServerConfiguration.global(), mMasterContext.getUserState()));
 
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
         mDailyBackup = new DailyMetadataBackup(this, Executors.newSingleThreadScheduledExecutor(
@@ -248,7 +248,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
             new MetaMasterSync(mMasterAddress, metaMasterClient),
             (int) ServerConfiguration.getMs(PropertyKey.MASTER_MASTER_HEARTBEAT_INTERVAL),
-            ServerConfiguration.global()));
+            ServerConfiguration.global(), mMasterContext.getUserState()));
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
             mMasterAddress);
       }

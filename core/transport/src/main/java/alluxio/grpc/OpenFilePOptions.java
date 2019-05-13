@@ -18,6 +18,7 @@ private static final long serialVersionUID = 0L;
   private OpenFilePOptions() {
     readType_ = 1;
     maxUfsReadConcurrency_ = 0;
+    skipTransformation_ = false;
   }
 
   @java.lang.Override
@@ -78,6 +79,11 @@ private static final long serialVersionUID = 0L;
               commonOptions_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000004;
+            break;
+          }
+          case 8008: {
+            bitField0_ |= 0x00000008;
+            skipTransformation_ = input.readBool();
             break;
           }
         }
@@ -157,6 +163,29 @@ private static final long serialVersionUID = 0L;
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
   }
 
+  public static final int SKIPTRANSFORMATION_FIELD_NUMBER = 1001;
+  private boolean skipTransformation_;
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional bool skipTransformation = 1001;</code>
+   */
+  public boolean hasSkipTransformation() {
+    return ((bitField0_ & 0x00000008) == 0x00000008);
+  }
+  /**
+   * <pre>
+   * ALLUXIO CS ADD
+   * </pre>
+   *
+   * <code>optional bool skipTransformation = 1001;</code>
+   */
+  public boolean getSkipTransformation() {
+    return skipTransformation_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -178,6 +207,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       output.writeMessage(3, getCommonOptions());
     }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      output.writeBool(1001, skipTransformation_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -197,6 +229,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, getCommonOptions());
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(1001, skipTransformation_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -228,6 +264,11 @@ private static final long serialVersionUID = 0L;
       result = result && getCommonOptions()
           .equals(other.getCommonOptions());
     }
+    result = result && (hasSkipTransformation() == other.hasSkipTransformation());
+    if (hasSkipTransformation()) {
+      result = result && (getSkipTransformation()
+          == other.getSkipTransformation());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -250,6 +291,11 @@ private static final long serialVersionUID = 0L;
     if (hasCommonOptions()) {
       hash = (37 * hash) + COMMONOPTIONS_FIELD_NUMBER;
       hash = (53 * hash) + getCommonOptions().hashCode();
+    }
+    if (hasSkipTransformation()) {
+      hash = (37 * hash) + SKIPTRANSFORMATION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getSkipTransformation());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -391,6 +437,8 @@ private static final long serialVersionUID = 0L;
         commonOptionsBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000004);
+      skipTransformation_ = false;
+      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
 
@@ -431,6 +479,10 @@ private static final long serialVersionUID = 0L;
       } else {
         result.commonOptions_ = commonOptionsBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      result.skipTransformation_ = skipTransformation_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -481,6 +533,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasCommonOptions()) {
         mergeCommonOptions(other.getCommonOptions());
+      }
+      if (other.hasSkipTransformation()) {
+        setSkipTransformation(other.getSkipTransformation());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -694,6 +749,54 @@ private static final long serialVersionUID = 0L;
         commonOptions_ = null;
       }
       return commonOptionsBuilder_;
+    }
+
+    private boolean skipTransformation_ ;
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional bool skipTransformation = 1001;</code>
+     */
+    public boolean hasSkipTransformation() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional bool skipTransformation = 1001;</code>
+     */
+    public boolean getSkipTransformation() {
+      return skipTransformation_;
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional bool skipTransformation = 1001;</code>
+     */
+    public Builder setSkipTransformation(boolean value) {
+      bitField0_ |= 0x00000008;
+      skipTransformation_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ALLUXIO CS ADD
+     * </pre>
+     *
+     * <code>optional bool skipTransformation = 1001;</code>
+     */
+    public Builder clearSkipTransformation() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      skipTransformation_ = false;
+      onChanged();
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

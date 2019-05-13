@@ -44,8 +44,8 @@ import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
-import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
@@ -360,7 +360,7 @@ public final class AlluxioMasterRestServiceHandler {
 
       if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
           && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
-        AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
+        AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
       }
       response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG)).setShowPermissions(
           ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
@@ -573,7 +573,7 @@ public final class AlluxioMasterRestServiceHandler {
 
       if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
           && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
-        AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
+        AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
       }
       response.setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setFatalError("")
           .setShowPermissions(ServerConfiguration
