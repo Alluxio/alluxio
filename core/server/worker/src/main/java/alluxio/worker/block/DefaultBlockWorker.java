@@ -318,11 +318,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
       BlockStoreLocation loc = meta.getBlockLocation();
+      String mediumType = mBlockStore.getMediumType(loc);
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
-      blockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), blockId,
-          length);
+      blockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), mediumType,
+          blockId, length);
     } catch (Exception e) {
       throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
@@ -349,7 +350,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
     if (!medium.isEmpty()) {
-      loc = mBlockStore.getMedium(medium);
+      loc = mBlockStore.findLocationByMedium(medium);
     } else {
       loc = BlockStoreLocation.anyDirInTier(tierAlias);
     }
@@ -371,7 +372,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
     if (!medium.isEmpty()) {
-      loc = mBlockStore.getMedium(medium);
+      loc = mBlockStore.findLocationByMedium(medium);
     } else {
       loc = BlockStoreLocation.anyDirInTier(tierAlias);
     }

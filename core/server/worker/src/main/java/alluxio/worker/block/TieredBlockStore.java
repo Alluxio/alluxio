@@ -926,11 +926,19 @@ public class TieredBlockStore implements BlockStore {
    * @param mediumName storage medium
    * @return the storage location
    */
-  public BlockStoreLocation getMedium(String mediumName) {
+  public BlockStoreLocation findLocationByMedium(String mediumName) {
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       return mMetaManager.getMedium(mediumName);
     }
   }
+
+  @Override
+  public String getMediumType(BlockStoreLocation location) {
+    try (LockResource r = new LockResource(mMetadataReadLock)) {
+      return mMetaManager.getMediumType(location);
+    }
+  }
+
 
   /**
    * A wrapper on necessary info after a move block operation.

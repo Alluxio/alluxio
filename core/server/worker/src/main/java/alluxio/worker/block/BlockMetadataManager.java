@@ -484,4 +484,13 @@ public final class BlockMetadataManager {
   public StorageTierAssoc getStorageTierAssoc() {
     return mStorageTierAssoc;
   }
+
+  public String getMediumType(BlockStoreLocation location) {
+    if (location.tierAlias().equals(BlockStoreLocation.ANY_TIER)
+      || location.dir() == BlockStoreLocation.ANY_DIR) {
+      return "";
+    }
+    return getTier(location.tierAlias()).getStorageDirs()
+        .get(location.dir()).getDirMedium();
+  }
 }

@@ -537,12 +537,26 @@ public final class Block {
      */
     com.google.protobuf.ByteString
         getTierBytes();
+
+    /**
+     * <code>optional string mediumType = 3;</code>
+     */
+    boolean hasMediumType();
+    /**
+     * <code>optional string mediumType = 3;</code>
+     */
+    java.lang.String getMediumType();
+    /**
+     * <code>optional string mediumType = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getMediumTypeBytes();
   }
   /**
    * <pre>
    **
    * Location metadata describing a block's location in a certain storage tier of a certain worker.
-   * next available id: 3
+   * next available id: 4
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.meta.BlockLocation}
@@ -559,6 +573,7 @@ public final class Block {
     private BlockLocation() {
       workerId_ = 0L;
       tier_ = "";
+      mediumType_ = "";
     }
 
     @java.lang.Override
@@ -601,6 +616,12 @@ public final class Block {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
               tier_ = bs;
+              break;
+            }
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              mediumType_ = bs;
               break;
             }
           }
@@ -685,6 +706,48 @@ public final class Block {
       }
     }
 
+    public static final int MEDIUMTYPE_FIELD_NUMBER = 3;
+    private volatile java.lang.Object mediumType_;
+    /**
+     * <code>optional string mediumType = 3;</code>
+     */
+    public boolean hasMediumType() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional string mediumType = 3;</code>
+     */
+    public java.lang.String getMediumType() {
+      java.lang.Object ref = mediumType_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          mediumType_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string mediumType = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getMediumTypeBytes() {
+      java.lang.Object ref = mediumType_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        mediumType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -703,6 +766,9 @@ public final class Block {
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tier_);
       }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, mediumType_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -717,6 +783,9 @@ public final class Block {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tier_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, mediumType_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -744,6 +813,11 @@ public final class Block {
         result = result && getTier()
             .equals(other.getTier());
       }
+      result = result && (hasMediumType() == other.hasMediumType());
+      if (hasMediumType()) {
+        result = result && getMediumType()
+            .equals(other.getMediumType());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -763,6 +837,10 @@ public final class Block {
       if (hasTier()) {
         hash = (37 * hash) + TIER_FIELD_NUMBER;
         hash = (53 * hash) + getTier().hashCode();
+      }
+      if (hasMediumType()) {
+        hash = (37 * hash) + MEDIUMTYPE_FIELD_NUMBER;
+        hash = (53 * hash) + getMediumType().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -861,7 +939,7 @@ public final class Block {
      * <pre>
      **
      * Location metadata describing a block's location in a certain storage tier of a certain worker.
-     * next available id: 3
+     * next available id: 4
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.meta.BlockLocation}
@@ -903,6 +981,8 @@ public final class Block {
         bitField0_ = (bitField0_ & ~0x00000001);
         tier_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
+        mediumType_ = "";
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
 
@@ -935,6 +1015,10 @@ public final class Block {
           to_bitField0_ |= 0x00000002;
         }
         result.tier_ = tier_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.mediumType_ = mediumType_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -983,6 +1067,11 @@ public final class Block {
         if (other.hasTier()) {
           bitField0_ |= 0x00000002;
           tier_ = other.tier_;
+          onChanged();
+        }
+        if (other.hasMediumType()) {
+          bitField0_ |= 0x00000004;
+          mediumType_ = other.mediumType_;
           onChanged();
         }
         this.mergeUnknownFields(other.unknownFields);
@@ -1120,6 +1209,82 @@ public final class Block {
         onChanged();
         return this;
       }
+
+      private java.lang.Object mediumType_ = "";
+      /**
+       * <code>optional string mediumType = 3;</code>
+       */
+      public boolean hasMediumType() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional string mediumType = 3;</code>
+       */
+      public java.lang.String getMediumType() {
+        java.lang.Object ref = mediumType_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            mediumType_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string mediumType = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getMediumTypeBytes() {
+        java.lang.Object ref = mediumType_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          mediumType_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string mediumType = 3;</code>
+       */
+      public Builder setMediumType(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        mediumType_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string mediumType = 3;</code>
+       */
+      public Builder clearMediumType() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        mediumType_ = getDefaultInstance().getMediumType();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string mediumType = 3;</code>
+       */
+      public Builder setMediumTypeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        mediumType_ = value;
+        onChanged();
+        return this;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
@@ -1189,9 +1354,9 @@ public final class Block {
   static {
     java.lang.String[] descriptorData = {
       "\n\026proto/meta/block.proto\022\022alluxio.proto." +
-      "meta\"\033\n\tBlockMeta\022\016\n\006length\030\001 \001(\003\"0\n\rBlo" +
+      "meta\"\033\n\tBlockMeta\022\016\n\006length\030\001 \001(\003\"D\n\rBlo" +
       "ckLocation\022\021\n\tworker_id\030\001 \001(\003\022\014\n\004tier\030\002 " +
-      "\001(\t"
+      "\001(\t\022\022\n\nmediumType\030\003 \001(\t"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1216,7 +1381,7 @@ public final class Block {
     internal_static_alluxio_proto_meta_BlockLocation_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_meta_BlockLocation_descriptor,
-        new java.lang.String[] { "WorkerId", "Tier", });
+        new java.lang.String[] { "WorkerId", "Tier", "MediumType", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

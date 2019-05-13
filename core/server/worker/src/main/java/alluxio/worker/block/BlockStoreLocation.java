@@ -23,10 +23,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockStoreLocation {
 
   /** Special value to indicate any tier. */
-  private static final String ANY_TIER = "";
+  public static final String ANY_TIER = "";
 
   /** Special value to indicate any dir. */
-  private static final int ANY_DIR = -1;
+  public static final int ANY_DIR = -1;
 
   /** Alias of the storage tier. */
   private final String mTierAlias;
