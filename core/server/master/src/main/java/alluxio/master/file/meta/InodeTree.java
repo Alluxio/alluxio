@@ -684,6 +684,7 @@ public class InodeTree implements DelegatingJournaled {
     missingDirContext.setMountPoint(false);
     missingDirContext.setOwner(context.getOwner());
     missingDirContext.setGroup(context.getGroup());
+    StringBuilder pathBuilder = new StringBuilder();
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       MutableInodeDirectory newDir = MutableInodeDirectory.create(
           mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
@@ -706,8 +707,10 @@ public class InodeTree implements DelegatingJournaled {
         newDir.setInternalAcl(pair.getFirst());
         newDir.setDefaultACL(pair.getSecond());
       }
+      String newDirPath = k == 0 ? ROOT_PATH
+          : pathBuilder.append(AlluxioURI.SEPARATOR).append(pathComponents[k]).toString();
       mState.applyAndJournal(rpcContext, newDir,
-          inodePath.getUri().getLeadingPath(k));
+          newDirPath);
 
       inodePath.addNextInode(Inode.wrap(newDir));
 

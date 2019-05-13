@@ -109,37 +109,37 @@ public final class JournalSinkTest {
   @Test
   public void writeEvents() throws Exception {
     createFile("/file");
-    assertNotEquals(-1, findFile("file"));
+    assertNotEquals(INVALID_ID, findFile("file"));
 
     createFile("/for_nested_file/nested_file");
-    assertNotEquals(-1, findDir("for_nested_file"));
-    assertNotEquals(-1, findFile("nested_file"));
+    assertNotEquals(INVALID_ID, findDir("for_nested_file"));
+    assertNotEquals(INVALID_ID, findFile("nested_file"));
 
     createDir("/dir");
-    assertNotEquals(-1, findDir("dir"));
+    assertNotEquals(INVALID_ID, findDir("dir"));
 
     createDir("/for_nested_dir/nested_dir");
-    assertNotEquals(-1, findDir("for_nested_dir"));
-    assertNotEquals(-1, findDir("nested_dir"));
+    assertNotEquals(INVALID_ID, findDir("for_nested_dir"));
+    assertNotEquals(INVALID_ID, findDir("nested_dir"));
 
     createFile("/rename_src");
     mFileSystemMaster.rename(new AlluxioURI("/rename_src"), new AlluxioURI("/rename_dst"),
         RenameContext.defaults());
-    assertNotEquals(-1, findFile("rename_src"));
-    assertNotEquals(-1, findRename("rename_dst"));
+    assertNotEquals(INVALID_ID, findFile("rename_src"));
+    assertNotEquals(INVALID_ID, findRename("rename_dst"));
 
     createFile("/deleted_file");
     mFileSystemMaster.delete(new AlluxioURI("/deleted_file"), DeleteContext.defaults());
     final long deleteId = findFile("deleted_file");
-    assertNotEquals(-1, deleteId);
-    assertNotEquals(-1, findDelete(deleteId));
+    assertNotEquals(INVALID_ID, deleteId);
+    assertNotEquals(INVALID_ID, findDelete(deleteId));
 
     createFile("/deleted_dir/file1");
     mFileSystemMaster.delete(new AlluxioURI("/deleted_dir"),
         DeleteContext.create(DeletePOptions.newBuilder().setRecursive(true)));
     final long deleteId1 = findFile("file1");
-    assertNotEquals(-1, deleteId1);
-    assertNotEquals(-1, findDelete(deleteId1));
+    assertNotEquals(INVALID_ID, deleteId1);
+    assertNotEquals(INVALID_ID, findDelete(deleteId1));
   }
 
   @Test
@@ -215,24 +215,26 @@ public final class JournalSinkTest {
     String path = "/file";
     createFile(path);
     final long createId1 = findFile("file", path);
-    assertNotEquals(-1, createId1);
-    assertNotEquals(-1, findCompleteFile(createId1, path));
+    assertNotEquals(INVALID_ID, createId1);
+    assertNotEquals(INVALID_ID, findCompleteFile(createId1, path));
 
     path = "/for_nested_file/nested_file";
     createFile(path);
-    assertNotEquals(-1, findDir("for_nested_file", new AlluxioURI(path).getParent().getPath()));
+    assertNotEquals(INVALID_ID, findDir("for_nested_file",
+        new AlluxioURI(path).getParent().getPath()));
     final long createId2 = findFile("nested_file", path);
-    assertNotEquals(-1, createId2);
-    assertNotEquals(-1, findCompleteFile(createId2, path));
+    assertNotEquals(INVALID_ID, createId2);
+    assertNotEquals(INVALID_ID, findCompleteFile(createId2, path));
 
     path = "/dir";
     createDir(path);
-    assertNotEquals(-1, findDir("dir", path));
+    assertNotEquals(INVALID_ID, findDir("dir", path));
 
     path = "/for_nested_dir/nested_dir";
     createDir(path);
-    assertNotEquals(-1, findDir("for_nested_dir", new AlluxioURI(path).getParent().getPath()));
-    assertNotEquals(-1, findDir("nested_dir", path));
+    assertNotEquals(INVALID_ID, findDir("for_nested_dir",
+        new AlluxioURI(path).getParent().getPath()));
+    assertNotEquals(INVALID_ID, findDir("nested_dir", path));
 
     path = "/rename_src";
     String newPath = "/rename_dst";
@@ -240,26 +242,26 @@ public final class JournalSinkTest {
     mFileSystemMaster.rename(new AlluxioURI(path), new AlluxioURI(newPath),
         RenameContext.defaults());
     final long renameId = findFile("rename_src", path);
-    assertNotEquals(-1, renameId);
-    assertNotEquals(-1, findCompleteFile(renameId, path));
-    assertNotEquals(-1, findRename("rename_dst", path, newPath));
+    assertNotEquals(INVALID_ID, renameId);
+    assertNotEquals(INVALID_ID, findCompleteFile(renameId, path));
+    assertNotEquals(INVALID_ID, findRename("rename_dst", path, newPath));
 
     path = "/deleted_file";
     createFile(path);
     mFileSystemMaster.delete(new AlluxioURI(path), DeleteContext.defaults());
     final long deleteId = findFile("deleted_file", path);
-    assertNotEquals(-1, deleteId);
-    assertNotEquals(-1, findCompleteFile(deleteId, path));
-    assertNotEquals(-1, findDelete(deleteId, path));
+    assertNotEquals(INVALID_ID, deleteId);
+    assertNotEquals(INVALID_ID, findCompleteFile(deleteId, path));
+    assertNotEquals(INVALID_ID, findDelete(deleteId, path));
 
     path = "/deleted_dir/file1";
     createFile(path);
     mFileSystemMaster.delete(new AlluxioURI("/deleted_dir"),
         DeleteContext.create(DeletePOptions.newBuilder().setRecursive(true)));
     final long deleteId1 = findFile("file1", path);
-    assertNotEquals(-1, deleteId1);
-    assertNotEquals(-1, findCompleteFile(deleteId1, path));
-    assertNotEquals(-1, findDelete(deleteId1, path));
+    assertNotEquals(INVALID_ID, deleteId1);
+    assertNotEquals(INVALID_ID, findCompleteFile(deleteId1, path));
+    assertNotEquals(INVALID_ID, findDelete(deleteId1, path));
   }
 
   private long findFile(String name) throws Exception {
@@ -330,6 +332,7 @@ public final class JournalSinkTest {
     while (!mEntries.isEmpty()) {
       JournalEntry entry = mEntries.poll();
       if (entry.hasUpdateInodeFile() && entry.getUpdateInodeFile().getId() == id
+          && entry.getUpdateInodeFile().getCompleted()
           && entry.getUpdateInodeFile().getPath().equals(path)) {
         return entry.getUpdateInodeFile().getId();
       }

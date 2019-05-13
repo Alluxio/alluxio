@@ -299,7 +299,8 @@ public class InodeTreePersistentState implements Journaled {
       String path) {
     try {
       applyCreateInode(inode);
-      context.get().append(inode.toJournalEntry(path));
+      context.get().append(inode.toJournalEntry(
+          Preconditions.checkNotNull(path)));
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", inode);
       throw t; // fatalError will usually system.exit
