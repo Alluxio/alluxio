@@ -651,6 +651,7 @@ public final class NetworkAddressUtils {
       throws AlluxioStatusException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
+<<<<<<< HEAD
     GrpcChannel channel = GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf)
         .setSubject(userState.getSubject()).build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
@@ -658,5 +659,28 @@ public final class NetworkAddressUtils {
     versionClient.getServiceVersion(
         GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
     channel.shutdown();
+||||||| merged common ancestors
+    GrpcChannel channel =
+        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).build();
+    ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
+        ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+    versionClient.getServiceVersion(
+        GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
+    channel.shutdown();
+=======
+    GrpcChannel channel =
+        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).disableAuthentication()
+            .build();
+    try {
+      ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
+          ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+      versionClient.getServiceVersion(
+          GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
+    } catch (Throwable t) {
+      throw AlluxioStatusException.fromThrowable(t);
+    } finally {
+      channel.shutdown();
+    }
+>>>>>>> upstream/master
   }
 }
