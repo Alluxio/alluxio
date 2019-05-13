@@ -939,7 +939,6 @@ public class TieredBlockStore implements BlockStore {
     }
   }
 
-
   /**
    * A wrapper on necessary info after a move block operation.
    */

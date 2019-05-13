@@ -63,7 +63,7 @@ public final class BlockLocation implements Serializable {
   /**
    * @return the medium type
    */
-  public String getMediumType () {
+  public String getMediumType() {
     return mMediumType;
   }
 
