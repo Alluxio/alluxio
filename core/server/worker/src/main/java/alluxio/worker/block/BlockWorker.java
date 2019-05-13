@@ -68,7 +68,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
   /**
    * Commits a block to Alluxio managed space. The block must be temporary. The block is persisted
    * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
-   * {@link BlockMasterClient#commitBlock(long, long, String, long, long)} succeeds.
+   * {@link BlockMasterClient#commitBlock(long, long, String, String, long, long)} succeeds.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to commit
