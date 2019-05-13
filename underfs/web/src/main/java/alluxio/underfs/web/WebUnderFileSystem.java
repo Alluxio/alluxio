@@ -76,10 +76,14 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
   }
 
   @Override
-  public void cleanup() {}
+  public void cleanup() throws IOException {
+    throw new IOException(mUnsupportedMsg);
+  }
 
   @Override
-  public void close() {}
+  public void close() throws IOException {
+    throw new IOException(mUnsupportedMsg);
+  }
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
@@ -352,7 +356,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
   }
 
   @Override
-  public boolean supportsFlush() {
-    return false;
+  public boolean supportsFlush() throws IOException {
+    throw new IOException(mUnsupportedMsg);
   }
 }

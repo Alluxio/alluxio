@@ -412,7 +412,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public boolean supportsFlush() {
+  public boolean supportsFlush() throws IOException {
     return true;
   }
 

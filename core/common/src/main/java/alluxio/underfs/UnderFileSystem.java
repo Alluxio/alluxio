@@ -709,7 +709,7 @@ public interface UnderFileSystem extends Closeable {
    *
    * @return true if this type of UFS supports flush, false otherwise
    */
-  boolean supportsFlush();
+  boolean supportsFlush() throws IOException;
 
   /**
    * Whether this type of UFS supports active sync.
