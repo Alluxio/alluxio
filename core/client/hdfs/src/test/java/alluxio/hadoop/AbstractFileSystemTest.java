@@ -162,6 +162,30 @@ public class AbstractFileSystemTest {
   }
 
   /**
+   * Hadoop should not load filesystem when master hostname is not provided.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void cannotInitializeWithoutMasterHostname() throws Exception {
+    URI uri = URI.create(Constants.HEADER + "/tmp/path.txt");
+    org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+  }
+
+  /**
+   * Hadoop should be able to load uris like alluxio:///path/to/file
+   * when {@link PropertyKey#MASTER_HOSTNAME} is set.
+   */
+  @Test
+  public void loadSingleMasterSystemWhenUsingNoAuthority() throws Exception {
+    URI uri = URI.create(Constants.HEADER + "/tmp/path.txt");
+    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
+        PropertyKey.MASTER_HOSTNAME, "hostname")).toResource()) {
+      final org.apache.hadoop.fs.FileSystem fs =
+          org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+      assertTrue(fs instanceof FileSystem);
+    }
+  }
+
+  /**
    * Hadoop should be able to load uris like alluxio-ft:///path/to/file.
    */
   @Test

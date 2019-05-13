@@ -51,7 +51,6 @@ public enum PreconditionMessage {
   ERR_ZK_ADDRESS_NOT_SET("Cannot get leader address from zookeeper; %s is not set"),
   FILE_TO_PERSIST_MUST_BE_COMPLETE("File being persisted must be complete"),
   FILE_WRITE_LOCATION_POLICY_UNSPECIFIED("The location policy is not specified"),
-  MASTER_HOSTNAME_NULL("Master hostname must not be null"),
   UFS_READ_LOCATION_POLICY_UNSPECIFIED("The UFS read location policy is not specified"),
   GCS_BUCKET_MUST_BE_SET("The %s system property must be set to use the GCSUnderStorageCluster"),
   INCONSISTENT_ZK_CONFIGURATION(
