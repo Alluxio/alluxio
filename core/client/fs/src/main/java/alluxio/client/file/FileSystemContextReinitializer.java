@@ -67,11 +67,11 @@ public final class FileSystemContextReinitializer implements Closeable {
   public FileSystemContextReinitializer(FileSystemContext context) {
     mContext = context;
     mExecutor = new ConfigHashSync(context);
-    mExecutorService = Executors.newFixedThreadPool(1, ThreadFactoryUtils.build(
+    mExecutorService = Executors.newSingleThreadExecutor(ThreadFactoryUtils.build(
         "config-hash-master-heartbeat-%d", true));
     mExecutorService.submit(new HeartbeatThread(HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC,
         mContext.getId(), mExecutor, (int) mContext.getClientContext().getClusterConf().getMs(
-        PropertyKey.USER_CONF_HASH_SYNC_INTERVAL), mContext.getClientContext().getClusterConf()));
+        PropertyKey.USER_CONF_SYNC_INTERVAL), mContext.getClientContext().getClusterConf()));
   }
 
   /**
@@ -118,14 +118,14 @@ public final class FileSystemContextReinitializer implements Closeable {
    * When it returns without timing out, no further read lock can be acquired until the returned
    * resource is closed.
    *
-   * The timeout is specified as {@link PropertyKey#USER_CONF_HASH_SYNC_TIMEOUT}.
+   * The timeout is specified as {@link PropertyKey#USER_CONF_SYNC_TIMEOUT}.
    *
    * @return a resource holding the locked write lock
    * @throws TimeoutException if timed out
    * @throws InterruptedException if the current thread is interrupted while being blocked
    */
   public LockResource acquireWriteLockResource() throws TimeoutException, InterruptedException {
-    long timeout = mContext.getClusterConf().getMs(PropertyKey.USER_CONF_HASH_SYNC_TIMEOUT);
+    long timeout = mContext.getClusterConf().getMs(PropertyKey.USER_CONF_SYNC_TIMEOUT);
     if (!mLock.writeLock().tryLock(timeout, TimeUnit.MILLISECONDS)) {
       throw new TimeoutException("Failed to begin reinitialization after being blocked for "
           + DurationFormatUtils.formatDurationWords(timeout, true, true));

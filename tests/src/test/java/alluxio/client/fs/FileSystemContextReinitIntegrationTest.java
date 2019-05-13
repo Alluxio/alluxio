@@ -113,7 +113,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
 
   @Test
   @Config(
-      confParams = {PropertyKey.Name.USER_CONF_HASH_SYNC_TIMEOUT, "100ms"})
+      confParams = {PropertyKey.Name.USER_CONF_SYNC_TIMEOUT, "100ms"})
   public void configHashSyncTimeout() throws Exception {
     // Cannot use mLocalAlluxioClusterResource.get().getClient(mContext) here because the clients
     // will be closed when restarting local masters, which in turn will close the contexts.

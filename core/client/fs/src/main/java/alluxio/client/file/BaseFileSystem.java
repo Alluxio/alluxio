@@ -559,6 +559,16 @@ public class BaseFileSystem implements FileSystem {
     R call(T t) throws IOException, AlluxioException;
   }
 
+  /**
+   * Sends an RPC to filesystem master.
+   *
+   * A read lock is internally acquired before sending the RPC to block reinitialization of
+   * FileSystemContext.
+   *
+   * @param fn the RPC call
+   * @param <R> the type of return value for the RPC
+   * @return the RPC result
+   */
   private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
       throws IOException, AlluxioException {
     try (LockResource r = mFsContext.acquireBlockReinitLockResource();

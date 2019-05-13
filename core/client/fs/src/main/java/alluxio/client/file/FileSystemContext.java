@@ -213,11 +213,11 @@ public final class FileSystemContext implements Closeable {
    */
   private synchronized void init(ClientContext clientContext,
       MasterInquireClient masterInquireClient) {
-    initWithoutReinitializer(clientContext, masterInquireClient);
+    initContext(clientContext, masterInquireClient);
     mReinitializer = new FileSystemContextReinitializer(this);
   }
 
-  private synchronized void initWithoutReinitializer(ClientContext ctx,
+  private synchronized void initContext(ClientContext ctx,
       MasterInquireClient masterInquireClient) {
     mClosed.set(false);
     mMasterClientContext = MasterClientContext.newBuilder(ctx)
@@ -241,10 +241,10 @@ public final class FileSystemContext implements Closeable {
    */
   public synchronized void close() throws IOException {
     mReinitializer.close();
-    closeWithoutReinitializer();
+    closeContext();
   }
 
-  private synchronized void closeWithoutReinitializer() throws IOException {
+  private synchronized void closeContext() throws IOException {
     if (!mClosed.get()) {
       // Setting closed should be the first thing we do because if any of the close operations
       // fail we'll only have a half-closed object and performing any more operations or closing
@@ -328,8 +328,8 @@ public final class FileSystemContext implements Closeable {
         throw new UnavailableException(String.format("Failed to load configuration from meta master"
             + " %s during reinitialization", masterAddr), e);
       }
-      closeWithoutReinitializer();
-      initWithoutReinitializer(getClientContext(),
+      closeContext();
+      initContext(getClientContext(),
           MasterInquireClient.Factory.create(getClusterConf()));
       mReinitializer.onSuccess();
     }
