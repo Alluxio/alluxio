@@ -69,6 +69,7 @@ public interface UnderFileSystem extends Closeable {
      * only be used for journal operations and tests.
      *
      * @param path journal path in ufs
+     * @param conf the configuration object w/o mount specific options
      * @return the instance of under file system for Alluxio journal directory
      */
     public static UnderFileSystem create(String path, AlluxioConfiguration conf) {
