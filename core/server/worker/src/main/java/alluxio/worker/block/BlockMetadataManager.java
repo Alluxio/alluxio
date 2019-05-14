@@ -245,23 +245,6 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Get the block store location based on the medium type.
-   *
-   * @param mediumType medium type
-   * @return the blockstorelocation object
-   */
-  public Set<BlockStoreLocation> getMedium(String mediumType) {
-    Set<BlockStoreLocation> locationSet = new HashSet<>();
-    for (StorageTier tier : getTiers()) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        if (dir.getDirMedium().equals(mediumType)) {
-          locationSet.add(new BlockStoreLocation(tier.getTierAlias(), dir.getDirIndex()));
-        }
-      }
-    }
-    return locationSet;
-  }
-  /**
    * Gets the metadata of a temp block.
    *
    * @param blockId the id of the temp block
