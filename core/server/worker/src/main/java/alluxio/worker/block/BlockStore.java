@@ -350,14 +350,6 @@ public interface BlockStore extends SessionCleanable {
   boolean checkStorage();
 
   /**
-   * Get the storage dir location that matches the medium name.
-   *
-   * @param medium the medium name
-   * @return the block store location that maps to the desired medium
-   */
-  Set<BlockStoreLocation> findLocationByMedium(String medium);
-
-  /**
    * Get the medium type of a block store location.
    *
    * @param location blockstorelocation
