@@ -72,12 +72,8 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
       return true;
     }
 
-    // API or Password Key is required
-    PropertyKey apiOrPasswordKey = conf.isSet(PropertyKey.SWIFT_API_KEY)
-        ? PropertyKey.SWIFT_API_KEY : PropertyKey.SWIFT_PASSWORD_KEY;
-
     // Check if required credentials exist
-    return conf.isSet(apiOrPasswordKey)
+    return conf.isSet(PropertyKey.SWIFT_PASSWORD_KEY)
         && conf.isSet(PropertyKey.SWIFT_TENANT_KEY)
         && conf.isSet(PropertyKey.SWIFT_AUTH_URL_KEY)
         && conf.isSet(PropertyKey.SWIFT_USER_KEY);
