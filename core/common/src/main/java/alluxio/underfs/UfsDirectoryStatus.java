@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -32,7 +33,7 @@ public class UfsDirectoryStatus extends UfsStatus {
    * @param xAttr extended attributes, if any
    */
   public UfsDirectoryStatus(String name, String owner, String group, short mode,
-      long lastModifiedTimeMs, Map<String, String> xAttr) {
+      long lastModifiedTimeMs, @Nullable Map<String, String> xAttr) {
     super(name, true, owner, group, mode, lastModifiedTimeMs, xAttr);
   }
 

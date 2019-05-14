@@ -314,7 +314,7 @@ public final class InodeMeta {
      * of memory
      * </pre>
      *
-     * <code>map&lt;string, string&gt; xAttr = 27;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
      */
     int getXAttrCount();
     /**
@@ -323,7 +323,7 @@ public final class InodeMeta {
      * of memory
      * </pre>
      *
-     * <code>map&lt;string, string&gt; xAttr = 27;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
      */
     boolean containsXAttr(
         java.lang.String key);
@@ -331,7 +331,7 @@ public final class InodeMeta {
      * Use {@link #getXAttrMap()} instead.
      */
     @java.lang.Deprecated
-    java.util.Map<java.lang.String, java.lang.String>
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
     getXAttr();
     /**
      * <pre>
@@ -339,9 +339,9 @@ public final class InodeMeta {
      * of memory
      * </pre>
      *
-     * <code>map&lt;string, string&gt; xAttr = 27;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
      */
-    java.util.Map<java.lang.String, java.lang.String>
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
     getXAttrMap();
     /**
      * <pre>
@@ -349,22 +349,22 @@ public final class InodeMeta {
      * of memory
      * </pre>
      *
-     * <code>map&lt;string, string&gt; xAttr = 27;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
      */
 
-    java.lang.String getXAttrOrDefault(
+    com.google.protobuf.ByteString getXAttrOrDefault(
         java.lang.String key,
-        java.lang.String defaultValue);
+        com.google.protobuf.ByteString defaultValue);
     /**
      * <pre>
      * Extended attributes, general purpose. Should be used with care as strings will use a comparatively large amount
      * of memory
      * </pre>
      *
-     * <code>map&lt;string, string&gt; xAttr = 27;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
      */
 
-    java.lang.String getXAttrOrThrow(
+    com.google.protobuf.ByteString getXAttrOrThrow(
         java.lang.String key);
   }
   /**
@@ -622,7 +622,7 @@ public final class InodeMeta {
                     XAttrDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x04000000;
               }
-              com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+              com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
               xAttr__ = input.readMessage(
                   XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               xAttr_.getMutableMap().put(
@@ -1213,18 +1213,18 @@ public final class InodeMeta {
     public static final int XATTR_FIELD_NUMBER = 27;
     private static final class XAttrDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
-          java.lang.String, java.lang.String> defaultEntry =
+          java.lang.String, com.google.protobuf.ByteString> defaultEntry =
               com.google.protobuf.MapEntry
-              .<java.lang.String, java.lang.String>newDefaultInstance(
+              .<java.lang.String, com.google.protobuf.ByteString>newDefaultInstance(
                   alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_XAttrEntry_descriptor, 
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "");
+                  com.google.protobuf.WireFormat.FieldType.BYTES,
+                  com.google.protobuf.ByteString.EMPTY);
     }
     private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> xAttr_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+        java.lang.String, com.google.protobuf.ByteString> xAttr_;
+    private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
     internalGetXAttr() {
       if (xAttr_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
@@ -1242,7 +1242,7 @@ public final class InodeMeta {
      * of memory
      * </pre>
      *
-     * <code>map&lt;string, string&gt; xAttr = 27;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
      */
 
     public boolean containsXAttr(
@@ -1254,7 +1254,7 @@ public final class InodeMeta {
      * Use {@link #getXAttrMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttr() {
       return getXAttrMap();
     }
     /**
@@ -1263,10 +1263,10 @@ public final class InodeMeta {
      * of memory
      * </pre>
      *
-     * <code>map&lt;string, string&gt; xAttr = 27;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
      */
 
-    public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
       return internalGetXAttr().getMap();
     }
     /**
@@ -1275,14 +1275,14 @@ public final class InodeMeta {
      * of memory
      * </pre>
      *
-     * <code>map&lt;string, string&gt; xAttr = 27;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
      */
 
-    public java.lang.String getXAttrOrDefault(
+    public com.google.protobuf.ByteString getXAttrOrDefault(
         java.lang.String key,
-        java.lang.String defaultValue) {
+        com.google.protobuf.ByteString defaultValue) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
           internalGetXAttr().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
@@ -1292,13 +1292,13 @@ public final class InodeMeta {
      * of memory
      * </pre>
      *
-     * <code>map&lt;string, string&gt; xAttr = 27;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
      */
 
-    public java.lang.String getXAttrOrThrow(
+    public com.google.protobuf.ByteString getXAttrOrThrow(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
           internalGetXAttr().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
@@ -1515,9 +1515,9 @@ public final class InodeMeta {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(26, childCount_);
       }
-      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+      for (java.util.Map.Entry<java.lang.String, com.google.protobuf.ByteString> entry
            : internalGetXAttr().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
         xAttr__ = XAttrDefaultEntryHolder.defaultEntry.newBuilderForType()
             .setKey(entry.getKey())
             .setValue(entry.getValue())
@@ -3595,8 +3595,8 @@ public final class InodeMeta {
       }
 
       private com.google.protobuf.MapField<
-          java.lang.String, java.lang.String> xAttr_;
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          java.lang.String, com.google.protobuf.ByteString> xAttr_;
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
       internalGetXAttr() {
         if (xAttr_ == null) {
           return com.google.protobuf.MapField.emptyMapField(
@@ -3604,7 +3604,7 @@ public final class InodeMeta {
         }
         return xAttr_;
       }
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
       internalGetMutableXAttr() {
         onChanged();;
         if (xAttr_ == null) {
@@ -3626,7 +3626,7 @@ public final class InodeMeta {
        * of memory
        * </pre>
        *
-       * <code>map&lt;string, string&gt; xAttr = 27;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
        */
 
       public boolean containsXAttr(
@@ -3638,7 +3638,7 @@ public final class InodeMeta {
        * Use {@link #getXAttrMap()} instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttr() {
         return getXAttrMap();
       }
       /**
@@ -3647,10 +3647,10 @@ public final class InodeMeta {
        * of memory
        * </pre>
        *
-       * <code>map&lt;string, string&gt; xAttr = 27;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
        */
 
-      public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
         return internalGetXAttr().getMap();
       }
       /**
@@ -3659,14 +3659,14 @@ public final class InodeMeta {
        * of memory
        * </pre>
        *
-       * <code>map&lt;string, string&gt; xAttr = 27;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
        */
 
-      public java.lang.String getXAttrOrDefault(
+      public com.google.protobuf.ByteString getXAttrOrDefault(
           java.lang.String key,
-          java.lang.String defaultValue) {
+          com.google.protobuf.ByteString defaultValue) {
         if (key == null) { throw new java.lang.NullPointerException(); }
-        java.util.Map<java.lang.String, java.lang.String> map =
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
             internalGetXAttr().getMap();
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
@@ -3676,13 +3676,13 @@ public final class InodeMeta {
        * of memory
        * </pre>
        *
-       * <code>map&lt;string, string&gt; xAttr = 27;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
        */
 
-      public java.lang.String getXAttrOrThrow(
+      public com.google.protobuf.ByteString getXAttrOrThrow(
           java.lang.String key) {
         if (key == null) { throw new java.lang.NullPointerException(); }
-        java.util.Map<java.lang.String, java.lang.String> map =
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
             internalGetXAttr().getMap();
         if (!map.containsKey(key)) {
           throw new java.lang.IllegalArgumentException();
@@ -3701,7 +3701,7 @@ public final class InodeMeta {
        * of memory
        * </pre>
        *
-       * <code>map&lt;string, string&gt; xAttr = 27;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
        */
 
       public Builder removeXAttr(
@@ -3715,7 +3715,7 @@ public final class InodeMeta {
        * Use alternate mutation accessors instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String>
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString>
       getMutableXAttr() {
         return internalGetMutableXAttr().getMutableMap();
       }
@@ -3725,11 +3725,11 @@ public final class InodeMeta {
        * of memory
        * </pre>
        *
-       * <code>map&lt;string, string&gt; xAttr = 27;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
        */
       public Builder putXAttr(
           java.lang.String key,
-          java.lang.String value) {
+          com.google.protobuf.ByteString value) {
         if (key == null) { throw new java.lang.NullPointerException(); }
         if (value == null) { throw new java.lang.NullPointerException(); }
         internalGetMutableXAttr().getMutableMap()
@@ -3742,11 +3742,11 @@ public final class InodeMeta {
        * of memory
        * </pre>
        *
-       * <code>map&lt;string, string&gt; xAttr = 27;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 27;</code>
        */
 
       public Builder putAllXAttr(
-          java.util.Map<java.lang.String, java.lang.String> values) {
+          java.util.Map<java.lang.String, com.google.protobuf.ByteString> values) {
         internalGetMutableXAttr().getMutableMap()
             .putAll(values);
         return this;
@@ -3841,7 +3841,7 @@ public final class InodeMeta {
       "!\n\031persist_job_temp_ufs_path\030\030 \001(\t\0223\n\005xA" +
       "ttr\030\033 \003(\0132$.alluxio.proto.meta.Inode.XAt" +
       "trEntry\032,\n\nXAttrEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va" +
-      "lue\030\002 \001(\t:\0028\001"
+      "lue\030\002 \001(\014:\0028\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

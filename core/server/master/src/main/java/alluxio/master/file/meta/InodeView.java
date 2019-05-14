@@ -20,8 +20,12 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 import alluxio.grpc.TtlAction;
 
+import com.google.protobuf.ByteString;
+
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 /**
  * Read-only view of an inode.
@@ -86,7 +90,8 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
   /**
    * @return any extended attributes on the inode
    */
-  Map<String, String> getXAttr();
+  @Nullable
+  Map<String, ByteString> getXAttr();
 
   /**
    * @return true if the inode is deleted, false otherwise

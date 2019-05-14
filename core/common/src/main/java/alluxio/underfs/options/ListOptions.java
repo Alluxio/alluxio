@@ -15,10 +15,11 @@ import alluxio.annotation.PublicApi;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.protobuf.ByteString;
 
-import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -30,7 +31,7 @@ public final class ListOptions {
   // Whether to list a directory and all its sub-directories
   private boolean mRecursive;
 
-  private Map<String, String> mXAttr;
+  private Map<String, ByteString> mXAttr;
 
   /**
    * @return the default {@link ListOptions}
@@ -44,13 +45,14 @@ public final class ListOptions {
    */
   private ListOptions() {
     mRecursive = false;
-    mXAttr = new HashMap<>();
+    mXAttr = null;
   }
 
   /**
    * @return whether to list a directory recursively
    */
-  public Map<String, String> getXAttr() {
+  @Nullable
+  public Map<String, ByteString> getXAttr() {
     return mXAttr;
   }
 
@@ -76,7 +78,7 @@ public final class ListOptions {
    * @param xAttr extended attributes to set
    * @return the updated option object
    */
-  public ListOptions setXAttr(Map<String, String> xAttr) {
+  public ListOptions setXAttr(@Nullable Map<String, ByteString> xAttr) {
     mXAttr = xAttr;
     return this;
   }

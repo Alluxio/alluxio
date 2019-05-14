@@ -7823,11 +7823,11 @@ public final class File {
         getUfsFingerprintBytes();
 
     /**
-     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
      */
     int getXAttrCount();
     /**
-     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
      */
     boolean containsXAttr(
         java.lang.String key);
@@ -7835,25 +7835,25 @@ public final class File {
      * Use {@link #getXAttrMap()} instead.
      */
     @java.lang.Deprecated
-    java.util.Map<java.lang.String, java.lang.String>
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
     getXAttr();
     /**
-     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
      */
-    java.util.Map<java.lang.String, java.lang.String>
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
     getXAttrMap();
     /**
-     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
      */
 
-    java.lang.String getXAttrOrDefault(
+    com.google.protobuf.ByteString getXAttrOrDefault(
         java.lang.String key,
-        java.lang.String defaultValue);
+        com.google.protobuf.ByteString defaultValue);
     /**
-     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
      */
 
-    java.lang.String getXAttrOrThrow(
+    com.google.protobuf.ByteString getXAttrOrThrow(
         java.lang.String key);
   }
   /**
@@ -8020,7 +8020,7 @@ public final class File {
                     XAttrDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x00008000;
               }
-              com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+              com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
               xAttr__ = input.readMessage(
                   XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               xAttr_.getMutableMap().put(
@@ -8433,18 +8433,18 @@ public final class File {
     public static final int XATTR_FIELD_NUMBER = 16;
     private static final class XAttrDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
-          java.lang.String, java.lang.String> defaultEntry =
+          java.lang.String, com.google.protobuf.ByteString> defaultEntry =
               com.google.protobuf.MapEntry
-              .<java.lang.String, java.lang.String>newDefaultInstance(
+              .<java.lang.String, com.google.protobuf.ByteString>newDefaultInstance(
                   alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeEntry_XAttrEntry_descriptor, 
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "");
+                  com.google.protobuf.WireFormat.FieldType.BYTES,
+                  com.google.protobuf.ByteString.EMPTY);
     }
     private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> xAttr_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+        java.lang.String, com.google.protobuf.ByteString> xAttr_;
+    private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
     internalGetXAttr() {
       if (xAttr_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
@@ -8457,7 +8457,7 @@ public final class File {
       return internalGetXAttr().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
      */
 
     public boolean containsXAttr(
@@ -8469,36 +8469,36 @@ public final class File {
      * Use {@link #getXAttrMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttr() {
       return getXAttrMap();
     }
     /**
-     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
      */
 
-    public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
       return internalGetXAttr().getMap();
     }
     /**
-     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
      */
 
-    public java.lang.String getXAttrOrDefault(
+    public com.google.protobuf.ByteString getXAttrOrDefault(
         java.lang.String key,
-        java.lang.String defaultValue) {
+        com.google.protobuf.ByteString defaultValue) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
           internalGetXAttr().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, string&gt; xAttr = 16;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
      */
 
-    public java.lang.String getXAttrOrThrow(
+    public com.google.protobuf.ByteString getXAttrOrThrow(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
           internalGetXAttr().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
@@ -8632,9 +8632,9 @@ public final class File {
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(15, ufsFingerprint_);
       }
-      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+      for (java.util.Map.Entry<java.lang.String, com.google.protobuf.ByteString> entry
            : internalGetXAttr().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
         xAttr__ = XAttrDefaultEntryHolder.defaultEntry.newBuilderForType()
             .setKey(entry.getKey())
             .setValue(entry.getValue())
@@ -10015,8 +10015,8 @@ public final class File {
       }
 
       private com.google.protobuf.MapField<
-          java.lang.String, java.lang.String> xAttr_;
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          java.lang.String, com.google.protobuf.ByteString> xAttr_;
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
       internalGetXAttr() {
         if (xAttr_ == null) {
           return com.google.protobuf.MapField.emptyMapField(
@@ -10024,7 +10024,7 @@ public final class File {
         }
         return xAttr_;
       }
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
       internalGetMutableXAttr() {
         onChanged();;
         if (xAttr_ == null) {
@@ -10041,7 +10041,7 @@ public final class File {
         return internalGetXAttr().getMap().size();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
        */
 
       public boolean containsXAttr(
@@ -10053,36 +10053,36 @@ public final class File {
        * Use {@link #getXAttrMap()} instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttr() {
         return getXAttrMap();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
        */
 
-      public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
         return internalGetXAttr().getMap();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
        */
 
-      public java.lang.String getXAttrOrDefault(
+      public com.google.protobuf.ByteString getXAttrOrDefault(
           java.lang.String key,
-          java.lang.String defaultValue) {
+          com.google.protobuf.ByteString defaultValue) {
         if (key == null) { throw new java.lang.NullPointerException(); }
-        java.util.Map<java.lang.String, java.lang.String> map =
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
             internalGetXAttr().getMap();
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
        */
 
-      public java.lang.String getXAttrOrThrow(
+      public com.google.protobuf.ByteString getXAttrOrThrow(
           java.lang.String key) {
         if (key == null) { throw new java.lang.NullPointerException(); }
-        java.util.Map<java.lang.String, java.lang.String> map =
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
             internalGetXAttr().getMap();
         if (!map.containsKey(key)) {
           throw new java.lang.IllegalArgumentException();
@@ -10096,7 +10096,7 @@ public final class File {
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
        */
 
       public Builder removeXAttr(
@@ -10110,16 +10110,16 @@ public final class File {
        * Use alternate mutation accessors instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String>
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString>
       getMutableXAttr() {
         return internalGetMutableXAttr().getMutableMap();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
        */
       public Builder putXAttr(
           java.lang.String key,
-          java.lang.String value) {
+          com.google.protobuf.ByteString value) {
         if (key == null) { throw new java.lang.NullPointerException(); }
         if (value == null) { throw new java.lang.NullPointerException(); }
         internalGetMutableXAttr().getMutableMap()
@@ -10127,11 +10127,11 @@ public final class File {
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 16;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 16;</code>
        */
 
       public Builder putAllXAttr(
-          java.util.Map<java.lang.String, java.lang.String> values) {
+          java.util.Map<java.lang.String, com.google.protobuf.ByteString> values) {
         internalGetMutableXAttr().getMutableMap()
             .putAll(values);
         return this;
@@ -11165,11 +11165,11 @@ public final class File {
         getTempUfsPathBytes();
 
     /**
-     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
      */
     int getXAttrsCount();
     /**
-     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
      */
     boolean containsXAttrs(
         java.lang.String key);
@@ -11177,25 +11177,25 @@ public final class File {
      * Use {@link #getXAttrsMap()} instead.
      */
     @java.lang.Deprecated
-    java.util.Map<java.lang.String, java.lang.String>
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
     getXAttrs();
     /**
-     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
      */
-    java.util.Map<java.lang.String, java.lang.String>
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
     getXAttrsMap();
     /**
-     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
      */
 
-    java.lang.String getXAttrsOrDefault(
+    com.google.protobuf.ByteString getXAttrsOrDefault(
         java.lang.String key,
-        java.lang.String defaultValue);
+        com.google.protobuf.ByteString defaultValue);
     /**
-     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
      */
 
-    java.lang.String getXAttrsOrThrow(
+    com.google.protobuf.ByteString getXAttrsOrThrow(
         java.lang.String key);
   }
   /**
@@ -11331,7 +11331,7 @@ public final class File {
                     XAttrsDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x00000400;
               }
-              com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+              com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
               xAttrs__ = input.readMessage(
                   XAttrsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               xAttrs_.getMutableMap().put(
@@ -11576,18 +11576,18 @@ public final class File {
     public static final int XATTRS_FIELD_NUMBER = 12;
     private static final class XAttrsDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
-          java.lang.String, java.lang.String> defaultEntry =
+          java.lang.String, com.google.protobuf.ByteString> defaultEntry =
               com.google.protobuf.MapEntry
-              .<java.lang.String, java.lang.String>newDefaultInstance(
+              .<java.lang.String, com.google.protobuf.ByteString>newDefaultInstance(
                   alluxio.proto.journal.File.internal_static_alluxio_proto_journal_UpdateInodeFileEntry_XAttrsEntry_descriptor, 
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "");
+                  com.google.protobuf.WireFormat.FieldType.BYTES,
+                  com.google.protobuf.ByteString.EMPTY);
     }
     private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> xAttrs_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+        java.lang.String, com.google.protobuf.ByteString> xAttrs_;
+    private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
     internalGetXAttrs() {
       if (xAttrs_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
@@ -11600,7 +11600,7 @@ public final class File {
       return internalGetXAttrs().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
      */
 
     public boolean containsXAttrs(
@@ -11612,36 +11612,36 @@ public final class File {
      * Use {@link #getXAttrsMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getXAttrs() {
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrs() {
       return getXAttrsMap();
     }
     /**
-     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
      */
 
-    public java.util.Map<java.lang.String, java.lang.String> getXAttrsMap() {
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrsMap() {
       return internalGetXAttrs().getMap();
     }
     /**
-     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
      */
 
-    public java.lang.String getXAttrsOrDefault(
+    public com.google.protobuf.ByteString getXAttrsOrDefault(
         java.lang.String key,
-        java.lang.String defaultValue) {
+        com.google.protobuf.ByteString defaultValue) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
           internalGetXAttrs().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+     * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
      */
 
-    public java.lang.String getXAttrsOrThrow(
+    public com.google.protobuf.ByteString getXAttrsOrThrow(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
           internalGetXAttrs().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
@@ -11749,9 +11749,9 @@ public final class File {
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(11, tempUfsPath_);
       }
-      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+      for (java.util.Map.Entry<java.lang.String, com.google.protobuf.ByteString> entry
            : internalGetXAttrs().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
         xAttrs__ = XAttrsDefaultEntryHolder.defaultEntry.newBuilderForType()
             .setKey(entry.getKey())
             .setValue(entry.getValue())
@@ -12666,8 +12666,8 @@ public final class File {
       }
 
       private com.google.protobuf.MapField<
-          java.lang.String, java.lang.String> xAttrs_;
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          java.lang.String, com.google.protobuf.ByteString> xAttrs_;
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
       internalGetXAttrs() {
         if (xAttrs_ == null) {
           return com.google.protobuf.MapField.emptyMapField(
@@ -12675,7 +12675,7 @@ public final class File {
         }
         return xAttrs_;
       }
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
       internalGetMutableXAttrs() {
         onChanged();;
         if (xAttrs_ == null) {
@@ -12692,7 +12692,7 @@ public final class File {
         return internalGetXAttrs().getMap().size();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
        */
 
       public boolean containsXAttrs(
@@ -12704,36 +12704,36 @@ public final class File {
        * Use {@link #getXAttrsMap()} instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String> getXAttrs() {
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrs() {
         return getXAttrsMap();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
        */
 
-      public java.util.Map<java.lang.String, java.lang.String> getXAttrsMap() {
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrsMap() {
         return internalGetXAttrs().getMap();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
        */
 
-      public java.lang.String getXAttrsOrDefault(
+      public com.google.protobuf.ByteString getXAttrsOrDefault(
           java.lang.String key,
-          java.lang.String defaultValue) {
+          com.google.protobuf.ByteString defaultValue) {
         if (key == null) { throw new java.lang.NullPointerException(); }
-        java.util.Map<java.lang.String, java.lang.String> map =
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
             internalGetXAttrs().getMap();
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
-       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
        */
 
-      public java.lang.String getXAttrsOrThrow(
+      public com.google.protobuf.ByteString getXAttrsOrThrow(
           java.lang.String key) {
         if (key == null) { throw new java.lang.NullPointerException(); }
-        java.util.Map<java.lang.String, java.lang.String> map =
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
             internalGetXAttrs().getMap();
         if (!map.containsKey(key)) {
           throw new java.lang.IllegalArgumentException();
@@ -12747,7 +12747,7 @@ public final class File {
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
        */
 
       public Builder removeXAttrs(
@@ -12761,16 +12761,16 @@ public final class File {
        * Use alternate mutation accessors instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String>
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString>
       getMutableXAttrs() {
         return internalGetMutableXAttrs().getMutableMap();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
        */
       public Builder putXAttrs(
           java.lang.String key,
-          java.lang.String value) {
+          com.google.protobuf.ByteString value) {
         if (key == null) { throw new java.lang.NullPointerException(); }
         if (value == null) { throw new java.lang.NullPointerException(); }
         internalGetMutableXAttrs().getMutableMap()
@@ -12778,11 +12778,11 @@ public final class File {
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; xAttrs = 12;</code>
+       * <code>map&lt;string, bytes&gt; xAttrs = 12;</code>
        */
 
       public Builder putAllXAttrs(
-          java.util.Map<java.lang.String, java.lang.String> values) {
+          java.util.Map<java.lang.String, com.google.protobuf.ByteString> values) {
         internalGetMutableXAttrs().getMutableMap()
             .putAll(values);
         return this;
@@ -13013,11 +13013,11 @@ public final class File {
     alluxio.proto.shared.Acl.AccessControlListOrBuilder getDefaultAclOrBuilder();
 
     /**
-     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
     int getXAttrCount();
     /**
-     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
     boolean containsXAttr(
         java.lang.String key);
@@ -13025,25 +13025,25 @@ public final class File {
      * Use {@link #getXAttrMap()} instead.
      */
     @java.lang.Deprecated
-    java.util.Map<java.lang.String, java.lang.String>
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
     getXAttr();
     /**
-     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
-    java.util.Map<java.lang.String, java.lang.String>
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
     getXAttrMap();
     /**
-     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
 
-    java.lang.String getXAttrOrDefault(
+    com.google.protobuf.ByteString getXAttrOrDefault(
         java.lang.String key,
-        java.lang.String defaultValue);
+        com.google.protobuf.ByteString defaultValue);
     /**
-     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
 
-    java.lang.String getXAttrOrThrow(
+    com.google.protobuf.ByteString getXAttrOrThrow(
         java.lang.String key);
   }
   /**
@@ -13222,7 +13222,7 @@ public final class File {
                     XAttrDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x00010000;
               }
-              com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+              com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
               xAttr__ = input.readMessage(
                   XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               xAttr_.getMutableMap().put(
@@ -13629,18 +13629,18 @@ public final class File {
     public static final int XATTR_FIELD_NUMBER = 17;
     private static final class XAttrDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
-          java.lang.String, java.lang.String> defaultEntry =
+          java.lang.String, com.google.protobuf.ByteString> defaultEntry =
               com.google.protobuf.MapEntry
-              .<java.lang.String, java.lang.String>newDefaultInstance(
+              .<java.lang.String, com.google.protobuf.ByteString>newDefaultInstance(
                   alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeDirectoryEntry_XAttrEntry_descriptor, 
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "");
+                  com.google.protobuf.WireFormat.FieldType.BYTES,
+                  com.google.protobuf.ByteString.EMPTY);
     }
     private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> xAttr_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+        java.lang.String, com.google.protobuf.ByteString> xAttr_;
+    private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
     internalGetXAttr() {
       if (xAttr_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
@@ -13653,7 +13653,7 @@ public final class File {
       return internalGetXAttr().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
 
     public boolean containsXAttr(
@@ -13665,36 +13665,36 @@ public final class File {
      * Use {@link #getXAttrMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttr() {
       return getXAttrMap();
     }
     /**
-     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
 
-    public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
       return internalGetXAttr().getMap();
     }
     /**
-     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
 
-    public java.lang.String getXAttrOrDefault(
+    public com.google.protobuf.ByteString getXAttrOrDefault(
         java.lang.String key,
-        java.lang.String defaultValue) {
+        com.google.protobuf.ByteString defaultValue) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
           internalGetXAttr().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, string&gt; xAttr = 17;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
      */
 
-    public java.lang.String getXAttrOrThrow(
+    public com.google.protobuf.ByteString getXAttrOrThrow(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
           internalGetXAttr().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
@@ -13836,9 +13836,9 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(16, getDefaultAcl());
       }
-      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+      for (java.util.Map.Entry<java.lang.String, com.google.protobuf.ByteString> entry
            : internalGetXAttr().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
         xAttr__ = XAttrDefaultEntryHolder.defaultEntry.newBuilderForType()
             .setKey(entry.getKey())
             .setValue(entry.getValue())
@@ -15319,8 +15319,8 @@ public final class File {
       }
 
       private com.google.protobuf.MapField<
-          java.lang.String, java.lang.String> xAttr_;
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          java.lang.String, com.google.protobuf.ByteString> xAttr_;
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
       internalGetXAttr() {
         if (xAttr_ == null) {
           return com.google.protobuf.MapField.emptyMapField(
@@ -15328,7 +15328,7 @@ public final class File {
         }
         return xAttr_;
       }
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
       internalGetMutableXAttr() {
         onChanged();;
         if (xAttr_ == null) {
@@ -15345,7 +15345,7 @@ public final class File {
         return internalGetXAttr().getMap().size();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
 
       public boolean containsXAttr(
@@ -15357,36 +15357,36 @@ public final class File {
        * Use {@link #getXAttrMap()} instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttr() {
         return getXAttrMap();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
 
-      public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
         return internalGetXAttr().getMap();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
 
-      public java.lang.String getXAttrOrDefault(
+      public com.google.protobuf.ByteString getXAttrOrDefault(
           java.lang.String key,
-          java.lang.String defaultValue) {
+          com.google.protobuf.ByteString defaultValue) {
         if (key == null) { throw new java.lang.NullPointerException(); }
-        java.util.Map<java.lang.String, java.lang.String> map =
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
             internalGetXAttr().getMap();
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
 
-      public java.lang.String getXAttrOrThrow(
+      public com.google.protobuf.ByteString getXAttrOrThrow(
           java.lang.String key) {
         if (key == null) { throw new java.lang.NullPointerException(); }
-        java.util.Map<java.lang.String, java.lang.String> map =
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
             internalGetXAttr().getMap();
         if (!map.containsKey(key)) {
           throw new java.lang.IllegalArgumentException();
@@ -15400,7 +15400,7 @@ public final class File {
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
 
       public Builder removeXAttr(
@@ -15414,16 +15414,16 @@ public final class File {
        * Use alternate mutation accessors instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String>
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString>
       getMutableXAttr() {
         return internalGetMutableXAttr().getMutableMap();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
       public Builder putXAttr(
           java.lang.String key,
-          java.lang.String value) {
+          com.google.protobuf.ByteString value) {
         if (key == null) { throw new java.lang.NullPointerException(); }
         if (value == null) { throw new java.lang.NullPointerException(); }
         internalGetMutableXAttr().getMutableMap()
@@ -15431,11 +15431,11 @@ public final class File {
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 17;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 17;</code>
        */
 
       public Builder putAllXAttr(
-          java.util.Map<java.lang.String, java.lang.String> values) {
+          java.util.Map<java.lang.String, com.google.protobuf.ByteString> values) {
         internalGetMutableXAttr().getMutableMap()
             .putAll(values);
         return this;
@@ -16325,11 +16325,11 @@ public final class File {
     int getReplicationDurable();
 
     /**
-     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
      */
     int getXAttrCount();
     /**
-     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
      */
     boolean containsXAttr(
         java.lang.String key);
@@ -16337,25 +16337,25 @@ public final class File {
      * Use {@link #getXAttrMap()} instead.
      */
     @java.lang.Deprecated
-    java.util.Map<java.lang.String, java.lang.String>
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
     getXAttr();
     /**
-     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
      */
-    java.util.Map<java.lang.String, java.lang.String>
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString>
     getXAttrMap();
     /**
-     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
      */
 
-    java.lang.String getXAttrOrDefault(
+    com.google.protobuf.ByteString getXAttrOrDefault(
         java.lang.String key,
-        java.lang.String defaultValue);
+        com.google.protobuf.ByteString defaultValue);
     /**
-     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
      */
 
-    java.lang.String getXAttrOrThrow(
+    com.google.protobuf.ByteString getXAttrOrThrow(
         java.lang.String key);
   }
   /**
@@ -16593,7 +16593,7 @@ public final class File {
                     XAttrDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x01000000;
               }
-              com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+              com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
               xAttr__ = input.readMessage(
                   XAttrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               xAttr_.getMutableMap().put(
@@ -17178,18 +17178,18 @@ public final class File {
     public static final int XATTR_FIELD_NUMBER = 25;
     private static final class XAttrDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
-          java.lang.String, java.lang.String> defaultEntry =
+          java.lang.String, com.google.protobuf.ByteString> defaultEntry =
               com.google.protobuf.MapEntry
-              .<java.lang.String, java.lang.String>newDefaultInstance(
+              .<java.lang.String, com.google.protobuf.ByteString>newDefaultInstance(
                   alluxio.proto.journal.File.internal_static_alluxio_proto_journal_InodeFileEntry_XAttrEntry_descriptor, 
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "");
+                  com.google.protobuf.WireFormat.FieldType.BYTES,
+                  com.google.protobuf.ByteString.EMPTY);
     }
     private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> xAttr_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+        java.lang.String, com.google.protobuf.ByteString> xAttr_;
+    private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
     internalGetXAttr() {
       if (xAttr_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
@@ -17202,7 +17202,7 @@ public final class File {
       return internalGetXAttr().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
      */
 
     public boolean containsXAttr(
@@ -17214,36 +17214,36 @@ public final class File {
      * Use {@link #getXAttrMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttr() {
       return getXAttrMap();
     }
     /**
-     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
      */
 
-    public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
       return internalGetXAttr().getMap();
     }
     /**
-     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
      */
 
-    public java.lang.String getXAttrOrDefault(
+    public com.google.protobuf.ByteString getXAttrOrDefault(
         java.lang.String key,
-        java.lang.String defaultValue) {
+        com.google.protobuf.ByteString defaultValue) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
           internalGetXAttr().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, string&gt; xAttr = 25;</code>
+     * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
      */
 
-    public java.lang.String getXAttrOrThrow(
+    public com.google.protobuf.ByteString getXAttrOrThrow(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
           internalGetXAttr().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
@@ -17444,9 +17444,9 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(24, replicationDurable_);
       }
-      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+      for (java.util.Map.Entry<java.lang.String, com.google.protobuf.ByteString> entry
            : internalGetXAttr().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
         xAttr__ = XAttrDefaultEntryHolder.defaultEntry.newBuilderForType()
             .setKey(entry.getKey())
             .setValue(entry.getValue())
@@ -19366,8 +19366,8 @@ public final class File {
       }
 
       private com.google.protobuf.MapField<
-          java.lang.String, java.lang.String> xAttr_;
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          java.lang.String, com.google.protobuf.ByteString> xAttr_;
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
       internalGetXAttr() {
         if (xAttr_ == null) {
           return com.google.protobuf.MapField.emptyMapField(
@@ -19375,7 +19375,7 @@ public final class File {
         }
         return xAttr_;
       }
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
       internalGetMutableXAttr() {
         onChanged();;
         if (xAttr_ == null) {
@@ -19392,7 +19392,7 @@ public final class File {
         return internalGetXAttr().getMap().size();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
        */
 
       public boolean containsXAttr(
@@ -19404,36 +19404,36 @@ public final class File {
        * Use {@link #getXAttrMap()} instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String> getXAttr() {
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttr() {
         return getXAttrMap();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
        */
 
-      public java.util.Map<java.lang.String, java.lang.String> getXAttrMap() {
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXAttrMap() {
         return internalGetXAttr().getMap();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
        */
 
-      public java.lang.String getXAttrOrDefault(
+      public com.google.protobuf.ByteString getXAttrOrDefault(
           java.lang.String key,
-          java.lang.String defaultValue) {
+          com.google.protobuf.ByteString defaultValue) {
         if (key == null) { throw new java.lang.NullPointerException(); }
-        java.util.Map<java.lang.String, java.lang.String> map =
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
             internalGetXAttr().getMap();
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
        */
 
-      public java.lang.String getXAttrOrThrow(
+      public com.google.protobuf.ByteString getXAttrOrThrow(
           java.lang.String key) {
         if (key == null) { throw new java.lang.NullPointerException(); }
-        java.util.Map<java.lang.String, java.lang.String> map =
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
             internalGetXAttr().getMap();
         if (!map.containsKey(key)) {
           throw new java.lang.IllegalArgumentException();
@@ -19447,7 +19447,7 @@ public final class File {
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
        */
 
       public Builder removeXAttr(
@@ -19461,16 +19461,16 @@ public final class File {
        * Use alternate mutation accessors instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String>
+      public java.util.Map<java.lang.String, com.google.protobuf.ByteString>
       getMutableXAttr() {
         return internalGetMutableXAttr().getMutableMap();
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
        */
       public Builder putXAttr(
           java.lang.String key,
-          java.lang.String value) {
+          com.google.protobuf.ByteString value) {
         if (key == null) { throw new java.lang.NullPointerException(); }
         if (value == null) { throw new java.lang.NullPointerException(); }
         internalGetMutableXAttr().getMutableMap()
@@ -19478,11 +19478,11 @@ public final class File {
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; xAttr = 25;</code>
+       * <code>map&lt;string, bytes&gt; xAttr = 25;</code>
        */
 
       public Builder putAllXAttr(
-          java.util.Map<java.lang.String, java.lang.String> values) {
+          java.util.Map<java.lang.String, com.google.protobuf.ByteString> values) {
         internalGetMutableXAttr().getMutableMap()
             .putAll(values);
         return this;
@@ -26226,7 +26226,7 @@ public final class File {
       "List\022\027\n\017ufs_fingerprint\030\017 \001(\t\022A\n\005xAttr\030\020" +
       " \003(\01322.alluxio.proto.journal.UpdateInode" +
       "Entry.XAttrEntry\032,\n\nXAttrEntry\022\013\n\003key\030\001 " +
-      "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\231\001\n\031UpdateInodeDi" +
+      "\001(\t\022\r\n\005value\030\002 \001(\014:\0028\001\"\231\001\n\031UpdateInodeDi" +
       "rectoryEntry\022\n\n\002id\030\001 \001(\003\022\023\n\013mount_point\030" +
       "\002 \001(\010\022\036\n\026direct_children_loaded\030\003 \001(\010\022;\n" +
       "\ndefaultAcl\030\004 \001(\0132\'.alluxio.proto.shared" +
@@ -26239,7 +26239,7 @@ public final class File {
       "s_path\030\013 \001(\t\022G\n\006xAttrs\030\014 \003(\01327.alluxio.p" +
       "roto.journal.UpdateInodeFileEntry.XAttrs" +
       "Entry\032-\n\013XAttrsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
-      "ue\030\002 \001(\t:\0028\001\"\275\004\n\023InodeDirectoryEntry\022\n\n\002" +
+      "ue\030\002 \001(\014:\0028\001\"\275\004\n\023InodeDirectoryEntry\022\n\n\002" +
       "id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(" +
       "\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006pinned\030\005" +
       " \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_m" +
@@ -26253,7 +26253,7 @@ public final class File {
       "o.proto.shared.AccessControlList\022D\n\005xAtt" +
       "r\030\021 \003(\01325.alluxio.proto.journal.InodeDir" +
       "ectoryEntry.XAttrEntry\032,\n\nXAttrEntry\022\013\n\003" +
-      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"O\n\036InodeDir" +
+      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\014:\0028\001\"O\n\036InodeDir" +
       "ectoryIdGeneratorEntry\022\024\n\014container_id\030\001" +
       " \001(\003\022\027\n\017sequence_number\030\002 \001(\003\"\270\005\n\016InodeF" +
       "ileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022" +
@@ -26273,7 +26273,7 @@ public final class File {
       "ion_durable\030\030 \001(\005\022?\n\005xAttr\030\031 \003(\01320.allux" +
       "io.proto.journal.InodeFileEntry.XAttrEnt" +
       "ry\032,\n\nXAttrEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002" +
-      " \001(\t:\0028\001\"O\n\036InodeLastModificationTimeEnt" +
+      " \001(\014:\0028\001\"O\n\036InodeLastModificationTimeEnt" +
       "ry\022\n\n\002id\030\001 \001(\003\022!\n\031last_modification_time" +
       "_ms\030\002 \001(\003\"#\n\025PersistDirectoryEntry\022\n\n\002id" +
       "\030\001 \001(\003\"B\n\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016" +

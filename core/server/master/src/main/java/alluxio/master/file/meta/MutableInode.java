@@ -27,13 +27,14 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.MoreObjects;
+import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -57,7 +58,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private boolean mPinned;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
-  private Map<String, String> mXAttr;
+  private Map<String, ByteString> mXAttr;
 
   protected MutableInode(long id, boolean isDirectory) {
     mCreationTimeMs = System.currentTimeMillis();
@@ -73,7 +74,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mPinned = false;
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
-    mXAttr = new HashMap<>(1);
+    mXAttr = null;
   }
 
   @Override
@@ -167,7 +168,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   @Override
-  public Map<String, String> getXAttr() {
+  @Nullable
+  public Map<String, ByteString> getXAttr() {
     return mXAttr;
   }
 
@@ -443,7 +445,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
    * @param xAttr The new set of extended attributes
    * @return the updated object
    */
-  public T setXAttr(Map<String, String> xAttr) {
+  public T setXAttr(Map<String, ByteString> xAttr) {
     mXAttr = xAttr;
     return getThis();
   }

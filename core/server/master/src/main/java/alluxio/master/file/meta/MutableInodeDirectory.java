@@ -249,6 +249,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
         .setAcl(ProtoUtils.toProto(mAcl))
         .setDefaultAcl(ProtoUtils.toProto(mDefaultAcl))
+        .putAllXAttr(getXAttr())
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }
@@ -282,6 +283,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setMountPoint(inode.getIsMountPoint())
         .setDirectChildrenLoaded(inode.getHasDirectChildrenLoaded())
         .setChildCount(inode.getChildCount())
-        .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()));
+        .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()))
+        .setXAttr(inode.getXAttrMap());
   }
 }

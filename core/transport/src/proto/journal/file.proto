@@ -94,7 +94,7 @@ message UpdateInodeEntry {
   optional PTtlAction ttlAction = 13 [default = DELETE];
   optional alluxio.proto.shared.AccessControlList acl = 14;
   optional string ufs_fingerprint = 15;
-  map<string, string> xAttr = 16;
+  map<string, bytes> xAttr = 16;
 }
 
 // next available id: 5
@@ -118,7 +118,7 @@ message UpdateInodeFileEntry {
   optional int32 replication_min = 9;
   optional int64 persist_job_id = 10;
   optional string temp_ufs_path = 11;
-  map<string, string> xAttrs = 12;
+  map<string, bytes> xAttrs = 12;
 
 }
 
@@ -140,7 +140,7 @@ message InodeDirectoryEntry {
   optional PTtlAction ttlAction = 14 [default = DELETE];
   optional alluxio.proto.shared.AccessControlList acl = 15;
   optional alluxio.proto.shared.AccessControlList defaultAcl = 16;
-  map<string, string> xAttr = 17;
+  map<string, bytes> xAttr = 17;
 }
 
 // next available id: 3
@@ -180,7 +180,7 @@ message InodeFileEntry {
   optional int64 persist_job_id = 22;
   optional string temp_ufs_path = 23;
   optional int32 replication_durable = 24;
-  map<string, string> xAttr = 25;
+  map<string, bytes> xAttr = 25;
 }
 
 // next available id: 3

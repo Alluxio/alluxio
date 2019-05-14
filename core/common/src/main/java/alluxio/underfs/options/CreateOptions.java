@@ -20,10 +20,11 @@ import alluxio.util.ModeUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.protobuf.ByteString;
 
-import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -43,7 +44,7 @@ public final class CreateOptions {
   private String mGroup;
   private Mode mMode;
   private AccessControlList mAcl;
-  private Map<String, String> mXAttr;
+  private Map<String, ByteString> mXAttr;
 
   /**
    * @param conf Alluxio configuration
@@ -64,7 +65,7 @@ public final class CreateOptions {
     mOwner = null;
     mGroup = null;
     mMode = ModeUtils.applyFileUMask(Mode.defaults(), authUmask);
-    mXAttr = new HashMap<>();
+    mXAttr = null;
   }
 
   /**
@@ -105,7 +106,8 @@ public final class CreateOptions {
   /**
    * @return the extended attributes if any
    */
-  public Map<String, String> getXAttr() {
+  @Nullable
+  public Map<String, ByteString> getXAttr() {
     return mXAttr;
   }
 
@@ -183,7 +185,7 @@ public final class CreateOptions {
    * @param xAttr any extended attributes from the inode
    * @return the updated object
    */
-  public CreateOptions setXAttr(Map<String, String> xAttr) {
+  public CreateOptions setXAttr(@Nullable Map<String, ByteString> xAttr) {
     mXAttr = xAttr;
     return this;
   }

@@ -20,7 +20,14 @@ package alluxio.master.file.meta;
  * Extended attributes take the form of
  * {@code {NAMESPACE}{SEPARATOR}{ATTRIBUTE_name}}
  *
- * For example, the persis
+ * For example, the persistence state uses the default {@link NamespacePrefix#SYSTEM} prefix and
+ * appends {@code ps} (an acronym for persistence state) so that the attribute when stored is
+ * "{@code s.ps}" which is only a 4-character long string. The reason the prefix and is so short
+ * and attribute identifier are so small is to try to reduce the memory footprint of the
+ * attribute when stored in the inode. Compare this to using the attribute name
+ * "system.persistance_state". The second one is 6x longer and will use at least 6x more memory.
+ * Over a couple hundred million inodes this difference can contribute to a significant
+ * increase in memory usage.
  */
 public enum ExtendedAttribute {
 

@@ -15,10 +15,11 @@ import alluxio.annotation.PublicApi;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.protobuf.ByteString;
 
-import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -32,7 +33,7 @@ public final class OpenOptions {
 
   private long mLength;
 
-  private Map<String, String> mXAttr;
+  private Map<String, ByteString> mXAttr;
 
   /**
    * If true, attempt to recover after failed opened attempts. Extra effort may be required in
@@ -54,7 +55,7 @@ public final class OpenOptions {
     mOffset = 0;
     mLength = Long.MAX_VALUE;
     mRecoverFailedOpen = false;
-    mXAttr = new HashMap<>();
+    mXAttr = null;
   }
 
   /**
@@ -81,7 +82,8 @@ public final class OpenOptions {
   /**
    * @return the extended attributes
    */
-  public Map<String, String> getXattr() {
+  @Nullable
+  public Map<String, ByteString> getXattr() {
     return mXAttr;
   }
 
@@ -118,7 +120,7 @@ public final class OpenOptions {
    * @param xAttr any extended attributes on the inode
    * @return the updated option object
    */
-  public OpenOptions setXAttr(Map<String, String> xAttr) {
+  public OpenOptions setXAttr(@Nullable Map<String, ByteString> xAttr) {
     mXAttr = xAttr;
     return this;
   }

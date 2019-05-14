@@ -21,9 +21,12 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
+import com.google.protobuf.ByteString;
 
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 /**
  * Base class for read only inodes.
@@ -91,7 +94,8 @@ public abstract class Inode implements InodeView {
   }
 
   @Override
-  public Map<String, String> getXAttr() {
+  @Nullable
+  public Map<String, ByteString> getXAttr() {
     return mDelegate.getXAttr();
   }
 

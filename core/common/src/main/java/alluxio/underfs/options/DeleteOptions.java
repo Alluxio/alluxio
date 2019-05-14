@@ -15,10 +15,11 @@ import alluxio.annotation.PublicApi;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.protobuf.ByteString;
 
-import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -30,7 +31,7 @@ public final class DeleteOptions {
   // Whether to delete a directory with children
   private boolean mRecursive;
 
-  private Map<String, String> mXAttr;
+  private Map<String, ByteString> mXAttr;
 
   /**
    * @return the default {@link DeleteOptions}
@@ -44,7 +45,7 @@ public final class DeleteOptions {
    */
   private DeleteOptions() {
     mRecursive = false;
-    mXAttr = new HashMap<>();
+    mXAttr = null;
   }
 
   /**
@@ -57,7 +58,8 @@ public final class DeleteOptions {
   /**
    * @return the extended attribute options
    */
-  public Map<String, String> getXAttr() {
+  @Nullable
+  public Map<String, ByteString> getXAttr() {
     return mXAttr;
   }
 
@@ -76,7 +78,7 @@ public final class DeleteOptions {
    * @param xAttr any extended attributes from the inode
    * @return the updated options object
    */
-  public DeleteOptions setXAttr(Map<String, String> xAttr) {
+  public DeleteOptions setXAttr(@Nullable Map<String, ByteString> xAttr) {
     mXAttr = xAttr;
     return this;
   }

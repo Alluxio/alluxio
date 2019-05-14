@@ -37,6 +37,7 @@ public abstract class UfsStatus {
   protected final short mMode;
 
   protected final Map<String, String> mXAttr;
+
   /**
    * Creates new instance of {@link UfsStatus}.
    *
@@ -56,7 +57,7 @@ public abstract class UfsStatus {
     mGroup = group;
     mMode = mode;
     mLastModifiedTimeMs = lastModifiedTimeMs;
-    mXAttr = xAttrs == null ? new HashMap<>(0) : xAttrs;
+    mXAttr = xAttrs;
   }
 
   /**
@@ -71,7 +72,7 @@ public abstract class UfsStatus {
     mGroup = status.mGroup;
     mMode = status.mMode;
     mLastModifiedTimeMs = status.mLastModifiedTimeMs;
-    mXAttr = status.mXAttr;
+    mXAttr = status.mXAttr == null ? null : new HashMap<>(status.mXAttr);
   }
 
   /**
@@ -163,6 +164,7 @@ public abstract class UfsStatus {
    * Returns the extended attributes from the Ufs, if any.
    * @return a map of the extended attributes. If none, the map will be empty
    */
+  @Nullable
   public Map<String, String> getXAttr() {
     return mXAttr;
   }
