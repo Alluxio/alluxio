@@ -14,7 +14,6 @@ package alluxio.master.file.meta;
 import alluxio.Constants;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.contexts.CreateDirectoryContext;
-import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -27,7 +26,6 @@ import alluxio.wire.FileInfo;
 
 import com.google.protobuf.ByteString;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
