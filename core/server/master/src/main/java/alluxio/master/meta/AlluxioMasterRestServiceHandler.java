@@ -783,7 +783,8 @@ public final class AlluxioMasterRestServiceHandler {
       TreeSet<Triple<String, String, String>> sortedProperties = new TreeSet<>();
       Set<String> alluxioConfExcludes = Sets.newHashSet(PropertyKey.MASTER_WHITELIST.toString());
       for (ConfigProperty configProperty : mMetaMaster
-          .getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())) {
+          .getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
+          .toProto().getClusterConfigsList()) {
         String confName = configProperty.getName();
         if (!alluxioConfExcludes.contains(confName)) {
           sortedProperties.add(new ImmutableTriple<>(confName,

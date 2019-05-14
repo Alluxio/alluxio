@@ -20,6 +20,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.resource.CloseableResource;
 import alluxio.util.FileSystemOptions;
 
 import org.apache.commons.cli.CommandLine;
@@ -89,11 +90,9 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
    */
   List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
       throws IOException {
-    FileSystemMasterClient client = mFsContext.acquireMasterClient();
-    try {
-      return client.checkConsistency(path, options);
-    } finally {
-      mFsContext.releaseMasterClient(client);
+    try (CloseableResource<FileSystemMasterClient> client =
+        mFsContext.acquireMasterClientResource()) {
+      return client.get().checkConsistency(path, options);
     }
   }
 

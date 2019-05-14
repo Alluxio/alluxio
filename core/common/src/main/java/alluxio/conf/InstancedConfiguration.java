@@ -367,6 +367,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     return mClusterDefaultsLoaded;
   }
 
+  @Override
+  public String hash() {
+    return mProperties.hash();
+  }
+
   /**
    * Lookup key names to handle ${key} stuff.
    *

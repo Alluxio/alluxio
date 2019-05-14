@@ -86,9 +86,9 @@ public abstract class AbstractClient implements Client {
    */
   public AbstractClient(ClientContext context, InetSocketAddress address) {
     this(context, address, () -> RetryUtils.defaultClientRetry(
-        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
-        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
-        context.getConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
+        context.getClusterConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
+        context.getClusterConf().getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
+        context.getClusterConf().getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)));
   }
 
   /**
@@ -163,9 +163,7 @@ public abstract class AbstractClient implements Client {
       throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
-      if (!mContext.getConf().clusterDefaultsLoaded()) {
-        mContext.updateConfigurationDefaults(mAddress);
-      }
+      mContext.loadConfIfNotLoaded(mAddress);
     }
   }
 
@@ -227,8 +225,16 @@ public abstract class AbstractClient implements Client {
         LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
+<<<<<<< HEAD
             .newBuilder(new GrpcServerAddress(mAddress), mContext.getConf())
             .setSubject(mContext.getUserState().getSubject())
+||||||| merged common ancestors
+            .newBuilder(new GrpcServerAddress(mAddress), mContext.getConf())
+            .setSubject(mContext.getSubject())
+=======
+            .newBuilder(new GrpcServerAddress(mAddress), mContext.getClusterConf())
+            .setSubject(mContext.getSubject())
+>>>>>>> upstream/master
             .build();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
@@ -391,10 +397,24 @@ public abstract class AbstractClient implements Client {
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
+<<<<<<< HEAD
       if (SecurityUtils.isAuthenticationEnabled(mContext.getConf())
           && mContext.getUserState().getUser() != null) {
+||||||| merged common ancestors
+      if (SecurityUtils.isAuthenticationEnabled(mContext.getConf())
+          && LoginUser.get(mContext.getConf()) != null) {
+=======
+      if (SecurityUtils.isAuthenticationEnabled(mContext.getClusterConf())
+          && LoginUser.get(mContext.getClusterConf()) != null) {
+>>>>>>> upstream/master
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
+<<<<<<< HEAD
             mContext.getUserState().getUser().getName());
+||||||| merged common ancestors
+            LoginUser.get(mContext.getConf()).getName());
+=======
+            LoginUser.get(mContext.getClusterConf()).getName());
+>>>>>>> upstream/master
       } else {
         return metricName;
       }
@@ -411,5 +431,10 @@ public abstract class AbstractClient implements Client {
   // TODO(calvin): This should not be in this class
   private String getQualifiedFailureMetricName(String metricName) {
     return getQualifiedMetricName(metricName + "Failures");
+  }
+
+  @Override
+  public boolean isClosed() {
+    return mClosed;
   }
 }

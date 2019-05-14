@@ -13,10 +13,10 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.annotation.PublicApi;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -214,7 +214,7 @@ public interface FileSystem extends Closeable {
     }
 
     public FileSystemKey(ClientContext ctx) {
-      this(ctx.getSubject(), ctx.getConf());
+      this(ctx.getSubject(), ctx.getClusterConf());
     }
 
     @Override

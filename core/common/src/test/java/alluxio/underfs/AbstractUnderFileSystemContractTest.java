@@ -90,7 +90,8 @@ public abstract class AbstractUnderFileSystemContractTest {
   @Before
   public final void before() throws Exception {
     mUnderfsAddress = PathUtils.concatPath(getUfsBaseDir(), UUID.randomUUID());
-    mUfs = createUfs(mUnderfsAddress, UnderFileSystemConfiguration.defaults());
+    mUfs = createUfs(mUnderfsAddress,
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
     mUfs.mkdirs(mUnderfsAddress, MkdirsOptions.defaults(mConfiguration).setCreateParent(true));
   }
 

@@ -17,7 +17,6 @@ import alluxio.conf.AlluxioProperties;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.Source;
-import alluxio.util.ConfigurationUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,13 +43,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemConfiguration extends InstancedConfiguration {
   private boolean mReadOnly;
   private boolean mShared;
-
-  /**
-   * @return default UFS configuration
-   */
-  public static UnderFileSystemConfiguration defaults() {
-    return new UnderFileSystemConfiguration(ConfigurationUtils.defaults());
-  }
 
   /**
    * @param alluxioConf Alluxio configuration

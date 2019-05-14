@@ -11,10 +11,8 @@
 
 package alluxio.client.file;
 
-import alluxio.ClientContext;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
-import alluxio.master.MasterInquireClient;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.io.Closer;
@@ -36,15 +34,12 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
   /**
    * Creates a new file system master client pool.
    *
-   * @param context information for connecting to processes in the cluster
-   * @param masterInquireClient a client for determining the master address
+   * @param ctx information for connecting to processes in the cluster
    */
-  public FileSystemMasterClientPool(ClientContext context,
-      MasterInquireClient masterInquireClient) {
-    super(context.getConf().getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
+  public FileSystemMasterClientPool(MasterClientContext ctx) {
+    super(ctx.getClusterConf().getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
     mClientList = new ConcurrentLinkedQueue<>();
-    mMasterContext = MasterClientContext.newBuilder(context)
-            .setMasterInquireClient(masterInquireClient).build();
+    mMasterContext = ctx;
   }
 
   @Override
