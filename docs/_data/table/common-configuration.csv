@@ -102,12 +102,7 @@ alluxio.underfs.s3a.socket.timeout,"50sec"
 alluxio.underfs.s3a.streaming.upload.enabled,"false"
 alluxio.underfs.s3a.streaming.upload.partition.size,"64MB"
 alluxio.web.file.info.enabled,"true"
-<<<<<<< HEAD
-alluxio.web.resources,"${alluxio.home}/alluxio-ui/"
-=======
 alluxio.web.resources,"${alluxio.home}/webui/"
-alluxio.web.temp.path,"${alluxio.work.dir}/web/"
->>>>>>> master
 alluxio.web.threads,"1"
 alluxio.webui.cors.enabled,"false"
 alluxio.webui.refresh.interval.ms,"15000"
