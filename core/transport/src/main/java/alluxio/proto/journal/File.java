@@ -15902,15 +15902,6 @@ public final class File {
     int getReplicationDurable();
 
     /**
-<<<<<<< HEAD
-     * <code>optional int64 persistence_wait_time = 25;</code>
-     */
-    boolean hasPersistenceWaitTime();
-    /**
-     * <code>optional int64 persistence_wait_time = 25;</code>
-     */
-    long getPersistenceWaitTime();
-=======
      * <code>optional string path = 25;</code>
      */
     boolean hasPath();
@@ -15923,11 +15914,19 @@ public final class File {
      */
     com.google.protobuf.ByteString
         getPathBytes();
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
+
+    /**
+     * <code>optional int64 persistence_wait_time = 26;</code>
+     */
+    boolean hasPersistenceWaitTime();
+    /**
+     * <code>optional int64 persistence_wait_time = 26;</code>
+     */
+    long getPersistenceWaitTime();
   }
   /**
    * <pre>
-   * next available id: 26
+   * next available id: 27
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
@@ -15965,11 +15964,8 @@ public final class File {
       persistJobId_ = 0L;
       tempUfsPath_ = "";
       replicationDurable_ = 0;
-<<<<<<< HEAD
-      persistenceWaitTime_ = 0L;
-=======
       path_ = "";
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
+      persistenceWaitTime_ = 0L;
     }
 
     @java.lang.Override
@@ -16159,16 +16155,15 @@ public final class File {
               replicationDurable_ = input.readInt32();
               break;
             }
-<<<<<<< HEAD
-            case 200: {
-              bitField0_ |= 0x00800000;
-              persistenceWaitTime_ = input.readInt64();
-=======
             case 202: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00800000;
               path_ = bs;
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
+              break;
+            }
+            case 208: {
+              bitField0_ |= 0x01000000;
+              persistenceWaitTime_ = input.readInt64();
               break;
             }
           }
@@ -16735,21 +16730,6 @@ public final class File {
       return replicationDurable_;
     }
 
-<<<<<<< HEAD
-    public static final int PERSISTENCE_WAIT_TIME_FIELD_NUMBER = 25;
-    private long persistenceWaitTime_;
-    /**
-     * <code>optional int64 persistence_wait_time = 25;</code>
-     */
-    public boolean hasPersistenceWaitTime() {
-      return ((bitField0_ & 0x00800000) == 0x00800000);
-    }
-    /**
-     * <code>optional int64 persistence_wait_time = 25;</code>
-     */
-    public long getPersistenceWaitTime() {
-      return persistenceWaitTime_;
-=======
     public static final int PATH_FIELD_NUMBER = 25;
     private volatile java.lang.Object path_;
     /**
@@ -16790,7 +16770,21 @@ public final class File {
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
+    }
+
+    public static final int PERSISTENCE_WAIT_TIME_FIELD_NUMBER = 26;
+    private long persistenceWaitTime_;
+    /**
+     * <code>optional int64 persistence_wait_time = 26;</code>
+     */
+    public boolean hasPersistenceWaitTime() {
+      return ((bitField0_ & 0x01000000) == 0x01000000);
+    }
+    /**
+     * <code>optional int64 persistence_wait_time = 26;</code>
+     */
+    public long getPersistenceWaitTime() {
+      return persistenceWaitTime_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -16878,11 +16872,10 @@ public final class File {
         output.writeInt32(24, replicationDurable_);
       }
       if (((bitField0_ & 0x00800000) == 0x00800000)) {
-<<<<<<< HEAD
-        output.writeInt64(25, persistenceWaitTime_);
-=======
         com.google.protobuf.GeneratedMessageV3.writeString(output, 25, path_);
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
+      }
+      if (((bitField0_ & 0x01000000) == 0x01000000)) {
+        output.writeInt64(26, persistenceWaitTime_);
       }
       unknownFields.writeTo(output);
     }
@@ -16988,12 +16981,11 @@ public final class File {
           .computeInt32Size(24, replicationDurable_);
       }
       if (((bitField0_ & 0x00800000) == 0x00800000)) {
-<<<<<<< HEAD
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(25, persistenceWaitTime_);
-=======
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(25, path_);
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
+      }
+      if (((bitField0_ & 0x01000000) == 0x01000000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(26, persistenceWaitTime_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -17127,17 +17119,15 @@ public final class File {
         result = result && (getReplicationDurable()
             == other.getReplicationDurable());
       }
-<<<<<<< HEAD
-      result = result && (hasPersistenceWaitTime() == other.hasPersistenceWaitTime());
-      if (hasPersistenceWaitTime()) {
-        result = result && (getPersistenceWaitTime()
-            == other.getPersistenceWaitTime());
-=======
       result = result && (hasPath() == other.hasPath());
       if (hasPath()) {
         result = result && getPath()
             .equals(other.getPath());
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
+      }
+      result = result && (hasPersistenceWaitTime() == other.hasPersistenceWaitTime());
+      if (hasPersistenceWaitTime()) {
+        result = result && (getPersistenceWaitTime()
+            == other.getPersistenceWaitTime());
       }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
@@ -17257,16 +17247,14 @@ public final class File {
         hash = (37 * hash) + REPLICATION_DURABLE_FIELD_NUMBER;
         hash = (53 * hash) + getReplicationDurable();
       }
-<<<<<<< HEAD
+      if (hasPath()) {
+        hash = (37 * hash) + PATH_FIELD_NUMBER;
+        hash = (53 * hash) + getPath().hashCode();
+      }
       if (hasPersistenceWaitTime()) {
         hash = (37 * hash) + PERSISTENCE_WAIT_TIME_FIELD_NUMBER;
         hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
             getPersistenceWaitTime());
-=======
-      if (hasPath()) {
-        hash = (37 * hash) + PATH_FIELD_NUMBER;
-        hash = (53 * hash) + getPath().hashCode();
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -17363,7 +17351,7 @@ public final class File {
     }
     /**
      * <pre>
-     * next available id: 26
+     * next available id: 27
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
@@ -17454,12 +17442,10 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00400000);
         replicationDurable_ = 0;
         bitField0_ = (bitField0_ & ~0x00800000);
-<<<<<<< HEAD
-        persistenceWaitTime_ = 0L;
-=======
         path_ = "";
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
         bitField0_ = (bitField0_ & ~0x01000000);
+        persistenceWaitTime_ = 0L;
+        bitField0_ = (bitField0_ & ~0x02000000);
         return this;
       }
 
@@ -17588,11 +17574,11 @@ public final class File {
         if (((from_bitField0_ & 0x01000000) == 0x01000000)) {
           to_bitField0_ |= 0x00800000;
         }
-<<<<<<< HEAD
-        result.persistenceWaitTime_ = persistenceWaitTime_;
-=======
         result.path_ = path_;
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
+        if (((from_bitField0_ & 0x02000000) == 0x02000000)) {
+          to_bitField0_ |= 0x01000000;
+        }
+        result.persistenceWaitTime_ = persistenceWaitTime_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -17726,15 +17712,13 @@ public final class File {
         if (other.hasReplicationDurable()) {
           setReplicationDurable(other.getReplicationDurable());
         }
-<<<<<<< HEAD
-        if (other.hasPersistenceWaitTime()) {
-          setPersistenceWaitTime(other.getPersistenceWaitTime());
-=======
         if (other.hasPath()) {
           bitField0_ |= 0x01000000;
           path_ = other.path_;
           onChanged();
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
+        }
+        if (other.hasPersistenceWaitTime()) {
+          setPersistenceWaitTime(other.getPersistenceWaitTime());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -18920,27 +18904,6 @@ public final class File {
         return this;
       }
 
-<<<<<<< HEAD
-      private long persistenceWaitTime_ ;
-      /**
-       * <code>optional int64 persistence_wait_time = 25;</code>
-       */
-      public boolean hasPersistenceWaitTime() {
-        return ((bitField0_ & 0x01000000) == 0x01000000);
-      }
-      /**
-       * <code>optional int64 persistence_wait_time = 25;</code>
-       */
-      public long getPersistenceWaitTime() {
-        return persistenceWaitTime_;
-      }
-      /**
-       * <code>optional int64 persistence_wait_time = 25;</code>
-       */
-      public Builder setPersistenceWaitTime(long value) {
-        bitField0_ |= 0x01000000;
-        persistenceWaitTime_ = value;
-=======
       private java.lang.Object path_ = "";
       /**
        * <code>optional string path = 25;</code>
@@ -18991,18 +18954,10 @@ public final class File {
   }
   bitField0_ |= 0x01000000;
         path_ = value;
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
         onChanged();
         return this;
       }
       /**
-<<<<<<< HEAD
-       * <code>optional int64 persistence_wait_time = 25;</code>
-       */
-      public Builder clearPersistenceWaitTime() {
-        bitField0_ = (bitField0_ & ~0x01000000);
-        persistenceWaitTime_ = 0L;
-=======
        * <code>optional string path = 25;</code>
        */
       public Builder clearPath() {
@@ -19021,7 +18976,38 @@ public final class File {
   }
   bitField0_ |= 0x01000000;
         path_ = value;
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
+        onChanged();
+        return this;
+      }
+
+      private long persistenceWaitTime_ ;
+      /**
+       * <code>optional int64 persistence_wait_time = 26;</code>
+       */
+      public boolean hasPersistenceWaitTime() {
+        return ((bitField0_ & 0x02000000) == 0x02000000);
+      }
+      /**
+       * <code>optional int64 persistence_wait_time = 26;</code>
+       */
+      public long getPersistenceWaitTime() {
+        return persistenceWaitTime_;
+      }
+      /**
+       * <code>optional int64 persistence_wait_time = 26;</code>
+       */
+      public Builder setPersistenceWaitTime(long value) {
+        bitField0_ |= 0x02000000;
+        persistenceWaitTime_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 persistence_wait_time = 26;</code>
+       */
+      public Builder clearPersistenceWaitTime() {
+        bitField0_ = (bitField0_ & ~0x02000000);
+        persistenceWaitTime_ = 0L;
         onChanged();
         return this;
       }
@@ -26903,90 +26889,6 @@ public final class File {
       "length\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\022\027\n\017ufs_" +
       "fingerprint\030\005 \001(\t\"g\n\017DeleteFileEntry\022\n\n\002" +
       "id\030\001 \001(\003\022\021\n\trecursive\030\002 \001(\010\022\022\n\nop_time_m" +
-<<<<<<< HEAD
-      "s\030\003 \001(\003\022\023\n\013alluxioOnly\030\004 \001(\010\"-\n\025DeleteMo" +
-      "untPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\033\n\rN" +
-      "ewBlockEntry\022\n\n\002id\030\001 \001(\003\"\222\003\n\020UpdateInode" +
-      "Entry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004" +
-      "name\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n" +
-      "\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022" +
-      "!\n\031last_modification_time_ms\030\007 \001(\003\022#\n\033ov" +
-      "erwrite_modification_time\030\010 \001(\010\022\r\n\005owner" +
-      "\030\t \001(\t\022\r\n\005group\030\n \001(\t\022\014\n\004mode\030\013 \001(\005\022\013\n\003t" +
-      "tl\030\014 \001(\003\022<\n\tttlAction\030\r \001(\0162!.alluxio.pr" +
-      "oto.journal.PTtlAction:\006DELETE\0224\n\003acl\030\016 " +
-      "\001(\0132\'.alluxio.proto.shared.AccessControl" +
-      "List\022\027\n\017ufs_fingerprint\030\017 \001(\t\"\231\001\n\031Update" +
-      "InodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\023\n\013mount" +
-      "_point\030\002 \001(\010\022\036\n\026direct_children_loaded\030\003" +
-      " \001(\010\022;\n\ndefaultAcl\030\004 \001(\0132\'.alluxio.proto" +
-      ".shared.AccessControlList\"\347\001\n\024UpdateInod" +
-      "eFileEntry\022\n\n\002id\030\001 \001(\003\022\030\n\020block_size_byt" +
-      "es\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\021\n\tcompleted\030\004 " +
-      "\001(\010\022\021\n\tcacheable\030\005 \001(\010\022\022\n\nset_blocks\030\007 \003" +
-      "(\003\022\027\n\017replication_max\030\010 \001(\005\022\027\n\017replicati" +
-      "on_min\030\t \001(\005\022\026\n\016persist_job_id\030\n \001(\003\022\025\n\r" +
-      "temp_ufs_path\030\013 \001(\t\"\311\003\n\023InodeDirectoryEn" +
-      "try\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004na" +
-      "me\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006p" +
-      "inned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n" +
-      "\031last_modification_time_ms\030\007 \001(\003\022\r\n\005owne" +
-      "r\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004mode\030\n \001(\005\022\023\n\013" +
-      "mount_point\030\013 \001(\010\022\036\n\026direct_children_loa" +
-      "ded\030\014 \001(\010\022\013\n\003ttl\030\r \001(\003\022<\n\tttlAction\030\016 \001(" +
-      "\0162!.alluxio.proto.journal.PTtlAction:\006DE" +
-      "LETE\0224\n\003acl\030\017 \001(\0132\'.alluxio.proto.shared" +
-      ".AccessControlList\022;\n\ndefaultAcl\030\020 \001(\0132\'" +
-      ".alluxio.proto.shared.AccessControlList\"" +
-      "O\n\036InodeDirectoryIdGeneratorEntry\022\024\n\014con" +
-      "tainer_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003" +
-      "\"\350\004\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparen" +
-      "t_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_" +
-      "state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_" +
-      "time_ms\030\006 \001(\003\022!\n\031last_modification_time_" +
-      "ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006le" +
-      "ngth\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheab" +
-      "le\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n" +
-      "\005owner\030\016 \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(" +
-      "\005\022<\n\tttlAction\030\021 \001(\0162!.alluxio.proto.jou" +
-      "rnal.PTtlAction:\006DELETE\022\027\n\017ufs_fingerpri" +
-      "nt\030\022 \001(\t\0224\n\003acl\030\023 \001(\0132\'.alluxio.proto.sh" +
-      "ared.AccessControlList\022\027\n\017replication_ma" +
-      "x\030\024 \001(\005\022\027\n\017replication_min\030\025 \001(\005\022\026\n\016pers" +
-      "ist_job_id\030\026 \001(\003\022\025\n\rtemp_ufs_path\030\027 \001(\t\022" +
-      "\033\n\023replication_durable\030\030 \001(\005\022\035\n\025persiste" +
-      "nce_wait_time\030\031 \001(\003\"O\n\036InodeLastModifica" +
-      "tionTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_modifi" +
-      "cation_time_ms\030\002 \001(\003\"#\n\025PersistDirectory" +
-      "Entry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntry\022\n\n" +
-      "\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time_ms\030" +
-      "\003 \001(\003\"\212\001\n\025ReinitializeFileEntry\022\014\n\004path\030" +
-      "\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003ttl\030\003" +
-      " \001(\003\022<\n\tttlAction\030\004 \001(\0162!.alluxio.proto." +
-      "journal.PTtlAction:\006DELETE\"h\n\013RenameEntr" +
-      "y\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_ti" +
-      "me_ms\030\003 \001(\003\022\025\n\rnew_parent_id\030\004 \001(\003\022\020\n\010ne" +
-      "w_name\030\005 \001(\t\"\247\001\n\013SetAclEntry\022\n\n\002id\030\001 \001(\003" +
-      "\022\022\n\nop_time_ms\030\002 \001(\003\0224\n\006action\030\003 \001(\0162$.a" +
-      "lluxio.proto.journal.PSetAclAction\022/\n\007en" +
-      "tries\030\004 \003(\0132\036.alluxio.proto.shared.AclEn" +
-      "try\022\021\n\trecursive\030\005 \001(\010\"\311\002\n\021SetAttributeE" +
-      "ntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006" +
-      "pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005" +
-      " \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npe" +
-      "rmission\030\010 \001(\005\022<\n\tttlAction\030\t \001(\0162!.allu" +
-      "xio.proto.journal.PTtlAction:\006DELETE\022\027\n\017" +
-      "ufs_fingerprint\030\n \001(\t\022\024\n\014persistJobId\030\013 " +
-      "\001(\003\022\023\n\013tempUfsPath\030\014 \001(\t\022\027\n\017replication_" +
-      "max\030\r \001(\005\022\027\n\017replication_min\030\016 \001(\005\"b\n\022Up" +
-      "dateUfsModeEntry\022\017\n\007ufsPath\030\001 \001(\t\022;\n\007ufs" +
-      "Mode\030\002 \001(\0162\036.alluxio.proto.journal.UfsMo" +
-      "de:\nREAD_WRITE*\"\n\nPTtlAction\022\n\n\006DELETE\020\000" +
-      "\022\010\n\004FREE\020\001*X\n\rPSetAclAction\022\013\n\007REPLACE\020\000" +
-      "\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002\022\016\n\nREMOVE_ALL\020\003" +
-      "\022\022\n\016REMOVE_DEFAULT\020\004*7\n\007UfsMode\022\r\n\tNO_AC" +
-      "CESS\020\000\022\r\n\tREAD_ONLY\020\001\022\016\n\nREAD_WRITE\020\002"
-=======
       "s\030\003 \001(\003\022\023\n\013alluxioOnly\030\004 \001(\010\022\014\n\004path\030\005 \001" +
       "(\t\"-\n\025DeleteMountPointEntry\022\024\n\014alluxio_p" +
       "ath\030\001 \001(\t\"\033\n\rNewBlockEntry\022\n\n\002id\030\001 \001(\003\"\222" +
@@ -27024,7 +26926,7 @@ public final class File {
       "to.shared.AccessControlList\022\014\n\004path\030\021 \001(" +
       "\t\"O\n\036InodeDirectoryIdGeneratorEntry\022\024\n\014c" +
       "ontainer_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001" +
-      "(\003\"\327\004\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tpar" +
+      "(\003\"\366\004\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tpar" +
       "ent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistenc" +
       "e_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creatio" +
       "n_time_ms\030\006 \001(\003\022!\n\031last_modification_tim" +
@@ -27039,39 +26941,39 @@ public final class File {
       "max\030\024 \001(\005\022\027\n\017replication_min\030\025 \001(\005\022\026\n\016pe" +
       "rsist_job_id\030\026 \001(\003\022\025\n\rtemp_ufs_path\030\027 \001(" +
       "\t\022\033\n\023replication_durable\030\030 \001(\005\022\014\n\004path\030\031" +
-      " \001(\t\"O\n\036InodeLastModificationTimeEntry\022\n" +
-      "\n\002id\030\001 \001(\003\022!\n\031last_modification_time_ms\030" +
-      "\002 \001(\003\"#\n\025PersistDirectoryEntry\022\n\n\002id\030\001 \001" +
-      "(\003\"B\n\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006le" +
-      "ngth\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"\212\001\n\025Reini" +
-      "tializeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_" +
-      "size_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\022<\n\tttlActi" +
-      "on\030\004 \001(\0162!.alluxio.proto.journal.PTtlAct" +
-      "ion:\006DELETE\"\210\001\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022" +
-      "\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\022\025\n" +
-      "\rnew_parent_id\030\004 \001(\003\022\020\n\010new_name\030\005 \001(\t\022\014" +
-      "\n\004path\030\006 \001(\t\022\020\n\010new_path\030\007 \001(\t\"\247\001\n\013SetAc" +
-      "lEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\0224" +
-      "\n\006action\030\003 \001(\0162$.alluxio.proto.journal.P" +
-      "SetAclAction\022/\n\007entries\030\004 \003(\0132\036.alluxio." +
-      "proto.shared.AclEntry\022\021\n\trecursive\030\005 \001(\010" +
-      "\"\311\002\n\021SetAttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop" +
-      "_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 " +
-      "\001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n" +
-      "\005group\030\007 \001(\t\022\022\n\npermission\030\010 \001(\005\022<\n\tttlA" +
-      "ction\030\t \001(\0162!.alluxio.proto.journal.PTtl" +
-      "Action:\006DELETE\022\027\n\017ufs_fingerprint\030\n \001(\t\022" +
-      "\024\n\014persistJobId\030\013 \001(\003\022\023\n\013tempUfsPath\030\014 \001" +
-      "(\t\022\027\n\017replication_max\030\r \001(\005\022\027\n\017replicati" +
-      "on_min\030\016 \001(\005\"b\n\022UpdateUfsModeEntry\022\017\n\007uf" +
-      "sPath\030\001 \001(\t\022;\n\007ufsMode\030\002 \001(\0162\036.alluxio.p" +
-      "roto.journal.UfsMode:\nREAD_WRITE*\"\n\nPTtl" +
-      "Action\022\n\n\006DELETE\020\000\022\010\n\004FREE\020\001*X\n\rPSetAclA" +
-      "ction\022\013\n\007REPLACE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE" +
-      "\020\002\022\016\n\nREMOVE_ALL\020\003\022\022\n\016REMOVE_DEFAULT\020\004*7" +
-      "\n\007UfsMode\022\r\n\tNO_ACCESS\020\000\022\r\n\tREAD_ONLY\020\001\022" +
-      "\016\n\nREAD_WRITE\020\002"
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
+      " \001(\t\022\035\n\025persistence_wait_time\030\032 \001(\003\"O\n\036I" +
+      "nodeLastModificationTimeEntry\022\n\n\002id\030\001 \001(" +
+      "\003\022!\n\031last_modification_time_ms\030\002 \001(\003\"#\n\025" +
+      "PersistDirectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020Per" +
+      "sistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(" +
+      "\003\022\022\n\nop_time_ms\030\003 \001(\003\"\212\001\n\025ReinitializeFi" +
+      "leEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_size_byte" +
+      "s\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\022<\n\tttlAction\030\004 \001(\0162" +
+      "!.alluxio.proto.journal.PTtlAction:\006DELE" +
+      "TE\"\210\001\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_pa" +
+      "th\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\022\025\n\rnew_pare" +
+      "nt_id\030\004 \001(\003\022\020\n\010new_name\030\005 \001(\t\022\014\n\004path\030\006 " +
+      "\001(\t\022\020\n\010new_path\030\007 \001(\t\"\247\001\n\013SetAclEntry\022\n\n" +
+      "\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\0224\n\006action\030" +
+      "\003 \001(\0162$.alluxio.proto.journal.PSetAclAct" +
+      "ion\022/\n\007entries\030\004 \003(\0132\036.alluxio.proto.sha" +
+      "red.AclEntry\022\021\n\trecursive\030\005 \001(\010\"\311\002\n\021SetA" +
+      "ttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030" +
+      "\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpe" +
+      "rsisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 " +
+      "\001(\t\022\022\n\npermission\030\010 \001(\005\022<\n\tttlAction\030\t \001" +
+      "(\0162!.alluxio.proto.journal.PTtlAction:\006D" +
+      "ELETE\022\027\n\017ufs_fingerprint\030\n \001(\t\022\024\n\014persis" +
+      "tJobId\030\013 \001(\003\022\023\n\013tempUfsPath\030\014 \001(\t\022\027\n\017rep" +
+      "lication_max\030\r \001(\005\022\027\n\017replication_min\030\016 " +
+      "\001(\005\"b\n\022UpdateUfsModeEntry\022\017\n\007ufsPath\030\001 \001" +
+      "(\t\022;\n\007ufsMode\030\002 \001(\0162\036.alluxio.proto.jour" +
+      "nal.UfsMode:\nREAD_WRITE*\"\n\nPTtlAction\022\n\n" +
+      "\006DELETE\020\000\022\010\n\004FREE\020\001*X\n\rPSetAclAction\022\013\n\007" +
+      "REPLACE\020\000\022\n\n\006MODIFY\020\001\022\n\n\006REMOVE\020\002\022\016\n\nREM" +
+      "OVE_ALL\020\003\022\022\n\016REMOVE_DEFAULT\020\004*7\n\007UfsMode" +
+      "\022\r\n\tNO_ACCESS\020\000\022\r\n\tREAD_ONLY\020\001\022\016\n\nREAD_W" +
+      "RITE\020\002"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -27182,11 +27084,7 @@ public final class File {
     internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeFileEntry_descriptor,
-<<<<<<< HEAD
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", "TtlAction", "UfsFingerprint", "Acl", "ReplicationMax", "ReplicationMin", "PersistJobId", "TempUfsPath", "ReplicationDurable", "PersistenceWaitTime", });
-=======
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", "TtlAction", "UfsFingerprint", "Acl", "ReplicationMax", "ReplicationMin", "PersistJobId", "TempUfsPath", "ReplicationDurable", "Path", });
->>>>>>> 055c3ff7acb6530696bf9f500f5ec7e5aa76c82c
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", "TtlAction", "UfsFingerprint", "Acl", "ReplicationMax", "ReplicationMin", "PersistJobId", "TempUfsPath", "ReplicationDurable", "Path", "PersistenceWaitTime", });
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor =
       getDescriptor().getMessageTypes().get(16);
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable = new
