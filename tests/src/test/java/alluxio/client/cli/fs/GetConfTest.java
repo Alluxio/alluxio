@@ -12,6 +12,7 @@
 package alluxio.client.cli.fs;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 
 import alluxio.ClientContext;
 import alluxio.SystemOutRule;
@@ -146,7 +147,7 @@ public final class GetConfTest {
     // Prepare mock meta master client
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
-    Mockito.when(client.getConfiguration()).thenReturn(
+    Mockito.when(client.getConfiguration(any())).thenReturn(
         Configuration.fromProto(prepareGetConfigurationResponse()));
 
     assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master"));
@@ -164,7 +165,7 @@ public final class GetConfTest {
     // Prepare mock meta master client
     RetryHandlingMetaMasterConfigClient client =
         Mockito.mock(RetryHandlingMetaMasterConfigClient.class);
-    Mockito.when(client.getConfiguration()).thenReturn(Configuration.fromProto(
+    Mockito.when(client.getConfiguration(any())).thenReturn(Configuration.fromProto(
         prepareGetConfigurationResponse()));
     assertEquals(0, GetConf.getConfImpl(() -> client, ServerConfiguration.global(), "--master",
         "--source"));
@@ -202,7 +203,7 @@ public final class GetConfTest {
 
   private GetConfigurationPResponse prepareGetConfigurationResponse() {
     return GetConfigurationPResponse.newBuilder()
-        .addAllConfigs(prepareConfigList())
+        .addAllClusterConfigs(prepareConfigList())
         .build();
   }
 }

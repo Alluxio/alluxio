@@ -351,12 +351,10 @@ public final class NetworkAddressUtils {
    *
    * @param conf Alluxio configuration
    * @return the local hostname for the client
-   * @deprecated This should not be used anymore as the USER_HOSTNAME key is deprecated
    */
-  @Deprecated
   public static String getClientHostName(AlluxioConfiguration conf) {
-    if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
-      return conf.get(PropertyKey.USER_HOSTNAME);
+    if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
+      return conf.get(PropertyKey.LOCALITY_TIER_NODE);
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
@@ -380,8 +378,8 @@ public final class NetworkAddressUtils {
         }
         break;
       case CLIENT:
-        if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
-          return conf.get(PropertyKey.USER_HOSTNAME);
+        if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
+          return conf.get(PropertyKey.LOCALITY_TIER_NODE);
         }
         break;
       case MASTER:
@@ -650,11 +648,17 @@ public final class NetworkAddressUtils {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
     GrpcChannel channel =
-        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).build();
-    ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
-        ServiceVersionClientServiceGrpc.newBlockingStub(channel);
-    versionClient.getServiceVersion(
-        GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
-    channel.shutdown();
+        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).disableAuthentication()
+            .build();
+    try {
+      ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
+          ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+      versionClient.getServiceVersion(
+          GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
+    } catch (Throwable t) {
+      throw AlluxioStatusException.fromThrowable(t);
+    } finally {
+      channel.shutdown();
+    }
   }
 }

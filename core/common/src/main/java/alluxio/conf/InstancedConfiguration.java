@@ -354,7 +354,13 @@ public class InstancedConfiguration implements AlluxioConfiguration {
               + "and must be specified as a JVM property. "
               + "If no JVM property is present, Alluxio will use default value '%s'.",
           key.getName(), key.getDefaultValue());
+
+      if (PropertyKey.isDeprecated(key) && getSource(key).compareTo(Source.DEFAULT) != 0) {
+        LOG.warn("{} is deprecated. Please avoid using this key in the future. {}", key.getName(),
+            PropertyKey.getDeprecationMessage(key));
+      }
     }
+
     checkTimeouts();
     checkWorkerPorts();
     checkUserFileBufferBytes();
@@ -366,6 +372,11 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   @Override
   public boolean clusterDefaultsLoaded() {
     return mClusterDefaultsLoaded;
+  }
+
+  @Override
+  public String hash() {
+    return mProperties.hash();
   }
 
   /**

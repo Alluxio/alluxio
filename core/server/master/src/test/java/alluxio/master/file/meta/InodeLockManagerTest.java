@@ -9,15 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.meta;
+package alluxio.master.file.meta;
 
 import static org.junit.Assert.assertFalse;
 
 import alluxio.concurrent.LockMode;
 import alluxio.master.file.contexts.CreateFileContext;
-import alluxio.master.file.meta.Edge;
-import alluxio.master.file.meta.InodeLockManager;
-import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 
