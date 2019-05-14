@@ -27,12 +27,23 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.journal.JournalTool;
 import alluxio.master.journal.JournalType;
+import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
+import io.atomix.catalyst.concurrent.SingleThreadContext;
+import io.atomix.catalyst.serializer.Serializer;
+import io.atomix.copycat.protocol.ClientRequestTypeResolver;
+import io.atomix.copycat.protocol.ClientResponseTypeResolver;
+import io.atomix.copycat.server.storage.Storage;
+import io.atomix.copycat.server.storage.snapshot.Snapshot;
+import io.atomix.copycat.server.storage.util.StorageSerialization;
+import io.atomix.copycat.server.util.ServerSerialization;
+import io.atomix.copycat.util.ProtocolSerialization;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Rule;
@@ -47,6 +58,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Tests for {@link JournalTool}.
@@ -151,7 +164,7 @@ public class JournalToolTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void dumpHeapCheckpoint() throws Throwable {
+  public void dumpHeapCheckpointFromUfsJournal() throws Throwable {
     initializeCluster(new HashMap<PropertyKey, String>() {
       {
         put(PropertyKey.MASTER_METASTORE, "HEAP");
@@ -170,7 +183,7 @@ public class JournalToolTest extends BaseIntegrationTest {
         SetAttributePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(100000).build())
             .build());
-    checkpoint();
+    checkpointUfsJournal();
     JournalTool.main(new String[]{"-outputDir", mDumpDir.getAbsolutePath()});
     String checkpointDir = findCheckpointDir();
 
@@ -183,6 +196,41 @@ public class JournalToolTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void dumpHeapCheckpointFromEmbeddedJournal() throws Throwable {
+    initializeCluster(new HashMap<PropertyKey, String>() {
+      {
+        put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString());
+        put(PropertyKey.MASTER_METASTORE, "HEAP");
+      }
+    });
+
+    for (String name : Arrays.asList("/pin", "/max_replication", "/async_persist", "/ttl")) {
+      mFs.createFile(new AlluxioURI(name)).close();
+    }
+    mFs.setAttribute(new AlluxioURI("/pin"),
+        SetAttributePOptions.newBuilder().setPinned(true).build());
+    mFs.setAttribute(new AlluxioURI("/max_replication"),
+        SetAttributePOptions.newBuilder().setReplicationMax(5).build());
+    mFs.persist(new AlluxioURI("/async_persist"));
+    mFs.setAttribute(new AlluxioURI("/ttl"),
+        SetAttributePOptions.newBuilder()
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(100000).build())
+            .build());
+    checkpointEmbeddedJournal();
+    JournalTool.main(new String[] {"-outputDir", mDumpDir.getAbsolutePath()});
+    // Embedded journal checkpoints are grouped by masters.
+    String fsMasterCheckpointsDir =
+        PathUtils.concatPath(mDumpDir.getAbsolutePath(), "checkpoints", "FILE_SYSTEM_MASTER");
+
+    assertNonemptyFileExists(
+        PathUtils.concatPath(fsMasterCheckpointsDir, "INODE_DIRECTORY_ID_GENERATOR"));
+    for (String subPath : Arrays.asList("HEAP_INODE_STORE", "INODE_COUNTER",
+        "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
+      assertNonemptyFileExists(PathUtils.concatPath(fsMasterCheckpointsDir, "INODE_TREE", subPath));
+    }
+  }
+
+  @Test
   public void dumpRocksCheckpoint() throws Throwable {
     initializeCluster(new HashMap<PropertyKey, String>() {
       {
@@ -190,19 +238,70 @@ public class JournalToolTest extends BaseIntegrationTest {
       }
     });
 
-    checkpoint();
+    checkpointUfsJournal();
     JournalTool.main(new String[] {"-outputDir", mDumpDir.getAbsolutePath()});
     String checkpointDir = findCheckpointDir();
     assertNonemptyDirExists(
         PathUtils.concatPath(checkpointDir, "INODE_TREE", "CACHING_INODE_STORE"));
   }
 
-  private void checkpoint() throws Exception {
+  private void checkpointUfsJournal() throws Exception {
     // Perform operations to generate a checkpoint.
     for (int i = 0; i < CHECKPOINT_SIZE * 2; i++) {
       mFs.createFile(new AlluxioURI("/" + i)).close();
     }
     IntegrationTestUtils.waitForUfsJournalCheckpoint(Constants.FILE_SYSTEM_MASTER_NAME);
+  }
+
+  private void checkpointEmbeddedJournal() throws Throwable {
+    int leaderIdx = mMultiProcessCluster.getPrimaryMasterIndex(GET_MASTER_INDEX_TIMEOUT_MS);
+    int followerIdx = leaderIdx ^ 1; // Assumes 2 masters.
+    String followerJournalFolder =
+        mMultiProcessCluster.getJournalDir() + Integer.toString(followerIdx);
+
+    // Get current snapshot before issuing operations.
+    long curentSnapshotIdx = getCurrentCopyCatSnapshotIndex(followerJournalFolder);
+
+    // Perform operations to generate a checkpoint.
+    for (int i = 0; i < CHECKPOINT_SIZE * 2; i++) {
+      mFs.createFile(new AlluxioURI("/" + i)).close();
+    }
+
+    // Wait until current snapshot index changes.
+    CommonUtils.waitFor("copycat checkpoint to be written", () -> {
+      try {
+        long latestSnapshotIdx = getCurrentCopyCatSnapshotIndex(followerJournalFolder);
+        return latestSnapshotIdx != curentSnapshotIdx;
+      } catch (Throwable err) {
+        return false;
+      }
+    });
+  }
+
+  private long getCurrentCopyCatSnapshotIndex(String journalFolder) throws Throwable {
+    Serializer serializer = RaftJournalSystem.createSerializer();
+    serializer.resolve(new ClientRequestTypeResolver());
+    serializer.resolve(new ClientResponseTypeResolver());
+    serializer.resolve(new ProtocolSerialization());
+    serializer.resolve(new ServerSerialization());
+    serializer.resolve(new StorageSerialization());
+
+    SingleThreadContext context = new SingleThreadContext("readJournal", serializer);
+    AtomicLong currentSnapshotIdx = new AtomicLong();
+    try {
+      // Read through the whole journal content, starting from snapshot.
+      context.execute(() -> {
+        Storage journalStorage = Storage.builder().withDirectory(journalFolder).build();
+        Snapshot currentShapshot = journalStorage.openSnapshotStore("copycat").currentSnapshot();
+        currentSnapshotIdx.set((currentShapshot != null) ? currentShapshot.index() : -1);
+      }).get();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw e;
+    } catch (ExecutionException e) {
+      throw e.getCause();
+    }
+    return currentSnapshotIdx.get();
   }
 
   private String findCheckpointDir() throws IOException {

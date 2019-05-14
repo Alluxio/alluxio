@@ -329,9 +329,8 @@ public final class JournalTool {
     public void dumpJournal() throws Throwable {
       UfsJournal journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0)
           .createJournal(new NoopMaster(sMaster));
-      try (
-          PrintStream out =
-              new PrintStream(new BufferedOutputStream(new FileOutputStream(mJournalEntryFile)));
+      try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(
+          mJournalEntryFile)));
           JournalReader reader = new UfsJournalReader(journal, sStart, true)) {
         boolean done = false;
         while (!done && reader.getNextSequenceNumber() < sEnd) {
@@ -475,7 +474,7 @@ public final class JournalTool {
 
     private void dumpCheckpointStream(CheckpointInputStream checkpointStream) {
       try {
-        Path snapshotDir = Paths.get(mCheckpointsDir, "copycat-snapshot.log");
+        Path snapshotDir = Paths.get(mCheckpointsDir);
         readCheckpoint(checkpointStream, snapshotDir.toAbsolutePath());
       } catch (IOException exc) {
         LOG.error("Failed while reading checkpoint stream.", exc);
