@@ -225,16 +225,8 @@ public abstract class AbstractClient implements Client {
         LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
-<<<<<<< HEAD
-            .newBuilder(new GrpcServerAddress(mAddress), mContext.getConf())
-            .setSubject(mContext.getUserState().getSubject())
-||||||| merged common ancestors
-            .newBuilder(new GrpcServerAddress(mAddress), mContext.getConf())
-            .setSubject(mContext.getSubject())
-=======
             .newBuilder(new GrpcServerAddress(mAddress), mContext.getClusterConf())
             .setSubject(mContext.getSubject())
->>>>>>> upstream/master
             .build();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
@@ -397,24 +389,10 @@ public abstract class AbstractClient implements Client {
   // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
-<<<<<<< HEAD
-      if (SecurityUtils.isAuthenticationEnabled(mContext.getConf())
-          && mContext.getUserState().getUser() != null) {
-||||||| merged common ancestors
-      if (SecurityUtils.isAuthenticationEnabled(mContext.getConf())
-          && LoginUser.get(mContext.getConf()) != null) {
-=======
       if (SecurityUtils.isAuthenticationEnabled(mContext.getClusterConf())
-          && LoginUser.get(mContext.getClusterConf()) != null) {
->>>>>>> upstream/master
+          && mContext.getUserState().getUser() != null) {
         return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-<<<<<<< HEAD
             mContext.getUserState().getUser().getName());
-||||||| merged common ancestors
-            LoginUser.get(mContext.getConf()).getName());
-=======
-            LoginUser.get(mContext.getClusterConf()).getName());
->>>>>>> upstream/master
       } else {
         return metricName;
       }

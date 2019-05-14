@@ -70,19 +70,9 @@ public final class HeartbeatThread implements Runnable {
    * @param conf Alluxio configuration
    * @param userState the user state for this heartbeat thread
    */
-<<<<<<< HEAD
-  public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs,
-      AlluxioConfiguration conf, UserState userState) {
-    mThreadName = threadName;
-||||||| merged common ancestors
-  public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs,
-      AlluxioConfiguration conf) {
-    mThreadName = threadName;
-=======
   public HeartbeatThread(String executorName, String threadId, HeartbeatExecutor executor,
-      long intervalMs, AlluxioConfiguration conf) {
+      long intervalMs, AlluxioConfiguration conf, UserState userState) {
     mThreadName = generateThreadName(executorName, threadId);
->>>>>>> upstream/master
     mExecutor = Preconditions.checkNotNull(executor, "executor");
     Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(executorName);
     mTimer = CommonUtils.createNewClassInstance(timerClass, new Class[] {String.class, long.class},
@@ -100,10 +90,11 @@ public final class HeartbeatThread implements Runnable {
    * @param executor the heartbeat executor
    * @param intervalMs the interval between heartbeats
    * @param conf the Alluxio configuration
+   * @param userState the user state for this heartbeat thread
    */
   public HeartbeatThread(String executorName, HeartbeatExecutor executor, long intervalMs,
-      AlluxioConfiguration conf) {
-    this(executorName, null, executor, intervalMs, conf);
+      AlluxioConfiguration conf, UserState userState) {
+    this(executorName, null, executor, intervalMs, conf, userState);
   }
 
   @Override

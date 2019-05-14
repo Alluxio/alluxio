@@ -70,7 +70,7 @@ public final class OutStreamOptions {
    * @return the default {@link OutStreamOptions}
    */
   public static OutStreamOptions defaults(ClientContext context) {
-    return new OutStreamOptions(context, context.getConf());
+    return new OutStreamOptions(context, context.getClusterConf());
   }
 
   /**
@@ -126,7 +126,7 @@ public final class OutStreamOptions {
     mWriteType = alluxioConf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     try {
       mOwner = context.getUserState().getUser().getName();
-      mGroup = CommonUtils.getPrimaryGroupName(mOwner, context.getConf());
+      mGroup = CommonUtils.getPrimaryGroupName(mOwner, context.getClusterConf());
     } catch (IOException e) {
       mOwner = "";
       mGroup = "";

@@ -176,76 +176,14 @@ public class BaseFileSystem implements FileSystem {
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     checkUri(path);
-<<<<<<< HEAD
-    options = FileSystemOptions.createFileDefaults(mFsContext.getPathConf(path))
-        .toBuilder().mergeFrom(options).build();
-    FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
-    URIStatus status;
-    try {
-      status = masterClient.createFile(path, options);
-      LOG.debug("Created file {}, options: {}", path.getPath(), options);
-    } catch (AlreadyExistsException e) {
-      throw new FileAlreadyExistsException(e.getMessage());
-    } catch (InvalidArgumentException e) {
-      throw new InvalidPathException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    } finally {
-      mFsContext.releaseMasterClient(masterClient);
-    }
-
-    OutStreamOptions outStreamOptions =
-        new OutStreamOptions(options, mFsContext.getClientContext(), mFsContext.getPathConf(path));
-    outStreamOptions.setUfsPath(status.getUfsPath());
-    outStreamOptions.setMountId(status.getMountId());
-    outStreamOptions.setAcl(status.getAcl());
-    try {
-      return new FileOutStream(path, outStreamOptions, mFsContext);
-    } catch (Exception e) {
-      delete(path);
-      throw e;
-    }
-||||||| merged common ancestors
-    options = FileSystemOptions.createFileDefaults(mFsContext.getPathConf(path))
-        .toBuilder().mergeFrom(options).build();
-    FileSystemMasterClient masterClient = mFsContext.acquireMasterClient();
-    URIStatus status;
-    try {
-      status = masterClient.createFile(path, options);
-      LOG.debug("Created file {}, options: {}", path.getPath(), options);
-    } catch (AlreadyExistsException e) {
-      throw new FileAlreadyExistsException(e.getMessage());
-    } catch (InvalidArgumentException e) {
-      throw new InvalidPathException(e.getMessage());
-    } catch (UnavailableException e) {
-      throw e;
-    } catch (AlluxioStatusException e) {
-      throw e.toAlluxioException();
-    } finally {
-      mFsContext.releaseMasterClient(masterClient);
-    }
-
-    OutStreamOptions outStreamOptions =
-        new OutStreamOptions(options, mFsContext.getPathConf(path));
-    outStreamOptions.setUfsPath(status.getUfsPath());
-    outStreamOptions.setMountId(status.getMountId());
-    outStreamOptions.setAcl(status.getAcl());
-    try {
-      return new FileOutStream(path, outStreamOptions, mFsContext);
-    } catch (Exception e) {
-      delete(path);
-      throw e;
-    }
-=======
     return rpc(client -> {
       CreateFilePOptions mergedOptions = FileSystemOptions.createFileDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       URIStatus status = client.createFile(path, mergedOptions);
       LOG.debug("Created file {}, options: {}", path.getPath(), mergedOptions);
       OutStreamOptions outStreamOptions =
-          new OutStreamOptions(mergedOptions, mFsContext.getPathConf(path));
+          new OutStreamOptions(mergedOptions, mFsContext.getClientContext(),
+              mFsContext.getPathConf(path));
       outStreamOptions.setUfsPath(status.getUfsPath());
       outStreamOptions.setMountId(status.getMountId());
       outStreamOptions.setAcl(status.getAcl());
@@ -256,7 +194,6 @@ public class BaseFileSystem implements FileSystem {
         throw e;
       }
     });
->>>>>>> upstream/master
   }
 
   @Override

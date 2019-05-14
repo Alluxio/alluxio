@@ -15,12 +15,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
-<<<<<<< HEAD
-import alluxio.security.user.UserState;
-||||||| merged common ancestors
-=======
 import alluxio.grpc.GetConfigurationPResponse;
->>>>>>> upstream/master
+import alluxio.security.user.UserState;
 import alluxio.util.ConfigurationUtils;
 
 import java.net.InetSocketAddress;
@@ -49,15 +45,9 @@ public class ClientContext {
   private volatile AlluxioConfiguration mClusterConf;
   private volatile String mClusterConfHash;
   private volatile PathConfiguration mPathConf;
-<<<<<<< HEAD
   private volatile UserState mUserState;
-||||||| merged common ancestors
-  private final Subject mSubject;
-=======
   private volatile String mPathConfHash;
   private volatile boolean mIsPathConfLoaded = false;
-  private final Subject mSubject;
->>>>>>> upstream/master
 
   /**
    * A client context with information about the subject and configuration of the client.
@@ -91,23 +81,11 @@ public class ClientContext {
    * This constructor does not create a copy of the configuration.
    */
   protected ClientContext(ClientContext ctx) {
-<<<<<<< HEAD
-    mConf = ctx.getConf();
-||||||| merged common ancestors
-    mSubject = ctx.getSubject();
-    mConf = ctx.getConf();
-=======
-    mSubject = ctx.getSubject();
     mClusterConf = ctx.getClusterConf();
->>>>>>> upstream/master
     mPathConf = ctx.getPathConf();
-<<<<<<< HEAD
     mUserState = ctx.getUserState();
-||||||| merged common ancestors
-=======
     mClusterConfHash = ctx.getClusterConfHash();
     mPathConfHash = ctx.getPathConfHash();
->>>>>>> upstream/master
   }
 
   private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
@@ -124,7 +102,7 @@ public class ClientContext {
       mClusterConfHash = mClusterConf.hash();
     }
     mPathConf = PathConfiguration.create(new HashMap<>());
-    mUserState = UserState.Factory.create(mConf, subject);
+    mUserState = UserState.Factory.create(mClusterConf, subject);
   }
 
   /**
@@ -169,20 +147,8 @@ public class ClientContext {
    */
   public synchronized void loadConfIfNotLoaded(InetSocketAddress address)
       throws AlluxioStatusException {
-<<<<<<< HEAD
-    Pair<AlluxioConfiguration, PathConfiguration> conf =
-        ConfigurationUtils.loadClusterAndPathDefaults(address, mConf, mPathConf);
-    mConf = conf.getFirst();
-    mPathConf = conf.getSecond();
-    mUserState = UserState.Factory.create(mConf, mUserState.getSubject());
-||||||| merged common ancestors
-    Pair<AlluxioConfiguration, PathConfiguration> conf =
-        ConfigurationUtils.loadClusterAndPathDefaults(address, mConf, mPathConf);
-    mConf = conf.getFirst();
-    mPathConf = conf.getSecond();
-=======
     loadConf(address, !mClusterConf.clusterDefaultsLoaded(), !mIsPathConfLoaded);
->>>>>>> upstream/master
+    mUserState = UserState.Factory.create(mClusterConf, mUserState.getSubject());
   }
 
   /**
