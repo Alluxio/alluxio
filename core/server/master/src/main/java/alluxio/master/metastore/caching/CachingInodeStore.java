@@ -684,7 +684,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       if (entry != null && entry.mChildren != null) {
         return entry.mChildren.values();
       }
-      if (entry == null || !createdNewEntry.get()) {
+      if (entry == null || !createdNewEntry.get() || option.shouldSkipCache()) {
         // Skip caching if the cache is full or someone else is already caching.
         return mEdgeCache.getChildIds(inodeId, option).values();
       }

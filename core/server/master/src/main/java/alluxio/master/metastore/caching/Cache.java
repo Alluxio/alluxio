@@ -95,7 +95,7 @@ public abstract class Cache<K, V> implements Closeable {
    * If the value needs to be loaded, concurrent calls to get(key) will block while waiting for the
    * first call to finish loading the value.
    *
-   * If skipCachingAndEviction is true, then the value loaded from the backing store will not be
+   * If option.shouldSkipCache() is true, then the value loaded from the backing store will not be
    * cached and the eviction thread will not be woken up.
    *
    * @param key the key to get the value for
