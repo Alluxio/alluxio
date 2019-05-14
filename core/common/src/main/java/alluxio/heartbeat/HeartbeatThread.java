@@ -17,6 +17,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,24 +40,57 @@ public final class HeartbeatThread implements Runnable {
   private AlluxioConfiguration mConfiguration;
 
   /**
+   * @param executorName the executor name defined in {@link HeartbeatContext}
+   * @param threadId the thread identifier
+   * @return the thread name combined of executorName and threadId, if threadId is empty or null,
+   *    return executorName
+   */
+  @VisibleForTesting
+  public static String generateThreadName(String executorName, String threadId) {
+    if (threadId == null || threadId.isEmpty()) {
+      return executorName;
+    }
+    return executorName + "-" + threadId;
+  }
+
+  /**
    * Creates a {@link Runnable} to execute heartbeats for the given {@link HeartbeatExecutor}.
    *
    * This class is responsible for closing the given {@link HeartbeatExecutor} when it finishes.
    *
-   * @param threadName identifies the heartbeat thread name
+   * @param executorName identifies the heartbeat thread's executor, should be those defined in
+   *    {@link HeartbeatContext}
+   * @param threadId the thread identifier, normally, it is empty, but if a heartbeat
+   *    executor is started in multiple threads, this can be used to distinguish them, the heartbeat
+   *    thread's name is a combination of executorName and threadId
    * @param executor identifies the heartbeat thread executor; an instance of a class that
    *        implements the HeartbeatExecutor interface
    * @param intervalMs Sleep time between different heartbeat
    * @param conf Alluxio configuration
    */
-  public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs,
-      AlluxioConfiguration conf) {
-    mThreadName = threadName;
+  public HeartbeatThread(String executorName, String threadId, HeartbeatExecutor executor,
+      long intervalMs, AlluxioConfiguration conf) {
+    mThreadName = generateThreadName(executorName, threadId);
     mExecutor = Preconditions.checkNotNull(executor, "executor");
-    Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(threadName);
+    Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(executorName);
     mTimer = CommonUtils.createNewClassInstance(timerClass, new Class[] {String.class, long.class},
-        new Object[] {threadName, intervalMs});
+        new Object[] {mThreadName, intervalMs});
     mConfiguration = conf;
+  }
+
+  /**
+   * Convenience method for
+   * {@link #HeartbeatThread(String, String, HeartbeatExecutor, long, AlluxioConfiguration)} where
+   * threadId is null.
+   *
+   * @param executorName the executor name that is one of those defined in {@link HeartbeatContext}
+   * @param executor the heartbeat executor
+   * @param intervalMs the interval between heartbeats
+   * @param conf the Alluxio configuration
+   */
+  public HeartbeatThread(String executorName, HeartbeatExecutor executor, long intervalMs,
+      AlluxioConfiguration conf) {
+    this(executorName, null, executor, intervalMs, conf);
   }
 
   @Override

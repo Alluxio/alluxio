@@ -160,6 +160,12 @@ public final class PortRegistry {
       new HashSet<>(mReserved.keySet()).forEach(this::release);
     }
 
+    /**
+     * Creates a file in coordination dir to lock the port.
+     *
+     * @param port the port to lock
+     * @return the created file
+     */
     public File portFile(int port) {
       return new File(mCoordinationDir, Integer.toString(port));
     }
