@@ -11,12 +11,9 @@
 
 package alluxio.testutils.underfs.delegating;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
-
-import javax.annotation.Nullable;
 
 /**
  * Factory for delegating under file systems.
@@ -36,8 +33,7 @@ public class DelegatingUnderFileSystemFactory implements UnderFileSystemFactory 
   }
 
   @Override
-  public UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     return mUfs;
   }
 
