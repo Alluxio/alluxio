@@ -65,6 +65,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    *
    * @param path the UFS path
    * @param ufs the implementation which will handle all the calls
+   * @param conf Alluxio configuration
    *
    */
   // TODO(adit): Remove this method. ALLUXIO-2643.
