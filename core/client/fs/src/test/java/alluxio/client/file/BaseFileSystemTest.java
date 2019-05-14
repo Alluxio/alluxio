@@ -41,6 +41,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.resource.CloseableResource;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.FileInfo;
 
@@ -91,7 +92,13 @@ public final class BaseFileSystemTest {
     mClientContext = ClientContext.create(mConf);
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
+    when(mFileContext.acquireMasterClientResource()).thenReturn(
+        new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClient) {
+          @Override
+          public void close() {
+            // Noop.
+          }
+        });
     when(mFileContext.getClientContext()).thenReturn(mClientContext);
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
@@ -107,8 +114,7 @@ public final class BaseFileSystemTest {
    * Verifies and releases the master client after a test with a filesystem operation.
    */
   public void verifyFilesystemContextAcquiredAndReleased() {
-    verify(mFileContext).acquireMasterClient();
-    verify(mFileContext).releaseMasterClient(mFileSystemMasterClient);
+    verify(mFileContext).acquireMasterClientResource();
   }
 
   /**

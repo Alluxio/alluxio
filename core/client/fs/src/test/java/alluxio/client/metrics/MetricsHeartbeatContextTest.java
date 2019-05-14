@@ -43,7 +43,7 @@ public class MetricsHeartbeatContextTest {
   public void testExecutorInitialized() {
 
     ClientContext ctx = ClientContext.create();
-    MasterInquireClient client = MasterInquireClient.Factory.create(ctx.getConf());
+    MasterInquireClient client = MasterInquireClient.Factory.create(ctx.getClusterConf());
 
     // Add and delete a single context, make sure it is non null after adding, and then null after
     // removing
@@ -75,7 +75,7 @@ public class MetricsHeartbeatContextTest {
     assertTrue(map.isEmpty());
 
     ClientContext ctx = ClientContext.create();
-    MasterInquireClient client = MasterInquireClient.Factory.create(ctx.getConf());
+    MasterInquireClient client = MasterInquireClient.Factory.create(ctx.getClusterConf());
     MetricsHeartbeatContext.addHeartbeat(ctx, client);
     assertFalse(map.isEmpty());
 
@@ -113,7 +113,7 @@ public class MetricsHeartbeatContextTest {
     ScheduledFuture<?> future = Mockito.mock(ScheduledFuture.class);
     when(future.cancel(any(Boolean.class))).thenReturn(true);
     ClientContext ctx = ClientContext.create();
-    MasterInquireClient client = MasterInquireClient.Factory.create(ctx.getConf());
+    MasterInquireClient client = MasterInquireClient.Factory.create(ctx.getClusterConf());
     MetricsHeartbeatContext.addHeartbeat(ctx, client);
     assertFalse(map.isEmpty());
     map.forEach((addr, heartbeat) -> {
