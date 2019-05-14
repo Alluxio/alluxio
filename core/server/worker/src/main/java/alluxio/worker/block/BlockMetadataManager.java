@@ -470,19 +470,4 @@ public final class BlockMetadataManager {
   public StorageTierAssoc getStorageTierAssoc() {
     return mStorageTierAssoc;
   }
-
-  /**
-   * Get the medium type of the block store location.
-   *
-   * @param location the block store location
-   * @return empty string if block store location is a range, otherwise the medium type
-   */
-  public String getMediumType(BlockStoreLocation location) {
-    if (location.tierAlias().equals(BlockStoreLocation.ANY_TIER)
-        || location.dir() == BlockStoreLocation.ANY_DIR) {
-      return "";
-    }
-    return getTier(location.tierAlias()).getStorageDirs()
-        .get(location.dir()).getDirMedium();
-  }
 }

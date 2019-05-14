@@ -348,12 +348,4 @@ public interface BlockStore extends SessionCleanable {
    * @return true if at least one storage path failed check and is removed, false otherwise
    */
   boolean checkStorage();
-
-  /**
-   * Get the medium type of a block store location.
-   *
-   * @param location blockstorelocation
-   * @return medium type or empty string if block location is a range of locations
-   */
-  String getMediumType(BlockStoreLocation location);
 }
