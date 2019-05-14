@@ -62,7 +62,8 @@ public final class MaxFreeAllocator implements Allocator {
 
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTierView tierView : mManagerView.getTierViews()) {
-        candidateDirView = getCandidateDirInTier(tierView, blockSize, BlockStoreLocation.ANY_MEDIUM);
+        candidateDirView = getCandidateDirInTier(tierView, blockSize,
+            BlockStoreLocation.ANY_MEDIUM);
         if (candidateDirView != null) {
           break;
         }
@@ -96,7 +97,8 @@ public final class MaxFreeAllocator implements Allocator {
    * @param mediumType the medium type that must match
    * @return the storage directory view if found, null otherwise
    */
-  private StorageDirView getCandidateDirInTier(StorageTierView tierView, long blockSize, String mediumType) {
+  private StorageDirView getCandidateDirInTier(StorageTierView tierView, long blockSize,
+      String mediumType) {
     StorageDirView candidateDirView = null;
     long maxFreeBytes = blockSize - 1;
     for (StorageDirView dirView : tierView.getDirViews()) {

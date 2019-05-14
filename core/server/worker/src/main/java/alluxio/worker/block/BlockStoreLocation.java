@@ -59,16 +59,16 @@ public final class BlockStoreLocation {
     return new BlockStoreLocation(tierAlias, ANY_DIR, ANY_MEDIUM);
   }
 
-
   /**
-   * Convenience method to return the block store location representing any dir in any tier with specific medium.
+   * Convenience method to return the block store location representing any dir in any tier
+   * with specific medium.
    *
-   * @ return a BlockStoreLocation of any dir in any tier with a specific medium
+   * @param mediumType mediumType this returned block store location will represent
+   * @return a BlockStoreLocation of any dir in any tier with a specific medium
    */
   public static BlockStoreLocation anyDirInTierWithMedium(String mediumType) {
     return new BlockStoreLocation(ANY_TIER, ANY_DIR, mediumType);
   }
-
 
   /**
    * Creates a new instance of {@link BlockStoreLocation}.
@@ -116,7 +116,7 @@ public final class BlockStoreLocation {
   /**
    * Gets the medium type of the location.
    *
-   * @return the medium type of the location.
+   * @return the medium type of the location
    */
   public String mediumType() {
     return mMediumType;
@@ -134,7 +134,8 @@ public final class BlockStoreLocation {
     boolean tierInRange =
         tierAlias().equals(location.tierAlias()) || location.tierAlias().equals(ANY_TIER);
     boolean dirInRange = (dir() == location.dir()) || (location.dir() == ANY_DIR);
-    boolean mediumTypeInRange = (mediumType() == location.mediumType()) || (mediumType() == ANY_MEDIUM);
+    boolean mediumTypeInRange = (mediumType() == location.mediumType())
+        || (mediumType() == ANY_MEDIUM);
     return tierInRange && dirInRange && mediumTypeInRange;
   }
 

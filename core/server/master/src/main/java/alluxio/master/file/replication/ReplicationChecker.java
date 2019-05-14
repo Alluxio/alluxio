@@ -29,10 +29,8 @@ import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.wire.BlockInfo;
-
 import alluxio.wire.BlockLocation;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
-import org.apache.commons.lang3.tuple.Triple;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -256,7 +254,8 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     private Mode mMode;
 
     /**
-     * Constructor for ReplicationRequest object
+     * Constructor for ReplicationRequest object.
+     *
      * @param mode mode
      * @param alluxioUri alluxioUri
      * @param blockId blockid
