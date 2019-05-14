@@ -542,9 +542,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       PropertyKey key = Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(i);
       String alias = get(key);
       Preconditions.checkState(globalTierAliasSet.contains(alias),
-          "Alias \"%s\" on tier %s on worker (configured by %s) is not found in global tiered " +
-              "storage setting: %s",
-          alias, i, key, String.join(",", globalTierAliasSet));
+          "Alias \"%s\" on tier %s on worker (configured by %s) is not found in global tiered "
+              + "storage setting: %s",
+          alias, i, key, String.join(", ", globalTierAliasSet));
     }
   }
 
