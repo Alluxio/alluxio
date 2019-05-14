@@ -14,6 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.Constants;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -23,6 +24,11 @@ import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
+
+import com.google.protobuf.ByteString;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -235,7 +241,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
 
   @Override
   public JournalEntry toJournalEntry() {
-    InodeDirectoryEntry inodeDirectory = InodeDirectoryEntry.newBuilder()
+    InodeDirectoryEntry.Builder inodeDirectory = InodeDirectoryEntry.newBuilder()
         .setCreationTimeMs(getCreationTimeMs())
         .setId(getId())
         .setName(getName())
@@ -248,9 +254,11 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
         .setAcl(ProtoUtils.toProto(mAcl))
-        .setDefaultAcl(ProtoUtils.toProto(mDefaultAcl))
-        .putAllXAttr(getXAttr())
-        .build();
+        .setDefaultAcl(ProtoUtils.toProto(mDefaultAcl));
+    Map<String, ByteString> vals;
+    if ((vals = getXAttr()) != null) {
+      inodeDirectory.putAllXAttr(vals);
+    }
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }
 

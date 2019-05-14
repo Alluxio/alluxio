@@ -28,9 +28,12 @@ import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
+import com.google.protobuf.ByteString;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -431,7 +434,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
 
   @Override
   public JournalEntry toJournalEntry() {
-    InodeFileEntry inodeFile = InodeFileEntry.newBuilder()
+    InodeFileEntry.Builder inodeFile = InodeFileEntry.newBuilder()
         .addAllBlocks(getBlockIds())
         .setBlockSizeBytes(getBlockSizeBytes())
         .setCacheable(isCacheable())
@@ -452,9 +455,11 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setUfsFingerprint(getUfsFingerprint())
-        .setAcl(ProtoUtils.toProto(mAcl))
-        .putAllXAttr(getXAttr())
-        .build();
+        .setAcl(ProtoUtils.toProto(mAcl));
+    Map<String, ByteString> vals;
+    if ((vals = getXAttr()) != null) {
+      inodeFile.putAllXAttr(vals);
+    }
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
 
@@ -477,7 +482,6 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setReplicationMin(getReplicationMin())
         .setPersistJobId(getPersistJobId())
         .setPersistJobTempUfsPath(getTempUfsPath())
-        .putAllXAttr(getXAttr())
         .build();
   }
 

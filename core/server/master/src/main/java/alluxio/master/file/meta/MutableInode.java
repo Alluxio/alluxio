@@ -595,7 +595,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   }
 
   protected InodeMeta.Inode.Builder toProtoBuilder() {
-    return InodeMeta.Inode.newBuilder()
+    InodeMeta.Inode.Builder inode = InodeMeta.Inode.newBuilder()
         .setId(getId())
         .setCreationTimeMs(getCreationTimeMs())
         .setIsDirectory(isDirectory())
@@ -607,8 +607,12 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .setPersistenceState(getPersistenceState().name())
         .setIsPinned(isPinned())
         .setAccessAcl(ProtoUtils.toProto(getACL()))
-        .setUfsFingerprint(getUfsFingerprint())
-        .putAllXAttr(getXAttr());
+        .setUfsFingerprint(getUfsFingerprint());
+    Map<String, ByteString> vals;
+    if ((vals = getXAttr()) != null) {
+      inode.putAllXAttr(vals);
+    }
+    return inode;
   }
 
   /**
