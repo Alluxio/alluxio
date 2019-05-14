@@ -347,9 +347,9 @@ public class InodeTree implements DelegatingJournaled {
         new LockedInodePath(uri, mInodeStore, mInodeLockManager, getRoot(), lockPattern);
     try {
       inodePath.traverse();
-    } catch (Throwable t) {
+    } catch (InvalidPathException e) {
       inodePath.close();
-      throw t;
+      throw e;
     }
     return inodePath;
   }
