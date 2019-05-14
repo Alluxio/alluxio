@@ -25,6 +25,7 @@ public class CoreMasterContext extends MasterContext {
   private final BackupManager mBackupManager;
   private final BlockStore.Factory mBlockStoreFactory;
   private final InodeStore.Factory mInodeStoreFactory;
+  private final JournalSystem mJournalSystem;
   private final long mStartTimeMs;
   private final int mPort;
 
@@ -37,6 +38,7 @@ public class CoreMasterContext extends MasterContext {
         Preconditions.checkNotNull(builder.mBlockStoreFactory, "blockStoreFactory");
     mInodeStoreFactory =
         Preconditions.checkNotNull(builder.mInodeStoreFactory, "inodeStoreFactory");
+    mJournalSystem = Preconditions.checkNotNull(builder.mJournalSystem, "journalSystem");
     mStartTimeMs = builder.mStartTimeMs;
     mPort = builder.mPort;
   }
@@ -69,6 +71,12 @@ public class CoreMasterContext extends MasterContext {
     return mInodeStoreFactory;
   }
 
+  /**
+   * @return the journal system
+   */
+  public JournalSystem getJournalSystem() {
+    return mJournalSystem;
+  }
   /**
    * @return the master process start time in milliseconds
    */

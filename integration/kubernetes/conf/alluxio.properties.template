@@ -9,21 +9,4 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-ALLUXIO_MASTER_HOSTNAME=alluxio-master
-# Note: Embedded journal type is not supported on kubernetes
-ALLUXIO_MASTER_JOURNAL_TYPE=UFS
-ALLUXIO_MASTER_JOURNAL_FOLDER=/journal
-ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS=<under_storage_address>
-ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain
-ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID=true
-ALLUXIO_WORKER_MEMORY_SIZE=1GB
-
-ALLUXIO_MASTER_PORT=19998
-ALLUXIO_MASTER_WEB_PORT=19999
-ALLUXIO_WORKER_PORT=29998
-ALLUXIO_WORKER_DATA_PORT=29999
-ALLUXIO_WORKER_WEB_PORT=29996
-
-# If using S3A
-# AWS_ACCESSKEYID=<s3a_access_key>
-# AWS_SECRETKEY=<s3a_secret_key>
+ALLUXIO_JAVA_OPTS=-Dalluxio.master.hostname=alluxio-master -Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=/journal -Dalluxio.master.mount.table.root.ufs=<under_storage_address> -Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true -Dalluxio.worker.memory.size=1GB -Dalluxio.master.port=19998 -Dalluxio.master.web.port=19999 -Dalluxio.worker.data.port=29999 -Dalluxio.worker.web.port=29996 -Daws.accessKeyId=<s3a_access_key> -Daws.secretKey=<s3a_secret_key>

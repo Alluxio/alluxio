@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -95,7 +96,8 @@ public final class JournalUpgrader {
           getJournalLocation(sJournalDirectoryV0))).create(master);
       mJournalV1 =
           new UfsJournal(getJournalLocation(ServerConfiguration
-              .get(PropertyKey.MASTER_JOURNAL_FOLDER)), new NoopMaster(master), 0);
+              .get(PropertyKey.MASTER_JOURNAL_FOLDER)), new NoopMaster(master), 0,
+              Collections::emptySet);
 
       mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0, alluxioConf);
 

@@ -20,8 +20,8 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.cli.Format;
-import alluxio.client.MetaMasterClient;
-import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
@@ -126,7 +126,7 @@ public final class MultiProcessCluster {
   private MultiProcessCluster(Map<PropertyKey, String> properties,
       Map<Integer, Map<PropertyKey, String>> masterProperties,
       Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,
-      String clusterName, DeployMode mode, boolean noFormat,
+      String clusterName, boolean noFormat,
       List<PortCoordination.ReservedPort> ports) {
     if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) != null) {
       Preconditions.checkState(
@@ -142,7 +142,6 @@ public final class MultiProcessCluster {
     mNumWorkers = numWorkers;
     // Add a unique number so that different runs of the same test use different cluster names.
     mClusterName = clusterName + "-" + Math.abs(ThreadLocalRandom.current().nextInt());
-    mDeployMode = mode;
     mNoFormat = noFormat;
     mMasters = new ArrayList<>();
     mWorkers = new ArrayList<>();
@@ -150,6 +149,11 @@ public final class MultiProcessCluster {
     mCloser = Closer.create();
     mState = State.NOT_STARTED;
     mSuccess = false;
+
+    String journalType = mProperties.getOrDefault(PropertyKey.MASTER_JOURNAL_TYPE,
+        ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_TYPE));
+    mDeployMode = journalType.equals(JournalType.EMBEDDED.toString()) ? DeployMode.EMBEDDED
+        : numMasters > 1 ? DeployMode.ZOOKEEPER_HA : DeployMode.UFS_NON_HA;
   }
 
   /**
@@ -164,14 +168,14 @@ public final class MultiProcessCluster {
     mMasterAddresses = generateMasterAddresses(mNumMasters);
     LOG.info("Master addresses: {}", mMasterAddresses);
     switch (mDeployMode) {
-      case NON_HA:
+      case UFS_NON_HA:
         MasterNetAddress masterAddress = mMasterAddresses.get(0);
         mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString());
         mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
         mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
         mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
         break;
-      case EMBEDDED_HA:
+      case EMBEDDED:
         List<String> journalAddresses = new ArrayList<>();
         List<String> rpcAddresses = new ArrayList<>();
         for (MasterNetAddress address : mMasterAddresses) {
@@ -200,7 +204,7 @@ public final class MultiProcessCluster {
         ConfigurationTestUtils.testConfigurationDefaults(ServerConfiguration.global(),
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-        mWorkDir.getAbsolutePath()).entrySet()) {
+            mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
       if (mProperties.containsKey(entry.getKey())) {
         continue;
@@ -312,6 +316,13 @@ public final class MultiProcessCluster {
         throw new RuntimeException(e);
       }
     }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
+  }
+
+  /**
+   * @return the deploy mode
+   */
+  public synchronized DeployMode getDeployMode() {
+    return mDeployMode;
   }
 
   /**
@@ -475,7 +486,7 @@ public final class MultiProcessCluster {
    */
   public synchronized void updateDeployMode(DeployMode mode) {
     mDeployMode = mode;
-    if (mDeployMode == DeployMode.EMBEDDED_HA) {
+    if (mDeployMode == DeployMode.EMBEDDED) {
       // Ensure that the journal properties are set correctly.
       for (int i = 0; i < mMasters.size(); i++) {
         Master master = mMasters.get(i);
@@ -549,7 +560,7 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(address.getWebPort()));
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
         Integer.toString(address.getEmbeddedJournalPort()));
-    if (mDeployMode.equals(DeployMode.EMBEDDED_HA)) {
+    if (mDeployMode.equals(DeployMode.EMBEDDED)) {
       File journalDir = new File(mWorkDir, "journal" + i);
       journalDir.mkdirs();
       conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, journalDir.getAbsolutePath());
@@ -596,7 +607,7 @@ public final class MultiProcessCluster {
    * Formats the cluster journal.
    */
   public synchronized void formatJournal() throws IOException {
-    if (mDeployMode == DeployMode.EMBEDDED_HA) {
+    if (mDeployMode == DeployMode.EMBEDDED) {
       for (Master master : mMasters) {
         File journalDir = new File(master.getConf().get(PropertyKey.MASTER_JOURNAL_FOLDER));
         FileUtils.deleteDirectory(journalDir);
@@ -604,8 +615,7 @@ public final class MultiProcessCluster {
       }
       return;
     }
-    try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER,
-        mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER), ServerConfiguration.global())
+    try (Closeable c = new ConfigurationRule(mProperties, ServerConfiguration.global())
         .toResource()) {
       Format.format(Format.Mode.MASTER, ServerConfiguration.global());
     } catch (IOException e) {
@@ -618,17 +628,22 @@ public final class MultiProcessCluster {
    */
   public synchronized MasterInquireClient getMasterInquireClient() {
     switch (mDeployMode) {
-      case NON_HA:
+      case UFS_NON_HA:
         Preconditions.checkState(mMasters.size() == 1,
-            "Running with multiple masters requires Zookeeper to be enabled");
+            "Running with multiple masters requires Zookeeper or Embedded Journal");
         return new SingleMasterInquireClient(new InetSocketAddress(
             mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));
-      case EMBEDDED_HA:
-        List<InetSocketAddress> addresses = new ArrayList<>(mMasterAddresses.size());
-        for (MasterNetAddress address : mMasterAddresses) {
-          addresses.add(new InetSocketAddress(address.getHostname(), address.getRpcPort()));
+      case EMBEDDED:
+        if (mMasterAddresses.size() > 1) {
+          List<InetSocketAddress> addresses = new ArrayList<>(mMasterAddresses.size());
+          for (MasterNetAddress address : mMasterAddresses) {
+            addresses.add(new InetSocketAddress(address.getHostname(), address.getRpcPort()));
+          }
+          return new PollingMasterInquireClient(addresses, ServerConfiguration.global());
+        } else {
+          return new SingleMasterInquireClient(new InetSocketAddress(
+              mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));
         }
-        return new PollingMasterInquireClient(addresses, ServerConfiguration.global());
       case ZOOKEEPER_HA:
         return ZkMasterInquireClient.getClient(mCuratorServer.getConnectString(),
             ServerConfiguration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
@@ -706,8 +721,8 @@ public final class MultiProcessCluster {
    * Deploy mode for the cluster.
    */
   public enum DeployMode {
-    EMBEDDED_HA,
-    NON_HA, ZOOKEEPER_HA
+    EMBEDDED,
+    UFS_NON_HA, ZOOKEEPER_HA
   }
 
   /**
@@ -722,7 +737,6 @@ public final class MultiProcessCluster {
     private int mNumMasters = 1;
     private int mNumWorkers = 1;
     private String mClusterName = "AlluxioMiniCluster";
-    private DeployMode mDeployMode = DeployMode.NON_HA;
     private boolean mNoFormat = false;
 
     // Should only be instantiated by newBuilder().
@@ -780,15 +794,6 @@ public final class MultiProcessCluster {
     }
 
     /**
-     * @param mode the deploy mode for the cluster
-     * @return the builder
-     */
-    public Builder setDeployMode(DeployMode mode) {
-      mDeployMode = mode;
-      return this;
-    }
-
-    /**
      * @param numMasters the number of masters for the cluster
      * @return the builder
      */
@@ -837,7 +842,7 @@ public final class MultiProcessCluster {
           "The worker indexes in worker properties should be bigger or equal to zero "
               + "and small than %s", mNumWorkers);
       return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
-          mNumMasters, mNumWorkers, mClusterName, mDeployMode, mNoFormat, mReservedPorts);
+          mNumMasters, mNumWorkers, mClusterName, mNoFormat, mReservedPorts);
     }
   }
 

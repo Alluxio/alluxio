@@ -72,6 +72,8 @@ alluxio.user.local.reader.chunk.size.bytes:
   'When a client reads from a local worker, the maximum data chunk size.'
 alluxio.user.local.writer.chunk.size.bytes:
   'When a client writes to a local worker, the maximum data chunk size.'
+alluxio.user.logs.dir:
+  'The path to store alluxio CLI logs. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.user.metrics.collection.enabled:
   'Enable collecting the client-side metrics and hearbeat them to master'
 alluxio.user.metrics.heartbeat.interval:

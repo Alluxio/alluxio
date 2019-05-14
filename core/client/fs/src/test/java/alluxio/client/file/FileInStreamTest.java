@@ -24,6 +24,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.block.AlluxioBlockStore;
@@ -124,7 +125,8 @@ public final class FileInStreamTest {
 
     mContext = PowerMockito.mock(FileSystemContext.class);
     when(mContext.getClientContext()).thenReturn(ClientContext.create(sConf));
-    when(mContext.getConf()).thenReturn(sConf);
+    when(mContext.getClusterConf()).thenReturn(sConf);
+    when(mContext.getPathConf(any(AlluxioURI.class))).thenReturn(sConf);
     PowerMockito.when(mContext.getLocalWorker()).thenReturn(new WorkerNetAddress());
     mBlockStore = mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);

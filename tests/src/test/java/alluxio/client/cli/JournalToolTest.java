@@ -27,6 +27,7 @@ import alluxio.conf.PropertyKey.Name;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.journal.JournalTool;
+import alluxio.master.journal.JournalType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -50,6 +51,8 @@ import java.util.List;
  * Tests for {@link JournalTool}.
  */
 public class JournalToolTest extends BaseIntegrationTest {
+  private static final int CHECKPOINT_SIZE = 100;
+
   private final ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
 
   @Rule
@@ -58,8 +61,11 @@ public class JournalToolTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "10")
+          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+          .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES,
+              Integer.toString(CHECKPOINT_SIZE))
           .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "100")
+          .setProperty(PropertyKey.MASTER_PERSISTENCE_INITIAL_WAIT_TIME_MS, "1min")
           .build();
 
   private File mDumpDir;
@@ -93,11 +99,7 @@ public class JournalToolTest extends BaseIntegrationTest {
         SetAttributePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(100000).build())
             .build());
-    // Perform operations to generate a checkpoint.
-    for (int i = 0; i < 50; i++) {
-      mFs.createFile(new AlluxioURI("/" + i)).close();
-    }
-    IntegrationTestUtils.waitForUfsJournalCheckpoint(Constants.FILE_SYSTEM_MASTER_NAME);
+    checkpoint();
     JournalTool.main(new String[]{"-outputDir", mDumpDir.getAbsolutePath()});
     String checkpointDir = findCheckpointDir();
 
@@ -112,15 +114,19 @@ public class JournalToolTest extends BaseIntegrationTest {
   @Test
   @Config(confParams = {Name.MASTER_METASTORE, "ROCKS"})
   public void dumpRocksCheckpoint() throws Exception {
-    // Perform operations to generate a checkpoint.
-    for (int i = 0; i < 50; i++) {
-      mFs.createFile(new AlluxioURI("/" + i)).close();
-    }
-    IntegrationTestUtils.waitForUfsJournalCheckpoint(Constants.FILE_SYSTEM_MASTER_NAME);
+    checkpoint();
     JournalTool.main(new String[] {"-outputDir", mDumpDir.getAbsolutePath()});
     String checkpointDir = findCheckpointDir();
     assertNonemptyDirExists(
         PathUtils.concatPath(checkpointDir, "INODE_TREE", "CACHING_INODE_STORE"));
+  }
+
+  private void checkpoint() throws Exception {
+    // Perform operations to generate a checkpoint.
+    for (int i = 0; i < CHECKPOINT_SIZE * 2; i++) {
+      mFs.createFile(new AlluxioURI("/" + i)).close();
+    }
+    IntegrationTestUtils.waitForUfsJournalCheckpoint(Constants.FILE_SYSTEM_MASTER_NAME);
   }
 
   private String findCheckpointDir() throws IOException {

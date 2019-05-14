@@ -62,6 +62,10 @@ public interface MasterInquireClient {
      * @return an authority string representing the connect details
      */
     Authority toAuthority();
+
+    boolean equals(Object obj);
+
+    int hashCode();
   }
 
   /**
@@ -78,12 +82,13 @@ public interface MasterInquireClient {
             conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
             conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH),
             conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT));
-      } else if (ConfigurationUtils.getMasterRpcAddresses(conf).size() > 1) {
-        return new PollingMasterInquireClient(
-            ConfigurationUtils.getMasterRpcAddresses(conf), conf);
       } else {
-        return new SingleMasterInquireClient(
-            NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf));
+        List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(conf);
+        if (addresses.size() > 1) {
+          return new PollingMasterInquireClient(addresses, conf);
+        } else {
+          return new SingleMasterInquireClient(addresses.get(0));
+        }
       }
     }
 
@@ -93,13 +98,13 @@ public interface MasterInquireClient {
             conf.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH),
             conf.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH),
             conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT));
-      } else if (ConfigurationUtils.getJobMasterRpcAddresses(conf)
-          .size() > 1) {
-        return new PollingMasterInquireClient(
-            ConfigurationUtils.getJobMasterRpcAddresses(conf), conf);
       } else {
-        return new SingleMasterInquireClient(
-            NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC, conf));
+        List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(conf);
+        if (addresses.size() > 1) {
+          return new PollingMasterInquireClient(addresses, conf);
+        } else {
+          return new SingleMasterInquireClient(addresses.get(0));
+        }
       }
     }
     /**

@@ -21,11 +21,13 @@ import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.master.journal.checkpoint.Checkpointed;
 import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader;
 import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader.Entry;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.StreamUtils;
 
 import com.esotericsoftware.kryo.io.OutputChunked;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +39,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Utility methods for working with the Alluxio journal.
@@ -103,7 +107,12 @@ public final class JournalUtils {
     JournalEntryStreamReader reader = new JournalEntryStreamReader(input);
     JournalEntry entry;
     while ((entry = reader.readEntry()) != null) {
-      journaled.processJournalEntry(entry);
+      try {
+        journaled.processJournalEntry(entry);
+      } catch (Throwable t) {
+        handleJournalReplayFailure(LOG, t,
+            "Failed to process journal entry %s from a journal checkpoint", entry);
+      }
     }
   }
 
@@ -154,6 +163,53 @@ public final class JournalUtils {
             "Unrecognized checkpoint name: %s. Existing components: %s", nextEntry.getName(), Arrays
                 .toString(StreamUtils.map(Checkpointed::getCheckpointName, components).toArray())));
       }
+    }
+  }
+
+  /**
+   * Logs a fatal error and exits the system if required.
+   *
+   * @param logger the logger to log to
+   * @param t the throwable causing the fatal error
+   * @param format the error message format string
+   * @param args args for the format string
+   */
+  public static void handleJournalReplayFailure(Logger logger, Throwable t,
+      String format, Object... args) throws RuntimeException {
+    String message = String.format("Journal replay error: " + format, args);
+    if (t != null) {
+      message += "\n" + ExceptionUtils.getStackTrace(t);
+    }
+    if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+      throw new RuntimeException(message);
+    }
+    logger.error(message);
+    if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
+      System.exit(-1);
+      throw new RuntimeException(t);
+    }
+  }
+
+  /**
+   * Appends a journal entry to all the supplied journal sinks.
+   *
+   * @param journalSinks a supplier of journal sinks
+   * @param entry the journal entry
+   */
+  public static void sinkAppend(Supplier<Set<JournalSink>> journalSinks, JournalEntry entry) {
+    for (JournalSink sink : journalSinks.get()) {
+      sink.append(entry);
+    }
+  }
+
+  /**
+   * Appends a flush to all the supplied journal sinks.
+   *
+   * @param journalSinks a supplier of journal sinks
+   */
+  public static void sinkFlush(Supplier<Set<JournalSink>> journalSinks) {
+    for (JournalSink sink : journalSinks.get()) {
+      sink.flush();
     }
   }
 

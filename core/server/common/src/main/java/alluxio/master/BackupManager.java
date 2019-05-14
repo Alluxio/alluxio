@@ -11,10 +11,13 @@
 
 package alluxio.master;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
@@ -25,18 +28,35 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 /**
  * Manages creating and restoring from backups.
  *
  * Journals are written as a series of entries in gzip format.
+ *
+ * TODO(ggezer) Abstract out common logic for backup/initFromBackup methods.
  */
 public class BackupManager {
   private static final Logger LOG = LoggerFactory.getLogger(BackupManager.class);
+  // Used to mark termination of reading/writing journal entries.
+  private static final long TERMINATION_SEQ = -1;
 
   /**
    * The name format of the backup files (E.g., alluxio-backup-2018-12-14-1544749081561.gz).
@@ -62,18 +82,87 @@ public class BackupManager {
    * @param os the stream to write to
    */
   public void backup(OutputStream os) throws IOException {
-    int count = 0;
+    // Create gZIP compressed stream as back-up stream.
     GzipCompressorOutputStream zipStream = new GzipCompressorOutputStream(os);
-    for (Master master : mRegistry.getServers()) {
-      Iterator<JournalEntry> it = master.getJournalEntryIterator();
-      while (it.hasNext()) {
-        it.next().toBuilder().clearSequenceNumber().build().writeDelimitedTo(zipStream);
-        count++;
+
+    // Executor for taking backup.
+    CompletionService<Boolean> completionService = new ExecutorCompletionService<>(
+        Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("master-backup-%d", true)));
+
+    // List of active tasks.
+    Set<Future<?>> activeTasks = new HashSet<>();
+
+    // Entry queue will be used as a buffer and synchronization between readers and writer.
+    // Use of {@link LinkedBlockingQueue} is preferred becaue of {@code #drainTo()} method,
+    // using which all existing entries can be drained while allowing writes.
+    // Processing/draining one-by-one using {@link ConcurrentLinkedQueue} proved to be
+    // inefficient compared to draining with dedicated method.
+    LinkedBlockingQueue<JournalEntry> journalEntryQueue = new LinkedBlockingQueue<>(
+        ServerConfiguration.getInt(PropertyKey.MASTER_BACKUP_ENTRY_BUFFER_COUNT));
+
+    // Shows how many entries have been written.
+    AtomicLong writtenEntryCount = new AtomicLong(0);
+    // Whether buffering is still active.
+    AtomicBoolean bufferingActive = new AtomicBoolean(true);
+
+    // Submit master reader task.
+    activeTasks.add(completionService.submit(() -> {
+      try {
+        for (Master master : mRegistry.getServers()) {
+          Iterator<JournalEntry> it = master.getJournalEntryIterator();
+          while (it.hasNext()) {
+            journalEntryQueue.put(it.next());
+          }
+        }
+        // Put termination entry for signaling the writer.
+        journalEntryQueue
+            .put(JournalEntry.newBuilder().setSequenceNumber(TERMINATION_SEQ).build());
+        return true;
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Thread interrupted while reading master state.", ie);
+      } finally {
+        // Signal reader completion.
+        bufferingActive.set(false);
       }
-    }
+    }));
+
+    // Submit writer task.
+    activeTasks.add(completionService.submit(() -> {
+      try {
+        List<JournalEntry> pendingEntries = new LinkedList<>();
+        while (bufferingActive.get() || journalEntryQueue.size() > 0) {
+          // Drain pending entries.
+          if (0 == journalEntryQueue.drainTo(pendingEntries)) {
+            // No elements at the moment. Fall-back to blocking mode.
+            pendingEntries.add(journalEntryQueue.take());
+          }
+          // Write entries to back-up stream.
+          for (JournalEntry journalEntry : pendingEntries) {
+            // Check for termination entry.
+            if (journalEntry.getSequenceNumber() == TERMINATION_SEQ) {
+              // Reading finished.
+              return true;
+            }
+            journalEntry.writeDelimitedTo(zipStream);
+            writtenEntryCount.incrementAndGet();
+          }
+          pendingEntries.clear();
+        }
+        return true;
+      } catch (InterruptedException ie) {
+        // Continue interrupt chain.
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Thread interrupted while writing to backup stream.", ie);
+      }
+    }));
+
+    // Wait until backup tasks are completed.
+    safeWaitTasks(activeTasks, completionService);
+
     // finish() instead of close() since close would close os, which is owned by the caller.
     zipStream.finish();
-    LOG.info("Created backup with {} entries", count);
+    LOG.info("Created backup with {} entries", writtenEntryCount.get());
   }
 
   /**
@@ -82,22 +171,142 @@ public class BackupManager {
    * @param is an input stream to read from the backup
    */
   public void initFromBackup(InputStream is) throws IOException {
-    int count = 0;
     try (GzipCompressorInputStream gzIn = new GzipCompressorInputStream(is);
-         JournalEntryStreamReader reader = new JournalEntryStreamReader(gzIn)) {
+        JournalEntryStreamReader reader = new JournalEntryStreamReader(gzIn)) {
       List<Master> masters = mRegistry.getServers();
-      JournalEntry entry;
+
+      // Executor for applying backup.
+      CompletionService<Boolean> completionService = new ExecutorCompletionService<>(
+          Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("master-backup-%d", true)));
+
+      // List of active tasks.
+      Set<Future<?>> activeTasks = new HashSet<>();
+
+      // Entry queue will be used as a buffer and synchronization between readers and appliers.
+      LinkedBlockingQueue<JournalEntry> journalEntryQueue = new LinkedBlockingQueue<>(
+          ServerConfiguration.getInt(PropertyKey.MASTER_BACKUP_ENTRY_BUFFER_COUNT));
+
+      // Whether still reading from backup.
+      AtomicBoolean readingActive = new AtomicBoolean(true);
+
+      // Index masters by name.
       Map<String, Master> mastersByName = Maps.uniqueIndex(masters, Master::getName);
-      while ((entry = reader.readEntry()) != null) {
-        String masterName = JournalEntryAssociation.getMasterForEntry(entry);
-        Master master = mastersByName.get(masterName);
-        master.processJournalEntry(entry);
-        try (JournalContext jc = master.createJournalContext()) {
-          jc.append(entry);
-          count++;
+
+      // Shows how many entries have been applied.
+      AtomicLong appliedEntryCount = new AtomicLong(0);
+
+      // Create backup reader task.
+      activeTasks.add(completionService.submit(() -> {
+        try {
+          JournalEntry entry;
+          while ((entry = reader.readEntry()) != null) {
+            journalEntryQueue.put(entry);
+          }
+          // Put termination entry for signaling the applier.
+          journalEntryQueue
+              .put(JournalEntry.newBuilder().setSequenceNumber(TERMINATION_SEQ).build());
+          return true;
+        } catch (InterruptedException ie) {
+          // Continue interrupt chain.
+          Thread.currentThread().interrupt();
+          throw new RuntimeException("Thread interrupted while reading from backup stream.", ie);
+        } finally {
+          readingActive.set(false);
+        }
+      }));
+
+      // Create applier task.
+      activeTasks.add(completionService.submit(() -> {
+        try {
+          // Read entries from backup.
+          while (readingActive.get() || journalEntryQueue.size() > 0) {
+            // Drain current elements.
+            // Draining entries makes it possible to allow writes while current ones are
+            // being applied.
+            List<JournalEntry> drainedEntries = new LinkedList<>();
+            if (0 == journalEntryQueue.drainTo(drainedEntries)) {
+              // No elements at the moment. Fall back to polling.
+              JournalEntry entry = journalEntryQueue.poll(10, TimeUnit.MILLISECONDS);
+              if (entry == null) {
+                // No entry yet.
+                continue;
+              }
+              drainedEntries.add(entry);
+            }
+            // Apply drained entries.
+            // Map for storing journal contexts.
+            Map<Master, JournalContext> masterJCMap = new HashMap<>();
+            try {
+              // Pre-create journal contexts.
+              // They should be closed after applying drained entries.
+              for (Master master : masters) {
+                masterJCMap.put(master, master.createJournalContext());
+              }
+              // Apply entries.
+              for (JournalEntry entry : drainedEntries) {
+                // Check for termination entry.
+                if (entry.getSequenceNumber() == TERMINATION_SEQ) {
+                  // Reading finished.
+                  return true;
+                }
+                Master master = mastersByName.get(JournalEntryAssociation.getMasterForEntry(entry));
+                master.applyAndJournal(masterJCMap.get(master), entry);
+              }
+            } finally {
+              // Close journal contexts to ensure applied entries are flushed,
+              // before next round.
+              for (JournalContext journalContext : masterJCMap.values()) {
+                journalContext.close();
+              }
+            }
+          }
+          return true;
+        } catch (InterruptedException ie) {
+          // Continue interrupt chain.
+          Thread.currentThread().interrupt();
+          throw new RuntimeException("Thread interrupted while applying backup content.", ie);
+        }
+      }));
+
+      // Wait until backup tasks are completed.
+      safeWaitTasks(activeTasks, completionService);
+
+      LOG.info("Restored {} entries from backup", appliedEntryCount.get());
+    }
+  }
+
+  /**
+   * Used to wait until given active tasks are completed or failed.
+   *
+   * @param activeTasks list of tasks
+   * @param completionService completion service used to launch tasks
+   * @throws IOException
+   */
+  private void safeWaitTasks(Set<Future<?>> activeTasks, CompletionService<?> completionService)
+      throws IOException {
+    // Wait until backup tasks are completed.
+    while (activeTasks.size() > 0) {
+      try {
+        Future<?> resultFuture = completionService.take();
+        activeTasks.remove(resultFuture);
+        resultFuture.get();
+      } catch (InterruptedException ie) {
+        // Cancel pending tasks.
+        activeTasks.forEach((future) -> future.cancel(true));
+        // Continue interrupt chain.
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Thread interrupted while waiting for backup threads.", ie);
+      } catch (ExecutionException ee) {
+        // Cancel pending tasks.
+        activeTasks.forEach((future) -> future.cancel(true));
+        // Throw.
+        Throwable cause = ee.getCause();
+        if (cause instanceof IOException) {
+          throw (IOException) cause;
+        } else {
+          throw new IOException(cause);
         }
       }
     }
-    LOG.info("Restored {} entries from backup", count);
   }
 }

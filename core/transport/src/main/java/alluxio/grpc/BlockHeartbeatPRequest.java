@@ -116,6 +116,19 @@ private static final long serialVersionUID = 0L;
             bitField0_ |= 0x00000002;
             break;
           }
+          case 50: {
+            if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+              lostStorage_ = com.google.protobuf.MapField.newMapField(
+                  LostStorageDefaultEntryHolder.defaultEntry);
+              mutable_bitField0_ |= 0x00000020;
+            }
+            com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.StorageList>
+            lostStorage__ = input.readMessage(
+                LostStorageDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            lostStorage_.getMutableMap().put(
+                lostStorage__.getKey(), lostStorage__.getValue());
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -144,6 +157,8 @@ private static final long serialVersionUID = 0L;
         return internalGetUsedBytesOnTiers();
       case 4:
         return internalGetAddedBlocksOnTiers();
+      case 6:
+        return internalGetLostStorage();
       default:
         throw new RuntimeException(
             "Invalid map field number: " + number);
@@ -419,12 +434,110 @@ private static final long serialVersionUID = 0L;
     return options_ == null ? alluxio.grpc.BlockHeartbeatPOptions.getDefaultInstance() : options_;
   }
 
+  public static final int LOSTSTORAGE_FIELD_NUMBER = 6;
+  private static final class LostStorageDefaultEntryHolder {
+    static final com.google.protobuf.MapEntry<
+        java.lang.String, alluxio.grpc.StorageList> defaultEntry =
+            com.google.protobuf.MapEntry
+            .<java.lang.String, alluxio.grpc.StorageList>newDefaultInstance(
+                alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockHeartbeatPRequest_LostStorageEntry_descriptor, 
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "",
+                com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                alluxio.grpc.StorageList.getDefaultInstance());
+  }
+  private com.google.protobuf.MapField<
+      java.lang.String, alluxio.grpc.StorageList> lostStorage_;
+  private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.StorageList>
+  internalGetLostStorage() {
+    if (lostStorage_ == null) {
+      return com.google.protobuf.MapField.emptyMapField(
+          LostStorageDefaultEntryHolder.defaultEntry);
+    }
+    return lostStorage_;
+  }
+
+  public int getLostStorageCount() {
+    return internalGetLostStorage().getMap().size();
+  }
+  /**
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+   */
+
+  public boolean containsLostStorage(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    return internalGetLostStorage().getMap().containsKey(key);
+  }
+  /**
+   * Use {@link #getLostStorageMap()} instead.
+   */
+  @java.lang.Deprecated
+  public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getLostStorage() {
+    return getLostStorageMap();
+  }
+  /**
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+   */
+
+  public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getLostStorageMap() {
+    return internalGetLostStorage().getMap();
+  }
+  /**
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+   */
+
+  public alluxio.grpc.StorageList getLostStorageOrDefault(
+      java.lang.String key,
+      alluxio.grpc.StorageList defaultValue) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, alluxio.grpc.StorageList> map =
+        internalGetLostStorage().getMap();
+    return map.containsKey(key) ? map.get(key) : defaultValue;
+  }
+  /**
+   * <pre>
+   ** the map of lost storage paths on all tiers 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+   */
+
+  public alluxio.grpc.StorageList getLostStorageOrThrow(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, alluxio.grpc.StorageList> map =
+        internalGetLostStorage().getMap();
+    if (!map.containsKey(key)) {
+      throw new java.lang.IllegalArgumentException();
+    }
+    return map.get(key);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    if (hasOptions()) {
+      if (!getOptions().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
     memoizedIsInitialized = 1;
     return true;
   }
@@ -452,6 +565,12 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       output.writeMessage(5, getOptions());
     }
+    com.google.protobuf.GeneratedMessageV3
+      .serializeStringMapTo(
+        output,
+        internalGetLostStorage(),
+        LostStorageDefaultEntryHolder.defaultEntry,
+        6);
     unknownFields.writeTo(output);
   }
 
@@ -497,6 +616,16 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(5, getOptions());
     }
+    for (java.util.Map.Entry<java.lang.String, alluxio.grpc.StorageList> entry
+         : internalGetLostStorage().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, alluxio.grpc.StorageList>
+      lostStorage__ = LostStorageDefaultEntryHolder.defaultEntry.newBuilderForType()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build();
+      size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, lostStorage__);
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -529,6 +658,8 @@ private static final long serialVersionUID = 0L;
       result = result && getOptions()
           .equals(other.getOptions());
     }
+    result = result && internalGetLostStorage().equals(
+        other.internalGetLostStorage());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -560,6 +691,10 @@ private static final long serialVersionUID = 0L;
     if (hasOptions()) {
       hash = (37 * hash) + OPTIONS_FIELD_NUMBER;
       hash = (53 * hash) + getOptions().hashCode();
+    }
+    if (!internalGetLostStorage().getMap().isEmpty()) {
+      hash = (37 * hash) + LOSTSTORAGE_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetLostStorage().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -674,6 +809,8 @@ private static final long serialVersionUID = 0L;
           return internalGetUsedBytesOnTiers();
         case 4:
           return internalGetAddedBlocksOnTiers();
+        case 6:
+          return internalGetLostStorage();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -687,6 +824,8 @@ private static final long serialVersionUID = 0L;
           return internalGetMutableUsedBytesOnTiers();
         case 4:
           return internalGetMutableAddedBlocksOnTiers();
+        case 6:
+          return internalGetMutableLostStorage();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -729,6 +868,7 @@ private static final long serialVersionUID = 0L;
         optionsBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000010);
+      internalGetMutableLostStorage().clear();
       return this;
     }
 
@@ -774,6 +914,8 @@ private static final long serialVersionUID = 0L;
       } else {
         result.options_ = optionsBuilder_.build();
       }
+      result.lostStorage_ = internalGetLostStorage();
+      result.lostStorage_.makeImmutable();
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -836,12 +978,19 @@ private static final long serialVersionUID = 0L;
       if (other.hasOptions()) {
         mergeOptions(other.getOptions());
       }
+      internalGetMutableLostStorage().mergeFrom(
+          other.internalGetLostStorage());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
     }
 
     public final boolean isInitialized() {
+      if (hasOptions()) {
+        if (!getOptions().isInitialized()) {
+          return false;
+        }
+      }
       return true;
     }
 
@@ -1424,6 +1573,157 @@ private static final long serialVersionUID = 0L;
         options_ = null;
       }
       return optionsBuilder_;
+    }
+
+    private com.google.protobuf.MapField<
+        java.lang.String, alluxio.grpc.StorageList> lostStorage_;
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.StorageList>
+    internalGetLostStorage() {
+      if (lostStorage_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            LostStorageDefaultEntryHolder.defaultEntry);
+      }
+      return lostStorage_;
+    }
+    private com.google.protobuf.MapField<java.lang.String, alluxio.grpc.StorageList>
+    internalGetMutableLostStorage() {
+      onChanged();;
+      if (lostStorage_ == null) {
+        lostStorage_ = com.google.protobuf.MapField.newMapField(
+            LostStorageDefaultEntryHolder.defaultEntry);
+      }
+      if (!lostStorage_.isMutable()) {
+        lostStorage_ = lostStorage_.copy();
+      }
+      return lostStorage_;
+    }
+
+    public int getLostStorageCount() {
+      return internalGetLostStorage().getMap().size();
+    }
+    /**
+     * <pre>
+     ** the map of lost storage paths on all tiers 
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+     */
+
+    public boolean containsLostStorage(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetLostStorage().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getLostStorageMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getLostStorage() {
+      return getLostStorageMap();
+    }
+    /**
+     * <pre>
+     ** the map of lost storage paths on all tiers 
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+     */
+
+    public java.util.Map<java.lang.String, alluxio.grpc.StorageList> getLostStorageMap() {
+      return internalGetLostStorage().getMap();
+    }
+    /**
+     * <pre>
+     ** the map of lost storage paths on all tiers 
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+     */
+
+    public alluxio.grpc.StorageList getLostStorageOrDefault(
+        java.lang.String key,
+        alluxio.grpc.StorageList defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, alluxio.grpc.StorageList> map =
+          internalGetLostStorage().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <pre>
+     ** the map of lost storage paths on all tiers 
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+     */
+
+    public alluxio.grpc.StorageList getLostStorageOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, alluxio.grpc.StorageList> map =
+          internalGetLostStorage().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public Builder clearLostStorage() {
+      internalGetMutableLostStorage().getMutableMap()
+          .clear();
+      return this;
+    }
+    /**
+     * <pre>
+     ** the map of lost storage paths on all tiers 
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+     */
+
+    public Builder removeLostStorage(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableLostStorage().getMutableMap()
+          .remove(key);
+      return this;
+    }
+    /**
+     * Use alternate mutation accessors instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, alluxio.grpc.StorageList>
+    getMutableLostStorage() {
+      return internalGetMutableLostStorage().getMutableMap();
+    }
+    /**
+     * <pre>
+     ** the map of lost storage paths on all tiers 
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+     */
+    public Builder putLostStorage(
+        java.lang.String key,
+        alluxio.grpc.StorageList value) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      if (value == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableLostStorage().getMutableMap()
+          .put(key, value);
+      return this;
+    }
+    /**
+     * <pre>
+     ** the map of lost storage paths on all tiers 
+     * </pre>
+     *
+     * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 6;</code>
+     */
+
+    public Builder putAllLostStorage(
+        java.util.Map<java.lang.String, alluxio.grpc.StorageList> values) {
+      internalGetMutableLostStorage().getMutableMap()
+          .putAll(values);
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

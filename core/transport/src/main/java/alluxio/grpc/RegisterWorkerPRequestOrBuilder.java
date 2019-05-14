@@ -233,4 +233,58 @@ public interface RegisterWorkerPRequestOrBuilder extends
    * <code>optional .alluxio.grpc.block.RegisterWorkerPOptions options = 6;</code>
    */
   alluxio.grpc.RegisterWorkerPOptionsOrBuilder getOptionsOrBuilder();
+
+  /**
+   * <pre>
+   ** the map of tier alias to a list of lost storage paths. 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 7;</code>
+   */
+  int getLostStorageCount();
+  /**
+   * <pre>
+   ** the map of tier alias to a list of lost storage paths. 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 7;</code>
+   */
+  boolean containsLostStorage(
+      java.lang.String key);
+  /**
+   * Use {@link #getLostStorageMap()} instead.
+   */
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, alluxio.grpc.StorageList>
+  getLostStorage();
+  /**
+   * <pre>
+   ** the map of tier alias to a list of lost storage paths. 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 7;</code>
+   */
+  java.util.Map<java.lang.String, alluxio.grpc.StorageList>
+  getLostStorageMap();
+  /**
+   * <pre>
+   ** the map of tier alias to a list of lost storage paths. 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 7;</code>
+   */
+
+  alluxio.grpc.StorageList getLostStorageOrDefault(
+      java.lang.String key,
+      alluxio.grpc.StorageList defaultValue);
+  /**
+   * <pre>
+   ** the map of tier alias to a list of lost storage paths. 
+   * </pre>
+   *
+   * <code>map&lt;string, .alluxio.grpc.block.StorageList&gt; lostStorage = 7;</code>
+   */
+
+  alluxio.grpc.StorageList getLostStorageOrThrow(
+      java.lang.String key);
 }

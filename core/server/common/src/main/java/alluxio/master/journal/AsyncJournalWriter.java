@@ -11,10 +11,12 @@
 
 package alluxio.master.journal;
 
+import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
 
@@ -27,12 +29,14 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -45,13 +49,15 @@ public final class AsyncJournalWriter {
   /**
    * Used to manage and keep track of pending callers of ::flush.
    */
-  private class FlushTicket {
+  private class FlushTicket implements ForkJoinPool.ManagedBlocker {
     private final long mTargetCounter;
     private SettableFuture<Void> mIsCompleted;
+    private Throwable mError;
 
     public FlushTicket(long targetCounter) {
       mTargetCounter = targetCounter;
       mIsCompleted = SettableFuture.create();
+      mError = null;
     }
 
     public long getTargetCounter() {
@@ -64,10 +70,37 @@ public final class AsyncJournalWriter {
 
     public void setError(Throwable exc) {
       mIsCompleted.setException(exc);
+      mError = exc;
     }
 
-    public void waitCompleted() throws InterruptedException, ExecutionException {
-      mIsCompleted.get();
+    /**
+     * Waits until the ticket has been processed.
+     *
+     * PS: Blocking on this method goes through FokrJoinPool's managed blocking
+     * in order to compensate the pool with more workers while it is blocked.
+     *
+     * @throws Throwable
+     */
+    public void waitCompleted() throws Throwable {
+      ForkJoinPool.managedBlock(this);
+      if (mError != null) {
+        throw mError;
+      }
+    }
+
+    @Override
+    public boolean block() throws InterruptedException {
+      try {
+        mIsCompleted.get();
+      } catch (ExecutionException exc) {
+        mError = exc.getCause();
+      }
+      return true;
+    }
+
+    @Override
+    public boolean isReleasable() {
+      return mIsCompleted.isDone() || mIsCompleted.isCancelled();
     }
   }
 
@@ -113,12 +146,16 @@ public final class AsyncJournalWriter {
    */
   private volatile boolean mStopFlushing = false;
 
+  /** A supplier of journal sinks for this journal writer. */
+  private final Supplier<Set<JournalSink>> mJournalSinks;
+
   /**
    * Creates a {@link AsyncJournalWriter}.
    *
    * @param journalWriter a journal writer to write to
+   * @param journalSinks a supplier for journal sinks
    */
-  public AsyncJournalWriter(JournalWriter journalWriter) {
+  public AsyncJournalWriter(JournalWriter journalWriter, Supplier<Set<JournalSink>> journalSinks) {
     mJournalWriter = Preconditions.checkNotNull(journalWriter, "journalWriter");
     mQueue = new ConcurrentLinkedQueue<>();
     mCounter = new AtomicLong(0);
@@ -127,6 +164,7 @@ public final class AsyncJournalWriter {
     mFlushBatchTimeNs = TimeUnit.NANOSECONDS.convert(
         ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS),
         TimeUnit.MILLISECONDS);
+    mJournalSinks = journalSinks;
     mFlushThread.start();
   }
 
@@ -241,6 +279,7 @@ public final class AsyncJournalWriter {
             break;
           }
           mJournalWriter.write(entry);
+          JournalUtils.sinkAppend(mJournalSinks, entry);
           // Remove the head entry, after the entry was successfully written.
           mQueue.poll();
           mWriteCounter++;
@@ -255,6 +294,7 @@ public final class AsyncJournalWriter {
         // Either written new entries or previous flush had been failed.
         if (mFlushCounter.get() < mWriteCounter) {
           mJournalWriter.flush();
+          JournalUtils.sinkFlush(mJournalSinks);
           mFlushCounter.set(mWriteCounter);
         }
 
@@ -315,17 +355,16 @@ public final class AsyncJournalWriter {
     } catch (InterruptedException ie) {
       // Interpret interruption as cancellation.
       throw new AlluxioStatusException(Status.CANCELLED.withCause(ie));
-    } catch (ExecutionException ee) {
+    } catch (Throwable e) {
       // Filter, journal specific exception codes.
-      Throwable cause = ee.getCause();
-      if (cause != null && cause instanceof IOException) {
-        throw (IOException) cause;
+      if (e instanceof IOException) {
+        throw (IOException) e;
       }
-      if (cause != null && cause instanceof JournalClosedException) {
-        throw (JournalClosedException) cause;
+      if (e instanceof JournalClosedException) {
+        throw (JournalClosedException) e;
       }
       // Not expected. throw internal error.
-      throw new AlluxioStatusException(Status.INTERNAL.withCause(ee));
+      throw new AlluxioStatusException(Status.INTERNAL.withCause(e));
     } finally {
       /**
        * Client can only try to reacquire the permit it has given

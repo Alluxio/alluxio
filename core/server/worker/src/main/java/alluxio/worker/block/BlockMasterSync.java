@@ -21,7 +21,6 @@ import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -30,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -107,7 +105,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList(), configList);
+        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList(),
+        storeMeta.getLostStorage(), configList);
   }
 
   /**
@@ -121,14 +120,12 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
-    List<alluxio.grpc.Metric> metrics = new ArrayList<>();
-    for (Metric metric : MetricsSystem.allWorkerMetrics()) {
-      metrics.add(metric.toProto());
-    }
+    List<alluxio.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
+
     try {
       cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
-          blockReport.getAddedBlocks(), metrics);
+          blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException | ConnectionFailedException e) {

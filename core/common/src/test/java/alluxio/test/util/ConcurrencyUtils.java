@@ -11,7 +11,7 @@
 
 package alluxio.test.util;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,7 +39,7 @@ public final class ConcurrencyUtils {
   public static void assertConcurrent(final List<? extends Runnable> runnables,
       final int maxTimeoutSeconds) throws InterruptedException {
     final int numThreads = runnables.size();
-    final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<Throwable>());
+    final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<>());
     final ExecutorService threadPool = Executors.newFixedThreadPool(numThreads);
     try {
       final CountDownLatch allExecutorThreadsReady = new CountDownLatch(numThreads);
@@ -59,16 +59,16 @@ public final class ConcurrencyUtils {
         });
       }
       // wait until all threads are ready
-      Assert.assertTrue("Timeout initializing threads!",
+      assertTrue("Timeout initializing threads!",
           allExecutorThreadsReady.await(runnables.size() * 10, TimeUnit.MILLISECONDS));
 
       // start all test runners
       afterInitBlocker.countDown();
-      Assert.assertTrue("Timeout! More than " + maxTimeoutSeconds + " seconds",
+      assertTrue("Timeout! More than " + maxTimeoutSeconds + " seconds",
           allDone.await(maxTimeoutSeconds, TimeUnit.SECONDS));
     } finally {
       threadPool.shutdownNow();
     }
-    Assert.assertTrue("Failed with exception(s) " + exceptions, exceptions.isEmpty());
+    assertTrue("Failed with exception(s) " + exceptions, exceptions.isEmpty());
   }
 }

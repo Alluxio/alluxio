@@ -32,13 +32,13 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.MetricType;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.metrics.ClientMetrics;
@@ -105,7 +105,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
@@ -214,7 +213,6 @@ public final class AlluxioMasterRestServiceHandler {
           .setMountPoints(getMountPointsInternal())
           .setRpcAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTimeMs(mMasterProcess.getStartTimeMs())
-          .setStartupConsistencyCheck(getStartupConsistencyCheckInternal())
           .setTierCapacity(getTierCapacityInternal()).setUfsCapacity(getUfsCapacityInternal())
           .setUptimeMs(mMasterProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION)
           .setWorkers(mBlockMaster.getWorkerInfoList());
@@ -277,19 +275,6 @@ public final class AlluxioMasterRestServiceHandler {
           .setFreeCapacity(FormatUtils
               .getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()));
 
-      StartupConsistencyCheck check = mFileSystemMaster.getStartupConsistencyCheck();
-      response.setConsistencyCheckStatus(check.getStatus().toString());
-      if (check.getStatus() == StartupConsistencyCheck.Status.COMPLETE) {
-        response.setInconsistentPaths(check.getInconsistentUris().size());
-        List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
-        List<String> inconsistentUriStrings =
-            inconsistentUris.stream().map(inconsistentUri -> inconsistentUri.toString())
-                .collect(Collectors.toList());
-        response.setInconsistentPathItems(inconsistentUriStrings);
-      } else {
-        response.setInconsistentPaths(0);
-      }
-
       ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
       response.setConfigCheckStatus(report.getConfigStatus())
           .setConfigCheckErrors(report.getConfigErrors())
@@ -316,7 +301,7 @@ public final class AlluxioMasterRestServiceHandler {
 
       MountPointInfo mountInfo;
       try {
-        mountInfo = mFileSystemMaster.getMountPointInfo(new AlluxioURI(MountTable.ROOT));
+        mountInfo = mFileSystemMaster.getDisplayMountPointInfo(new AlluxioURI(MountTable.ROOT));
 
         long capacityBytes = mountInfo.getUfsCapacityBytes();
         long usedBytes = mountInfo.getUfsUsedBytes();
@@ -964,7 +949,8 @@ public final class AlluxioMasterRestServiceHandler {
       for (Map.Entry<String, Gauge> entry : mr
           .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_READ_UFS)).entrySet()) {
         alluxio.metrics.Metric metric =
-            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
+                MetricType.GAUGE);
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
         if (isMounted(ufs)) {
           ufsReadSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
@@ -977,7 +963,8 @@ public final class AlluxioMasterRestServiceHandler {
       for (Map.Entry<String, Gauge> entry : mr
           .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_WRITTEN_UFS)).entrySet()) {
         alluxio.metrics.Metric metric =
-            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
+                MetricType.GAUGE);
         String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
         if (isMounted(ufs)) {
           ufsWriteSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
@@ -990,7 +977,8 @@ public final class AlluxioMasterRestServiceHandler {
       for (Map.Entry<String, Gauge> entry : mr
           .getGauges((name, metric) -> name.contains(WorkerMetrics.UFS_OP_PREFIX)).entrySet()) {
         alluxio.metrics.Metric metric =
-            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue());
+            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
+                MetricType.GAUGE);
         if (!metric.getTags().containsKey(WorkerMetrics.TAG_UFS)) {
           continue;
         }
@@ -1323,19 +1311,6 @@ public final class AlluxioMasterRestServiceHandler {
 
   private Map<String, MountPointInfo> getMountPointsInternal() {
     return mFileSystemMaster.getMountTable();
-  }
-
-  private alluxio.wire.StartupConsistencyCheck getStartupConsistencyCheckInternal() {
-    StartupConsistencyCheck check = mFileSystemMaster.getStartupConsistencyCheck();
-    alluxio.wire.StartupConsistencyCheck ret = new alluxio.wire.StartupConsistencyCheck();
-    List<AlluxioURI> inconsistentUris = check.getInconsistentUris();
-    List<String> uris = new ArrayList<>(inconsistentUris.size());
-    for (AlluxioURI uri : inconsistentUris) {
-      uris.add(uri.toString());
-    }
-    ret.setInconsistentUris(uris);
-    ret.setStatus(check.getStatus().toString().toLowerCase());
-    return ret;
   }
 
   private Map<String, Capacity> getTierCapacityInternal() {

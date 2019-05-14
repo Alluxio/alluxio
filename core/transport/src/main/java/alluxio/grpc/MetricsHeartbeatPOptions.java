@@ -16,7 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private MetricsHeartbeatPOptions() {
-    metrics_ = java.util.Collections.emptyList();
+    clientMetrics_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -52,11 +52,11 @@ private static final long serialVersionUID = 0L;
           }
           case 10: {
             if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              metrics_ = new java.util.ArrayList<alluxio.grpc.Metric>();
+              clientMetrics_ = new java.util.ArrayList<alluxio.grpc.ClientMetrics>();
               mutable_bitField0_ |= 0x00000001;
             }
-            metrics_.add(
-                input.readMessage(alluxio.grpc.Metric.PARSER, extensionRegistry));
+            clientMetrics_.add(
+                input.readMessage(alluxio.grpc.ClientMetrics.PARSER, extensionRegistry));
             break;
           }
         }
@@ -68,7 +68,7 @@ private static final long serialVersionUID = 0L;
           e).setUnfinishedMessage(this);
     } finally {
       if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-        metrics_ = java.util.Collections.unmodifiableList(metrics_);
+        clientMetrics_ = java.util.Collections.unmodifiableList(clientMetrics_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -86,39 +86,39 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.MetricsHeartbeatPOptions.class, alluxio.grpc.MetricsHeartbeatPOptions.Builder.class);
   }
 
-  public static final int METRICS_FIELD_NUMBER = 1;
-  private java.util.List<alluxio.grpc.Metric> metrics_;
+  public static final int CLIENTMETRICS_FIELD_NUMBER = 1;
+  private java.util.List<alluxio.grpc.ClientMetrics> clientMetrics_;
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+   * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
    */
-  public java.util.List<alluxio.grpc.Metric> getMetricsList() {
-    return metrics_;
+  public java.util.List<alluxio.grpc.ClientMetrics> getClientMetricsList() {
+    return clientMetrics_;
   }
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+   * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
    */
-  public java.util.List<? extends alluxio.grpc.MetricOrBuilder> 
-      getMetricsOrBuilderList() {
-    return metrics_;
+  public java.util.List<? extends alluxio.grpc.ClientMetricsOrBuilder> 
+      getClientMetricsOrBuilderList() {
+    return clientMetrics_;
   }
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+   * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
    */
-  public int getMetricsCount() {
-    return metrics_.size();
+  public int getClientMetricsCount() {
+    return clientMetrics_.size();
   }
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+   * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
    */
-  public alluxio.grpc.Metric getMetrics(int index) {
-    return metrics_.get(index);
+  public alluxio.grpc.ClientMetrics getClientMetrics(int index) {
+    return clientMetrics_.get(index);
   }
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+   * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
    */
-  public alluxio.grpc.MetricOrBuilder getMetricsOrBuilder(
+  public alluxio.grpc.ClientMetricsOrBuilder getClientMetricsOrBuilder(
       int index) {
-    return metrics_.get(index);
+    return clientMetrics_.get(index);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -127,14 +127,20 @@ private static final long serialVersionUID = 0L;
     if (isInitialized == 1) return true;
     if (isInitialized == 0) return false;
 
+    for (int i = 0; i < getClientMetricsCount(); i++) {
+      if (!getClientMetrics(i).isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+    }
     memoizedIsInitialized = 1;
     return true;
   }
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    for (int i = 0; i < metrics_.size(); i++) {
-      output.writeMessage(1, metrics_.get(i));
+    for (int i = 0; i < clientMetrics_.size(); i++) {
+      output.writeMessage(1, clientMetrics_.get(i));
     }
     unknownFields.writeTo(output);
   }
@@ -144,9 +150,9 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
-    for (int i = 0; i < metrics_.size(); i++) {
+    for (int i = 0; i < clientMetrics_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(1, metrics_.get(i));
+        .computeMessageSize(1, clientMetrics_.get(i));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -164,8 +170,8 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.MetricsHeartbeatPOptions other = (alluxio.grpc.MetricsHeartbeatPOptions) obj;
 
     boolean result = true;
-    result = result && getMetricsList()
-        .equals(other.getMetricsList());
+    result = result && getClientMetricsList()
+        .equals(other.getClientMetricsList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -177,9 +183,9 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (getMetricsCount() > 0) {
-      hash = (37 * hash) + METRICS_FIELD_NUMBER;
-      hash = (53 * hash) + getMetricsList().hashCode();
+    if (getClientMetricsCount() > 0) {
+      hash = (37 * hash) + CLIENTMETRICS_FIELD_NUMBER;
+      hash = (53 * hash) + getClientMetricsList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -306,16 +312,16 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
-        getMetricsFieldBuilder();
+        getClientMetricsFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
-      if (metricsBuilder_ == null) {
-        metrics_ = java.util.Collections.emptyList();
+      if (clientMetricsBuilder_ == null) {
+        clientMetrics_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
       } else {
-        metricsBuilder_.clear();
+        clientMetricsBuilder_.clear();
       }
       return this;
     }
@@ -340,14 +346,14 @@ private static final long serialVersionUID = 0L;
     public alluxio.grpc.MetricsHeartbeatPOptions buildPartial() {
       alluxio.grpc.MetricsHeartbeatPOptions result = new alluxio.grpc.MetricsHeartbeatPOptions(this);
       int from_bitField0_ = bitField0_;
-      if (metricsBuilder_ == null) {
+      if (clientMetricsBuilder_ == null) {
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          metrics_ = java.util.Collections.unmodifiableList(metrics_);
+          clientMetrics_ = java.util.Collections.unmodifiableList(clientMetrics_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
-        result.metrics_ = metrics_;
+        result.clientMetrics_ = clientMetrics_;
       } else {
-        result.metrics_ = metricsBuilder_.build();
+        result.clientMetrics_ = clientMetricsBuilder_.build();
       }
       onBuilt();
       return result;
@@ -390,29 +396,29 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.MetricsHeartbeatPOptions other) {
       if (other == alluxio.grpc.MetricsHeartbeatPOptions.getDefaultInstance()) return this;
-      if (metricsBuilder_ == null) {
-        if (!other.metrics_.isEmpty()) {
-          if (metrics_.isEmpty()) {
-            metrics_ = other.metrics_;
+      if (clientMetricsBuilder_ == null) {
+        if (!other.clientMetrics_.isEmpty()) {
+          if (clientMetrics_.isEmpty()) {
+            clientMetrics_ = other.clientMetrics_;
             bitField0_ = (bitField0_ & ~0x00000001);
           } else {
-            ensureMetricsIsMutable();
-            metrics_.addAll(other.metrics_);
+            ensureClientMetricsIsMutable();
+            clientMetrics_.addAll(other.clientMetrics_);
           }
           onChanged();
         }
       } else {
-        if (!other.metrics_.isEmpty()) {
-          if (metricsBuilder_.isEmpty()) {
-            metricsBuilder_.dispose();
-            metricsBuilder_ = null;
-            metrics_ = other.metrics_;
+        if (!other.clientMetrics_.isEmpty()) {
+          if (clientMetricsBuilder_.isEmpty()) {
+            clientMetricsBuilder_.dispose();
+            clientMetricsBuilder_ = null;
+            clientMetrics_ = other.clientMetrics_;
             bitField0_ = (bitField0_ & ~0x00000001);
-            metricsBuilder_ = 
+            clientMetricsBuilder_ = 
               com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getMetricsFieldBuilder() : null;
+                 getClientMetricsFieldBuilder() : null;
           } else {
-            metricsBuilder_.addAllMessages(other.metrics_);
+            clientMetricsBuilder_.addAllMessages(other.clientMetrics_);
           }
         }
       }
@@ -422,6 +428,11 @@ private static final long serialVersionUID = 0L;
     }
 
     public final boolean isInitialized() {
+      for (int i = 0; i < getClientMetricsCount(); i++) {
+        if (!getClientMetrics(i).isInitialized()) {
+          return false;
+        }
+      }
       return true;
     }
 
@@ -444,244 +455,244 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.util.List<alluxio.grpc.Metric> metrics_ =
+    private java.util.List<alluxio.grpc.ClientMetrics> clientMetrics_ =
       java.util.Collections.emptyList();
-    private void ensureMetricsIsMutable() {
+    private void ensureClientMetricsIsMutable() {
       if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-        metrics_ = new java.util.ArrayList<alluxio.grpc.Metric>(metrics_);
+        clientMetrics_ = new java.util.ArrayList<alluxio.grpc.ClientMetrics>(clientMetrics_);
         bitField0_ |= 0x00000001;
        }
     }
 
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.Metric, alluxio.grpc.Metric.Builder, alluxio.grpc.MetricOrBuilder> metricsBuilder_;
+        alluxio.grpc.ClientMetrics, alluxio.grpc.ClientMetrics.Builder, alluxio.grpc.ClientMetricsOrBuilder> clientMetricsBuilder_;
 
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public java.util.List<alluxio.grpc.Metric> getMetricsList() {
-      if (metricsBuilder_ == null) {
-        return java.util.Collections.unmodifiableList(metrics_);
+    public java.util.List<alluxio.grpc.ClientMetrics> getClientMetricsList() {
+      if (clientMetricsBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(clientMetrics_);
       } else {
-        return metricsBuilder_.getMessageList();
+        return clientMetricsBuilder_.getMessageList();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public int getMetricsCount() {
-      if (metricsBuilder_ == null) {
-        return metrics_.size();
+    public int getClientMetricsCount() {
+      if (clientMetricsBuilder_ == null) {
+        return clientMetrics_.size();
       } else {
-        return metricsBuilder_.getCount();
+        return clientMetricsBuilder_.getCount();
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public alluxio.grpc.Metric getMetrics(int index) {
-      if (metricsBuilder_ == null) {
-        return metrics_.get(index);
+    public alluxio.grpc.ClientMetrics getClientMetrics(int index) {
+      if (clientMetricsBuilder_ == null) {
+        return clientMetrics_.get(index);
       } else {
-        return metricsBuilder_.getMessage(index);
+        return clientMetricsBuilder_.getMessage(index);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public Builder setMetrics(
-        int index, alluxio.grpc.Metric value) {
-      if (metricsBuilder_ == null) {
+    public Builder setClientMetrics(
+        int index, alluxio.grpc.ClientMetrics value) {
+      if (clientMetricsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureMetricsIsMutable();
-        metrics_.set(index, value);
+        ensureClientMetricsIsMutable();
+        clientMetrics_.set(index, value);
         onChanged();
       } else {
-        metricsBuilder_.setMessage(index, value);
+        clientMetricsBuilder_.setMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public Builder setMetrics(
-        int index, alluxio.grpc.Metric.Builder builderForValue) {
-      if (metricsBuilder_ == null) {
-        ensureMetricsIsMutable();
-        metrics_.set(index, builderForValue.build());
+    public Builder setClientMetrics(
+        int index, alluxio.grpc.ClientMetrics.Builder builderForValue) {
+      if (clientMetricsBuilder_ == null) {
+        ensureClientMetricsIsMutable();
+        clientMetrics_.set(index, builderForValue.build());
         onChanged();
       } else {
-        metricsBuilder_.setMessage(index, builderForValue.build());
+        clientMetricsBuilder_.setMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public Builder addMetrics(alluxio.grpc.Metric value) {
-      if (metricsBuilder_ == null) {
+    public Builder addClientMetrics(alluxio.grpc.ClientMetrics value) {
+      if (clientMetricsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureMetricsIsMutable();
-        metrics_.add(value);
+        ensureClientMetricsIsMutable();
+        clientMetrics_.add(value);
         onChanged();
       } else {
-        metricsBuilder_.addMessage(value);
+        clientMetricsBuilder_.addMessage(value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public Builder addMetrics(
-        int index, alluxio.grpc.Metric value) {
-      if (metricsBuilder_ == null) {
+    public Builder addClientMetrics(
+        int index, alluxio.grpc.ClientMetrics value) {
+      if (clientMetricsBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureMetricsIsMutable();
-        metrics_.add(index, value);
+        ensureClientMetricsIsMutable();
+        clientMetrics_.add(index, value);
         onChanged();
       } else {
-        metricsBuilder_.addMessage(index, value);
+        clientMetricsBuilder_.addMessage(index, value);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public Builder addMetrics(
-        alluxio.grpc.Metric.Builder builderForValue) {
-      if (metricsBuilder_ == null) {
-        ensureMetricsIsMutable();
-        metrics_.add(builderForValue.build());
+    public Builder addClientMetrics(
+        alluxio.grpc.ClientMetrics.Builder builderForValue) {
+      if (clientMetricsBuilder_ == null) {
+        ensureClientMetricsIsMutable();
+        clientMetrics_.add(builderForValue.build());
         onChanged();
       } else {
-        metricsBuilder_.addMessage(builderForValue.build());
+        clientMetricsBuilder_.addMessage(builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public Builder addMetrics(
-        int index, alluxio.grpc.Metric.Builder builderForValue) {
-      if (metricsBuilder_ == null) {
-        ensureMetricsIsMutable();
-        metrics_.add(index, builderForValue.build());
+    public Builder addClientMetrics(
+        int index, alluxio.grpc.ClientMetrics.Builder builderForValue) {
+      if (clientMetricsBuilder_ == null) {
+        ensureClientMetricsIsMutable();
+        clientMetrics_.add(index, builderForValue.build());
         onChanged();
       } else {
-        metricsBuilder_.addMessage(index, builderForValue.build());
+        clientMetricsBuilder_.addMessage(index, builderForValue.build());
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public Builder addAllMetrics(
-        java.lang.Iterable<? extends alluxio.grpc.Metric> values) {
-      if (metricsBuilder_ == null) {
-        ensureMetricsIsMutable();
+    public Builder addAllClientMetrics(
+        java.lang.Iterable<? extends alluxio.grpc.ClientMetrics> values) {
+      if (clientMetricsBuilder_ == null) {
+        ensureClientMetricsIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, metrics_);
+            values, clientMetrics_);
         onChanged();
       } else {
-        metricsBuilder_.addAllMessages(values);
+        clientMetricsBuilder_.addAllMessages(values);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public Builder clearMetrics() {
-      if (metricsBuilder_ == null) {
-        metrics_ = java.util.Collections.emptyList();
+    public Builder clearClientMetrics() {
+      if (clientMetricsBuilder_ == null) {
+        clientMetrics_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
       } else {
-        metricsBuilder_.clear();
+        clientMetricsBuilder_.clear();
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public Builder removeMetrics(int index) {
-      if (metricsBuilder_ == null) {
-        ensureMetricsIsMutable();
-        metrics_.remove(index);
+    public Builder removeClientMetrics(int index) {
+      if (clientMetricsBuilder_ == null) {
+        ensureClientMetricsIsMutable();
+        clientMetrics_.remove(index);
         onChanged();
       } else {
-        metricsBuilder_.remove(index);
+        clientMetricsBuilder_.remove(index);
       }
       return this;
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public alluxio.grpc.Metric.Builder getMetricsBuilder(
+    public alluxio.grpc.ClientMetrics.Builder getClientMetricsBuilder(
         int index) {
-      return getMetricsFieldBuilder().getBuilder(index);
+      return getClientMetricsFieldBuilder().getBuilder(index);
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public alluxio.grpc.MetricOrBuilder getMetricsOrBuilder(
+    public alluxio.grpc.ClientMetricsOrBuilder getClientMetricsOrBuilder(
         int index) {
-      if (metricsBuilder_ == null) {
-        return metrics_.get(index);  } else {
-        return metricsBuilder_.getMessageOrBuilder(index);
+      if (clientMetricsBuilder_ == null) {
+        return clientMetrics_.get(index);  } else {
+        return clientMetricsBuilder_.getMessageOrBuilder(index);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public java.util.List<? extends alluxio.grpc.MetricOrBuilder> 
-         getMetricsOrBuilderList() {
-      if (metricsBuilder_ != null) {
-        return metricsBuilder_.getMessageOrBuilderList();
+    public java.util.List<? extends alluxio.grpc.ClientMetricsOrBuilder> 
+         getClientMetricsOrBuilderList() {
+      if (clientMetricsBuilder_ != null) {
+        return clientMetricsBuilder_.getMessageOrBuilderList();
       } else {
-        return java.util.Collections.unmodifiableList(metrics_);
+        return java.util.Collections.unmodifiableList(clientMetrics_);
       }
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public alluxio.grpc.Metric.Builder addMetricsBuilder() {
-      return getMetricsFieldBuilder().addBuilder(
-          alluxio.grpc.Metric.getDefaultInstance());
+    public alluxio.grpc.ClientMetrics.Builder addClientMetricsBuilder() {
+      return getClientMetricsFieldBuilder().addBuilder(
+          alluxio.grpc.ClientMetrics.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public alluxio.grpc.Metric.Builder addMetricsBuilder(
+    public alluxio.grpc.ClientMetrics.Builder addClientMetricsBuilder(
         int index) {
-      return getMetricsFieldBuilder().addBuilder(
-          index, alluxio.grpc.Metric.getDefaultInstance());
+      return getClientMetricsFieldBuilder().addBuilder(
+          index, alluxio.grpc.ClientMetrics.getDefaultInstance());
     }
     /**
-     * <code>repeated .alluxio.grpc.Metric metrics = 1;</code>
+     * <code>repeated .alluxio.grpc.metric.ClientMetrics clientMetrics = 1;</code>
      */
-    public java.util.List<alluxio.grpc.Metric.Builder> 
-         getMetricsBuilderList() {
-      return getMetricsFieldBuilder().getBuilderList();
+    public java.util.List<alluxio.grpc.ClientMetrics.Builder> 
+         getClientMetricsBuilderList() {
+      return getClientMetricsFieldBuilder().getBuilderList();
     }
     private com.google.protobuf.RepeatedFieldBuilderV3<
-        alluxio.grpc.Metric, alluxio.grpc.Metric.Builder, alluxio.grpc.MetricOrBuilder> 
-        getMetricsFieldBuilder() {
-      if (metricsBuilder_ == null) {
-        metricsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-            alluxio.grpc.Metric, alluxio.grpc.Metric.Builder, alluxio.grpc.MetricOrBuilder>(
-                metrics_,
+        alluxio.grpc.ClientMetrics, alluxio.grpc.ClientMetrics.Builder, alluxio.grpc.ClientMetricsOrBuilder> 
+        getClientMetricsFieldBuilder() {
+      if (clientMetricsBuilder_ == null) {
+        clientMetricsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            alluxio.grpc.ClientMetrics, alluxio.grpc.ClientMetrics.Builder, alluxio.grpc.ClientMetricsOrBuilder>(
+                clientMetrics_,
                 ((bitField0_ & 0x00000001) == 0x00000001),
                 getParentForChildren(),
                 isClean());
-        metrics_ = null;
+        clientMetrics_ = null;
       }
-      return metricsBuilder_;
+      return clientMetricsBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

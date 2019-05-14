@@ -26,6 +26,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.net.URI;
+import java.util.Collections;
 
 /**
  * Unit tests for {@link UfsJournalCheckpointWriter}.
@@ -42,7 +43,7 @@ public final class UfsJournalCheckpointWriterTest {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
     mUfs = Mockito.spy(UnderFileSystem.Factory.create(location, ServerConfiguration.global()));
-    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
   }
 
   @After

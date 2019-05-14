@@ -33,6 +33,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -199,6 +200,19 @@ public abstract class AbstractUnderFileSystemContractTest {
   }
 
   @Test
+  public void createOpenExistingLargeFile() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "createOpenExistingLargeFile");
+    int numCopies = prepareMultiBlockFile(testFile);
+    InputStream inputStream = mUfs.openExistingFile(testFile);
+    byte[] buf = new byte[numCopies * TEST_BYTES.length];
+    int bytesRead = inputStream.read(buf, 0, buf.length);
+    assertEquals(buf.length, bytesRead);
+    for (int i = 0; i < bytesRead; ++i) {
+      assertEquals(TEST_BYTES[i % TEST_BYTES.length], buf[i]);
+    }
+  }
+
+  @Test
   public void deleteFile() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "deleteFile");
     createEmptyFile(testFile);
@@ -279,12 +293,8 @@ public abstract class AbstractUnderFileSystemContractTest {
   @Test
   public void createThenDeleteExistingDirectoryTest() throws IOException {
     LargeDirectoryConfig config = prepareLargeDirectoryTest();
-    mUfs.deleteExistingDirectory(config.getTopLevelDirectory(),
-        DeleteOptions.defaults().setRecursive(true));
-
-    for (String child : config.getChildren()) {
-      assertTrue(!mUfs.isFile(child) && !mUfs.isDirectory(child));
-    }
+    Assert.assertTrue(mUfs.deleteExistingDirectory(config.getTopLevelDirectory(),
+        DeleteOptions.defaults().setRecursive(true)));
   }
 
   @Test

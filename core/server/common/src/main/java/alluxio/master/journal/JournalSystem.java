@@ -17,6 +17,7 @@ import alluxio.master.Master;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
@@ -25,7 +26,9 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -146,6 +149,24 @@ public interface JournalSystem {
   boolean isFormatted() throws IOException;
 
   /**
+   * @param master the master for which to add the journal sink
+   * @param journalSink the journal sink to add
+   */
+  void addJournalSink(Master master, JournalSink journalSink);
+
+  /**
+   * @param master the master from which to remove the journal sink
+   * @param journalSink the journal sink to remove
+   */
+  void removeJournalSink(Master master, JournalSink journalSink);
+
+  /**
+   * @param master the master to get the journal sinks for, or null to get all sinks
+   * @return a set of {@link JournalSink} for the given master, or all sinks if master is null
+   */
+  Set<JournalSink> getJournalSinks(@Nullable Master master);
+
+  /**
    * Returns whether the journal is formatted and has not had any entries written to it yet. This
    * can only be determined when the journal system is in primary mode because entries are written
    * to the primary first.
@@ -153,6 +174,11 @@ public interface JournalSystem {
    * @return whether the journal system is freshly formatted
    */
   boolean isEmpty();
+
+  /**
+   * Creates a checkpoint in the primary master journal system.
+   */
+  void checkpoint() throws IOException;
 
   /**
    * Builder for constructing a journal system.
@@ -189,7 +215,7 @@ public interface JournalSystem {
     /**
      * @return a journal system
      */
-    public JournalSystem build() {
+    public JournalSystem build(CommonUtils.ProcessType processType) {
       JournalType journalType =
           ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
       switch (journalType) {
@@ -199,7 +225,7 @@ public interface JournalSystem {
           return new UfsJournalSystem(mLocation, mQuietTimeMs);
         case EMBEDDED:
           ServiceType serviceType;
-          if (CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.MASTER)) {
+          if (processType.equals(CommonUtils.ProcessType.MASTER)) {
             serviceType = ServiceType.MASTER_RAFT;
           } else {
             // We might reach here during journal formatting. In that case the journal system is

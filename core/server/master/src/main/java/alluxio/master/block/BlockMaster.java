@@ -20,6 +20,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.StorageList;
+import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
 import alluxio.metrics.Metric;
 import alluxio.wire.Address;
@@ -82,6 +84,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   List<WorkerInfo> getWorkerReport(GetWorkerReportOptions options)
       throws UnavailableException, InvalidArgumentException;
+
+  /**
+   * @return a list of worker lost storage information
+   */
+  List<WorkerLostStorageInfo> getWorkerLostStorage();
 
   /**
    * Removes blocks from workers.
@@ -168,11 +175,12 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param usedBytesOnTiers a mapping from storage tier alias to the used byes
    * @param currentBlocksOnTiers a mapping from storage tier alias to a list of blocks
    * @param options the options that may contain worker configuration
+   * @param lostStorage a mapping from storage tier alias to a list of lost storage paths
    * @throws NotFoundException if workerId cannot be found
    */
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers,
+      Map<String, List<Long>> currentBlocksOnTiers, Map<String, StorageList> lostStorage,
       RegisterWorkerPOptions options) throws NotFoundException;
 
   /**
@@ -183,12 +191,15 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param usedBytesOnTiers a mapping from tier alias to the used bytes
    * @param removedBlockIds a list of block ids removed from this worker
    * @param addedBlocksOnTiers a mapping from tier alias to the added blocks
+   * @param lostStorage a mapping from tier alias to lost storage paths
    * @param metrics worker metrics
    * @return an optional command for the worker to execute
    */
   Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
-      Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds, Map<String,
-      List<Long>> addedBlocksOnTiers, List<Metric> metrics);
+      Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
+      Map<String, List<Long>> addedBlocksOnTiers,
+      Map<String, StorageList> lostStorage,
+      List<Metric> metrics);
 
   /**
    * @return the block ids of lost blocks in Alluxio

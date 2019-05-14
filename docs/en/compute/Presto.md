@@ -28,7 +28,7 @@ This guide is tested with `presto-0.208`.
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
-  downloaded from Alluxio [download page](http://www.alluxio.org/download).
+  downloaded from Alluxio [download page](http://www.alluxio.io/download).
 * Make sure that Hive metastore is running to serve metadata information of Hive tables.
 
 ## Basic Setup

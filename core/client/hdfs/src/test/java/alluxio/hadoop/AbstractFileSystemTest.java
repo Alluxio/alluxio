@@ -29,13 +29,13 @@ import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.SystemPropertyRule;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
@@ -645,17 +645,18 @@ public class AbstractFileSystemTest {
         .setMode(00755)
         .setFileBlockInfos(Arrays.asList(blockInfo));
     Path path = new Path("/dir/file");
+    AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     AlluxioBlockStore blockStore = mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(any(FileSystemContext.class)))
         .thenReturn(blockStore);
     FileSystemContext fsContext = mock(FileSystemContext.class);
     when(fsContext.getClientContext()).thenReturn(ClientContext.create(mConfiguration));
-    when(fsContext.getConf()).thenReturn(mConfiguration);
+    when(fsContext.getClusterConf()).thenReturn(mConfiguration);
+    when(fsContext.getPathConf(any(AlluxioURI.class))).thenReturn(mConfiguration);
     alluxio.client.file.FileSystem fs = alluxio.client.file.FileSystem.Factory.create(fsContext);
     alluxio.client.file.FileSystem spyFs = spy(fs);
-    doReturn(new URIStatus(fileInfo))
-        .when(spyFs).getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)));
+    doReturn(new URIStatus(fileInfo)).when(spyFs).getStatus(uri);
     List<BlockWorkerInfo> eligibleWorkerInfos = allWorkers.stream().map(worker ->
         new BlockWorkerInfo(worker, 0, 0)).collect(toList());
     PowerMockito.when(blockStore.getEligibleWorkers()).thenReturn(eligibleWorkerInfos);

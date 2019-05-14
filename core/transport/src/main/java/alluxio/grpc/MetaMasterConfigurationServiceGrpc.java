@@ -64,6 +64,70 @@ public final class MetaMasterConfigurationServiceGrpc {
      return getGetConfigurationMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.SetPathConfigurationPRequest,
+      alluxio.grpc.SetPathConfigurationPResponse> getSetPathConfigurationMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "SetPathConfiguration",
+      requestType = alluxio.grpc.SetPathConfigurationPRequest.class,
+      responseType = alluxio.grpc.SetPathConfigurationPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.SetPathConfigurationPRequest,
+      alluxio.grpc.SetPathConfigurationPResponse> getSetPathConfigurationMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.SetPathConfigurationPRequest, alluxio.grpc.SetPathConfigurationPResponse> getSetPathConfigurationMethod;
+    if ((getSetPathConfigurationMethod = MetaMasterConfigurationServiceGrpc.getSetPathConfigurationMethod) == null) {
+      synchronized (MetaMasterConfigurationServiceGrpc.class) {
+        if ((getSetPathConfigurationMethod = MetaMasterConfigurationServiceGrpc.getSetPathConfigurationMethod) == null) {
+          MetaMasterConfigurationServiceGrpc.getSetPathConfigurationMethod = getSetPathConfigurationMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.SetPathConfigurationPRequest, alluxio.grpc.SetPathConfigurationPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.meta.MetaMasterConfigurationService", "SetPathConfiguration"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.SetPathConfigurationPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.SetPathConfigurationPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new MetaMasterConfigurationServiceMethodDescriptorSupplier("SetPathConfiguration"))
+                  .build();
+          }
+        }
+     }
+     return getSetPathConfigurationMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RemovePathConfigurationPRequest,
+      alluxio.grpc.RemovePathConfigurationPResponse> getRemovePathConfigurationMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "RemovePathConfiguration",
+      requestType = alluxio.grpc.RemovePathConfigurationPRequest.class,
+      responseType = alluxio.grpc.RemovePathConfigurationPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.RemovePathConfigurationPRequest,
+      alluxio.grpc.RemovePathConfigurationPResponse> getRemovePathConfigurationMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.RemovePathConfigurationPRequest, alluxio.grpc.RemovePathConfigurationPResponse> getRemovePathConfigurationMethod;
+    if ((getRemovePathConfigurationMethod = MetaMasterConfigurationServiceGrpc.getRemovePathConfigurationMethod) == null) {
+      synchronized (MetaMasterConfigurationServiceGrpc.class) {
+        if ((getRemovePathConfigurationMethod = MetaMasterConfigurationServiceGrpc.getRemovePathConfigurationMethod) == null) {
+          MetaMasterConfigurationServiceGrpc.getRemovePathConfigurationMethod = getRemovePathConfigurationMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.RemovePathConfigurationPRequest, alluxio.grpc.RemovePathConfigurationPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.meta.MetaMasterConfigurationService", "RemovePathConfiguration"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.RemovePathConfigurationPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.RemovePathConfigurationPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new MetaMasterConfigurationServiceMethodDescriptorSupplier("RemovePathConfiguration"))
+                  .build();
+          }
+        }
+     }
+     return getRemovePathConfigurationMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -107,6 +171,28 @@ public final class MetaMasterConfigurationServiceGrpc {
       asyncUnimplementedUnaryCall(getGetConfigurationMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     **
+     * Sets a property for a path.
+     * </pre>
+     */
+    public void setPathConfiguration(alluxio.grpc.SetPathConfigurationPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.SetPathConfigurationPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getSetPathConfigurationMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Removes properties for a path, if the keys are empty, it means remove all properties.
+     * </pre>
+     */
+    public void removePathConfiguration(alluxio.grpc.RemovePathConfigurationPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.RemovePathConfigurationPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getRemovePathConfigurationMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -116,6 +202,20 @@ public final class MetaMasterConfigurationServiceGrpc {
                 alluxio.grpc.GetConfigurationPOptions,
                 alluxio.grpc.GetConfigurationPResponse>(
                   this, METHODID_GET_CONFIGURATION)))
+          .addMethod(
+            getSetPathConfigurationMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.SetPathConfigurationPRequest,
+                alluxio.grpc.SetPathConfigurationPResponse>(
+                  this, METHODID_SET_PATH_CONFIGURATION)))
+          .addMethod(
+            getRemovePathConfigurationMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.RemovePathConfigurationPRequest,
+                alluxio.grpc.RemovePathConfigurationPResponse>(
+                  this, METHODID_REMOVE_PATH_CONFIGURATION)))
           .build();
     }
   }
@@ -154,6 +254,30 @@ public final class MetaMasterConfigurationServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getGetConfigurationMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     **
+     * Sets a property for a path.
+     * </pre>
+     */
+    public void setPathConfiguration(alluxio.grpc.SetPathConfigurationPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.SetPathConfigurationPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getSetPathConfigurationMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Removes properties for a path, if the keys are empty, it means remove all properties.
+     * </pre>
+     */
+    public void removePathConfiguration(alluxio.grpc.RemovePathConfigurationPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.RemovePathConfigurationPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getRemovePathConfigurationMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -188,6 +312,28 @@ public final class MetaMasterConfigurationServiceGrpc {
     public alluxio.grpc.GetConfigurationPResponse getConfiguration(alluxio.grpc.GetConfigurationPOptions request) {
       return blockingUnaryCall(
           getChannel(), getGetConfigurationMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Sets a property for a path.
+     * </pre>
+     */
+    public alluxio.grpc.SetPathConfigurationPResponse setPathConfiguration(alluxio.grpc.SetPathConfigurationPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getSetPathConfigurationMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Removes properties for a path, if the keys are empty, it means remove all properties.
+     * </pre>
+     */
+    public alluxio.grpc.RemovePathConfigurationPResponse removePathConfiguration(alluxio.grpc.RemovePathConfigurationPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getRemovePathConfigurationMethod(), getCallOptions(), request);
     }
   }
 
@@ -225,9 +371,35 @@ public final class MetaMasterConfigurationServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getGetConfigurationMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     **
+     * Sets a property for a path.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.SetPathConfigurationPResponse> setPathConfiguration(
+        alluxio.grpc.SetPathConfigurationPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getSetPathConfigurationMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Removes properties for a path, if the keys are empty, it means remove all properties.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.RemovePathConfigurationPResponse> removePathConfiguration(
+        alluxio.grpc.RemovePathConfigurationPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getRemovePathConfigurationMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET_CONFIGURATION = 0;
+  private static final int METHODID_SET_PATH_CONFIGURATION = 1;
+  private static final int METHODID_REMOVE_PATH_CONFIGURATION = 2;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -249,6 +421,14 @@ public final class MetaMasterConfigurationServiceGrpc {
         case METHODID_GET_CONFIGURATION:
           serviceImpl.getConfiguration((alluxio.grpc.GetConfigurationPOptions) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.GetConfigurationPResponse>) responseObserver);
+          break;
+        case METHODID_SET_PATH_CONFIGURATION:
+          serviceImpl.setPathConfiguration((alluxio.grpc.SetPathConfigurationPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.SetPathConfigurationPResponse>) responseObserver);
+          break;
+        case METHODID_REMOVE_PATH_CONFIGURATION:
+          serviceImpl.removePathConfiguration((alluxio.grpc.RemovePathConfigurationPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.RemovePathConfigurationPResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -312,6 +492,8 @@ public final class MetaMasterConfigurationServiceGrpc {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new MetaMasterConfigurationServiceFileDescriptorSupplier())
               .addMethod(getGetConfigurationMethod())
+              .addMethod(getSetPathConfigurationMethod())
+              .addMethod(getRemovePathConfigurationMethod())
               .build();
         }
       }
