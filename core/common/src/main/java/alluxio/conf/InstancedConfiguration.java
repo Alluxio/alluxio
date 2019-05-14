@@ -16,6 +16,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.FormatUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -537,9 +538,10 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    *
    * @throws IllegalStateException if invalid tiered storage configuration is encountered
    */
-  private void checkTieredStorage() {
+  @VisibleForTesting
+  void checkTieredStorage() {
     int globalTiers = getInt(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS);
-    Set<String> globalTierAliasSet = Sets.newHashSet();
+    Set<String> globalTierAliasSet = new HashSet<>();
     for (int i = 0; i < globalTiers; i++) {
       globalTierAliasSet
           .add(get(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(i)));
