@@ -134,7 +134,7 @@ public final class BlockStoreLocation {
     boolean tierInRange =
         tierAlias().equals(location.tierAlias()) || location.tierAlias().equals(ANY_TIER);
     boolean dirInRange = (dir() == location.dir()) || (location.dir() == ANY_DIR);
-    boolean mediumTypeInRange = (mediumType() == location.mediumType())
+    boolean mediumTypeInRange = (mediumType().equals(location.mediumType())
         || (mediumType() == ANY_MEDIUM);
     return tierInRange && dirInRange && mediumTypeInRange;
   }
