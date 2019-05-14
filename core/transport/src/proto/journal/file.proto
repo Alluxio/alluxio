@@ -106,7 +106,7 @@ message UpdateInodeDirectoryEntry {
   optional alluxio.proto.shared.AccessControlList defaultAcl = 4;
 }
 
-// next available id: 13
+// next available id: 14
 message UpdateInodeFileEntry {
   optional int64 id = 1;
   optional int64 block_size_bytes = 2;
@@ -119,15 +119,11 @@ message UpdateInodeFileEntry {
   optional int32 replication_min = 9;
   optional int64 persist_job_id = 10;
   optional string temp_ufs_path = 11;
-<<<<<<< HEAD
-  map<string, bytes> xAttrs = 12;
-
-=======
   optional string path = 12;
->>>>>>> master
+  map<string, bytes> xAttrs = 13;
 }
 
-// next available id: 18
+// next available id: 19
 message InodeDirectoryEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -145,11 +141,8 @@ message InodeDirectoryEntry {
   optional PTtlAction ttlAction = 14 [default = DELETE];
   optional alluxio.proto.shared.AccessControlList acl = 15;
   optional alluxio.proto.shared.AccessControlList defaultAcl = 16;
-<<<<<<< HEAD
-  map<string, bytes> xAttr = 17;
-=======
   optional string path = 17;
->>>>>>> master
+  map<string, bytes> xAttr = 18;
 }
 
 // next available id: 3
@@ -163,7 +156,7 @@ enum PTtlAction {
   FREE = 1;
 }
 
-// next available id: 26
+// next available id: 27
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -189,11 +182,8 @@ message InodeFileEntry {
   optional int64 persist_job_id = 22;
   optional string temp_ufs_path = 23;
   optional int32 replication_durable = 24;
-<<<<<<< HEAD
-  map<string, bytes> xAttr = 25;
-=======
   optional string path = 25;
->>>>>>> master
+  map<string, bytes> xAttr = 26;
 }
 
 // next available id: 3
@@ -214,19 +204,7 @@ message PersistFileEntry {
   optional int64 op_time_ms = 3;
 }
 
-<<<<<<< HEAD
-// next available id: 6
-=======
-// next available id: 5
-message ReinitializeFileEntry {
-  optional string path = 1;
-  optional int64 block_size_bytes = 2;
-  optional int64 ttl = 3;
-  optional PTtlAction ttlAction = 4 [default = DELETE];
-}
-
 // next available id: 8
->>>>>>> master
 message RenameEntry {
   optional int64 id = 1;
   // Deprecated, use new_parent_id/new_name instead

@@ -49,7 +49,7 @@ message Inode {
     optional int64 persist_job_id = 23;
     optional string persist_job_temp_ufs_path = 24;
 
-    // Extended attributes, general purpose. Should be used with care as strings will use a comparatively large amount
-    // of memory
+    // Extended attributes, general purpose. Should be used with care as long string identifiers will use a
+    // comparatively large amount of memory to other fields
     map<string, bytes> xAttr = 27;
 }
