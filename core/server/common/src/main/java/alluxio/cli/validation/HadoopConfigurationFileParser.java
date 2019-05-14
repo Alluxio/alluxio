@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
@@ -44,6 +45,7 @@ public class HadoopConfigurationFileParser {
    * @param path path to the xml file
    * @return Map from property names to values
    */
+  @Nullable
   public Map<String, String> parseXmlConfiguration(final String path) {
     File xmlFile;
     xmlFile = new File(path);

@@ -293,11 +293,14 @@ public class InodeTreePersistentState implements Journaled {
    *
    * @param context journal context supplier
    * @param inode an inode to add and create a journal entry for
+   * @param path path of the new inode
    */
-  public void applyAndJournal(Supplier<JournalContext> context, MutableInode<?> inode) {
+  public void applyAndJournal(Supplier<JournalContext> context, MutableInode<?> inode,
+      String path) {
     try {
       applyCreateInode(inode);
-      context.get().append(inode.toJournalEntry());
+      context.get().append(inode.toJournalEntry(
+          Preconditions.checkNotNull(path)));
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", inode);
       throw t; // fatalError will usually system.exit

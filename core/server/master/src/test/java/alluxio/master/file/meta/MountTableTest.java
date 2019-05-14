@@ -44,10 +44,9 @@ import java.util.Map;
  */
 public final class MountTableTest {
   private MountTable mMountTable;
-  private final UnderFileSystem mTestUfs =
-      new LocalUnderFileSystemFactory().create("/", UnderFileSystemConfiguration.defaults(),
-          ServerConfiguration.global());
   private static final String ROOT_UFS = "s3a://bucket/";
+  private final UnderFileSystem mTestUfs = new LocalUnderFileSystemFactory().create("/",
+      UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
 
   @Before
   public void before() throws Exception {

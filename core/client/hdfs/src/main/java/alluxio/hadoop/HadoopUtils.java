@@ -146,10 +146,10 @@ public final class HadoopUtils {
    */
 
   public static void addSwiftCredentials(Configuration configuration) {
-    PropertyKey[] propertyNames = {PropertyKey.SWIFT_API_KEY, PropertyKey.SWIFT_TENANT_KEY,
-        PropertyKey.SWIFT_USER_KEY, PropertyKey.SWIFT_AUTH_URL_KEY,
-        PropertyKey.SWIFT_AUTH_METHOD_KEY, PropertyKey.SWIFT_PASSWORD_KEY,
-        PropertyKey.SWIFT_SIMULATION, PropertyKey.SWIFT_REGION_KEY};
+    PropertyKey[] propertyNames = { PropertyKey.SWIFT_TENANT_KEY, PropertyKey.SWIFT_USER_KEY,
+        PropertyKey.SWIFT_AUTH_URL_KEY, PropertyKey.SWIFT_AUTH_METHOD_KEY,
+        PropertyKey.SWIFT_PASSWORD_KEY, PropertyKey.SWIFT_SIMULATION,
+        PropertyKey.SWIFT_REGION_KEY };
     setConfigurationFromSystemProperties(configuration, propertyNames);
   }
 

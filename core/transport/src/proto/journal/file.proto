@@ -56,7 +56,7 @@ message CompleteFileEntry {
   optional string ufs_fingerprint = 5;
 }
 
-// next available id: 5
+// next available id: 6
 message DeleteFileEntry {
   optional int64 id = 1;
   // Deprecated, we now write one journal entry per inode removed
@@ -64,6 +64,7 @@ message DeleteFileEntry {
   optional int64 op_time_ms = 3;
   // Deprecated, this field is about whether to delete in the UFS. We don't journal UFS changes.
   optional bool alluxioOnly = 4;
+  optional string path = 5;
 }
 
 // next available id: 2
@@ -118,8 +119,12 @@ message UpdateInodeFileEntry {
   optional int32 replication_min = 9;
   optional int64 persist_job_id = 10;
   optional string temp_ufs_path = 11;
+<<<<<<< HEAD
   map<string, bytes> xAttrs = 12;
 
+=======
+  optional string path = 12;
+>>>>>>> master
 }
 
 // next available id: 18
@@ -140,7 +145,11 @@ message InodeDirectoryEntry {
   optional PTtlAction ttlAction = 14 [default = DELETE];
   optional alluxio.proto.shared.AccessControlList acl = 15;
   optional alluxio.proto.shared.AccessControlList defaultAcl = 16;
+<<<<<<< HEAD
   map<string, bytes> xAttr = 17;
+=======
+  optional string path = 17;
+>>>>>>> master
 }
 
 // next available id: 3
@@ -180,7 +189,11 @@ message InodeFileEntry {
   optional int64 persist_job_id = 22;
   optional string temp_ufs_path = 23;
   optional int32 replication_durable = 24;
+<<<<<<< HEAD
   map<string, bytes> xAttr = 25;
+=======
+  optional string path = 25;
+>>>>>>> master
 }
 
 // next available id: 3
@@ -201,7 +214,19 @@ message PersistFileEntry {
   optional int64 op_time_ms = 3;
 }
 
+<<<<<<< HEAD
 // next available id: 6
+=======
+// next available id: 5
+message ReinitializeFileEntry {
+  optional string path = 1;
+  optional int64 block_size_bytes = 2;
+  optional int64 ttl = 3;
+  optional PTtlAction ttlAction = 4 [default = DELETE];
+}
+
+// next available id: 8
+>>>>>>> master
 message RenameEntry {
   optional int64 id = 1;
   // Deprecated, use new_parent_id/new_name instead
@@ -210,6 +235,8 @@ message RenameEntry {
 
   optional int64 new_parent_id = 4;
   optional string new_name = 5;
+  optional string path = 6;
+  optional string new_path = 7;
 }
 
 enum PSetAclAction {

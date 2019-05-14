@@ -30,7 +30,8 @@ public final class MockFileInStream extends FileInStream {
    * @param context file system context
    * @param bytes the bytes to supply
    */
-  public MockFileInStream(FileSystemContext context, byte[] bytes, AlluxioConfiguration conf) {
+  public MockFileInStream(FileSystemContext context, byte[] bytes, AlluxioConfiguration conf)
+      throws IOException {
     super(new URIStatus(new FileInfo()), new InStreamOptions(new URIStatus(new FileInfo()),
         conf), context);
     mStream = new ByteArrayInputStream(bytes);

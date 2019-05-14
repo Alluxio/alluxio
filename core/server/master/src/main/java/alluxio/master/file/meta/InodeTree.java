@@ -61,6 +61,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -163,6 +164,9 @@ public class InodeTree implements DelegatingJournaled {
   /** Only the root inode should have the empty string as its name. */
   public static final String ROOT_INODE_NAME = "";
 
+  /** Path of the root inode. */
+  public static final String ROOT_PATH = "/";
+
   /** Number of retries when trying to lock a path, from a given id. */
   public static final int PATH_TRAVERSAL_RETRIES = 1000;
 
@@ -230,7 +234,7 @@ public class InodeTree implements DelegatingJournaled {
               .mergeFrom(CreateDirectoryPOptions.newBuilder().setMode(mode.toProto()))
               .setOwner(owner).setGroup(group));
       root.setPersistenceState(PersistenceState.PERSISTED);
-      mState.applyAndJournal(context, root);
+      mState.applyAndJournal(context, root, ROOT_PATH);
     }
   }
 
@@ -681,6 +685,9 @@ public class InodeTree implements DelegatingJournaled {
     missingDirContext.setMountPoint(false);
     missingDirContext.setOwner(context.getOwner());
     missingDirContext.setGroup(context.getGroup());
+    StringBuilder pathBuilder = new StringBuilder().append(
+        String.join(AlluxioURI.SEPARATOR, Arrays.asList(pathComponents).subList(0, pathIndex))
+    );
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       MutableInodeDirectory newDir = MutableInodeDirectory.create(
           mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
@@ -703,7 +710,10 @@ public class InodeTree implements DelegatingJournaled {
         newDir.setInternalAcl(pair.getFirst());
         newDir.setDefaultACL(pair.getSecond());
       }
-      mState.applyAndJournal(rpcContext, newDir);
+      String newDirPath = k == 0 ? ROOT_PATH
+          : pathBuilder.append(AlluxioURI.SEPARATOR).append(pathComponents[k]).toString();
+      mState.applyAndJournal(rpcContext, newDir,
+          newDirPath);
 
       inodePath.addNextInode(Inode.wrap(newDir));
 
@@ -786,7 +796,8 @@ public class InodeTree implements DelegatingJournaled {
     }
     newInode.setPinned(currentInodeDirectory.isPinned());
 
-    mState.applyAndJournal(rpcContext, newInode);
+    mState.applyAndJournal(rpcContext, newInode,
+        inodePath.getUri().getPath());
     Inode inode = Inode.wrap(newInode);
     inodePath.addNextInode(inode);
     createdInodes.add(inode);
@@ -808,19 +819,21 @@ public class InodeTree implements DelegatingJournaled {
   /**
    * Returns {@link LockedInodePath}s for all descendants of inodePath.
    *
-   * The descendents are implicitly locked because the current thread holds a write lock on
-   * inodePath, so no new locks are acquired in this method.
-   *
    * @param inodePath a locked inode path. It must be write-locked
    * @return all descendants
    */
-  public List<LockedInodePath> getImplicitlyLockedDescendants(LockedInodePath inodePath) {
+  public LockedInodePathList getDescendants(LockedInodePath inodePath) {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE
         || (inodePath.getLockPattern() == LockPattern.WRITE_INODE && inodePath.fullPathExists()));
 
     List<LockedInodePath> descendants = new ArrayList<>();
-    gatherDescendants(inodePath, descendants);
-    return descendants;
+    try {
+      gatherDescendants(inodePath, descendants);
+    } catch (Throwable t) {
+      descendants.forEach(LockedInodePath::close);
+      throw t;
+    }
+    return new LockedInodePathList(descendants);
   }
 
   private void gatherDescendants(LockedInodePath inodePath, List<LockedInodePath> descendants) {
@@ -858,6 +871,7 @@ public class InodeTree implements DelegatingJournaled {
         .setId(inode.getId())
         .setRecursive(false)
         .setOpTimeMs(opTimeMs)
+        .setPath(inodePath.getUri().getPath())
         .build());
 
     if (inode.isFile()) {
