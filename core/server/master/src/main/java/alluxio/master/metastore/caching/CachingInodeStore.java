@@ -666,9 +666,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
      * @return the ids of all children of the directory
      */
     public Collection<Long> getChildIds(Long inodeId, ReadOption option) {
-      if (!option.shouldSkipCache()) {
-        evictIfNecessary();
-      }
+      evictIfNecessary();
       AtomicBoolean createdNewEntry = new AtomicBoolean(false);
       ListingCacheEntry entry = mMap.compute(inodeId, (key, value) -> {
         if (value == null) {
@@ -699,9 +697,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
 
     private Map<String, Long> loadChildren(Long inodeId, ListingCacheEntry entry,
         ReadOption option) {
-      if (!option.shouldSkipCache()) {
-        evictIfNecessary();
-      }
+      evictIfNecessary();
       entry.mModified = false;
       Map<String, Long> listing = mEdgeCache.getChildIds(inodeId, option);
       mMap.computeIfPresent(inodeId, (key, value) -> {

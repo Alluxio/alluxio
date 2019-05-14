@@ -24,7 +24,7 @@ public class ReadOption {
   }
 
   /**
-   * @return whether to skip the caching and eviction when reading from the inode store
+   * @return whether to skip caching when reading from the inode store
    */
   public boolean shouldSkipCache() {
     return mSkipCache;
@@ -51,7 +51,7 @@ public class ReadOption {
     private boolean mSkipCache = false;
 
     /**
-     * Sets whether to skip caching and eviction.
+     * Sets whether to skip caching.
      *
      * @param skip skip or not
      * @return the builder
