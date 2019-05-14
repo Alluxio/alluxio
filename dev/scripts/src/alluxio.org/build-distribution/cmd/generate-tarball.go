@@ -46,7 +46,7 @@ func init() {
 	cmdSingle.Flags.StringVar(&targetFlag, "target", fmt.Sprintf("alluxio-%v.tar.gz", versionMarker),
 		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz. The string %q will be substituted with the built version. "+
 			`Note that trailing ".tar.gz" will be stripped to determine the name for the Root directory of the generated tarball`, versionMarker, versionMarker))
-	cmdSingle.Flags.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.2.0"`)
+	cmdSingle.Flags.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.7.1"`)
 }
 
 func single(_ *cmdline.Env, _ []string) error {
@@ -104,7 +104,7 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 	}
 	if hadoopVersion.major == 1 {
 		// checker requires hadoop 2+ to compile.
-		args = append(args, "-Dchecker.hadoop.version=2.2.0")
+		args = append(args, "-Dchecker.hadoop.version=2.7.1")
 	}
 	return args
 }

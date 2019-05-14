@@ -32,11 +32,11 @@ var hadoopDistributions = map[string]version{
 	"hadoop-2.4": parseVersion("2.4.1"),
 	"hadoop-2.5": parseVersion("2.5.2"),
 	"hadoop-2.6": parseVersion("2.6.5"),
-	"hadoop-2.7": parseVersion("2.7.3"),
+	"hadoop-2.7": parseVersion("2.7.1"),
 	"hadoop-2.8": parseVersion("2.8.0"),
 	"hadoop-2.9": parseVersion("2.9.0"),
-	// This distribution type is built with 2.2.0, but doesn't include the hadoop version in the name.
-	"default": parseVersion("2.2.0"),
+	// This distribution type is built with 2.7.1, but doesn't include the hadoop version in the name.
+	"default": parseVersion("2.7.1"),
 }
 
 func validHadoopDistributions() []string {
