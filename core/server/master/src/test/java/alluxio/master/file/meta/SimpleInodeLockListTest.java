@@ -300,4 +300,17 @@ public class SimpleInodeLockListTest extends BaseInodeLockingTest {
     mThrown.expect(IllegalStateException.class);
     mLockList.unlockLastInode();
   }
+
+  @Test
+  public void numInodes() {
+    assertEquals(0, mLockList.numInodes());
+    mLockList.lockRootEdge(LockMode.READ);
+    assertEquals(0, mLockList.numInodes());
+    mLockList.lockInode(mRootDir, LockMode.READ);
+    assertEquals(1, mLockList.numInodes());
+    mLockList.lockEdge(mRootDir, mDirA.getName(), LockMode.READ);
+    assertEquals(1, mLockList.numInodes());
+    mLockList.lockInode(mDirA, LockMode.READ);
+    assertEquals(2, mLockList.numInodes());
+  }
 }
