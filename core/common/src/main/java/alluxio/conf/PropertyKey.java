@@ -1662,10 +1662,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_MEDIA =
-      new Builder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIA)
+  public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES =
+      new Builder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES)
           .setDefaultValue("MEM, SSD, HDD")
-          .setDescription("The list of media we support in the system.")
+          .setDescription("The list of medium types we support in the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -2327,7 +2327,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIATYPE =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIATYPE, 0)
+      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 0)
           .setDefaultValue("MEM")
           .setDescription("The media type for the top storage tier directories ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2369,7 +2369,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIATYPE =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIATYPE, 1)
+      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 1)
           .setDefaultValue("SSD")
           .setDescription("The media type for the second storage tier directories ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2410,7 +2410,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_MEDIATYPE =
-      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIATYPE, 2)
+      new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE, 2)
           .setDefaultValue("HDD")
           .setDescription("The media type for the third storage tier directories ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3959,7 +3959,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.level2.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVELS =
         "alluxio.master.tieredstore.global.levels";
-    public static final String MASTER_TIERED_STORE_GLOBAL_MEDIA =
+    public static final String MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES =
         "alluxio.master.tieredstore.global.media";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
@@ -4404,8 +4404,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.alias"),
     WORKER_TIERED_STORE_LEVEL_DIRS_PATH("alluxio.worker.tieredstore.level%d.dirs.path",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.path"),
-    WORKER_TIERED_STORE_LEVEL_DIRS_MEDIATYPE("alluxio.worker.tieredstore.level%d.dirs.mediatype",
-        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.mediatype"),
+    WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE("alluxio.worker.tieredstore.level%d.dirs.mediumtype",
+        "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.mediumtype"),
     WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA("alluxio.worker.tieredstore.level%d.dirs.quota",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.dirs\\.quota"),
     WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO(

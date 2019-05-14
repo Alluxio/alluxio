@@ -33,8 +33,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -248,15 +250,16 @@ public final class BlockMetadataManager {
    * @param mediumType medium type
    * @return the blockstorelocation object
    */
-  public BlockStoreLocation getMedium(String mediumType) {
+  public Set<BlockStoreLocation> getMedium(String mediumType) {
+    Set<BlockStoreLocation> locationSet = new HashSet<>();
     for (StorageTier tier : getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.getDirMedium().equals(mediumType)) {
-          return new BlockStoreLocation(tier.getTierAlias(), dir.getDirIndex());
+          locationSet.add(new BlockStoreLocation(tier.getTierAlias(), dir.getDirIndex()));
         }
       }
     }
-    return null;
+    return locationSet;
   }
   /**
    * Gets the metadata of a temp block.

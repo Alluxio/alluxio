@@ -392,6 +392,7 @@ public final class OutStreamOptions {
         && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mMediumType, that.mMediumType)
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mMountId, that.mMountId)
         && Objects.equal(mOwner, that.mOwner)
@@ -400,8 +401,7 @@ public final class OutStreamOptions {
         && Objects.equal(mReplicationMin, that.mReplicationMin)
         && Objects.equal(mUfsPath, that.mUfsPath)
         && Objects.equal(mWriteTier, that.mWriteTier)
-        && Objects.equal(mWriteType, that.mWriteType)
-        && Objects.equal(mMediumType, that.mMediumType);
+        && Objects.equal(mWriteType, that.mWriteType);
   }
 
   @Override
@@ -412,6 +412,7 @@ public final class OutStreamOptions {
         mCommonOptions,
         mGroup,
         mLocationPolicy,
+        mMediumType,
         mMode,
         mMountId,
         mOwner,
@@ -420,8 +421,7 @@ public final class OutStreamOptions {
         mReplicationMin,
         mUfsPath,
         mWriteTier,
-        mWriteType,
-        mMediumType
+        mWriteType
     );
   }
 
@@ -433,6 +433,7 @@ public final class OutStreamOptions {
         .add("commonOptions", mCommonOptions)
         .add("group", mGroup)
         .add("locationPolicy", mLocationPolicy)
+        .add("mediumType", mMediumType)
         .add("mode", mMode)
         .add("mountId", mMountId)
         .add("owner", mOwner)
@@ -442,7 +443,6 @@ public final class OutStreamOptions {
         .add("replicationDurable", mReplicationDurable)
         .add("replicationMax", mReplicationMax)
         .add("replicationMin", mReplicationMin)
-        .add("mediumType", mMediumType)
         .toString();
   }
 }

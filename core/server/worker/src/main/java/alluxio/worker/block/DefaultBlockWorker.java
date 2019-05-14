@@ -349,10 +349,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
-    if (!medium.isEmpty()) {
-      loc = mBlockStore.findLocationByMedium(medium);
-    } else {
+    if (medium.isEmpty()) {
       loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    } else {
+      loc = BlockStoreLocation.anyDirInTierWithMedium(medium);
     }
     TempBlockMeta createdBlock;
     try {
@@ -371,10 +371,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc;
-    if (!medium.isEmpty()) {
-      loc = mBlockStore.findLocationByMedium(medium);
-    } else {
+    if (medium.isEmpty()) {
       loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    } else {
+      loc = BlockStoreLocation.anyDirInTierWithMedium(medium);
     }
     mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
   }

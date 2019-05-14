@@ -131,9 +131,9 @@ public final class JobUtils {
     // renamed, the job is still working on the correct file.
     URIStatus status = fs.getStatus(new AlluxioURI(path));
 
-    Set<String> pinnedLocation = status.getPinnedLocation();
+    Set<String> pinnedLocation = status.getPinnedMediumTypes();
     if (pinnedLocation.size() > 1) {
-      throw new AlluxioException(ExceptionMessage.PINNED_TO_MULTIPLE_MEDIA.getMessage(path));
+      throw new AlluxioException(ExceptionMessage.PINNED_TO_MULTIPLE_MEDIUMTYPES.getMessage(path));
     }
     // since there is only one element in the set, we take the first element in the set
     String medium = pinnedLocation.isEmpty() ? "" : pinnedLocation.iterator().next();

@@ -867,12 +867,12 @@ public class InodeTree implements DelegatingJournaled {
     }
   }
 
-  private boolean checkPinningValidity(Set<String> pinnedLocations) {
-    List<String> mediaList = ServerConfiguration.getList(
-        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIA, ",");
-    for (String medium : pinnedLocations) {
-      if (!mediaList.remove(medium)) {
-        // mediaList does not contains medium
+  private boolean checkPinningValidity(Set<String> pinnedMediumTypes) {
+    List<String> mediumTypeList = ServerConfiguration.getList(
+        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES, ",");
+    for (String medium : pinnedMediumTypes) {
+      if (!mediumTypeList.contains(medium)) {
+        // mediumTypeList does not contains medium
         return false;
       }
     }
@@ -894,9 +894,8 @@ public class InodeTree implements DelegatingJournaled {
       throws FileDoesNotExistException, InvalidPathException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
     Set<String> mediumSet = new HashSet<>(mediumTypes);
-    if (!checkPinningValidity(mediumSet)) {
-      throw new IllegalArgumentException("Invalid pinning media");
-    }
+    Preconditions.checkState(checkPinningValidity(mediumSet));
+
     Inode inode = inodePath.getInode();
     mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
         .setId(inode.getId())

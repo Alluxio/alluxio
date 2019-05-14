@@ -108,7 +108,7 @@ public final class TieredBlockStoreTest {
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);
     mTestDir2 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(1);
     mTestDir3 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(1);
-    mTestDir4 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(0);
+    mTestDir4 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(2);
   }
 
   /**
@@ -361,7 +361,8 @@ public final class TieredBlockStoreTest {
     for (int i = 0; i < threadAmount; i++) {
       runnables.add(() -> {
         try {
-          mBlockStore.freeSpace(SESSION_ID1, 0, new BlockStoreLocation("MEM", 0));
+          mBlockStore.freeSpace(SESSION_ID1, 0,
+              new BlockStoreLocation("MEM", 0, BlockStoreLocation.ANY_MEDIUM));
         } catch (Exception e) {
           fail();
         }
@@ -399,13 +400,13 @@ public final class TieredBlockStoreTest {
 
   @Test
   public void createBlockMetaWithMediumType() throws Exception {
-    BlockStoreLocation loc = mBlockStore.findLocationByMedium("MEM");
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInTierWithMedium("MEM");
     TempBlockMeta tempBlockMeta = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID,
         loc, 1);
     assertEquals(1, tempBlockMeta.getBlockSize());
-    assertEquals(mTestDir1, tempBlockMeta.getParentDir());
+    assertEquals(mTestDir2, tempBlockMeta.getParentDir());
 
-    BlockStoreLocation loc2 = mBlockStore.findLocationByMedium("SSD");
+    BlockStoreLocation loc2 = BlockStoreLocation.anyDirInTierWithMedium("SSD");
     TempBlockMeta tempBlockMeta2 = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID2,
         loc2, 1);
     assertEquals(1, tempBlockMeta2.getBlockSize());

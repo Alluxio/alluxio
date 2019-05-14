@@ -240,7 +240,7 @@ public class URIStatus {
   /**
    * @return the pinned location list
    */
-  public Set<String> getPinnedLocation() {
+  public Set<String> getPinnedMediumTypes() {
     return mInfo.getMediumTypes();
   }
 

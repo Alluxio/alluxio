@@ -80,7 +80,7 @@ public final class StorageTier {
     String[] dirQuotas = rawDirQuota.split(",");
 
     PropertyKey tierDirMediumConf =
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIATYPE.format(mTierOrdinal);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(mTierOrdinal);
     String rawDirMedium = ServerConfiguration.get(tierDirMediumConf);
     String[] dirMedium = rawDirMedium.split(",");
 

@@ -156,7 +156,7 @@ public final class TieredBlockStoreTestUtils {
 
     String tierMediumString = StringUtils.join(tierMediumType, ",");
     ServerConfiguration
-        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIATYPE.format(ordinal),
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(ordinal),
             tierMediumString);
   }
 
