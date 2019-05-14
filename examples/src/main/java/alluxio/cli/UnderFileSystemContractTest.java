@@ -37,57 +37,43 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * Integration tests for Alluxio under filesystems. It describes the contract of Alluxio
  * with the UFS through the UFS interface.
  */
-public final class AlluxioUnderFileSystemContractTest {
-  private static final Logger LOG
-      = LoggerFactory.getLogger(AlluxioUnderFileSystemContractTest.class);
+public final class UnderFileSystemContractTest {
+  private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemContractTest.class);
 
-  @Parameter(names = {"-n", "--name"}, required = true,
-      description = "Name of the under filesystem.")
-  private String mUfsName;
+  @Parameter(names = {"--ufs"}, required = true,
+      description = "The target ufs type. Valid value includes "
+      + "HDFS, S3A, GCS, KODO, OSS, SWIFT, and WASB")
+  private String mUfsType;
 
-  @Parameter(names = {"-p", "--path"}, required = true,
+  @Parameter(names = {"--path"}, required = true,
       description = "The under filesystem path to run tests against.")
   private String mUfsPath;
 
-  @Parameter(names = {"-h", "--help"}, help = true)
+  @Parameter(names = {"--help"}, help = true)
   private boolean mHelp = false;
 
-  private String mUnderfsAddress;
-  private UnderFileSystem mUfs;
+  // The factory to check if the given ufs path is valid and create ufs
   private UnderFileSystemFactory mFactory;
-  private Set<String> mValidUfsName;
 
-  private AlluxioUnderFileSystemContractTest() {
-    mValidUfsName = new HashSet<>(Arrays
-        .asList(new String[] {"HDFS", "S3A", "GCS", "KODO", "OSS", "SWIFT", "WASB"}));
-  }
+  private UnderFileSystemContractTest() {}
 
   private void run() throws Exception {
-    // Check if the ufs name is valid
-    if (mUfsName.isEmpty() || !mValidUfsName.contains(mUfsName)) {
-      LOG.error("The given under filesystem name is invalid. Valid name includes "
-          + StringUtils.join(mValidUfsName, ","));
-      System.exit(1);
-    }
-
     // Check if the ufs path is valid
     createUnderFileSystemFactory();
     if (mFactory == null || !mFactory.supportsPath(mUfsPath)) {
-      LOG.error("%s is not a valid %s path", mUfsPath, mUfsName);
+      LOG.error("%s is not a valid %s path", mUfsPath, mUfsType);
       System.exit(1);
     }
 
     runCommonOperations();
-    if (mUfsName.equals("S3A")) {
+    if (mUfsType.equals("S3A")) {
       runS3AOperations();
     }
     CliUtils.printPassInfo(true);
@@ -100,18 +86,24 @@ public final class AlluxioUnderFileSystemContractTest {
     // Increase the buffer time of journal writes to speed up tests
     conf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");
 
-    createUnderFileSystem(conf);
+    UnderFileSystem ufs = createUnderFileSystem(conf);
+    // Create the test directory to run tests against
+    String testDir = PathUtils.concatPath(mUfsPath, UUID.randomUUID());
     UnderFileSystemCommonOperations ops
-        = new UnderFileSystemCommonOperations(mUfsPath, mUnderfsAddress, mUfs, conf);
+        = new UnderFileSystemCommonOperations(mUfsPath, testDir, ufs, conf);
     try {
       ops.runTests();
-    } catch (Throwable t) {
-      if (mUfsName.equals("S3A")) {
-        LOG.info("Related S3 operations: "
-            + StringUtils.join(ops.getRelatedS3AOperations(), ","));
+    } catch (IOException e) {
+      if (mUfsType.equals("S3A")) {
+        List<String> operations = ops.getRelatedS3AOperations();
+        if (operations.size() > 0) {
+          LOG.info("Related S3 operations: "
+              + StringUtils.join(ops.getRelatedS3AOperations(), ","));
+        }
       }
+      throw e;
     } finally {
-      cleanup();
+      cleanup(ufs, testDir);
     }
   }
 
@@ -124,32 +116,34 @@ public final class AlluxioUnderFileSystemContractTest {
     conf.set(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
     conf.set(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE, "0");
 
-    createUnderFileSystem(conf);
+    UnderFileSystem ufs = createUnderFileSystem(conf);
+    String testDir = PathUtils.concatPath(mUfsPath, UUID.randomUUID());
+    S3ASpecificOperations ops
+        = new S3ASpecificOperations(mUfsPath, testDir, (S3AUnderFileSystem) ufs, conf);
     try {
-      S3ASpecificOperations ops
-          = new S3ASpecificOperations(mUfsPath, mUnderfsAddress, (S3AUnderFileSystem) mUfs, conf);
       ops.runTests();
     } finally {
-      cleanup();
+      cleanup(ufs, testDir);
     }
   }
 
-  private void createUnderFileSystem(InstancedConfiguration conf) {
-    mUnderfsAddress = PathUtils.concatPath(mUfsPath, UUID.randomUUID());
-    mUfs = mFactory.create(mUfsPath, UnderFileSystemConfiguration.defaults(conf), conf);
-    if (mUfs == null) {
+  private UnderFileSystem createUnderFileSystem(InstancedConfiguration conf) {
+    UnderFileSystem ufs = mFactory.create(mUfsPath,
+        UnderFileSystemConfiguration.defaults(conf), conf);
+    if (ufs == null) {
       LOG.error("Failed to create under filesystem");
       System.exit(1);
     }
+    return ufs;
   }
 
-  private void cleanup() throws IOException {
-    mUfs.deleteDirectory(mUnderfsAddress, DeleteOptions.defaults().setRecursive(true));
-    mUfs.close();
+  private void cleanup(UnderFileSystem ufs, String testDir) throws IOException {
+    ufs.deleteDirectory(testDir, DeleteOptions.defaults().setRecursive(true));
+    ufs.close();
   }
 
-  private void createUnderFileSystemFactory() {
-    switch (mUfsName) {
+  private void createUnderFileSystemFactory() throws IOException {
+    switch (mUfsType) {
       case "HDFS":
         mFactory = new HdfsUnderFileSystemFactory();
         break;
@@ -172,17 +166,18 @@ public final class AlluxioUnderFileSystemContractTest {
         mFactory = new WasbUnderFileSystemFactory();
         break;
       default:
-        // do nothing;
+        LOG.error("The given ufs type is invalid");
+        System.exit(1);
     }
   }
 
   /**
-   * @param args arguments
+   * @param args the input arguments
    */
   public static void main(String[] args) throws Exception {
-    AlluxioUnderFileSystemContractTest test = new AlluxioUnderFileSystemContractTest();
+    UnderFileSystemContractTest test = new UnderFileSystemContractTest();
     JCommander jc = new JCommander(test);
-    jc.setProgramName(AlluxioUnderFileSystemContractTest.class.getName());
+    jc.setProgramName(UnderFileSystemContractTest.class.getName());
     try {
       jc.parse(args);
     } catch (Exception e) {
