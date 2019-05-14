@@ -31,6 +31,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,14 +97,22 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   /** A map of worker addresses to the most recent epoch time when client fails to read from it. */
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
 
-  protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
-    AlluxioConfiguration conf = context.getPathConf(new AlluxioURI(status.getPath()));
+  private Closer mCloser;
+
+  protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context)
+      throws IOException {
+    mContext = context;
+    mCloser = Closer.create();
+    // Acquire a lock to block FileSystemContext reinitialization, this needs to be done before
+    // using mContext.
+    // The lock will be released in close().
+    mCloser.register(mContext.acquireBlockReinitLockResource());
+    AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
     mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
     mBlockWorkerClientReadRetry = conf.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
     mStatus = status;
     mOptions = options;
-    mBlockStore = AlluxioBlockStore.create(context);
-    mContext = context;
+    mBlockStore = AlluxioBlockStore.create(mContext);
 
     mLength = mStatus.getLength();
     mBlockSize = mStatus.getBlockSizeBytes();
@@ -202,6 +211,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   public void close() throws IOException {
     closeBlockInStream(mBlockInStream);
     closeBlockInStream(mCachedPositionedReadStream);
+    mCloser.close();
   }
 
   /* Bounded Stream methods */

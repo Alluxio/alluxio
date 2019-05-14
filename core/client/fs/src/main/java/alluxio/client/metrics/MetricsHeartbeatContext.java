@@ -78,7 +78,7 @@ public class MetricsHeartbeatContext {
   private MetricsHeartbeatContext(ClientContext ctx, MasterInquireClient inquireClient) {
     mCtxCount = 0;
     mConnectDetails = inquireClient.getConnectDetails();
-    mConf = ctx.getConf();
+    mConf = ctx.getClusterConf();
     mMetricsMasterClient = new MetricsMasterClient(MasterClientContext
         .newBuilder(ctx)
         .setMasterInquireClient(inquireClient)
@@ -167,7 +167,7 @@ public class MetricsHeartbeatContext {
     }
 
     if (sAppId == null) {
-      sAppId = IdUtils.createOrGetAppIdFromConfig(ctx.getConf());
+      sAppId = IdUtils.createOrGetAppIdFromConfig(ctx.getClusterConf());
       LOG.info("Created metrics heartbeat with ID {}. This ID will be used for identifying info "
               + "from the client. It can be set manually through the {} property",
           sAppId, PropertyKey.Name.USER_APP_ID);
@@ -194,7 +194,7 @@ public class MetricsHeartbeatContext {
    */
   public static synchronized void removeHeartbeat(ClientContext ctx) {
     MasterInquireClient.ConnectDetails connectDetails =
-        MasterInquireClient.Factory.getConnectDetails(ctx.getConf());
+        MasterInquireClient.Factory.getConnectDetails(ctx.getClusterConf());
     MetricsHeartbeatContext heartbeatCtx = MASTER_METRICS_HEARTBEAT.get(connectDetails);
     if (heartbeatCtx != null) {
       heartbeatCtx.removeContext();

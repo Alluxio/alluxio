@@ -11,14 +11,12 @@
 
 package alluxio;
 
-import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.util.ConfigurationUtils;
-
-import com.google.common.annotations.VisibleForTesting;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -36,12 +34,18 @@ import javax.security.auth.Subject;
  * default configuration loaded that any new clients which use the context will need to load the
  * cluster defaults upon connecting to the Alluxio master.
  *
+ * Path level configuration may not be needed for any ClientContext, it is currently only used in
+ * BaseFileSystem, so it is initially lazily loaded by FileSystemContext when it's needed.
+ *
  * Ideally only a single {@link ClientContext} should be needed when initializing an application.
  * This will use as few network resources as possible.
  */
 public class ClientContext {
-  private volatile AlluxioConfiguration mConf;
+  private volatile AlluxioConfiguration mClusterConf;
+  private volatile String mClusterConfHash;
   private volatile PathConfiguration mPathConf;
+  private volatile String mPathConfHash;
+  private volatile boolean mIsPathConfLoaded = false;
   private final Subject mSubject;
 
   /**
@@ -77,8 +81,10 @@ public class ClientContext {
    */
   protected ClientContext(ClientContext ctx) {
     mSubject = ctx.getSubject();
-    mConf = ctx.getConf();
+    mClusterConf = ctx.getClusterConf();
     mPathConf = ctx.getPathConf();
+    mClusterConfHash = ctx.getClusterConfHash();
+    mPathConfHash = ctx.getPathConfHash();
   }
 
   private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
@@ -89,39 +95,66 @@ public class ClientContext {
     }
     // Copy the properties so that future modification doesn't affect this ClientContext.
     if (alluxioConf != null) {
-      mConf = new InstancedConfiguration(alluxioConf.copyProperties(),
+      mClusterConf = new InstancedConfiguration(alluxioConf.copyProperties(),
           alluxioConf.clusterDefaultsLoaded());
+      mClusterConfHash = alluxioConf.hash();
     } else {
-      mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      mClusterConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+      mClusterConfHash = mClusterConf.hash();
     }
     mPathConf = PathConfiguration.create(new HashMap<>());
   }
 
   /**
-   * This method will attempt to load the cluster and path level configuration defaults and update
-   * the configuration if necessary.
+   * This method will load the cluster and path level configuration defaults and update
+   * the configuration in one RPC.
    *
    * This method should be synchronized so that concurrent calls to it don't continually overwrite
-   * the previous configuration. The cluster defaults should only ever need to be updated once
-   * per {@link ClientContext} reference.
+   * the previous configuration.
+   *
+   * The cluster defaults are updated per connection establishment, or when cluster defaults
+   * updates are detected on client side.
    *
    * @param address the address to load cluster defaults from
+   * @param loadClusterConf whether to load cluster level configuration
+   * @param loadPathConf whether to load path level configuration
    * @throws AlluxioStatusException
    */
-  @VisibleForTesting
-  public synchronized void updateConfigurationDefaults(InetSocketAddress address)
+  public synchronized void loadConf(InetSocketAddress address, boolean loadClusterConf,
+      boolean loadPathConf) throws AlluxioStatusException {
+    AlluxioConfiguration conf = mClusterConf;
+    if (!loadClusterConf && !loadPathConf) {
+      return;
+    }
+    GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
+        conf, !loadClusterConf, !loadPathConf);
+    if (loadClusterConf) {
+      mClusterConf = ConfigurationUtils.getClusterConf(response, conf);
+      mClusterConfHash = response.getClusterConfigHash();
+    }
+    if (loadPathConf) {
+      mPathConf = ConfigurationUtils.getPathConf(response, conf);
+      mPathConfHash = response.getPathConfigHash();
+      mIsPathConfLoaded = true;
+    }
+  }
+
+  /**
+   * Loads configuration if not loaded from meta master yet.
+   *
+   * @param address meta master address
+   * @throws AlluxioStatusException
+   */
+  public synchronized void loadConfIfNotLoaded(InetSocketAddress address)
       throws AlluxioStatusException {
-    Pair<AlluxioConfiguration, PathConfiguration> conf =
-        ConfigurationUtils.loadClusterAndPathDefaults(address, mConf, mPathConf);
-    mConf = conf.getFirst();
-    mPathConf = conf.getSecond();
+    loadConf(address, !mClusterConf.clusterDefaultsLoaded(), !mIsPathConfLoaded);
   }
 
   /**
    * @return the cluster level configuration backing this context
    */
-  public AlluxioConfiguration getConf() {
-    return mConf;
+  public AlluxioConfiguration getClusterConf() {
+    return mClusterConf;
   }
 
   /**
@@ -129,6 +162,20 @@ public class ClientContext {
    */
   public PathConfiguration getPathConf() {
     return mPathConf;
+  }
+
+  /**
+   * @return hash of cluster level configuration
+   */
+  public String getClusterConfHash() {
+    return mClusterConfHash;
+  }
+
+  /**
+   * @return hash of path level configuration
+   */
+  public String getPathConfHash() {
+    return mPathConfHash;
   }
 
   /**

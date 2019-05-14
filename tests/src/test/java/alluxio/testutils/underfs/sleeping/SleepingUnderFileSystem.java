@@ -12,7 +12,6 @@
 package alluxio.testutils.underfs.sleeping;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -47,8 +46,8 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
    * @param ufsConf UFS configuration
    */
   public SleepingUnderFileSystem(AlluxioURI uri, SleepingUnderFileSystemOptions options,
-      UnderFileSystemConfiguration ufsConf, AlluxioConfiguration alluxioConf) {
-    super(uri, ufsConf, alluxioConf);
+      UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
     mOptions = options;
   }
 

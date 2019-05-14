@@ -14,7 +14,6 @@ package alluxio.underfs.kodo;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -59,13 +58,13 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
   private final KodoClient mKodoClinet;
 
   protected KodoUnderFileSystem(AlluxioURI uri, KodoClient kodoclient,
-      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
-    super(uri, conf, alluxioConf);
+      UnderFileSystemConfiguration conf) {
+    super(uri, conf);
     mKodoClinet = kodoclient;
   }
 
   protected static KodoUnderFileSystem creatInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+      UnderFileSystemConfiguration conf) {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(conf.isSet(PropertyKey.KODO_ACCESS_KEY),
         "Property %s is required to connect to Kodo", PropertyKey.KODO_ACCESS_KEY);
@@ -85,7 +84,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
     OkHttpClient okHttpClient = okHttpBuilder.build();
     KodoClient kodoClient =
         new KodoClient(auth, bucketName, souceHost, endPoint, configuration, okHttpClient);
-    return new KodoUnderFileSystem(uri, kodoClient, conf, alluxioConf);
+    return new KodoUnderFileSystem(uri, kodoClient, conf);
   }
 
   private static Builder initializeKodoClientConfig(UnderFileSystemConfiguration conf) {
@@ -133,7 +132,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    return new KodoOutputStream(key, mKodoClinet, mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","));
+    return new KodoOutputStream(key, mKodoClinet, mUfsConf.getList(PropertyKey.TMP_DIRS, ","));
   }
 
   @Override
@@ -159,9 +158,9 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     key = key.equals(PATH_SEPARATOR) ? "" : key;
-    FileListing result = getObjectListingChunk(key, getListingChunkLength(mAlluxioConf), delimiter);
+    FileListing result = getObjectListingChunk(key, getListingChunkLength(mUfsConf), delimiter);
     if (result != null) {
-      return new KodoObjectListingChunk(result, getListingChunkLength(mAlluxioConf), delimiter,
+      return new KodoObjectListingChunk(result, getListingChunkLength(mUfsConf), delimiter,
           key);
     }
     return null;
@@ -208,7 +207,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
   protected InputStream openObject(String key, OpenOptions options, RetryPolicy retryPolicy) {
     try {
       return new KodoInputStream(key, mKodoClinet, options.getOffset(), retryPolicy,
-          mAlluxioConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
+          mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (QiniuException e) {
       LOG.error("Failed to open Object {}, Msg: {}", key, e);
     }

@@ -12,7 +12,6 @@
 package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.RetryPolicy;
@@ -159,11 +158,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @param alluxioConf Alluxio configuration
    * @return the created {@link S3AUnderFileSystem} instance
    */
-  public static S3AUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf) {
+  public static S3AUnderFileSystem createInstance(AlluxioURI uri,
+      UnderFileSystemConfiguration conf) {
 
     AWSCredentialsProvider credentials = createAwsCredentialsProvider(conf);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
@@ -173,7 +171,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     // Socket timeout
     clientConf
-        .setSocketTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+        .setSocketTimeout((int) conf.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
 
     // HTTP protocol
     if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED))) {
@@ -208,7 +206,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // Set client request timeout for all requests since multipart copy is used,
     // and copy parts can only be set with the client configuration.
     clientConf
-        .setRequestTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
+        .setRequestTimeout((int) conf.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
 
     boolean streamingUploadEnabled =
         conf.getBoolean(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED);
@@ -241,7 +239,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         .build();
 
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
-        service, transferManager, conf, alluxioConf, streamingUploadEnabled);
+        service, transferManager, conf, streamingUploadEnabled);
   }
 
   /**
@@ -257,8 +255,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    */
   protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3Client amazonS3Client, String bucketName,
       ExecutorService executor, TransferManager transferManager, UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf, boolean streamingUploadEnabled) {
-    super(uri, conf, alluxioConf);
+      boolean streamingUploadEnabled) {
+    super(uri, conf);
     mClient = amazonS3Client;
     mBucketName = bucketName;
     mExecutor = MoreExecutors.listeningDecorator(executor);
@@ -337,13 +335,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected OutputStream createObject(String key) throws IOException {
     if (mStreamingUploadEnabled) {
       return new S3ALowLevelOutputStream(mBucketName, key, mClient, mExecutor,
-          mAlluxioConf.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE),
-          mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","),
-          mAlluxioConf.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
+          mUfsConf.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE),
+          mUfsConf.getList(PropertyKey.TMP_DIRS, ","),
+          mUfsConf.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
     }
     return new S3AOutputStream(mBucketName, key, mManager,
-        mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","),
-        mAlluxioConf
+        mUfsConf.getList(PropertyKey.TMP_DIRS, ","),
+        mUfsConf
             .getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
   }
 
@@ -360,7 +358,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected List<String> deleteObjects(List<String> keys) throws IOException {
-    if (!mAlluxioConf.getBoolean(PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED)) {
+    if (!mUfsConf.getBoolean(PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED)) {
       return super.deleteObjects(keys);
     }
     Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
@@ -399,7 +397,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         .get(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1).equals(Boolean.toString(true))) {
       ListObjectsRequest request =
           new ListObjectsRequest().withBucketName(mBucketName).withPrefix(key)
-              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mAlluxioConf));
+              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mUfsConf));
       ObjectListing result = getObjectListingChunkV1(request);
       if (result != null) {
         return new S3AObjectListingChunkV1(request, result);
@@ -407,7 +405,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     } else {
       ListObjectsV2Request request =
           new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(key)
-              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mAlluxioConf));
+              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mUfsConf));
       ListObjectsV2Result result = getObjectListingChunk(request);
       if (result != null) {
         return new S3AObjectListingChunk(request, result);
