@@ -180,7 +180,7 @@ message InodeFileEntry {
   optional string temp_ufs_path = 23;
   optional int32 replication_durable = 24;
   optional string path = 25;
-  optional int64 persistence_wait_time = 26;
+  optional int64 should_persist_time = 26;
 }
 
 // next available id: 3

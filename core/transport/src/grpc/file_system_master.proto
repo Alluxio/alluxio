@@ -383,6 +383,7 @@ message SetAclPRequest {
 message ScheduleAsyncPersistencePResponse {}
 message ScheduleAsyncPersistencePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional int64 persistenceWaitTime = 2;
 }
 message ScheduleAsyncPersistencePRequest {
   /** the path of the file */

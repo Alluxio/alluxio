@@ -35,8 +35,8 @@ public class InodeFile extends Inode implements InodeFileView {
   }
 
   @Override
-  public long getPersistenceWaitTime() {
-    return mDelegate.getPersistenceWaitTime();
+  public long getShouldPersistTime() {
+    return mDelegate.getShouldPersistTime();
   }
 
   @Override

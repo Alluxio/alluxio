@@ -2813,8 +2813,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME)
           .setDefaultValue("0")
           .setDescription(String.format("Time to wait before starting the persistence job. "
-                  + "When %s is set to %s, set to a big enough value "
-                  + "to avoid conflicts between cache and through job.",
+              + "When the value is set to -1, the file will be persisted by rename operation "
+              + "or persist CLI but will not be automatically persisted in other cases. "
+              + "This is to avoid the heavy object copy in rename operation when %s is set to %s.",
               Name.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.ASYNC_THROUGH))
           .build();
   public static final PropertyKey USER_FILE_SEEK_BUFFER_SIZE_BYTES =

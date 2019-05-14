@@ -44,7 +44,7 @@ message Inode {
     optional int32 replication_durable = 20;
     optional int32 replication_max = 21;
     optional int32 replication_min = 22;
-    optional int64 persistence_wait_time = 27;
+    optional int64 should_persist_time = 27;
 
     // Used for recovering in-progress file persist jobs on master start.
     optional int64 persist_job_id = 23;

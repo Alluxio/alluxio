@@ -42,6 +42,17 @@ import alluxio.security.authorization.Mode;
  * will populate the gRPC options objects with the proper values based on the given configuration.
  */
 public class FileSystemOptions {
+  /**
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static ScheduleAsyncPersistencePOptions scheduleAsyncPersistenceDefaults(
+      AlluxioConfiguration conf) {
+    return ScheduleAsyncPersistencePOptions.newBuilder()
+        .setCommonOptions(commonDefaults(conf))
+        .setPersistenceWaitTime(0)
+        .build();
+  }
 
   /**
    * @param conf Alluxio configuration

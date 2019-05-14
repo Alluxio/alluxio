@@ -47,7 +47,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   private boolean mCompleted;
   private long mLength;
   private long mPersistJobId;
-  private long mPersistenceWaitTime;
+  private long mShouldPersistTime;
   private int mReplicationDurable;
   private int mReplicationMax;
   private int mReplicationMin;
@@ -67,7 +67,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     mCompleted = false;
     mLength = 0;
     mPersistJobId = Constants.PERSISTENCE_INVALID_JOB_ID;
-    mPersistenceWaitTime = 0;
+    mShouldPersistTime = 0;
     mReplicationDurable = 0;
     mReplicationMax = Constants.REPLICATION_MAX_INFINITY;
     mReplicationMin = 0;
@@ -167,8 +167,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   }
 
   @Override
-  public long getPersistenceWaitTime() {
-    return mPersistenceWaitTime;
+  public long getShouldPersistTime() {
+    return mShouldPersistTime;
   }
 
   @Override
@@ -269,11 +269,11 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   }
 
   /**
-   * @param persistenceWaitTime the persistence initial wait time of this file
+   * @param shouldPersistTime the time that this file should start persisting
    * @return the updated object
    */
-  public MutableInodeFile setPersistenceWaitTime(long persistenceWaitTime) {
-    mPersistenceWaitTime = persistenceWaitTime;
+  public MutableInodeFile setShouldPersistTime(long shouldPersistTime) {
+    mShouldPersistTime = shouldPersistTime;
     return getThis();
   }
 
@@ -357,7 +357,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .add("cacheable", mCacheable)
         .add("completed", mCompleted)
         .add("persistJobId", mPersistJobId)
-        .add("persistenceWaitTime", mPersistenceWaitTime)
+        .add("persistenceWaitTime", mShouldPersistTime)
         .add("replicationDurable", mReplicationDurable)
         .add("replicationMax", mReplicationMax)
         .add("replicationMin", mReplicationMin)
@@ -386,7 +386,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
         .setPersistJobId(entry.getPersistJobId())
-        .setPersistenceWaitTime(entry.getPersistenceWaitTime())
+        .setShouldPersistTime(entry.getShouldPersistTime())
         .setReplicationDurable(entry.getReplicationDurable())
         .setReplicationMax(entry.getReplicationMax())
         .setReplicationMin(entry.getReplicationMin())
@@ -429,7 +429,6 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setBlockSizeBytes(options.getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)
         .setName(name)
-        .setPersistenceWaitTime(options.getPersistenceWaitTime())
         .setReplicationDurable(options.getReplicationDurable())
         .setReplicationMax(options.getReplicationMax())
         .setReplicationMin(options.getReplicationMin())
@@ -442,7 +441,9 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setMode(context.getMode().toShort())
         .setAcl(context.getAcl())
         .setPersistenceState(context.isPersisted() ? PersistenceState.PERSISTED
-            : PersistenceState.NOT_PERSISTED);
+            : PersistenceState.NOT_PERSISTED)
+        .setShouldPersistTime(options.getPersistenceWaitTime() == -1 ? -1 :
+            System.currentTimeMillis() + options.getPersistenceWaitTime());
   }
 
   @Override
@@ -520,7 +521,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setReplicationMax(inode.getReplicationMax())
         .setReplicationMin(inode.getReplicationMin())
         .setPersistJobId(inode.getPersistJobId())
-        .setPersistenceWaitTime(inode.getPersistenceWaitTime())
+        .setShouldPersistTime(inode.getShouldPersistTime())
         .setTempUfsPath(inode.getPersistJobTempUfsPath());
   }
 }

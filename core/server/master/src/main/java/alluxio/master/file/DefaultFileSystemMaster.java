@@ -77,6 +77,7 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
+import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
@@ -572,12 +573,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
         if (inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED) {
           continue;
         }
+        if (inode.asFile().getShouldPersistTime() == Constants.NO_AUTO_PERSIST_VALUE) {
+          continue;
+        }
         InodeFile inodeFile = inode.asFile();
         if (inodeFile.getPersistJobId() == Constants.PERSISTENCE_INVALID_JOB_ID) {
           mPersistRequests.put(inodeFile.getId(), new alluxio.time.ExponentialTimer(
               ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
               ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-              inodeFile.getPersistenceWaitTime(),
+              getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
               ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
         } else {
           AlluxioURI path;
@@ -588,7 +592,8 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
             continue;
           }
           addPersistJob(id, inodeFile.getPersistJobId(),
-              inodeFile.getPersistenceWaitTime(), path, inodeFile.getTempUfsPath());
+              getPersistenceWaitTime(inodeFile.getShouldPersistTime()),
+              path, inodeFile.getTempUfsPath());
         }
       }
       if (ServerConfiguration
@@ -1267,7 +1272,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
    * @return the list of created inodes
    */
   List<Inode> createFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
-                                 CreateFileContext context)
+      CreateFileContext context)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
     if (mWhitelist.inList(inodePath.getUri().toString())) {
@@ -2002,16 +2007,21 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
     // Check options and determine if we should schedule async persist. This is helpful for compute
     // frameworks that use rename as a commit operation.
-    if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()) {
-      mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
-          .setId(srcInode.getId())
-          .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
-          .build());
-      mPersistRequests.put(srcInode.getId(), new alluxio.time.ExponentialTimer(
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-          srcInode.asFile().getPersistenceWaitTime(),
-          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+    if (srcInode.isFile() && !srcInode.isPersisted()) {
+      long shouldPersistTime = srcInode.asFile().getShouldPersistTime();
+      if (context.getPersist() || shouldPersistTime == Constants.NO_AUTO_PERSIST_VALUE) {
+        mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
+            .setId(srcInode.getId())
+            .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
+            .build());
+        long persistenceWaitTime = shouldPersistTime == Constants.NO_AUTO_PERSIST_VALUE ? 0
+            : getPersistenceWaitTime(shouldPersistTime);
+        mPersistRequests.put(srcInode.getId(), new alluxio.time.ExponentialTimer(
+            ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+            ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+            persistenceWaitTime,
+            ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
+      }
     }
   }
 
@@ -3002,7 +3012,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
   }
 
   @Override
-  public void scheduleAsyncPersistence(AlluxioURI path)
+  public void scheduleAsyncPersistence(AlluxioURI path, ScheduleAsyncPersistenceContext context)
       throws AlluxioException, UnavailableException {
     try (RpcContext rpcContext = createRpcContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, LockPattern.WRITE_INODE)) {
@@ -3018,7 +3028,7 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       mPersistRequests.put(inode.getId(), new alluxio.time.ExponentialTimer(
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-          inode.getPersistenceWaitTime(),
+          context.getPersistenceWaitTime(),
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
   }
@@ -3721,6 +3731,15 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
           ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS));
     }
     mPersistJobs.put(fileId, new PersistJob(jobId, fileId, uri, tempUfsPath, timer));
+  }
+
+  private long getPersistenceWaitTime(long shouldPersistTime) {
+    long currentTime = System.currentTimeMillis();
+    if (shouldPersistTime >= currentTime) {
+      return shouldPersistTime - currentTime;
+    } else {
+      return 0;
+    }
   }
 
   /**
