@@ -11,12 +11,13 @@
 
 package alluxio.client.file.policy;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.test.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public final class MostAvailableFirstPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker3")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB, 0));
     MostAvailableFirstPolicy policy = new MostAvailableFirstPolicy();
-    Assert.assertEquals("worker3",
+    assertEquals("worker3",
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
 
