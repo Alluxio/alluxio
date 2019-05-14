@@ -118,9 +118,11 @@ public final class JournalTool {
       .addOption("end", true,
           "The end log sequence number (exclusive). Set to +inf by default.")
       .addOption("inputDir", true,
-          "The input directory to read journal content from.")
+          "The input directory on-disk to read journal content from. "
+              + "(Default: Read from system configuration.)")
       .addOption("outputDir", true,
-          "The output directory to write journal content to. Default: journal_dump-${timestamp}");
+          "The output directory to write journal content to. "
+          + "(Default: journal_dump-${timestamp})");
 
   private static boolean sHelp;
   private static String sMaster;
@@ -277,7 +279,7 @@ public final class JournalTool {
     }
 
     private void readCompoundCheckpoint(CheckpointInputStream checkpoint, Path path)
-            throws IOException {
+        throws IOException {
       Files.createDirectories(path);
       CompoundCheckpointReader reader = new CompoundCheckpointReader(checkpoint);
       Optional<Entry> entryOpt;
@@ -290,15 +292,15 @@ public final class JournalTool {
     }
 
     private void readRocksCheckpoint(CheckpointInputStream checkpoint, Path path)
-            throws IOException {
+        throws IOException {
       TarballCheckpointReader reader = new TarballCheckpointReader(checkpoint);
       reader.unpackToDirectory(path);
     }
 
     private void readRegularCheckpoint(CheckpointInputStream checkpoint, Path path)
-            throws IOException {
+        throws IOException {
       try (PrintStream out =
-                   new PrintStream(new BufferedOutputStream(new FileOutputStream(path.toFile())))) {
+          new PrintStream(new BufferedOutputStream(new FileOutputStream(path.toFile())))) {
         checkpoint.getType().getCheckpointFormat().parseToHumanReadable(checkpoint, out);
       }
     }
@@ -384,7 +386,7 @@ public final class JournalTool {
     private static final int COPYCAT_SILENT_PERIOD_IN_SECONDS = 30;
     /** Timeout in seconds for joining/leaving a CopyCat cluster. */
     private static final int COPYCAT_CONNECTION_TIMEOUT_SECONDS = 30;
-    /** Timeout in seconds for joining/leaving a CopyCat cluster. */
+    /** Timeout in seconds for reading a snapshot form a CopyCat cluster. */
     private static final int COPYCAT_SNAPSHOT_READ_TIMEOUT_SECONDS = 3600;
 
     /**
@@ -401,9 +403,11 @@ public final class JournalTool {
       super(master, start, end, outputDir, inputDir);
       /*
        * We reset dump time whenever, - Writing to a snapshot is complete. - New JournalEntry
-       * command is written. So, starting the last dump time from snapshot wait time will ensure,
-       * the tool wait at most COPYCAT_SNAPSHOT_READ_TIMEOUT_SECONDS for snapshot, if there is any
-       * snapshot.
+       * command is written.
+       *
+       * Setting mLastDumpOperationTime to COPYCAT_SNAPSHOT_READ_TIMEOUT_SECONDS ahead of current
+       * time. Since copycat serves the snapshots first, this will ensure we wait for snapshot
+       * before returning due to inactivity.
        */
       mLastDumpOperationTime =
           new AtomicLong(System.currentTimeMillis() + COPYCAT_SNAPSHOT_READ_TIMEOUT_SECONDS * 1000);
@@ -557,7 +561,7 @@ public final class JournalTool {
     }
 
     /**
-     * Writes given entry after goin through range and validity checks.
+     * Writes given entry after going through range and validity checks.
      *
      * @param out out stream to write the entry to
      * @param entry the entry to write to
@@ -671,6 +675,7 @@ public final class JournalTool {
           mCheckpointConsumer.accept(checkpointStream);
         } catch (Exception exc) {
           LOG.error(exc.toString());
+          throw new RuntimeException(exc);
         }
       }
     }
