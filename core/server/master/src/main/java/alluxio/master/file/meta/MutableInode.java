@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.grpc.TtlAction;
 import alluxio.master.ProtobufUtils;
 import alluxio.proto.journal.File.UpdateInodeEntry;
+import alluxio.proto.journal.Journal;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
 import alluxio.security.authorization.AccessControlList;
@@ -567,6 +568,12 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     MutableInode<?> that = (MutableInode<?>) o;
     return mId == that.mId;
   }
+
+  /**
+   * @param path path of the inode
+   * @return the journal entry representing the inode
+   */
+  public abstract Journal.JournalEntry toJournalEntry(String path);
 
   protected MoreObjects.ToStringHelper toStringHelper() {
     return MoreObjects.toStringHelper(this)

@@ -318,7 +318,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
       BlockStoreLocation loc = meta.getBlockLocation();
-      String mediumType = mBlockStore.getMediumType(loc);
+      String mediumType = loc.mediumType();
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());

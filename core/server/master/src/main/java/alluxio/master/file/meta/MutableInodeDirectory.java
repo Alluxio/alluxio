@@ -254,6 +254,12 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
   }
 
   @Override
+  public JournalEntry toJournalEntry(String path) {
+    return JournalEntry.newBuilder().setInodeDirectory(
+        toJournalEntry().toBuilder().getInodeDirectoryBuilder().setPath(path)).build();
+  }
+
+  @Override
   public InodeMeta.Inode toProto() {
     return super.toProtoBuilder()
         .setIsMountPoint(isMountPoint())

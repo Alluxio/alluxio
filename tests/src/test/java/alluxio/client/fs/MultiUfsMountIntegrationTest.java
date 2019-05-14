@@ -91,7 +91,7 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
     mUfsUri2 = "ufs2://" + mFolder.newFolder().getAbsoluteFile();
     mUfsUri3 = "ufs3://" + mFolder.newFolder().getAbsoluteFile();
     mLocalUfs = new LocalUnderFileSystemFactory().create(mFolder.getRoot().getAbsolutePath(),
-        UnderFileSystemConfiguration.defaults(), ServerConfiguration.global());
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     mLocalAlluxioClusterResource.start();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();

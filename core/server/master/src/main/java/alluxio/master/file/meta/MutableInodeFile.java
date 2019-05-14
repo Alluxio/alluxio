@@ -460,6 +460,12 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   }
 
   @Override
+  public JournalEntry toJournalEntry(String path) {
+    return JournalEntry.newBuilder().setInodeFile(
+        toJournalEntry().toBuilder().getInodeFileBuilder().setPath(path)).build();
+  }
+
+  @Override
   public InodeMeta.Inode toProto() {
     return super.toProtoBuilder()
         .setBlockSizeBytes(getBlockSizeBytes())

@@ -21,7 +21,6 @@ import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Name;
 import alluxio.conf.ServerConfiguration;
@@ -928,8 +927,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsDirectoryStatus ufsStatus = new
         UfsDirectoryStatus("test", "owner", "group", (short) 511);
-    Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any(),
-        Matchers.any(AlluxioConfiguration.class))).thenReturn(mockUfs);
+    Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any())).thenReturn(mockUfs);
     Mockito.when(mockUfs.isDirectory(ufsBase)).thenReturn(true);
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), ""))
         .thenReturn(new AlluxioURI(ufsBase));

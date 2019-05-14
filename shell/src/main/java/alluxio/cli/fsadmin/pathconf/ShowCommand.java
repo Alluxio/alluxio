@@ -21,6 +21,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.wire.Configuration;
 import alluxio.wire.Property;
 
@@ -92,7 +93,8 @@ public final class ShowCommand extends AbstractFsAdminCommand {
   @Override
   public int run(CommandLine cl) throws IOException {
     String targetPath = cl.getArgs()[0];
-    Configuration configuration = mMetaConfigClient.getConfiguration();
+    Configuration configuration = mMetaConfigClient.getConfiguration(
+        GetConfigurationPOptions.getDefaultInstance());
 
     if (cl.hasOption(ALL_OPTION_NAME)) {
       Map<String, AlluxioConfiguration> pathConfMap = new HashMap<>();

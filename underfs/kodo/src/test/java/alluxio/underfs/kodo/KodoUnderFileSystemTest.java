@@ -47,7 +47,7 @@ public class KodoUnderFileSystemTest {
     mClient = Mockito.mock(KodoClient.class);
 
     mKodoUnderFileSystem = new KodoUnderFileSystem(new AlluxioURI(""), mClient,
-        UnderFileSystemConfiguration.defaults(), sConf);
+        UnderFileSystemConfiguration.defaults(sConf));
   }
 
   /**

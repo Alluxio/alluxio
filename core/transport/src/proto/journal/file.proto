@@ -56,7 +56,7 @@ message CompleteFileEntry {
   optional string ufs_fingerprint = 5;
 }
 
-// next available id: 5
+// next available id: 6
 message DeleteFileEntry {
   optional int64 id = 1;
   // Deprecated, we now write one journal entry per inode removed
@@ -64,6 +64,7 @@ message DeleteFileEntry {
   optional int64 op_time_ms = 3;
   // Deprecated, this field is about whether to delete in the UFS. We don't journal UFS changes.
   optional bool alluxioOnly = 4;
+  optional string path = 5;
 }
 
 // next available id: 2
@@ -105,7 +106,7 @@ message UpdateInodeDirectoryEntry {
   optional alluxio.proto.shared.AccessControlList defaultAcl = 4;
 }
 
-// next available id: 12
+// next available id: 13
 message UpdateInodeFileEntry {
   optional int64 id = 1;
   optional int64 block_size_bytes = 2;
@@ -118,10 +119,10 @@ message UpdateInodeFileEntry {
   optional int32 replication_min = 9;
   optional int64 persist_job_id = 10;
   optional string temp_ufs_path = 11;
-
+  optional string path = 12;
 }
 
-// next available id: 18
+// next available id: 19
 message InodeDirectoryEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -139,7 +140,8 @@ message InodeDirectoryEntry {
   optional PTtlAction ttlAction = 14 [default = DELETE];
   optional alluxio.proto.shared.AccessControlList acl = 15;
   optional alluxio.proto.shared.AccessControlList defaultAcl = 16;
-  repeated string medium_type = 17;
+  optional string path = 17;
+  repeated string medium_type = 18;
 }
 
 // next available id: 3
@@ -153,7 +155,7 @@ enum PTtlAction {
   FREE = 1;
 }
 
-// next available id: 26
+// next available id: 27
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -179,7 +181,8 @@ message InodeFileEntry {
   optional int64 persist_job_id = 22;
   optional string temp_ufs_path = 23;
   optional int32 replication_durable = 24;
-  repeated string medium_type = 25;
+  optional string path = 25;
+  repeated string medium_type = 26;
 }
 
 // next available id: 3
@@ -208,7 +211,7 @@ message ReinitializeFileEntry {
   optional PTtlAction ttlAction = 4 [default = DELETE];
 }
 
-// next available id: 6
+// next available id: 8
 message RenameEntry {
   optional int64 id = 1;
   // Deprecated, use new_parent_id/new_name instead
@@ -217,6 +220,8 @@ message RenameEntry {
 
   optional int64 new_parent_id = 4;
   optional string new_name = 5;
+  optional string path = 6;
+  optional string new_path = 7;
 }
 
 enum PSetAclAction {

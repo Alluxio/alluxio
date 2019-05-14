@@ -12,12 +12,14 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.master.journal.JournalType;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
@@ -45,6 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   private static final Logger LOG = LoggerFactory.getLogger(MultiMasterLocalAlluxioCluster.class);
+  private static final int WAIT_MASTER_START_TIMEOUT_MS = 5000;
 
   private RestartableTestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
@@ -200,6 +203,20 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
         WaitForOptions.defaults().setTimeoutMs(timeoutMs));
   }
 
+  private void waitForMasterServing() throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("master starts serving RPCs", () -> {
+      try {
+        getClient().getStatus(new AlluxioURI("/"));
+        return true;
+      } catch (AlluxioException e) {
+        LOG.error("Failed to get status of /:", e);
+        return false;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(WAIT_MASTER_START_TIMEOUT_MS));
+  }
+
   /**
    * Stops the cluster's Zookeeper service.
    */
@@ -247,16 +264,10 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
     LOG.info("all {} masters started.", mNumOfMasters);
     LOG.info("waiting for a leader.");
-    boolean hasLeader = false;
-    while (!hasLeader) {
-      for (int i = 0; i < mMasters.size(); i++) {
-        if (mMasters.get(i).isServing()) {
-          LOG.info("master NO.{} is selected as leader. address: {}", i,
-              mMasters.get(i).getAddress());
-          hasLeader = true;
-          break;
-        }
-      }
+    try {
+      waitForMasterServing();
+    } catch (Exception e) {
+      throw new IOException(e);
     }
     // Use first master port
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT,

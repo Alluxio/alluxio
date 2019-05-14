@@ -182,9 +182,10 @@ public class BlockWorkerTest {
     when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(blockMeta);
     when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
     when(mBlockStore.getBlockStoreMetaFull()).thenReturn(blockStoreMeta);
-    when(mBlockStore.getMediumType(blockStoreLocation)).thenReturn(mediumType);
+
     when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
     when(blockStoreLocation.tierAlias()).thenReturn(tierAlias);
+    when(blockStoreLocation.mediumType()).thenReturn(mediumType);
     when(blockMeta.getBlockSize()).thenReturn(length);
     when(blockStoreMeta.getUsedBytesOnTiers()).thenReturn(usedBytesOnTiers);
 

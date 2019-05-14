@@ -34,7 +34,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -69,22 +68,12 @@ public interface UnderFileSystem extends Closeable {
      * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
      * only be used for journal operations and tests.
      *
-     * @param path the file path storing over the ufs
-     * @return instance of the under layer file system
-     */
-    public static UnderFileSystem create(String path, AlluxioConfiguration conf) {
-      return create(path, UnderFileSystemConfiguration.defaults(conf), conf);
-    }
-
-    /**
-     * Creates the {@link UnderFileSystem} instance according to its UFS path. This method should
-     * only be used for journal operations and tests.
-     *
      * @param path journal path in ufs
+     * @param conf the configuration object w/o mount specific options
      * @return the instance of under file system for Alluxio journal directory
      */
-    public static UnderFileSystem create(URI path, AlluxioConfiguration conf) {
-      return create(path.toString(), conf);
+    public static UnderFileSystem create(String path, AlluxioConfiguration conf) {
+      return create(path, UnderFileSystemConfiguration.defaults(conf));
     }
 
     /**
@@ -93,15 +82,13 @@ public interface UnderFileSystem extends Closeable {
      * path or if no under file system could successfully be created.
      *
      * @param path path
-     * @param ufsConf optional configuration object for the UFS, may be null
-     * @param alluxioConf Alluxio configuration
+     * @param ufsConf configuration object for the UFS
      * @return client for the under file system
      */
-    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf,
-        AlluxioConfiguration alluxioConf) {
+    public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories =
-          UnderFileSystemFactoryRegistry.findAll(path, ufsConf, alluxioConf);
+          UnderFileSystemFactoryRegistry.findAll(path, ufsConf);
       if (factories.isEmpty()) {
         throw new IllegalArgumentException("No Under File System Factory found for: " + path);
       }
@@ -115,8 +102,7 @@ public interface UnderFileSystem extends Closeable {
           // when creation is done.
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf, alluxioConf),
-              alluxioConf);
+          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
