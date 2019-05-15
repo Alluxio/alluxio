@@ -12,7 +12,6 @@
 package alluxio.underfs.web;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.ConsistentUnderFileSystem;
 import alluxio.underfs.UfsDirectoryStatus;
@@ -62,12 +61,10 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param ufsConf UFS configuration
-   * @param alluxioConf Alluxio configuration
    */
-  public WebUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
-      AlluxioConfiguration alluxioConf) {
-    super(uri, ufsConf, alluxioConf);
-    mTimeout = (int) mAlluxioConf.getMs(PropertyKey.UNDERFS_WEB_CONNECTION_TIMEOUT);
+  public WebUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
+    mTimeout = (int) mUfsConf.getMs(PropertyKey.UNDERFS_WEB_CONNECTION_TIMEOUT);
   }
 
   @Override
@@ -111,7 +108,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
       throw new FileNotFoundException(path);
     }
 
-    return mAlluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -171,7 +168,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
         contentLength = Long.parseLong(header.getValue());
       } else if (headerName.equalsIgnoreCase("Last-Modified")) {
         lastModified = parseTimestamp(header.getValue(),
-            mAlluxioConf.get(PropertyKey.UNDERFS_WEB_HEADER_LAST_MODIFIED));
+            mUfsConf.get(PropertyKey.UNDERFS_WEB_HEADER_LAST_MODIFIED));
       }
     }
 
@@ -210,7 +207,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
       Elements titleElements = Jsoup.connect(path).get().select("title");
       if (titleElements.size() > 0) {
         String title = titleElements.get(0).text();
-        List<String> titles = mAlluxioConf.getList(PropertyKey.UNDERFS_WEB_TITLES, ",");
+        List<String> titles = mUfsConf.getList(PropertyKey.UNDERFS_WEB_TITLES, ",");
         for (final String t : titles) {
           if (title.contains(t)) {
             return true;
@@ -276,7 +273,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
       return null;
     }
 
-    List<String> parentNames = mAlluxioConf.getList(PropertyKey.UNDERFS_WEB_PARENT_NAMES, ",");
+    List<String> parentNames = mUfsConf.getList(PropertyKey.UNDERFS_WEB_PARENT_NAMES, ",");
     int flagIndex = -1;
     for (int i = 0; flagIndex == -1 && i < listElements.size(); i++) {
       for (final String flag : parentNames) {
