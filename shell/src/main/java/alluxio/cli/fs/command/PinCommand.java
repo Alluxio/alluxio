@@ -14,6 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -49,8 +50,13 @@ public final class PinCommand extends AbstractFileSystemCommand {
       throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     // args[0] is the path, args[1] to args[end] is the list of possible media to pin
-    List<String> mediumTypes = Arrays.asList(Arrays.copyOfRange(args, 1, args.length));
-    FileSystemCommandUtils.setPinned(mFileSystem, path, true, mediumTypes);
+    List<String> pinnedMediumTypes = Arrays.asList(Arrays.copyOfRange(args, 1, args.length));
+    List<String> availableMediumList = mFsContext.getPathConf(path).getList(
+        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES, ",");
+    if (!availableMediumList.containsAll(pinnedMediumTypes)) {
+      throw new IllegalArgumentException("Invalid medium to pin the file");
+    }
+    FileSystemCommandUtils.setPinned(mFileSystem, path, true, pinnedMediumTypes);
     System.out.println("File '" + path + "' was successfully pinned.");
   }
 

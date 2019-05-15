@@ -412,8 +412,6 @@ public class InodeTreePersistentState implements Journaled {
           for (String medium : entry.getMediumTypeList()) {
             if (mediaList.contains(medium)) {
               file.getMediumTypes().add(medium);
-            } else {
-              LOG.warn("pinned medium types contain invalid medium");
             }
           }
         }
