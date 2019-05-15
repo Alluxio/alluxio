@@ -101,4 +101,22 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
     // fileC should be in memory because fileB is evicted.
     assertEquals(100, mFileSystem.getStatus(filePathC).getInAlluxioPercentage());
   }
+
+  /**
+   * Test pinned file with specific medium.
+   */
+  @Test
+  public void setPinToSpecificMedia() throws Exception {
+    AlluxioURI filePathA = new AlluxioURI("/testFileA");
+    AlluxioURI filePathB = new AlluxioURI("/testFileB");
+
+    int fileSize = SIZE_BYTES / 2;
+
+    FileSystemTestUtils.createByteFile(mFileSystem, filePathA, WritePType.MUST_CACHE,
+        fileSize);
+    assertTrue(fileExists(filePathA));
+    assertEquals(0, mFsShell.run("pin", filePathA.toString(), "MEM"));
+
+    assertEquals(-1, mFsShell.run("pin", filePathB.toString(), "NVRAM"));
+  }
 }

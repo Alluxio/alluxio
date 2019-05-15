@@ -79,6 +79,11 @@ public final class StorageTier {
     Preconditions.checkState(rawDirQuota.length() > 0, PreconditionMessage.ERR_TIER_QUOTA_BLANK);
     String[] dirQuotas = rawDirQuota.split(",");
 
+    PropertyKey tierDirMediumConf =
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(mTierOrdinal);
+    String rawDirMedium = ServerConfiguration.get(tierDirMediumConf);
+    String[] dirMedium = rawDirMedium.split(",");
+
     mDirs = new ArrayList<>(dirPaths.length);
     mLostStorage = new ArrayList<>();
 
@@ -87,7 +92,7 @@ public final class StorageTier {
       int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
       long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
       try {
-        StorageDir dir = StorageDir.newStorageDir(this, i, capacity, dirPaths[i]);
+        StorageDir dir = StorageDir.newStorageDir(this, i, capacity, dirPaths[i], dirMedium[i]);
         totalCapacity += capacity;
         mDirs.add(dir);
       } catch (IOException e) {

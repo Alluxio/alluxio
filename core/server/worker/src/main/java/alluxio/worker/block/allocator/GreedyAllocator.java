@@ -73,6 +73,20 @@ public final class GreedyAllocator implements Allocator {
       return null;
     }
 
+    String mediumType = location.mediumType();
+    if (!mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
+        && location.equals(BlockStoreLocation.anyDirInTierWithMedium(mediumType))) {
+      for (StorageTierView tierView : mManagerView.getTierViews()) {
+        for (StorageDirView dirView : tierView.getDirViews()) {
+          if (dirView.getMediumType().equals(mediumType)
+              && dirView.getAvailableBytes() >= blockSize) {
+            return dirView;
+          }
+        }
+      }
+      return null;
+    }
+
     String tierAlias = location.tierAlias();
     StorageTierView tierView = mManagerView.getTierView(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
