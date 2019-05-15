@@ -39,10 +39,6 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.qmino</groupId>
-      <artifactId>miredot-annotations</artifactId>
-    </dependency>
-    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
     </dependency>
@@ -105,20 +101,4 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <!-- REST API documentation -->
-      <plugin>
-        <groupId>com.qmino</groupId>
-        <artifactId>miredot-plugin</artifactId>
-        <configuration>
-          <!-- This following license only works for groupId org.alluxio and artifactId alluxio-core-server-proxy -->
-          <license>
-            cHJvamVjdHxvcmcuYWxsdXhpby5hbGx1eGlvLWNvcmUtc2VydmVyLXByb3h5fDIwMTktMDMtMzF8dHJ1ZXwtMSNNQ3dDRkZHejBpT0t5UVdrbVJWUlNRWUNDQzVqemtIbUFoUUcrdktzSmg0WExsWGhWcTlzMDZ3MENkRHpBZz09
-          </license>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>

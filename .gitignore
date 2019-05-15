@@ -40,12 +40,14 @@
 /docs/api/
 /docs/serve/
 /extensions/
+/generated/
 /journal/
 /lib/
 /logs/*.log*
 /logs/*.out*
 /logs/user/*
 /metastore
+/templates/
 /underFSStorage/
 /underfs/hdfs/src/main/java/alluxio/UfsConstants.java
 /web/

@@ -31,9 +31,8 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>com.qmino</groupId>
-      <artifactId>miredot-annotations</artifactId>
-      <version>1.4.0</version>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-annotations</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -123,6 +122,22 @@
           </goals>
         </execution>
       </executions>
+    </plugin>
+
+    <!-- REST API documentation -->
+    <plugin>
+      <groupId>com.github.kongchen</groupId>
+      <artifactId>swagger-maven-plugin</artifactId>
+      <configuration>
+        <apiSources>
+          <apiSource>
+            <locations>alluxio.master</locations>
+            <templatePath>${project.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
+            <outputPath>${project.parent.parent.basedir}/generated/job/document.html</outputPath>
+            <swaggerDirectory>${project.parent.parent.basedir}/generated/job/swagger-ui</swaggerDirectory>
+          </apiSource>
+        </apiSources>
+      </configuration>
     </plugin>
   </plugins>
   </build>

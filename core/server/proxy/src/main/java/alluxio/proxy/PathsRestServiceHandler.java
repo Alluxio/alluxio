@@ -34,7 +34,6 @@ import alluxio.grpc.UnmountPOptions;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Preconditions;
-import com.qmino.miredot.annotations.ReturnType;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -103,7 +102,7 @@ public final class PathsRestServiceHandler {
    */
   @POST
   @Path(PATH_PARAM + CREATE_DIRECTORY)
-  @ReturnType("java.lang.Void")
+  //@ReturnType("java.lang.Void")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response createDirectory(@PathParam("path") final String path,
       final CreateDirectoryPOptions options) {
@@ -125,7 +124,7 @@ public final class PathsRestServiceHandler {
    */
   @POST
   @Path(PATH_PARAM + CREATE_FILE)
-  @ReturnType("java.lang.Integer")
+  //@ReturnType("java.lang.Integer")
   @Consumes(MediaType.APPLICATION_JSON)
   public Response createFile(@PathParam("path") final String path,
       final CreateFilePOptions options) {
@@ -151,7 +150,7 @@ public final class PathsRestServiceHandler {
    */
   @POST
   @Path(PATH_PARAM + DELETE)
-  @ReturnType("java.lang.Void")
+  //@ReturnType("java.lang.Void")
   public Response delete(@PathParam("path") final String path, final DeletePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
@@ -173,7 +172,7 @@ public final class PathsRestServiceHandler {
    */
   @GET
   @Path(PATH_PARAM + DOWNLOAD_FILE)
-  @ReturnType("java.io.InputStream")
+  //@ReturnType("java.io.InputStream")
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response downloadFile(@PathParam("path") final String path) {
     AlluxioURI uri = new AlluxioURI(path);
@@ -199,7 +198,7 @@ public final class PathsRestServiceHandler {
    */
   @POST
   @Path(PATH_PARAM + EXISTS)
-  @ReturnType("java.lang.Boolean")
+  //@ReturnType("java.lang.Boolean")
   public Response exists(@PathParam("path") final String path, final ExistsPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
       @Override
@@ -221,7 +220,7 @@ public final class PathsRestServiceHandler {
    */
   @POST
   @Path(PATH_PARAM + FREE)
-  @ReturnType("java.lang.Void")
+  //@ReturnType("java.lang.Void")
   public Response free(@PathParam("path") final String path, final FreePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
@@ -244,7 +243,7 @@ public final class PathsRestServiceHandler {
    */
   @POST
   @Path(PATH_PARAM + GET_STATUS)
-  @ReturnType("alluxio.client.file.URIStatus")
+  //@ReturnType("alluxio.client.file.URIStatus")
   public Response getStatus(@PathParam("path") final String path, final GetStatusPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<URIStatus>() {
       @Override
@@ -266,7 +265,7 @@ public final class PathsRestServiceHandler {
    */
   @POST
   @Path(PATH_PARAM + LIST_STATUS)
-  @ReturnType("java.util.List<alluxio.client.file.URIStatus>")
+  //@ReturnType("java.util.List<alluxio.client.file.URIStatus>")
   public Response listStatus(@PathParam("path") final String path,
       final ListStatusPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<List<URIStatus>>() {
@@ -291,7 +290,7 @@ public final class PathsRestServiceHandler {
    */
   @POST
   @Path(PATH_PARAM + MOUNT)
-  @ReturnType("java.lang.Void")
+  //@ReturnType("java.lang.Void")
   public Response mount(@PathParam("path") final String path, @QueryParam("src") final String src,
       final MountPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
@@ -316,7 +315,7 @@ public final class PathsRestServiceHandler {
    */
   @POST
   @Path(PATH_PARAM + OPEN_FILE)
-  @ReturnType("java.lang.Integer")
+  //@ReturnType("java.lang.Integer")
   @Produces(MediaType.APPLICATION_JSON)
   public Response openFile(@PathParam("path") final String path, final OpenFilePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Integer>() {
@@ -342,7 +341,7 @@ public final class PathsRestServiceHandler {
    */
   @POST
   @Path(PATH_PARAM + RENAME)
-  @ReturnType("java.lang.Void")
+  //@ReturnType("java.lang.Void")
   public Response rename(@PathParam("path") final String path, @QueryParam("dst") final String dst,
       final RenamePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
@@ -367,7 +366,7 @@ public final class PathsRestServiceHandler {
    */
   @POST
   @Path(PATH_PARAM + SET_ATTRIBUTE)
-  @ReturnType("java.lang.Void")
+  //@ReturnType("java.lang.Void")
   public Response setAttribute(@PathParam("path") final String path,
       final SetAttributePOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
@@ -391,7 +390,7 @@ public final class PathsRestServiceHandler {
    */
   @POST
   @Path(PATH_PARAM + UNMOUNT)
-  @ReturnType("java.lang.Void")
+  //@ReturnType("java.lang.Void")
   public Response unmount(@PathParam("path") final String path, final UnmountPOptions options) {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
