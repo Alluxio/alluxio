@@ -309,7 +309,8 @@ public class FileOutStream extends AbstractOutStream {
         .acquireMasterClientResource()) {
       ScheduleAsyncPersistencePOptions persistOptions =
           FileSystemOptions.scheduleAsyncPersistDefaults(mContext.getPathConf(mUri)).toBuilder()
-              .setCommonOptions(mOptions.getCommonOptions()).build();
+              .setCommonOptions(mOptions.getCommonOptions())
+              .setPersistenceWaitTime(mOptions.getPersistenceWaitTime()).build();
       masterClient.get().scheduleAsyncPersist(mUri, persistOptions);
     }
   }
