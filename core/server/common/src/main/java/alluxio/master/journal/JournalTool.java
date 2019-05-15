@@ -228,8 +228,6 @@ public final class JournalTool {
     protected final String mJournalEntryFile;
 
     /**
-     * Creates abstract dumper with parameters.
-     *
      * @param master journal master
      * @param start journal start sequence
      * @param end journal end sequence
