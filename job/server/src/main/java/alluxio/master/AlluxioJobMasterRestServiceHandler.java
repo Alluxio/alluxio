@@ -69,8 +69,7 @@ public final class AlluxioJobMasterRestServiceHandler {
   @GET
   @Path(GET_INFO)
   @ApiOperation(value = "Get general job master service information",
-      response = alluxio.wire.AlluxioJobMasterInfo.class
-  )
+      response = alluxio.wire.AlluxioJobMasterInfo.class)
   public Response getInfo(@QueryParam(QUERY_RAW_CONFIGURATION) final Boolean rawConfiguration) {
     // TODO(jiri): Add a mechanism for retrieving only a subset of the fields.
     return RestUtils.call(() -> {
