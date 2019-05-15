@@ -273,7 +273,7 @@ public class JournalToolTest extends BaseIntegrationTest {
         long latestSnapshotIdx = getCurrentCopyCatSnapshotIndex(followerJournalFolder);
         return latestSnapshotIdx != curentSnapshotIdx;
       } catch (Throwable err) {
-        return false;
+        throw new RuntimeException(err);
       }
     });
   }
