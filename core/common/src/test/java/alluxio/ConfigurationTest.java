@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import alluxio.PropertyKey.Template;
 import alluxio.conf.Source;
@@ -35,6 +36,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -912,6 +914,39 @@ public class ConfigurationTest {
       Configuration.reset();
       assertEquals("foo",
           Configuration.get(Template.MASTER_JOURNAL_UFS_OPTION_PROPERTY.format("fs.obs.endpoint")));
+    }
+  }
+
+  @Test
+  public void unknownTieredStorageAlias() throws Exception {
+    for (String alias : Arrays.asList("mem", "ssd", "hdd", "unknown")) {
+      try (Closeable p = new SystemPropertyRule("alluxio.worker.tieredstore.level0.alias", alias)
+          .toResource()) {
+        Configuration.reset();
+        Configuration.validate();
+        fail("Should have thrown a runtime exception when using an unknown tier alias");
+      } catch (RuntimeException e) {
+        assertTrue(e.getMessage().contains(
+            String.format("Alias \"%s\" on tier 0 on worker (configured by %s) is not found "
+                + "in global tiered", alias, Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0))
+        ));
+      }
+    }
+  }
+
+  @Test
+  public void wrongTieredStorageLevel() throws Exception {
+    try (Closeable p =
+             new SystemPropertyRule(ImmutableMap.of("alluxio.master.tieredstore.global.levels", "1",
+                 "alluxio.worker.tieredstore.levels", "2")).toResource()) {
+      Configuration.reset();
+      Configuration.validate();
+      fail("Should have thrown a runtime exception when setting an unknown tier level");
+    } catch (RuntimeException e) {
+      assertTrue(e.getMessage().contains(
+          String.format("%s tiers on worker (configured by %s), larger than global %s tiers "
+                  + "(configured by %s) ", 2, PropertyKey.WORKER_TIERED_STORE_LEVELS, 1,
+              PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS)));
     }
   }
 }
