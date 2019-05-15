@@ -18,6 +18,7 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.ReadOption;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.util.io.PathUtils;
 
@@ -145,7 +146,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<MutableInode<?>> getMutable(long id) {
+  public Optional<MutableInode<?>> getMutable(long id, ReadOption option) {
     byte[] inode;
     try {
       inode = db().get(mInodesColumn.get(), Longs.toByteArray(id));
@@ -163,7 +164,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId) {
+  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
     List<Long> ids = new ArrayList<>();
     try (RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(inodeId));
@@ -176,7 +177,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<Long> getChildId(Long inodeId, String name) {
+  public Optional<Long> getChildId(Long inodeId, String name, ReadOption option) {
     byte[] id;
     try {
       id = db().get(mEdgesColumn.get(), RocksUtils.toByteArray(inodeId, name));
@@ -190,7 +191,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<Inode> getChild(Long inodeId, String name) {
+  public Optional<Inode> getChild(Long inodeId, String name, ReadOption option) {
     return getChildId(inodeId, name).flatMap(id -> {
       Optional<Inode> child = get(id);
       if (!child.isPresent()) {
@@ -202,7 +203,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public boolean hasChildren(InodeDirectoryView inode) {
+  public boolean hasChildren(InodeDirectoryView inode, ReadOption option) {
     try (RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(inode.getId()));
       return iter.isValid();
@@ -231,7 +232,7 @@ public class RocksInodeStore implements InodeStore {
     try (RocksIterator iter = db().newIterator(mInodesColumn.get())) {
       iter.seekToFirst();
       while (iter.isValid()) {
-        inodes.add(getMutable(Longs.fromByteArray(iter.key())).get());
+        inodes.add(getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
         iter.next();
       }
     }
