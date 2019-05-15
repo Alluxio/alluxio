@@ -20,6 +20,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,6 +154,8 @@ public final class FileSystemUtils {
   public static void persistAndWait(final FileSystem fs, final AlluxioURI uri,
       long persistenceWaitTime, int timeoutMs) throws FileDoesNotExistException, IOException,
       AlluxioException, TimeoutException, InterruptedException {
+    Preconditions.checkArgument(persistenceWaitTime < timeoutMs || timeoutMs == -1,
+        "Persistence initial wait time should be smaller than persist timeout");
     fs.persist(uri, ScheduleAsyncPersistencePOptions
         .newBuilder().setPersistenceWaitTime(persistenceWaitTime).build());
     CommonUtils.waitFor(String.format("%s to be persisted", uri) , () -> {

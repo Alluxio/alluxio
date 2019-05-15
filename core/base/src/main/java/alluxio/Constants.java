@@ -195,7 +195,7 @@ public final class Constants {
 
   // Persistence
   // The file should only be persisted after rename operation or persist CLI
-  public static final int NO_AUTO_PERSIST_VALUE = -1;
+  public static final int NO_AUTO_PERSIST = -1;
   public static final int PERSISTENCE_INVALID_JOB_ID = -1;
   public static final String PERSISTENCE_INVALID_UFS_PATH = "";
 

@@ -442,7 +442,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setAcl(context.getAcl())
         .setPersistenceState(context.isPersisted() ? PersistenceState.PERSISTED
             : PersistenceState.NOT_PERSISTED)
-        .setShouldPersistTime(options.getPersistenceWaitTime() == -1 ? -1 :
+        .setShouldPersistTime(options.getPersistenceWaitTime() == Constants.NO_AUTO_PERSIST
+            ? Constants.NO_AUTO_PERSIST :
             System.currentTimeMillis() + options.getPersistenceWaitTime());
   }
 

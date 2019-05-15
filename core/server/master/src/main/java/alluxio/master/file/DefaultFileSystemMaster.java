@@ -567,13 +567,9 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
       // (mPersistRequests)
       for (Long id : mInodeTree.getToBePersistedIds()) {
         Inode inode = mInodeStore.get(id).get();
-        if (inode.isDirectory()) {
-          continue;
-        }
-        if (inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED) {
-          continue;
-        }
-        if (inode.asFile().getShouldPersistTime() == Constants.NO_AUTO_PERSIST_VALUE) {
+        if (inode.isDirectory()
+            || inode.getPersistenceState() != PersistenceState.TO_BE_PERSISTED
+            || inode.asFile().getShouldPersistTime() == Constants.NO_AUTO_PERSIST) {
           continue;
         }
         InodeFile inodeFile = inode.asFile();
@@ -2007,21 +2003,19 @@ public final class DefaultFileSystemMaster extends CoreMaster implements FileSys
 
     // Check options and determine if we should schedule async persist. This is helpful for compute
     // frameworks that use rename as a commit operation.
-    if (srcInode.isFile() && !srcInode.isPersisted()) {
+    if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()) {
+      mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
+          .setId(srcInode.getId())
+          .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
+          .build());
       long shouldPersistTime = srcInode.asFile().getShouldPersistTime();
-      if (context.getPersist() || shouldPersistTime == Constants.NO_AUTO_PERSIST_VALUE) {
-        mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
-            .setId(srcInode.getId())
-            .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
-            .build());
-        long persistenceWaitTime = shouldPersistTime == Constants.NO_AUTO_PERSIST_VALUE ? 0
-            : getPersistenceWaitTime(shouldPersistTime);
-        mPersistRequests.put(srcInode.getId(), new alluxio.time.ExponentialTimer(
-            ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-            ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-            persistenceWaitTime,
-            ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
-      }
+      long persistenceWaitTime = shouldPersistTime == Constants.NO_AUTO_PERSIST ? 0
+          : getPersistenceWaitTime(shouldPersistTime);
+      mPersistRequests.put(srcInode.getId(), new alluxio.time.ExponentialTimer(
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
+          persistenceWaitTime,
+          ServerConfiguration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
   }
 

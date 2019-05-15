@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.util.FormatUtils;
 import alluxio.util.ThreadFactoryUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -74,7 +75,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
           .longOpt("wait")
           .argName("the initial persistence wait time")
           .numberOfArgs(1)
-          .desc("The time in milliseconds to wait before persisting. default: " + DEFAULT_WAIT_TIME)
+          .desc("The time to wait before persisting. default: " + DEFAULT_WAIT_TIME)
           .required(false)
           .build();
 
@@ -117,7 +118,10 @@ public final class PersistCommand extends AbstractFileSystemCommand {
     // Parse arguments.
     int parallelism = FileSystemShellUtils.getIntArg(cl, PARALLELISM_OPTION, DEFAULT_PARALLELISM);
     int timeoutMs = FileSystemShellUtils.getIntArg(cl, TIMEOUT_OPTION, DEFAULT_TIMEOUT);
-    int persistenceWaitTime = FileSystemShellUtils.getIntArg(cl, WAIT_OPTION, DEFAULT_WAIT_TIME);
+    long persistenceWaitTime = cl.hasOption(WAIT_OPTION.getLongOpt())
+        ? FormatUtils.parseTimeSize(cl.getOptionValue(WAIT_OPTION.getLongOpt()))
+        : DEFAULT_WAIT_TIME;
+
     if (persistenceWaitTime < 0) {
       System.out.println("Persistence initial wait time should be bigger than or equal to 0.");
       return -1;
