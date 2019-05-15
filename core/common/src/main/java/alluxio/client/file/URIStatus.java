@@ -21,6 +21,7 @@ import alluxio.grpc.TtlAction;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -234,6 +235,13 @@ public class URIStatus {
    */
   public boolean isPinned() {
     return mInfo.isPinned();
+  }
+
+  /**
+   * @return the pinned location list
+   */
+  public Set<String> getPinnedMediumTypes() {
+    return mInfo.getMediumTypes();
   }
 
   /**

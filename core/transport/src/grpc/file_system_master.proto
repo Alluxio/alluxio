@@ -349,6 +349,7 @@ message SetAttributePOptions {
   optional int32 replicationMax = 7;
   optional int32 replicationMin = 8;
   optional FileSystemMasterCommonPOptions commonOptions = 9;
+  repeated string pinnedMedia = 10;
 }
 message SetAttributePRequest {
   /** the path of the file */

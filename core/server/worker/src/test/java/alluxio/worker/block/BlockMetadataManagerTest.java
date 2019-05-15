@@ -50,6 +50,7 @@ public final class BlockMetadataManagerTest {
   private static final int[] TIER_ORDINAL = {0, 1};
   private static final String[] TIER_ALIAS = {"MEM", "HDD"};
   private static final String[][] TIER_PATH = {{"/ramdisk"}, {"/disk1", "/disk2"}};
+  public static final String[][] TIER_MEDIA_TYPE = {{"MEM"}, {"HDD", "HDD"}};
   private static final long[][] TIER_CAPACITY_BYTES = {{1000}, {3000, 5000}};
 
   private BlockMetadataManager mMetaManager;
@@ -69,7 +70,7 @@ public final class BlockMetadataManagerTest {
   public void before() throws Exception {
     String baseDir = mFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
-        TIER_PATH, TIER_CAPACITY_BYTES, null);
+        TIER_PATH, TIER_CAPACITY_BYTES, TIER_MEDIA_TYPE, null);
 
     mMetaManager = BlockMetadataManager.createBlockMetadataManager();
   }

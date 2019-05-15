@@ -878,6 +878,17 @@ public class InodeTree implements DelegatingJournaled {
     }
   }
 
+  private boolean checkPinningValidity(Set<String> pinnedMediumTypes) {
+    List<String> mediumTypeList = ServerConfiguration.getList(
+        PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES, ",");
+    for (String medium : pinnedMediumTypes) {
+      if (!mediumTypeList.contains(medium)) {
+        // mediumTypeList does not contains medium
+        return false;
+      }
+    }
+    return true;
+  }
   /**
    * Sets the pinned state of an inode. If the inode is a directory, the pinned state will be set
    * recursively.
@@ -885,18 +896,22 @@ public class InodeTree implements DelegatingJournaled {
    * @param rpcContext the rpc context
    * @param inodePath the {@link LockedInodePath} to set the pinned state for
    * @param pinned the pinned state to set for the inode (and possible descendants)
+   * @param mediumTypes the list of pinned media that that the file can reside in
    * @param opTimeMs the operation time
    * @throws FileDoesNotExistException if inode does not exist
    */
   public void setPinned(RpcContext rpcContext, LockedInodePath inodePath, boolean pinned,
-      long opTimeMs) throws FileDoesNotExistException, InvalidPathException {
+      List<String> mediumTypes, long opTimeMs)
+      throws FileDoesNotExistException, InvalidPathException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
+    Set<String> mediumSet = new HashSet<>(mediumTypes);
+    Preconditions.checkState(checkPinningValidity(mediumSet));
 
     Inode inode = inodePath.getInode();
-
     mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
         .setId(inode.getId())
         .setPinned(pinned)
+        .addAllMediumType(mediumSet)
         .setLastModificationTimeMs(opTimeMs)
         .build());
 
@@ -907,7 +922,7 @@ public class InodeTree implements DelegatingJournaled {
         try (LockedInodePath childPath =
             inodePath.lockChild(child, LockPattern.WRITE_INODE)) {
           // No need for additional locking since the parent is write-locked.
-          setPinned(rpcContext, childPath, pinned, opTimeMs);
+          setPinned(rpcContext, childPath, pinned, mediumTypes, opTimeMs);
         }
       }
     }

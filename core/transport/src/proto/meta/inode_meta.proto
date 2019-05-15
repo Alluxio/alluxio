@@ -28,6 +28,7 @@ message Inode {
     optional bool is_pinned = 9;
     optional alluxio.proto.shared.AccessControlList access_acl = 10;
     optional string ufs_fingerprint = 11;
+    repeated string medium_type = 27;
 
     // directory only
     optional bool is_mount_point = 12;

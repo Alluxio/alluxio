@@ -30,6 +30,7 @@ import alluxio.wire.FileInfo;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -93,6 +94,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     ret.setCacheable(isCacheable());
     ret.setFolder(isDirectory());
     ret.setPinned(isPinned());
+    ret.setMediumTypes(getMediumTypes());
     ret.setCompleted(isCompleted());
     ret.setPersisted(isPersisted());
     ret.setBlockIds(getBlockIds());
@@ -406,6 +408,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
       acl.setMode(mode);
       ret.mAcl = acl;
     }
+
+    ret.setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
     return ret;
   }
 
@@ -471,6 +475,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setUfsFingerprint(getUfsFingerprint())
         .setAcl(ProtoUtils.toProto(mAcl))
+        .addAllMediumType(getMediumTypes())
         .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
@@ -522,7 +527,12 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setReplicationMax(inode.getReplicationMax())
         .setReplicationMin(inode.getReplicationMin())
         .setPersistJobId(inode.getPersistJobId())
+<<<<<<< HEAD
         .setShouldPersistTime(inode.getShouldPersistTime())
         .setTempUfsPath(inode.getPersistJobTempUfsPath());
+=======
+        .setTempUfsPath(inode.getPersistJobTempUfsPath())
+        .setMediumTypes(new HashSet<>(inode.getMediumTypeList()));
+>>>>>>> c8e5dbf678def9da51f8ebb2ef9217a06e26e11f
   }
 }

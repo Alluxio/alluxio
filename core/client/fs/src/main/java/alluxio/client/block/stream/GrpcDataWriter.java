@@ -128,7 +128,8 @@ public final class GrpcDataWriter implements DataWriter {
     mWriterFlushTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_WRITER_FLUSH_TIMEOUT);
 
     WriteRequestCommand.Builder builder =
-        WriteRequestCommand.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type);
+        WriteRequestCommand.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type)
+            .setMediumType(options.getMediumType());
     if (type == RequestType.UFS_FILE) {
       Protocol.CreateUfsFileOptions ufsFileOptions =
           Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())
