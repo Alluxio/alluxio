@@ -31,7 +31,9 @@ import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -54,6 +56,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   private long mParentId;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
+  private Set<String> mMediumTypes;
   protected AccessControlList mAcl;
   private String mUfsFingerprint;
 
@@ -69,6 +72,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     mParentId = InodeTree.NO_PARENT;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
+    mMediumTypes = new HashSet<>();
     mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
   }
@@ -161,6 +165,11 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   @Override
   public AccessControlList getACL() {
     return mAcl;
+  }
+
+  @Override
+  public Set<String> getMediumTypes() {
+    return mMediumTypes;
   }
 
   /**
@@ -431,6 +440,15 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     return getThis();
   }
 
+  /**
+   * @param mediumTypes the medium types to pin to
+   * @return the updated object
+   */
+  public T setMediumTypes(Set<String> mediumTypes) {
+    mMediumTypes = mediumTypes;
+    return getThis();
+  }
+
   @Override
   public abstract FileInfo generateClientFileInfo(String path);
 
@@ -502,6 +520,9 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.hasMode()) {
       setMode((short) entry.getMode());
     }
+    if (entry.getMediumTypeCount() != 0) {
+      setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+    }
     if (entry.hasName()) {
       setName(entry.getName());
     }
@@ -525,6 +546,9 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     }
     if (entry.hasUfsFingerprint()) {
       setUfsFingerprint(entry.getUfsFingerprint());
+    }
+    if (entry.getMediumTypeCount() != 0) {
+      setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
     }
   }
 
@@ -567,7 +591,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .add("owner", mAcl.getOwningUser())
         .add("group", mAcl.getOwningGroup())
         .add("permission", mAcl.getMode())
-        .add("ufsFingerprint", mUfsFingerprint);
+        .add("ufsFingerprint", mUfsFingerprint)
+        .add("mediatypes", mMediumTypes);
   }
 
   protected InodeMeta.Inode.Builder toProtoBuilder() {
@@ -583,7 +608,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .setPersistenceState(getPersistenceState().name())
         .setIsPinned(isPinned())
         .setAccessAcl(ProtoUtils.toProto(getACL()))
-        .setUfsFingerprint(getUfsFingerprint());
+        .setUfsFingerprint(getUfsFingerprint())
+        .addAllMediumType(getMediumTypes());
   }
 
   /**

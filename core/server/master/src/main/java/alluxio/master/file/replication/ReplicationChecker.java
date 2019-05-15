@@ -32,6 +32,7 @@ import alluxio.wire.BlockInfo;
 
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,8 +145,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       // TODO(binfan): calling lockFullInodePath locks the entire path from root to the target
       // file and may increase lock contention in this tree. Investigate if we could avoid
       // locking the entire path but just the inode file since this access is read-only.
-      try (LockedInodePath inodePath =
-          mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
+      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
         InodeFile file = inodePath.getInodeFile();
         for (long blockId : file.getBlockIds()) {
           BlockInfo blockInfo = null;

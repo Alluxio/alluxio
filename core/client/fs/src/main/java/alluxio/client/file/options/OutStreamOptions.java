@@ -52,6 +52,7 @@ public final class OutStreamOptions {
   private int mReplicationMin;
   private String mUfsPath;
   private long mMountId;
+  private String mMediumType;
 
   /**
    * @param alluxioConf Alluxio configuration
@@ -118,6 +119,14 @@ public final class OutStreamOptions {
     mReplicationDurable = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_DURABLE);
     mReplicationMax = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MAX);
     mReplicationMin = alluxioConf.getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
+    mMediumType = "";
+  }
+
+  /**
+   * @return the write medium type
+   */
+  public String getMediumType() {
+    return mMediumType;
   }
 
   /**
@@ -230,6 +239,17 @@ public final class OutStreamOptions {
    */
   public WriteType getWriteType() {
     return mWriteType;
+  }
+
+  /**
+   * Set the write medium type of the file.
+   *
+   * @param mediumType write medium type
+   * @return the updated options object
+   */
+  public OutStreamOptions setMediumType(String mediumType) {
+    mMediumType = mediumType;
+    return this;
   }
 
   /**
@@ -372,6 +392,7 @@ public final class OutStreamOptions {
         && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mMediumType, that.mMediumType)
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mMountId, that.mMountId)
         && Objects.equal(mOwner, that.mOwner)
@@ -391,6 +412,7 @@ public final class OutStreamOptions {
         mCommonOptions,
         mGroup,
         mLocationPolicy,
+        mMediumType,
         mMode,
         mMountId,
         mOwner,
@@ -411,6 +433,7 @@ public final class OutStreamOptions {
         .add("commonOptions", mCommonOptions)
         .add("group", mGroup)
         .add("locationPolicy", mLocationPolicy)
+        .add("mediumType", mMediumType)
         .add("mode", mMode)
         .add("mountId", mMountId)
         .add("owner", mOwner)

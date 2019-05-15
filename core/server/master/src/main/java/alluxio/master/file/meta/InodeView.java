@@ -21,6 +21,7 @@ import alluxio.wire.FileInfo;
 import alluxio.grpc.TtlAction;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Read-only view of an inode.
@@ -106,6 +107,11 @@ public interface InodeView extends JournalEntryRepresentable, Comparable<InodeVi
    * @return true if the file has persisted, false otherwise
    */
   boolean isPersisted();
+
+  /**
+   * @return the pinned medium types set
+   */
+  Set<String> getMediumTypes();
 
   /**
    * @return the UFS fingerprint

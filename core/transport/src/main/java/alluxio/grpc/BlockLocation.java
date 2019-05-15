@@ -23,6 +23,7 @@ private static final long serialVersionUID = 0L;
   private BlockLocation() {
     workerId_ = 0L;
     tierAlias_ = "";
+    mediumType_ = "";
   }
 
   @java.lang.Override
@@ -78,6 +79,12 @@ private static final long serialVersionUID = 0L;
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000004;
             tierAlias_ = bs;
+            break;
+          }
+          case 34: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000008;
+            mediumType_ = bs;
             break;
           }
         }
@@ -183,6 +190,48 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int MEDIUMTYPE_FIELD_NUMBER = 4;
+  private volatile java.lang.Object mediumType_;
+  /**
+   * <code>optional string mediumType = 4;</code>
+   */
+  public boolean hasMediumType() {
+    return ((bitField0_ & 0x00000008) == 0x00000008);
+  }
+  /**
+   * <code>optional string mediumType = 4;</code>
+   */
+  public java.lang.String getMediumType() {
+    java.lang.Object ref = mediumType_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        mediumType_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string mediumType = 4;</code>
+   */
+  public com.google.protobuf.ByteString
+      getMediumTypeBytes() {
+    java.lang.Object ref = mediumType_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      mediumType_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -204,6 +253,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, tierAlias_);
     }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, mediumType_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -222,6 +274,9 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, tierAlias_);
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, mediumType_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -254,6 +309,11 @@ private static final long serialVersionUID = 0L;
       result = result && getTierAlias()
           .equals(other.getTierAlias());
     }
+    result = result && (hasMediumType() == other.hasMediumType());
+    if (hasMediumType()) {
+      result = result && getMediumType()
+          .equals(other.getMediumType());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -277,6 +337,10 @@ private static final long serialVersionUID = 0L;
     if (hasTierAlias()) {
       hash = (37 * hash) + TIERALIAS_FIELD_NUMBER;
       hash = (53 * hash) + getTierAlias().hashCode();
+    }
+    if (hasMediumType()) {
+      hash = (37 * hash) + MEDIUMTYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getMediumType().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -423,6 +487,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       tierAlias_ = "";
       bitField0_ = (bitField0_ & ~0x00000004);
+      mediumType_ = "";
+      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
 
@@ -463,6 +529,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000004;
       }
       result.tierAlias_ = tierAlias_;
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      result.mediumType_ = mediumType_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -514,6 +584,11 @@ private static final long serialVersionUID = 0L;
       if (other.hasTierAlias()) {
         bitField0_ |= 0x00000004;
         tierAlias_ = other.tierAlias_;
+        onChanged();
+      }
+      if (other.hasMediumType()) {
+        bitField0_ |= 0x00000008;
+        mediumType_ = other.mediumType_;
         onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
@@ -766,6 +841,82 @@ private static final long serialVersionUID = 0L;
   }
   bitField0_ |= 0x00000004;
       tierAlias_ = value;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object mediumType_ = "";
+    /**
+     * <code>optional string mediumType = 4;</code>
+     */
+    public boolean hasMediumType() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional string mediumType = 4;</code>
+     */
+    public java.lang.String getMediumType() {
+      java.lang.Object ref = mediumType_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          mediumType_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string mediumType = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getMediumTypeBytes() {
+      java.lang.Object ref = mediumType_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        mediumType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string mediumType = 4;</code>
+     */
+    public Builder setMediumType(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+      mediumType_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string mediumType = 4;</code>
+     */
+    public Builder clearMediumType() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      mediumType_ = getDefaultInstance().getMediumType();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string mediumType = 4;</code>
+     */
+    public Builder setMediumTypeBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+      mediumType_ = value;
       onChanged();
       return this;
     }
