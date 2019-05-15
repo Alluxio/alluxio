@@ -564,7 +564,7 @@ public final class StorageDirTest {
   @Test
   public void toBlockStoreLocation() {
     StorageTier tier = mDir.getParentTier();
-    assertEquals(new BlockStoreLocation(tier.getTierAlias(), mDir.getDirIndex()),
-        mDir.toBlockStoreLocation());
+    assertEquals(new BlockStoreLocation(tier.getTierAlias(), mDir.getDirIndex(),
+        mDir.getDirMedium()), mDir.toBlockStoreLocation());
   }
 }

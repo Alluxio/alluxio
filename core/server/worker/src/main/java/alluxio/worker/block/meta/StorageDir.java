@@ -452,7 +452,7 @@ public final class StorageDir {
    * @return the block store location of this directory
    */
   public BlockStoreLocation toBlockStoreLocation() {
-    return new BlockStoreLocation(mTier.getTierAlias(), mDirIndex);
+    return new BlockStoreLocation(mTier.getTierAlias(), mDirIndex, mDirMedium);
   }
 
   private void reclaimSpace(long size, boolean committed) {
