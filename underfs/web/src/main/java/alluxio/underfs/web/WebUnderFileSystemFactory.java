@@ -13,7 +13,6 @@ package alluxio.underfs.web;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -34,10 +33,9 @@ public class WebUnderFileSystemFactory implements UnderFileSystemFactory {
   public WebUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
-    return new WebUnderFileSystem(new AlluxioURI(path), conf, alluxioConf);
+    return new WebUnderFileSystem(new AlluxioURI(path), conf);
   }
 
   @Override
