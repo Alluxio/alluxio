@@ -45,7 +45,7 @@ public final class ByteIOUtilsTest {
       ByteIOUtils.writeShort(mBuf, 0, v);
       assertEquals(v, ByteIOUtils.readShort(mBuf, 0));
       ByteIOUtils.writeShort(mBuf, 1, v);
-      Assert.assertEquals(v, ByteIOUtils.readShort(mBuf, 1));
+      assertEquals(v, ByteIOUtils.readShort(mBuf, 1));
     }
   }
 
