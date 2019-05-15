@@ -21,6 +21,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -53,8 +54,20 @@ public final class PinCommand extends AbstractFileSystemCommand {
     List<String> pinnedMediumTypes = Arrays.asList(Arrays.copyOfRange(args, 1, args.length));
     List<String> availableMediumList = mFsContext.getPathConf(path).getList(
         PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPES, ",");
-    if (!availableMediumList.containsAll(pinnedMediumTypes)) {
-      throw new IllegalArgumentException("Invalid medium to pin the file");
+    List<String> invalidMediumType = new ArrayList<>();
+    List<String> validMediumType = new ArrayList<>();
+    for (String mediumType: pinnedMediumTypes) {
+      if (availableMediumList.contains(mediumType)) {
+        validMediumType.add(mediumType);
+      } else {
+        invalidMediumType.add(mediumType);
+      }
+    }
+    if (!invalidMediumType.isEmpty()) {
+      throw new IllegalArgumentException("Invalid medium to pin the file. "
+          + String.join(",", invalidMediumType) + " are invalid. "
+          + (validMediumType.isEmpty() ? ""
+          : String.join(",", validMediumType) + " are valid"));
     }
     FileSystemCommandUtils.setPinned(mFileSystem, path, true, pinnedMediumTypes);
     System.out.println("File '" + path + "' was successfully pinned.");
