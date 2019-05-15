@@ -19,6 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.FormatUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -282,6 +283,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkUserFileBufferBytes();
     checkZkConfiguration();
     checkTieredLocality();
+    checkTieredStorage();
   }
 
   /**
@@ -435,6 +437,34 @@ public class InstancedConfiguration implements AlluxioConfiguration {
                   + "configured by %s", tierName, key, tiers, PropertyKey.LOCALITY_ORDER));
         }
       }
+    }
+  }
+
+  /**
+   * Checks that tiered storage configuration on worker is consistent with the global configuration.
+   *
+   * @throws IllegalStateException if invalid tiered storage configuration is encountered
+   */
+  @VisibleForTesting
+  void checkTieredStorage() {
+    int globalTiers = getInt(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS);
+    Set<String> globalTierAliasSet = new HashSet<>();
+    for (int i = 0; i < globalTiers; i++) {
+      globalTierAliasSet
+          .add(get(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(i)));
+    }
+    int workerTiers = getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+    Preconditions.checkState(workerTiers <= globalTiers,
+        "%s tiers on worker (configured by %s), larger than global %s tiers (configured by %s) ",
+        workerTiers, PropertyKey.WORKER_TIERED_STORE_LEVELS,
+        globalTiers, PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS);
+    for (int i = 0; i < workerTiers; i++) {
+      PropertyKey key = Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(i);
+      String alias = get(key);
+      Preconditions.checkState(globalTierAliasSet.contains(alias),
+          "Alias \"%s\" on tier %s on worker (configured by %s) is not found in global tiered "
+              + "storage setting: %s",
+          alias, i, key, String.join(", ", globalTierAliasSet));
     }
   }
 }
