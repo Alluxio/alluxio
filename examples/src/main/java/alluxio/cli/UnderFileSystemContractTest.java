@@ -22,7 +22,6 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
@@ -46,6 +45,7 @@ import java.util.UUID;
  */
 public final class UnderFileSystemContractTest {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemContractTest.class);
+  private static final String S3_IDENTIFIER = "s3";
 
   @Parameter(names = {"--path"}, required = true,
       description = "The under filesystem path to run tests against.")
@@ -54,13 +54,14 @@ public final class UnderFileSystemContractTest {
   @Parameter(names = {"--help"}, help = true)
   private boolean mHelp = false;
 
+  private InstancedConfiguration mConf
+      = new InstancedConfiguration(ConfigurationUtils.defaults());
+
   // The factory to check if the given ufs path is valid and create ufs
   private UnderFileSystemFactory mFactory;
   private UnderFileSystem mUfs;
-  private String mUfsType;
-  private InstancedConfiguration mConf
-      = new InstancedConfiguration(ConfigurationUtils.defaults());
-  private String mFailedTest;
+
+  private boolean mIsS3Ufs;
 
   private UnderFileSystemContractTest() {}
 
@@ -78,12 +79,11 @@ public final class UnderFileSystemContractTest {
     // Increase the buffer time of journal writes to speed up tests
     mConf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");
 
-    mUfs = createUnderFileSystem();
-    mUfsType = mUfs.getUnderFSType();
-
+    createUnderFileSystem();
+    mIsS3Ufs = mUfs.getUnderFSType().equals(S3_IDENTIFIER);
     runCommonOperations();
 
-    if (mUfsType.equals("s3")) {
+    if (mIsS3Ufs) {
       runS3AOperations();
     }
     CliUtils.printPassInfo(true);
@@ -92,9 +92,8 @@ public final class UnderFileSystemContractTest {
   private void runCommonOperations() throws Exception {
     // Create the test directory to run tests against
     String testDir = PathUtils.concatPath(mUfsPath, UUID.randomUUID());
-    UnderFileSystemCommonOperations ops
-        = new UnderFileSystemCommonOperations(mUfsPath, testDir, mUfs, mConf);
-    loadAndRunTests(ops, testDir);
+    loadAndRunTests(new UnderFileSystemCommonOperations(mUfsPath, testDir, mUfs, mConf),
+        testDir);
   }
 
   private void runS3AOperations() throws Exception {
@@ -103,13 +102,17 @@ public final class UnderFileSystemContractTest {
     mConf.set(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
     mConf.set(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE, "0");
 
-    mUfs = createUnderFileSystem();
+    createUnderFileSystem();
     String testDir = PathUtils.concatPath(mUfsPath, UUID.randomUUID());
-    S3ASpecificOperations ops
-        = new S3ASpecificOperations(mUfsPath, testDir, (S3AUnderFileSystem) mUfs, mConf);
-    loadAndRunTests(ops, testDir);
+    loadAndRunTests(new S3ASpecificOperations(testDir, mUfs, mConf), testDir);
   }
 
+  /**
+   * Loads and runs the tests.
+   *
+   * @param operationsToTest the class that contains the tests to run
+   * @param testDir the test directory to run tests against
+   */
   private void loadAndRunTests(Object operationsToTest, String testDir) throws Exception {
     try {
       Class classToRun = operationsToTest.getClass();
@@ -125,7 +128,7 @@ public final class UnderFileSystemContractTest {
           try {
             test.invoke(operationsToTest);
           } catch (InvocationTargetException e) {
-            if (mUfsType.equals("S3A")) {
+            if (mIsS3Ufs) {
               List<String> operations = getRelatedS3AOperations(testName);
               if (operations.size() > 0) {
                 LOG.info("Related S3 operations: "
@@ -144,14 +147,16 @@ public final class UnderFileSystemContractTest {
     }
   }
 
-  private UnderFileSystem createUnderFileSystem() {
-    UnderFileSystem ufs = mFactory.create(mUfsPath,
+  /**
+   * Creates the under file system.
+   */
+  private void createUnderFileSystem() {
+    mUfs = mFactory.create(mUfsPath,
         UnderFileSystemConfiguration.defaults(mConf));
-    if (ufs == null) {
+    if (mUfs == null) {
       LOG.error("Failed to create under filesystem");
       System.exit(1);
     }
-    return ufs;
   }
 
   /**
@@ -196,7 +201,6 @@ public final class UnderFileSystemContractTest {
       case "createAndAbortMultipartFileTest":
         operations.add("AmazonS3Client.initiateMultipartUpload()");
         operations.add("AmazonS3Client.uploadPart()");
-        operations.add("AmazonS3Client.listMultipartUploads()");
         operations.add("TransferManager.abortMultipartUploads()");
         break;
       case "createAtomicTest":

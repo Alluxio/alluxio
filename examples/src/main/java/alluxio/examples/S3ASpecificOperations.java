@@ -11,18 +11,14 @@
 
 package alluxio.examples;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
-import alluxio.underfs.s3a.S3ALowLevelOutputStream;
-import alluxio.underfs.s3a.S3AUnderFileSystem;
-import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
-import com.amazonaws.services.s3.model.ListMultipartUploadsRequest;
-import com.amazonaws.services.s3.model.MultipartUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Examples for S3A specific under filesystem operations. This class tests
@@ -38,26 +33,25 @@ import java.util.List;
  */
 public final class S3ASpecificOperations {
   private static final Logger LOG = LoggerFactory.getLogger(S3ASpecificOperations.class);
+  // A safe test wait time to wait for all parts upload
+  private static final long TEST_WAIT_TIME = 10000;
   private static final byte[] TEST_BYTES = "TestBytesInS3AFiles".getBytes();
 
-  private final String mBucket;
   private final InstancedConfiguration mConfiguration;
   // A child directory in the S3A bucket to run tests against
   private final String mTestDirectory;
-  private final S3AUnderFileSystem mUfs;
+  private final UnderFileSystem mUfs;
 
   /**
-   * @param bucket the S3A bucket
    * @param testDirectory the directory to run tests against
    * @param ufs the S3A under file system
    * @param configuration the instance configuration
    */
-  public S3ASpecificOperations(String bucket, String testDirectory,
-      S3AUnderFileSystem ufs, InstancedConfiguration configuration) {
-    mBucket = bucket;
-    mConfiguration = configuration;
+  public S3ASpecificOperations(String testDirectory,
+      UnderFileSystem ufs, InstancedConfiguration configuration) {
     mTestDirectory = testDirectory;
     mUfs = ufs;
+    mConfiguration = configuration;
   }
 
   /**
@@ -137,36 +131,22 @@ public final class S3ASpecificOperations {
   public void createAndAbortMultipartFileTest() throws IOException {
     String testFile = PathUtils.concatPath(mTestDirectory, "createAndAbort");
     OutputStream outputStream = mUfs.create(testFile);
-    // Clean all intermediate multipart uploads
-    mUfs.cleanup();
-    if (getMultipartUploadList().size() != 0) {
-      throw new IOException("Failed to clean previous intermediate multipart uploads");
-    }
-
     // Create a file but do not close it
     int numCopies = 6 * Constants.MB / TEST_BYTES.length;
     for (int i = 0; i < numCopies; ++i) {
       outputStream.write(TEST_BYTES);
     }
-    // Multipart upload that has in progress upload will not be aborted
-    ((S3ALowLevelOutputStream) outputStream).waitForAllPartsUpload();
-    int size = getMultipartUploadList().size();
-    if (size != 1) {
-      throw new IOException(String.format("Expected to have one intermediate multipart upload, "
-          + "but get %s in %s", size, mBucket));
-    }
+    LOG.info("Waiting for the in progress upload to be finished so that we can abort it. "
+        + "This file may need longer time to upload which may cause test to fail.");
+    CommonUtils.sleepMs(TEST_WAIT_TIME);
+    LOG.info("Expected to see aborted multipart upload and failed to upload last part message");
     mUfs.cleanup();
-    if (getMultipartUploadList().size() != 0) {
-      throw new IOException("Failed to clean the in progress multipart upload");
+    try {
+      outputStream.close();
+    } catch (IOException e) {
+      if (!e.getMessage().contains("Part upload failed")) {
+        throw e;
+      }
     }
-  }
-
-  /**
-   * @return a list of intermediate multipart uploads
-   */
-  private List<MultipartUpload> getMultipartUploadList() {
-    return mUfs.getS3Client().listMultipartUploads(
-        new ListMultipartUploadsRequest(UnderFileSystemUtils
-            .getBucketName(new AlluxioURI(mBucket)))).getMultipartUploads();
   }
 }
