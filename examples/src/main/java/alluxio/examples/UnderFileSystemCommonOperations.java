@@ -11,7 +11,6 @@
 
 package alluxio.examples;
 
-import alluxio.cli.CliUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.ObjectUnderFileSystem;
@@ -37,7 +36,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Examples for under filesystem common operations.
@@ -72,8 +70,6 @@ public final class UnderFileSystemCommonOperations {
   // A child directory of the ufs path to run tests against
   private final String mTopLevelTestDirectory;
 
-  private String mFailedTestName;
-
   /**
    * @param ufsPath the under filesystem path
    * @param topLevelTestDirectory the top level test directory
@@ -89,148 +85,9 @@ public final class UnderFileSystemCommonOperations {
   }
 
   /**
-   * Runs all the tests.
+   * Test for creating file atomic.
    */
-  public void runTests() throws Exception {
-    createAtomic();
-    createEmpty();
-    createNoParent();
-    createParent();
-    createOpen();
-    createOpenEmpty();
-    createOpenAtPosition();
-    createOpenLarge();
-    createOpenExistingLargeFile();
-    deleteFile();
-    deleteDir();
-    deleteLargeDirectory();
-    createDeleteFileConjuction();
-    createThenDeleteExistingDirectory();
-    exists();
-    getDirectoryStatus();
-    createThenGetExistingDirectoryStatus();
-    getFileSize();
-    createThenGetExistingFileStatus();
-    getFileStatus();
-    createThenGetExistingStatus();
-    getModTime();
-    isFile();
-    listStatus();
-    listStatusEmpty();
-    listStatusFile();
-    listLargeDirectory();
-    listStatusRecursive();
-    mkdirs();
-    objectCommonPrefixesIsDirectory();
-    objectCommonPrefixesListStatusNonRecursive();
-    objectCommonPrefixesListStatusRecursive();
-    objectNestedDirsListStatusRecursive();
-    renameFile();
-    renameRenamableFile();
-    renameDirectory();
-    renameDirectoryDeep();
-    renameRenameableDirectory();
-    renameLargeDirectory();
-    // All test passed, reset the failed test name to empty
-    mFailedTestName = "";
-  }
-
-  /**
-   * Gets the S3A operations related to the failed test. This method
-   * should only be called when the ufs is S3A.
-   *
-   * @return the related S3A operations
-   */
-  public List<String> getRelatedS3AOperations() {
-    List<String> operations = new ArrayList<>();
-    switch (mFailedTestName) {
-      case "createAtomic":
-      case "createEmpty":
-      case "createParent":
-      case "createThenGetExistingFileStatus":
-      case "createThenGetExistingStatus":
-      case "getFileSize":
-      case "getFileStatus":
-      case "getModTime":
-        operations.add("TransferManager.upload()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      case "createOpen":
-      case "createOpenAtPosition":
-      case "createOpenEmpty":
-      case "createOpenExistingLargeFile":
-      case "createOpenLarge":
-        operations.add("TransferManager.upload()");
-        operations.add("AmazonS3Client.getObject()");
-        break;
-      case "deleteFile":
-        operations.add("TransferManager.upload()");
-        operations.add("AmazonS3Client.deleteObject()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      case "deleteDir":
-      case "deleteLargeDirectory":
-      case "createThenDeleteExistingDirectory":
-        operations.add("AmazonS3Client.putObject()");
-        operations.add("AmazonS3Client.deleteObjects()");
-        operations.add("AmazonS3Client.listObjectsV2()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      case "createDeleteFileConjuction":
-        operations.add("TransferManager.upload()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        operations.add("AmazonS3Client.deleteObject()");
-        break;
-      case "exists":
-      case "getDirectoryStatus":
-      case "createThenGetExistingDirectoryStatus":
-        operations.add("AmazonS3Client.putObject()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      case "isFile":
-        operations.add("AmazonS3Client.putObject()");
-        operations.add("AmazonS3Client.deleteObject()");
-        break;
-      case "listStatus":
-      case "listStatusEmpty":
-      case "listStatusFile":
-      case "listLargeDirectory":
-      case "listStatusRecursive":
-      case "mkdirs":
-      case "objectCommonPrefixesIsDirectory":
-      case "objectCommonPrefixesListStatusNonRecursive":
-      case "objectCommonPrefixesListStatusRecursive":
-      case "objectNestedDirsListStatusRecursive":
-        operations.add("AmazonS3Client.putObject()");
-        operations.add("AmazonS3Client.listObjectsV2()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      case "renameFile":
-      case "renameRenamableFile":
-        operations.add("TransferManager.upload()");
-        operations.add("TransferManager.copyObject()");
-        operations.add("AmazonS3Client.deleteObject()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      case "renameDirectory":
-      case "renameDirectoryDeep":
-      case "renameLargeDirectory":
-      case "renameRenameableDirectory":
-        operations.add("AmazonS3Client.putObject()");
-        operations.add("TransferManager.upload()");
-        operations.add("TransferManager.copyObject()");
-        operations.add("AmazonS3Client.listObjectsV2()");
-        operations.add("AmazonS3Client.getObjectMetadata()");
-        break;
-      default:
-        break;
-    }
-    return operations;
-  }
-
-  private void createAtomic() throws IOException {
-    mFailedTestName = "createAtomic";
-    LOG.info("Running test: " + mFailedTestName);
+  public void createAtomicTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createAtomic");
     OutputStream stream = mUfs.create(testFile, CreateOptions.defaults(mConfiguration)
         .setEnsureAtomic(true));
@@ -242,23 +99,23 @@ public final class UnderFileSystemCommonOperations {
     if (!mUfs.isFile(testFile)) {
       throw new IOException(IS_FAIL_CHECK_SHOULD_SUCCEED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createEmpty() throws IOException {
-    mFailedTestName = "createEmpty";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for creating empty file.
+   */
+  public void createEmptyTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createEmpty");
     createEmptyFile(testFile);
     if (!mUfs.isFile(testFile)) {
       throw new IOException(IS_FAIL_CHECK_SHOULD_SUCCEED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createNoParent() throws IOException {
-    mFailedTestName = "createNoParent";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for creating file without parent.
+   */
+  public void createNoParentTest() throws IOException {
     // Run the test only for local UFS. Other UFSs succeed if no parents are present
     if (!UnderFileSystemUtils.isLocal(mUfs)) {
       return;
@@ -275,12 +132,12 @@ public final class UnderFileSystemCommonOperations {
     if (!haveIOException) {
       throw new IOException("Expected to have IOException but do not have");
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createParent() throws IOException {
-    mFailedTestName = "createParent";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for creating file with parent.
+   */
+  public void createParentTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createParent/testFile");
     OutputStream o = mUfs.create(testFile, CreateOptions.defaults(mConfiguration)
         .setCreateParent(true));
@@ -288,12 +145,12 @@ public final class UnderFileSystemCommonOperations {
     if (!mUfs.exists(testFile)) {
       throw new IOException(FILE_EXISTS_CHECK_SHOULD_SUCCEED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createOpen() throws IOException {
-    mFailedTestName = "createOpen";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for creating and opening file.
+   */
+  public void createOpenTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpen");
     createTestBytesFile(testFile);
     byte[] buf = new byte[TEST_BYTES.length];
@@ -301,12 +158,12 @@ public final class UnderFileSystemCommonOperations {
     if (TEST_BYTES.length != bytesRead || !Arrays.equals(buf, TEST_BYTES)) {
       throw new IOException(FILE_CONTENT_INCORRECT);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createOpenEmpty() throws IOException {
-    mFailedTestName = "createOpenEmpty";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for creating and opening empty file.
+   */
+  public void createOpenEmptyTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpenEmpty");
     createEmptyFile(testFile);
     byte[] buf = new byte[0];
@@ -320,12 +177,12 @@ public final class UnderFileSystemCommonOperations {
     if (!bytesReadCorrect) {
       throw new IOException(FILE_CONTENT_INCORRECT);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createOpenAtPosition() throws IOException {
-    mFailedTestName = "createOpenAtPosition";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for creating file and opening at position.
+   */
+  public void createOpenAtPositionTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpenAtPosition");
     prepareMultiBlockFile(testFile);
     int[] offsets = {0, 256, 511, 512, 513, 768, 1024, 1025};
@@ -336,12 +193,12 @@ public final class UnderFileSystemCommonOperations {
       }
       inputStream.close();
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createOpenLarge() throws IOException {
-    mFailedTestName = "createOpenLarge";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for creating and opening large file.
+   */
+  public void createOpenLargeTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpenLarge");
     int numCopies = prepareMultiBlockFile(testFile);
     InputStream inputStream = mUfs.open(testFile);
@@ -365,12 +222,12 @@ public final class UnderFileSystemCommonOperations {
     if (noReadCount > 3) {
       throw new IOException("Too many retries in reading the written large file");
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createOpenExistingLargeFile() throws IOException {
-    mFailedTestName = "createOpenExistingLargeFile";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for creating and open existing large file.
+   */
+  public void createOpenExistingLargeFileTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpenExistingLargeFile");
     int numCopies = prepareMultiBlockFile(testFile);
     InputStream inputStream = mUfs.openExistingFile(testFile);
@@ -384,12 +241,12 @@ public final class UnderFileSystemCommonOperations {
         throw new IOException(FILE_CONTENT_INCORRECT);
       }
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void deleteFile() throws IOException {
-    mFailedTestName = "deleteFile";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for deleting file.
+   */
+  public void deleteFileTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "deleteFile");
     createEmptyFile(testFile);
     mUfs.deleteFile(testFile);
@@ -399,12 +256,12 @@ public final class UnderFileSystemCommonOperations {
     if (mUfs.isFile(testFile)) {
       throw new IOException(IS_FAIL_CHECK_SHOULD_FAILED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void deleteDir() throws IOException {
-    mFailedTestName = "deleteDir";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for deleting directory.
+   */
+  public void deleteDirTest() throws IOException {
     String testDirEmpty = PathUtils.concatPath(mTopLevelTestDirectory, "deleteDirTestDirEmpty");
     String testDirNonEmpty = PathUtils
         .concatPath(mTopLevelTestDirectory, "deleteDirTestDirNonEmpty1");
@@ -439,13 +296,13 @@ public final class UnderFileSystemCommonOperations {
         || mUfs.isFile(testDirNonEmptyChildFile) || mUfs.isFile(testDirNonEmptyChildDirFile)) {
       throw new IOException("Deleted file or directory still exist");
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void deleteLargeDirectory() throws IOException {
-    mFailedTestName =  "deleteLargeDirectory";
-    LOG.info("Running test: " + mFailedTestName);
-    LargeDirectoryConfig config = prepareLargeDirectoryTest();
+  /**
+   * Test for deleting large directory.
+   */
+  public void deleteLargeDirectoryTest() throws IOException {
+    LargeDirectoryConfig config = prepareLargeDirectory();
     mUfs.deleteDirectory(config.getTopLevelDirectory(),
         DeleteOptions.defaults().setRecursive(true));
 
@@ -467,12 +324,12 @@ public final class UnderFileSystemCommonOperations {
         throw new IOException("Deleted file or directory still exist");
       }
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createDeleteFileConjuction() throws IOException {
-    mFailedTestName = "createDeleteFileConjuction";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for creating and deleting file conjunction.
+   */
+  public void createDeleteFileConjuctionTest() throws IOException {
     String testFile = PathUtils
         .concatPath(mTopLevelTestDirectory, "deleteThenCreateNonexistingFile");
     createTestBytesFile(testFile);
@@ -494,22 +351,23 @@ public final class UnderFileSystemCommonOperations {
     if (!mUfs.exists(testFile)) {
       throw new IOException(FILE_EXISTS_CHECK_SHOULD_SUCCEED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createThenDeleteExistingDirectory() throws IOException {
-    mFailedTestName = "createThenDeleteExistingDirectory";
-    LOG.info("Running test: " + mFailedTestName);
-    LargeDirectoryConfig config = prepareLargeDirectoryTest();
+  /**
+   * Test for creating and deleting existing directory.
+   */
+  public void createThenDeleteExistingDirectoryTest() throws IOException {
+    LargeDirectoryConfig config = prepareLargeDirectory();
     if (!mUfs.deleteExistingDirectory(config.getTopLevelDirectory(),
         DeleteOptions.defaults().setRecursive(true))) {
       throw new IOException("Failed to delete existing directory");
     }
   }
 
-  private void exists() throws IOException {
-    mFailedTestName = "exists";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for checking file existence.
+   */
+  public void existsTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "testFile");
     if (mUfs.isFile(testFile)) {
       throw new IOException(IS_FAIL_CHECK_SHOULD_FAILED);
@@ -526,12 +384,12 @@ public final class UnderFileSystemCommonOperations {
     if (!mUfs.isDirectory(testDir)) {
       throw new IOException(IS_DIRECTORY_CHECK_SHOULD_SUCCEED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void getDirectoryStatus() throws IOException {
-    mFailedTestName = "getDirectoryStatus";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for getting directory status.
+   */
+  public void getDirectoryStatusTest() throws IOException {
     String testDir = PathUtils.concatPath(mTopLevelTestDirectory, "testDir");
     mUfs.mkdirs(testDir);
 
@@ -539,24 +397,24 @@ public final class UnderFileSystemCommonOperations {
     if (!(status instanceof UfsDirectoryStatus)) {
       throw new IOException("Failed to get ufs directory status");
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createThenGetExistingDirectoryStatus() throws IOException {
-    mFailedTestName = "createThenGetExistingDirectoryStatus";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for getting existing directory status.
+   */
+  public void createThenGetExistingDirectoryStatusTest() throws IOException {
     String testDir = PathUtils.concatPath(mTopLevelTestDirectory, "testDir");
     mUfs.mkdirs(testDir);
     UfsStatus status = mUfs.getExistingStatus(testDir);
     if (!(status instanceof UfsDirectoryStatus)) {
       throw new IOException("Failed to get ufs directory status");
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void getFileSize() throws IOException {
-    mFailedTestName = "getFileSize";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for getting file size.
+   */
+  public void getFileSizeTest() throws IOException {
     String testFileEmpty = PathUtils.concatPath(mTopLevelTestDirectory, "testFileEmpty");
     String testFileNonEmpty = PathUtils.concatPath(mTopLevelTestDirectory, "testFileNonEmpty");
     createEmptyFile(testFileEmpty);
@@ -565,12 +423,12 @@ public final class UnderFileSystemCommonOperations {
         || mUfs.getFileStatus(testFileNonEmpty).getContentLength() != TEST_BYTES.length) {
       throw new IOException(FILE_STATUS_RESULT_INCORRECT);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createThenGetExistingFileStatus() throws IOException {
-    mFailedTestName = "createThenGetExistingFileStatus";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for getting existing file status.
+   */
+  public void createThenGetExistingFileStatusTest() throws IOException {
     String testFileNonEmpty = PathUtils.concatPath(mTopLevelTestDirectory, "testFileNonEmpty");
     String testFileLarge = PathUtils.concatPath(mTopLevelTestDirectory, "testFileLarge");
     createTestBytesFile(testFileNonEmpty);
@@ -580,12 +438,12 @@ public final class UnderFileSystemCommonOperations {
         != mUfs.getExistingFileStatus(testFileLarge).getContentLength()) {
       throw new IOException(FILE_STATUS_RESULT_INCORRECT);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void getFileStatus() throws IOException {
-    mFailedTestName = "getFileStatus";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for getting file status.
+   */
+  public void getFileStatusTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "testFile");
     createEmptyFile(testFile);
 
@@ -593,12 +451,12 @@ public final class UnderFileSystemCommonOperations {
     if (!(status instanceof UfsFileStatus)) {
       throw new IOException("Failed to get ufs file status");
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void createThenGetExistingStatus() throws IOException {
-    mFailedTestName = "createThenGetExistingStatus";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for getting existing status.
+   */
+  public void createThenGetExistingStatusTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "testFile");
     createTestBytesFile(testFile);
 
@@ -606,12 +464,12 @@ public final class UnderFileSystemCommonOperations {
     if (!(status instanceof UfsFileStatus)) {
       throw new IOException("Failed to get ufs file status");
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void getModTime() throws IOException {
-    mFailedTestName = "getModTime";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for getting modification time.
+   */
+  public void getModTimeTest() throws IOException {
     long slack = 5000; // Some file systems may report nearest second.
     long start = System.currentTimeMillis();
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "testFile");
@@ -621,12 +479,12 @@ public final class UnderFileSystemCommonOperations {
     if (modTime < start - slack || modTime > end + slack) {
       throw new IOException(FILE_STATUS_RESULT_INCORRECT);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void isFile() throws IOException {
-    mFailedTestName = "isFile";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for checking file is actual file.
+   */
+  public void isFileTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "testFile");
     String testDir = PathUtils.concatPath(mTopLevelTestDirectory, "testDir");
     if (mUfs.isFile(testFile)) {
@@ -640,12 +498,12 @@ public final class UnderFileSystemCommonOperations {
     if (mUfs.isFile(testDir)) {
       throw new IOException(IS_FAIL_CHECK_SHOULD_FAILED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void listStatus() throws IOException {
-    mFailedTestName = "listStatus";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for listing status.
+   */
+  public void listStatusTest() throws IOException {
     String testDirNonEmpty = PathUtils.concatPath(mTopLevelTestDirectory, "testDirNonEmpty1");
     String testDirNonEmptyChildDir = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmpty2");
     String testDirNonEmptyChildFile = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmptyF");
@@ -679,36 +537,36 @@ public final class UnderFileSystemCommonOperations {
         throw new IOException("UnderFileSystem.isDirectory() result is different from expected");
       }
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void listStatusEmpty() throws IOException {
-    mFailedTestName = "listStatusEmpty";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for listing empty directory.
+   */
+  public void listStatusEmptyTest() throws IOException {
     String testDir = PathUtils.concatPath(mTopLevelTestDirectory, "listStatusEmpty");
     mUfs.mkdirs(testDir);
     UfsStatus[] res = mUfs.listStatus(testDir);
     if (res.length != 0) {
       throw new IOException(LIST_STATUS_RESULT_INCORRECT);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void listStatusFile() throws IOException {
-    mFailedTestName = "listStatusFile";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for listing status on file.
+   */
+  public void listStatusFileTest() throws IOException {
     String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "listStatusFile");
     createEmptyFile(testFile);
     if (mUfs.listStatus(testFile) != null) {
       throw new IOException(LIST_STATUS_RESULT_INCORRECT);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void listLargeDirectory() throws IOException {
-    mFailedTestName = "listLargeDirectory";
-    LOG.info("Running test: " + mFailedTestName);
-    LargeDirectoryConfig config = prepareLargeDirectoryTest();
+  /**
+   * Test for listing large directory.
+   */
+  public void listLargeDirectoryTest() throws IOException {
+    LargeDirectoryConfig config = prepareLargeDirectory();
     String[] children = config.getChildren();
 
     // Retry for some time to allow list operation eventual consistency for S3 and GCS.
@@ -735,12 +593,12 @@ public final class UnderFileSystemCommonOperations {
         throw new IOException(LIST_STATUS_RESULT_INCORRECT);
       }
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void listStatusRecursive() throws IOException {
-    mFailedTestName = "listStatusRecursive";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for listing status recursively.
+   */
+  public void listStatusRecursiveTest() throws IOException {
     String root = mTopLevelTestDirectory;
     // TODO(andrew): Should this directory be created in LocalAlluxioCluster creation code?
     mUfs.mkdirs(root);
@@ -795,12 +653,12 @@ public final class UnderFileSystemCommonOperations {
         || (mUfs.listStatus(file, ListOptions.defaults().setRecursive(true)) != null)) {
       throw new IOException(LIST_STATUS_RESULT_INCORRECT);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void mkdirs() throws IOException {
-    mFailedTestName = "mkdirs";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for creating directory.
+   */
+  public void mkdirsTest() throws IOException {
     // make sure the underfs address dir exists already
     mUfs.mkdirs(mTopLevelTestDirectory);
     // empty lsr should be empty
@@ -819,12 +677,12 @@ public final class UnderFileSystemCommonOperations {
         && mUfs.isDirectory(testDir3) && mUfs.isDirectory(testDirDeep))) {
       throw new IOException(IS_DIRECTORY_CHECK_SHOULD_SUCCEED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void objectCommonPrefixesIsDirectory() throws IOException {
-    mFailedTestName = "objectCommonPrefixesIsDirectory";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for checking directory in object storage.
+   */
+  public void objectCommonPrefixesIsDirectoryTest() throws IOException {
     // Only run test for an object store
     if (!mUfs.isObjectStorage()) {
       return;
@@ -844,12 +702,12 @@ public final class UnderFileSystemCommonOperations {
         throw new IOException(IS_DIRECTORY_CHECK_SHOULD_SUCCEED);
       }
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void objectCommonPrefixesListStatusNonRecursive() throws IOException {
-    mFailedTestName = "objectCommonPrefixesListStatusNonRecursive";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for listing status non recursively in object storage.
+   */
+  public void objectCommonPrefixesListStatusNonRecursiveTest() throws IOException {
     // Only run test for an object store
     if (!mUfs.isObjectStorage()) {
       return;
@@ -887,12 +745,12 @@ public final class UnderFileSystemCommonOperations {
         throw new IOException(LIST_STATUS_RESULT_INCORRECT);
       }
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void objectCommonPrefixesListStatusRecursive() throws IOException {
-    mFailedTestName = "objectCommonPrefixesListStatusRecursive";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for listing status recursively in object storage.
+   */
+  public void objectCommonPrefixesListStatusRecursiveTest() throws IOException {
     // Only run test for an object store
     if (!mUfs.isObjectStorage()) {
       return;
@@ -946,12 +804,12 @@ public final class UnderFileSystemCommonOperations {
         }
       }
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void objectNestedDirsListStatusRecursive() throws IOException {
-    mFailedTestName = "objectNestedDirsListStatusRecursive";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for listing status recursively in nested directory in object storage.
+   */
+  public void objectNestedDirsListStatusRecursiveTest() throws IOException {
     // Only run test for an object store
     if (!mUfs.isObjectStorage()) {
       return;
@@ -998,12 +856,12 @@ public final class UnderFileSystemCommonOperations {
         || !Arrays.equals(expectedStatus, actualStatus)) {
       throw new IOException(LIST_STATUS_RESULT_INCORRECT);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void renameFile() throws IOException {
-    mFailedTestName = "renameFile";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for renaming file.
+   */
+  public void renameFileTest() throws IOException {
     String testFileSrc = PathUtils.concatPath(mTopLevelTestDirectory, "renameFileSrc");
     String testFileDst = PathUtils.concatPath(mTopLevelTestDirectory, "renameFileDst");
     createEmptyFile(testFileSrc);
@@ -1014,12 +872,12 @@ public final class UnderFileSystemCommonOperations {
     if (!mUfs.isFile(testFileDst)) {
       throw new IOException(IS_FAIL_CHECK_SHOULD_SUCCEED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void renameRenamableFile() throws IOException {
-    mFailedTestName = "renameRenamableFile";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for renaming renamable file.
+   */
+  public void renameRenamableFileTest() throws IOException {
     String testFileSrc = PathUtils.concatPath(mTopLevelTestDirectory, "renameFileSrc");
     String testFileDst = PathUtils.concatPath(mTopLevelTestDirectory, "renameFileDst");
     prepareMultiBlockFile(testFileSrc);
@@ -1030,12 +888,12 @@ public final class UnderFileSystemCommonOperations {
     if (!mUfs.isFile(testFileDst)) {
       throw new IOException(IS_FAIL_CHECK_SHOULD_SUCCEED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void renameDirectory() throws IOException {
-    mFailedTestName = "renameDirectory";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for renaming directory.
+   */
+  public void renameDirectoryTest() throws IOException {
     String testDirSrc = PathUtils.concatPath(mTopLevelTestDirectory, "renameDirectorySrc");
     String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
     String testDirDst = PathUtils.concatPath(mTopLevelTestDirectory, "renameDirectoryDst");
@@ -1055,12 +913,12 @@ public final class UnderFileSystemCommonOperations {
     if (!mUfs.isFile(testDirDstChild)) {
       throw new IOException(IS_FAIL_CHECK_SHOULD_SUCCEED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void renameDirectoryDeep() throws IOException {
-    mFailedTestName = "renameDirectoryDeep";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for renaming deep directory.
+   */
+  public void renameDirectoryDeepTest() throws IOException {
     String testDirSrc = PathUtils.concatPath(mTopLevelTestDirectory, "renameDirectoryDeepSrc");
     String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
     String testDirSrcNested = PathUtils.concatPath(testDirSrc, "testNested");
@@ -1091,12 +949,12 @@ public final class UnderFileSystemCommonOperations {
     if (!mUfs.isFile(testDirDstChild) || !mUfs.isFile(testDirDstNestedChild)) {
       throw new IOException(IS_FAIL_CHECK_SHOULD_SUCCEED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void renameRenameableDirectory() throws IOException {
-    mFailedTestName = "renameRenameableDirectory";
-    LOG.info("Running test: " + mFailedTestName);
+  /**
+   * Test for renaming renamable directory.
+   */
+  public void renameRenamableDirectoryTest() throws IOException {
     String testDirSrc = PathUtils.concatPath(mTopLevelTestDirectory, "renameRenamableDirectorySrc");
     String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
     String testDirSrcNested = PathUtils.concatPath(testDirSrc, "testNested");
@@ -1127,13 +985,13 @@ public final class UnderFileSystemCommonOperations {
     if (!mUfs.isFile(testDirDstChild) || !mUfs.isFile(testDirDstNestedChild)) {
       throw new IOException(IS_FAIL_CHECK_SHOULD_SUCCEED);
     }
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
-  private void renameLargeDirectory() throws Exception {
-    mFailedTestName = "renameLargeDirectory";
-    LOG.info("Running test: " + mFailedTestName);
-    LargeDirectoryConfig config = prepareLargeDirectoryTest();
+  /**
+   * Test for renaming large directory.
+   */
+  public void renameLargeDirectoryTest() throws Exception {
+    LargeDirectoryConfig config = prepareLargeDirectory();
     String dstTopLevelDirectory = PathUtils.concatPath(mTopLevelTestDirectory, "topLevelDirMoved");
     mUfs.renameDirectory(config.getTopLevelDirectory(), dstTopLevelDirectory);
     // 1. Check the src directory no longer exists
@@ -1172,7 +1030,6 @@ public final class UnderFileSystemCommonOperations {
       }
       return true;
     }, WaitForOptions.defaults().setTimeoutMs(10000).setInterval(500));
-    CliUtils.cleanup(mUfs, mTopLevelTestDirectory);
   }
 
   private void createEmptyFile(String path) throws IOException {
@@ -1187,7 +1044,7 @@ public final class UnderFileSystemCommonOperations {
   }
 
   // Prepare directory tree for pagination tests
-  private LargeDirectoryConfig prepareLargeDirectoryTest() throws IOException {
+  private LargeDirectoryConfig prepareLargeDirectory() throws IOException {
     final String filePrefix = "a_";
     final String folderPrefix = "b_";
 

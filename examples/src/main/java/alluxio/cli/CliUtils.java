@@ -13,16 +13,9 @@ package alluxio.cli;
 
 import alluxio.Constants;
 
-import alluxio.underfs.UfsFileStatus;
-import alluxio.underfs.UfsStatus;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.io.PathUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.concurrent.Callable;
 
 /**
@@ -62,24 +55,5 @@ public final class CliUtils {
     }
     CliUtils.printPassInfo(result);
     return result;
-  }
-
-  /**
-   * Cleans all the files or sub directories inside the given directory
-   * in the under filesystem.
-   *
-   * @param ufs the under filesystem
-   * @param directory the directory to clean
-   */
-  public static void cleanup(UnderFileSystem ufs, String directory) throws IOException {
-    UfsStatus[] statuses = ufs.listStatus(directory);
-    for (UfsStatus status : statuses) {
-      if (status instanceof UfsFileStatus) {
-        ufs.deleteFile(PathUtils.concatPath(directory, status.getName()));
-      } else {
-        ufs.deleteDirectory(PathUtils.concatPath(directory, status.getName()),
-            DeleteOptions.defaults().setRecursive(true));
-      }
-    }
   }
 }
