@@ -588,6 +588,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_WEB_HEADER_LAST_MODIFIED =
+      new Builder(Name.UNDERFS_WEB_HEADER_LAST_MODIFIED)
+          .setDefaultValue("EEE, dd MMM yyyy HH:mm:ss zzz")
+          .setDescription("Date format of last modified for a http response header.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_WEB_CONNECTION_TIMEOUT =
+      new Builder(Name.UNDERFS_WEB_CONNECTION_TIMEOUT)
+          .setDefaultValue("60s")
+          .setDescription("Default timeout for a http connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_WEB_PARENT_NAMES =
+      new Builder(Name.UNDERFS_WEB_PARENT_NAMES)
+          .setDefaultValue("Parent Directory,..,../")
+          .setDescription("The text of the http link for the parent directory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_WEB_TITLES =
+      new Builder(Name.UNDERFS_WEB_TITLES)
+          .setDefaultValue("Index of ,Directory listing for ")
+          .setDescription("The title of the content for a http url.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE =
       new Builder(Name.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE)
           .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
@@ -3566,6 +3594,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_WEB_HEADER_LAST_MODIFIED =
+        "alluxio.underfs.web.header.last.modified";
+    public static final String UNDERFS_WEB_CONNECTION_TIMEOUT =
+        "alluxio.underfs.web.connnection.timeout";
+    public static final String UNDERFS_WEB_PARENT_NAMES = "alluxio.underfs.web.parent.names";
+    public static final String UNDERFS_WEB_TITLES = "alluxio.underfs.web.titles";
     public static final String UNDERFS_VERSION = "alluxio.underfs.version";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
         "alluxio.underfs.object.store.service.threads";
