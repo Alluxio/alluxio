@@ -20,7 +20,6 @@ import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.util.FormatUtils;
 import alluxio.util.ThreadFactoryUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -117,12 +116,10 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     // Parse arguments.
     int parallelism = FileSystemShellUtils.getIntArg(cl, PARALLELISM_OPTION, DEFAULT_PARALLELISM);
-    int timeoutMs = FileSystemShellUtils.getIntArg(cl, TIMEOUT_OPTION, DEFAULT_TIMEOUT);
-    long persistenceWaitTime = cl.hasOption(WAIT_OPTION.getLongOpt())
-        ? FormatUtils.parseTimeSize(cl.getOptionValue(WAIT_OPTION.getLongOpt()))
-        : DEFAULT_WAIT_TIME;
+    int timeoutMs = (int) FileSystemShellUtils.getMsArg(cl, TIMEOUT_OPTION, DEFAULT_TIMEOUT);
+    long persistenceWaitTimeMs = FileSystemShellUtils.getMsArg(cl, WAIT_OPTION, DEFAULT_WAIT_TIME);
 
-    if (persistenceWaitTime < 0) {
+    if (persistenceWaitTimeMs < 0) {
       System.out.println("Persistence initial wait time should be bigger than or equal to 0.");
       return -1;
     }
@@ -152,7 +149,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
     List<Future<Void>> futures = new ArrayList<>(parallelism);
     for (int i = 0; i < parallelism; i++) {
       futures.add(service.submit(new PersistCallable(toPersist, totalFiles, completedFiles,
-          progressLock, persistenceWaitTime, timeoutMs)));
+          progressLock, persistenceWaitTimeMs, timeoutMs)));
     }
 
     // Await result.

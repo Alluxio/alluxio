@@ -238,6 +238,23 @@ public final class FileSystemShellUtils {
   }
 
   /**
+   * Gets the value of an option from the command line.
+   *
+   * @param cl command line object
+   * @param option the option to check for in the command line
+   * @param defaultValue default value for the option
+   * @return argument from command line or default if not present
+   */
+  public static long getMsArg(CommandLine cl, Option option, long defaultValue) {
+    long arg = defaultValue;
+    if (cl.hasOption(option.getLongOpt())) {
+      String argOption = cl.getOptionValue(option.getLongOpt());
+      arg = FormatUtils.parseTimeSize(argOption);
+    }
+    return arg;
+  }
+
+  /**
    * Gets all {@link Command} instances in the same package as {@link FileSystemShell} and load them
    * into a map. Provides a way to gain these commands information by their CommandName.
    *

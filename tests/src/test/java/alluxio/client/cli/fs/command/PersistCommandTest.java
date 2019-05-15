@@ -264,6 +264,23 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
   }
 
   @Test
+  public void persistWithWaitTimeTest() throws Exception {
+    String filePath = "/testPersistWaitTime/testFile";
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.MUST_CACHE, 10);
+    int ret = mFsShell.run("persist", "--wait", "1s", "/*");
+    Assert.assertEquals(0, ret);
+    checkFilePersisted(new AlluxioURI(filePath), 10);
+  }
+
+  @Test
+  public void persistWithWaitTimeBiggerThanTimeoutTest() throws Exception {
+    String filePath = "/testPersistWaitTimeValid/testFile";
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.MUST_CACHE, 10);
+    int ret = mFsShell.run("persist", "--wait", "2s", "--timeout", "1s", "/*");
+    Assert.assertEquals(-1, ret);
+  }
+
+  @Test
   public void persistShortTimeout() throws Exception {
     shortTimeoutTest("--timeout");
   }

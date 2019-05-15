@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
@@ -176,7 +177,8 @@ public class FileOutStream extends AbstractOutStream {
         }
       }
 
-      if (!mCanceled && mUnderStorageType.isAsyncPersist()) {
+      if (!mCanceled && mUnderStorageType.isAsyncPersist()
+          && mOptions.getPersistenceWaitTime() != Constants.NO_AUTO_PERSIST) {
         // only schedule the persist for completed files.
         scheduleAsyncPersist();
       }
