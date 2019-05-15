@@ -88,13 +88,17 @@ public class FileOutStream extends AbstractOutStream {
    */
   public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context)
       throws IOException {
+    mContext = context;
     mCloser = Closer.create();
+    // Acquire a lock to block FileSystemContext reinitialization, this needs to be done before
+    // using mContext.
+    // The lock will be released in close().
+    mCloser.register(mContext.acquireBlockReinitLockResource());
     mUri = Preconditions.checkNotNull(path, "path");
     mBlockSize = options.getBlockSizeBytes();
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mOptions = options;
-    mContext = context;
     mBlockStore = AlluxioBlockStore.create(mContext);
     mPreviousBlockOutStreams = new ArrayList<>();
     mClosed = false;

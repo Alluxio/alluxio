@@ -18,6 +18,7 @@ import alluxio.master.journalv0.JournalFormatter;
 import alluxio.master.journalv0.JournalReader;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.URIUtils;
 
 import java.io.IOException;
@@ -129,7 +130,8 @@ public class UfsJournal implements Journal {
 
   @Override
   public boolean isFormatted() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(mLocation, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(mLocation.toString(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     UfsStatus[] files = ufs.listStatus(mLocation.toString());
     if (files == null) {
       return false;

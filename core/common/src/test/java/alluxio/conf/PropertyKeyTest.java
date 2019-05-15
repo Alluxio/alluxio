@@ -9,16 +9,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.conf;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.DefaultSupplier;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Builder;
 import alluxio.conf.PropertyKey.Template;
+import alluxio.conf.RemovedKey;
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.After;
@@ -230,12 +232,7 @@ public final class PropertyKeyTest {
 
   @Test
   public void isDeprecated() throws Exception {
-    assertFalse(PropertyKey.isDeprecated("VERSION"));
-  }
-
-  @Test
-  public void isDeprecatedExceptionThrown() throws Exception {
-    assertFalse(PropertyKey.isDeprecated("foo"));
+    assertFalse(PropertyKey.isDeprecated("alluxio.version"));
   }
 
   @Test
@@ -294,5 +291,14 @@ public final class PropertyKeyTest {
           "Property keys cannot have a default value of \"\". Offending key: %s", key.getName()),
           key.getDefaultValue(), "");
     }
+  }
+
+  @Test
+  public void testKeyIsDeprecatedOrRemoved() throws Exception {
+    assertTrue(PropertyKey.isDeprecated(PropertyKey.TEST_DEPRECATED_KEY.getName()));
+    assertTrue(PropertyKey.isDeprecated(PropertyKey.TEST_DEPRECATED_KEY));
+
+    assertTrue(PropertyKey.isDeprecated(Template.TEST_DEPRECATED_TEMPLATE.format("removed")));
+    assertTrue(PropertyKey.isRemoved(RemovedKey.Name.TEST_REMOVED_KEY));
   }
 }

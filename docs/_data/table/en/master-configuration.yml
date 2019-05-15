@@ -1,5 +1,3 @@
-alluxio.master.activesync.batchinterval:
-  'Time interval to batch incoming events for active syncing UFS'
 alluxio.master.activesync.eventrate.interval:
   'The time interval we use to estimate incoming event rate'
 alluxio.master.activesync.interval:
@@ -10,8 +8,6 @@ alluxio.master.activesync.maxage:
   'The maximum number of intervals we will wait to find a quiet period before we have to sync the directories'
 alluxio.master.activesync.polltimeout:
   'Max time to wait before timing out a polling operation'
-alluxio.master.activesync.retry.timeout:
-  'Retry period before active ufs syncer gives up on connecting to the ufs'
 alluxio.master.activesync.threadpoolsize:
   'Max number of threads used to perform active sync'
 alluxio.master.audit.logging.enabled:
@@ -20,6 +16,8 @@ alluxio.master.audit.logging.queue.capacity:
   'Capacity of the queue used by audit logging.'
 alluxio.master.backup.directory:
   'Default directory for writing master metadata backups. This path is an absolute path of the root UFS. For example, if the root ufs directory is hdfs://host:port/alluxio/data, the default backup directory will be hdfs://host:port/alluxio_backups.'
+alluxio.master.backup.entry.buffer.count:
+  'How many journal entries to buffer during a back-up.'
 alluxio.master.bind.host:
   'The hostname that Alluxio master binds to.'
 alluxio.master.connection.timeout:
@@ -38,8 +36,12 @@ alluxio.master.embedded.journal.heartbeat.interval:
   'The period between sending heartbeats from the embedded journal primary to followers. This should be less than half of the election timeout (alluxio.master.embedded.journal.election.timeout).'
 alluxio.master.embedded.journal.port:
   'The port to use for embedded journal communication with other masters.'
+alluxio.master.embedded.journal.shutdown.timeout:
+  'Maximum time to wait for embedded journal to stop on shutdown.'
 alluxio.master.embedded.journal.storage.level:
   'The storage level for storing embedded journal logs. Use DISK for maximum durability. Use MAPPED for better performance, but some risk of losing state in case of power loss or host failure. Use MEMORY for optimal performance, but no state persistence across cluster restarts.'
+alluxio.master.embedded.journal.triggered.snapshot.wait.timeout:
+  'Maximum time to wait for the triggered snapshot to finish.'
 alluxio.master.executor.fork.pool.keepalive.ms:
   'Master RPC executor service threads keep alive time.'
 alluxio.master.executor.fork.pool.size.core:
@@ -74,8 +76,6 @@ alluxio.master.journal.flush.timeout:
   'The amount of time to keep retrying journal writes before giving up and shutting down the master.'
 alluxio.master.journal.folder:
   'The path to store master journal logs. When using the UFS journal this could be a URI like hdfs://namenode:port/alluxio/journal. When using the embedded journal this must be a local path'
-alluxio.master.journal.formatter.class:
-  'The class to serialize the journal in a specified format.'
 alluxio.master.journal.gc.period:
   'Frequency with which to scan for and delete stale journal checkpoints.'
 alluxio.master.journal.gc.threshold:
@@ -122,8 +122,12 @@ alluxio.master.metastore.inode.cache.low.water.mark.ratio:
   'The low water mark for the inode cache, as a ratio from low water mark to total cache size. If this is 0.8 and the max size is 10 million, the low water mark value is 8 million. When the cache reaches the high water mark, the eviction process will evict down to the low water mark.'
 alluxio.master.metastore.inode.cache.max.size:
   'The number of inodes to cache on-heap. This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable the on-heap inode cache'
+alluxio.master.metastore.inode.enumerator.buffer.count:
+  'The number of entries to buffer during read-ahead enumeration.'
 alluxio.master.metastore.inode.inherit.owner.and.group:
   'Whether to inherit the owner/group from the parent when creating a new inode path if empty'
+alluxio.master.metastore.inode.iteration.crawler.count:
+  'The number of threads used during inode tree enumeration.'
 alluxio.master.metrics.time.series.interval:
   'Interval for which the master records metrics information. This affects the granularity of the metrics graphed in the UI.'
 alluxio.master.mount.table.root.alluxio:

@@ -237,7 +237,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public void rename(final AlluxioURI src, final AlluxioURI dst)
       throws AlluxioStatusException {
-    rename(src, dst, FileSystemOptions.renameDefaults(mContext.getConf()));
+    rename(src, dst, FileSystemOptions.renameDefaults(mContext.getClusterConf()));
   }
 
   @Override

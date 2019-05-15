@@ -52,6 +52,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.time.ExponentialTimer;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -198,8 +199,8 @@ public final class PersistenceTest {
       fileInfo = mFileSystemMaster.getFileInfo(testFile, GET_STATUS_CONTEXT);
       Map<Long, PersistJob> persistJobs = getPersistJobs();
       PersistJob job = persistJobs.get(fileInfo.getFileId());
-      UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath(),
-          ServerConfiguration.global());
+      UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath().toString(),
+          UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
       UnderFileSystemUtils.touch(ufs, job.getTempUfsPath());
     }
 
@@ -354,8 +355,8 @@ public final class PersistenceTest {
     {
       Map<Long, PersistJob> persistJobs = getPersistJobs();
       PersistJob job = persistJobs.get(info.getFileId());
-      UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath(),
-          ServerConfiguration.global());
+      UnderFileSystem ufs = UnderFileSystem.Factory.create(job.getTempUfsPath().toString(),
+          UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
       UnderFileSystemUtils.touch(ufs, job.getTempUfsPath());
     }
 
