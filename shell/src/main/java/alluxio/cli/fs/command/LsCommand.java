@@ -250,7 +250,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
         @Override
         public void run() {
           System.out.printf("Getting directory status of %s files or sub-directories "
-              + "may take a while.", pathStatus.getLength());
+              + "may take a while.%n", pathStatus.getLength());
         }
       }, 10000);
     }
