@@ -2750,7 +2750,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "to commit results.")
           .setScope(Scope.CLIENT)
           .build();
-<<<<<<< HEAD
   public static final PropertyKey USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME =
       new Builder(Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME)
           .setDefaultValue("0")
@@ -2762,16 +2761,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               Name.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.ASYNC_THROUGH,
               Name.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS))
           .build();
-  public static final PropertyKey USER_FILE_SEEK_BUFFER_SIZE_BYTES =
-      new Builder(Name.USER_FILE_SEEK_BUFFER_SIZE_BYTES)
-          .setDefaultValue("1MB")
-          .setDescription("The file seek buffer size. This is only used when "
-              + "alluxio.user.file.cache.partially.read.block is enabled.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-=======
->>>>>>> 9c74c07c44fab39fb2cc823fb5b8bb74e04a61d6
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
       new Builder(Name.USER_FILE_WAITCOMPLETED_POLL_MS)
           .setAlias(new String[]{"alluxio.user.file.waitcompleted.poll.ms"})
